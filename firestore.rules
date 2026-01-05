@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regla para weekly_entries (Ya existente)
+    match /weekly_entries/{entryId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // [NUEVO] Gestión de invitaciones
+    match /invites/{code} {
+      allow read, write: if request.auth != null;
+    }
+
+    // [NUEVO] Gestión de usuarios
+    match /user/{userId} {
+      allow read, write: if request.auth != null; 
+    }
+    
+    // Colección de diagnóstico
+    match /_diagnostic/{docId} {
+      allow read, write: if true;
+    }
+
+    // [NUEVO] GESTIÓN DE PROYECTOS
+    match /projects/{projectId} {
+      // Regla de Fase 3: Seguridad basada en equipos
+      // Permitir si es Admin, o si está en el equipo, o si el proyecto es público (sin teamIds)
+      allow read: if request.auth != null; 
+      // TODO: Activar estricto cuando se migren los datos:
+      // allow read: if request.auth != null && (resource.data.teamIds == null || resource.data.teamIds.size() == 0 || request.auth.uid in resource.data.teamIds);
+      
+      allow write: if request.auth != null;
+
+      // Subcolección de actualizaciones (The Update Object)
+      match /updates/{updateId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // [NUEVO] TAREAS (Action Items)
+    match /tasks/{taskId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

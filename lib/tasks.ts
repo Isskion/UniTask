@@ -1,0 +1,196 @@
+import { db } from "./firebase";
+import { collection, addDoc, updateDoc, doc, query, where, getDocs, orderBy, serverTimestamp, onSnapshot, limit } from "firebase/firestore";
+import { Task } from "@/types";
+
+const TASKS_COLLECTION = "tasks";
+
+export async function createTask(
+    taskData: Omit<Task, 'id' | 'createdAt' | 'friendlyId' | 'taskNumber'>,
+    userId: string,
+    projectNameForId?: string
+) {
+    try {
+        let friendlyId: string | undefined;
+        let taskNumber: number | undefined;
+
+        // Generate Friendly ID if Project ID is present
+        if (taskData.projectId && projectNameForId) {
+            // Get ALL tasks to calculate max (Avoids Index requirement for now)
+            // TODO: Create Index and revert to orderBy/limit for scale > 1000 tasks
+            const q = query(
+                collection(db, TASKS_COLLECTION),
+                where('projectId', '==', taskData.projectId)
+            );
+            const snapshot = await getDocs(q);
+
+            let maxNum = 0;
+            snapshot.forEach(doc => {
+                const num = doc.data().taskNumber || 0;
+                if (num > maxNum) maxNum = num;
+            });
+
+            taskNumber = maxNum + 1;
+
+            // Generate Prefix (First 3 chars of name, or 'TSK')
+            const prefix = projectNameForId.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
+            friendlyId = `${prefix}-${taskNumber}`;
+        }
+
+        const docRef = await addDoc(collection(db, TASKS_COLLECTION), {
+            ...taskData,
+            friendlyId: friendlyId || null,
+            taskNumber: taskNumber || null,
+            createdBy: userId,
+            createdAt: serverTimestamp(),
+            isActive: true,
+            status: 'pending'
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error("Error creating task:", error);
+        throw error;
+    }
+}
+
+export async function getTasksByWeek(weekId: string): Promise<Task[]> {
+    try {
+        const q = query(
+            collection(db, TASKS_COLLECTION),
+            where("weekId", "==", weekId),
+            where("isActive", "==", true)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+    } catch (error) {
+        console.error("Error fetching tasks for week:", error);
+        return [];
+    }
+}
+
+export async function getAllOpenTasks(): Promise<Task[]> {
+    try {
+        const q = query(
+            collection(db, TASKS_COLLECTION),
+            where("isActive", "==", true),
+            where("status", "in", ["pending", "blocked"])
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+    } catch (error) {
+        console.error("Error fetching open tasks:", error);
+        return [];
+    }
+}
+
+export function subscribeToOpenTasks(callback: (tasks: Task[]) => void) {
+    const q = query(
+        collection(db, TASKS_COLLECTION),
+        where("isActive", "==", true),
+        where("status", "in", ["pending", "blocked"])
+    );
+    return onSnapshot(q, (snapshot) => {
+        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        callback(tasks);
+    });
+}
+
+// Subscribe to tasks for a specific project (Real-time list for Editor)
+export function subscribeToProjectTasks(projectId: string, callback: (tasks: Task[]) => void) {
+    const q = query(
+        collection(db, TASKS_COLLECTION),
+        where("projectId", "==", projectId),
+        where("isActive", "==", true)
+        // orderBy("taskNumber", "desc") // REMOVED to avoid Index requirement
+    );
+    return onSnapshot(q, (snapshot) => {
+        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        // Sort in memory
+        tasks.sort((a, b) => (b.taskNumber || 0) - (a.taskNumber || 0));
+        callback(tasks);
+    });
+}
+
+
+export async function updateTaskStatus(taskId: string, status: 'pending' | 'completed' | 'blocked', userId: string) {
+    try {
+        const ref = doc(db, TASKS_COLLECTION, taskId);
+        const updateData: any = { status };
+
+        if (status === 'completed') {
+            updateData.closedAt = serverTimestamp();
+            updateData.closedBy = userId;
+        } else {
+            // Re-opening or blocking
+            updateData.closedAt = null;
+            updateData.closedBy = null;
+        }
+
+        await updateDoc(ref, updateData);
+    } catch (error) {
+        console.error("Error updating task status:", error);
+        throw error;
+    }
+}
+
+export async function toggleTaskBlock(taskId: string, isBlocked: boolean, userId: string) {
+    return updateTaskStatus(taskId, isBlocked ? 'blocked' : 'pending', userId);
+}
+
+export function subscribeToWeekTasks(weekId: string, callback: (tasks: Task[]) => void) {
+    const q = query(
+        collection(db, TASKS_COLLECTION),
+        where("weekId", "==", weekId),
+        where("isActive", "==", true)
+    );
+    return onSnapshot(q, (snapshot) => {
+        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        callback(tasks);
+    });
+}
+
+import { deleteDoc } from "firebase/firestore";
+
+// DANGER: Delete all tasks
+export async function deleteAllTasks() {
+    try {
+        const q = query(collection(db, TASKS_COLLECTION));
+        const snapshot = await getDocs(q);
+        const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        console.log("All tasks deleted.");
+    } catch (error) {
+        console.error("Error deleting tasks:", error);
+        throw error;
+    }
+}
+
+// Global Sort Comparator
+// 1. Blockers (High Priority)
+// 2. Descending ID (Newest First)
+export function sortTasks(tasks: Task[]): Task[] {
+    return [...tasks].sort((a, b) => {
+        // Priority: Blocked > Pending/Completed
+        const aBlocked = a.status === 'blocked';
+        const bBlocked = b.status === 'blocked';
+
+        if (aBlocked && !bBlocked) return -1;
+        if (!aBlocked && bBlocked) return 1;
+
+        // Secondary: Task Number Descending (Newest first)
+        const aNum = a.taskNumber || 0;
+        const bNum = b.taskNumber || 0;
+        return bNum - aNum;
+    });
+}
+// Subscribe to ALL active tasks (for global dashboard)
+export function subscribeToAllTasks(callback: (tasks: Task[]) => void) {
+    const q = query(
+        collection(db, TASKS_COLLECTION),
+        where("isActive", "==", true),
+        orderBy("createdAt", "desc")
+    );
+    return onSnapshot(q, (snapshot) => {
+        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        callback(tasks);
+    });
+}

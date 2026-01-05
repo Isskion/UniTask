@@ -1,0 +1,18 @@
+{
+  "id": "20251229",
+  "weekNumber": 1,
+  "year": 2025,
+  "pmNotes": "",
+  "conclusions": "",
+  "nextWeekTasks": "",
+  "projects": [
+    {
+      "name": "eup",
+      "pmNotes": "Europastry: datos maestros en líneas generales estamos OK.\n- A la espera de ellos a la confirmación de clientes para hacer la limpieza de geoposicionamiento de clientes - Daniel ya hizo el ajuste y ahora el cliente nos tiene que aprobar si están OK (seguimiento correo Dani)\n- Diego: Ver las tareas cerradas por Jorge y Daniel para actualizar Project y % avance de Construcción\n- Zonificación: simplemente que nos confirme Xavi o equipo Europ\n- IT estimaciones: aún reuniones pendientes para terminar de ver mapeos (hoy al 40% más o menos)\nAdemás hay una reunión interna con finanzas y negocio donde tienen que definir cosas\n- Cobranzas: REQ interno ya está armado pero hay nuevos casos que pueden llevar a afectar y PENDIENTES a revisar con Jordi",
+      "conclusions": "- A la espera de ellos a la confirmación de clientes para hacer la limpieza de geoposicionamiento de clientes - Daniel ya hizo el ajuste y ahora el cliente nos tiene que aprobar si están OK (seguimiento correo Dani)\n- Diego: Ver las tareas cerradas por Jorge y Daniel para actualizar Project y % avance de Construcción\n- Zonificación: simplemente que nos confirme Xavi o equipo Europ\n- IT estimaciones: aún reuniones pendientes para terminar de ver mapeos (hoy al 40% más o menos)\n- Cobranzas: REQ interno ya está armado pero hay nuevos casos que pueden llevar a afectar y PENDIENTES a revisar con Jordi",
+      "nextWeekTasks": "",
+      "status": "active"
+    }
+  ],
+  "createdAt": "2026-01-02T09:42:24.794Z"
+}
