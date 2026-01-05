@@ -73,7 +73,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
         <div className="flex h-screen bg-[#09090b] text-zinc-200 overflow-hidden font-sans selection:bg-[#D32F2F]/30">
 
             {/* SIDEBAR (Desktop) */}
-            <aside className="hidden lg:flex w-64 flex-col border-r border-white/5 bg-[#0c0c0e]">
+            <aside className="w-64 flex flex-col border-r border-white/5 bg-[#0c0c0e]">
                 {/* Header / User */}
                 <div className="h-14 flex items-center px-4 border-b border-white/5 gap-3">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D32F2F] to-orange-600 flex items-center justify-center shadow-lg shadow-red-900/20">
