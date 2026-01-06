@@ -163,7 +163,7 @@ export async function syncShadowProjects(entry: WeeklyEntry) {
                 content: {
                     pmNotes: p.pmNotes,
                     conclusions: p.conclusions,
-                    nextWeekTasks: p.nextWeekTasks,
+                    nextSteps: p.nextSteps,
                 },
 
                 // Metadata

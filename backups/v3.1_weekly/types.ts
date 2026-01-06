@@ -63,19 +63,12 @@ export interface UserProfile {
     assignedProjectIds?: string[];
 }
 
-export interface NoteBlock {
-    id: string; // "block-1"
-    title?: string;
-    content: string;
-}
-
 export interface ProjectEntry {
     projectId?: string; // Link to global project
     name: string; // Fallback or snapshotted name
     pmNotes: string;
     conclusions: string;
-    blocks?: NoteBlock[]; // New: Supports multiple note blocks
-    nextSteps: string;
+    nextWeekTasks: string;
     status?: 'active' | 'trash';
 }
 
@@ -101,7 +94,7 @@ export interface WeeklyEntry {
     // General / Global notes
     pmNotes: string;
     conclusions: string;
-    nextSteps: string;
+    nextWeekTasks: string;
 
     // Specific Projects
     projects: ProjectEntry[];
@@ -122,8 +115,7 @@ export interface Task {
     // Header Info
     title: string;         // Main "Headline" of the task
     description?: string;  // Detailed description (Optional now if title is main)
-    status: 'pending' | 'in_progress' | 'review' | 'completed';
-    isBlocking?: boolean; // New: Condition flag
+    status: 'pending' | 'in_progress' | 'review' | 'completed' | 'blocked';
 
     // Section 1: Requirements
     okrLink?: string;

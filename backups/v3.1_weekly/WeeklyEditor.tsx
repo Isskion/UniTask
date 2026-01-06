@@ -59,37 +59,19 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager'>('editor');
-    const [isHydrated, setIsHydrated] = useState(false);
-
-    // Hydration-safe initial load
-    useEffect(() => {
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks'>(() => {
+        // Safe check for window
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
             const view = params.get('view');
-
-            // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager') {
-                setViewMode(view);
-                setIsHydrated(true);
-                return;
-            }
-
-            // 2. Local Storage Fallback
-            const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager') {
-                setViewMode(saved);
-            }
-            setIsHydrated(true);
+            if (view === 'dashboard') return 'dashboard';
+            if (view === 'projects') return 'projects';
+            if (view === 'users') return 'users';
+            if (view === 'trash') return 'trash';
+            if (view === 'tasks') return 'tasks';
         }
-    }, [searchParams]);
-
-    // Persist View Mode
-    useEffect(() => {
-        if (isHydrated && typeof window !== 'undefined') {
-            localStorage.setItem('last_view_mode', viewMode);
-        }
-    }, [viewMode, isHydrated]);
+        return 'editor';
+    });
 
     const [entry, setEntry] = useState<WeeklyEntry>({
         id: "",
@@ -97,7 +79,7 @@ export default function WeeklyEditor() {
         year: 0,
         pmNotes: "",
         conclusions: "",
-        nextSteps: "",
+        nextWeekTasks: "",
         projects: [],
         createdAt: "",
     });
@@ -212,7 +194,7 @@ export default function WeeklyEditor() {
             year: yearNum,
             pmNotes: "Cargando...",
             conclusions: "Cargando...",
-            nextSteps: "Cargando...",
+            nextWeekTasks: "Cargando...",
             projects: [],
             createdAt: new Date().toISOString(),
         });
@@ -239,7 +221,7 @@ export default function WeeklyEditor() {
                     year: yearNum,
                     pmNotes: "",
                     conclusions: "",
-                    nextSteps: "",
+                    nextWeekTasks: "",
                     projects: [],
                     createdAt: new Date().toISOString(),
                 });
@@ -285,7 +267,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -328,11 +310,11 @@ export default function WeeklyEditor() {
             return {
                 pmNotes: entry.pmNotes,
                 conclusions: entry.conclusions,
-                nextSteps: entry.nextSteps,
+                nextWeekTasks: entry.nextWeekTasks,
             };
         }
         const project = entry.projects.find(p => p.name === activeTab);
-        return project || { pmNotes: "", conclusions: "", nextSteps: "" };
+        return project || { pmNotes: "", conclusions: "", nextWeekTasks: "" };
     };
 
     const updateCurrentData = (field: keyof ProjectEntry, value: string) => {
@@ -341,21 +323,9 @@ export default function WeeklyEditor() {
         } else {
             setEntry(prev => ({
                 ...prev,
-                projects: prev.projects.map(p => {
-                    if (p.name !== activeTab) return p;
-
-                    // Standard update
-                    const updatedProject = { ...p, [field]: value };
-
-                    // Sync PM Notes to Block 0 if blocks exist (Backward Compatibility)
-                    if (field === 'pmNotes' && p.blocks && p.blocks.length > 0) {
-                        const newBlocks = [...p.blocks];
-                        newBlocks[0] = { ...newBlocks[0], content: value };
-                        updatedProject.blocks = newBlocks;
-                    }
-
-                    return updatedProject;
-                })
+                projects: prev.projects.map(p =>
+                    p.name === activeTab ? { ...p, [field]: value } : p
+                )
             }));
         }
     };
@@ -382,7 +352,7 @@ export default function WeeklyEditor() {
                     projectId: projectToAdd.id, // clean linking
                     pmNotes: "",
                     conclusions: "",
-                    nextSteps: "",
+                    nextWeekTasks: "",
                     status: 'active'
                 }]
             }));
@@ -460,7 +430,7 @@ export default function WeeklyEditor() {
         }
 
         const currentConclusions = getCurrentData().conclusions;
-        const currentTasks = getCurrentData().nextSteps;
+        const currentTasks = getCurrentData().nextWeekTasks;
         const hasExistingData = currentConclusions.trim() || currentTasks.trim();
 
         if (hasExistingData) {
@@ -476,7 +446,7 @@ export default function WeeklyEditor() {
             setEntry(prev => ({
                 ...prev,
                 conclusions: result.conclusions,
-                nextSteps: result.nextWeekTasks
+                nextWeekTasks: result.nextWeekTasks
             }));
         } else {
             setEntry(prev => ({
@@ -485,7 +455,7 @@ export default function WeeklyEditor() {
                     p.name === activeTab ? {
                         ...p,
                         conclusions: result.conclusions,
-                        nextSteps: result.nextWeekTasks
+                        nextWeekTasks: result.nextWeekTasks
                     } : p
                 )
             }));
@@ -548,7 +518,6 @@ export default function WeeklyEditor() {
                     await createTask({
                         weekId: entry.id,
                         projectId,
-                        title: desc,
                         description: desc,
                         status: 'pending',
                         isActive: true, // explicit for types
@@ -625,9 +594,9 @@ export default function WeeklyEditor() {
     // -- Checkbox --
     const getPreviousContextText = () => {
         if (!previousEntry) return null;
-        if (activeTab === "General") return previousEntry.nextSteps;
+        if (activeTab === "General") return previousEntry.nextWeekTasks;
         const prevProject = previousEntry.projects?.find(p => p.name === activeTab);
-        return prevProject ? prevProject.nextSteps : null;
+        return prevProject ? prevProject.nextWeekTasks : null;
     };
 
     const previousContextText = getPreviousContextText();
@@ -647,9 +616,9 @@ export default function WeeklyEditor() {
         if (unfinished.length === 0) return;
 
         const textToAdd = unfinished.join('\n');
-        const currentText = getCurrentData().nextSteps;
+        const currentText = getCurrentData().nextWeekTasks;
         const newText = currentText ? currentText + '\n' + textToAdd : textToAdd;
-        updateCurrentData('nextSteps', newText);
+        updateCurrentData('nextWeekTasks', newText);
     };
 
     // -- Week List Generation --
@@ -683,15 +652,6 @@ export default function WeeklyEditor() {
     // Filter Active Projects using logic
     const activeProjects = getVisibleProjects();
     const trashedProjects = entry.projects.filter(p => p.status === 'trash');
-
-    // --- RENDER BLOCKER ---
-    if (!isHydrated) {
-        return (
-            <div className="h-screen bg-[#09090b] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
-            </div>
-        );
-    }
 
     return (
         <AppLayout viewMode={viewMode} onViewChange={handleViewSwitch}>
@@ -967,10 +927,10 @@ export default function WeeklyEditor() {
                                                         </button>
                                                     )}
                                                 </div>
-                                                {/* Reusing nextSteps field, but labeling as Tasks */}
+                                                {/* Reusing nextWeekTasks field, but labeling as Tasks */}
                                                 <textarea
-                                                    value={getCurrentData().nextSteps}
-                                                    onChange={(e) => updateCurrentData("nextSteps", e.target.value)}
+                                                    value={getCurrentData().nextWeekTasks}
+                                                    onChange={(e) => updateCurrentData("nextWeekTasks", e.target.value)}
                                                     className="w-full h-40 bg-[#0a0a0a] border border-zinc-800 rounded-xl p-4 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 resize-none font-mono shadow-inner"
                                                     placeholder="- [ ] Task..."
                                                 />
@@ -1025,11 +985,13 @@ export default function WeeklyEditor() {
                             <ProjectManagement />
                         )
                     }
+
                     {viewMode === 'users' && <UserManagement />}
 
                     {viewMode === 'task-manager' && <TaskManagement />}
 
                     {viewMode === 'tasks' && <TaskDashboard projects={globalProjects} />}
+
                     {
                         viewMode === 'trash' && (
                             <div className="p-8">

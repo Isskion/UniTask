@@ -67,7 +67,7 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
             if (projectTasks && projectTasks.length > 0) {
                 text += `## ${p.name}\n`;
                 projectTasks.forEach(t => {
-                    const statusIcon = t.status === 'completed' ? '[x]' : t.status === 'blocked' ? '[!]' : '[ ]';
+                    const statusIcon = t.status === 'completed' ? '[x]' : t.isBlocking ? '[!]' : '[ ]';
                     text += `- ${statusIcon} ${t.description} (${t.friendlyId || 'ID'})\n`;
                 });
                 text += `\n`;
@@ -184,7 +184,7 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
                                                 <div className="mt-0.5">
                                                     {task.status === 'completed' ? (
                                                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                                    ) : task.status === 'blocked' ? (
+                                                    ) : task.isBlocking ? (
                                                         <Ban className="w-4 h-4 text-red-500" />
                                                     ) : (
                                                         <Circle className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400" />
@@ -193,7 +193,7 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-0.5">
                                                         <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-1.5 rounded">{task.friendlyId || '###'}</span>
-                                                        {task.status === 'blocked' && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 rounded">BLOCKED</span>}
+                                                        {task.isBlocking && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 rounded">BLOCKED</span>}
                                                     </div>
                                                     <p className={`text-sm ${task.status === 'completed' ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
                                                         {task.description}

@@ -22,8 +22,8 @@ import { useAuth } from "@/context/AuthContext";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager') => void;
 }
 
 export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) {
@@ -92,9 +92,10 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                     <div className="space-y-1">
                         <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">Workspace</p>
                         <NavItem mode="dashboard" icon={Inbox} label="Inbox / Dashboard" />
-                        <NavItem mode="editor" icon={Briefcase} label="My Work" />
+                        <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
                         <NavItem mode="projects" icon={FolderGit2} label="Projects" />
-                        <NavItem mode="tasks" icon={ClipboardList} label="All Tasks" />
+                        <NavItem mode="task-manager" icon={ClipboardList} label="Task Manager (ABM)" />
+                        <NavItem mode="tasks" icon={Layout} label="All Tasks (Board)" />
                     </div>
 
                     {/* Secondary */}
@@ -150,7 +151,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                             <span className="text-zinc-600">Workspace</span>
                             <span className="text-zinc-700">/</span>
                             <span className="text-white font-medium capitalize">
-                                {viewMode === 'editor' ? 'My Work' : viewMode}
+                                {viewMode === 'editor' ? 'Follow-Up' : viewMode}
                             </span>
                         </div>
                     </div>
@@ -170,7 +171,10 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-3">
-                        <button className="p-2 text-zinc-500 hover:text-white transition-colors relative">
+                        <button
+                            onClick={() => alert("Notificaciones: Próximamente")}
+                            className="p-2 text-zinc-500 hover:text-white transition-colors relative"
+                        >
                             <Bell className="w-5 h-5" />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#09090b]"></span>
                         </button>
@@ -195,7 +199,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                         </div>
                         <div className="space-y-1">
                             <NavItem mode="dashboard" icon={Inbox} label="Inbox" />
-                            <NavItem mode="editor" icon={Briefcase} label="My Work" />
+                            <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
                             <NavItem mode="projects" icon={FolderGit2} label="Projects" />
                             <NavItem mode="users" icon={Users} label="People" />
                         </div>

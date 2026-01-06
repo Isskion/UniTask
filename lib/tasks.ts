@@ -43,7 +43,7 @@ export async function createTask(
             createdBy: userId,
             createdAt: serverTimestamp(),
             isActive: true,
-            status: 'pending'
+            status: taskData.status || 'pending'
         });
         return docRef.id;
     } catch (error) {
@@ -72,7 +72,7 @@ export async function getAllOpenTasks(): Promise<Task[]> {
         const q = query(
             collection(db, TASKS_COLLECTION),
             where("isActive", "==", true),
-            where("status", "in", ["pending", "blocked"])
+            where("status", "!=", "completed") // Requires index usually, if not fallback to client filter
         );
         const snapshot = await getDocs(q);
         return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
@@ -86,7 +86,7 @@ export function subscribeToOpenTasks(callback: (tasks: Task[]) => void) {
     const q = query(
         collection(db, TASKS_COLLECTION),
         where("isActive", "==", true),
-        where("status", "in", ["pending", "blocked"])
+        where("status", "!=", "completed")
     );
     return onSnapshot(q, (snapshot) => {
         const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
@@ -111,7 +111,7 @@ export function subscribeToProjectTasks(projectId: string, callback: (tasks: Tas
 }
 
 
-export async function updateTaskStatus(taskId: string, status: 'pending' | 'completed' | 'blocked', userId: string) {
+export async function updateTaskStatus(taskId: string, status: 'pending' | 'completed', userId: string) {
     try {
         const ref = doc(db, TASKS_COLLECTION, taskId);
         const updateData: any = { status };
@@ -132,8 +132,14 @@ export async function updateTaskStatus(taskId: string, status: 'pending' | 'comp
     }
 }
 
-export async function toggleTaskBlock(taskId: string, isBlocked: boolean, userId: string) {
-    return updateTaskStatus(taskId, isBlocked ? 'blocked' : 'pending', userId);
+export async function toggleTaskBlock(taskId: string, isBlocking: boolean, userId: string) {
+    try {
+        const ref = doc(db, TASKS_COLLECTION, taskId);
+        await updateDoc(ref, { isBlocking });
+    } catch (error) {
+        console.error("Error toggling block:", error);
+        throw error;
+    }
 }
 
 export function subscribeToWeekTasks(weekId: string, callback: (tasks: Task[]) => void) {
@@ -169,12 +175,12 @@ export async function deleteAllTasks() {
 // 2. Descending ID (Newest First)
 export function sortTasks(tasks: Task[]): Task[] {
     return [...tasks].sort((a, b) => {
-        // Priority: Blocked > Pending/Completed
-        const aBlocked = a.status === 'blocked';
-        const bBlocked = b.status === 'blocked';
+        // Priority: Blocking > Pending/In Progress
+        const aBlock = a.isBlocking || false;
+        const bBlock = b.isBlocking || false;
 
-        if (aBlocked && !bBlocked) return -1;
-        if (!aBlocked && bBlocked) return 1;
+        if (aBlock && !bBlock) return -1;
+        if (!aBlock && bBlock) return 1;
 
         // Secondary: Task Number Descending (Newest first)
         const aNum = a.taskNumber || 0;
