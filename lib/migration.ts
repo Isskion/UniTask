@@ -64,7 +64,7 @@ export async function migrateAllData(onProgress: (log: MigrationLog) => void): P
                             type: 'weekly',
                             content: {
                                 notes: p.pmNotes || "",
-                                nextSteps: p.nextWeekTasks ? p.nextWeekTasks.split('\n').filter(t => t.trim().length > 0) : [],
+                                nextSteps: p.nextSteps ? p.nextSteps.split('\n').filter(t => t.trim().length > 0) : [],
                                 blockers: "", // Legacy didn't have specific blockers field
                                 flags: []
                             },
