@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { JournalEntry, Task } from '@/types';
+import { JournalEntry, Task, UserProfile } from '@/types';
 import { Activity, AlertTriangle, Zap, Ban, CheckCircle2, Circle, TrendingUp, BarChart3, Layers, Calendar, CalendarDays, Filter } from 'lucide-react';
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
@@ -12,11 +12,13 @@ import { es } from 'date-fns/locale';
 interface DashboardProps {
     entry: JournalEntry;
     globalProjects?: { id: string, name: string }[];
+    userProfile?: UserProfile | null;
+    userRole?: string | null;
 }
 
 type TimeScope = 'day' | 'week' | 'month' | 'year';
 
-export default function Dashboard({ entry, globalProjects = [] }: DashboardProps) {
+export default function Dashboard({ entry, globalProjects = [], userProfile, userRole }: DashboardProps) {
     const { user } = useAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
@@ -63,6 +65,18 @@ export default function Dashboard({ entry, globalProjects = [] }: DashboardProps
         }
     };
 
+    // Calculate Allowed Projects
+    const allowedProjectIds = useMemo(() => {
+        if (userRole === 'app_admin' || userRole === 'global_pm') return null; // All projects allowed
+        return userProfile?.assignedProjectIds || [];
+    }, [userRole, userProfile]);
+
+    // Filter Global Projects for Dropdown
+    const availableGlobalProjects = useMemo(() => {
+        if (!allowedProjectIds) return globalProjects;
+        return globalProjects.filter(p => allowedProjectIds.includes(p.id));
+    }, [globalProjects, allowedProjectIds]);
+
     // Filter Tasks (Memoized & Protected)
     const filteredTasks = useMemo(() => {
         if (!entry || !entry.date) return [];
@@ -76,6 +90,11 @@ export default function Dashboard({ entry, globalProjects = [] }: DashboardProps
             }
 
             return tasks.filter(task => {
+                // Permission Filter
+                if (allowedProjectIds && (!task.projectId || !allowedProjectIds.includes(task.projectId))) {
+                    return false;
+                }
+
                 const taskDate = getTaskDate(task);
                 if (!taskDate) return false;
 

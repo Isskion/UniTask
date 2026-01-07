@@ -12,6 +12,7 @@ interface AuthContextType {
     userRole: string | null;
     loginWithGoogle: () => Promise<void>;
     loginWithEmail: (email: string, password: string) => Promise<void>;
+    registerWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -124,12 +125,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const registerWithEmail = async (email: string, password: string, displayName: string) => {
+        try {
+            const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+            // Set Display Name immediately so Firestore listener picks it up
+            await updateProfile(userCredential.user, {
+                displayName: displayName
+            });
+
+            // Note: The onAuthStateChanged listener in useEffect above handles creating the 
+            // Firestore document and processing any Invite Code found in the URL.
+
+        } catch (error: any) {
+            console.error("Registration failed", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         await signOut(auth);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, userRole, loginWithGoogle, loginWithEmail, logout }}>
+        <AuthContext.Provider value={{ user, loading, userRole, loginWithGoogle, loginWithEmail, registerWithEmail, logout }}>
             {children}
         </AuthContext.Provider>
     );

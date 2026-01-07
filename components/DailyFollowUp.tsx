@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import { saveJournalEntry, getJournalEntry, getRecentJournalEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, collection, getDocs, query } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2 } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { summarizeNotesWithAI } from "@/app/ai-actions";
 import UserManagement from "./UserManagement";
@@ -21,7 +21,7 @@ import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 
 export default function DailyFollowUp() {
-    const { userRole, user, loading: authLoading, loginWithGoogle, loginWithEmail } = useAuth();
+    const { userRole, user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
 
@@ -165,6 +165,14 @@ export default function DailyFollowUp() {
 
     const [recentEntries, setRecentEntries] = useState<JournalEntry[]>([]); // Rich history with Full Entry data
 
+    // Permission Logic
+    const allowedProjectNames = useMemo(() => {
+        if (userRole === 'app_admin' || userRole === 'global_pm') return null; // All allowed
+        if (!userProfile) return new Set<string>();
+        const assignedIds = userProfile.assignedProjectIds || [];
+        return new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.name));
+    }, [userRole, userProfile, globalProjects]);
+
     // AI State
     const [isAILoading, setIsAILoading] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -172,6 +180,10 @@ export default function DailyFollowUp() {
 
     // Manual Task State
     const [newTaskText, setNewTaskText] = useState("");
+
+    // Auth UI State
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // 1. Initial Load (User & Projects)
     useEffect(() => {
@@ -615,16 +627,79 @@ export default function DailyFollowUp() {
                         </div>
                     </div>
 
+                    <div className="flex justify-center mb-4 gap-4">
+                        <button
+                            onClick={() => setIsRegistering(false)}
+                            className={cn("text-sm pb-1", !isRegistering ? "text-white border-b-2 border-[#D32F2F] font-bold" : "text-zinc-500")}
+                        >
+                            Iniciar Sesión
+                        </button>
+                        <button
+                            onClick={() => setIsRegistering(true)}
+                            className={cn("text-sm pb-1", isRegistering ? "text-white border-b-2 border-[#D32F2F] font-bold" : "text-zinc-500")}
+                        >
+                            Crear Cuenta
+                        </button>
+                    </div>
+
                     <form onSubmit={(e) => {
                         e.preventDefault();
-                        const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
-                        const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
-                        loginWithEmail(email, password).catch(err => alert(err.message));
+                        const formData = new FormData(e.currentTarget);
+                        const email = formData.get('email') as string;
+                        const password = formData.get('password') as string;
+                        const name = formData.get('name') as string;
+
+                        if (isRegistering) {
+                            const confirmPassword = formData.get('confirmPassword') as string;
+                            if (!name) return alert("El nombre es requerido");
+                            if (password !== confirmPassword) return alert("Las contraseñas no coinciden");
+                            if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres");
+
+                            if (registerWithEmail) {
+                                registerWithEmail(email, password, name).catch((err: any) => alert(err.message));
+                            } else {
+                                alert("Error: Función de registro no disponible. Recarga la página.");
+                            }
+                        } else {
+                            loginWithEmail(email, password).catch(err => alert(err.message));
+                        }
                     }} className="space-y-3">
+                        {isRegistering && (
+                            <input name="name" type="text" placeholder="Tu Nombre Completo" required className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600 animate-in fade-in slide-in-from-top-1" />
+                        )}
                         <input name="email" type="email" placeholder="Email" required className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600" />
-                        <input name="password" type="password" placeholder="Contraseña" required className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600" />
+
+                        <div className="relative">
+                            <input
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Contraseña"
+                                required
+                                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                            >
+                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+
+                        {isRegistering && (
+                            <div className="relative animate-in fade-in slide-in-from-top-1">
+                                <input
+                                    name="confirmPassword"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Confirmar Contraseña"
+                                    required
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600 pr-10"
+                                />
+                            </div>
+                        )}
+
                         <button type="submit" className="w-full bg-zinc-800 text-zinc-200 font-bold py-2 px-4 rounded-lg hover:bg-zinc-700 transition-colors text-sm">
-                            Entrar
+                            {isRegistering ? "Registrarse" : "Entrar"}
                         </button>
                     </form>
 
@@ -677,9 +752,12 @@ export default function DailyFollowUp() {
                                     const todayStr = format(new Date(), 'yyyy-MM-dd');
                                     const currentStr = format(currentDate, 'yyyy-MM-dd');
 
-                                    // Start with days that have data
+                                    // Start with days that have data (active + permitted)
                                     const rawDates = recentEntries
-                                        .filter(e => e.projects.some(p => p.status !== 'trash'))
+                                        .filter(e => e.projects.some(p =>
+                                            p.status !== 'trash' &&
+                                            (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                        ))
                                         .map(e => e.date);
 
                                     // Add Today and Selected (Active) Day
@@ -698,7 +776,10 @@ export default function DailyFollowUp() {
                                         const isSelected = dateStr === currentStr;
                                         const isToday = dateStr === todayStr;
                                         const dayEntry = recentEntries.find(e => e.date === dateStr);
-                                        const hasData = !!dayEntry && dayEntry.projects.some(p => p.status !== 'trash');
+                                        const hasData = !!dayEntry && dayEntry.projects.some(p =>
+                                            p.status !== 'trash' &&
+                                            (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                        );
 
                                         const recordedProjects = dayEntry?.projects.filter(p => p.status !== 'trash') || [];
 
@@ -1062,6 +1143,8 @@ export default function DailyFollowUp() {
                         <Dashboard
                             entry={entry}
                             globalProjects={globalProjects}
+                            userProfile={userProfile}
+                            userRole={userRole}
                         />
                     ) : (
                         <div className="p-10 text-center text-zinc-500">Módulo en construcción: {viewMode}</div>
