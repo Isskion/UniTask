@@ -210,6 +210,40 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
                         })
                     )
                 )}
+
+                {/* Render Unknown / Unassigned Tasks */}
+                {groupedTasks['unknown'] && groupedTasks['unknown'].length > 0 && (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500 pt-8 border-t border-dashed border-white/10">
+                        <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+                            <span className="w-2 h-2 rounded-full bg-zinc-600" />
+                            <h3 className="font-bold text-zinc-400 text-sm">Sin Proyecto Asignado</h3>
+                            <span className="text-zinc-600 text-xs">({groupedTasks['unknown'].length})</span>
+                        </div>
+                        <div className="grid gap-2">
+                            {groupedTasks['unknown'].map(task => (
+                                <div key={task.id} className="flex items-start gap-3 p-3 bg-[#121212] border border-white/5 rounded-lg hover:border-white/10 transition-colors group opacity-75 hover:opacity-100">
+                                    <div className="mt-0.5">
+                                        {task.status === 'completed' ? (
+                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                        ) : task.isBlocking ? (
+                                            <Ban className="w-4 h-4 text-red-500" />
+                                        ) : (
+                                            <Circle className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                            <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-1.5 rounded">{task.friendlyId || '###'}</span>
+                                        </div>
+                                        <p className={`text-sm ${task.status === 'completed' ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
+                                            {task.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
