@@ -11,6 +11,7 @@ interface AuthContextType {
     loading: boolean;
     userRole: string | null;
     loginWithGoogle: () => Promise<void>;
+    loginWithEmail: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -112,12 +113,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const loginWithEmail = async (email: string, password: string) => {
+        try {
+            await import("firebase/auth").then(({ signInWithEmailAndPassword }) =>
+                signInWithEmailAndPassword(auth, email, password)
+            );
+        } catch (error: any) {
+            console.error("Login failed", error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         await signOut(auth);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, userRole, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, loading, userRole, loginWithGoogle, loginWithEmail, logout }}>
             {children}
         </AuthContext.Provider>
     );

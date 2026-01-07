@@ -315,9 +315,50 @@ export default function WeeklyEditor() {
 
         const currentIsValid = visible.some(p => p.name === activeTab);
 
-        // If current is "General" (hidden) OR the project doesn't exist in this week
-        if (activeTab === 'General' || !currentIsValid) {
-            setActiveTab(visible[0].name);
+        // LOGIC CHANGE:
+        // If the current tab ("Project A") is NOT in the new week's visible projects,
+        // we MUST switch.
+        // If "General" is selected, we usually Keep General, UNLESS the user wants "Put focus on first project".
+        // User Request: "si al cambia de dia se pone foco en el primer proyeto abierto"
+        // This implies if I have projects, I should see the first one, not General?
+        // Or "General" IS the general view?
+        // Let's assume: If "General" is selected, stay on General?
+        // NO, User said: "pone foco en el primer proyeto abierto". This suggests skipping General if projects exist?
+        // BUT "General" is valid.
+        // Let's interpret: If I switch days, I want to see *context*.
+        // If I was on Project A, and Project A exists today, stay on Project A?
+        // User said: "se quedan las tareas de la ultima fiche que haya abierto." -> "Last file open remains".
+        // Correct behavior requested: "foco en el primer proyeto abierto y, si no hay proyecto, se viera vacio."
+        // This implies: RESET to First Project (Index 0).
+
+        // So, on every load (signaled by loading -> false transition?), we might want to reset?
+        // But we don't want to annoy user if they just clicked a tab.
+        // We rely on the fact that `loadData` sets `loading=true` then `false`.
+        // We can track if we just loaded?
+
+        // Ideally:
+        // If currentIsValid => Stay (e.g. Project A exists in both days).
+        // If !currentIsValid => Switch to visible[0].
+
+        // User Complaint: "se quedan las tareas de la ultima fiche que haya abierto." indicates GHOSTING.
+        // This means the UI showed Project A's tasks from Yesterday even though Project A doesn't exist Today?
+        // That's a `currentIsValid` check failure.
+
+        if (!currentIsValid) {
+            // If activeTab is NOT in this week's project list...
+            if (activeTab === 'General') {
+                // General is always valid?
+                // If the user wants to see the first project by default instead of General:
+                if (visible.length > 0) setActiveTab(visible[0].name);
+            } else {
+                // Active tab is a Project that doesn't exist here.
+                // Switch to first available, or General if none.
+                if (visible.length > 0) {
+                    setActiveTab(visible[0].name);
+                } else {
+                    setActiveTab("General");
+                }
+            }
         }
     }, [loading, entry.projects, userProfile, activeTab]);
 

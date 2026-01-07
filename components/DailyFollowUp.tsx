@@ -21,7 +21,7 @@ import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 
 export default function DailyFollowUp() {
-    const { userRole, user, loading: authLoading, loginWithGoogle } = useAuth();
+    const { userRole, user, loading: authLoading, loginWithGoogle, loginWithEmail } = useAuth();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
 
@@ -562,6 +562,28 @@ export default function DailyFollowUp() {
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
                         Iniciar sesión con Google
                     </button>
+
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-zinc-700" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-[#09090b] px-2 text-zinc-500">O con email</span>
+                        </div>
+                    </div>
+
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const email = (e.currentTarget.elements.namedItem('email') as HTMLInputElement).value;
+                        const password = (e.currentTarget.elements.namedItem('password') as HTMLInputElement).value;
+                        loginWithEmail(email, password).catch(err => alert(err.message));
+                    }} className="space-y-3">
+                        <input name="email" type="email" placeholder="Email" required className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600" />
+                        <input name="password" type="password" placeholder="Contraseña" required className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-zinc-600" />
+                        <button type="submit" className="w-full bg-zinc-800 text-zinc-200 font-bold py-2 px-4 rounded-lg hover:bg-zinc-700 transition-colors text-sm">
+                            Entrar
+                        </button>
+                    </form>
 
                     <p className="mt-6 text-xs text-zinc-600 text-center">
                         Acceso restringido a personal autorizado. <br />
