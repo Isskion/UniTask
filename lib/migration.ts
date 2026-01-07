@@ -84,7 +84,9 @@ export async function migrateAllData(onProgress: (log: MigrationLog) => void): P
                                     status: 'pending',
                                     isBlocking: false,
                                     weekId: week.id,
-                                    title: taskDesc.substring(0, 50) // Fallback title
+                                    title: taskDesc.substring(0, 50), // Fallback title
+                                    isActive: true,
+                                    createdBy: "legacy-migration"
                                 }, "legacy-migration", p.name);
                             }
                         }
