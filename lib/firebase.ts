@@ -4,13 +4,13 @@ import { getAuth } from "firebase/auth";
 // We won't use analytics server-side for now to avoid errors
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDLFlFsH_6RKqZwxxN_Dkaj-MFTdS9Mmn8",
-    authDomain: "minuta-f75a4.firebaseapp.com",
-    projectId: "minuta-f75a4",
-    storageBucket: "minuta-f75a4.firebasestorage.app",
-    messagingSenderId: "643064542850",
-    appId: "1:643064542850:web:e629b56f030f98d885e69b",
-    measurementId: "G-S7EKEJFDQV"
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase (Singleton pattern to avoid re-initialization errors in Next.js hot reload)
