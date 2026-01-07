@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, deleteDoc, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile } from "@/types";
@@ -13,7 +12,6 @@ import { es } from "date-fns/locale";
 
 export default function TaskManagement() {
     const { userRole, user } = useAuth();
-    const { isAdmin: checkIsAdmin, can, getAllowedProjectIds } = usePermissions();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -32,8 +30,8 @@ export default function TaskManagement() {
     const [isNew, setIsNew] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Permissions Helper - now using usePermissions hook
-    const isAdmin = checkIsAdmin();
+    // Permissions Helper
+    const isAdmin = userRole === 'app_admin' || userRole === 'global_pm';
 
     // Dirty Check Helper
     const isDirty = () => {

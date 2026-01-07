@@ -15,28 +15,20 @@ import {
     Menu,
     X,
     LogOut,
-    ClipboardList,
-    Shield
+    ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/usePermissions";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager') => void;
 }
 
 export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) {
-    const { user, logout, userRole } = useAuth();
-    const { can } = usePermissions();
+    const { user, logout } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    // Check if user can manage permissions (with legacy role fallback)
-    const canManagePermissions = can('managePermissions', 'special') ||
-        userRole === 'app_admin' ||
-        userRole === 'global_pm';
 
     const NavItem = ({
         mode,
@@ -110,9 +102,6 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                     <div className="space-y-1">
                         <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">Connect</p>
                         <NavItem mode="users" icon={Users} label="People" />
-                        {canManagePermissions && (
-                            <NavItem mode="user-roles" icon={Shield} label="User Roles" />
-                        )}
                     </div>
 
                     {/* System */}

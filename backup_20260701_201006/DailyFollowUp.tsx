@@ -16,7 +16,6 @@ import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle,
 import { useAuth } from "@/context/AuthContext";
 import { summarizeNotesWithAI } from "@/app/ai-actions";
 import UserManagement from "./UserManagement";
-import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
@@ -42,7 +41,7 @@ export default function DailyFollowUp() {
 
             // Load View Mode
             const savedView = localStorage.getItem('daily_view_mode');
-            if (savedView === 'dashboard' || savedView === 'projects' || savedView === 'users' || savedView === 'trash' || savedView === 'tasks' || savedView === 'task-manager' || savedView === 'user-roles') {
+            if (savedView === 'dashboard' || savedView === 'projects' || savedView === 'users' || savedView === 'trash' || savedView === 'tasks' || savedView === 'task-manager') {
                 setViewMode(savedView);
             }
 
@@ -63,7 +62,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -1186,8 +1185,6 @@ export default function DailyFollowUp() {
                         <TaskManagement />
                     ) : viewMode === 'users' ? (
                         <UserManagement />
-                    ) : viewMode === 'user-roles' ? (
-                        <UserRoleManagement />
                     ) : viewMode === 'dashboard' ? (
                         <Dashboard
                             entry={entry}

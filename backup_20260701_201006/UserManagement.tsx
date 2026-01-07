@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { PermissionGroup } from "@/types";
 import { Loader2, Shield, User, Check, X, Ban, Ticket, Copy, RefreshCw, Plus, Edit2, Save, XCircle, MapPin, Briefcase, Building, Globe, Phone, Trash2, AlertTriangle } from "lucide-react";
 import { createInvite, getAllInvites, InviteCode } from "@/lib/invites";
 
@@ -40,13 +39,9 @@ export default function UserManagement() {
     // Projects for assignment
     const [availableProjects, setAvailableProjects] = useState<{ id: string, name: string, code: string }[]>([]);
 
-    // Permission Groups for assignment
-    const [availableGroups, setAvailableGroups] = useState<PermissionGroup[]>([]);
-
     useEffect(() => {
         loadData();
         loadProjectsForSelect();
-        loadPermissionGroups();
     }, [activeTab]);
 
     const loadProjectsForSelect = async () => {
@@ -63,18 +58,6 @@ export default function UserManagement() {
         }
     };
 
-    const loadPermissionGroups = async () => {
-        try {
-            const snapshot = await getDocs(collection(db, 'permission_groups'));
-            const groups = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as PermissionGroup[];
-            setAvailableGroups(groups);
-        } catch (error) {
-            console.error('Error loading permission groups:', error);
-        }
-    };
 
     const loadData = async () => {
         setLoading(true);
@@ -155,8 +138,7 @@ export default function UserManagement() {
             phone: user.phone || "",
             language: user.language || "es",
             role: user.role || 'usuario_base', // Fallback to avoid undefined
-            assignedProjectIds: user.assignedProjectIds || [],
-            permissionGroupId: user.permissionGroupId // Add permission group ID
+            assignedProjectIds: user.assignedProjectIds || []
         });
     };
 
@@ -372,28 +354,6 @@ export default function UserManagement() {
                                 </div>
                             </div>
 
-                            {/* Permission Group Selection */}
-                            <div className="space-y-2 pt-4 border-t border-white/5">
-                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
-                                    <Shield className="w-3 h-3" /> Grupo de Permisos
-                                </label>
-                                <select
-                                    className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
-                                    value={formData.permissionGroupId || ""}
-                                    onChange={e => setFormData({ ...formData, permissionGroupId: e.target.value || undefined })}
-                                >
-                                    <option value="">Sin grupo asignado (usar rol legacy)</option>
-                                    {availableGroups.map(group => (
-                                        <option key={group.id} value={group.id}>
-                                            {group.name} - {group.description}
-                                        </option>
-                                    ))}
-                                </select>
-                                <p className="text-[10px] text-zinc-600">
-                                    Los grupos de permisos tienen prioridad sobre los roles legacy. Si no se asigna grupo, se usará el rol seleccionado arriba.
-                                </p>
-                            </div>
-
                             {/* Project Assignment Section */}
                             <div className="space-y-2 pt-4 border-t border-white/5">
                                 <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
@@ -546,43 +506,19 @@ export default function UserManagement() {
                                     </td>
                                     <td className="p-4 text-sm text-zinc-400 font-mono">{u.email}</td>
                                     <td className="p-4">
-                                        {(() => {
-                                            // Find assigned permission group
-                                            const assignedGroup = availableGroups.find(g => g.id === u.permissionGroupId);
-
-                                            if (assignedGroup) {
-                                                // Show permission group badge
-                                                return (
-                                                    <div className="flex items-center gap-2">
-                                                        <div
-                                                            className="px-3 py-1 rounded-full text-xs font-bold border"
-                                                            style={{
-                                                                backgroundColor: `${assignedGroup.color}20`,
-                                                                borderColor: assignedGroup.color,
-                                                                color: assignedGroup.color
-                                                            }}
-                                                        >
-                                                            <Shield className="w-3 h-3 inline mr-1" />
-                                                            {assignedGroup.name}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            } else {
-                                                // Show legacy role badge
-                                                const roleInfo = ROLES.find(r => r.value === u.role);
-                                                return (
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={cn(
-                                                            "px-3 py-1 rounded-full text-xs font-medium bg-zinc-800 border border-zinc-700",
-                                                            roleInfo?.color
-                                                        )}>
-                                                            {roleInfo?.label || u.role}
-                                                        </span>
-                                                        <span className="text-[10px] text-zinc-600">(legacy)</span>
-                                                    </div>
-                                                );
-                                            }
-                                        })()}
+                                        <select
+                                            disabled={updating === u.uid}
+                                            value={u.role || 'usuario_base'}
+                                            onChange={(e) => handleRoleChange(u.uid, e.target.value)}
+                                            className={cn(
+                                                "bg-black/40 border border-white/10 rounded px-2 py-1 text-xs font-medium outline-none focus:border-white/30 cursor-pointer",
+                                                ROLES.find(r => r.value === u.role)?.color
+                                            )}
+                                        >
+                                            {ROLES.map(r => (
+                                                <option key={r.value} value={r.value}>{r.label}</option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td className="p-4 text-center">
                                         {u.isActive ? (

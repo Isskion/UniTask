@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Command } from "cmdk";
-import { Loader2, Search, Layout, FolderGit2, FolderPlus, Trash2, Home, ArrowRight, Shield } from "lucide-react";
+import { Loader2, Search, Layout, FolderGit2, FolderPlus, Trash2, Home, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Project } from "@/types";
@@ -154,15 +154,6 @@ export function CommandMenu() {
                                 >
                                     <FolderPlus className="mr-2 h-4 w-4 text-green-500" />
                                     <span>Crear Nuevo Proyecto</span>
-                                </Command.Item>
-                            )}
-                            {(userRole === 'app_admin' || userRole === 'global_pm') && (
-                                <Command.Item
-                                    onSelect={() => runCommand(() => window.location.href = '/?view=user-roles')}
-                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-2 text-sm text-zinc-200 outline-none hover:bg-white/10 aria-selected:bg-white/10"
-                                >
-                                    <Shield className="mr-2 h-4 w-4 text-indigo-400" />
-                                    <span>User Roles</span>
                                 </Command.Item>
                             )}
                             <Command.Item

@@ -61,65 +61,6 @@ export interface UserProfile {
     language?: string;
     // New: Assigned Projects
     assignedProjectIds?: string[];
-    // New: Permission Group
-    permissionGroupId?: string; // Reference to permission_groups collection
-    customPermissions?: Partial<PermissionGroup>; // Optional override
-}
-
-// Permission Group System
-export interface PermissionGroup {
-    id: string;
-    name: string;
-    description: string;
-    color: string;
-
-    // Project Permissions
-    projectAccess: {
-        viewAll: boolean;
-        assignedOnly: boolean;
-        create: boolean;
-        edit: boolean;
-        archive: boolean;
-    };
-
-    // Task Permissions
-    taskAccess: {
-        viewAll: boolean;
-        assignedProjectsOnly: boolean;
-        create: boolean;
-        edit: boolean;
-        delete: boolean;
-    };
-
-    // View Access
-    viewAccess: {
-        dashboard: boolean;
-        taskManager: boolean;
-        taskDashboard: boolean;
-        projectManagement: boolean;
-        userManagement: boolean;
-        weeklyEditor: boolean;
-        dailyFollowUp: boolean;
-    };
-
-    // Export Permissions
-    exportAccess: {
-        tasks: boolean;
-        projects: boolean;
-        reports: boolean;
-    };
-
-    // Special Permissions
-    specialPermissions: {
-        viewAllUserProfiles: boolean;
-        managePermissions: boolean;
-        accessTrash: boolean;
-        useCommandMenu: boolean;
-    };
-
-    createdAt: any;
-    updatedAt: any;
-    createdBy: string;
 }
 
 export interface NoteBlock {

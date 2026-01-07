@@ -4,7 +4,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Project, Task } from '@/types';
 import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
-import { usePermissions } from '@/hooks/usePermissions';
 import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -21,12 +20,13 @@ interface TaskDashboardProps {
 }
 
 export default function TaskDashboard({ projects, userProfile, permissionLoading }: TaskDashboardProps) {
-    const { user } = useAuth();
-    const { permissions, isAdmin, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
+    const { user, userRole } = useAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending');
     const [searchQuery, setSearchQuery] = useState("");
+
+    const isAdmin = userRole === 'app_admin' || userRole === 'global_pm';
 
     useEffect(() => {
         if (!user) return;
@@ -55,16 +55,31 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
             );
         }
 
-        // SECURITY FILTER: Only keep tasks that belong to allowed projects
-        // Use centralized permission system
-        const allowedIds = getAllowedProjectIds();
-        const allowedProjectIds = allowedIds.length === 0 && isAdmin()
-            ? projects.map(p => p.id) // Admin with empty array means "all"
-            : allowedIds.filter(id => projects.some(p => p.id === id)); // Intersect with props
+        // SECURITY FILTER: Only keep tasks that belong to allowed projects or are orphans (if admin)
+        // SECURITY FILTER: Only keep tasks that belong to allowed projects or are orphans (if admin)
+        // LAYER 1: Trust Props (projects)
+        let allowedProjectIds = projects.map(p => p.id);
 
+        // LAYER 2: Double Check User Profile (Defense in Depth)
+        if (!isAdmin) {
+            console.log('[TaskDashboard Security] Non-admin user detected');
+            console.log('[TaskDashboard Security] userProfile:', userProfile);
+            console.log('[TaskDashboard Security] assignedProjectIds:', userProfile?.assignedProjectIds);
+            console.log('[TaskDashboard Security] projects prop:', projects.map(p => ({ id: p.id, name: p.name })));
+
+            if (!userProfile || !userProfile.assignedProjectIds || userProfile.assignedProjectIds.length === 0) {
+                // Non-admin with no profile or no assignments = BLOCK EVERYTHING
+                console.warn('[TaskDashboard Security] BLOCKING ALL TASKS - No valid profile or assignments');
+                allowedProjectIds = [];
+            } else {
+                // Intersect props with profile to be 100% sure
+                allowedProjectIds = allowedProjectIds.filter(id => userProfile.assignedProjectIds.includes(id));
+                console.log('[TaskDashboard Security] Filtered allowedProjectIds:', allowedProjectIds);
+            }
+        }
 
         filtered = filtered.filter(t => {
-            if (!t.projectId) return isAdmin(); // Only admins see orphans
+            if (!t.projectId) return isAdmin; // Only admins see orphans
             return allowedProjectIds.includes(t.projectId);
         });
 
@@ -93,7 +108,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         });
 
         return groups;
-    }, [tasks, projects, filter, searchQuery, permissions]);
+    }, [tasks, projects, filter, userRole, userProfile]);
 
     // Export Handlers
     const copyToClipboard = () => {

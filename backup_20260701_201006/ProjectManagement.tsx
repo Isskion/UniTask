@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { Loader2, Shield, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, MapPin, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project } from "@/types";
@@ -15,7 +14,6 @@ import TodaysWorkbench from "./TodaysWorkbench";
 
 export default function ProjectManagement() {
     const { userRole, user } = useAuth();
-    const { can, getAllowedProjectIds, userProfile: permUserProfile, loading: permissionsLoading } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null); // For assignedProjectIds
@@ -31,9 +29,9 @@ export default function ProjectManagement() {
     const [showCompose, setShowCompose] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Permissions Helper - now using usePermissions hook
-    const canCreate = can('create', 'project');
-    const canEdit = can('edit', 'project');
+    // Permissions Helper
+    const canCreate = userRole === 'app_admin' || userRole === 'global_pm';
+    const canEdit = userRole === 'app_admin' || userRole === 'global_pm';
 
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
