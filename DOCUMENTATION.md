@@ -413,7 +413,7 @@ Archivo `.env.local` (no incluir en Git):
 
 ```env
 # Firebase Config (ya incluida en código, pero puede externalizarse)
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=minuta-f75a4.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=minuta-f75a4
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=minuta-f75a4.firebasestorage.app
