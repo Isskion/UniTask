@@ -37,8 +37,8 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
     // Toggle between blocked and pending
     const handleToggleBlock = async (task: Task) => {
         if (!user) return;
-        const isBlocked = task.status === 'blocked';
-        await toggleTaskBlock(task.id, !isBlocked, user.uid);
+        // Use implicit boolean toggle, API handles the validation
+        await toggleTaskBlock(task.id, !task.isBlocking, user.uid);
     }
 
     const formatDate = (date: any) => {
@@ -73,7 +73,7 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
                 ) : (
                     tasks.map(task => (
                         <div key={task.id} className={`flex items-start gap-4 p-3 rounded-lg border transition-all ${task.status === 'completed' ? 'bg-emerald-900/10 border-emerald-900/20 opacity-60' :
-                            task.status === 'blocked' ? 'bg-red-900/10 border-red-500/30' :
+                            task.isBlocking ? 'bg-red-900/10 border-red-500/30' :
                                 'bg-[#0a0a0a] border-white/5 hover:border-white/20'
                             }`}>
                             {/* ID Badge */}
@@ -90,11 +90,11 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
 
                             <div className="flex-1">
                                 <p className={`text-sm ${task.status === 'completed' ? 'text-zinc-500 line-through' :
-                                    task.status === 'blocked' ? 'text-red-300 font-medium' : 'text-zinc-300'
+                                    task.isBlocking ? 'text-red-300 font-medium' : 'text-zinc-300'
                                     }`}>
                                     {task.description}
                                 </p>
-                                {task.status === 'blocked' && (
+                                {task.isBlocking && (
                                     <div className="flex items-center gap-1 mt-1 text-red-500 text-xs font-bold">
                                         <AlertCircle className="w-3 h-3" />
                                         BLOQUEANTE (Riesgo Proyecto)
@@ -107,8 +107,8 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
                                 {task.status !== 'completed' && (
                                     <button
                                         onClick={() => handleToggleBlock(task)}
-                                        title={task.status === 'blocked' ? "Quitar Bloqueo" : "Marcar como Bloqueante (Riesgo)"}
-                                        className={`p-2 rounded transition-colors border ${task.status === 'blocked' ? 'bg-red-500/10 border-red-500/50 text-red-400' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-red-400 hover:border-red-500/50'}`}
+                                        title={task.isBlocking ? "Quitar Bloqueo" : "Marcar como Bloqueante (Riesgo)"}
+                                        className={`p-2 rounded transition-colors border ${task.isBlocking ? 'bg-red-500/10 border-red-500/50 text-red-400' : 'bg-white/5 border-white/10 text-zinc-500 hover:text-red-400 hover:border-red-500/50'}`}
                                     >
                                         <Ban className="w-4 h-4" />
                                     </button>
