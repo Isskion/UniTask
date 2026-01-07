@@ -93,7 +93,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                         <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">Workspace</p>
                         <NavItem mode="dashboard" icon={Inbox} label="Inbox / Dashboard" />
                         <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
-                        <NavItem mode="projects" icon={FolderGit2} label="Projects" />
+                        <NavItem mode="projects" icon={FolderGit2} label="Projects & Bitácora" />
                         <NavItem mode="task-manager" icon={ClipboardList} label="Task Manager (ABM)" />
                         <NavItem mode="tasks" icon={Layout} label="All Tasks (Board)" />
                     </div>

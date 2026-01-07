@@ -301,6 +301,7 @@ export default function ProjectManagement() {
                                             onCancel={() => setShowCompose(false)}
                                         />
                                     )}
+                                    <h2 className="text-xl font-bold text-white mb-4 px-4">Bitácora</h2>
                                     <ProjectActivityFeed
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}

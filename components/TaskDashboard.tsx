@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Project, Task } from '@/types';
 import { subscribeToAllTasks } from '@/lib/tasks';
+import { useAuth } from '@/context/AuthContext';
 import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -17,18 +18,20 @@ interface TaskDashboardProps {
 }
 
 export default function TaskDashboard({ projects }: TaskDashboardProps) {
+    const { user } = useAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
     useEffect(() => {
+        if (!user) return;
         setLoading(true);
         const unsubscribe = subscribeToAllTasks((data) => {
             setTasks(data);
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [user]);
 
     // Group tasks by project
     const groupedTasks = useMemo(() => {
@@ -57,6 +60,8 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
 
         return groups;
     }, [tasks, projects, filter]);
+
+    console.log("📊 Dashboard Groups Debug:", groupedTasks, "Total Tasks:", tasks.length);
 
     // Export Handlers
     const copyToClipboard = () => {

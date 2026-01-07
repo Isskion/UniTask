@@ -12,7 +12,7 @@ import { es } from "date-fns/locale";
 import { saveJournalEntry, getJournalEntry, getRecentJournalEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, collection, getDocs, query } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { summarizeNotesWithAI } from "@/app/ai-actions";
 import UserManagement from "./UserManagement";
@@ -21,9 +21,11 @@ import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 
 export default function DailyFollowUp() {
-    const { userRole, user } = useAuth();
+    const { userRole, user, loading: authLoading, loginWithGoogle } = useAuth();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
+
+
 
     // --- STATE: DATE & NAVIGATION ---
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
@@ -103,7 +105,12 @@ export default function DailyFollowUp() {
     const [projectTasks, setProjectTasks] = useState<Task[]>([]);
 
     // Subscribe to tasks when Active Tab changes
+    const activeProject = globalProjects.find(p => p.name === activeTab);
+    const activeProjectId = activeProject?.id;
+
     useEffect(() => {
+        if (!user) return; // Wait for auth
+
         let unsubscribe: () => void;
 
         if (activeTab === "General") {
@@ -113,9 +120,8 @@ export default function DailyFollowUp() {
             });
         } else {
             // Specific Project
-            const project = globalProjects.find(p => p.name === activeTab);
-            if (project) {
-                unsubscribe = subscribeToProjectTasks(project.id, (data) => {
+            if (activeProjectId) {
+                unsubscribe = subscribeToProjectTasks(activeProjectId, (data) => {
                     setProjectTasks(data);
                 });
             } else {
@@ -125,7 +131,7 @@ export default function DailyFollowUp() {
         }
 
         return () => unsubscribe();
-    }, [activeTab, globalProjects]);
+    }, [activeTab, activeProjectId, user]);
 
     // Helper to toggle block status
     const handleToggleBlock = async (task: Task) => {
@@ -216,9 +222,11 @@ export default function DailyFollowUp() {
     }, []);
 
     useEffect(() => {
-        loadData(currentDate);
+        if (user) {
+            loadData(currentDate);
+        }
         // Removed setActiveTab("General") to persist context
-    }, [currentDate, loadData]);
+    }, [currentDate, loadData, user]);
 
 
 
@@ -520,6 +528,51 @@ export default function DailyFollowUp() {
         );
     }
 
+    if (authLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-black text-white">
+                <Loader2 className="w-10 h-10 animate-spin text-[#D32F2F]" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-black relative overflow-hidden">
+                {/* Background Ambient */}
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-[#D32F2F] rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-pulse-slow"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-orange-600 rounded-full mix-blend-screen filter blur-[100px] opacity-10"></div>
+
+                <div className="relative z-10 glass-panel p-12 rounded-3xl border border-white/10 flex flex-col items-center max-w-md w-full shadow-2xl">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D32F2F] to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-red-900/50">
+                        <UserCircle2 className="w-8 h-8 text-white" />
+                    </div>
+
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-2">
+                        UniTaskController
+                    </h1>
+                    <p className="text-zinc-500 text-sm mb-8 text-center">
+                        Gestión inteligente de proyectos y tareas
+                    </p>
+
+                    <button
+                        onClick={loginWithGoogle}
+                        className="w-full bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-zinc-200 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-3 shadow-lg"
+                    >
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
+                        Iniciar sesión con Google
+                    </button>
+
+                    <p className="mt-6 text-xs text-zinc-600 text-center">
+                        Acceso restringido a personal autorizado. <br />
+                        Contacta con soporte si no tienes acceso.
+                    </p>
+                </div>
+                <FirebaseDiagnostic />
+            </div>
+        );
+    }
+
     return (
         <AppLayout viewMode={viewMode} onViewChange={setViewMode}>
             <div className="flex h-full gap-6 p-4 pt-2">
@@ -529,7 +582,7 @@ export default function DailyFollowUp() {
                     <div className="w-72 flex flex-col gap-3 shrink-0">
                         <div className="bg-[#0c0c0e] rounded-xl border border-white/5 p-3 flex flex-col gap-2 h-full">
                             <div className="flex items-center justify-between px-1 mb-2">
-                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Timeline</h3>
+                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Bitácora</h3>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => setCurrentDate(new Date())} className="text-[10px] text-indigo-400 font-bold hover:underline">HOY</button>
                                     <div className="relative">
@@ -941,15 +994,10 @@ export default function DailyFollowUp() {
                     ) : viewMode === 'users' ? (
                         <UserManagement />
                     ) : viewMode === 'dashboard' ? (
-                        <Dashboard entry={{
-                            ...entry,
-                            id: `${getYear(currentDate)}-W${getISOWeek(currentDate)}`,
-                            weekNumber: getISOWeek(currentDate),
-                            year: getYear(currentDate),
-                            pmNotes: entry.generalNotes,
-                            conclusions: "",
-                            nextSteps: ""
-                        } as any} />
+                        <Dashboard
+                            entry={entry}
+                            globalProjects={globalProjects}
+                        />
                     ) : (
                         <div className="p-10 text-center text-zinc-500">Módulo en construcción: {viewMode}</div>
                     )}
