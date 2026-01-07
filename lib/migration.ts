@@ -2,6 +2,7 @@ import { db } from "@/lib/firebase";
 import { getAllEntries } from "@/lib/storage";
 import { ensureProjectExists } from "@/lib/projects"; // Reuse logic
 import { createUpdate } from "@/lib/updates";
+import { createTask } from "@/lib/tasks";
 import { ProjectUpdate } from "@/types";
 import { Timestamp } from "firebase/firestore";
 import { parse, set } from "date-fns";
@@ -73,6 +74,20 @@ export async function migrateAllData(onProgress: (log: MigrationLog) => void): P
 
                         await createUpdate(projectId, updateData);
                         log.projectsMigrated++;
+
+                        // C. [NEW] Create actual Tasks for the Dashboard
+                        if (updateData.content.nextSteps && updateData.content.nextSteps.length > 0) {
+                            for (const taskDesc of updateData.content.nextSteps) {
+                                await createTask({
+                                    projectId: projectId,
+                                    description: taskDesc,
+                                    status: 'pending',
+                                    isBlocking: false,
+                                    weekId: week.id,
+                                    title: taskDesc.substring(0, 50) // Fallback title
+                                }, "legacy-migration", p.name);
+                            }
+                        }
                     }
                 } catch (err: any) {
                     log.errors.push(`Failed to migrate project ${p.name} in week ${week.id}: ${err.message}`);
