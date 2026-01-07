@@ -95,7 +95,7 @@ export default function TaskDashboard({ projects }: TaskDashboardProps) {
             const pName = projects.find(p => p.id === pid)?.name || 'Unknown';
             tasks.forEach(t => {
                 const dateStr = t.createdAt?.toDate ? format(t.createdAt.toDate(), 'yyyy-MM-dd') : '';
-                csv += `${t.friendlyId || ''},${safeStr(pName)},${t.status},${safeStr(t.description)},${dateStr}\n`;
+                csv += `${t.friendlyId || ''},${safeStr(pName)},${t.status},${safeStr(t.description || '')},${dateStr}\n`;
             });
         });
 
