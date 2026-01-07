@@ -38,13 +38,13 @@ export default function Dashboard({ entry }: DashboardProps) {
 
             stats[pid].total++;
             if (t.status === 'completed') stats[pid].completed++;
-            if (t.status === 'blocked') stats[pid].blocked++;
+            if (t.isBlocking) stats[pid].blocked++;
         });
         return stats;
     }, [tasks]);
 
     const openTasksCount = tasks.filter(t => t.status !== 'completed').length;
-    const blockersCount = tasks.filter(t => t.status === 'blocked').length;
+    const blockersCount = tasks.filter(t => t.isBlocking).length;
 
     const getHealthMetadata = (completed: number, total: number, blocked: number) => {
         if (total === 0) return { color: 'text-zinc-500', ring: 'border-zinc-700', icon: Activity, label: 'No Tasks' };
@@ -237,7 +237,7 @@ export default function Dashboard({ entry }: DashboardProps) {
                                 ) : (
                                     myTasks.map(task => (
                                         <div key={task.id} className={`group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border ${task.status === 'blocked' ? 'bg-red-950/30 border-red-500/30' :
-                                                'bg-zinc-900/50 border-white/5 hover:bg-zinc-800 hover:border-white/10'
+                                            'bg-zinc-900/50 border-white/5 hover:bg-zinc-800 hover:border-white/10'
                                             }`}>
                                             <div className="mt-0.5 shrink-0">
                                                 {task.status === 'blocked' ?
@@ -250,7 +250,7 @@ export default function Dashboard({ entry }: DashboardProps) {
                                                     <span className="font-mono text-[9px] text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">{task.friendlyId}</span>
                                                 </div>
                                                 <p className={`leading-relaxed break-words line-clamp-2 ${task.status === 'blocked' ? 'text-red-200 font-medium' :
-                                                        'text-zinc-300'
+                                                    'text-zinc-300'
                                                     }`}>
                                                     {task.description}
                                                 </p>
