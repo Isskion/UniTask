@@ -236,11 +236,11 @@ export default function Dashboard({ entry }: DashboardProps) {
                                     </div>
                                 ) : (
                                     myTasks.map(task => (
-                                        <div key={task.id} className={`group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border ${task.status === 'blocked' ? 'bg-red-950/30 border-red-500/30' :
+                                        <div key={task.id} className={`group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border ${task.isBlocking ? 'bg-red-950/30 border-red-500/30' :
                                             'bg-zinc-900/50 border-white/5 hover:bg-zinc-800 hover:border-white/10'
                                             }`}>
                                             <div className="mt-0.5 shrink-0">
-                                                {task.status === 'blocked' ?
+                                                {task.isBlocking ?
                                                     <Ban className="w-3.5 h-3.5 text-red-500" /> :
                                                     <Circle className="w-3.5 h-3.5 text-zinc-600 group-hover/task:text-zinc-400" />
                                                 }
@@ -249,7 +249,7 @@ export default function Dashboard({ entry }: DashboardProps) {
                                                 <div className="flex justify-between items-center mb-1">
                                                     <span className="font-mono text-[9px] text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">{task.friendlyId}</span>
                                                 </div>
-                                                <p className={`leading-relaxed break-words line-clamp-2 ${task.status === 'blocked' ? 'text-red-200 font-medium' :
+                                                <p className={`leading-relaxed break-words line-clamp-2 ${task.isBlocking ? 'text-red-200 font-medium' :
                                                     'text-zinc-300'
                                                     }`}>
                                                     {task.description}
