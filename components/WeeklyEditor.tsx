@@ -311,7 +311,10 @@ export default function WeeklyEditor() {
 
         const visible = getVisibleProjects();
         // If we have no projects, we stay on General (or empty state)
-        if (visible.length === 0) return;
+        if (visible.length === 0) {
+            setActiveTab("General");
+            return;
+        }
 
         const currentIsValid = visible.some(p => p.name === activeTab);
 
