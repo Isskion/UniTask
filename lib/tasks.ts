@@ -190,10 +190,8 @@ export function sortTasks(tasks: Task[]): Task[] {
 }
 // Subscribe to ALL active tasks (for global dashboard)
 export function subscribeToAllTasks(callback: (tasks: Task[]) => void) {
-    const q = query(
-        collection(db, TASKS_COLLECTION),
-        where("isActive", "==", true),
-        orderBy("createdAt", "desc")
+    collection(db, TASKS_COLLECTION),
+        where("isActive", "==", true)
     );
     return onSnapshot(q, (snapshot) => {
         const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
