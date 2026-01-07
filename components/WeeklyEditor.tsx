@@ -7,6 +7,7 @@ import Dashboard from "./Dashboard";
 import TaskDashboard from "./TaskDashboard";
 import TaskList from "./TaskList";
 import TaskManagement from "./TaskManagement"; // Added
+import UserRoleManagement from "./UserRoleManagement";
 import { AppLayout } from "./AppLayout";
 import { WeeklyEntry, ProjectEntry } from "@/types";
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
@@ -60,7 +61,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
     // Hydration-safe initial load
@@ -70,7 +71,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager') {
+            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles') {
                 setViewMode(view);
                 setIsHydrated(true);
                 return;
@@ -78,8 +79,8 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager') {
-                setViewMode(saved);
+            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles') {
+                setViewMode(saved as any);
             }
             setIsHydrated(true);
         }
@@ -296,7 +297,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -1119,6 +1120,13 @@ export default function WeeklyEditor() {
                             </div>
                         )
                     }
+
+                    {/* View: User Roles */}
+                    {viewMode === 'user-roles' && (
+                        <div className="h-full p-6 overflow-hidden">
+                            <UserRoleManagement />
+                        </div>
+                    )}
 
                 </div >
             </div >
