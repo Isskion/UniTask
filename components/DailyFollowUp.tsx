@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import ProjectManagement from "./ProjectManagement";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
@@ -143,6 +143,26 @@ export default function DailyFollowUp() {
             alert("Error updating task");
         }
     };
+    // Context-Aware Task Filtering
+    // General Tab: Show tasks ONLY for projects that are active in this Daily Entry.
+    // Specific Tab: Show tasks for that project (subscription already handles it).
+    const visibleTasks = useMemo(() => {
+        if (activeTab !== "General") return projectTasks;
+
+        // "Ghosting" Fix: Filter global tasks to match only projects present in this day's entry.
+        const dailyProjectIds = entry.projects
+            .filter(p => p.status !== 'trash')
+            .map(p => {
+                // Resolve ID from stored projectId OR lookup by name
+                return p.projectId || globalProjects.find(gp => gp.name === p.name)?.id;
+            })
+            .filter(Boolean) as string[];
+
+        if (dailyProjectIds.length === 0) return []; // Empty day -> No tasks
+
+        return projectTasks.filter(t => t.projectId && dailyProjectIds.includes(t.projectId));
+    }, [projectTasks, activeTab, entry.projects, globalProjects]);
+
     const [recentEntries, setRecentEntries] = useState<JournalEntry[]>([]); // Rich history with Full Entry data
 
     // AI State
@@ -222,10 +242,33 @@ export default function DailyFollowUp() {
     }, []);
 
     useEffect(() => {
+        if (loading) return;
+
+        // Auto-fix Active Tab:
+        // If the current Active Tab is NOT present in the current day's Entry,
+        // we must switch so we don't show "Ghost" data from another day.
+
+        // Strict reset enabled: removed General guard
+
+        const activeProjects = entry.projects.filter(p => p.status !== 'trash');
+        const isValid = activeProjects.some(p => p.name === activeTab);
+
+        if (!isValid) {
+            // Current tab is invalid for this day. Switch context.
+            if (activeProjects.length > 0) {
+                // Focus first available project
+                setActiveTab(activeProjects[0].name);
+            } else {
+                // Fallback to General
+                setActiveTab("General");
+            }
+        }
+    }, [entry.id, loading]); // Only run when Day changes or Load finishes
+
+    useEffect(() => {
         if (user) {
             loadData(currentDate);
         }
-        // Removed setActiveTab("General") to persist context
     }, [currentDate, loadData, user]);
 
 
@@ -950,12 +993,12 @@ export default function DailyFollowUp() {
                                                 </div>
                                             )}
 
-                                            {projectTasks.length === 0 ? (
+                                            {visibleTasks.length === 0 ? (
                                                 <div className="text-center py-10 text-zinc-600 italic border border-dashed border-zinc-800 rounded-lg">
-                                                    No hay tareas activas
+                                                    No hay tareas activas para los proyectos de hoy
                                                 </div>
                                             ) : (
-                                                projectTasks.filter(t => t.status !== 'completed').map(task => (
+                                                visibleTasks.filter(t => t.status !== 'completed').map(task => (
                                                     <div
                                                         key={task.id}
                                                         className={cn(

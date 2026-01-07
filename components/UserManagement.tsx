@@ -195,7 +195,7 @@ export default function UserManagement() {
 
     const copyInviteLink = (code: string) => {
         // Always use production URL for invites, so they work when sent to users
-        const baseUrl = "https://weekly-tracker-p7rjqoja3-isskions-projects.vercel.app";
+        const baseUrl = "https://weekly-tracker-seven.vercel.app";
         const url = `${baseUrl}?invite=${code}`;
         navigator.clipboard.writeText(url);
         alert("Enlace copiado al portapapeles: " + url);
