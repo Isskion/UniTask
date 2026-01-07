@@ -181,10 +181,10 @@ export default function UserRoleManagement() {
 
                             {/* Permission Icons */}
                             <div className="flex items-center gap-3 mb-4 text-zinc-600">
-                                {group.projectAccess?.viewAll && <FolderGit2 className="w-4 h-4" title="Proyectos" />}
-                                {group.taskAccess?.create && <ListTodo className="w-4 h-4" title="Tareas" />}
-                                {group.viewAccess?.dashboard && <BarChart3 className="w-4 h-4" title="Dashboard" />}
-                                {group.specialPermissions?.managePermissions && <Shield className="w-4 h-4" title="Admin" />}
+                                {group.projectAccess?.viewAll && <span title="Proyectos"><FolderGit2 className="w-4 h-4" /></span>}
+                                {group.taskAccess?.create && <span title="Tareas"><ListTodo className="w-4 h-4" /></span>}
+                                {group.viewAccess?.dashboard && <span title="Dashboard"><BarChart3 className="w-4 h-4" /></span>}
+                                {group.specialPermissions?.managePermissions && <span title="Admin"><Shield className="w-4 h-4" /></span>}
                             </div>
 
                             {/* Actions */}
