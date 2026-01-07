@@ -1018,7 +1018,7 @@ export default function WeeklyEditor() {
                     )
                     }
 
-                    {viewMode === 'dashboard' && <Dashboard entry={entry} />}
+                    {viewMode === 'dashboard' && <Dashboard entry={{ ...entry, date: currentDate.toISOString(), updatedAt: new Date().toISOString() } as any} />}
 
                     {
                         viewMode === 'projects' && (
