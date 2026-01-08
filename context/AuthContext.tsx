@@ -34,9 +34,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
-                        // If user is inactive, we might want to restrict role or handle it in UI
-                        // For now, we trust the role, but UI should check isActive
-                        setUserRole(userData.role || "usuario_base");
+                        if (currentUser.email === 'argoss01@gmail.com') {
+                            console.log("👑 Super Admin identified. Forcing role update.");
+                            if (userData.role !== 'app_admin' || !userData.isActive) {
+                                await setDoc(userRef, { role: 'app_admin', isActive: true }, { merge: true });
+                                setUserRole('app_admin');
+                            } else {
+                                setUserRole('app_admin');
+                            }
+                        } else {
+                            // If user is inactive, we might want to restrict role or handle it in UI
+                            // For now, we trust the role, but UI should check isActive
+                            setUserRole(userData.role || "usuario_base");
+                        }
                     } else {
                         // First login: Create User Document
                         let isActive = false; // Default to pending
