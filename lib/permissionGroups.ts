@@ -8,6 +8,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         name: 'Administradores',
         description: 'Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.',
         color: '#ef4444', // red
+        tenantId: "1",
         projectAccess: {
             viewAll: true,
             assignedOnly: false,
@@ -47,6 +48,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         name: 'Project Managers',
         description: 'Gestores de proyecto. Pueden crear y administrar proyectos y tareas, pero no gestionar usuarios ni permisos.',
         color: '#3b82f6', // blue
+        tenantId: "1",
         projectAccess: {
             viewAll: true,
             assignedOnly: false,
@@ -86,6 +88,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         name: 'Equipo',
         description: 'Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.',
         color: '#10b981', // green
+        tenantId: "1",
         projectAccess: {
             viewAll: false,
             assignedOnly: true,
@@ -125,6 +128,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         name: 'Consultor',
         description: 'Consultores externos. Pueden ver y trabajar en proyectos asignados con permisos de edición limitados.',
         color: '#f59e0b', // amber
+        tenantId: "1",
         projectAccess: {
             viewAll: false,
             assignedOnly: true,
@@ -164,6 +168,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         name: 'Usuario Externo',
         description: 'Usuarios externos con acceso muy limitado. Solo pueden ver información de proyectos específicos asignados.',
         color: '#6b7280', // gray
+        tenantId: "1",
         projectAccess: {
             viewAll: false,
             assignedOnly: true,
