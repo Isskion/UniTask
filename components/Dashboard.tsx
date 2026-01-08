@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface DashboardProps {
     entry: JournalEntry;
@@ -23,7 +24,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+    const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
     const [timeScope, setTimeScope] = useState<TimeScope>('week');
 
     // Subscribe to ALL tasks
@@ -32,7 +33,6 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         setLoading(true);
         try {
             const unsubscribe = subscribeToAllTasks((data) => {
-                console.log("Dashboard received tasks:", data.length);
                 setTasks(data);
                 setLoading(false);
                 setError(null);
@@ -135,35 +135,14 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         return stats;
     }, [filteredTasks]);
 
-    // Unique Projects
+    // Unique Projects: Always show ALL permitted projects, regardless of current tasks/entry
     const uniqueProjects = useMemo(() => {
-        if (!entry) return [];
-        const projectMap = new Map<string, { projectId: string, name: string }>();
-
-        // 1. From Tasks
-        filteredTasks.forEach(t => {
-            if (t.projectId) {
-                const name = globalProjects.find(gp => gp.id === t.projectId)?.name || "Unknown Project";
-                projectMap.set(t.projectId, { projectId: t.projectId, name });
-            }
-        });
-
-        // 2. From Entry (Safe fallback)
-        if (entry.projects && Array.isArray(entry.projects)) {
-            entry.projects.forEach(p => {
-                // Permission Filter: Skip if restricted and not in allowed list
-                if (allowedProjectIds && (!p.projectId || !allowedProjectIds.includes(p.projectId))) {
-                    return;
-                }
-
-                if (p.projectId && !projectMap.has(p.projectId)) {
-                    projectMap.set(p.projectId, { projectId: p.projectId, name: p.name });
-                }
-            });
-        }
-
-        return Array.from(projectMap.values());
-    }, [filteredTasks, entry, globalProjects, allowedProjectIds]);
+        // Use availableGlobalProjects which is already filtered by permissions
+        return availableGlobalProjects.map(gp => ({
+            projectId: gp.id,
+            name: gp.name
+        }));
+    }, [availableGlobalProjects]);
 
     // Chart Data (Memoized & Protected)
     const chartData = useMemo(() => {
@@ -180,8 +159,9 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                 relevantTasks = relevantTasks.filter(t => t.projectId && allowedProjectIds.includes(t.projectId));
             }
 
-            if (selectedProjectId) {
-                relevantTasks = relevantTasks.filter(t => t.projectId === selectedProjectId);
+            // Multi-Project Filter
+            if (selectedProjectIds.size > 0) {
+                relevantTasks = relevantTasks.filter(t => t.projectId && selectedProjectIds.has(t.projectId));
             }
 
             let buckets: { label: string; dateKey: string; active: number; completed: number }[] = [];
@@ -251,29 +231,31 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             console.error("Chart generation error", e);
             return [];
         }
-    }, [tasks, timeScope, entry, selectedProjectId]);
+    }, [tasks, timeScope, entry, selectedProjectIds]);
 
     const openTasksCount = filteredTasks.filter(t => t.status !== 'completed').length;
     const blockersCount = filteredTasks.filter(t => t.isBlocking).length;
 
     if (error) {
-        return <div className="p-8 text-red-500 text-center border border-red-900 rounded-xl bg-red-950/20">Error: {error}</div>;
+        return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0a] text-zinc-200 lg:pr-2 overflow-y-auto custom-scrollbar p-6">
+        <div className="flex flex-col h-full bg-background text-foreground lg:pr-2 overflow-y-auto custom-scrollbar p-6">
 
             {/* SCOPE SELECTOR */}
             <div className="flex justify-center mb-6">
-                <div className="flex bg-[#121212] p-1 rounded-xl border border-white/5 shadow-2xl">
+                <div className="flex bg-card p-1 rounded-xl border border-border shadow-md">
                     {(['day', 'week', 'month', 'year'] as TimeScope[]).map((scope) => (
                         <button
                             key={scope}
                             onClick={() => setTimeScope(scope)}
-                            className={`
-                                px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                                ${timeScope === scope ? 'bg-[#D32F2F] text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}
-                            `}
+                            className={cn(
+                                "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
+                                timeScope === scope
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )}
                         >
                             {scope === 'day' ? 'Día' : scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
                         </button>
@@ -282,20 +264,22 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             </div>
 
             {/* CHART */}
-            <div className="w-full h-[320px] bg-[#121212] border border-white/5 rounded-3xl p-6 mb-8 relative group overflow-hidden shadow-2xl shrink-0">
-                {/* Gradients and Header omitted for brevity in thought, but kept in code ... */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#D32F2F]/5 to-transparent opacity-50 pointer-events-none" />
+            <div className="w-full h-[320px] bg-card border border-border rounded-3xl p-6 mb-8 relative group overflow-hidden shadow-sm hover:shadow-md transition-all shrink-0">
+                {/* Gradients */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#6366f1]/10 to-transparent opacity-50 pointer-events-none" />
 
                 <div className="flex justify-between items-start mb-4 relative z-10">
                     <div>
-                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                            <BarChart3 className="w-6 h-6 text-[#D32F2F]" />
-                            {selectedProjectId
-                                ? uniqueProjects.find(p => p.projectId === selectedProjectId)?.name || 'Project Trend'
+                        <h2 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
+                            <BarChart3 className="w-6 h-6 text-[#6366f1]" />
+                            {selectedProjectIds.size > 0
+                                ? (selectedProjectIds.size === 1
+                                    ? uniqueProjects.find(p => selectedProjectIds.has(p.projectId))?.name || 'Proyecto'
+                                    : `${selectedProjectIds.size} Proyectos`)
                                 : 'Flujo de Tareas'
                             }
                         </h2>
-                        <p className="text-zinc-500 text-sm capitalize">
+                        <p className="text-muted-foreground text-sm capitalize">
                             Vistazo: {timeScope === 'day' ? 'Hoy' : timeScope}
                         </p>
                     </div>
@@ -306,18 +290,37 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                         <ComposedChart data={chartData}>
                             <defs>
                                 <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#D32F2F" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#D32F2F" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#71717a' }} interval={timeScope === 'month' ? 2 : 0} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                            <XAxis
+                                dataKey="name"
+                                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                                interval={timeScope === 'month' ? 2 : 0}
+                                axisLine={false}
+                                tickLine={false}
+                            />
                             <YAxis hide />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '8px' }}
-                                itemStyle={{ color: '#fff' }}
+                                contentStyle={{
+                                    backgroundColor: 'hsl(var(--popover))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: '8px',
+                                    color: 'hsl(var(--popover-foreground))'
+                                }}
+                                itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
                             />
-                            <Area type="monotone" dataKey="active" stroke="#D32F2F" fillOpacity={1} fill="url(#colorActive)" strokeWidth={3} />
+                            <Area
+                                type="monotone"
+                                dataKey="active"
+                                stroke="#6366f1"
+                                fillOpacity={1}
+                                fill="url(#colorActive)"
+                                strokeWidth={3}
+                            />
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
@@ -325,13 +328,13 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
 
             {/* METRICS */}
             <div className="flex justify-end gap-3 mb-6">
-                <div className="px-4 py-2 bg-zinc-900 rounded-full border border-zinc-800 text-xs font-mono text-zinc-400 shadow-xl flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    ACTIVAS: <span className="text-white font-bold">{loading ? "..." : openTasksCount}</span>
+                <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
+                    ACTIVAS: <span className="text-foreground font-bold">{loading ? "..." : openTasksCount}</span>
                 </div>
-                <div className="px-4 py-2 bg-zinc-900 rounded-full border border-zinc-800 text-xs font-mono text-zinc-400 shadow-xl flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    BLOQUEANTES: <span className="text-red-400 font-bold">{blockersCount}</span>
+                <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                    BLOQUEANTES: <span className="text-destructive font-bold">{blockersCount}</span>
                 </div>
             </div>
 
@@ -345,105 +348,131 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     const completed = stats.completed;
                     const blocked = stats.blocked;
                     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-                    const isSelected = selectedProjectId === project.projectId;
+                    const isSelected = selectedProjectIds.has(project.projectId);
 
                     const myTasks = sortTasks(
                         filteredTasks.filter(t => t.projectId === project.projectId && t.status !== 'completed')
                     );
 
                     // Health Logic
-                    let color = 'text-emerald-400';
-                    let ring = 'border-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.4)]';
+                    let color = 'text-emerald-500';
+                    let ring = 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
                     let Icon = Activity;
                     let label = 'Healthy';
                     let reason = 'Todo fluye correctamente.';
+                    let barColor = 'bg-emerald-500';
 
                     if (blocked > 0) {
-                        color = 'text-red-500';
-                        ring = 'border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]';
+                        color = 'text-destructive';
+                        ring = 'border-destructive shadow-[0_0_15px_rgba(239,68,68,0.3)]';
                         Icon = Ban;
                         label = 'Critical Blocker';
                         reason = `¡Atención! Hay ${blocked} tareas bloqueantes que impiden el avance.`;
+                        barColor = 'bg-destructive';
                     } else if (percentage < 50 && total > 0) {
                         color = 'text-yellow-500';
-                        ring = 'border-yellow-500 shadow-[0_0_15px_rgba(245,158,11,0.4)]';
+                        ring = 'border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]';
                         Icon = AlertTriangle;
                         label = 'At Risk';
                         reason = `Riesgo: El progreso (${percentage}%) es bajo. Se recomienda acelerar.`;
+                        barColor = 'bg-yellow-500';
                     } else if (total === 0) {
-                        color = 'text-zinc-500';
-                        ring = 'border-zinc-700';
+                        color = 'text-muted-foreground';
+                        ring = 'border-border'; // Neutral ring
                         label = 'No Tasks';
                         reason = 'No hay tareas activas en este periodo.';
+                        barColor = 'bg-muted';
                     }
 
                     return (
                         <div
                             key={pid}
-                            onClick={() => setSelectedProjectId(prev => prev === pid ? null : pid)}
-                            className={`
-                                rounded-2xl p-6 relative overflow-hidden group transition-all flex flex-col shadow-2xl cursor-pointer
-                                border-2 ${isSelected ? 'border-[#D32F2F] bg-[#1a0505]' : 'border-white/5 bg-[#121212] hover:border-white/10'}
-                            `}
+                            onClick={() => {
+                                setSelectedProjectIds(prev => {
+                                    const newSet = new Set(prev);
+                                    if (newSet.has(pid)) {
+                                        newSet.delete(pid);
+                                    } else {
+                                        newSet.add(pid);
+                                    }
+                                    return newSet;
+                                });
+                            }}
+                            className={cn(
+                                "rounded-2xl p-6 relative overflow-hidden group transition-all flex flex-col shadow-sm cursor-pointer border-2 hover:shadow-md",
+                                isSelected
+                                    ? "border-primary bg-primary/5"
+                                    : "border-border bg-card hover:border-primary/30"
+                            )}
                         >
                             <div className="flex justify-between items-start mb-4 relative z-10">
                                 <div>
-                                    <h3 className="text-xl font-bold text-white truncate max-w-[200px]" title={project.name}>{project.name}</h3>
-                                    <p className={`text-[10px] uppercase tracking-wider font-bold mt-1 ${label === 'Critical Blocker' ? 'text-red-500 animate-pulse block' : 'text-zinc-500'}`}>{label}</p>
+                                    <h3 className="text-xl font-bold text-card-foreground truncate max-w-[200px]" title={project.name}>{project.name}</h3>
+                                    <p className={cn(
+                                        "text-[10px] uppercase tracking-wider font-bold mt-1",
+                                        label === 'Critical Blocker' ? 'text-destructive animate-pulse block' : 'text-muted-foreground'
+                                    )}>{label}</p>
                                 </div>
                                 <div
-                                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-black ${ring}`}
+                                    className={cn(
+                                        "w-12 h-12 rounded-full border-2 flex items-center justify-center bg-background",
+                                        ring
+                                    )}
                                     title={reason}
                                 >
-                                    <Icon className={`w-6 h-6 ${color}`} />
+                                    <Icon className={cn("w-6 h-6", color)} />
                                 </div>
                             </div>
 
                             <div className="flex items-end justify-between mb-2 relative z-10 mt-2">
                                 <div className="flex flex-col">
-                                    <span className="text-4xl font-extrabold text-white tracking-tighter">{percentage}%</span>
-                                    <span className="text-zinc-500 text-[10px] font-mono uppercase">Progreso</span>
+                                    <span className="text-4xl font-extrabold text-foreground tracking-tighter">{percentage}%</span>
+                                    <span className="text-muted-foreground text-[10px] font-mono uppercase">Progreso</span>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-white font-bold font-mono">{completed}/{total}</span>
-                                    <span className="text-zinc-600 text-[10px] block">Tareas Hechas</span>
+                                    <span className="text-foreground font-bold font-mono">{completed}/{total}</span>
+                                    <span className="text-muted-foreground text-[10px] block">Tareas Hechas</span>
                                 </div>
                             </div>
-                            <div className="w-full h-2 bg-zinc-900 rounded-full overflow-hidden mb-6 border border-white/5">
+                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-6 border border-border">
                                 <div
-                                    className={`h-full transition-all duration-700 ease-out ${label === 'Critical Blocker' ? 'bg-red-500' : label === 'At Risk' ? 'bg-yellow-500' : 'bg-emerald-500'}`}
+                                    className={cn("h-full transition-all duration-700 ease-out", barColor)}
                                     style={{ width: `${percentage}%` }}
                                 />
                             </div>
 
-                            <div className="h-px w-full bg-white/5 mb-4" />
+                            <div className="h-px w-full bg-border mb-4" />
 
                             <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
-                                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
                                     <Activity className="w-3 h-3" /> Tareas Activas
                                 </h4>
                                 {myTasks.length === 0 ? (
-                                    <div className="text-zinc-700 text-xs italic text-center py-8 border border-dashed border-zinc-800 rounded-lg">
+                                    <div className="text-muted-foreground text-xs italic text-center py-8 border border-dashed border-border rounded-lg">
                                         Todo completado
                                     </div>
                                 ) : (
                                     myTasks.map(task => (
-                                        <div key={task.id} className={`group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border ${task.isBlocking ? 'bg-red-950/30 border-red-500/30' :
-                                            'bg-zinc-900/50 border-white/5 hover:bg-zinc-800 hover:border-white/10'
-                                            }`}>
+                                        <div key={task.id} className={cn(
+                                            "group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border",
+                                            task.isBlocking
+                                                ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/20"
+                                                : "bg-muted/50 border-border hover:bg-muted hover:border-sidebar-border"
+                                        )}>
                                             <div className="mt-0.5 shrink-0">
                                                 {task.isBlocking ?
-                                                    <Ban className="w-3.5 h-3.5 text-red-500" /> :
-                                                    <Circle className="w-3.5 h-3.5 text-zinc-600 group-hover/task:text-zinc-400" />
+                                                    <Ban className="w-3.5 h-3.5 text-destructive" /> :
+                                                    <Circle className="w-3.5 h-3.5 text-muted-foreground group-hover/task:text-primary" />
                                                 }
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center mb-1">
-                                                    <span className="font-mono text-[9px] text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">{task.friendlyId}</span>
+                                                    <span className="font-mono text-[9px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">{task.friendlyId}</span>
                                                 </div>
-                                                <p className={`leading-relaxed break-words line-clamp-2 ${task.isBlocking ? 'text-red-200 font-medium' :
-                                                    'text-zinc-300'
-                                                    }`}>
+                                                <p className={cn(
+                                                    "leading-relaxed break-words line-clamp-2",
+                                                    task.isBlocking ? "text-destructive-foreground font-medium" : "text-foreground"
+                                                )}>
                                                     {task.description}
                                                 </p>
                                             </div>
@@ -459,7 +488,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             </div>
 
             {uniqueProjects.length === 0 && (
-                <div className="col-span-full text-center p-12 border border-dashed border-white/10 rounded-3xl text-zinc-600 flex flex-col items-center gap-4">
+                <div className="col-span-full text-center p-12 border border-dashed border-border rounded-3xl text-muted-foreground flex flex-col items-center gap-4 bg-card/50">
                     <TrendingUp className="w-12 h-12 opacity-20" />
                     <p>No hay proyectos activos para este periodo.</p>
                 </div>

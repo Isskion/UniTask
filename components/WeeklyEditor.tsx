@@ -20,6 +20,7 @@ import { Loader2, Save, Calendar, History, CheckCircle2, Plus, X, Layout, Search
 import { parseNotes } from "@/lib/smartParser";
 import { useAuth } from "@/context/AuthContext";
 import { summarizeNotesWithAI, AISummaryResult } from "@/app/ai-actions";
+import { useToast } from "@/context/ToastContext";
 
 import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
@@ -41,6 +42,7 @@ async function fetchExistingIdsClient() {
 
 export default function WeeklyEditor() {
     const { userRole, user, loading: authLoading } = useAuth(); // Get user info
+    const { showToast } = useToast();
     const [userProfile, setUserProfile] = useState<any>(null); // Store full user profile for assignments
     const [profileLoading, setProfileLoading] = useState(true); // Track potential fetch delay
     const [globalProjects, setGlobalProjects] = useState<{ id: string, name: string, code: string, color?: string }[]>([]); // Cache for global projects
@@ -58,11 +60,16 @@ export default function WeeklyEditor() {
     const [newProjectName, setNewProjectName] = useState("");
     const [isAddingProject, setIsAddingProject] = useState(false);
 
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; destructive?: boolean } | null>(null);
+
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
+
+
 
     // Hydration-safe initial load
     useEffect(() => {
@@ -264,7 +271,7 @@ export default function WeeklyEditor() {
             fetchExistingIdsClient().then(ids => setExistingIds(new Set(ids)));
         } catch (error) {
             console.error("Error loading data:", error);
-            alert("Error cargando datos. Revisa tu conexión o permisos.");
+            showToast("UniTaskController", "Error cargando datos. Revisa tu conexión o permisos.", "error");
         } finally {
             setLoading(false);
             // setViewMode('editor'); // Don't reset view mode on data load, allow user to stay on Dashboard
@@ -492,13 +499,20 @@ export default function WeeklyEditor() {
 
     const moveProjectToTrash = (e: React.MouseEvent, name: string) => {
         e.stopPropagation();
-        if (confirm(`¿Mover "${name}" a la papelera?`)) {
-            setEntry(prev => ({
-                ...prev,
-                projects: prev.projects.map(p => p.name === name ? { ...p, status: 'trash' } : p)
-            }));
-            if (activeTab === name) setActiveTab("General");
-        }
+        setConfirmModal({
+            open: true,
+            title: "Mover a Papelera",
+            message: `¿Mover "${name}" a la papelera?`,
+            destructive: true,
+            onConfirm: () => {
+                setEntry(prev => ({
+                    ...prev,
+                    projects: prev.projects.map(p => p.name === name ? { ...p, status: 'trash' } : p)
+                }));
+                if (activeTab === name) setActiveTab("General");
+                setConfirmModal(null);
+            }
+        });
     };
 
     const restoreProject = (name: string) => {
@@ -511,7 +525,7 @@ export default function WeeklyEditor() {
     const handleAutoExtract = () => {
         const currentPmNotes = getCurrentData().pmNotes;
         if (!currentPmNotes.trim()) {
-            alert("Primero escribe algunas notas en 'Notas del PM'.");
+            showToast("UniTaskController", "Primero escribe algunas notas en 'Notas del PM'.", "info");
             return;
         }
 
@@ -519,40 +533,51 @@ export default function WeeklyEditor() {
         const currentTasks = getCurrentData().nextSteps;
         const hasExistingData = currentConclusions.trim() || currentTasks.trim();
 
-        if (hasExistingData) {
-            if (!confirm("⚠️ ¿Estás seguro? \n\nSe sobrescribirán las conclusiones y tareas actuales con la información extraída de las notas.")) {
-                return;
+        const proceed = () => {
+            const result = parseNotes(currentPmNotes);
+
+            // Batch updates
+            if (activeTab === "General") {
+                setEntry(prev => ({
+                    ...prev,
+                    conclusions: result.conclusions,
+                    nextSteps: result.nextWeekTasks
+                }));
+            } else {
+                setEntry(prev => ({
+                    ...prev,
+                    projects: prev.projects.map(p =>
+                        p.name === activeTab ? {
+                            ...p,
+                            conclusions: result.conclusions,
+                            nextSteps: result.nextWeekTasks
+                        } : p
+                    )
+                }));
             }
+            setConfirmModal(null);
+            showToast("UniTaskController", "Datos extraídos automáticamente", "success");
+        };
+
+        if (hasExistingData) {
+            setConfirmModal({
+                open: true,
+                title: "Sobrescribir Datos",
+                message: "⚠️ ¿Estás seguro? \n\nSe sobrescribirán las conclusiones y tareas actuales con la información extraída de las notas.",
+                destructive: true,
+                onConfirm: proceed
+            });
+            return;
         }
 
-        const result = parseNotes(currentPmNotes);
-
-        // Batch updates
-        if (activeTab === "General") {
-            setEntry(prev => ({
-                ...prev,
-                conclusions: result.conclusions,
-                nextSteps: result.nextWeekTasks
-            }));
-        } else {
-            setEntry(prev => ({
-                ...prev,
-                projects: prev.projects.map(p =>
-                    p.name === activeTab ? {
-                        ...p,
-                        conclusions: result.conclusions,
-                        nextSteps: result.nextWeekTasks
-                    } : p
-                )
-            }));
-        }
+        proceed();
     };
 
     // AI Summary Handler
     const handleAISummary = async () => {
         const currentPmNotes = getCurrentData().pmNotes;
         if (!currentPmNotes.trim()) {
-            alert("Primero escribe algunas notas para resumir.");
+            showToast("UniTaskController", "Primero escribe algunas notas para resumir.", "info");
             return;
         }
 
@@ -612,10 +637,10 @@ export default function WeeklyEditor() {
                         assignedTo: user.uid // Auto-assign to creator for now
                     }, user.uid, currentProjectName);
                 }
-                alert(`✅ ${allItems.length} Tareas creadas en base de datos.`);
+                showToast("UniTaskController", `✅ ${allItems.length} Tareas creadas en base de datos.`, "success");
             } catch (e) {
                 console.error("Error creating tasks", e);
-                alert("Hubo un error guardando las tareas en base de datos.");
+                showToast("UniTaskController", "Hubo un error guardando las tareas en base de datos.", "error");
             }
         }
 
@@ -638,14 +663,14 @@ export default function WeeklyEditor() {
                 entry.id = recoveredId; // Mutable update for immediate use in this closure's 'entry' reference if needed, though better to use updatedEntry variable
                 setEntry(prev => ({ ...prev, id: recoveredId }));
             } else {
-                alert("Error Crítico: No hay ID de semana. Refresca la página.");
+                showToast("UniTaskController", "Error Crítico: No hay ID de semana. Refresca la página.", "error");
                 return;
             }
         }
 
         // 2. Validate Auth (Client Side Guard)
         if (!auth.currentUser) {
-            alert("⚠️ No estás logueado.\n\nFirebase rechazará el guardado. Por favor, asegúrate de ver tu usuario arriba a la derecha.");
+            showToast("UniTaskController", "⚠️ No estás logueado. Firebase rechazará el guardado.", "error");
             return;
         }
 
@@ -664,14 +689,14 @@ export default function WeeklyEditor() {
             }
 
             fetchExistingIdsClient().then(ids => setExistingIds(new Set(ids)));
-            alert("Guardado correctamente ✨");
+            showToast("UniTaskController", "Guardado correctamente ✨", "success");
         } catch (error: any) {
             console.error("Save error:", error);
             // Show explicit firebase permission error
             if (error.code === 'permission-denied') {
-                alert("⛔ Permiso denegado.\n\nTu usuario no tiene permisos para escribir. Revisa si eres Admin o si las Reglas de Firebase están actualizadas.");
+                showToast("UniTaskController", "⛔ Permiso denegado. Revisa tus permisos.", "error");
             } else {
-                alert(`Error al guardar: ${error.message}`);
+                showToast("UniTaskController", `Error al guardar: ${error.message}`, "error");
             }
         } finally {
             setSaving(false);
@@ -1209,6 +1234,34 @@ export default function WeeklyEditor() {
                     </div>
                 )
             }
+            {/* Confirmation Modal */}
+            {confirmModal && confirmModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 scale-100 animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-bold text-white mb-2">{confirmModal.title}</h3>
+                        <p className="text-sm text-zinc-400 mb-6">{confirmModal.message}</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setConfirmModal(null)}
+                                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmModal.onConfirm}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-bold rounded-lg shadow-lg active:scale-95 transition-all text-white",
+                                    confirmModal.destructive
+                                        ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
+                                        : "bg-primary hover:bg-primary/90 shadow-primary/20"
+                                )}
+                            >
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout >
     );
 }

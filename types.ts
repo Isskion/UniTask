@@ -15,6 +15,7 @@ export interface Project {
     address?: string;
 
     // Security & Metadata
+    tenantId: string; // Multi-tenant isolation
     teamIds: string[]; // New: UIDs of allowed consultants
     isActive: boolean; // Legacy flag (keep for backward compat, sync with status)
     createdAt?: any;
@@ -50,7 +51,8 @@ export interface UserProfile {
     email: string;
     displayName: string;
     photoURL?: string;
-    role: 'app_admin' | 'global_pm' | 'consultor' | 'usuario_base' | 'usuario_externo';
+    role: 'superadmin' | 'app_admin' | 'global_pm' | 'consultor' | 'usuario_base' | 'usuario_externo';
+    tenantId: string; // Multi-tenant: Required for all users
     isActive: boolean;
     lastLogin?: any;
     // Extended fields
@@ -117,6 +119,7 @@ export interface PermissionGroup {
         useCommandMenu: boolean;
     };
 
+    tenantId: string; // Multi-tenant isolation
     createdAt: any;
     updatedAt: any;
     createdBy: string;
@@ -142,6 +145,7 @@ export interface ProjectEntry {
 export interface JournalEntry {
     id: string; // Format: YYYY-MM-DD
     date: string; // ISO Date String "2025-01-06"
+    tenantId: string; // Multi-tenant isolation
 
     // Content
     generalNotes?: string; // Daily global context
@@ -156,6 +160,7 @@ export interface WeeklyEntry {
     id: string; // YYYYMMDD
     weekNumber: number;
     year: number;
+    tenantId: string; // Multi-tenant isolation
 
     // General / Global notes
     pmNotes: string;
@@ -177,6 +182,7 @@ export interface Task {
     // Core Links
     weekId: string;        // Legacy link
     projectId?: string;    // Parent Project
+    tenantId: string;      // Multi-tenant isolation
 
     // Header Info
     title: string;         // Main "Headline" of the task

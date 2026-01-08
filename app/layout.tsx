@@ -18,6 +18,9 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/context/AuthContext";
+import { UIProvider } from "@/context/UIContext";
+import { ToastProvider } from "@/context/ToastContext";
+import { CommandMenu } from "@/components/CommandMenu";
 
 // ... previous code ...
 
@@ -32,7 +35,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          {children}
+          <UIProvider>
+            <ToastProvider>
+              {children}
+              <CommandMenu />
+            </ToastProvider>
+          </UIProvider>
         </AuthProvider>
       </body>
     </html>

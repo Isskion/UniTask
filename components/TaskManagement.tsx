@@ -5,14 +5,19 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, deleteDoc, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from "date-fns";
 import { es } from "date-fns/locale";
+import { useToast } from "@/context/ToastContext";
 
 export default function TaskManagement() {
     const { userRole, user } = useAuth();
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+    const { showToast } = useToast();
     const { isAdmin: checkIsAdmin, can, getAllowedProjectIds } = usePermissions();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -80,6 +85,9 @@ export default function TaskManagement() {
     // Date Picker State
     const [datePickerTarget, setDatePickerTarget] = useState<'startDate' | 'endDate' | null>(null);
     const [currentMonth, setCurrentMonth] = useState(new Date());
+
+    // Confirmation Modal State
+    const [confirmModal, setConfirmModal] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; destructive?: boolean } | null>(null);
 
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
@@ -160,62 +168,82 @@ export default function TaskManagement() {
     // --- HANDLERS ---
 
     const handleSelectTask = (task: Task) => {
+        const proceed = () => {
+            setSelectedTask(task);
+            // Smart Migration: If title is missing but description exists, use description as title
+            setFormData({
+                ...task,
+                title: task.title || task.description || "",
+            });
+            setIsNew(false);
+            setIsStatusOpen(false);
+            setActiveRaciRole(null);
+            setDependencySearch("");
+            setConfirmModal(null);
+        };
+
         if (isDirty()) {
-            if (!confirm("Tienes cambios sin guardar. ¿Deseas descartarlos y cambiar de tarea?")) return;
+            setConfirmModal({
+                open: true,
+                title: "Cambios sin guardar",
+                message: "Tienes cambios sin guardar. ¿Deseas descartarlos y cambiar de tarea?",
+                onConfirm: proceed
+            });
+            return;
         }
-        setSelectedTask(task);
-        // Smart Migration: If title is missing but description exists, use description as title
-        setFormData({
-            ...task,
-            title: task.title || task.description || "",
-            // Preserve description if needed, or map it to techDescription if empty? 
-            // Let's keep it simple: Map description to title for editing.
-        });
-        setIsNew(false);
-        setIsStatusOpen(false);
-        setActiveRaciRole(null);
-        setDependencySearch("");
+        proceed();
     };
 
 
 
     const handleCreateClick = () => {
-        if (isDirty()) {
-            if (!confirm("Tienes cambios sin guardar. ¿Deseas descartarlos y crear nueva tarea?")) return;
-        }
-        const newTemplate: Partial<Task> = {
-            title: "",
-            status: 'pending',
-            projectId: "", // User must select
-            startDate: new Date().toISOString(),
-            acceptanceCriteria: [
-                { id: '1', text: 'Criterio de aceptación 1', completed: false }
-            ],
-            progress: 0,
-            raci: { responsible: [], accountable: [], consulted: [], informed: [] },
-            dependencies: []
+        const proceed = () => {
+            const newTemplate: Partial<Task> = {
+                title: "",
+                status: 'pending',
+                projectId: "", // User must select
+                startDate: new Date().toISOString(),
+                acceptanceCriteria: [
+                    { id: '1', text: 'Criterio de aceptación 1', completed: false }
+                ],
+                progress: 0,
+                raci: { responsible: [], accountable: [], consulted: [], informed: [] },
+                dependencies: []
+            };
+            const ghost = { id: 'new', friendlyId: 'NEW', ...newTemplate } as Task;
+            setSelectedTask(ghost);
+            setFormData(newTemplate);
+            setIsNew(true);
+            setConfirmModal(null);
         };
-        const ghost = { id: 'new', friendlyId: 'NEW', ...newTemplate } as Task;
-        setSelectedTask(ghost);
-        setFormData(newTemplate);
-        setIsNew(true);
+
+        if (isDirty()) {
+            setConfirmModal({
+                open: true,
+                title: "Cambios sin guardar",
+                message: "Tienes cambios sin guardar. ¿Deseas descartarlos y crear nueva tarea?",
+                onConfirm: proceed
+            });
+            return;
+        }
+        proceed();
     };
 
     const handleSave = async () => {
-        if (!formData.title) return alert("El título es obligatorio");
-        if (!formData.projectId) return alert("Debes asignar un proyecto a la tarea");
+        if (!formData.title) return showToast("UniTaskController", "El título es obligatorio", "error");
+        if (!formData.projectId) return showToast("UniTaskController", "Debes asignar un proyecto a la tarea", "error");
 
         // Security Check: Ensure project is allowed
         if (!isAdmin) {
             const isAllowed = visibleProjects.some(p => p.id === formData.projectId);
-            if (!isAllowed) return alert("No tienes permisos para crear tareas en este proyecto.");
+            if (!isAllowed) return showToast("UniTaskController", "No tienes permisos para crear tareas en este proyecto.", "error");
         }
 
         // Dependency Check Logic
         if (formData.status === 'completed' && formData.dependencies && formData.dependencies.length > 0) {
             const blockingTasks = tasks.filter(t => formData.dependencies?.includes(t.id) && t.status !== 'completed');
             if (blockingTasks.length > 0) {
-                alert(`No se puede cerrar la tarea. Bloqueada por: ${blockingTasks.map(t => t.friendlyId).join(', ')}`);
+                showToast("UniTaskController", `Tarea bloqueada por: ${blockingTasks.map(t => t.friendlyId).join(', ')}`, "error");
                 return;
             }
         }
@@ -243,12 +271,12 @@ export default function TaskManagement() {
                     });
                     setTasks(prev => prev.map(t => t.id === selectedTask.id ? { ...t, ...data } as Task : t));
                     setIsNew(false);
-                    alert("Guardado");
+                    showToast("UniTaskController", "Guardado", "success");
                 }
             }
         } catch (e) {
             console.error(e);
-            alert("Error al guardar");
+            showToast("UniTaskController", "Error al guardar", "error");
         } finally {
             setSaving(false);
         }
@@ -256,15 +284,28 @@ export default function TaskManagement() {
 
     const handleDelete = async () => {
         // Double Check UI shouldn't allow this, but safe guard
-        if (!isAdmin) return alert("No tienes permisos para eliminar tareas.");
+        if (!isAdmin) return showToast("UniTaskController", "No tienes permisos para eliminar tareas.", "error");
 
         if (!selectedTask?.id || isNew) return;
-        if (!confirm("¿Borrar esta tarea permanentemente?")) return;
-        try {
-            await deleteDoc(doc(db, "tasks", selectedTask.id));
-            setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
-            setSelectedTask(null);
-        } catch (e) { console.error(e); }
+
+        setConfirmModal({
+            open: true,
+            title: "Eliminar Tarea",
+            message: "¿Borrar esta tarea permanentemente? Esta acción es irreversible.",
+            destructive: true,
+            onConfirm: async () => {
+                try {
+                    await deleteDoc(doc(db, "tasks", selectedTask.id));
+                    setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
+                    setSelectedTask(null);
+                    showToast("UniTaskController", "Tarea eliminada", "success");
+                } catch (e) {
+                    console.error(e);
+                    showToast("UniTaskController", "Error eliminando tarea", "error");
+                }
+                setConfirmModal(null);
+            }
+        });
     };
 
     // --- CUSTOM DATE PICKER COMPONENT ---
@@ -280,7 +321,7 @@ export default function TaskManagement() {
         const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
         return (
-            <div className="absolute z-50 mt-2 bg-[#18181b] border border-white/10 rounded-xl shadow-2xl p-4 w-64 animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute z-50 mt-2 bg-popover border border-border rounded-xl shadow-2xl p-4 w-64 animate-in fade-in zoom-in-95 duration-200">
                 <div className="flex justify-between items-center mb-4">
                     <h4 className="text-xs font-bold text-zinc-400 uppercase">{title}</h4>
                     <button onClick={onClose}><X className="w-3 h-3 text-zinc-500 hover:text-white" /></button>
@@ -349,13 +390,13 @@ export default function TaskManagement() {
     // Removed Blocking Return for Restricted Users
 
     return (
-        <div className="flex h-full bg-[#09090b] text-zinc-200">
+        <div className="flex h-full bg-background text-foreground">
             {/* Sidebar List */}
-            <div className={cn("w-72 border-r border-white/5 flex-shrink-0 transition-all duration-300", selectedTask ? "hidden lg:block lg:w-72" : "w-full lg:w-72")}>
-                <div className="h-full flex flex-col bg-[#09090b]">
-                    <div className="p-4 border-b border-white/5 bg-[#0c0c0e]">
+            <div className={cn("w-72 border-r border-border flex-shrink-0 transition-all duration-300 bg-card/30", selectedTask ? "hidden lg:block lg:w-72" : "w-full lg:w-72")}>
+                <div className="h-full flex flex-col">
+                    <div className={cn("p-4 border-b", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
                         <div className="flex justify-between items-center mb-3">
-                            <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Tareas ({visibleTasks.length})</h2>
+                            <h2 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Tareas ({visibleTasks.length})</h2>
                             <button onClick={handleCreateClick} className="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all"><Plus className="w-3.5 h-3.5" /></button>
                         </div>
 
@@ -364,7 +405,9 @@ export default function TaskManagement() {
                             <div className="relative">
                                 <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
                                 <input
-                                    className="w-full bg-black/20 border border-white/5 rounded pl-7 pr-2 py-1 text-[10px] text-zinc-300 focus:outline-none focus:border-indigo-500/30"
+                                    className={cn("w-full rounded pl-7 pr-2 py-1 text-[10px] focus:outline-none",
+                                        isLight ? "bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400" : "bg-black/20 border border-white/5 text-zinc-300 focus:border-indigo-500/30"
+                                    )}
                                     placeholder="Buscar..."
                                     value={sidebarSearch}
                                     onChange={e => setSidebarSearch(e.target.value)}
@@ -377,7 +420,7 @@ export default function TaskManagement() {
                                         onClick={() => setSidebarFilter(f)}
                                         className={cn(
                                             "flex-1 py-1 text-[9px] font-bold uppercase rounded transition-all",
-                                            sidebarFilter === f ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
+                                            sidebarFilter === f ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white hover:bg-white/5"
                                         )}
                                     >
                                         {f === 'all' ? 'Todas' : f === 'active' ? 'Activas' : 'Completas'}
@@ -390,15 +433,27 @@ export default function TaskManagement() {
                         {visibleTasks.map(t => {
                             const project = projects.find(p => p.id === t.projectId);
                             return (
-                                <div key={t.id} onClick={() => handleSelectTask(t)} className={cn("group flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border", selectedTask?.id === t.id ? "bg-indigo-500/10 border-indigo-500/20" : "bg-[#121212] border-transparent hover:bg-white/5 hover:border-white/5")}>
+                                <div key={t.id} onClick={() => handleSelectTask(t)} className={cn("group flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border",
+                                    selectedTask?.id === t.id
+                                        ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/20 border-primary/50")
+                                        : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-white/5 hover:border-white/5")
+                                )}>
                                     <div className="flex justify-between items-start mb-1">
                                         <div className="flex items-center gap-1">
-                                            <span className={cn("font-bold font-mono text-[10px]", selectedTask?.id === t.id ? "text-indigo-400" : "text-zinc-500")}>{t.friendlyId || 'No ID'}</span>
+                                            <span className={cn("font-bold font-mono text-[10px]",
+                                                selectedTask?.id === t.id
+                                                    ? (isLight ? "text-white" : "text-white")
+                                                    : (isLight ? "text-zinc-500" : "text-zinc-400")
+                                            )}>{t.friendlyId || 'No ID'}</span>
                                             {t.isBlocking && <AlertTriangle className="w-3 h-3 text-red-500" />}
                                         </div>
                                         <div className={cn("w-1.5 h-1.5 rounded-full", t.status === 'completed' ? 'bg-blue-500' : t.status === 'in_progress' ? 'bg-emerald-500' : 'bg-zinc-700')} />
                                     </div>
-                                    <div className="text-[11px] text-zinc-300 line-clamp-2 mb-1.5 font-medium">
+                                    <div className={cn("text-[11px] line-clamp-2 mb-1.5 font-medium transition-colors",
+                                        selectedTask?.id === t.id
+                                            ? (isLight ? "text-white" : "text-white")
+                                            : (isLight ? "text-zinc-900 group-hover:text-black" : "text-zinc-300 group-hover:text-white")
+                                    )}>
                                         {t.title || t.description || "Sin Título"}
                                     </div>
                                     {project && <div className="text-[9px] text-zinc-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.color }} />{project.name}</div>}
@@ -410,22 +465,24 @@ export default function TaskManagement() {
             </div>
 
             {/* Main Content */}
-            <div className={cn("flex-1 flex flex-col min-w-0 bg-[#0c0c0e]", !selectedTask ? "hidden lg:flex" : "flex")}>
+            <div className={cn("flex-1 flex flex-col min-w-0 bg-background", !selectedTask ? "hidden lg:flex" : "flex")}>
                 {!selectedTask ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-600">
-                        <LayoutTemplate className="w-12 h-12 mb-3 opacity-10" />
-                        <p className="text-sm">Selecciona una tarea para gestionar</p>
+                    <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-white")}>
+                        <LayoutTemplate className="w-12 h-12 mb-3 opacity-80" />
+                        <p className={cn("text-sm font-medium", isLight ? "text-zinc-500" : "text-white")}>Selecciona una tarea para gestionar</p>
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar relative">
                         {/* Header */}
-                        <div className="bg-[#0c0c0e]/95 backdrop-blur-sm border-b border-white/5 px-6 py-4 sticky top-0 z-10 shadow-lg shadow-black/20 shrink-0">
+                        <div className={cn("backdrop-blur-sm border-b px-6 py-4 sticky top-0 z-10 shadow-lg shrink-0",
+                            isLight ? "bg-white/90 border-zinc-200 shadow-zinc-200/50" : "bg-card/90 border-white/5 shadow-black/20"
+                        )}>
                             <div className="max-w-6xl mx-auto">
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest font-mono">ID: {selectedTask.friendlyId || selectedTask.id}</div>
+                                    <div className={cn("text-[10px] font-bold uppercase tracking-widest font-mono", isLight ? "text-zinc-500" : "text-zinc-400")}>ID: {selectedTask.friendlyId || selectedTask.id}</div>
                                     <div className="relative">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Estado</span>
+                                            <span className={cn("text-[10px] font-bold uppercase", isLight ? "text-zinc-500" : "text-zinc-400")}>Estado</span>
                                             <button onClick={() => setIsStatusOpen(!isStatusOpen)} className={cn("px-3 py-1 rounded text-xs font-bold border transition-all flex items-center gap-1.5", getStatusColor(formData.status))}>
                                                 {getStatusLabel(formData.status)} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                                             </button>
@@ -433,7 +490,7 @@ export default function TaskManagement() {
                                         {isStatusOpen && (
                                             <>
                                                 <div className="fixed inset-0 z-40" onClick={() => setIsStatusOpen(false)} />
-                                                <div className="absolute right-0 top-full mt-1 w-40 bg-[#18181b] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden py-1">
+                                                <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-lg shadow-2xl z-50 overflow-hidden py-1">
                                                     {(['pending', 'in_progress', 'review', 'completed'] as const).map(s => (
                                                         <button key={s} onClick={() => { setFormData({ ...formData, status: s }); setIsStatusOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5 flex items-center gap-2">
                                                             <div className={cn("w-1.5 h-1.5 rounded-full", getStatusColor(s).replace('text-', 'bg-').split(' ')[0])} /> {getStatusLabel(s)}
@@ -458,7 +515,14 @@ export default function TaskManagement() {
                                     {formData.isBlocking ? "Es Bloqueante" : "Bloqueante"}
                                 </button>
                             </div>
-                            <input className="text-xl md:text-2xl font-bold text-white bg-transparent outline-none w-full placeholder:text-zinc-600 leading-tight" value={formData.title || ""} onChange={e => setFormData({ ...formData, title: e.target.value })} placeholder="Escribe el título de la tarea..." />
+                            <input
+                                className={cn("text-xl md:text-2xl font-bold bg-transparent outline-none w-full leading-tight",
+                                    isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-600"
+                                )}
+                                value={formData.title || ""}
+                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Escribe el título de la tarea..."
+                            />
                         </div>
 
 
@@ -469,12 +533,14 @@ export default function TaskManagement() {
                                 <div className="md:col-span-7 space-y-6">
 
                                     {/* Project Selector - Added context block */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Proyecto Asignado</h3>
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Proyecto Asignado</h3>
                                         <div className="flex items-center gap-2">
                                             <FolderGit2 className="w-4 h-4 text-indigo-500" />
                                             <select
-                                                className="bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500/50 w-full"
+                                                className={cn("border rounded-lg px-3 py-2 text-xs focus:outline-none w-full",
+                                                    isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
+                                                )}
                                                 value={formData.projectId || ""}
                                                 onChange={e => setFormData({ ...formData, projectId: e.target.value })}
                                             >
@@ -487,19 +553,34 @@ export default function TaskManagement() {
                                     </div>
 
                                     {/* Tech Desc */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Descripción Técnica</h3>
-                                        <textarea className="w-full min-h-[80px] bg-black/20 border border-white/5 rounded-lg p-3 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500/50 resize-none font-mono" value={formData.techDescription || ""} onChange={e => setFormData({ ...formData, techDescription: e.target.value })} placeholder="Detalles técnicos..." />
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Descripción Técnica</h3>
+                                        <textarea
+                                            className={cn("w-full min-h-[80px] border rounded-lg p-3 text-xs focus:outline-none resize-none font-mono",
+                                                isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
+                                            )}
+                                            value={formData.techDescription || ""}
+                                            onChange={e => setFormData({ ...formData, techDescription: e.target.value })}
+                                            placeholder="Detalles técnicos..."
+                                        />
                                     </div>
 
                                     {/* Execution */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Ejecución</h3>
-                                        <div className="space-y-2 pl-4 border-l border-white/5">
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Ejecución</h3>
+                                        <div className={cn("space-y-2 pl-4 border-l", isLight ? "border-zinc-200" : "border-white/5")}>
                                             {formData.acceptanceCriteria?.map((ac, idx) => (
                                                 <div key={ac.id} className="flex items-center gap-2 group/item">
                                                     <input type="checkbox" checked={ac.completed} onChange={(e) => { const newAC = [...(formData.acceptanceCriteria || [])]; newAC[idx].completed = e.target.checked; setFormData({ ...formData, acceptanceCriteria: newAC }); }} className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-indigo-500 cursor-pointer" />
-                                                    <input className={cn("bg-transparent outline-none flex-1 text-xs text-zinc-400", ac.completed && "line-through text-zinc-600")} value={ac.text} onChange={e => { const newAC = [...(formData.acceptanceCriteria || [])]; newAC[idx].text = e.target.value; setFormData({ ...formData, acceptanceCriteria: newAC }); }} />
+                                                    <input
+                                                        className={cn("bg-transparent outline-none flex-1 text-xs",
+                                                            ac.completed
+                                                                ? "line-through text-zinc-500"
+                                                                : (isLight ? "text-zinc-900" : "text-zinc-400")
+                                                        )}
+                                                        value={ac.text}
+                                                        onChange={e => { const newAC = [...(formData.acceptanceCriteria || [])]; newAC[idx].text = e.target.value; setFormData({ ...formData, acceptanceCriteria: newAC }); }}
+                                                    />
                                                 </div>
                                             ))}
                                             <button onClick={() => setFormData({ ...formData, acceptanceCriteria: [...(formData.acceptanceCriteria || []), { id: Date.now().toString(), text: "Nuevo Criterio", completed: false }] })} className="text-[10px] text-indigo-400 font-bold mt-2 flex items-center gap-1.5"><Plus className="w-3 h-3" /> Añadir Criterio</button>
@@ -507,11 +588,16 @@ export default function TaskManagement() {
                                     </div>
 
                                     {/* Traceability */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Trazabilidad</h3>
-                                        <div className="border border-white/5 bg-black/20 rounded-lg px-3 py-2 flex items-center gap-2">
-                                            <div className="text-[10px] font-bold text-zinc-500">ID Requisito RTM:</div>
-                                            <input className="bg-transparent outline-none flex-1 font-mono text-xs text-zinc-300" value={formData.rtmId || ""} onChange={e => setFormData({ ...formData, rtmId: e.target.value })} placeholder="RTM-CORE-005" />
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Trazabilidad</h3>
+                                        <div className={cn("border rounded-lg px-3 py-2 flex items-center gap-2", isLight ? "bg-zinc-50 border-zinc-300" : "border-white/5 bg-black/20")}>
+                                            <div className={cn("text-[10px] font-bold", isLight ? "text-zinc-600" : "text-zinc-500")}>ID Requisito RTM:</div>
+                                            <input
+                                                className={cn("bg-transparent outline-none flex-1 font-mono text-xs", isLight ? "text-zinc-900" : "text-zinc-300")}
+                                                value={formData.rtmId || ""}
+                                                onChange={e => setFormData({ ...formData, rtmId: e.target.value })}
+                                                placeholder="RTM-CORE-005"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -519,21 +605,21 @@ export default function TaskManagement() {
                                 {/* Col 2 */}
                                 <div className="md:col-span-5 space-y-6">
                                     {/* Dates & Timeline */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg relative">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Cronograma</h3>
+                                    <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>Cronograma</h3>
                                         <div className="flex items-center gap-5 mb-5 h-20">
                                             <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
                                                 <svg className="w-full h-full transform -rotate-90">
-                                                    <circle cx="40" cy="40" r="32" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-zinc-800" />
+                                                    <circle cx="40" cy="40" r="32" stroke="currentColor" strokeWidth="6" fill="transparent" className={cn(isLight ? "text-zinc-200" : "text-zinc-800")} />
                                                     <circle cx="40" cy="40" r="32" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={201} strokeDashoffset={201 - (201 * (formData.progress || 0) / 100)} className={cn("transition-all duration-1000 ease-out", (formData.progress || 0) === 100 ? "text-blue-500" : "text-emerald-500")} />
                                                 </svg>
-                                                <div className="absolute inset-0 flex items-center justify-center font-bold text-lg text-zinc-200">{formData.progress || 0}%</div>
+                                                <div className={cn("absolute inset-0 flex items-center justify-center font-bold text-lg", isLight ? "text-zinc-900" : "text-zinc-200")}>{formData.progress || 0}%</div>
                                             </div>
 
                                             <div className="flex-1 flex flex-col justify-center gap-3 relative">
                                                 {/* Start Date */}
                                                 <div className="relative group">
-                                                    <label className="text-[9px] text-zinc-500 font-bold uppercase block mb-1">Inicio</label>
+                                                    <label className="text-[9px] text-white font-bold uppercase block mb-1">Inicio</label>
                                                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDatePickerTarget('startDate'); setCurrentMonth(formData.startDate ? new Date(formData.startDate) : new Date()); }}>
                                                         <CalendarIcon className="w-4 h-4 text-zinc-400 group-hover:text-indigo-400 transition-colors" />
                                                         <span className="text-xs text-zinc-300 font-mono">{formData.startDate ? format(new Date(formData.startDate), 'dd MMM yyyy', { locale: es }) : 'Seleccionar'}</span>
@@ -547,7 +633,7 @@ export default function TaskManagement() {
                                                 </div>
                                                 {/* End Date */}
                                                 <div className="relative group">
-                                                    <label className="text-[9px] text-zinc-500 font-bold uppercase block mb-1">Fin Estimado</label>
+                                                    <label className="text-[9px] text-white font-bold uppercase block mb-1">Fin Estimado</label>
                                                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDatePickerTarget('endDate'); setCurrentMonth(formData.endDate ? new Date(formData.endDate) : new Date()); }}>
                                                         <CalendarIcon className="w-4 h-4 text-zinc-400 group-hover:text-amber-400 transition-colors" />
                                                         <span className="text-xs text-zinc-300 font-mono">{formData.endDate ? format(new Date(formData.endDate), 'dd MMM yyyy', { locale: es }) : 'Seleccionar'}</span>
@@ -565,8 +651,8 @@ export default function TaskManagement() {
                                     </div>
 
                                     {/* RACI */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg relative">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4">Matriz RACI</h3>
+                                    <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>Matriz RACI</h3>
                                         <div className="flex justify-between items-start">
                                             {(['responsible', 'accountable', 'consulted', 'informed'] as const).map((role) => {
                                                 const assigned = formData.raci?.[role] || [];
@@ -597,7 +683,7 @@ export default function TaskManagement() {
                                                         {isActive && (
                                                             <>
                                                                 <div className="fixed inset-0 z-40 cursor-default" onClick={() => setActiveRaciRole(null)} />
-                                                                <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 bg-[#18181b] border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar">
+                                                                <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 bg-popover border border-border rounded-lg shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar">
                                                                     {users.length === 0 && <div className="p-2 text-[10px] text-zinc-500 text-center">No users found</div>}
                                                                     {users.map(u => {
                                                                         const isAssigned = assigned.includes(u.uid);
@@ -634,8 +720,8 @@ export default function TaskManagement() {
                                     </div>
 
                                     {/* Dependencies */}
-                                    <div className="bg-[#121214] rounded-xl p-5 border border-white/5 shadow-black/20 shadow-lg">
-                                        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Dependencias</h3>
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Dependencias</h3>
 
                                         {/* List Existing */}
                                         <div className="space-y-2 mb-3">
@@ -667,17 +753,21 @@ export default function TaskManagement() {
 
                                         {/* Search Input */}
                                         <div className="relative">
-                                            <div className="flex items-center gap-2 bg-black/20 border border-white/5 rounded-lg px-2 py-1.5 focus-within:border-indigo-500/30">
+                                            <div className={cn("flex items-center gap-2 border rounded-lg px-2 py-1.5 focus-within:border-indigo-500/30",
+                                                isLight ? "bg-zinc-50 border-zinc-300" : "bg-black/20 border-white/5"
+                                            )}>
                                                 <Search className="w-3.5 h-3.5 text-zinc-500" />
                                                 <input
-                                                    className="bg-transparent outline-none flex-1 text-xs text-zinc-300 placeholder:text-zinc-600"
+                                                    className={cn("bg-transparent outline-none flex-1 text-xs placeholder:text-zinc-600",
+                                                        isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                    )}
                                                     placeholder="Buscar tarea ID o título..."
                                                     value={dependencySearch}
                                                     onChange={e => setDependencySearch(e.target.value)}
                                                 />
                                             </div>
                                             {dependencySearch.length > 1 && (
-                                                <div className="absolute top-full left-0 right-0 mt-1 bg-[#18181b] border border-white/10 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto custom-scrollbar">
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto custom-scrollbar">
                                                     {tasks
                                                         .filter(t => t.id !== selectedTask.id && (t.friendlyId?.toLowerCase().includes(dependencySearch.toLowerCase()) || t.title?.toLowerCase().includes(dependencySearch.toLowerCase())))
                                                         .slice(0, 5)
@@ -715,6 +805,35 @@ export default function TaskManagement() {
                 )
                 }
             </div >
+
+            {/* Confirmation Modal */}
+            {confirmModal && confirmModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 scale-100 animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-bold text-white mb-2">{confirmModal.title}</h3>
+                        <p className="text-sm text-zinc-400 mb-6">{confirmModal.message}</p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setConfirmModal(null)}
+                                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmModal.onConfirm}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-bold rounded-lg shadow-lg active:scale-95 transition-all text-white",
+                                    confirmModal.destructive
+                                        ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
+                                        : "bg-primary hover:bg-primary/90 shadow-primary/20"
+                                )}
+                            >
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 }

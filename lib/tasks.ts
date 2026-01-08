@@ -60,7 +60,10 @@ export async function getTasksByWeek(weekId: string): Promise<Task[]> {
             where("isActive", "==", true)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        // Client-side Filter: Remove completed
+        return snapshot.docs
+            .map(d => ({ id: d.id, ...d.data() } as Task))
+            .filter(t => t.status !== 'completed');
     } catch (error) {
         console.error("Error fetching tasks for week:", error);
         return [];
@@ -71,11 +74,13 @@ export async function getAllOpenTasks(): Promise<Task[]> {
     try {
         const q = query(
             collection(db, TASKS_COLLECTION),
-            where("isActive", "==", true),
-            where("status", "!=", "completed") // Requires index usually, if not fallback to client filter
+            where("isActive", "==", true)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        // Client-side Filter: Remove completed
+        return snapshot.docs
+            .map(d => ({ id: d.id, ...d.data() } as Task))
+            .filter(t => t.status !== 'completed');
     } catch (error) {
         console.error("Error fetching open tasks:", error);
         return [];
@@ -85,11 +90,12 @@ export async function getAllOpenTasks(): Promise<Task[]> {
 export function subscribeToOpenTasks(callback: (tasks: Task[]) => void) {
     const q = query(
         collection(db, TASKS_COLLECTION),
-        where("isActive", "==", true),
-        where("status", "!=", "completed")
+        where("isActive", "==", true)
     );
     return onSnapshot(q, (snapshot) => {
-        const tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+        const tasks = snapshot.docs
+            .map(d => ({ id: d.id, ...d.data() } as Task))
+            .filter(t => t.status !== 'completed');
         callback(tasks);
     });
 }

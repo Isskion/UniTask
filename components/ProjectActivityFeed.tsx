@@ -6,12 +6,16 @@ import { getProjectUpdates } from "@/lib/updates";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
 import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { cn } from "@/lib/utils";
 
 interface ProjectActivityFeedProps {
     projectId: string;
 }
 
 export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedProps) {
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
     const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -62,10 +66,11 @@ export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedPr
                 return (
                     <div key={dateKey} className="relative pl-6 border-l-2 border-white/10 space-y-6">
                         {/* Timeline Dot */}
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-[#121212] border-2 border-zinc-600 box-content" />
+                        {/* Timeline Dot */}
+                        <div className={cn("absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 box-content", isLight ? "bg-white border-zinc-400" : "bg-background border-zinc-600")} />
 
                         {/* Date Header */}
-                        <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <h3 className={cn("text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2", isLight ? "text-zinc-600" : "text-zinc-400")}>
                             <Calendar className="w-4 h-4" />
                             {dateLabel}
                             {isToday(dateObj) && <span className="bg-red-500 text-white text-[10px] px-2 rounded-full normal-case">En Curso</span>}
@@ -74,7 +79,7 @@ export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedPr
                         {/* Updates for this day */}
                         <div className="grid gap-4">
                             {group.map(update => (
-                                <UpdateCard key={update.id} update={update} />
+                                <UpdateCard key={update.id} update={update} isLight={isLight} />
                             ))}
                         </div>
                     </div>
@@ -84,45 +89,47 @@ export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedPr
     );
 }
 
-function UpdateCard({ update }: { update: ProjectUpdate }) {
+function UpdateCard({ update, isLight }: { update: ProjectUpdate, isLight: boolean }) {
     return (
-        <div className="bg-white/5 border border-white/5 rounded-xl p-5 hover:bg-white/[0.07] transition-colors shadow-sm relative overflow-hidden group">
+        <div className={cn("border rounded-xl p-5 hover:bg-opacity-80 transition-colors shadow-sm relative overflow-hidden group",
+            isLight ? "bg-white border-zinc-200 hover:bg-zinc-50" : "bg-card/30 border-white/5 hover:bg-card/50"
+        )}>
             {/* Type Badge */}
             <div className="absolute top-0 right-0 p-3 opacity-50 group-hover:opacity-100 transition-opacity">
-                {update.type === 'weekly' && <span className="text-xs font-mono text-zinc-500">RESUMEN SEMANAL</span>}
-                {update.type === 'daily' && <span className="text-xs font-mono text-indigo-400">DAILY UPDATE</span>}
+                {update.type === 'weekly' && <span className="text-xs font-mono text-muted-foreground">RESUMEN SEMANAL</span>}
+                {update.type === 'daily' && <span className="text-xs font-mono text-primary">DAILY UPDATE</span>}
             </div>
 
             {/* Header: Author */}
             <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] font-bold">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-[10px] font-bold text-white">
                     {update.authorName?.[0] || 'S'}
                 </div>
-                <span className="text-xs text-zinc-400 font-medium">
+                <span className={cn("text-xs font-medium", isLight ? "text-zinc-700" : "text-zinc-400")}>
                     {update.authorName || 'Sistema'}
                 </span>
-                <span className="text-[10px] text-zinc-600">
+                <span className={cn("text-[10px]", isLight ? "text-zinc-500" : "text-zinc-500")}>
                     • {update.date?.toDate ? format(update.date.toDate(), 'HH:mm') : ''}
                 </span>
             </div>
 
             {/* Content: Notes */}
             {update.content.notes && (
-                <div className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed mb-4 font-light">
+                <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mb-4 font-light", isLight ? "text-zinc-900" : "text-zinc-200")}>
                     {update.content.notes}
                 </div>
             )}
 
             {/* Content: Tasks / Next Steps */}
             {update.content.nextSteps && update.content.nextSteps.length > 0 && (
-                <div className="bg-black/20 rounded-lg p-3 space-y-2 border border-white/5">
-                    <h4 className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-2">
+                <div className={cn("rounded-lg p-3 space-y-2 border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/30 border-white/5")}>
+                    <h4 className={cn("text-[10px] uppercase font-bold flex items-center gap-2", isLight ? "text-zinc-600" : "text-muted-foreground")}>
                         <ArrowRight className="w-3 h-3" /> Acciones Clave
                     </h4>
                     <ul className="space-y-1.5">
                         {update.content.nextSteps.map((step, i) => (
-                            <li key={i} className="text-xs text-zinc-300 flex items-start gap-2">
-                                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                            <li key={i} className={cn("text-xs flex items-start gap-2", isLight ? "text-zinc-800" : "text-zinc-300")}>
+                                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                                 {step}
                             </li>
                         ))}

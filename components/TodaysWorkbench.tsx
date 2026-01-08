@@ -67,7 +67,7 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
     };
 
     return (
-        <div className="bg-[#1a1a1a] border-b border-white/10 p-6 shadow-xl relative z-10 animate-in slide-in-from-top-4 duration-300">
+        <div className="bg-card border-b border-border p-6 shadow-xl relative z-10 animate-in slide-in-from-top-4 duration-300">
             <div className="max-w-3xl mx-auto flex gap-6">
 
                 {/* LEFT: Input Area */}
@@ -76,9 +76,9 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
                         <h3 className="text-white font-bold flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             Actualización Rápida
-                            <span className="text-zinc-500 font-normal">para {project.name}</span>
+                            <span className="text-muted-foreground font-normal">para {project.name}</span>
                         </h3>
-                        <button onClick={onCancel} className="text-zinc-500 hover:text-white">
+                        <button onClick={onCancel} className="text-muted-foreground hover:text-white">
                             <X className="w-5 h-5" />
                         </button>
                     </div>
@@ -88,7 +88,7 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
                         value={notes}
                         onChange={e => setNotes(e.target.value)}
                         placeholder={`¿Qué avances hubo hoy en ${project.name}?`}
-                        className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                        className="w-full h-32 bg-background border border-border rounded-xl p-4 text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
                     />
 
                     <div className="flex justify-between items-center">
@@ -98,7 +98,7 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
                         <button
                             onClick={handlePost}
                             disabled={isSubmitting || !notes.trim()}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2 rounded-full flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 py-2 rounded-full flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                             Publicar
@@ -108,21 +108,21 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
 
                 {/* RIGHT: Context (Active Tasks) - As requested by user */}
                 <div className="w-72 border-l border-white/10 pl-6 hidden md:block">
-                    <h4 className="text-[10px] uppercase font-bold text-zinc-500 mb-3 flex items-center gap-2">
+                    <h4 className="text-[10px] uppercase font-bold text-muted-foreground mb-3 flex items-center gap-2">
                         <CheckSquare className="w-3 h-3" />
                         Tareas Activas ({activeTasks.length})
                     </h4>
 
                     <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
-                        {tasksLoading && <div className="text-zinc-600 text-xs">Cargando contexto...</div>}
+                        {tasksLoading && <div className="text-muted-foreground text-xs">Cargando contexto...</div>}
 
                         {!tasksLoading && activeTasks.length === 0 && (
-                            <div className="text-zinc-600 text-xs italic">No hay tareas pendientes.</div>
+                            <div className="text-muted-foreground text-xs italic">No hay tareas pendientes.</div>
                         )}
 
                         {activeTasks.map(task => (
-                            <div key={task.id} className="text-xs text-zinc-400 bg-white/5 p-2 rounded hover:bg-white/10 transition-colors cursor-default">
-                                <span className="text-indigo-400 font-bold mr-1">{task.friendlyId}</span>
+                            <div key={task.id} className="text-xs text-zinc-400 bg-muted/30 p-2 rounded hover:bg-muted/50 transition-colors cursor-default">
+                                <span className="text-primary font-bold mr-1">{task.friendlyId}</span>
                                 {task.description}
                             </div>
                         ))}

@@ -98,40 +98,42 @@
   --ring: hsl(240 5.9% 10%);
 }
 
-/* RED THEME (Soft Red Focus) */
+/* RED THEME (Adobe & Cloud Dancer) */
 :root[data-theme="red"] {
-  /* Pale warm pink background */
-  --background: hsl(0 30% 98%);
-  --foreground: hsl(0 40% 20%);
-  /* Deep Wine */
+  /* Adobe/Terracotta (Background) ~ #9E4839 */
+  --background: hsl(10, 40%, 42%);
 
-  --card: hsl(0 30% 99%);
-  --card-foreground: hsl(0 40% 20%);
+  /* Cloud Dancer (Foreground/Text) ~ #F0EEE9 */
+  --foreground: hsl(40, 20%, 94%);
 
-  --popover: hsl(0 30% 99%);
-  --popover-foreground: hsl(0 40% 20%);
+  /* Cards: Slightly lighter Adobe/Terracotta to distinguish from background */
+  --card: hsl(10, 40%, 46%);
+  --card-foreground: hsl(40, 20%, 94%);
 
-  --primary: hsl(0 70% 60%);
-  /* Soft Salmon */
-  --primary-foreground: hsl(0 0% 100%);
+  --popover: hsl(10, 40%, 46%);
+  --popover-foreground: hsl(40, 20%, 94%);
 
-  --secondary: hsl(0 20% 94%);
-  /* Light Pink/Beige */
-  --secondary-foreground: hsl(0 40% 20%);
+  /* Primary: Cloud Dancer */
+  --primary: hsl(40, 20%, 94%);
+  --primary-foreground: hsl(10, 40%, 42%);
 
-  --muted: hsl(0 20% 92%);
-  --muted-foreground: hsl(0 20% 50%);
+  /* Secondary: Darker Adobe for contrast elements */
+  --secondary: hsl(10, 40%, 35%);
+  --secondary-foreground: hsl(40, 20%, 94%);
 
-  --accent: hsl(0 20% 94%);
-  --accent-foreground: hsl(0 40% 20%);
+  --muted: hsl(10, 30%, 38%);
+  /* Muted Text: Pure White for maximum visibility per user feedback */
+  --muted-foreground: hsl(0, 0%, 100%);
 
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
+  --accent: hsl(10, 40%, 50%);
+  --accent-foreground: hsl(40, 20%, 94%);
 
-  --border: hsl(0 30% 90%);
-  /* Soft Pink Border */
-  --input: hsl(0 30% 90%);
-  --ring: hsl(0 70% 60%);
+  --destructive: hsl(0, 0%, 100%);
+  --destructive-foreground: hsl(10, 40%, 42%);
+
+  --border: hsl(10, 40%, 50%);
+  --input: hsl(10, 40%, 50%);
+  --ring: hsl(40, 20%, 94%);
 }
 
 @utility glass-panel {
@@ -142,10 +144,17 @@
   transition: all 0.3s ease;
 }
 
-:root[data-theme="dark"] .theme-logo {
+/* Invert Logo (White) for Dark AND Red themes now, since Red is dark/intense */
+:root[data-theme="dark"] .theme-logo,
+:root[data-theme="red"] .theme-logo {
   filter: invert(1) brightness(2);
 }
 
 :root:not([data-theme]) .theme-logo {
   filter: invert(1) brightness(2);
+}
+
+/* Only Light theme gets the black logo */
+:root[data-theme="light"] .theme-logo {
+  filter: none;
 }

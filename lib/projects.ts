@@ -57,12 +57,13 @@ export async function updateProject(projectId: string, data: Partial<Project>) {
 export async function getActiveProjects(): Promise<Project[]> {
     try {
         const q = query(
-            collection(db, PROJECTS_COLLECTION),
-            where("status", "==", "active"),
-            orderBy("name", "asc")
+            collection(db, PROJECTS_COLLECTION)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Project));
+        const projects = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Project));
+        // Client-side sort
+        projects.sort((a, b) => a.name.localeCompare(b.name));
+        return projects;
     } catch (error) {
         console.error("Error fetching projects:", error);
         return [];

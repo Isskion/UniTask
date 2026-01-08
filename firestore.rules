@@ -2,55 +2,130 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Regla para weekly_entries
-    match /weekly_entries/{entryId} {
-      allow read, write: if request.auth != null;
+    // ═══════════════════════════════════════════════════════
+    // HELPER FUNCTIONS
+    // ═══════════════════════════════════════════════════════
+    
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // [NUEVO] Journal Entries (Daily System)
-    match /journal_entries/{entryId} {
-      allow read, write: if request.auth != null;
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'superadmin';
     }
 
-    // Invitaciones
-    match /invites/{code} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Users (Singular - Auth Context)
-    match /user/{userId} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Users (Plural - Legacy/Safety)
-    match /users/{userId} {
-      allow read, write: if request.auth != null;
+    function isTenantMember(tenantId) {
+      return isAuthenticated() && request.auth.token.tenantId == tenantId;
     }
     
-    // Diagnostic
-    match /_diagnostic/{docId} {
-      allow read, write: if true;
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // ═══════════════════════════════════════════════════════
+    // SYSTEM CONFIG (Admin SDK Only - No Client Access)
+    // ═══════════════════════════════════════════════════════
+    
+    match /system_config/{doc} {
+      allow read, write: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // TENANTS
+    // ═══════════════════════════════════════════════════════
+    
+    match /tenants/{tenantId} {
+      allow read: if isSuperAdmin() || isTenantMember(tenantId);
+      allow write: if isSuperAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // USERS
+    // ═══════════════════════════════════════════════════════
+    
+    match /user/{userId} {
+      allow read: if isSuperAdmin() || 
+                    isOwner(userId) ||
+                    isTenantMember(resource.data.tenantId);
+      allow write: if isSuperAdmin() || isOwner(userId);
+    }
+    
+    match /users/{userId} {
+      allow read: if isSuperAdmin() || 
+                    isOwner(userId) ||
+                    isTenantMember(resource.data.tenantId);
+      allow write: if isSuperAdmin() || isOwner(userId);
+    }
+
+    // ═══════════════════════════════════════════════════════
     // PROJECTS
+    // ═══════════════════════════════════════════════════════
+    
     match /projects/{projectId} {
-      allow read: if request.auth != null; 
-      allow write: if request.auth != null;
+      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
+      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
 
       match /updates/{updateId} {
-        allow read, write: if request.auth != null;
+        allow read: if isSuperAdmin() || isTenantMember(get(/databases/$(database)/documents/projects/$(projectId)).data.tenantId);
+        allow write: if isSuperAdmin() || isTenantMember(get(/databases/$(database)/documents/projects/$(projectId)).data.tenantId);
       }
     }
 
+    // ═══════════════════════════════════════════════════════
     // TASKS
+    // ═══════════════════════════════════════════════════════
+    
     match /tasks/{taskId} {
-      allow read, write: if request.auth != null;
+      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
+      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
     }
 
+    // ═══════════════════════════════════════════════════════
+    // JOURNAL ENTRIES (Daily)
+    // ═══════════════════════════════════════════════════════
+    
+    match /journal_entries/{entryId} {
+      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
+      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // WEEKLY ENTRIES (Legacy)
+    // ═══════════════════════════════════════════════════════
+    
+    match /weekly_entries/{entryId} {
+      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
+      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+    }
+
+    // ═══════════════════════════════════════════════════════
     // PERMISSION GROUPS
+    // ═══════════════════════════════════════════════════════
+    
     match /permission_groups/{groupId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+      allow write: if isSuperAdmin();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // INVITES
+    // ═══════════════════════════════════════════════════════
+    
+    match /invites/{code} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // DIAGNOSTIC (Development Only - Remove in Production)
+    // ═══════════════════════════════════════════════════════
+    
+    match /_diagnostic/{docId} {
+      allow read, write: if true;
     }
   }
 }

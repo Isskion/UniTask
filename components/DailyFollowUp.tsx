@@ -14,6 +14,7 @@ import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, collection, getDocs, query } from "firebase/firestore";
 import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/context/ToastContext";
 import { summarizeNotesWithAI } from "@/app/ai-actions";
 import UserManagement from "./UserManagement";
 import UserRoleManagement from "./UserRoleManagement";
@@ -21,8 +22,18 @@ import Dashboard from "./Dashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 
+import { useTheme } from "@/hooks/useTheme";
+
+
+
 export default function DailyFollowUp() {
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+    const isRed = theme === 'red';
+
+
     const { userRole, user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
+    const { showToast } = useToast();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [profileLoading, setProfileLoading] = useState(true);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
@@ -164,7 +175,7 @@ export default function DailyFollowUp() {
             await toggleTaskBlock(task.id, !task.isBlocking, user.uid);
         } catch (e) {
             console.error(e);
-            alert("Error updating task");
+            showToast("Error", "Error updating task", "error");
         }
     };
     // Context-Aware Task Filtering
@@ -336,10 +347,10 @@ export default function DailyFollowUp() {
                 return [toSave, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
             });
 
-            alert("Guardado correctamente");
+            showToast("UniTaskController", "Guardado correctamente", "success");
         } catch (e) {
             console.error(e);
-            alert("Error al guardar");
+            showToast("Error", "Error al guardar", "error");
         } finally {
             setSaving(false);
         }
@@ -368,7 +379,7 @@ export default function DailyFollowUp() {
             }
 
             if (!notesToAnalyze?.trim()) {
-                alert("Escribe algunas notas primero para analizar.");
+                showToast("Información", "Escribe algunas notas primero para analizar.", "info");
                 return;
             }
 
@@ -388,7 +399,7 @@ export default function DailyFollowUp() {
             const result = await summarizeNotesWithAI(notesToAnalyze, context);
 
             if (result.error) {
-                alert(result.error);
+                showToast("Error AI", result.error, "error");
                 return;
             }
 
@@ -404,7 +415,7 @@ export default function DailyFollowUp() {
 
         } catch (e) {
             console.error(e);
-            alert("Error en AI");
+            showToast("Error", "Error en AI", "error");
         } finally {
             setIsAILoading(false);
         }
@@ -446,7 +457,7 @@ export default function DailyFollowUp() {
             setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
         } catch (e) {
             console.error("Error creating task", e);
-            alert("Error al crear la tarea: " + (e instanceof Error ? e.message : "Desconocido"));
+            showToast("Error", "Error al crear la tarea: " + (e instanceof Error ? e.message : "Desconocido"), "error");
         }
     };
 
@@ -455,6 +466,59 @@ export default function DailyFollowUp() {
         await handleAcceptSuggestion(newTaskText, isBlocked); // Reuse logic
         setNewTaskText("");
     };
+
+    const [shouldCreateProject, setShouldCreateProject] = useState(false);
+
+    // Event Listener for Command Menu Navigation
+    useEffect(() => {
+        // Helper to cast
+        const asAny = (fn: any) => fn as EventListener;
+
+        const handleSwitchProject = (e: CustomEvent) => {
+            const p = e.detail;
+            if (!p || !p.name) return;
+            console.log("[DailyFollowUp] Command Menu Switch:", p.name);
+
+            // If we are in Dashboard or other view, switch to Editor first?
+            if (viewMode !== 'editor') {
+                setViewMode('editor');
+            }
+
+            // Need to check if project exists in THIS entry (active today)
+            const exists = entry.projects.find(ep => ep.name === p.name);
+            if (exists) {
+                if (exists.status === 'trash') {
+                    // Optionally ask to restore? For now just switch.
+                }
+                setActiveTab(p.name);
+            } else {
+                // If not in today's list, AUTO-ADD it?
+                // Yes, intended behavior: "Navigate to Project" implies opening it.
+                addProject({ name: p.name, id: p.id, code: p.code || 'PRJ' });
+            }
+        };
+
+        const handleOpenNewProject = () => {
+            // 1. Switch to Projects View
+            setViewMode('projects');
+            // 2. Signal to open Creation Form
+            setShouldCreateProject(true);
+
+            // Reset signal after a delay to allow re-triggering later if needed?
+            // Actually ProjectManagement consumes it in useEffect. 
+            // Ideally we pass a callback, but for now this works if we toggle it off when view changes?
+            // Let's just set it true. We can reset it when exiting viewMode === 'projects'.
+        };
+
+        window.addEventListener('switch-project', asAny(handleSwitchProject));
+        window.addEventListener('open-new-project-modal', handleOpenNewProject);
+
+        return () => {
+            window.removeEventListener('switch-project', asAny(handleSwitchProject));
+            window.removeEventListener('open-new-project-modal', handleOpenNewProject);
+        };
+    }, [entry.projects, viewMode, activeTab]); // Dependencies
+
 
     const handleDismissSuggestion = (taskDesc: string) => {
         setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
@@ -756,15 +820,15 @@ export default function DailyFollowUp() {
                 {/* LEFT SIDEBAR: Timeline (Vertical List) */}
                 {viewMode === 'editor' && (
                     <div className="w-72 flex flex-col gap-3 shrink-0">
-                        <div className="bg-[#0c0c0e] rounded-xl border border-white/5 p-3 flex flex-col gap-2 h-full">
+                        <div className="bg-card rounded-xl border border-border p-3 flex flex-col gap-2 h-full">
                             <div className="flex items-center justify-between px-1 mb-2">
-                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Bitácora</h3>
+                                <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Bitácora</h3>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => setCurrentDate(new Date())} className="text-[10px] text-indigo-400 font-bold hover:underline">HOY</button>
+                                    <button onClick={() => setCurrentDate(new Date())} className={cn("text-[10px] font-bold hover:underline", isLight ? "text-red-600" : "text-white")}>HOY</button>
                                     <div className="relative">
                                         <button
                                             onClick={() => (document.getElementById('timeline-date-picker') as HTMLInputElement)?.showPicker()}
-                                            className="text-zinc-500 hover:text-white transition-colors"
+                                            className={cn("transition-colors", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-white hover:text-zinc-300")}
                                             title="Buscar fecha anterior"
                                         >
                                             <CalendarPlus className="w-4 h-4" />
@@ -829,17 +893,17 @@ export default function DailyFollowUp() {
                                                 className={cn(
                                                     "w-full flex items-center gap-3 p-2.5 rounded-lg transition-all border text-left group relative",
                                                     isSelected
-                                                        ? "bg-white/10 border-white/10 text-white shadow-lg"
+                                                        ? "bg-primary/10 text-primary-foreground shadow-sm border-primary/50 ring-1 ring-primary/20"
                                                         : hasData
-                                                            ? "bg-white/5 border-transparent hover:bg-white/10 text-zinc-300"
-                                                            : "bg-transparent border-transparent hover:bg-white/5 text-zinc-600 opacity-70 hover:opacity-100"
+                                                            ? "bg-muted/50 border-transparent hover:bg-muted text-foreground"
+                                                            : "bg-transparent border-transparent hover:bg-muted/30 text-muted-foreground opacity-70 hover:opacity-100"
                                                 )}
                                             >
                                                 {/* Day Number */}
                                                 <div className={cn(
                                                     "flex flex-col items-center justify-center w-9 h-9 rounded-md font-mono leading-none shrink-0 transition-colors",
                                                     isSelected ? "bg-indigo-600 text-white font-bold" :
-                                                        isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" : "bg-white/5 text-zinc-500"
+                                                        isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" : "bg-white/10 text-white font-bold"
                                                 )}>
                                                     <span className="text-sm">{format(dateObj, 'd')}</span>
                                                 </div>
@@ -847,10 +911,18 @@ export default function DailyFollowUp() {
                                                 {/* Date Info */}
                                                 <div className="flex-1 min-w-0 flex flex-col justify-center h-full">
                                                     <div className="flex justify-between items-baseline">
-                                                        <span className={cn("text-xs font-medium uppercase tracking-wide", isSelected ? "text-white" : "text-zinc-400 group-hover:text-zinc-300")}>
+                                                        <span className={cn("text-xs font-medium uppercase tracking-wide",
+                                                            isSelected
+                                                                ? "text-primary-foreground font-bold"
+                                                                : (isLight ? "text-zinc-700 group-hover:text-zinc-900" : "text-zinc-100 group-hover:text-white")
+                                                        )}>
                                                             {format(dateObj, 'MMMM', { locale: es })}
                                                         </span>
-                                                        <span className="text-[9px] opacity-50">{format(dateObj, 'EEE', { locale: es })}</span>
+                                                        <span className={cn("text-[9px]",
+                                                            isSelected
+                                                                ? "text-primary-foreground/80"
+                                                                : (isLight ? "text-zinc-500" : "text-white")
+                                                        )}>{format(dateObj, 'EEE', { locale: es })}</span>
                                                     </div>
 
                                                     {/* Dots / Indicators */}
@@ -882,23 +954,31 @@ export default function DailyFollowUp() {
                 )}
 
                 {/* MAIN EDITOR */}
-                <div className="flex-1 flex flex-col min-w-0 h-full relative bg-[#0c0c0e] rounded-xl border border-white/5 overflow-hidden shadow-2xl">
+                <div className="flex-1 flex flex-col min-w-0 h-full relative bg-card rounded-xl border border-border overflow-hidden shadow-sm">
                     {viewMode === 'editor' ? (
                         <div className="h-full flex flex-col">
                             {/* Header */}
-                            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-white/[0.02]">
+                            <div className={cn("h-14 border-b flex items-center justify-between px-6 transition-colors",
+                                isLight
+                                    ? "bg-zinc-50 border-zinc-200"
+                                    : "bg-white/5 border-white/5"
+                            )}>
                                 <div className="flex items-center gap-4">
-                                    <h2 className="text-lg font-medium text-white flex items-center gap-3">
-                                        <Calendar className="w-5 h-5 text-indigo-500" />
+                                    <h2 className={cn("text-lg font-medium flex items-center gap-3", isLight ? "text-zinc-900" : "text-white")}>
+                                        <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
                                         <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}</span>
                                     </h2>
-                                    {loading && <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />}
+                                    {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-white text-black text-xs font-bold rounded hover:bg-zinc-200 transition-colors"
+                                        className={cn("flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded transition-colors",
+                                            isLight
+                                                ? "bg-zinc-900 text-white hover:bg-black"
+                                                : "bg-white text-black hover:bg-zinc-200"
+                                        )}
                                     >
                                         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                                         Guardar
@@ -909,7 +989,9 @@ export default function DailyFollowUp() {
                             </div>
 
                             {/* Tabs */}
-                            <div className="flex items-center gap-1 p-2 border-b border-white/5 bg-black/20 overflow-visible relative z-40">
+                            <div className={cn("flex items-center gap-1 p-2 border-b overflow-visible relative z-40 transition-colors",
+                                isLight ? "bg-white border-zinc-200" : "bg-muted/20 border-border"
+                            )}>
                                 {getVisibleProjects().map(p => {
                                     const gp = globalProjects.find(g => g.name === p.name);
                                     return (
@@ -918,8 +1000,12 @@ export default function DailyFollowUp() {
                                             onClick={() => setActiveTab(p.name)}
                                             className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
                                                 activeTab === p.name
-                                                    ? "bg-[#18181b] border-indigo-500/50 text-white shadow-sm"
-                                                    : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5"
+                                                    ? (isLight
+                                                        ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
+                                                        : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
+                                                    : (isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                                                        : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
                                             )}
                                         >
                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
@@ -929,16 +1015,20 @@ export default function DailyFollowUp() {
                                 })}
 
                                 <div className="relative group ml-2 z-50">
-                                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 rounded-md text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all">
+                                    <button className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
+                                        isLight
+                                            ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
+                                            : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
+                                    )}>
                                         <Plus className="w-3.5 h-3.5" /> Añadir Proyecto
                                     </button>
-                                    <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-white/10 rounded-xl shadow-xl p-2 hidden group-hover:block max-h-64 overflow-y-auto custom-scrollbar">
-                                        <div className="text-[10px] font-bold text-zinc-500 px-2 py-1 uppercase">Disponibles</div>
+                                    <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-zinc-800 rounded-xl shadow-2xl p-2 hidden group-hover:block max-h-64 overflow-y-auto custom-scrollbar z-50 ring-1 ring-white/10">
+                                        <div className="text-[10px] font-bold text-muted-foreground px-2 py-1 uppercase">Disponibles</div>
                                         {getAvailableProjectsToAdd().map(gp => (
                                             <button
                                                 key={gp.id}
                                                 onClick={() => addProject(gp)}
-                                                className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:bg-white/10 rounded-lg flex items-center gap-2"
+                                                className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors"
                                             >
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp.color || '#71717a' }} />
                                                 {gp.name}
@@ -953,7 +1043,7 @@ export default function DailyFollowUp() {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                                     {/* Left: PM Notes (Blocks) */}
                                     <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase flex items-center gap-2 shrink-0">
+                                        <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
                                             <PenSquare className="w-3 h-3" />
                                             {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
                                         </label>
@@ -962,23 +1052,31 @@ export default function DailyFollowUp() {
                                             <textarea
                                                 value={getCurrentData().pmNotes}
                                                 onChange={(e) => updateCurrentData("generalNotes", e.target.value)}
-                                                className="flex-1 bg-[#121212] border border-white/10 rounded-xl p-4 text-sm text-zinc-300 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 resize-none leading-relaxed custom-scrollbar min-h-[300px]"
+                                                className={cn("flex-1 border rounded-xl p-4 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 resize-none leading-relaxed custom-scrollbar min-h-[300px]",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+                                                        : "bg-white/5 border-white/10 text-zinc-200 placeholder:text-zinc-500"
+                                                )}
                                                 placeholder="¿Resumen del día? ¿Anuncios importantes?"
                                             />
                                         ) : (
                                             <div className="flex flex-col gap-4">
                                                 {getProjectBlocks(activeTab).map((block, idx) => (
-                                                    <div key={block.id} className="bg-[#121212] border border-white/10 rounded-xl p-3 flex flex-col gap-2 group relative">
+                                                    <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-colors",
+                                                        isLight
+                                                            ? "bg-white border-zinc-200 hover:border-zinc-300"
+                                                            : "bg-white/5 border-white/10 hover:border-white/20"
+                                                    )}>
                                                         <div className="flex items-center gap-2">
                                                             <input
-                                                                className="bg-transparent text-xs font-bold text-indigo-400 focus:outline-none w-full placeholder:text-zinc-700"
+                                                                className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
                                                                 value={block.title || `Bloque ${idx + 1}`}
                                                                 onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
                                                                 placeholder="Título del bloque (ej. Reunión Equipo)"
                                                             />
                                                             <button
                                                                 onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
-                                                                className="text-zinc-500 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
                                                                 title="Analizar solo este bloque"
                                                             >
                                                                 <Sparkles className="w-3.5 h-3.5" />
@@ -986,7 +1084,7 @@ export default function DailyFollowUp() {
                                                             {getProjectBlocks(activeTab).length > 1 && (
                                                                 <button
                                                                     onClick={() => handleRemoveBlock(activeTab, block.id)}
-                                                                    className="text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    className="text-zinc-400 hover:text-red-400 transition-opacity"
                                                                     title="Eliminar bloque"
                                                                 >
                                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -996,7 +1094,9 @@ export default function DailyFollowUp() {
                                                         <textarea
                                                             value={block.content}
                                                             onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
-                                                            className="w-full bg-transparent text-sm text-zinc-300 focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]"
+                                                            className={cn("w-full bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]",
+                                                                isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                            )}
                                                             placeholder="Escribe aquí las conclusiones..."
                                                         />
                                                     </div>
@@ -1004,7 +1104,11 @@ export default function DailyFollowUp() {
 
                                                 <button
                                                     onClick={() => handleAddBlock(activeTab)}
-                                                    className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-white/5 rounded-xl text-zinc-600 hover:text-indigo-400 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all text-xs font-bold"
+                                                    className={cn("flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold",
+                                                        isLight
+                                                            ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
+                                                            : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
+                                                    )}
                                                 >
                                                     <Plus className="w-4 h-4" /> Añadir otro bloque de notas
                                                 </button>
@@ -1013,10 +1117,10 @@ export default function DailyFollowUp() {
                                     </div>
 
                                     {/* Right: Active Tasks & AI */}
-                                    <div className="flex flex-col gap-2 h-full border-l border-white/5 pl-6">
+                                    <div className="flex flex-col gap-2 h-full border-l border-border pl-6">
                                         <div className="flex items-center justify-between mb-2">
-                                            <label className="text-xs font-bold text-indigo-400 uppercase flex items-center gap-2">
-                                                <ListTodo className="w-3 h-3" />
+                                            <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
                                                 {activeTab === 'General' ? 'Todas las Tareas Activas' : `Tareas Activas: ${activeTab}`}
                                             </label>
                                             {/* <button
@@ -1033,14 +1137,18 @@ export default function DailyFollowUp() {
                                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
 
                                             {/* MANUAL ENTRY */}
-                                            <div className="flex items-center gap-2 mb-4 bg-[#18181b] p-2 rounded-lg border border-white/5 focus-within:border-indigo-500/50 transition-colors">
+                                            <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
+                                                isLight
+                                                    ? "bg-white border-zinc-200 focus-within:border-zinc-400"
+                                                    : "bg-muted/40 border-border focus-within:border-primary/50"
+                                            )}>
                                                 <input
                                                     type="text"
                                                     value={newTaskText}
                                                     onChange={(e) => setNewTaskText(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
                                                     placeholder="Nueva tarea manual..."
-                                                    className="flex-1 bg-transparent text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+                                                    className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
                                                 />
                                                 <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
                                                     <Plus className="w-4 h-4" />
@@ -1052,16 +1160,16 @@ export default function DailyFollowUp() {
 
                                             {/* AI RESULTS AREA */}
                                             {(aiSummary || aiSuggestions.length > 0) && (
-                                                <div className="bg-indigo-950/20 border border-indigo-500/30 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50" />
+                                                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
 
                                                     {/* Summary */}
                                                     {aiSummary && (
                                                         <div className="mb-2">
-                                                            <h4 className="text-[10px] font-bold text-indigo-300 uppercase mb-1 flex items-center gap-1">
+                                                            <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
                                                                 <Activity className="w-3 h-3" /> Resumen / Contexto
                                                             </h4>
-                                                            <p className="text-xs text-indigo-200/80 leading-relaxed italic">
+                                                            <p className="text-xs text-primary/80 leading-relaxed italic">
                                                                 "{aiSummary}"
                                                             </p>
                                                         </div>
@@ -1070,11 +1178,11 @@ export default function DailyFollowUp() {
                                                     {/* Suggestions List */}
                                                     {aiSuggestions.length > 0 && (
                                                         <div>
-                                                            <h4 className="text-[10px] font-bold text-indigo-300 uppercase mb-2">Sugerencias ({aiSuggestions.length})</h4>
+                                                            <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Sugerencias ({aiSuggestions.length})</h4>
                                                             <div className="space-y-1">
                                                                 {aiSuggestions.map((sugg, idx) => (
-                                                                    <div key={idx} className="flex gap-2 items-start bg-[#0c0c0e] p-2 rounded border border-indigo-500/20">
-                                                                        <p className="text-xs text-zinc-300 flex-1">{sugg}</p>
+                                                                    <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
+                                                                        <p className="text-xs text-foreground flex-1">{sugg}</p>
                                                                         <div className="flex flex-col gap-1">
                                                                             <button
                                                                                 onClick={() => handleAcceptSuggestion(sugg, false)}
@@ -1092,7 +1200,7 @@ export default function DailyFollowUp() {
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => handleDismissSuggestion(sugg)}
-                                                                                className="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded"
+                                                                                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
                                                                                 title="Descartar"
                                                                             >
                                                                                 <Activity className="w-3 h-3 rotate-45" />
@@ -1106,7 +1214,7 @@ export default function DailyFollowUp() {
 
                                                     <button
                                                         onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
-                                                        className="w-full text-[9px] text-center text-indigo-400/50 hover:text-indigo-400 py-1 hover:underline"
+                                                        className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
                                                     >
                                                         Cerrar sugerencias
                                                     </button>
@@ -1114,7 +1222,7 @@ export default function DailyFollowUp() {
                                             )}
 
                                             {visibleTasks.length === 0 ? (
-                                                <div className="text-center py-10 text-zinc-600 italic border border-dashed border-zinc-800 rounded-lg">
+                                                <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
                                                     No hay tareas activas para los proyectos de hoy
                                                 </div>
                                             ) : (
@@ -1124,14 +1232,16 @@ export default function DailyFollowUp() {
                                                         className={cn(
                                                             "group p-3 rounded-lg border transition-all relative",
                                                             task.isBlocking
-                                                                ? "bg-red-950/10 border-red-500/30 hover:bg-red-950/20"
-                                                                : "bg-[#18181b] border-white/5 hover:border-white/10 hover:bg-white/5"
+                                                                ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/10"
+                                                                : (isLight
+                                                                    ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-sm"
+                                                                    : "bg-card border-border hover:border-primary/20 hover:bg-muted/50")
                                                         )}
                                                     >
                                                         <div className="flex justify-between items-start gap-3">
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="font-mono text-[9px] text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded">
+                                                                    <span className="font-mono text-[9px] text-zinc-300/80 bg-white/10 px-1.5 py-0.5 rounded">
                                                                         {task.friendlyId || 'TSK'}
                                                                     </span>
                                                                     {task.isBlocking && (
@@ -1142,7 +1252,9 @@ export default function DailyFollowUp() {
                                                                 </div>
                                                                 <p className={cn(
                                                                     "text-xs leading-relaxed line-clamp-3",
-                                                                    task.isBlocking ? "text-red-200" : "text-zinc-300"
+                                                                    task.isBlocking
+                                                                        ? "text-red-200"
+                                                                        : (isLight ? "text-zinc-900" : "text-zinc-200")
                                                                 )}>
                                                                     {task.description}
                                                                 </p>
@@ -1171,7 +1283,7 @@ export default function DailyFollowUp() {
                             </div>
                         </div>
                     ) : viewMode === 'projects' ? (
-                        <ProjectManagement />
+                        <ProjectManagement autoFocusCreate={shouldCreateProject} />
                     ) : viewMode === 'tasks' ? (
                         <TaskDashboard
                             projects={

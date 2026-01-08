@@ -8,6 +8,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface TaskDashboardProps {
     projects: {
@@ -147,21 +148,21 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#09090b]">
+        <div className="h-full flex flex-col bg-background">
             {/* Header / Toolbar */}
-            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#0c0c0e]">
+            <div className="h-14 border-b border-border flex items-center justify-between px-6 bg-card/80 backdrop-blur-md sticky top-0 z-30 shadow-sm">
                 <div className="flex items-center gap-4">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-400" />
+                    <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-primary" />
                         Global Task Export
                     </h2>
 
                     {/* Search Bar */}
                     <div className="flex-1 max-w-md mx-6">
                         <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-indigo-400 transition-colors" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <input
-                                className="w-full bg-black/20 border border-white/5 rounded-lg pl-9 pr-4 py-1.5 text-xs text-zinc-300 focus:outline-none focus:bg-black/40 focus:border-indigo-500/30 transition-all placeholder:text-zinc-600"
+                                className="w-full bg-secondary/50 border border-border rounded-lg pl-9 pr-4 py-1.5 text-xs text-foreground focus:outline-none focus:bg-background focus:border-primary/50 transition-all placeholder:text-muted-foreground"
                                 placeholder="Search tasks..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -169,22 +170,31 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                         </div>
                     </div>
 
-                    <div className="flex bg-zinc-900 rounded-lg p-0.5 border border-white/5">
+                    <div className="flex bg-secondary rounded-lg p-0.5 border border-border">
                         <button
                             onClick={() => setFilter('all')}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${filter === 'all' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={cn(
+                                "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                                filter === 'all' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                            )}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setFilter('pending')}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${filter === 'pending' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={cn(
+                                "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                                filter === 'pending' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                            )}
                         >
                             Pending
                         </button>
                         <button
                             onClick={() => setFilter('completed')}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${filter === 'completed' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={cn(
+                                "px-3 py-1 text-xs font-medium rounded-md transition-all",
+                                filter === 'completed' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                            )}
                         >
                             Completed
                         </button>
@@ -194,14 +204,14 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                 <div className="flex items-center gap-2">
                     <button
                         onClick={copyToClipboard}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 text-zinc-300 text-xs font-bold rounded hover:bg-zinc-700 transition-colors border border-white/5"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded hover:bg-secondary/80 transition-colors border border-border"
                     >
                         <ClipboardCopy className="w-3.5 h-3.5" />
                         Copy Markdown
                     </button>
                     <button
                         onClick={downloadCSV}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-900/20"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                     >
                         <Download className="w-3.5 h-3.5" />
                         Export CSV
@@ -212,14 +222,16 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
             {/* Content Scroller */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-                {(loading || (permissionLoading && !isAdmin)) ? (
-                    <div className="h-full flex flex-col items-center justify-center text-zinc-500 gap-2">
-                        <div className="animate-spin w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full" />
-                        {(permissionLoading && !isAdmin) ? "Verifying permissions..." : "Loading tasks..."}
+                {(loading || (permissionsLoading && !isAdmin)) ? (
+                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
+                        <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
+                        {(permissionsLoading && !isAdmin) ? "Verifying permissions..." : "Loading tasks..."}
                     </div>
                 ) : (
                     Object.keys(groupedTasks).length === 0 ? (
-                        <div className="text-center text-zinc-500 py-20">No tasks found.</div>
+                        <div className="text-center text-muted-foreground py-20 bg-card/30 rounded-xl border border-dashed border-border mx-auto max-w-2xl">
+                            No tasks found matching your criteria.
+                        </div>
                     ) : (
                         projects.map(project => {
                             const pTasks = groupedTasks[project.id];
@@ -227,34 +239,34 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
                             return (
                                 <div key={project.id} className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: project.color || '#555' }} />
-                                        <h3 className="font-bold text-white text-sm">{project.name}</h3>
-                                        <span className="text-zinc-600 text-xs">({pTasks.length})</span>
+                                    <div className="flex items-center gap-2 border-b border-border pb-2 px-1">
+                                        <span className="w-2 h-2 rounded-full ring-1 ring-white/10" style={{ backgroundColor: project.color || '#555' }} />
+                                        <h3 className="font-bold text-foreground text-sm">{project.name}</h3>
+                                        <span className="text-muted-foreground text-xs">({pTasks.length})</span>
                                     </div>
 
                                     <div className="grid gap-2">
                                         {pTasks.map(task => (
-                                            <div key={task.id} className="flex items-start gap-3 p-3 bg-[#121212] border border-white/5 rounded-lg hover:border-white/10 transition-colors group">
+                                            <div key={task.id} className="flex items-start gap-3 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group">
                                                 <div className="mt-0.5">
                                                     {task.status === 'completed' ? (
                                                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                                                     ) : task.isBlocking ? (
-                                                        <Ban className="w-4 h-4 text-red-500" />
+                                                        <Ban className="w-4 h-4 text-destructive" />
                                                     ) : (
-                                                        <Circle className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400" />
+                                                        <Circle className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                        <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-1.5 rounded">{task.friendlyId || '###'}</span>
-                                                        {task.isBlocking && <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-1.5 rounded">BLOCKED</span>}
+                                                        <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 rounded">{task.friendlyId || '###'}</span>
+                                                        {task.isBlocking && <span className="text-[10px] font-bold text-destructive bg-destructive/10 px-1.5 rounded">BLOCKED</span>}
                                                     </div>
-                                                    <p className={`text-sm ${task.status === 'completed' ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
+                                                    <p className={`text-sm ${task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                                                         {task.description}
                                                     </p>
                                                 </div>
-                                                <div className="text-[10px] text-zinc-600 whitespace-nowrap">
+                                                <div className="text-[10px] text-muted-foreground whitespace-nowrap">
                                                     {task.createdAt?.toDate ? format(task.createdAt.toDate(), 'MMM d') : ''}
                                                 </div>
                                             </div>
@@ -268,29 +280,29 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
                 {/* Render Unknown / Unassigned Tasks */}
                 {groupedTasks['unknown'] && groupedTasks['unknown'].length > 0 && (
-                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500 pt-8 border-t border-dashed border-white/10">
-                        <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                            <span className="w-2 h-2 rounded-full bg-zinc-600" />
-                            <h3 className="font-bold text-zinc-400 text-sm">Sin Proyecto Asignado</h3>
-                            <span className="text-zinc-600 text-xs">({groupedTasks['unknown'].length})</span>
+                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500 pt-8 border-t border-dashed border-border/50">
+                        <div className="flex items-center gap-2 border-b border-border pb-2 px-1">
+                            <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                            <h3 className="font-bold text-muted-foreground text-sm">Sin Proyecto Asignado</h3>
+                            <span className="text-muted-foreground text-xs">({groupedTasks['unknown'].length})</span>
                         </div>
                         <div className="grid gap-2">
                             {groupedTasks['unknown'].map(task => (
-                                <div key={task.id} className="flex items-start gap-3 p-3 bg-[#121212] border border-white/5 rounded-lg hover:border-white/10 transition-colors group opacity-75 hover:opacity-100">
+                                <div key={task.id} className="flex items-start gap-3 p-3 bg-card/50 border border-border/50 rounded-xl hover:bg-card hover:border-border transition-all group opacity-75 hover:opacity-100 shadow-sm">
                                     <div className="mt-0.5">
                                         {task.status === 'completed' ? (
                                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                                         ) : task.isBlocking ? (
-                                            <Ban className="w-4 h-4 text-red-500" />
+                                            <Ban className="w-4 h-4 text-destructive" />
                                         ) : (
-                                            <Circle className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400" />
+                                            <Circle className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-0.5">
-                                            <span className="text-[10px] font-mono text-zinc-500 bg-white/5 px-1.5 rounded">{task.friendlyId || '###'}</span>
+                                            <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 rounded">{task.friendlyId || '###'}</span>
                                         </div>
-                                        <p className={`text-sm ${task.status === 'completed' ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
+                                        <p className={`text-sm ${task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-zinc-300'}`}>
                                             {task.description}
                                         </p>
                                     </div>

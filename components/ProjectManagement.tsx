@@ -5,16 +5,21 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Shield, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, MapPin, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project } from "@/types";
+import { useToast } from "@/context/ToastContext";
 
 // New Components
 import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
 
-export default function ProjectManagement() {
+export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user } = useAuth();
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
+    const { showToast } = useToast();
     const { can, getAllowedProjectIds, userProfile: permUserProfile, loading: permissionsLoading } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,6 +39,13 @@ export default function ProjectManagement() {
     // Permissions Helper - now using usePermissions hook
     const canCreate = can('create', 'project');
     const canEdit = can('edit', 'project');
+
+    // Auto-trigger creation if requested
+    useEffect(() => {
+        if (autoFocusCreate && canCreate && !isNew) {
+            handleCreateClick();
+        }
+    }, [autoFocusCreate, canCreate]);
 
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
@@ -95,7 +107,10 @@ export default function ProjectManagement() {
 
     // 3. Open Create Form (+)
     const handleCreateClick = () => {
-        if (!canCreate) return; // Guard
+        // if (!canCreate) return; // Guard logic should be handled by caller or UI hiding
+        // Allow calling it, but UI won't show save if unauthorized? 
+        // Better to allow it to initialize state so valid users can see it.
+
         const newTemplate: Partial<Project> = {
             name: "",
             code: "",
@@ -115,7 +130,7 @@ export default function ProjectManagement() {
     const handleSave = async () => {
         if (!canCreate && !canEdit) return; // Guard
 
-        if (!formData.name || !formData.code) return alert("Nombre y Código son obligatorios");
+        if (!formData.name || !formData.code) return showToast("UniTaskController", "Nombre y Código son obligatorios", "error");
         setSaving(true);
         try {
             if (isNew) {
@@ -146,12 +161,12 @@ export default function ProjectManagement() {
                     setSelectedProject({ ...selectedProject, ...data } as Project);
                     setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...data } as Project : p));
 
-                    alert("Guardado");
+                    showToast("UniTaskController", "Guardado", "success");
                 }
             }
         } catch (e) {
             console.error("Error saving:", e);
-            alert("Error al guardar");
+            showToast("UniTaskController", "Error al guardar", "error");
         } finally {
             setSaving(false);
         }
@@ -181,7 +196,7 @@ export default function ProjectManagement() {
             setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, isActive: newState } : p));
         } catch (e) {
             console.error(e);
-            alert("Error cambiando estado");
+            showToast("UniTaskController", "Error cambianto estado", "error");
         }
     };
 
@@ -189,12 +204,12 @@ export default function ProjectManagement() {
 
     const ProjectList = () => (
         <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#0c0c0e]">
-                <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Proyectos ({visibleProjects.length})</h2>
+            <div className={cn("p-4 border-b flex justify-between items-center", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
+                <h2 className={cn("text-sm font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Proyectos ({visibleProjects.length})</h2>
                 {canCreate && (
                     <button
                         onClick={handleCreateClick}
-                        className="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md shadow-lg shadow-indigo-900/20 transition-all"
+                        className="p-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-lg shadow-primary/20 transition-all"
                         title="Nuevo Proyecto"
                     >
                         <Plus className="w-4 h-4" />
@@ -209,24 +224,28 @@ export default function ProjectManagement() {
                         className={cn(
                             "group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border",
                             selectedProject?.id === p.id
-                                ? "bg-indigo-500/10 border-indigo-500/50"
-                                : "bg-[#121212] border-transparent hover:bg-white/5 hover:border-white/5"
+                                ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/10 border-primary/50")
+                                : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-primary/5 hover:border-primary/10")
                         )}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#555' }} />
+                            <div className="w-2 h-2 rounded-full ring-2 ring-white/10" style={{ backgroundColor: p.color || '#555' }} />
                             <div>
-                                <div className={cn("text-sm font-bold", selectedProject?.id === p.id ? "text-white" : "text-zinc-300 group-hover:text-white")}>
+                                <div className={cn("text-sm font-bold",
+                                    selectedProject?.id === p.id
+                                        ? (isLight ? "text-white" : "text-white")
+                                        : (isLight ? "text-zinc-900" : "text-zinc-200 group-hover:text-white")
+                                )}>
                                     {p.name}
                                 </div>
-                                <div className="text-[10px] text-zinc-500 font-mono">{p.code}</div>
+                                <div className="text-[10px] text-zinc-400 font-mono">{p.code}</div>
                             </div>
                         </div>
                         {/* Edit Button: Goes to Settings Tab */}
                         {canEdit && (
                             <button
                                 onClick={(e) => handleEditClick(p, e)}
-                                className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-all"
+                                className={cn("opacity-0 group-hover:opacity-100 p-2 rounded-full transition-all", isLight ? "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900" : "hover:bg-white/10 text-zinc-300 hover:text-white")}
                                 title="Editar Detalles"
                             >
                                 <Edit2 className="w-3.5 h-3.5" />
@@ -239,11 +258,11 @@ export default function ProjectManagement() {
     );
 
     return (
-        <div className="flex h-full bg-[#09090b]">
+        <div className="flex h-full bg-background">
 
             {/* Left Sidebar */}
             <div className={cn(
-                "w-80 border-r border-white/5 bg-[#09090b] flex-shrink-0",
+                "w-80 border-r border-border bg-card/30 flex-shrink-0",
                 selectedProject ? "hidden lg:block" : "w-full lg:w-80"
             )}>
                 <ProjectList />
@@ -251,32 +270,34 @@ export default function ProjectManagement() {
 
             {/* Main Content */}
             <div className={cn(
-                "flex-1 flex flex-col min-w-0 bg-[#0c0c0e]",
+                "flex-1 flex flex-col min-w-0 bg-background",
                 !selectedProject ? "hidden lg:flex" : "flex"
             )}>
                 {!selectedProject ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-600">
-                        <LayoutTemplate className="w-16 h-16 mb-4 opacity-20" />
-                        <p>Selecciona un proyecto para ver su actividad.</p>
+                    <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-white")}>
+                        <LayoutTemplate className="w-16 h-16 mb-4 opacity-80" />
+                        <p className={cn("font-medium text-lg", isLight ? "text-zinc-500" : "text-white")}>Selecciona un proyecto para ver su actividad.</p>
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col h-full relative">
 
                         {/* Main Header */}
-                        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#0c0c0e] shrink-0">
+                        <header className={cn("h-14 border-b flex items-center justify-between px-6 shrink-0 transition-colors",
+                            isLight ? "bg-zinc-50 border-zinc-200" : "bg-card/50 border-border"
+                        )}>
                             <div className="flex items-center gap-3">
-                                <button className="lg:hidden text-zinc-400" onClick={() => setSelectedProject(null)}>
+                                <button className={cn("lg:hidden hover:text-white", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400")} onClick={() => setSelectedProject(null)}>
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
 
                                 {isNew ? (
-                                    <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                                        <Plus className="w-5 h-5 text-indigo-500" />
+                                    <h1 className={cn("text-lg font-bold tracking-tight flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                        <Plus className="w-5 h-5 text-primary" />
                                         Creando Nuevo Proyecto
                                     </h1>
                                 ) : (
                                     <div className="flex items-center gap-3">
-                                        <h1 className="text-lg font-bold text-white tracking-tight">{selectedProject.name}</h1>
+                                        <h1 className={cn("text-lg font-bold tracking-tight", isLight ? "text-zinc-900" : "text-white")}>{selectedProject.name}</h1>
                                         <span className={cn("text-[10px] px-2 py-0.5 rounded font-mono uppercase", selectedProject.isActive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-500")}>
                                             {selectedProject.isActive ? "Activo" : "Inactivo"}
                                         </span>
@@ -291,7 +312,7 @@ export default function ProjectManagement() {
                                         onClick={() => setShowCompose(!showCompose)}
                                         className={cn(
                                             "flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs transition-all",
-                                            showCompose ? "bg-zinc-800 text-zinc-400" : "bg-indigo-600 text-white hover:bg-indigo-500"
+                                            showCompose ? "bg-zinc-800 text-zinc-400" : "bg-primary text-primary-foreground hover:bg-primary/90"
                                         )}
                                     >
                                         {showCompose ? <XCircle className="w-4 h-4" /> : <PenSquare className="w-4 h-4" />}
@@ -302,7 +323,7 @@ export default function ProjectManagement() {
                                 {userTab === 'settings' && (
                                     <button
                                         onClick={handleBack}
-                                        className="text-xs text-zinc-500 hover:text-white font-medium px-3"
+                                        className={cn("text-xs font-medium px-3", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")}
                                     >
                                         {isNew ? "Cancelar Creación" : "Volver a Bitácora"}
                                     </button>
@@ -311,7 +332,7 @@ export default function ProjectManagement() {
                         </header>
 
                         {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar relative bg-[#0c0c0e]">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar relative bg-background">
 
                             {/* VIEW 1: JOURNAL / FEED */}
                             {userTab === 'feed' && !isNew && (
@@ -323,7 +344,7 @@ export default function ProjectManagement() {
                                             onCancel={() => setShowCompose(false)}
                                         />
                                     )}
-                                    <h2 className="text-xl font-bold text-white mb-4 px-4">Bitácora</h2>
+                                    <h2 className={cn("text-xl font-bold mb-4 px-4 pt-4", isLight ? "text-zinc-900" : "text-white")}>Bitácora</h2>
                                     <ProjectActivityFeed
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}
@@ -334,11 +355,11 @@ export default function ProjectManagement() {
                             {/* VIEW 2: FORM / SETTINGS */}
                             {userTab === 'settings' && (
                                 <div className="p-8 max-w-2xl mx-auto space-y-8 animate-in fade-in duration-300">
-                                    <div className="bg-white/5 border border-white/5 rounded-2xl p-6 space-y-6">
+                                    <div className={cn("border rounded-2xl p-6 space-y-6", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
 
-                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                                <FolderGit2 className="w-5 h-5 text-indigo-500" />
+                                        <div className={cn("flex items-center justify-between border-b pb-4", isLight ? "border-zinc-100" : "border-white/5")}>
+                                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                <FolderGit2 className={cn("w-5 h-5", isLight ? "text-zinc-900" : "text-primary")} />
                                                 {isNew ? "Definir nuevo proyecto" : "Configuración del Proyecto"}
                                             </h3>
                                             {!isNew && canEdit && (
@@ -355,10 +376,12 @@ export default function ProjectManagement() {
                                         {/* Name & Code */}
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] uppercase font-bold text-zinc-500">Código (Corto)</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Código (Corto)</label>
                                                 <input
                                                     disabled={!canEdit}
-                                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-zinc-200 font-mono focus:border-indigo-500 outline-none uppercase disabled:opacity-50"
+                                                    className={cn("w-full border rounded-lg px-3 py-2 font-mono focus:border-primary outline-none uppercase disabled:opacity-50",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
                                                     value={formData.code || ""}
                                                     onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                                     placeholder="ABC"
@@ -366,10 +389,12 @@ export default function ProjectManagement() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] uppercase font-bold text-zinc-500">Nombre Completo</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Nombre Completo</label>
                                                 <input
                                                     disabled={!canEdit}
-                                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-zinc-200 font-bold focus:border-indigo-500 outline-none disabled:opacity-50"
+                                                    className={cn("w-full border rounded-lg px-3 py-2 font-bold focus:border-primary outline-none disabled:opacity-50",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
                                                     value={formData.name || ""}
                                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                                     placeholder="Nombre del Cliente..."
@@ -379,10 +404,12 @@ export default function ProjectManagement() {
 
                                         {/* Contact Info */}
                                         <div className="space-y-2">
-                                            <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1"><Mail className="w-3 h-3" /> Email Contacto</label>
+                                            <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-white")}><Mail className="w-3 h-3" /> Email Contacto</label>
                                             <input
                                                 disabled={!canEdit}
-                                                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-zinc-200 focus:border-indigo-500 outline-none disabled:opacity-50"
+                                                className={cn("w-full border rounded-lg px-3 py-2 focus:border-primary outline-none disabled:opacity-50",
+                                                    isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                )}
                                                 value={formData.email || ""}
                                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="cliente@empresa.com"
@@ -391,17 +418,19 @@ export default function ProjectManagement() {
 
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1"><Phone className="w-3 h-3" /> Teléfono</label>
+                                                <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-white")}><Phone className="w-3 h-3" /> Teléfono</label>
                                                 <input
                                                     disabled={!canEdit}
-                                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-zinc-200 focus:border-indigo-500 outline-none disabled:opacity-50"
+                                                    className={cn("w-full border rounded-lg px-3 py-2 focus:border-primary outline-none disabled:opacity-50",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
                                                     value={formData.phone || ""}
                                                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                                     placeholder="+34..."
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] uppercase font-bold text-zinc-500">Color Identificativo</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Color Identificativo</label>
                                                 <div className="flex gap-2 flex-wrap">
                                                     {["#ef4444", "#f97316", "#f59e0b", "#84cc16", "#10b981", "#06b6d4", "#3b82f6", "#71717a", "#a855f7", "#ec4899"].map(c => (
                                                         <button
@@ -416,10 +445,10 @@ export default function ProjectManagement() {
                                             </div>
                                         </div>
 
-                                        <div className="pt-6 border-t border-white/5 flex items-center justify-end gap-3">
+                                        <div className={cn("pt-6 border-t flex items-center justify-end gap-3", isLight ? "border-zinc-100" : "border-white/5")}>
                                             <button
                                                 onClick={handleBack}
-                                                className="px-4 py-2 text-zinc-400 hover:text-white text-sm font-medium"
+                                                className={cn("px-4 py-2 text-sm font-medium", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400 hover:text-white")}
                                             >
                                                 Cancelar
                                             </button>
@@ -427,7 +456,7 @@ export default function ProjectManagement() {
                                                 <button
                                                     onClick={handleSave}
                                                     disabled={saving}
-                                                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2 rounded-lg font-bold text-sm shadow-lg shadow-indigo-900/40 flex items-center gap-2 transform active:scale-95 transition-all"
+                                                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2 rounded-lg font-bold text-sm shadow-lg shadow-primary/40 flex items-center gap-2 transform active:scale-95 transition-all"
                                                 >
                                                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                                     {isNew ? "Crear Proyecto" : "Guardar Cambios"}

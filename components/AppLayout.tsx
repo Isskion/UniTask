@@ -29,10 +29,16 @@ interface AppLayoutProps {
     onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles') => void;
 }
 
+import { useUI } from "@/context/UIContext"; // Import Context
+import { useToast } from "@/context/ToastContext";
+
 export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) {
     const { user, logout, userRole } = useAuth();
     const { can } = usePermissions();
+    const { toggleCommandMenu } = useUI(); // Use Context hook
+    const { showToast } = useToast();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
     // Check if user can manage permissions (with legacy role fallback)
     const canManagePermissions = can('managePermissions', 'special') ||
@@ -60,11 +66,11 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                 className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group relative",
                     isActive
-                        ? "bg-white/10 text-white"
-                        : "text-zinc-400 hover:text-zinc-200 hover:bg-white/5"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
             >
-                <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300")} />
+                <Icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
                 <span>{label}</span>
                 {count !== undefined && count > 0 && (
                     <span className="ml-auto text-xs bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded-full">
@@ -72,25 +78,25 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                     </span>
                 )}
                 {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-[#D32F2F] rounded-r-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-primary rounded-r-full" />
                 )}
             </button>
         );
     };
 
     return (
-        <div className="flex h-screen bg-[#09090b] text-zinc-200 overflow-hidden font-sans selection:bg-[#D32F2F]/30">
+        <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30">
 
             {/* SIDEBAR (Desktop) */}
-            <aside className="w-64 flex flex-col border-r border-white/5 bg-[#0c0c0e]">
+            <aside className="w-64 flex flex-col border-r border-border bg-card/50">
                 {/* Header / User */}
-                <div className="h-14 flex items-center px-4 border-b border-white/5 gap-3">
+                <div className="h-14 flex items-center px-4 border-b border-border gap-3">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                         <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain theme-logo" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-sm font-bold text-white truncate">UniTask Controller</h1>
-                        <p className="text-[10px] text-zinc-500 truncate">Consultant Workspace</p>
+                        <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
+                        <p className="text-[10px] text-muted-foreground truncate">Consultant Workspace</p>
                     </div>
                 </div>
 
@@ -99,7 +105,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
 
                     {/* Primary */}
                     <div className="space-y-1">
-                        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">Workspace</p>
+                        <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Workspace</p>
                         <NavItem mode="dashboard" icon={Inbox} label="Inbox / Dashboard" />
                         <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
                         <NavItem mode="projects" icon={FolderGit2} label="Projects & Bitácora" />
@@ -109,7 +115,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
 
                     {/* Secondary */}
                     <div className="space-y-1">
-                        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">Connect</p>
+                        <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Connect</p>
                         <NavItem mode="users" icon={Users} label="People" />
                         {canManagePermissions && (
                             <NavItem mode="user-roles" icon={Shield} label="User Roles" />
@@ -118,26 +124,26 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
 
                     {/* System */}
                     <div className="space-y-1">
-                        <p className="px-3 text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-2">System</p>
+                        <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">System</p>
                         <NavItem mode="trash" icon={Trash2} label="Trash" />
                     </div>
                 </div>
 
                 {/* Footer User Profile */}
-                <div className="p-3 border-t border-white/5">
-                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group cursor-pointer">
+                <div className="p-3 border-t border-border">
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group cursor-pointer">
                         {user?.photoURL ? (
-                            <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
+                            <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-border" />
                         ) : (
-                            <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
-                                <span className="text-xs font-bold text-zinc-400">?</span>
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
+                                <span className="text-xs font-bold text-muted-foreground">?</span>
                             </div>
                         )}
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-white truncate">{user?.displayName || 'User'}</p>
-                            <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
+                            <p className="text-xs font-medium text-foreground truncate">{user?.displayName || 'User'}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                         </div>
-                        <button onClick={logout} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/10 hover:text-red-400 rounded-md transition-all" title="Logout">
+                        <button onClick={logout} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-md transition-all" title="Logout">
                             <LogOut className="w-4 h-4" />
                         </button>
                     </div>
@@ -145,39 +151,40 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
             </aside>
 
             {/* MAIN CONTENT AREA */}
-            <main className="flex-1 flex flex-col min-w-0 bg-[#09090b]">
+            <main className="flex-1 flex flex-col min-w-0 bg-background">
 
                 {/* Global Header */}
-                <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#09090b]/80 backdrop-blur-md sticky top-0 z-40">
+                <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-background/80 backdrop-blur-md sticky top-0 z-40">
 
                     {/* Left: Breadcrumbs / Mobile Menu */}
                     <div className="flex items-center gap-4">
                         <button
-                            className="lg:hidden p-2 -ml-2 text-zinc-400 hover:text-white"
+                            className="lg:hidden p-2 -ml-2 text-muted-foreground hover:text-foreground"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         >
                             <Menu className="w-5 h-5" />
                         </button>
 
-                        <div className="flex items-center gap-2 text-sm text-zinc-400">
-                            <span className="text-zinc-600">Workspace</span>
-                            <span className="text-zinc-700">/</span>
-                            <span className="text-white font-medium capitalize">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="text-muted-foreground">Workspace</span>
+                            <span className="text-muted-foreground/50">/</span>
+                            <span className="text-foreground font-medium capitalize">
                                 {viewMode === 'editor' ? 'Follow-Up' : viewMode}
                             </span>
                         </div>
                     </div>
 
                     {/* Center: Command Palette Trigger (Optional Visual) */}
+                    {/* Center: Command Palette Trigger (Optional Visual) */}
                     <button
-                        onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true } as any))}
-                        className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-900 border border-white/5 text-xs text-zinc-500 hover:text-zinc-300 hover:border-white/10 transition-all w-64"
+                        onClick={toggleCommandMenu}
+                        className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary/50 border border-border/50 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border transition-all w-64"
                     >
                         <Search className="w-3.5 h-3.5" />
-                        <span>Search tasks...</span>
+                        <span>Buscar tareas (Alt+S)...</span>
                         <div className="ml-auto flex items-center gap-1">
-                            <kbd className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] font-sans">Cmd</kbd>
-                            <kbd className="bg-zinc-800 px-1.5 py-0.5 rounded text-[10px] font-sans">K</kbd>
+                            <kbd className="bg-muted px-1.5 py-0.5 rounded text-[10px] font-sans text-muted-foreground">Alt</kbd>
+                            <kbd className="bg-muted px-1.5 py-0.5 rounded text-[10px] font-sans text-muted-foreground">S</kbd>
                         </div>
                     </button>
 
@@ -185,11 +192,11 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                     <div className="flex items-center gap-3">
                         <ThemeSelector />
                         <button
-                            onClick={() => alert("Notificaciones: Próximamente")}
-                            className="p-2 text-zinc-500 hover:text-white transition-colors relative"
+                            onClick={() => showToast("UniTaskController", "El panel de notificaciones estará disponible próximamente.", "info")}
+                            className="p-2 text-muted-foreground hover:text-foreground transition-colors relative"
                         >
                             <Bell className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#09090b]"></span>
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background"></span>
                         </button>
                     </div>
                 </header>

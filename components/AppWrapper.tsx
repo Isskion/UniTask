@@ -4,7 +4,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, UserCircle2 } from "lucide-react";
 import WeeklyEditor from "@/components/WeeklyEditor";
 import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
-import { CommandMenu } from "@/components/CommandMenu";
+import { UIProvider } from "@/context/UIContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 export default function AppWrapper() {
     const { user, loading, loginWithGoogle } = useAuth();
@@ -55,10 +56,11 @@ export default function AppWrapper() {
     }
 
     return (
-        <>
-            <WeeklyEditor />
-            <CommandMenu />
-            <FirebaseDiagnostic />
-        </>
+        <UIProvider>
+            <ToastProvider>
+                <WeeklyEditor />
+                <FirebaseDiagnostic />
+            </ToastProvider>
+        </UIProvider>
     );
 }
