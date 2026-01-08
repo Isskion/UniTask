@@ -80,6 +80,7 @@ export async function migrateAllData(onProgress: (log: MigrationLog) => void): P
                             for (const taskDesc of updateData.content.nextSteps) {
                                 await createTask({
                                     projectId: projectId,
+                                    tenantId: "1",
                                     description: taskDesc,
                                     status: 'pending',
                                     isBlocking: false,
