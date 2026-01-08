@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -84,8 +85,8 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
             <aside className="w-64 flex flex-col border-r border-white/5 bg-[#0c0c0e]">
                 {/* Header / User */}
                 <div className="h-14 flex items-center px-4 border-b border-white/5 gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D32F2F] to-orange-600 flex items-center justify-center shadow-lg shadow-red-900/20">
-                        <span className="font-bold text-white text-xs">UTC</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                        <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain theme-logo" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <h1 className="text-sm font-bold text-white truncate">UniTask Controller</h1>
@@ -182,6 +183,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-3">
+                        <ThemeSelector />
                         <button
                             onClick={() => alert("Notificaciones: Próximamente")}
                             className="p-2 text-zinc-500 hover:text-white transition-colors relative"

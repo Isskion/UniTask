@@ -62,6 +62,90 @@
   }
 }
 
+/* --- THEMES --- */
+
+/* LIGHT THEME (Professional White) */
+:root[data-theme="light"] {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(240 10% 3.9%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 10% 3.9%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(240 10% 3.9%);
+
+  --primary: hsl(240 5.9% 10%);
+  /* Black */
+  --primary-foreground: hsl(0 0% 98%);
+  /* White */
+
+  --secondary: hsl(240 4.8% 95.9%);
+  /* Light Gray */
+  --secondary-foreground: hsl(240 5.9% 10%);
+
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
+
+  --accent: hsl(240 4.8% 95.9%);
+  --accent-foreground: hsl(240 5.9% 10%);
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --border: hsl(240 5.9% 90%);
+  --input: hsl(240 5.9% 90%);
+  --ring: hsl(240 5.9% 10%);
+}
+
+/* RED THEME (Soft Red Focus) */
+:root[data-theme="red"] {
+  /* Pale warm pink background */
+  --background: hsl(0 30% 98%);
+  --foreground: hsl(0 40% 20%);
+  /* Deep Wine */
+
+  --card: hsl(0 30% 99%);
+  --card-foreground: hsl(0 40% 20%);
+
+  --popover: hsl(0 30% 99%);
+  --popover-foreground: hsl(0 40% 20%);
+
+  --primary: hsl(0 70% 60%);
+  /* Soft Salmon */
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(0 20% 94%);
+  /* Light Pink/Beige */
+  --secondary-foreground: hsl(0 40% 20%);
+
+  --muted: hsl(0 20% 92%);
+  --muted-foreground: hsl(0 20% 50%);
+
+  --accent: hsl(0 20% 94%);
+  --accent-foreground: hsl(0 40% 20%);
+
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --border: hsl(0 30% 90%);
+  /* Soft Pink Border */
+  --input: hsl(0 30% 90%);
+  --ring: hsl(0 70% 60%);
+}
+
 @utility glass-panel {
   @apply bg-zinc-900/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl;
+}
+
+.theme-logo {
+  transition: all 0.3s ease;
+}
+
+:root[data-theme="dark"] .theme-logo {
+  filter: invert(1) brightness(2);
+}
+
+:root:not([data-theme]) .theme-logo {
+  filter: invert(1) brightness(2);
 }
