@@ -90,6 +90,7 @@ export default function DailyFollowUp() {
     const [entry, setEntry] = useState<JournalEntry>({
         id: format(new Date(), 'yyyy-MM-dd'),
         date: format(new Date(), 'yyyy-MM-dd'),
+        tenantId: "1",
         projects: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -282,6 +283,7 @@ export default function DailyFollowUp() {
                 setEntry({
                     id: dateId,
                     date: dateId,
+                    tenantId: "1",
                     projects: [],
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -441,6 +443,7 @@ export default function DailyFollowUp() {
                 {
                     weekId: entry.id,
                     projectId: projectId,
+                    tenantId: "1",
                     title: taskDesc,
                     description: taskDesc,
                     status: 'pending',
