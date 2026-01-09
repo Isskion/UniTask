@@ -906,7 +906,8 @@ export default function DailyFollowUp() {
                                                 <div className={cn(
                                                     "flex flex-col items-center justify-center w-9 h-9 rounded-md font-mono leading-none shrink-0 transition-colors",
                                                     isSelected ? "bg-indigo-600 text-white font-bold" :
-                                                        isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" : "bg-white/10 text-white font-bold"
+                                                        isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" :
+                                                            (isLight ? "bg-zinc-200 text-zinc-900 font-bold" : "bg-white/10 text-white font-bold")
                                                 )}>
                                                     <span className="text-sm">{format(dateObj, 'd')}</span>
                                                 </div>
