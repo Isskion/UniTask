@@ -2,130 +2,98 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // ═══════════════════════════════════════════════════════
-    // HELPER FUNCTIONS
-    // ═══════════════════════════════════════════════════════
+    // --- HELPERS ---
     
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    // Get Real Role from Token Claims (Immutable from Client)
+    function getRealRole() {
+      // Default to 0 if role claim is missing
+      return request.auth.token.role != null ? request.auth.token.role : 0;
+    }
+
+    // Get Real TenantId from Token Claims
+    function getRealTenantId() {
+       return request.auth.token.tenantId;
+    }
+
     function isSuperAdmin() {
-      return isAuthenticated() && request.auth.token.role == 'superadmin';
+      // Robust check: matches number 100, string "100", or legacy "superadmin"
+      return isAuthenticated() && (
+        getRealRole() >= 100 || 
+        request.auth.token.role == "100" ||
+        request.auth.token.role == "superadmin"
+      );
     }
 
-    function isTenantMember(tenantId) {
-      return isAuthenticated() && request.auth.token.tenantId == tenantId;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function isTenantAdmin(tenantId) {
+      return isAuthenticated() && 
+             getRealRole() >= 80 && 
+             getRealTenantId() == tenantId;
     }
 
-    // ═══════════════════════════════════════════════════════
-    // SYSTEM CONFIG (Admin SDK Only - No Client Access)
-    // ═══════════════════════════════════════════════════════
-    
-    match /system_config/{doc} {
-      allow read, write: if false;
-    }
+    // --- RULES ---
 
-    // ═══════════════════════════════════════════════════════
-    // TENANTS
-    // ═══════════════════════════════════════════════════════
-    
+    // Tenants Collection: Only Superadmins view the master list
     match /tenants/{tenantId} {
-      allow read: if isSuperAdmin() || isTenantMember(tenantId);
-      allow write: if isSuperAdmin();
+      allow read, write: if isSuperAdmin();
     }
 
-    // ═══════════════════════════════════════════════════════
-    // USERS
-    // ═══════════════════════════════════════════════════════
-    
-    match /user/{userId} {
+    // Projects & Subcollections (Recursive): Strict Multi-tenancy
+    // Matches projects/{projectId} AND projects/{projectId}/updates/{updateId}
+    match /projects/{document=**} {
       allow read: if isSuperAdmin() || 
-                    isOwner(userId) ||
-                    isTenantMember(resource.data.tenantId);
-      allow write: if isSuperAdmin() || isOwner(userId);
+                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
+      
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (request.resource.data.tenantId == getRealTenantId())
+      );
+      
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+      );
+    }
+
+    // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
+    match /{collectionName}/{docId} {
+      
+      // READ: Superadmin Bypass OR matching tenant
+      // We assume documents have a 'tenantId' field.
+      allow read: if isSuperAdmin() || 
+                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
+
+      // CREATE: 
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Standard User: Must write to their OWN tenant
+        (request.resource.data.tenantId == getRealTenantId())
+      );
+
+      // UPDATE/DELETE:
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Standard User: Can only touch data in their tenant AND ensure it stays in their tenant
+        (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+      );
     }
     
+    // Users Collection: Prevent Admin from seeing other tenants' users
     match /users/{userId} {
       allow read: if isSuperAdmin() || 
-                    isOwner(userId) ||
-                    isTenantMember(resource.data.tenantId);
-      allow write: if isSuperAdmin() || isOwner(userId);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // PROJECTS
-    // ═══════════════════════════════════════════════════════
-    
-    match /projects/{projectId} {
-      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
-      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-
-      match /updates/{updateId} {
-        allow read: if isSuperAdmin() || isTenantMember(get(/databases/$(database)/documents/projects/$(projectId)).data.tenantId);
-        allow write: if isSuperAdmin() || isTenantMember(get(/databases/$(database)/documents/projects/$(projectId)).data.tenantId);
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // TASKS
-    // ═══════════════════════════════════════════════════════
-    
-    match /tasks/{taskId} {
-      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
-      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // JOURNAL ENTRIES (Daily)
-    // ═══════════════════════════════════════════════════════
-    
-    match /journal_entries/{entryId} {
-      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
-      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // WEEKLY ENTRIES (Legacy)
-    // ═══════════════════════════════════════════════════════
-    
-    match /weekly_entries/{entryId} {
-      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-      allow create: if isSuperAdmin() || isTenantMember(request.resource.data.tenantId);
-      allow update, delete: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // PERMISSION GROUPS
-    // ═══════════════════════════════════════════════════════
-    
-    match /permission_groups/{groupId} {
-      allow read: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-      allow write: if isSuperAdmin();
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // INVITES
-    // ═══════════════════════════════════════════════════════
-    
-    match /invites/{code} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperAdmin() || isTenantMember(resource.data.tenantId);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // DIAGNOSTIC (Development Only - Remove in Production)
-    // ═══════════════════════════════════════════════════════
-    
-    match /_diagnostic/{docId} {
-      allow read, write: if true;
+                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
+      
+      // Privilege Escalation Check:
+      // An Admin (80) cannot create a user with Role >= 80 (or 100) unless logic allows, 
+      // but definitively cannot create a Superadmin.
+      allow write: if isSuperAdmin() || (
+        isTenantAdmin(request.resource.data.tenantId) && 
+        request.resource.data.role < 80 &&
+        request.resource.data.tenantId == getRealTenantId()
+      );
     }
   }
 }

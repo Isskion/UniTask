@@ -20,6 +20,16 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// Role Weight Mapping (Duplicated to avoid import issues in Cloud Functions)
+const ROLE_LEVELS: Record<string, number> = {
+    'usuario_externo': 10,
+    'usuario_base': 20,
+    'consultor': 40,
+    'global_pm': 60,
+    'app_admin': 80,
+    'superadmin': 100
+};
+
 export const processUserClaims = functions.auth.user().onCreate(async (user) => {
     console.log(`[processUserClaims] Processing new user: ${user.email}`);
 
@@ -30,7 +40,7 @@ export const processUserClaims = functions.auth.user().onCreate(async (user) => 
             ? (adminDoc.data()?.emails || []).map((e: string) => e.toLowerCase())
             : [];
 
-        let customClaims: { role: string; tenantId: string; isActive: boolean };
+        let customClaims: { role: string; tenantId: string; isActive: boolean; roleLevel: number };
 
         if (user.email && allowedEmails.includes(user.email.toLowerCase())) {
             // Superadmin: System-level access
@@ -38,17 +48,19 @@ export const processUserClaims = functions.auth.user().onCreate(async (user) => 
             customClaims = {
                 role: 'superadmin',
                 tenantId: 'SYSTEM',
-                isActive: true
+                isActive: true,
+                roleLevel: 100
             };
         } else {
             // Regular user: Assign to default tenant
-            // TODO: Implement invite-based tenant assignment
             const tenantId = await resolveTenantForUser(user);
             console.log(`[processUserClaims] Regular user assigned to tenant: ${tenantId}`);
+            const defaultRole = 'usuario_base';
             customClaims = {
-                role: 'usuario_base',
+                role: defaultRole,
                 tenantId: tenantId,
-                isActive: false // Pending approval by admin
+                isActive: false, // Pending approval by admin
+                roleLevel: ROLE_LEVELS[defaultRole] || 20
             };
         }
 
@@ -56,13 +68,14 @@ export const processUserClaims = functions.auth.user().onCreate(async (user) => 
         await admin.auth().setCustomUserClaims(user.uid, customClaims);
         console.log(`[processUserClaims] Claims set for ${user.uid}:`, customClaims);
 
-        // 3. Create/Update user profile in Firestore
+        // 3. Create/Update user profile in Firestore (Using 'users' collection)
         await db.collection('users').doc(user.uid).set({
             uid: user.uid,
             email: user.email,
             displayName: user.displayName || '',
             photoURL: user.photoURL || '',
             role: customClaims.role,
+            roleLevel: customClaims.roleLevel,
             tenantId: customClaims.tenantId,
             isActive: customClaims.isActive,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -79,30 +92,23 @@ export const processUserClaims = functions.auth.user().onCreate(async (user) => 
 
 /**
  * Resolves which tenant a new user should be assigned to.
- * 
- * Priority:
- * 1. Invite code (if present in custom data - not implemented yet)
- * 2. Email domain matching
- * 3. Default tenant '1'
  */
 async function resolveTenantForUser(user: admin.auth.UserRecord): Promise<string> {
-    // TODO: Check for invite code in user metadata or Firestore
-    // TODO: Check for email domain matching a tenant
-
-    // Default: Assign to tenant '1'
     return '1';
 }
 
 /**
- * Optional: Cloud Function to update claims when admin changes user role.
- * Call this from the client when UserManagement updates a user's role.
+ * Update claims helper
  */
 export const updateUserClaims = functions.https.onCall(async (data, context) => {
-    // Verify caller is superadmin
-    if (!context.auth?.token.role || context.auth.token.role !== 'superadmin') {
+    // Verify caller is superadmin (Level 100)
+    const callerLevel = context.auth?.token.roleLevel || 0;
+    const callerRole = context.auth?.token.role;
+
+    if (callerRole !== 'superadmin' && callerLevel < 80) { // Allocating update power to admin/superadmin
         throw new functions.https.HttpsError(
             'permission-denied',
-            'Only superadmins can update user claims'
+            'Insufficient permissions to update claims'
         );
     }
 
@@ -116,10 +122,24 @@ export const updateUserClaims = functions.https.onCall(async (data, context) => 
     const targetUser = await admin.auth().getUser(targetUserId);
     const currentClaims = targetUser.customClaims || {};
 
+    const targetLevel = currentClaims.roleLevel || 0;
+
+    // Safety: You can't edit someone with higher or equal level unless you are Superadmin (100)
+    if (callerLevel <= targetLevel && callerRole !== 'superadmin') {
+        throw new functions.https.HttpsError(
+            'permission-denied',
+            'Cannot edit a user with equal or higher rank'
+        );
+    }
+
+    // Calculate new Level if role changes
+    const newLevel = newRole ? (ROLE_LEVELS[newRole] || 0) : undefined;
+
     // Update claims
     const updatedClaims = {
         ...currentClaims,
         ...(newRole && { role: newRole }),
+        ...(newRole && { roleLevel: newLevel }),
         ...(newTenantId && { tenantId: newTenantId })
     };
 
@@ -128,6 +148,7 @@ export const updateUserClaims = functions.https.onCall(async (data, context) => 
     // Sync to Firestore profile
     await db.collection('users').doc(targetUserId).update({
         role: updatedClaims.role,
+        roleLevel: updatedClaims.roleLevel,
         tenantId: updatedClaims.tenantId,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });

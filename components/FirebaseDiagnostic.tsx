@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { db, auth } from "@/lib/firebase";
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, clearIndexedDbPersistence, terminate, disableNetwork, enableNetwork } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, clearIndexedDbPersistence, terminate, disableNetwork, enableNetwork, collection, query, where, getDocs } from "firebase/firestore";
 import { Activity, AlertTriangle, CheckCircle2, Loader2, XCircle, RefreshCw, Wifi, WifiOff, Server, ShieldAlert, Trash2, Database, Sparkles } from "lucide-react";
 import { testServerConnection } from "@/app/diagnostic-actions";
-import { resetDatabase } from "@/lib/maintenance";
+import { resetDatabase, migrateLegacyUsers } from "@/lib/maintenance";
 
 export default function FirebaseDiagnostic() {
     const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
@@ -136,7 +136,7 @@ export default function FirebaseDiagnostic() {
         if (!confirm("⚠️ MODO DESARROLLO\n\n¿Asignarte rol de 'app_admin' y activar tu cuenta?\n\nEsto solo funcionará si las reglas de seguridad están abiertas.")) return;
 
         try {
-            await setDoc(doc(db, "user", auth.currentUser.uid), {
+            await setDoc(doc(db, "users", auth.currentUser.uid), {
                 email: auth.currentUser.email,
                 role: 'app_admin',
                 isActive: true,
@@ -158,6 +158,78 @@ export default function FirebaseDiagnostic() {
             window.location.reload();
         } catch (e: any) {
             alert("❌ Error: " + e.message);
+        }
+    };
+
+    const handleMigrateUsers = async () => {
+        if (!confirm("Esto moverá usuarios de la colección 'user' a 'users'. ¿Continuar?")) return;
+        try {
+            const res = await migrateLegacyUsers();
+            alert(res.message);
+        } catch (e: any) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    const handleAuditFliping = async () => {
+        setStatus('running');
+        addLog("--- AUDITANDO PROYECTO 'FLIPING' ---");
+        try {
+            // 1. Search Global Projects
+            addLog("1. Buscando en colección 'projects'...");
+            const q = query(collection(db, "projects"), where("name", "==", "Fliping"));
+            const curSnapshot = await getDocs(q);
+            if (curSnapshot.empty) {
+                addLog("⚠️ No se encontró ningún proyecto llamado 'Fliping' en la colección global.");
+            } else {
+                curSnapshot.forEach(doc => {
+                    const d = doc.data();
+                    addLog(`✅ PROYECTO GLOBAL ENCONTRADO:`);
+                    addLog(`   ID: ${doc.id}`);
+                    addLog(`   TenantID: ${d.tenantId}`);
+                    addLog(`   Status: ${d.status}`);
+                });
+            }
+
+            // 2. Check Daily Entries across Tenants
+            addLog("2. Buscando en entradas diarias recientes (Tenant 1-5)...");
+            const tenants = ["1", "3", "4", "5", "6"]; // Tenant 2 usually not used? Just checking common ones.
+            const dateId = new Date().toISOString().split('T')[0]; // Today
+
+            for (const tid of tenants) {
+                addLog(`Checking Tenant ${tid}...`);
+                // Check recent 5 days
+                const recentRef = collection(db, "tenants", tid, "daily_journal");
+                const qJournal = query(recentRef, where("date", "<=", dateId));
+                // Just get last few
+                try {
+                    // We can't sort easily without index, so let's just fetch specific ID if known or iterate all?
+                    // Let's try fetching TODAY specifically first
+                    const docRef = doc(db, "tenants", tid, "daily_journal", dateId);
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const hasFliping = data.projects?.some((p: any) => p.name === "Fliping");
+                        addLog(`   [${dateId}] Exists: ${snap.exists()}, Has Fliping: ${hasFliping}`);
+                        if (hasFliping) {
+                            const pData = data.projects.find((p: any) => p.name === "Fliping");
+                            addLog(`   -> Status in Entry: ${pData.status}`);
+                        }
+                    } else {
+                        addLog(`   [${dateId}] No entry for today.`);
+                    }
+                } catch (e: any) {
+                    addLog(`   Error checking tenant ${tid}: ${e.message}`);
+                }
+            }
+
+            addLog("--- AUDITORÍA FINALIZADA ---");
+            setStatus('success');
+
+        } catch (e: any) {
+            console.error(e);
+            setStatus('error');
+            addLog(`❌ ERROR CRÍTICO: ${e.message}`);
         }
     };
 
@@ -224,7 +296,25 @@ export default function FirebaseDiagnostic() {
                             onClick={handleResetDB}
                             className="flex items-center gap-1 bg-red-900/50 hover:bg-red-800 text-red-200 px-2 py-2 rounded text-xs font-bold ring-1 ring-red-500 w-full justify-center"
                         >
-                            <Database className="w-3 h-3" /> INICIALIZAR BD (Borrar Tareas y Proyectos)
+                            <Database className="w-3 h-3" /> INICIALIZAR BD (Reset)
+                        </button>
+
+                        <div className="w-full h-px bg-white/10 my-1"></div>
+
+                        <button
+                            onClick={handleMigrateUsers}
+                            className="flex items-center gap-1 bg-purple-900/50 hover:bg-purple-800 text-purple-200 px-2 py-2 rounded text-xs font-bold ring-1 ring-purple-500 w-full justify-center"
+                        >
+                            <Database className="w-3 h-3" /> Fix: Migrar 'user' a 'users'
+                        </button>
+
+                        <div className="w-full h-px bg-white/10 my-1"></div>
+
+                        <button
+                            onClick={handleAuditFliping}
+                            className="flex items-center gap-1 bg-cyan-900/50 hover:bg-cyan-800 text-cyan-200 px-2 py-2 rounded text-xs font-bold ring-1 ring-cyan-500 w-full justify-center"
+                        >
+                            <Sparkles className="w-3 h-3" /> Audit: Fliping
                         </button>
                     </div>
 

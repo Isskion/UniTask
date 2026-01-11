@@ -9,7 +9,7 @@ import TaskList from "./TaskList";
 import TaskManagement from "./TaskManagement"; // Added
 import UserRoleManagement from "./UserRoleManagement";
 import { AppLayout } from "./AppLayout";
-import { WeeklyEntry, ProjectEntry } from "@/types";
+import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -19,6 +19,7 @@ import { doc, getDoc, collection, getDocs, query, where } from "firebase/firesto
 import { Loader2, Save, Calendar, History, CheckCircle2, Plus, X, Layout, Search, Menu, Trash2, Users, RotateCcw, Sparkles, FolderGit2, Wand2, XCircle, ArrowRight, ListTodo, BarChart3, ChevronLeft, ChevronDown, PenSquare } from "lucide-react";
 import { parseNotes } from "@/lib/smartParser";
 import { useAuth } from "@/context/AuthContext";
+import { useSafeFirestore } from '@/hooks/useSafeFirestore'; // Safe Hook
 import { summarizeNotesWithAI, AISummaryResult } from "@/app/ai-actions";
 import { useToast } from "@/context/ToastContext";
 
@@ -30,18 +31,20 @@ import RichTextEditor from "@/components/RichTextEditor"; // Phase 4: Tiptap
 import { useSearchParams } from "next/navigation";
 
 // Helper for previous entry logic (moved from actions to here or storage)
-async function fetchPreviousEntryClient(currentId: string) {
-    const all = await getAllEntries();
+// Note: tenantId should be passed from the component, defaulting to "1" for now
+async function fetchPreviousEntryClient(currentId: string, tenantId: string = "1") {
+    const all = await getAllEntries(tenantId);
     return all.find(e => e.id < currentId) || null;
 }
 
-async function fetchExistingIdsClient() {
-    const all = await getAllEntries();
+async function fetchExistingIdsClient(tenantId: string = "1") {
+    const all = await getAllEntries(tenantId);
     return all.map(e => e.id);
 }
 
 export default function WeeklyEditor() {
-    const { userRole, user, loading: authLoading } = useAuth(); // Get user info
+    const { userRole, user, loading: authLoading, tenantId, viewContext } = useAuth(); // [FIX] Added viewContext
+    const { addDoc } = useSafeFirestore(); // Safe Hook
     const { showToast } = useToast();
     const [userProfile, setUserProfile] = useState<any>(null); // Store full user profile for assignments
     const [profileLoading, setProfileLoading] = useState(true); // Track potential fetch delay
@@ -66,7 +69,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -104,7 +107,7 @@ export default function WeeklyEditor() {
         id: "",
         weekNumber: 0,
         year: 0,
-        tenantId: "1",
+        tenantId: tenantId || "1",
         pmNotes: "",
         conclusions: "",
         nextSteps: "",
@@ -155,7 +158,7 @@ export default function WeeklyEditor() {
 
             // 2. Fetch Global Projects for mapping
             try {
-                const q = query(collection(db, "projects"));
+                const q = query(collection(db, "projects"), where("tenantId", "==", tenantId || "1"));
                 const snap = await getDocs(q);
                 const loaded = snap.docs.map(d => ({
                     id: d.id,
@@ -171,7 +174,7 @@ export default function WeeklyEditor() {
 
         setProfileLoading(true);
         loadInitData();
-    }, [user]);
+    }, [user, tenantId]); // [FIX] Re-run when tenantId changes (Masquerade)
 
     // Helper to cast Event to CustomEvent for TS
     const asAny = (fn: any) => fn as EventListener;
@@ -182,7 +185,7 @@ export default function WeeklyEditor() {
         const buildMap = async () => {
             if (globalProjects.length === 0) return;
 
-            const all = await getAllEntries();
+            const all = await getAllEntries(tenantId || "1");
             const newMap: Record<string, { code: string, color: string }[]> = {};
 
             all.forEach(e => {
@@ -219,11 +222,17 @@ export default function WeeklyEditor() {
 
         // Ensure we are strictly on the Monday of that week
         const monday = startOfWeek(dateObj, { weekStartsOn: 1 });
-        const id = formatDateId(monday);
+        const dateId = formatDateId(monday);
         const weekNum = getWeekNumber(monday);
         const yearNum = getYearNumber(monday);
 
-        console.log(`[LoadData] Loading for ID: ${id} (Week ${weekNum})`);
+        // [FIX] Namespace ID by Tenant to prevent collision
+        // Legacy (Tenant 1) keeps simple date ID "2025-01-06"
+        // Others get "4_2025-01-06"
+        const currentTenant = tenantId || "1";
+        const id = currentTenant === "1" ? dateId : `${currentTenant}_${dateId}`;
+
+        console.log(`[LoadData] Loading for ID: ${id} (Week ${weekNum}, Tenant ${currentTenant})`);
 
         // Temporary reset to avoid ghosting while loading
         setEntry({
@@ -248,7 +257,8 @@ export default function WeeklyEditor() {
                     ...existing,
                     projects: existing.projects || [],
                     weekNumber: existing.weekNumber || weekNum,
-                    year: existing.year || yearNum
+                    year: existing.year || yearNum,
+                    tenantId: existing.tenantId || tenantId || "1"
                 });
 
                 // Logic for Auto-Selecting Tab will move to Render or Effect to wait for userProfile
@@ -258,7 +268,7 @@ export default function WeeklyEditor() {
                     id,
                     weekNumber: weekNum,
                     year: yearNum,
-                    tenantId: "1",
+                    tenantId: tenantId || "1",
                     pmNotes: "",
                     conclusions: "",
                     nextSteps: "",
@@ -267,11 +277,11 @@ export default function WeeklyEditor() {
                 });
             }
 
-            const prev = await fetchPreviousEntryClient(id);
+            const prev = await fetchPreviousEntryClient(id, tenantId || "1");
             setPreviousEntry(prev);
 
             // Refresh existing IDs in case just saved
-            fetchExistingIdsClient().then(ids => setExistingIds(new Set(ids)));
+            fetchExistingIdsClient(tenantId || "1").then(ids => setExistingIds(new Set(ids)));
         } catch (error) {
             console.error("Error loading data:", error);
             showToast("UniTaskController", "Error cargando datos. Revisa tu conexión o permisos.", "error");
@@ -286,13 +296,22 @@ export default function WeeklyEditor() {
         // 1. Base filter: remove trashed
         const activeOnly = entry.projects.filter(p => p.status !== 'trash');
 
-        // 2. If admin/global_pm => ALL active projects
-        if (userRole === 'app_admin' || userRole === 'global_pm') {
+        // [FIX] Use Numeric Role for Robustness
+        // Fallback to legacy getRoleLevel if viewContext is missing (e.g. initial load)
+        const currentLevel = viewContext?.activeRole ?? getRoleLevel(userRole);
+
+        console.log(`[Review] Level: ${currentLevel}, ActiveProjects: ${activeOnly.length}`);
+
+        // 2. logic: Admin (80) & Global PM (60) & Superadmin (100) see ALL
+        if (currentLevel >= RoleLevel.PM) {
             return activeOnly;
         }
 
         // 3. If no user profile loaded yet => Empty (safe secure default)
-        if (!userProfile) return [];
+        if (!userProfile) {
+            console.log("[Review] Security: No user profile, hiding projects");
+            return [];
+        }
 
         // 4. User with assignments => Only assigned projects
         // Helper: Get list of ALLOWED project names from global map
@@ -307,7 +326,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -544,7 +563,7 @@ export default function WeeklyEditor() {
                 setEntry(prev => ({
                     ...prev,
                     conclusions: result.conclusions,
-                    nextSteps: result.nextWeekTasks
+                    nextSteps: result.nextSteps
                 }));
             } else {
                 setEntry(prev => ({
@@ -553,7 +572,7 @@ export default function WeeklyEditor() {
                         p.name === activeTab ? {
                             ...p,
                             conclusions: result.conclusions,
-                            nextSteps: result.nextWeekTasks
+                            nextSteps: result.nextSteps
                         } : p
                     )
                 }));
@@ -632,14 +651,14 @@ export default function WeeklyEditor() {
                     await createTask({
                         weekId: entry.id,
                         projectId,
-                        tenantId: "1",
+                        tenantId: tenantId || "1",
                         title: desc,
                         description: desc,
                         status: 'pending',
                         isActive: true, // explicit for types
                         createdBy: user.uid,
                         assignedTo: user.uid // Auto-assign to creator for now
-                    }, user.uid, currentProjectName);
+                    }, user.uid, addDoc, currentProjectName);
                 }
                 showToast("UniTaskController", `✅ ${allItems.length} Tareas creadas en base de datos.`, "success");
             } catch (e) {
@@ -660,12 +679,23 @@ export default function WeeklyEditor() {
             console.error("Critical: Entry ID is missing!");
             const monday = startOfWeek(currentDate, { weekStartsOn: 1 });
             const recoveredId = formatDateId(monday);
+
             if (recoveredId) {
-                console.log("Recovered ID:", recoveredId);
-                // Correctly update state so it persists in UI too
-                const updatedEntry = { ...entry, id: recoveredId };
-                entry.id = recoveredId; // Mutable update for immediate use in this closure's 'entry' reference if needed, though better to use updatedEntry variable
-                setEntry(prev => ({ ...prev, id: recoveredId }));
+                console.log("Recovered raw date ID:", recoveredId);
+
+                // [FIX] Apply namespacing to recovered ID
+                const currentTenant = tenantId || "1";
+                const finalId = currentTenant === "1" ? recoveredId : `${currentTenant}_${recoveredId}`;
+
+                console.log("Final Recovered ID:", finalId);
+                const updatedEntry = { ...entry, id: finalId };
+                // entry.id = finalId; // Avoid mutable ref if possible, use updatedEntry
+                setEntry(prev => ({ ...prev, id: finalId }));
+
+                // Use updatedEntry for the rest of the function? 
+                // Currently handleSave uses 'entry' state which might be stale if setEntry is async.
+                // RISK: 'entry' variable here is closure-captured. Mutating it is a hack but works for this scope.
+                entry.id = finalId;
             } else {
                 showToast("UniTaskController", "Error Crítico: No hay ID de semana. Refresca la página.", "error");
                 return;
@@ -692,7 +722,7 @@ export default function WeeklyEditor() {
                 console.error("⚠️ Shadow Sync failed (Non-blocking):", shadowError);
             }
 
-            fetchExistingIdsClient().then(ids => setExistingIds(new Set(ids)));
+            fetchExistingIdsClient(tenantId || "1").then(ids => setExistingIds(new Set(ids)));
             showToast("UniTaskController", "Guardado correctamente ✨", "success");
         } catch (error: any) {
             console.error("Save error:", error);

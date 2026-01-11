@@ -1,168 +1,259 @@
-"use strict";
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase";
-import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { auth } from '../lib/firebase'; // Fixed path to lib/firebase
+import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { RoleLevel, getRoleLevel } from '../types'; // Imported from types.ts (DRY)
+
+// --- DEFINICIÓN DE TIPOS (Strict Typing) ---
+
+// 1. IDENTIDAD REAL (Inmutable, viene del Token)
+export interface UserIdentity {
+    uid: string;
+    email: string | null;
+    realRole: RoleLevel;
+    realTenantId: string;
+}
+
+// 2. CONTEXTO DE VISUALIZACIÓN (Mutable, para UI)
+export interface ViewContext {
+    activeRole: RoleLevel;
+    activeTenantId: string;
+    isMasquerading: boolean; // Flag explícito de simulación
+}
 
 interface AuthContextType {
-    user: User | null;
+    identity: UserIdentity | null;
+    viewContext: ViewContext | null;
     loading: boolean;
-    userRole: string | null;
+    user: User | null; // Compatibility with legacy code
+    userRole: string; // Legacy: mapped from viewContext (active context)
+    tenantId: string | null; // Legacy: mapped from viewContext (active context)
+
+    // Métodos de control
+    updateSimulation: (updates: Partial<ViewContext>) => void;
+    resetSimulation: () => void;
+
+    // Legacy Auth Methods (Stubbed or proxied if needed)
     loginWithGoogle: () => Promise<void>;
-    loginWithEmail: (email: string, password: string) => Promise<void>;
-    registerWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
+    loginWithEmail: (e: string, p: string) => Promise<void>;
+    registerWithEmail: (e: string, p: string, name?: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+// --- COMPONENTE PROVIDER ---
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [identity, setIdentity] = useState<UserIdentity | null>(null);
+    const [viewContext, setViewContext] = useState<ViewContext | null>(null);
     const [loading, setLoading] = useState(true);
-    const [userRole, setUserRole] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        // Escuchamos cambios en el token (Login, Logout, Refresh)
+        const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
             setUser(currentUser);
-            if (currentUser) {
-                try {
-                    // Check/Create User Document in Firestore
-                    const userRef = doc(db, "user", currentUser.uid);
-                    const userSnap = await getDoc(userRef);
+            try {
+                if (currentUser) {
+                    // Forzamos refresh del token para asegurar claims frescos
+                    const tokenResult = await currentUser.getIdTokenResult(true);
+                    const claims = tokenResult.claims;
 
-                    if (userSnap.exists()) {
-                        const userData = userSnap.data();
-                        if (currentUser.email === 'argoss01@gmail.com') {
-                            console.log("👑 Super Admin identified. Forcing role update.");
-                            if (userData.role !== 'app_admin' || !userData.isActive) {
-                                await setDoc(userRef, { role: 'app_admin', isActive: true }, { merge: true });
-                                setUserRole('app_admin');
+                    // Extracción defensiva de claims
+                    let parsedRole = Number(claims.role);
+                    if (isNaN(parsedRole)) {
+                        parsedRole = getRoleLevel(claims.role as string);
+                    }
+                    const realRole = parsedRole || RoleLevel.EXTERNO;
+                    const realTenantId = (claims.tenantId as string) || "unknown";
+
+                    const newIdentity: UserIdentity = {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        realRole,
+                        realTenantId
+                    };
+
+                    setIdentity(newIdentity);
+
+                    // LOGIC: Persist Simulation across refreshes (Superadmin only)
+                    const savedSim = localStorage.getItem('superadmin_simulation_context');
+
+                    if (realRole >= RoleLevel.SUPERADMIN && savedSim) {
+                        try {
+                            const parsed = JSON.parse(savedSim);
+                            // Validate structure roughly
+                            if (parsed.activeRole && parsed.activeTenantId) {
+                                console.log("🔄 Restoring Superadmin Simulation:", parsed);
+                                setViewContext({
+                                    activeRole: parsed.activeRole,
+                                    activeTenantId: parsed.activeTenantId,
+                                    isMasquerading: true
+                                });
                             } else {
-                                setUserRole('app_admin');
+                                throw new Error("Invalid stored context structure");
                             }
-                        } else {
-                            // If user is inactive, we might want to restrict role or handle it in UI
-                            // For now, we trust the role, but UI should check isActive
-                            setUserRole(userData.role || "usuario_base");
+                        } catch (e) {
+                            console.warn("Failed to restore simulation, resetting:", e);
+                            localStorage.removeItem('superadmin_simulation_context');
+                            setViewContext({
+                                activeRole: realRole,
+                                activeTenantId: realTenantId,
+                                isMasquerading: false
+                            });
                         }
                     } else {
-                        // First login: Create User Document
-                        let isActive = false; // Default to pending
-                        let initialRole = "usuario_base";
-
-                        // Check for invite code in URL
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const inviteCode = urlParams.get("invite");
-
-                        if (inviteCode) {
-                            // Dynamically import to avoid circular dependencies if any, though here it's fine
-                            const { checkInvite, consumeInvite } = await import("@/lib/invites");
-                            const check = await checkInvite(inviteCode);
-
-                            if (check.valid) {
-                                console.log("Valid invite found! Auto-approving user.");
-                                isActive = true;
-                                await consumeInvite(inviteCode, currentUser.uid);
-                            } else {
-                                console.warn("Invalid invite code:", check.reason);
-                            }
-                        } else {
-                            // Fallback: Check if this is the VERY first user (could be admin)
-                            // Optional: For now, we assume first user setup was done manually or we want secure by default.
-                            // set isActive = false.
-                        }
-
-                        await setDoc(userRef, {
-                            email: currentUser.email,
-                            displayName: currentUser.displayName,
-                            photoURL: currentUser.photoURL,
-                            role: initialRole,
-                            isActive: isActive,
-                            createdAt: serverTimestamp(),
-                            lastLogin: serverTimestamp()
+                        // Default: Real Identity
+                        setViewContext({
+                            activeRole: realRole,
+                            activeTenantId: realTenantId,
+                            isMasquerading: false
                         });
-
-                        setUserRole(initialRole);
-                        // Force reload or state update might be needed if isActive affects role, 
-                        // but currently we set role regardless. UI will need to check isActive.
                     }
-                } catch (err: any) {
-                    console.error("Firestore access error:", err);
-                    setUserRole("usuario_base");
 
-                    if (err.code === 'unavailable' || err.message.includes('offline')) {
-                        console.warn("Firestore appears offline. Check network or Security Rules.");
-                    }
+                } else {
+                    // Logout / No user
+                    setIdentity(null);
+                    setViewContext(null);
+                    localStorage.removeItem('superadmin_simulation_context'); // Clear on logout
                 }
-            } else {
-                setUserRole(null);
+            } catch (error) {
+                console.error("CRITICAL SECURITY ERROR: Failed to parse auth token", error);
+
+                // [FIX] Don't orphan the user on transient errors. Provide a fallback context.
+                // This allows components to render (gracefully degrading) instead of blocking.
+                const fallbackIdentity = {
+                    uid: currentUser?.uid || "unknown",
+                    email: currentUser?.email || null,
+                    realRole: RoleLevel.EXTERNO, // Assume worst case
+                    realTenantId: "1" // Default to tenant 1 to avoid "Orphan" block, rules will handle security
+                };
+                setIdentity(fallbackIdentity);
+                setViewContext({
+                    activeRole: RoleLevel.EXTERNO,
+                    activeTenantId: "1",
+                    isMasquerading: false
+                });
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
+    // --- MÉTODOS DE SIMULACIÓN (CONTROLADOS) ---
+
+    const updateSimulation = (updates: Partial<ViewContext>) => {
+        if (!identity || !viewContext) return;
+
+        // GUARDIA DE SEGURIDAD: Solo Superadmin (Nivel 100) puede cambiar su contexto
+        if (identity.realRole < RoleLevel.SUPERADMIN) {
+            console.warn(`SECURITY ALERT: User ${identity.uid} attempted unauthorized masquerade.`);
+            return;
+        }
+
+        setViewContext(prev => {
+            if (!prev) return null;
+            const newState = {
+                ...prev,
+                ...updates,
+                isMasquerading: true
+            };
+
+            // Persist
+            localStorage.setItem('superadmin_simulation_context', JSON.stringify({
+                activeRole: newState.activeRole,
+                activeTenantId: newState.activeTenantId
+            }));
+
+            return newState;
+        });
+    };
+
+    const resetSimulation = () => {
+        if (!identity) return;
+
+        localStorage.removeItem('superadmin_simulation_context');
+
+        // "Panic Button": Vuelve a la realidad inmediatamente
+        setViewContext({
+            activeRole: identity.realRole,
+            activeTenantId: identity.realTenantId,
+            isMasquerading: false
+        });
+    };
+
+    // --- LEGACY COMPATIBILITY LAYER ---
+    // The previous app used `userRole` (string) and `tenantId` (string).
+    // We map these to the VIEW CONTEXT to maintain existing UI compatibility,
+    // but the underlying security is strictly enforced by rules/identity.
+
+    // Map numerical RoleLevel back to string for legacy components if needed, or update types
+    const legacyUserRole = viewContext ? getRoleString(viewContext.activeRole) : 'usuario_externo';
+    const legacyTenantId = viewContext ? viewContext.activeTenantId : null;
+
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-        } catch (error) {
-            console.error("Login failed", error);
-            // Mostrar el error real para depurar
-            let msg = "Error al iniciar sesión.";
-            if ((error as any).code === 'auth/unauthorized-domain') {
-                msg += "\n\nDOMINIO NO AUTORIZADO:\nEste dominio (localhost o tu IP) no está en la lista de dominios autorizados en Firebase Console > Authentication > Settings.";
-            } else if ((error as any).code === 'auth/api-key-not-valid') {
-                msg += "\n\nAPI KEY INVÁLIDA:\nVerifica lib/firebase.ts";
-            } else {
-                msg += `\n\nDetalles: ${(error as any).message}`;
-            }
-            alert(msg);
+        await signInWithPopup(auth, provider);
+    };
+
+    const loginWithEmail = async (e: string, p: string) => {
+        await signInWithEmailAndPassword(auth, e, p);
+    };
+
+    const registerWithEmail = async (e: string, p: string, name?: string) => {
+        const result = await createUserWithEmailAndPassword(auth, e, p);
+        if (name && result.user) {
+            await updateProfile(result.user, { displayName: name });
         }
     };
 
-    const loginWithEmail = async (email: string, password: string) => {
-        try {
-            await import("firebase/auth").then(({ signInWithEmailAndPassword }) =>
-                signInWithEmailAndPassword(auth, email, password)
-            );
-        } catch (error: any) {
-            console.error("Login failed", error);
-            throw error;
-        }
-    };
-
-    const registerWithEmail = async (email: string, password: string, displayName: string) => {
-        try {
-            const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-            // Set Display Name immediately so Firestore listener picks it up
-            await updateProfile(userCredential.user, {
-                displayName: displayName
-            });
-
-            // Note: The onAuthStateChanged listener in useEffect above handles creating the 
-            // Firestore document and processing any Invite Code found in the URL.
-
-        } catch (error: any) {
-            console.error("Registration failed", error);
-            throw error;
-        }
-    };
-
-    const logout = async () => {
-        await signOut(auth);
-    };
+    const logout = async () => auth.signOut();
 
     return (
-        <AuthContext.Provider value={{ user, loading, userRole, loginWithGoogle, loginWithEmail, registerWithEmail, logout }}>
-            {children}
+        <AuthContext.Provider value={{
+            identity,
+            viewContext,
+            loading,
+            updateSimulation,
+            resetSimulation,
+
+            // Legacy / Compat
+            user,
+            userRole: legacyUserRole,
+            tenantId: legacyTenantId,
+            loginWithGoogle,
+            loginWithEmail,
+            registerWithEmail,
+            logout
+        }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
-}
+};
 
-export const useAuth = () => useContext(AuthContext);
+// --- HOOK PERSONALIZADO ---
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+// Helper for Legacy Mapping
+function getRoleString(level: RoleLevel): string {
+    switch (level) {
+        case RoleLevel.SUPERADMIN: return 'superadmin';
+        case RoleLevel.ADMIN: return 'app_admin';
+        case RoleLevel.PM: return 'global_pm';
+        case RoleLevel.CONSULTOR: return 'consultor';
+        case RoleLevel.EQUIPO: return 'usuario_base';
+        case RoleLevel.EXTERNO: return 'usuario_externo';
+        default: return 'usuario_externo';
+    }
+}

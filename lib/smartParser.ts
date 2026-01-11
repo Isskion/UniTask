@@ -1,6 +1,6 @@
 export interface ParsedResult {
     conclusions: string;
-    nextWeekTasks: string;
+    nextSteps: string;
 }
 
 export function parseNotes(text: string): ParsedResult {
@@ -172,6 +172,6 @@ export function parseNotes(text: string): ParsedResult {
 
     return {
         conclusions: '', // Not used currently
-        nextWeekTasks: Array.from(tasks).join('\n')
+        nextSteps: Array.from(tasks).join('\n')
     };
 }

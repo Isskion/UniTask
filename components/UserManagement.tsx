@@ -1,14 +1,15 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, doc, serverTimestamp, query, orderBy, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { PermissionGroup } from "@/types";
-import { Loader2, Shield, User, Check, X, Ban, Ticket, Copy, RefreshCw, Plus, Edit2, Save, XCircle, MapPin, Briefcase, Building, Globe, Phone, Trash2, AlertTriangle } from "lucide-react";
+import { useSafeFirestore } from "@/hooks/useSafeFirestore";
+import { PermissionGroup, Tenant } from "@/types";
+import { Loader2, Plus, User, Search, RefreshCw, Save, Trash2, Mail, Shield, ShieldCheck, Check, Info, Briefcase, Building, AlertTriangle, UserRound, Globe, Database, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy } from "lucide-react";
 import { createInvite, getAllInvites, InviteCode } from "@/lib/invites";
 
-import { WeeklyEntry, ProjectEntry, UserProfile as UserData } from "@/types"; // Alias for minimal refactor impact
+import { WeeklyEntry, ProjectEntry, UserProfile as UserData, RoleLevel, getRoleLevel } from "@/types"; // Alias for minimal refactor impact
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -16,8 +17,11 @@ import { saveWeeklyEntry, getWeeklyEntry, getAllEntries } from "@/lib/storage";
 import { auth } from "@/lib/firebase";
 import { parseNotes } from "@/lib/smartParser";
 import { useTheme } from "@/hooks/useTheme";
+import { getActiveProjects } from "@/lib/projects";
+import { useToast } from "@/context/ToastContext";
 
 const ROLES = [
+    { value: 'superadmin', label: 'Super Admin', color: 'text-indigo-500' },
     { value: 'app_admin', label: 'Admin App', color: 'text-red-500' },
     { value: 'global_pm', label: 'Global PM', color: 'text-orange-500' },
     { value: 'consultor', label: 'Consultor', color: 'text-blue-500' },
@@ -26,8 +30,10 @@ const ROLES = [
 ];
 
 export default function UserManagement() {
-    const { userRole, user } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
+    const { updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
+    const { showToast } = useToast();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
     const [users, setUsers] = useState<UserData[]>([]);
@@ -41,35 +47,85 @@ export default function UserManagement() {
     const [editingUser, setEditingUser] = useState<UserData | null>(null);
     const [formData, setFormData] = useState<Partial<UserData>>({});
 
+    // Security Prompt State
+    const [securityPrompt, setSecurityPrompt] = useState<{
+        isOpen: boolean;
+        uid: string;
+        pendingRole: string;
+        verificationInput: string;
+        isModal: boolean; // true if triggered from Edit Modal
+    }>({ isOpen: false, uid: '', pendingRole: '', verificationInput: '', isModal: false });
+
     // Projects for assignment
     const [availableProjects, setAvailableProjects] = useState<{ id: string, name: string, code: string }[]>([]);
 
     // Permission Groups for assignment
     const [availableGroups, setAvailableGroups] = useState<PermissionGroup[]>([]);
 
+    // Tenants for assignment (Superadmin only)
+    const [availableTenants, setAvailableTenants] = useState<Tenant[]>([]);
+
     useEffect(() => {
+        // Only load data if user has permission to manage users
+        if (getRoleLevel(userRole) < 70) {
+            // User doesn't have sufficient permissions, early exit
+            setLoading(false);
+            return;
+        }
+
         loadData();
         loadProjectsForSelect();
         loadPermissionGroups();
-    }, [activeTab]);
+        if (getRoleLevel(userRole) >= 100) {
+            loadTenants();
+        }
+    }, [activeTab, userRole]);
+
+    const loadTenants = async () => {
+        try {
+            const q = query(collection(db, "tenants"), orderBy("name"));
+            const snapshot = await getDocs(q);
+            const tenants = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as Tenant[];
+            setAvailableTenants(tenants);
+        } catch (error) {
+            console.error('Error loading tenants:', error);
+        }
+    };
 
     const loadProjectsForSelect = async () => {
         try {
-            const q = query(collection(db, "projects"), orderBy("code"));
-            const snap = await getDocs(q);
-            setAvailableProjects(snap.docs.map(d => ({
-                id: d.id,
-                name: d.data().name,
-                code: d.data().code
+            // CRITICAL: Only SuperAdmin (level 100+) can query ALL projects
+            // Regular admins (70-99) can only see their own tenant's projects
+            const userLevel = getRoleLevel(userRole);
+            if (userLevel < 70) {
+                // User doesn't have permission to see projects at all
+                setAvailableProjects([]);
+                return;
+            }
+
+            const targetTenant = (userLevel >= 100) ? "ALL" : (tenantId || "1");
+            const projects = await getActiveProjects(targetTenant);
+            setAvailableProjects(projects.map(p => ({
+                id: p.id,
+                name: p.name,
+                code: p.code
             })));
         } catch (e) {
             console.error("Error loading projects list", e);
+            // Fail gracefully
+            setAvailableProjects([]);
         }
     };
 
     const loadPermissionGroups = async () => {
         try {
-            const snapshot = await getDocs(collection(db, 'permission_groups'));
+            // [FIX] Filter groups by Tenant to prevent cross-tenant visual pollution
+            const targetTenant = tenantId || "1";
+            const q = query(collection(db, 'permission_groups'), where('tenantId', '==', targetTenant));
+            const snapshot = await getDocs(q);
             const groups = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -84,17 +140,32 @@ export default function UserManagement() {
         setLoading(true);
         try {
             if (activeTab === 'users') {
-                const q = query(collection(db, "user"));
+                let q;
+
+                // CRITICAL: Tenant Admins (and unverified Superadmins) must use constraints
+                // to satisfy Firestore security rules that require row-level checks.
+                if (getRoleLevel(userRole) >= 100) {
+                    // SuperAdmin: Global Access
+                    q = query(collection(db, "users"));
+                } else {
+                    // Tenant Admin / Manager: Scoped Access
+                    const targetTenant = tenantId || "1";
+                    q = query(collection(db, "users"), where("tenantId", "==", targetTenant));
+                }
                 const snapshot = await getDocs(q);
                 const loadedUsers: UserData[] = [];
                 snapshot.forEach(doc => {
                     loadedUsers.push({ uid: doc.id, ...doc.data() } as UserData);
                 });
+
                 // Sort: Pending first, then by name
                 loadedUsers.sort((a, b) => {
                     if (a.isActive === b.isActive) return a.displayName?.localeCompare(b.displayName || "") || 0;
                     return a.isActive ? 1 : -1;
                 });
+                // Sort by Role Level (Highest First)
+                loadedUsers.sort((a, b) => getRoleLevel(b.role) - getRoleLevel(a.role));
+
                 setUsers(loadedUsers);
             } else {
                 const loadedInvites = await getAllInvites();
@@ -105,29 +176,55 @@ export default function UserManagement() {
                 });
                 setInvites(loadedInvites);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error loading data:", error);
+            // DEBUG: Show error to user
+            alert(`Error cargando usuarios: ${error.message}`);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRoleChange = async (uid: string, newRole: string) => {
-        if (!confirm(`¿Cambiar rol a ${newRole}?`)) return;
+    const handleRoleChange = async (uid: string, newRole: string, isConfirmed = false) => {
+        if (!isConfirmed) {
+            // Security Intercept for SuperAdmin
+            if (newRole === 'superadmin') {
+                setSecurityPrompt({
+                    isOpen: true,
+                    uid,
+                    pendingRole: newRole,
+                    verificationInput: '',
+                    isModal: false
+                });
+                return;
+            }
+
+            if (!confirm(`¿Cambiar rol a ${newRole}?`)) return;
+        }
+
         setUpdating(uid);
         try {
-            await updateDoc(doc(db, "user", uid), { role: newRole });
-            setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole as any } : u));
+            const updates: any = { role: newRole };
+            if (newRole === 'superadmin') {
+                updates.tenantId = '1';
+                updates.permissionGroupId = null;
+            }
+
+            await updateDoc(doc(db, "users", uid), updates);
+            setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole as any, ...(newRole === 'superadmin' ? { tenantId: '1', permissionGroupId: undefined } : {}) } : u));
         } catch (error) {
             alert("Error al actualizar rol. Verifica permisos.");
         }
         setUpdating(null);
     };
 
+
+
+
     const toggleActive = async (uid: string, currentStatus: boolean) => {
         setUpdating(uid);
         try {
-            await updateDoc(doc(db, "user", uid), { isActive: !currentStatus });
+            await updateDoc(doc(db, "users", uid), { isActive: !currentStatus });
             setUsers(prev => prev.map(u => u.uid === uid ? { ...u, isActive: !currentStatus } : u));
         } catch (error) {
             alert("Error al cambiar estado.");
@@ -139,7 +236,7 @@ export default function UserManagement() {
         if (!user) return;
         setGeneratingInvite(true);
         try {
-            await createInvite(user.uid);
+            await createInvite(user.uid, tenantId || "1");
             await loadData();
         } catch (error) {
             console.error("Error creating invite:", error);
@@ -159,6 +256,7 @@ export default function UserManagement() {
             phone: user.phone || "",
             language: user.language || "es",
             role: user.role || 'usuario_base', // Fallback to avoid undefined
+            tenantId: user.tenantId, // CRITICAL: Preserve tenant ID
             assignedProjectIds: user.assignedProjectIds || [],
             permissionGroupId: user.permissionGroupId // Add permission group ID
         });
@@ -174,7 +272,7 @@ export default function UserManagement() {
                 return acc;
             }, {} as any);
 
-            await updateDoc(doc(db, "user", editingUser.uid), payload);
+            await updateDoc(doc(db, "users", editingUser.uid), payload);
             setUsers(prev => prev.map(u => u.uid === editingUser.uid ? { ...u, ...payload } : u));
             setEditingUser(null); // Close modal
         } catch (error) {
@@ -203,7 +301,7 @@ export default function UserManagement() {
 
         setUpdating(editingUser.uid);
         try {
-            await deleteDoc(doc(db, "user", editingUser.uid));
+            await deleteDoc(doc(db, "users", editingUser.uid));
             setUsers(prev => prev.filter(u => u.uid !== editingUser.uid));
             setEditingUser(null);
             alert("Usuario eliminado correctamente.");
@@ -220,10 +318,10 @@ export default function UserManagement() {
         const baseUrl = "https://weekly-tracker-seven.vercel.app";
         const url = `${baseUrl}?invite=${code}`;
         navigator.clipboard.writeText(url);
-        alert("Enlace copiado al portapapeles: " + url);
+        showToast("Copiado", "Enlace copiado al portapapeles", "success");
     };
 
-    if (userRole !== 'app_admin') {
+    if (getRoleLevel(userRole) < 80) {
         const { loginWithGoogle, logout } = useAuth();
         return (
             <div className="flex flex-col items-center justify-center h-full text-zinc-500 gap-6 p-8">
@@ -392,6 +490,92 @@ export default function UserManagement() {
                                 </div>
                             </div>
 
+                            {/* Role Selection (With Security Check) */}
+                            <div className="space-y-1 pt-4 border-t border-white/5">
+                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                    <Shield className="w-3 h-3" /> Rol del Sistema
+                                </label>
+                                <select
+                                    className={cn(
+                                        "w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none",
+                                        formData.role === 'superadmin' && "font-bold text-indigo-400"
+                                    )}
+                                    value={formData.role || "usuario_base"}
+                                    onChange={(e) => {
+                                        const newRole = e.target.value;
+
+                                        // Security Check for SuperAdmin Promotion
+                                        if (newRole === 'superadmin' && formData.role !== 'superadmin') {
+                                            setSecurityPrompt({
+                                                isOpen: true,
+                                                uid: editingUser.uid,
+                                                pendingRole: 'superadmin',
+                                                verificationInput: '',
+                                                isModal: true
+                                            });
+                                        } else {
+                                            // Automatic updates for normal roles
+                                            const updates: any = { role: newRole };
+                                            if (newRole === 'superadmin') {
+                                                // Superadmin keeps their original tenantId, just loses granular permissions
+                                                updates.permissionGroupId = null;
+                                            }
+                                            setFormData({ ...formData, ...updates, permissionGroupId: newRole === 'superadmin' ? undefined : formData.permissionGroupId });
+                                        }
+                                    }}
+                                >
+                                    {ROLES.filter(r => {
+                                        // Dynamic Visibility Logic
+                                        const myLevel = getRoleLevel(userRole);
+                                        const targetLevel = getRoleLevel(r.value);
+
+                                        // Only SuperAdmins (Level 100) or higher can see 'superadmin' option
+                                        // Users can assign roles strictly lower than themselves
+                                        if (myLevel >= 100) return true;
+                                        return targetLevel < myLevel;
+                                    }).map(role => (
+                                        <option key={role.value} value={role.value}>
+                                            {role.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                {formData.role === 'superadmin' && (
+                                    <p className="text-[10px] text-indigo-400 mt-1 flex items-center gap-1">
+                                        <Shield className="w-3 h-3" />
+                                        Este usuario tiene control total del sistema (God Mode).
+                                    </p>
+                                )}
+                            </div>
+
+
+                            {/* Tenant Selection (Superadmin Only) */}
+                            {getRoleLevel(userRole) >= 100 && (
+                                <div className="space-y-2 pt-4 border-t border-white/5">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Building className="w-3 h-3" /> Tenant (Organización)
+                                    </label>
+                                    <select
+                                        className={cn(
+                                            "w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none",
+                                            formData.role === 'superadmin' && "opacity-50 cursor-not-allowed bg-red-900/10"
+                                        )}
+                                        value={formData.tenantId || ""}
+                                        onChange={e => setFormData({ ...formData, tenantId: e.target.value })}
+                                        disabled={formData.role === 'superadmin'}
+                                    >
+                                        <option value="">Seleccionar Tenant...</option>
+                                        {availableTenants.map(tenant => (
+                                            <option key={tenant.id} value={tenant.id}>
+                                                🏢 {tenant.name} {tenant.code ? `(${tenant.code})` : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-amber-500/80 mt-1.5">
+                                        ⚠️ Cambiar el tenant moverá al usuario a otra organización.
+                                    </p>
+                                </div>
+                            )}
+
                             {/* Permission Group Selection */}
                             <div className="space-y-2 pt-4 border-t border-white/5">
                                 <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
@@ -521,6 +705,7 @@ export default function UserManagement() {
                         </div>
                     </div>
                 </div>
+
                 <div className="flex gap-2">
                     <button onClick={loadData} className={cn("p-2 rounded-full transition-colors", isLight ? "hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900" : "hover:bg-white/5 text-zinc-400 hover:text-white")} title="Recargar">
                         <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
@@ -545,8 +730,9 @@ export default function UserManagement() {
                     <div className="flex flex-col gap-3 p-2">
                         {/* Header Row */}
                         <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold text-white/70 uppercase tracking-wider">
-                            <div className="col-span-5">Usuario / Perfil</div>
-                            <div className="col-span-3">Email</div>
+                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-4" : "col-span-5"}>Usuario / Perfil</div>
+                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-2" : "col-span-3"}>Email</div>
+                            {getRoleLevel(userRole) >= 100 && <div className="col-span-2">Tenant</div>}
                             <div className="col-span-2">Rol / Permisos</div>
                             <div className="col-span-2 text-right">Estado</div>
                         </div>
@@ -567,8 +753,10 @@ export default function UserManagement() {
                                     )}
                                 >
                                     {/* User Info & Avatar */}
-                                    <div className="col-span-5 relative">
+                                    {/* User Info & Avatar */}
+                                    <div className={getRoleLevel(userRole) >= 100 ? "col-span-4 relative" : "col-span-5 relative"}>
                                         <div onClick={() => startEditing(u)} className="flex items-center gap-4 cursor-pointer">
+                                            {/* ...Avatar content same as before... */}
                                             <div className={cn(
                                                 "w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border transition-colors shrink-0 shadow-inner",
                                                 isLight
@@ -613,19 +801,59 @@ export default function UserManagement() {
                                                     )}
                                                 </div>
                                             </div>
+                                            <select
+                                                value={formData.role || 'usuario_base'}
+                                                className={cn("w-full appearance-none bg-white/5 border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all",
+                                                    isLight ? "border-zinc-300 focus:ring-red-500/50 text-zinc-700" : "border-white/10 focus:ring-[#D32F2F]/50 text-white"
+                                                )}
+                                                onChange={(e) => {
+                                                    const newRole = e.target.value;
+                                                    const updates: any = { role: newRole };
+                                                    if (newRole === 'superadmin') {
+                                                        updates.tenantId = '1'; // Force UniTaskController for SuperAdmin
+                                                    }
+                                                    setFormData({ ...formData, ...updates });
+                                                }}
+                                            >
+                                                {ROLES.filter(r => {
+                                                    // Hierarchy Logic:
+                                                    // 1. Superadmin (100) sees all.
+                                                    // 2. Others can only assign roles strictly lower than themselves.
+                                                    const myLevel = getRoleLevel(userRole);
+                                                    const targetLevel = getRoleLevel(r.value);
+                                                    // Allow selecting their current role (no change) or lower.
+                                                    // But generally, can't promote to equal/higher.
+                                                    // Exception: Superadmin is God.
+                                                    if (myLevel >= 100) return true;
+                                                    return targetLevel < myLevel;
+                                                }).map(role => (
+                                                    <option key={role.value} value={role.value} className="text-black">
+                                                        {role.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                             {/* Edit Hint */}
                                             <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 drop-shadow-md">
-                                                <div className={cn("p-1.5 rounded-md backdrop-blur-sm",
-                                                    isLight ? "bg-zinc-200 text-zinc-600" : "bg-white/10 text-white"
-                                                )}>
-                                                    <Edit2 className="w-3 h-3" />
-                                                </div>
+                                                {/* Edit Button - Hierarchy Check */}
+                                                {(getRoleLevel(userRole) > getRoleLevel(u.role) || getRoleLevel(userRole) >= 100) ? (
+                                                    <button
+                                                        onClick={() => startEditing(u)}
+                                                        className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                                                        title="Editar Usuario"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    <div className="p-1.5 opacity-20 cursor-not-allowed" title="Rango insuficiente">
+                                                        <Shield className="w-4 h-4" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Email */}
-                                    <div className="col-span-3">
+                                    <div className={getRoleLevel(userRole) >= 100 ? "col-span-2" : "col-span-3"}>
                                         <div className={cn("text-xs font-mono truncate transition-colors select-all",
                                             isLight ? "text-zinc-600 hover:text-zinc-900" : (isRed ? "text-white/90 hover:text-white" : "text-zinc-500 hover:text-zinc-300")
                                         )} title={u.email}>
@@ -633,9 +861,34 @@ export default function UserManagement() {
                                         </div>
                                     </div>
 
+                                    {/* Tenant (Superadmin Only) */}
+                                    {getRoleLevel(userRole) >= 100 && (
+                                        <div className="col-span-2">
+                                            <div className="flex items-center gap-1.5 text-xs">
+                                                <Building className="w-3 h-3 text-zinc-500" />
+                                                <span className="truncate" title={u.tenantId}>
+                                                    {availableTenants.find(t => t.id === u.tenantId)?.name || u.tenantId || "N/A"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Role Badge */}
                                     <div className="col-span-2">
                                         {(() => {
+                                            // PRIORITY 1: Super Admin (God Mode) - Always show this first
+                                            if (u.role === 'superadmin') {
+                                                return (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 whitespace-nowrap shadow-sm flex items-center gap-1">
+                                                            <Shield className="w-3 h-3" />
+                                                            Super Admin
+                                                        </span>
+                                                    </div>
+                                                );
+                                            }
+
+                                            // PRIORITY 2: Permission Group
                                             const assignedGroup = availableGroups.find(g => g.id === u.permissionGroupId);
                                             if (assignedGroup) {
                                                 return (
@@ -651,19 +904,20 @@ export default function UserManagement() {
                                                         <span className="truncate max-w-[100px]">{assignedGroup.name}</span>
                                                     </div>
                                                 );
-                                            } else {
-                                                const roleInfo = ROLES.find(r => r.value === u.role);
-                                                return (
-                                                    <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                                                        <span className={cn(
-                                                            "px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800/50 border border-zinc-700/50 whitespace-nowrap shadow-sm",
-                                                            roleInfo?.color
-                                                        )}>
-                                                            {roleInfo?.label || u.role}
-                                                        </span>
-                                                    </div>
-                                                );
                                             }
+
+                                            // PRIORITY 3: Legacy Role
+                                            const roleInfo = ROLES.find(r => r.value === u.role);
+                                            return (
+                                                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                                                    <span className={cn(
+                                                        "px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800/50 border border-zinc-700/50 whitespace-nowrap shadow-sm",
+                                                        roleInfo?.color
+                                                    )}>
+                                                        {roleInfo?.label || u.role}
+                                                    </span>
+                                                </div>
+                                            );
                                         })()}
                                     </div>
 
@@ -763,6 +1017,79 @@ export default function UserManagement() {
                     </div>
                 )}
             </div>
-        </div >
+            {/* Security Confirmation Prompt */}
+            {securityPrompt.isOpen && (
+                <div className="fixed inset-0 bg-black/90 z-[150] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-[#1a0505] border border-red-500/30 rounded-xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden">
+                        {/* Background Pulse */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent animate-pulse" />
+
+                        <div className="flex flex-col items-center text-center gap-4">
+                            <div className="bg-red-500/10 p-4 rounded-full ring-1 ring-red-500/20 shadow-[0_0_30px_-5px_rgba(220,38,38,0.3)]">
+                                <Shield className="w-12 h-12 text-red-500" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <h3 className="text-xl font-bold text-white uppercase tracking-wider">Acción Crítica</h3>
+                                <p className="text-red-200/80 text-sm">
+                                    Estás a punto de asignar el rol <strong className="text-red-400">SUPER ADMIN</strong>.
+                                </p>
+                                <p className="text-zinc-400 text-xs bg-black/40 p-3 rounded border border-white/5 mx-auto">
+                                    Esto otorga <strong>control total</strong> sobre el sistema, incluyendo acceso a todos los tenants, gestión de facturación y capacidad destructiva sobre la base de datos.
+                                </p>
+                            </div>
+
+                            <div className="w-full space-y-3 pt-2">
+                                <label className="text-[10px] uppercase font-bold text-zinc-500">
+                                    Escribe <span className="text-white select-all">CONFIRMAR</span> para proceder
+                                </label>
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={securityPrompt.verificationInput}
+                                    onChange={e => setSecurityPrompt(prev => ({ ...prev, verificationInput: e.target.value }))}
+                                    className="w-full bg-black/50 border border-red-900/40 rounded-lg px-4 py-3 text-center text-red-100 placeholder-red-900/30 focus:border-red-500 outline-none font-mono tracking-widest uppercase transition-all"
+                                    placeholder="CONFIRMAR"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 w-full pt-2">
+                                <button
+                                    onClick={() => setSecurityPrompt({ isOpen: false, uid: '', pendingRole: '', verificationInput: '', isModal: false })}
+                                    className="flex-1 px-4 py-2 rounded-lg font-bold text-zinc-400 hover:text-white hover:bg-white/5 transition-colors text-xs uppercase"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    disabled={securityPrompt.verificationInput !== 'CONFIRMAR'}
+                                    onClick={async () => {
+                                        if (securityPrompt.verificationInput !== 'CONFIRMAR') return;
+
+                                        const { uid, pendingRole, isModal } = securityPrompt;
+
+                                        if (isModal) {
+                                            // Update Form Data (preserve tenantId unless becoming superadmin)
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                role: pendingRole as any,
+                                                permissionGroupId: undefined
+                                            }));
+                                        } else {
+                                            // Execute Immediate Update (List View)
+                                            await handleRoleChange(uid, pendingRole, true);
+                                        }
+                                        setSecurityPrompt({ isOpen: false, uid: '', pendingRole: '', verificationInput: '', isModal: false });
+                                    }}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-red-900/20 text-xs uppercase tracking-wide flex items-center justify-center gap-2 transition-all"
+                                >
+                                    <ShieldCheck className="w-4 h-4" />
+                                    Asignar Rol
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

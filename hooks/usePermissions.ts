@@ -2,152 +2,143 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { PermissionGroup, UserProfile } from '@/types';
+import { PermissionGroup } from '@/types';
 
-// Default permissions for legacy roles (fallback)
-const LEGACY_ROLE_PERMISSIONS: Record<string, Partial<PermissionGroup>> = {
-    app_admin: {
+// Default Fallback Permissions based on Legacy Roles
+const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
+    'app_admin': {
+        name: 'Admin Legacy',
         projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: true },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
         viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true },
         exportAccess: { tasks: true, projects: true, reports: true },
         specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true }
     },
-    global_pm: {
-        projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: true },
+    'global_pm': {
+        name: 'PM Legacy',
+        projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: false },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
         exportAccess: { tasks: true, projects: true, reports: true },
-        specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
     },
-    usuario_base: {
+    'usuario_base': {
+        name: 'Usuario Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
-    }
+    },
+    // Add other legacy roles if needed
+    'consultor': {
+        name: 'Consultor Legacy',
+        projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
+        taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
+        exportAccess: { tasks: true, projects: false, reports: false },
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
+    },
+};
+
+const DEFAULT_PERMISSIONS: PermissionGroup = {
+    id: 'default',
+    name: 'Default',
+    tenantId: '1',
+    color: '#000000',
+    description: 'Default restricted access',
+    projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
+    taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
+    viewAccess: { dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false },
+    exportAccess: { tasks: false, projects: false, reports: false },
+    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    createdBy: 'system'
 };
 
 export function usePermissions() {
-    const { user, userRole } = useAuth();
-    const [permissions, setPermissions] = useState<PermissionGroup | null>(null);
+    const { user, userRole, loading: authLoading } = useAuth();
+    const [permissions, setPermissions] = useState<PermissionGroup>(DEFAULT_PERMISSIONS);
     const [loading, setLoading] = useState(true);
-    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
-        if (!user?.uid) {
+        if (authLoading) return;
+        if (!user) {
             setLoading(false);
             return;
         }
 
         const loadPermissions = async () => {
+            let permissionGroupId = null;
+
+            // 0. Fetch User Profile to get Group ID
             try {
-                // 1. Load user profile
-                const userDoc = await getDoc(doc(db, 'user', user.uid));
-                if (!userDoc.exists()) {
-                    console.warn('[usePermissions] User profile not found');
-                    setLoading(false);
-                    return;
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    permissionGroupId = userSnap.data().permissionGroupId;
                 }
+            } catch (err) {
+                console.error("Error fetching user profile for permissions", err);
+            }
 
-                const profile = userDoc.data() as UserProfile;
-                setUserProfile(profile);
+            // 1. If user has a specific Permission Group assigned, fetch it
+            if (permissionGroupId) {
+                try {
+                    const groupRef = doc(db, 'permission_groups', permissionGroupId);
+                    const groupSnap = await getDoc(groupRef);
 
-                // 2. Check if user has a permission group assigned
-                if (profile.permissionGroupId) {
-                    const groupDoc = await getDoc(doc(db, 'permission_groups', profile.permissionGroupId));
-                    if (groupDoc.exists()) {
-                        let groupPerms = groupDoc.data() as PermissionGroup;
-
-                        // 3. Apply custom overrides if they exist
-                        if (profile.customPermissions) {
-                            groupPerms = {
-                                ...groupPerms,
-                                ...profile.customPermissions
-                            };
-                        }
-
-                        setPermissions(groupPerms);
+                    if (groupSnap.exists()) {
+                        setPermissions({ id: groupSnap.id, ...groupSnap.data() } as PermissionGroup);
                         setLoading(false);
                         return;
                     }
+                    console.warn(`Permission Group ${permissionGroupId} not found. Falling back to role.`);
+                } catch (error) {
+                    console.error("Error loading permission group:", error);
                 }
-
-                // 4. Fallback to legacy role system
-                console.log('[usePermissions] Using legacy role permissions for:', userRole);
-                const legacyPerms = LEGACY_ROLE_PERMISSIONS[userRole || 'usuario_base'];
-                if (legacyPerms) {
-                    setPermissions(legacyPerms as PermissionGroup);
-                }
-            } catch (error) {
-                console.error('[usePermissions] Error loading permissions:', error);
-            } finally {
-                setLoading(false);
             }
+
+            // 2. Fallback to Legacy Role Mapping
+            if (userRole && LEGACY_ROLE_MAP[userRole]) {
+                setPermissions({ ...DEFAULT_PERMISSIONS, ...LEGACY_ROLE_MAP[userRole] } as PermissionGroup);
+            } else {
+                // 3. Absolute fallback
+                setPermissions(DEFAULT_PERMISSIONS);
+            }
+            setLoading(false);
         };
 
         loadPermissions();
-    }, [user, userRole]);
+    }, [user, userRole, authLoading]);
 
-    // Helper: Check if user can perform an action on a resource
-    const can = (action: string, resource: string): boolean => {
-        if (!permissions) return false;
+    const can = (action: string, context: string): boolean => {
+        if (loading) return false;
+        // Super Admin Bypass
+        if (userRole === 'app_admin' || userRole === 'superadmin') return true;
 
-        const resourceKey = `${resource}Access` as keyof PermissionGroup;
-        const resourcePerms = permissions[resourceKey];
-
-        if (!resourcePerms || typeof resourcePerms !== 'object') return false;
-
-        return (resourcePerms as any)[action] === true;
-    };
-
-    // Helper: Check if user can view a specific view
-    const canView = (view: string): boolean => {
-        if (!permissions?.viewAccess) return false;
-        return (permissions.viewAccess as any)[view] === true;
-    };
-
-    // Helper: Check if user can access a specific project
-    const canAccess = (projectId: string): boolean => {
-        if (!permissions) return false;
-
-        // If user can view all projects, grant access
-        if (permissions.projectAccess?.viewAll) return true;
-
-        // Otherwise check if project is in assigned list
-        if (permissions.projectAccess?.assignedOnly && userProfile?.assignedProjectIds) {
-            return userProfile.assignedProjectIds.includes(projectId);
+        if (context === 'tasks') {
+            if (action === 'delete') return permissions.taskAccess?.delete || false;
+            if (action === 'create') return permissions.taskAccess?.create || false;
+            if (action === 'edit') return permissions.taskAccess?.edit || false;
+            if (action === 'view') return permissions.taskAccess?.viewAll || permissions.taskAccess?.assignedProjectsOnly || false;
+        }
+        if (context === 'projects') {
+            // Add project logic
         }
 
         return false;
     };
 
-    // Helper: Get list of allowed project IDs
-    const getAllowedProjectIds = (): string[] => {
-        if (!permissions) return [];
-
-        // If user can view all, return empty array (meaning "all")
-        if (permissions.projectAccess?.viewAll) return [];
-
-        // Otherwise return assigned projects
-        return userProfile?.assignedProjectIds || [];
+    const isAdmin = () => {
+        return userRole === 'app_admin' || permissions.specialPermissions?.managePermissions || false;
     };
 
-    // Helper: Check if user is admin (for backwards compatibility)
-    const isAdmin = (): boolean => {
-        return permissions?.projectAccess?.viewAll === true &&
-            permissions?.specialPermissions?.managePermissions === true;
+    const getAllowedProjectIds = () => {
+        if (permissions.projectAccess?.viewAll) return 'ALL';
+        return 'ASSIGNED_ONLY';
     };
 
-    return {
-        permissions,
-        userProfile,
-        loading,
-        can,
-        canView,
-        canAccess,
-        getAllowedProjectIds,
-        isAdmin
-    };
+    return { permissions, loading, can, isAdmin, getAllowedProjectIds };
 }

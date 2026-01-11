@@ -20,7 +20,7 @@ interface DashboardProps {
 type TimeScope = 'day' | 'week' | 'month' | 'year';
 
 export default function Dashboard({ entry, globalProjects = [], userProfile, userRole }: DashboardProps) {
-    const { user } = useAuth();
+    const { user, tenantId } = useAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         if (!user) return;
         setLoading(true);
         try {
-            const unsubscribe = subscribeToAllTasks((data) => {
+            const unsubscribe = subscribeToAllTasks(tenantId || "1", (data) => {
                 setTasks(data);
                 setLoading(false);
                 setError(null);
@@ -43,7 +43,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             setError("Error loading tasks");
             setLoading(false);
         }
-    }, [user]);
+    }, [user, tenantId]);
 
     // Safe Date Parsing
     const getTaskDate = (task: Task): Date | null => {

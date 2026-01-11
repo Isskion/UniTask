@@ -22,11 +22,12 @@ const JOURNAL_COLLECTION = "journal_entries";
 /**
  * Creates a new update (event) for a specific project.
  */
-export async function createUpdate(projectId: string, data: Omit<ProjectUpdate, 'id' | 'createdAt'>) {
+export async function createUpdate(projectId: string, tenantId: string, data: Omit<ProjectUpdate, 'id' | 'createdAt' | 'tenantId'>) {
     try {
         const subCollectionRef = collection(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION);
         const docRef = await addDoc(subCollectionRef, {
             ...data,
+            tenantId, // CRITICAL: Security Rules require this field
             createdAt: serverTimestamp(),
             // Ensure date is a Timestamp if passed as Date
             date: data.date instanceof Date ? Timestamp.fromDate(data.date) : data.date
@@ -42,75 +43,100 @@ export async function createUpdate(projectId: string, data: Omit<ProjectUpdate, 
  * Fetches the UNIFIED activity feed for a project.
  * Merges: Manual Updates + Tasks + Journal Entries
  */
-export async function getProjectUpdates(projectId: string, limitCount = 50): Promise<ProjectUpdate[]> {
+// [UPDATED] Scoped Project Updates
+export async function getProjectUpdates(projectId: string, tenantId: string, limitCount = 50): Promise<ProjectUpdate[]> {
     try {
         const results: ProjectUpdate[] = [];
 
-        // 1. Fetch Manual Updates
-        const updatesRef = collection(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION);
-        const qUpdates = query(updatesRef, orderBy("date", "desc"), limit(limitCount));
-        const snapUpdates = await getDocs(qUpdates);
-        snapUpdates.forEach(d => results.push({ id: d.id, ...d.data() } as ProjectUpdate));
+        // 1. Fetch Manual Updates (Subcollection)
+        // REQUIRES: Recursive rules or specific subcollection rule
+        // REQUIRES: Documents have tenantId (if rule checks it)
+        try {
+            const updatesRef = collection(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION);
+            // Note: Subcollections might typically be owned by the parent project implicitly, 
+            // but for strict rules, we might need to filter. 
+            // Currently assuming parent access implies subcollection access if rules allow.
+            const qUpdates = query(updatesRef, orderBy("date", "desc"), limit(limitCount));
+            const snapUpdates = await getDocs(qUpdates);
+            snapUpdates.forEach(d => results.push({ id: d.id, ...d.data() } as ProjectUpdate));
+        } catch (e) {
+            console.warn("Manual updates fetch failed (possibly permissions or empty):", e);
+        }
 
         // 2. Fetch Tasks Linked to Project
-        const tasksRef = collection(db, TASKS_COLLECTION);
-        const qTasks = query(tasksRef, where("projectId", "==", projectId), orderBy("createdAt", "desc"), limit(limitCount));
-        const snapTasks = await getDocs(qTasks);
-
-        snapTasks.forEach(d => {
-            const t = d.data() as Task;
-            // Map Task creation to Update Event
-            results.push({
-                id: `task-create-${d.id}`,
-                projectId,
-                date: t.createdAt, // Created At Timestamp
-                authorId: t.createdBy,
-                authorName: "Sistema", // Or fetch user
-                type: 'daily', // Abuse 'daily' type for tasks for now, or add 'task' type
-                content: {
-                    notes: `Nueva Tarea Creada: ${t.title}`,
-                    nextSteps: t.status === 'completed' ? [] : [t.title],
-                    flags: t.isBlocking ? ['Bloqueante'] : []
-                }
-            });
-
-            // If completed, maybe add another event? (Simpler to just track creation for now, or last update)
-        });
-
-        // 3. Fetch Journal Entries (Project Updates inside Daily Entries)
-        // This is tricky efficiently without a subcollection, but we will query recent entries and filter in memory for now
-        // Optimization: In real app, we should duplicate ProjectEntry into a subcollection of Project (fan-out)
-        // For now: Fetch last 30 daily entries and look for this project
-        const journalRef = collection(db, JOURNAL_COLLECTION);
-        const qJournal = query(journalRef, orderBy("date", "desc"), limit(30));
-        const snapJournal = await getDocs(qJournal);
-
-        snapJournal.forEach(d => {
-            const entry = d.data() as JournalEntry;
-            const projEntry = entry.projects?.find(p => p.projectId === projectId);
-
-            if (projEntry) {
-                // Determine date from entry ID (YYYY-MM-DD) or date field
-                const entryDate = new Date(entry.date);
-
+        // CRITICAL: Must filter by tenantId to satisfy row-level security
+        try {
+            const tasksRef = collection(db, TASKS_COLLECTION);
+            const qTasks = query(
+                tasksRef,
+                where("projectId", "==", projectId),
+                where("tenantId", "==", tenantId), // Added Security Constraint
+                orderBy("createdAt", "desc"),
+                limit(limitCount)
+            );
+            const snapTasks = await getDocs(qTasks);
+            snapTasks.forEach(d => {
+                const t = d.data() as Task;
                 results.push({
-                    id: `journal-${entry.id}-${projectId}`,
+                    id: `task-create-${d.id}`,
                     projectId,
-                    date: Timestamp.fromDate(entryDate),
-                    authorId: 'system',
-                    authorName: 'Resumen Diario',
-                    type: 'weekly', // Use 'weekly' visual style for Journal Entries (or mapping correctly)
+                    date: t.createdAt,
+                    authorId: t.createdBy,
+                    authorName: "Sistema",
+                    type: 'daily',
                     content: {
-                        notes: projEntry.pmNotes || projEntry.conclusions || "Sin notas adicionales.",
-                        nextSteps: projEntry.nextSteps ? projEntry.nextSteps.split('\n').filter(s => s.trim().length > 0) : [],
-                        blockers: ""
+                        notes: `Nueva Tarea Creada: ${t.title}`,
+                        nextSteps: t.status === 'completed' ? [] : [t.title],
+                        flags: t.isBlocking ? ['Bloqueante'] : []
                     }
                 });
-            }
-        });
+            });
+        } catch (e) {
+            console.warn("Tasks fetch failed:", e);
+        }
+
+        // 3. Fetch Journal Entries
+        // CRITICAL: Must filter by tenantId
+        try {
+            const journalRef = collection(db, JOURNAL_COLLECTION);
+            const qJournal = query(
+                journalRef,
+                where("tenantId", "==", tenantId), // Added Security Constraint
+                orderBy("date", "desc"),
+                limit(30)
+            );
+            const snapJournal = await getDocs(qJournal);
+
+            snapJournal.forEach(d => {
+                const entry = d.data() as JournalEntry;
+                const projEntry = entry.projects?.find(p => p.projectId === projectId);
+
+                if (projEntry) {
+                    const entryDate = new Date(entry.date);
+                    results.push({
+                        id: `journal-${d.id}-${projectId}`,
+                        projectId,
+                        date: Timestamp.fromDate(entryDate),
+                        authorId: 'system',
+                        authorName: 'Resumen Diario',
+                        type: 'weekly',
+                        content: {
+                            notes: projEntry.pmNotes || projEntry.conclusions || "Sin notas adicionales.",
+                            nextSteps: projEntry.nextSteps ? projEntry.nextSteps.split('\n').filter(s => s.trim().length > 0) : [],
+                            blockers: ""
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.warn("Journal fetch failed:", e);
+        }
+
+        // 4. Deduplicate results
+        const uniqueResults = Array.from(new Map(results.map(item => [item.id, item])).values());
 
         // Sort unified list descending
-        return results.sort((a, b) => {
+        return uniqueResults.sort((a, b) => {
             const da = a.date?.toDate ? a.date.toDate() : new Date(a.date);
             const db = b.date?.toDate ? b.date.toDate() : new Date(b.date);
             return db.getTime() - da.getTime();
@@ -121,6 +147,8 @@ export async function getProjectUpdates(projectId: string, limitCount = 50): Pro
         return [];
     }
 }
+
+
 
 /**
  * Deletes a specific update (Admin/Author only ideally).

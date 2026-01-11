@@ -271,3 +271,120 @@ export async function initializePermissionGroups(): Promise<boolean> {
         return false;
     }
 }
+
+/**
+ * [NEW] Populate Tenant with Template Groups & Link Users
+ * 1. Clones groups from Tenant "1" (Template) to targetTenantId
+ * 2. Links existing users in targetTenantId to these new groups based on legacy role
+ */
+import { writeBatch } from 'firebase/firestore'; // Import batch
+
+export async function startTenantPopulation(targetTenantId: string, createdBy: string = 'system'): Promise<string> {
+    console.log(`[Population] Starting for Tenant: ${targetTenantId}`);
+    const logs: string[] = [];
+
+    try {
+        // 1. Fetch Template Groups (Tenant 1)
+        const qTemplate = query(collection(db, 'permission_groups'), where('tenantId', '==', '1'));
+        const templateSnap = await getDocs(qTemplate);
+
+        let groupsToClone: any[] = [];
+
+        if (templateSnap.empty) {
+            logs.push("⚠️ No template groups in Tenant 1. Using Hardcoded Defaults.");
+            groupsToClone = DEFAULT_GROUPS;
+        } else {
+            groupsToClone = templateSnap.docs.map(d => {
+                const data = d.data();
+                // Clean system fields to create fresh copies
+                const { id, createdAt, updatedAt, ...rest } = data as any;
+                return rest;
+            });
+        }
+
+        // 2. Create Groups in Target Tenant
+        const createdGroupsMap: Record<string, string> = {}; // Name -> NewID (for user linking)
+
+        for (const group of groupsToClone) {
+            // Check existence to avoid dupes
+            const qExists = query(
+                collection(db, 'permission_groups'),
+                where('tenantId', '==', targetTenantId),
+                where('name', '==', group.name)
+            );
+            const existsSnap = await getDocs(qExists);
+
+            let groupId = "";
+            if (existsSnap.empty) {
+                const newGroup = {
+                    ...group,
+                    tenantId: targetTenantId,
+                    createdBy,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+                const ref = await addDoc(collection(db, 'permission_groups'), newGroup);
+                groupId = ref.id;
+                logs.push(`✅ Created group: ${group.name}`);
+            } else {
+                groupId = existsSnap.docs[0].id;
+                logs.push(`ℹ️ Group already exists: ${group.name}`);
+            }
+            createdGroupsMap[group.name] = groupId;
+        }
+
+        // 3. Link Existing Users (Auto-Correction)
+        const qUsers = query(collection(db, 'users'), where('tenantId', '==', targetTenantId));
+        const usersSnap = await getDocs(qUsers);
+
+        if (!usersSnap.empty) {
+            const batch = writeBatch(db);
+            let batchCount = 0;
+
+            // Map Legacy Roles to Group Names
+            // Ensure these match DEFAULT_GROUPS names exactly
+            const ROLE_TO_GROUP_NAME: Record<string, string> = {
+                'superadmin': 'Administradores',
+                'app_admin': 'Administradores',
+                'global_pm': 'Project Managers',
+                'usuario_base': 'Equipo',
+                'consultor': 'Consultor',
+                'usuario_externo': 'Usuario Externo'
+            };
+
+            usersSnap.docs.forEach(userDoc => {
+                const uData = userDoc.data();
+                const role = uData.role as string;
+                const targetGroupName = ROLE_TO_GROUP_NAME[role];
+
+                if (targetGroupName && createdGroupsMap[targetGroupName]) {
+                    const newGroupId = createdGroupsMap[targetGroupName];
+
+                    // Update if missing or different
+                    if (uData.permissionGroupId !== newGroupId) {
+                        batch.update(userDoc.ref, { permissionGroupId: newGroupId });
+                        batchCount++;
+                        logs.push(`🔗 Linked user ${uData.email} (${role}) -> Group: ${targetGroupName}`);
+                    }
+                } else if (!targetGroupName) {
+                    logs.push(`⚠️ Unknown role '${role}' for user ${uData.email}, skipped.`);
+                }
+            });
+
+            if (batchCount > 0) {
+                await batch.commit();
+                logs.push(`🎉 Successfully updated ${batchCount} users.`);
+            } else {
+                logs.push("No users needed linking.");
+            }
+        } else {
+            logs.push("No users found in this tenant.");
+        }
+
+        return logs.join('\n');
+
+    } catch (error: any) {
+        console.error("Population Error:", error);
+        throw new Error("Failed to populate: " + error.message);
+    }
+}

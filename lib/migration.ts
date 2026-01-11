@@ -1,108 +1,89 @@
+
 import { db } from "@/lib/firebase";
-import { getAllEntries } from "@/lib/storage";
-import { ensureProjectExists } from "@/lib/projects"; // Reuse logic
-import { createUpdate } from "@/lib/updates";
-import { createTask } from "@/lib/tasks";
-import { ProjectUpdate } from "@/types";
-import { Timestamp } from "firebase/firestore";
-import { parse, set } from "date-fns";
+import { collection, getDocs, writeBatch, doc, serverTimestamp, query, where } from "firebase/firestore";
 
 export interface MigrationLog {
-    totalWeeks: number;
-    processedWeeks: number;
-    projectsMigrated: number;
+    total: number;
+    updated: number;
     errors: string[];
 }
 
-/**
- * Main ETL Function
- * Reads all WeeklyEntries -> Explodes -> Writes to projects/{id}/updates
- */
-export async function migrateAllData(onProgress: (log: MigrationLog) => void): Promise<void> {
-    const log: MigrationLog = {
-        totalWeeks: 0,
-        processedWeeks: 0,
-        projectsMigrated: 0,
-        errors: []
-    };
+const COLLECTIONS_TO_MIGRATE = [
+    'projects',
+    'tasks',
+    'users', // Legacy collection if exists
+    'user',
+    'journal_entries',
+    'weekly_entries',
+    'permission_groups',
+    'invites'
+];
 
-    try {
-        // 1. Extract (Read Old Data)
-        const allWeeks = await getAllEntries();
-        log.totalWeeks = allWeeks.length;
-        onProgress({ ...log });
+export async function migrateToMultiTenant(
+    targetTenantId: string = "1",
+    onProgress?: (collection: string, progress: number, total: number) => void
+): Promise<Record<string, MigrationLog>> {
 
-        // 2. Transform & Load (Process each week)
-        for (const week of allWeeks) {
+    const results: Record<string, MigrationLog> = {};
 
-            // Helper to get a valid Date object from week ID (YYYYMMDD) or fallback
-            // Week ID is usually Monday's date string e.g. "20240101"
-            let weekDate = new Date();
-            try {
-                if (week.id.length === 8) {
-                    const y = parseInt(week.id.substring(0, 4));
-                    const m = parseInt(week.id.substring(4, 6)) - 1; // Month is 0-index
-                    const d = parseInt(week.id.substring(6, 8));
-                    weekDate = new Date(y, m, d);
-                }
-            } catch (e) {
-                console.warn(`Invalid date ID ${week.id}, using now`);
+    for (const colName of COLLECTIONS_TO_MIGRATE) {
+        console.log(`Starting migration for ${colName}...`);
+        const result: MigrationLog = { total: 0, updated: 0, errors: [] };
+
+        try {
+            const colRef = collection(db, colName);
+            const snapshot = await getDocs(colRef);
+
+            result.total = snapshot.size;
+
+            if (snapshot.empty) {
+                results[colName] = result;
+                continue;
             }
 
-            for (const p of week.projects) {
-                try {
-                    // A. Ensure Parent Project Exists
-                    const projectId = await ensureProjectExists(p);
+            let batch = writeBatch(db);
+            let batchCount = 0;
+            let processed = 0;
 
-                    if (projectId) {
-                        // B. Create the Update Event
-                        const updateData: Omit<ProjectUpdate, 'id' | 'createdAt'> = {
-                            projectId: projectId,
-                            date: Timestamp.fromDate(weekDate), // Use Monday as the event date
-                            weekId: week.id,
-                            authorId: "legacy-migration", // System User
-                            authorName: "Migrated Data",
-                            type: 'weekly',
-                            content: {
-                                notes: p.pmNotes || "",
-                                nextSteps: p.nextSteps ? p.nextSteps.split('\n').filter(t => t.trim().length > 0) : [],
-                                blockers: "", // Legacy didn't have specific blockers field
-                                flags: []
-                            },
-                            tags: ["Legacy Import"]
-                        };
+            for (const docSnapshot of snapshot.docs) {
+                const data = docSnapshot.data();
 
-                        await createUpdate(projectId, updateData);
-                        log.projectsMigrated++;
+                // Idempotency Check
+                if (!data.tenantId) {
+                    batch.update(docSnapshot.ref, {
+                        tenantId: targetTenantId,
+                        _migratedAt: serverTimestamp()
+                    });
 
-                        // C. [NEW] Create actual Tasks for the Dashboard
-                        if (updateData.content.nextSteps && updateData.content.nextSteps.length > 0) {
-                            for (const taskDesc of updateData.content.nextSteps) {
-                                await createTask({
-                                    projectId: projectId,
-                                    tenantId: "1",
-                                    description: taskDesc,
-                                    status: 'pending',
-                                    isBlocking: false,
-                                    weekId: week.id,
-                                    title: taskDesc.substring(0, 50), // Fallback title
-                                    isActive: true,
-                                    createdBy: "legacy-migration"
-                                }, "legacy-migration", p.name);
-                            }
-                        }
-                    }
-                } catch (err: any) {
-                    log.errors.push(`Failed to migrate project ${p.name} in week ${week.id}: ${err.message}`);
+                    batchCount++;
+                    result.updated++;
+                }
+
+                processed++;
+
+                // Commit batch every 400 writes
+                if (batchCount >= 400) {
+                    await batch.commit();
+                    batch = writeBatch(db);
+                    batchCount = 0;
+                    if (onProgress) onProgress(colName, processed, result.total);
                 }
             }
 
-            log.processedWeeks++;
-            onProgress({ ...log });
+            // Commit remaining
+            if (batchCount > 0) {
+                await batch.commit();
+            }
+
+            if (onProgress) onProgress(colName, result.total, result.total);
+
+        } catch (error: any) {
+            console.error(`Error migrating ${colName}:`, error);
+            result.errors.push(error.message);
         }
 
-    } catch (error: any) {
-        log.errors.push(`Fatal Error: ${error.message}`);
-        onProgress({ ...log });
+        results[colName] = result;
     }
+
+    return results;
 }

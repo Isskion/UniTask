@@ -21,6 +21,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { CommandMenu } from "@/components/CommandMenu";
+import { NoTenantBlocker } from "@/components/NoTenantBlocker";
 
 // ... previous code ...
 
@@ -37,8 +38,10 @@ export default function RootLayout({
         <AuthProvider>
           <UIProvider>
             <ToastProvider>
-              {children}
-              <CommandMenu />
+              <NoTenantBlocker>
+                {children}
+                <CommandMenu />
+              </NoTenantBlocker>
             </ToastProvider>
           </UIProvider>
         </AuthProvider>

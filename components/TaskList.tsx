@@ -5,6 +5,8 @@ import { Task } from '@/types';
 import { subscribeToProjectTasks, updateTaskStatus, toggleTaskBlock, sortTasks } from '@/lib/tasks';
 import { CheckCircle2, Ban, Circle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useSafeFirestore } from '@/hooks/useSafeFirestore'; // Security Hook
+
 
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -16,30 +18,31 @@ interface TaskListProps {
 }
 
 export default function TaskList({ projectId, projectName }: TaskListProps) {
-    const { user } = useAuth();
+    const { user, tenantId } = useAuth();
+    const { updateDoc } = useSafeFirestore();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!projectId) return;
         setLoading(true);
-        const unsubscribe = subscribeToProjectTasks(projectId, (data) => {
+        const unsubscribe = subscribeToProjectTasks(tenantId || "1", projectId, (data) => {
             setTasks(sortTasks(data));
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [projectId]);
+    }, [projectId, tenantId]);
 
     const handleResolve = async (taskId: string) => {
         if (!user) return;
-        await updateTaskStatus(taskId, 'completed', user.uid);
+        await updateTaskStatus(taskId, 'completed', user.uid, updateDoc);
     }
 
     // Toggle between blocked and pending
     const handleToggleBlock = async (task: Task) => {
         if (!user) return;
         // Use implicit boolean toggle, API handles the validation
-        await toggleTaskBlock(task.id, !task.isBlocking, user.uid);
+        await toggleTaskBlock(task.id, !task.isBlocking, user.uid, updateDoc);
     }
 
     const formatDate = (date: any) => {

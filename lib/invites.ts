@@ -9,6 +9,7 @@ export interface InviteCode {
     usedBy?: string; // User UID who used it
     isUsed: boolean;
     expiresAt?: any; // Optional expiration
+    tenantId: string; // Target Tenant for the new user
 }
 
 const INVITES_COLLECTION = "invites";
@@ -28,21 +29,22 @@ function generateCode(length = 8): string {
 /**
  * Creates a new one-time invite code
  */
-export async function createInvite(adminUid: string): Promise<string> {
+export async function createInvite(adminUid: string, tenantId: string = "1"): Promise<string> {
     const code = generateCode();
     const inviteRef = doc(db, INVITES_COLLECTION, code);
 
     // Ensure uniqueness (extremely unlikely to collide, but good practice)
     const existing = await getDoc(inviteRef);
     if (existing.exists()) {
-        return createInvite(adminUid); // Retry if exists
+        return createInvite(adminUid, tenantId); // Retry if exists
     }
 
     const inviteData: InviteCode = {
         code,
         createdBy: adminUid,
         createdAt: serverTimestamp(),
-        isUsed: false
+        isUsed: false,
+        tenantId
     };
 
     await setDoc(inviteRef, inviteData);
@@ -52,7 +54,7 @@ export async function createInvite(adminUid: string): Promise<string> {
 /**
  * Validates an invite code without consuming it
  */
-export async function checkInvite(code: string): Promise<{ valid: boolean; reason?: string }> {
+export async function checkInvite(code: string): Promise<{ valid: boolean; reason?: string; tenantId?: string }> {
     if (!code) return { valid: false, reason: "No code provided" };
 
     const inviteRef = doc(db, INVITES_COLLECTION, code);
@@ -68,7 +70,7 @@ export async function checkInvite(code: string): Promise<{ valid: boolean; reaso
         return { valid: false, reason: "Código ya utilizado" };
     }
 
-    return { valid: true };
+    return { valid: true, tenantId: data.tenantId || "1" };
 }
 
 /**

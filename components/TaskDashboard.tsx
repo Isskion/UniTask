@@ -22,7 +22,7 @@ interface TaskDashboardProps {
 }
 
 export default function TaskDashboard({ projects, userProfile, permissionLoading }: TaskDashboardProps) {
-    const { user } = useAuth();
+    const { user, tenantId } = useAuth();
     const { permissions, isAdmin, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,14 +30,17 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
-        if (!user) return;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
         setLoading(true);
-        const unsubscribe = subscribeToAllTasks((data) => {
+        const unsubscribe = subscribeToAllTasks(tenantId || "1", (data) => {
             setTasks(data);
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [user]);
+    }, [user, tenantId]);
 
     // Group tasks by project
     const groupedTasks = useMemo(() => {
@@ -58,10 +61,16 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
         // SECURITY FILTER: Only keep tasks that belong to allowed projects
         // Use centralized permission system
-        const allowedIds = getAllowedProjectIds();
-        const allowedProjectIds = allowedIds.length === 0 && isAdmin()
-            ? projects.map(p => p.id) // Admin with empty array means "all"
-            : allowedIds.filter(id => projects.some(p => p.id === id)); // Intersect with props
+        const permissionType = getAllowedProjectIds();
+        let allowedProjectIds: string[] = [];
+
+        if (isAdmin() || permissionType === 'ALL') {
+            allowedProjectIds = projects.map(p => p.id);
+        } else {
+            // For regular users, look at assignedProjectIds in their profile
+            // Fallback to empty array if not found
+            allowedProjectIds = userProfile?.assignedProjectIds || [];
+        }
 
 
         filtered = filtered.filter(t => {
@@ -222,10 +231,10 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
             {/* Content Scroller */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-                {(loading || (permissionsLoading && !isAdmin)) ? (
+                {(loading || (permissionsLoading && !isAdmin())) ? (
                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
                         <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
-                        {(permissionsLoading && !isAdmin) ? "Verifying permissions..." : "Loading tasks..."}
+                        {(permissionsLoading && !isAdmin()) ? "Verifying permissions..." : "Loading tasks..."}
                     </div>
                 ) : (
                     Object.keys(groupedTasks).length === 0 ? (

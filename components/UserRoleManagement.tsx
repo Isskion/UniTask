@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, serverTimestamp, query, where } from 'firebase/firestore';
 import { PermissionGroup } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useSafeFirestore } from '@/hooks/useSafeFirestore';
 import { Shield, Plus, Edit2, Copy, Trash2, X, Save, FolderGit2, ListTodo, BarChart3, Users, Settings, Sparkles } from 'lucide-react';
 import { seedPermissionGroups } from '@/lib/permissionGroups';
+import { migrateToMultiTenant } from '@/lib/migration';
 import { cn } from "@/lib/utils";
 
 const DEFAULT_GROUP: Partial<PermissionGroup> = {
@@ -23,12 +25,14 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
 import { useTheme } from '@/hooks/useTheme';
 
 export default function UserRoleManagement() {
-    const { user } = useAuth();
+    const { user, userRole, tenantId } = useAuth();
+    const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
     const [groups, setGroups] = useState<PermissionGroup[]>([]);
     const [loading, setLoading] = useState(true);
+    const [migrating, setMigrating] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingGroup, setEditingGroup] = useState<PermissionGroup | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'projects' | 'tasks' | 'views' | 'special'>('general');
@@ -42,7 +46,8 @@ export default function UserRoleManagement() {
 
     const loadGroups = async () => {
         try {
-            const snapshot = await getDocs(collection(db, 'permission_groups'));
+            const q = query(collection(db, 'permission_groups'), where('tenantId', '==', tenantId || '1'));
+            const snapshot = await getDocs(q);
             const loadedGroups = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
@@ -198,6 +203,38 @@ export default function UserRoleManagement() {
             {/* Groups Grid */}
             <div className="flex-1 overflow-y-auto p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Superadmin Static Card */}
+                    {userRole === 'superadmin' && (
+                        <div
+                            className={cn(
+                                "rounded-xl border p-5 flex flex-col gap-4 relative group transition-all duration-300",
+                                isLight
+                                    ? "bg-white border-indigo-200 shadow-lg shadow-indigo-50"
+                                    : "bg-[#18181b] border-indigo-500/30 shadow-lg shadow-indigo-500/10"
+                            )}
+                            style={{ borderLeftWidth: '4px', borderLeftColor: '#6366F1' }}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-indigo-900" : "text-white")}>
+                                        <Shield className="w-5 h-5 text-indigo-500" />
+                                        Super Admin
+                                    </h3>
+                                    <p className={cn("text-sm mt-1 font-medium", isLight ? "text-indigo-700" : "text-indigo-200/70")}>
+                                        System God Mode. Acceso total a todos los tenants y configuraciones.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                    isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200" : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+                                )}>
+                                    <Sparkles className="w-3 h-3" /> All Access
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     {groups.map(group => (
                         <div
                             key={group.id}
@@ -317,16 +354,49 @@ export default function UserRoleManagement() {
                             <p className={cn("max-w-md mx-auto mt-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
                                 Comienza creando un grupo de permisos para asignar capacidades a tus usuarios.
                             </p>
-                            <button
-                                onClick={() => seedPermissionGroups()}
-                                className={cn("mt-6 px-4 py-2 rounded font-bold transition-all",
-                                    isLight
-                                        ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
-                                        : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 text-white" : "bg-white/5 hover:bg-white/10 text-white")
-                                )}
-                            >
-                                Inicializar Grupos por Defecto
-                            </button>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={handleInitializeGroups}
+                                    className={cn("mt-6 px-4 py-2 rounded font-bold transition-all",
+                                        isLight
+                                            ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
+                                            : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 text-white" : "bg-white/5 hover:bg-white/10 text-white")
+                                    )}
+                                >
+                                    Inicializar Grupos por Defecto
+                                </button>
+                                {
+                                    // [FIX] Show "Import Roles" button only if tenant is empty and != '1'
+                                    tenantId !== '1' && (
+                                        <button
+                                            onClick={async () => {
+                                                if (!confirm("¿Importar roles del sistema y alinear usuarios? Esto creará los grupos por defecto.")) return;
+                                                setMigrating(true);
+                                                try {
+                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
+                                                    console.log(resLog);
+                                                    alert("✅ Roles importados y usuarios alineados:\n" + resLog);
+                                                    await loadGroups(); // Refresh UI
+                                                } catch (e: any) {
+                                                    console.error(e);
+                                                    alert("Error al importar: " + e.message);
+                                                } finally {
+                                                    setMigrating(false);
+                                                }
+                                            }}
+                                            disabled={migrating}
+                                            className={cn("mt-6 px-4 py-2 rounded font-bold transition-all border border-transparent",
+                                                isLight
+                                                    ? "bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-200"
+                                                    : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/20"
+                                            )}
+                                        >
+                                            <Sparkles className={cn("w-4 h-4 inline mr-2", migrating && "animate-spin")} />
+                                            {migrating ? "Importando..." : "Importar Roles del Sistema"}
+                                        </button>
+                                    )
+                                }
+                            </div>
                         </div>
                     )}
                 </div>

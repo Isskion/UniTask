@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
+import { collection, getDocs, doc, query, orderBy, where } from "firebase/firestore";
+import { getActiveProjects, createProject, updateProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
+import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Shield, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, MapPin, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project } from "@/types";
+import { Project, Tenant } from "@/types";
 import { useToast } from "@/context/ToastContext";
 
 // New Components
@@ -16,12 +18,14 @@ import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
-    const { userRole, user } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
+    const { updateDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { showToast } = useToast();
-    const { can, getAllowedProjectIds, userProfile: permUserProfile, loading: permissionsLoading } = usePermissions();
+    const { can, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
+    const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null); // For assignedProjectIds
 
@@ -50,26 +54,35 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
         if (user && userRole !== 'app_admin' && userRole !== 'global_pm') {
-            getDocs(query(collection(db, "user"), where("__name__", "==", user.uid)))
+            getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
                 .then(snap => {
                     if (!snap.empty) {
                         setUserProfile(snap.docs[0].data());
                     }
                 });
         }
+        if (userRole === 'superadmin') {
+            loadTenants();
+        }
         loadProjects();
     }, [user, userRole]);
+
+    const loadTenants = async () => {
+        try {
+            const snap = await getDocs(query(collection(db, "tenants"), orderBy("name")));
+            setTenants(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tenant)));
+        } catch (e) {
+            console.error("Error loading tenants", e);
+        }
+    };
 
     const loadProjects = async () => {
         setLoading(true);
         try {
-            const q = query(collection(db, "projects"), orderBy("name"));
-            const snapshot = await getDocs(q);
-            const loaded: Project[] = [];
-            snapshot.forEach(doc => {
-                loaded.push({ id: doc.id, ...doc.data() } as Project);
-            });
-            setProjects(loaded);
+            // Use centralized loader (handles ALL for superadmin)
+            const targetTenant = (userRole === 'superadmin') ? "ALL" : (tenantId || "1");
+            const projs = await getActiveProjects(targetTenant);
+            setProjects(projs);
         } catch (error) {
             console.error("Error loading projects:", error);
         } finally {
@@ -134,19 +147,29 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         setSaving(true);
         try {
             if (isNew) {
-                // Create
-                const docRef = await addDoc(collection(db, "projects"), {
+                // Create using centralized function with proper tenant assignment
+                const docId = await createProject({
                     ...formData,
-                    createdAt: serverTimestamp()
+                    tenantId: formData.tenantId || tenantId || "1", // Use selected tenant if available (SuperAdmin)
+                    isActive: true, // Legacy
+                    status: "active", // New Standard
+                    health: "healthy", // Required
+                    name: formData.name!,
+                    code: formData.code!,
+                    color: formData.color || '#71717a',
+                    clientName: formData.clientName || "",
+                    teamIds: formData.teamIds || [],
+                    email: formData.email || "",
+                    phone: formData.phone || "",
+                    address: formData.address || ""
                 });
-                // Reload and Select
+
+                // Reload
                 await loadProjects();
-                const createdProject = { id: docRef.id, ...formData } as Project;
 
-                // Update local (showing all for now until reload filters kick in fully, but filtered view uses 'visibleProjects')
-                // Ideally we refetch or careful state manips. Let's rely on simple update:
-                setProjects(prev => [...prev.filter(p => p.id !== docRef.id), createdProject].sort((a, b) => a.name.localeCompare(b.name)));
-
+                // Optimistic Update
+                const createdProject = { id: docId, ...formData, tenantId: tenantId || "1" } as Project;
+                setProjects(prev => [...prev.filter(p => p.id !== docId), createdProject].sort((a, b) => a.name.localeCompare(b.name)));
                 setSelectedProject(createdProject);
                 setIsNew(false);
                 setUserTab('feed');
@@ -154,7 +177,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             } else {
                 // Update
                 if (selectedProject?.id) {
-                    const { id, ...data } = formData; // Exclude ID from data
+                    const { id, ...data } = formData; // Exclude ID
                     await updateDoc(doc(db, "projects", selectedProject.id), data as any);
 
                     // Update Local State
@@ -162,6 +185,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                     setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...data } as Project : p));
 
                     showToast("UniTaskController", "Guardado", "success");
+                    setUserTab('feed'); // Close form
                 }
             }
         } catch (e) {
@@ -239,6 +263,11 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     {p.name}
                                 </div>
                                 <div className="text-[10px] text-zinc-400 font-mono">{p.code}</div>
+                                {userRole === 'superadmin' && p.tenantId && (
+                                    <div className="text-[9px] text-indigo-400 font-mono mt-0.5">
+                                        🏢 {tenants.find(t => t.id === p.tenantId)?.name || p.tenantId}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {/* Edit Button: Goes to Settings Tab */}
@@ -373,6 +402,33 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             )}
                                         </div>
 
+                                        {/* Tenant Selector (SuperAdmin Only) */}
+                                        {userRole === 'superadmin' && (
+                                            <div className={cn("p-4 rounded-lg border", isLight ? "bg-slate-50 border-slate-200" : "bg-white/5 border-white/10")}>
+                                                <label className={cn("text-[10px] uppercase font-bold mb-2 block", isLight ? "text-zinc-700" : "text-white")}>
+                                                    Organización (Tenant)
+                                                </label>
+                                                <select
+                                                    value={formData.tenantId || ""}
+                                                    onChange={e => setFormData({ ...formData, tenantId: e.target.value })}
+                                                    className={cn("w-full border rounded-lg px-3 py-2 text-sm focus:border-primary outline-none appearance-none",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
+                                                >
+                                                    <option value="">-- Sin Asignar --</option>
+                                                    {tenants.map(t => (
+                                                        <option key={t.id} value={t.id}>
+                                                            🏢 {t.name} ({t.id})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <p className="text-[10px] text-muted-foreground mt-1">
+                                                    ⚠️ Cambiar esto moverá el proyecto a otra organización.
+                                                </p>
+                                            </div>
+                                        )}
+
+
                                         {/* Name & Code */}
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
@@ -478,6 +534,6 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }

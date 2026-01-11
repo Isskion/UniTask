@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc, addDoc, query, orderBy, serverTimestamp, deleteDoc, where } from "firebase/firestore";
+import { collection, getDocs, doc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
+import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2 } from "lucide-react";
@@ -14,11 +15,12 @@ import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
 
 export default function TaskManagement() {
-    const { userRole, user } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
+    const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { showToast } = useToast();
-    const { isAdmin: checkIsAdmin, can, getAllowedProjectIds } = usePermissions();
+    const { isAdmin: checkIsAdmin, can, permissions } = usePermissions();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -66,6 +68,8 @@ export default function TaskManagement() {
     };
 
     // Warn on browser close/refresh
+    // Warn on browser close/refresh
+    /*
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty()) {
@@ -76,6 +80,7 @@ export default function TaskManagement() {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [formData, selectedTask, isNew]);
+    */
 
     // UI States
     const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -92,7 +97,7 @@ export default function TaskManagement() {
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
         if (user && !isAdmin) {
-            getDocs(query(collection(db, "user"), where("__name__", "==", user.uid)))
+            getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
                 .then(snap => {
                     if (!snap.empty) {
                         setUserProfile(snap.docs[0].data());
@@ -105,22 +110,28 @@ export default function TaskManagement() {
     const loadData = async () => {
         setLoading(true);
         try {
-            // Load Projects
-            const qp = query(collection(db, "projects"), orderBy("name"));
+            // Force use of the ACTIVE context tenantId (masqueraded or real)
+            const targetTenantId = tenantId || "1";
+            console.log("[TaskManagement] Loading data for Tenant:", targetTenantId);
+
+            // Load Projects (filtered by tenant)
+            const qp = query(collection(db, "projects"), where("tenantId", "==", targetTenantId), orderBy("name"));
             const snapP = await getDocs(qp);
             const loadedProjects: Project[] = [];
             snapP.forEach(doc => loadedProjects.push({ id: doc.id, ...doc.data() } as Project));
             setProjects(loadedProjects);
 
-            // Load Users (Singular collection 'user' as per existing schema)
-            const qu = query(collection(db, "user"));
+            // Load Users (filtered by tenant)
+            const qu = query(collection(db, "users"), where("tenantId", "==", targetTenantId));
             const snapU = await getDocs(qu);
             const loadedUsers: UserProfile[] = [];
             snapU.forEach(doc => loadedUsers.push({ uid: doc.id, ...doc.data() } as UserProfile));
             setUsers(loadedUsers);
 
-            // Load Tasks
-            const qt = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+            // Load Tasks (filtered by tenant)
+            // Fix: Explicitly filter by tenantId, do NOT rely on "Admin sees all" here.
+            // If Admin wants to see all, they should switch tenant context or use a special "All" view (future).
+            const qt = query(collection(db, "tasks"), where("tenantId", "==", targetTenantId), orderBy("createdAt", "desc"));
             const snapT = await getDocs(qt);
             const loadedTasks: Task[] = [];
             snapT.forEach(doc => loadedTasks.push({ id: doc.id, ...doc.data() } as Task));
@@ -136,15 +147,21 @@ export default function TaskManagement() {
     // Computed Lists
     const visibleProjects = projects.filter(p => {
         if (isAdmin) return true; // Admins see all
+        if (permissions.projectAccess?.viewAll) return true; // Permission Bypass (Global PM)
         if (!userProfile?.assignedProjectIds) return false;
         return userProfile.assignedProjectIds.includes(p.id);
     });
 
     const visibleTasks = tasks.filter(t => {
-        if (isAdmin) {
-            // Admin Logic
+        // FILTER BY SIMULATED ROLE
+        // If simulated role is superadmin/app_admin, see all loaded tasks (which are already tenant-filtered by loadData).
+        if (userRole === 'superadmin' || userRole === 'app_admin') {
+            // See all
         } else {
+            // Regular user constraints
             if (!t.projectId) return false;
+            // Check if project is assigned to user
+            // Note: visibleProjects is already filtered by assignment for non-admins
             if (!visibleProjects.some(vp => vp.id === t.projectId)) return false;
         }
 
@@ -284,7 +301,7 @@ export default function TaskManagement() {
 
     const handleDelete = async () => {
         // Double Check UI shouldn't allow this, but safe guard
-        if (!isAdmin) return showToast("UniTaskController", "No tienes permisos para eliminar tareas.", "error");
+        if (!can('delete', 'tasks')) return showToast("UniTaskController", "No tienes permisos para eliminar tareas.", "error");
 
         if (!selectedTask?.id || isNew) return;
 
@@ -796,7 +813,7 @@ export default function TaskManagement() {
                                         <button onClick={handleSave} disabled={saving} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg shadow-indigo-900/30 transition-all flex justify-center items-center gap-2 text-xs uppercase tracking-wide">
                                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar Cambios
                                         </button>
-                                        {!isNew && isAdmin && <button onClick={handleDelete} className="w-full py-3 bg-transparent border border-white/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 font-bold rounded-lg transition-all text-xs uppercase tracking-wide">Eliminar Tarea</button>}
+                                        {!isNew && can('delete', 'tasks') && <button onClick={handleDelete} className="w-full py-3 bg-transparent border border-white/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 font-bold rounded-lg transition-all text-xs uppercase tracking-wide">Eliminar Tarea</button>}
                                     </div>
                                 </div>
                             </div>

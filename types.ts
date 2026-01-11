@@ -22,10 +22,21 @@ export interface Project {
     lastUpdate?: any; // New: Timestamp of last activity
 }
 
+export interface Tenant {
+    id: string; // "client-code" or auto-generated
+    name: string; // "Empresa Cliente A"
+    code?: string; // Optional short code
+    logoUrl?: string; // Optional branding
+    isActive: boolean;
+    createdAt?: any;
+    updatedAt?: any;
+}
+
 // New: Project Update (Event Stream)
 export interface ProjectUpdate {
     id?: string; // Optional on local creation
     projectId: string; // Parent Project
+    tenantId?: string; // New: Denormalized for security rules
     date: any; // Timestamp of the entry
 
     // Context
@@ -180,7 +191,8 @@ export interface Task {
     taskNumber?: number;
 
     // Core Links
-    weekId: string;        // Legacy link
+    weekId: string;        // Legacy link (Date string)
+    relatedJournalEntryId?: string; // [NEW] Link to specific Journal Entry Document
     projectId?: string;    // Parent Project
     tenantId: string;      // Multi-tenant isolation
 
@@ -228,4 +240,29 @@ export interface Task {
     closedAt?: any;
     closedBy?: string;
     blockedBy?: string[];
+}
+
+// Role Weight System
+export enum RoleLevel {
+    EXTERNO = 10,
+    EQUIPO = 20,
+    CONSULTOR = 40,
+    PM = 60,
+    ADMIN = 80,
+    SUPERADMIN = 100
+}
+
+export const ROLE_LEVEL_MAP: Record<string, number> = {
+    'usuario_externo': RoleLevel.EXTERNO,
+    'usuario_base': RoleLevel.EQUIPO,
+    'consultor': RoleLevel.CONSULTOR,
+    'global_pm': RoleLevel.PM,
+    'app_admin': RoleLevel.ADMIN,
+    'superadmin': RoleLevel.SUPERADMIN
+};
+
+export function getRoleLevel(role: string | number | null | undefined): number {
+    if (!role) return 0;
+    if (typeof role === 'number') return role;
+    return ROLE_LEVEL_MAP[role.toLowerCase()] || 0;
 }

@@ -54,12 +54,25 @@ export async function updateProject(projectId: string, data: Partial<Project>) {
 /**
  * Fetches all active projects (optionally filtered by teamId in the future).
  */
-export async function getActiveProjects(): Promise<Project[]> {
+export async function getActiveProjects(tenantId: string = "1"): Promise<Project[]> {
     try {
-        const q = query(
-            collection(db, PROJECTS_COLLECTION)
-        );
+        console.log("🔍 getActiveProjects called with tenantId:", tenantId);
+        let q;
+
+        if (tenantId === "ALL") {
+            q = query(
+                collection(db, PROJECTS_COLLECTION),
+                where("isActive", "==", true)
+            );
+        } else {
+            q = query(
+                collection(db, PROJECTS_COLLECTION),
+                where("tenantId", "==", tenantId),
+                where("isActive", "==", true)
+            );
+        }
         const snapshot = await getDocs(q);
+        console.log("📦 Found projects:", snapshot.size);
         const projects = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Project));
         // Client-side sort
         projects.sort((a, b) => a.name.localeCompare(b.name));

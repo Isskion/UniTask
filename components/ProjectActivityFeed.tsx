@@ -9,23 +9,27 @@ import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight } 
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/context/AuthContext";
+
 interface ProjectActivityFeedProps {
     projectId: string;
 }
 
 export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedProps) {
     const { theme } = useTheme();
+    const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
     const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadUpdates();
-    }, [projectId]);
+    }, [projectId, tenantId]);
 
     const loadUpdates = async () => {
         setLoading(true);
-        const data = await getProjectUpdates(projectId);
+        // Fallback to "1" if no tenant, but typically should be set
+        const data = await getProjectUpdates(projectId, tenantId || "1");
         setUpdates(data);
         setLoading(false);
     };

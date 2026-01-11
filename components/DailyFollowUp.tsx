@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import ProjectManagement from "./ProjectManagement";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
@@ -9,11 +9,13 @@ import { Project, JournalEntry, Task, NoteBlock } from "@/types";
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
 import { es } from "date-fns/locale";
-import { saveJournalEntry, getJournalEntry, getRecentJournalEntries } from "@/lib/storage";
+import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalEntriesForDate } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs, query } from "firebase/firestore";
+// SECURE IMPORTS: Removed write methods from firebase/firestore
+import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
 import { summarizeNotesWithAI } from "@/app/ai-actions";
 import UserManagement from "./UserManagement";
@@ -21,7 +23,9 @@ import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
+import { getActiveProjects } from "@/lib/projects";
 
+import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
 
 
@@ -32,9 +36,29 @@ export default function DailyFollowUp() {
     const isRed = theme === 'red';
 
 
-    const { userRole, user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail } = useAuth();
+    const {
+        user,
+        userRole,
+        tenantId,
+        loading: authLoading,
+        loginWithGoogle,
+        loginWithEmail,
+        registerWithEmail
+    } = useAuth();
+    const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
     const [userProfile, setUserProfile] = useState<any>(null);
+
+    const handleToggleBlock = async (task: Task) => {
+        try {
+            const isBlocking = !task.isBlocking;
+            await toggleTaskBlock(task.id, isBlocking, user?.uid || "system", updateDoc);
+            showToast("Tarea actualizada", `Estado de bloqueo cambiado para: ${task.description}`, "success");
+        } catch (error) {
+            console.error("Error toggling block:", error);
+            showToast("Error", "No se pudo cambiar el estado de bloqueo", "error");
+        }
+    };
     const [profileLoading, setProfileLoading] = useState(true);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
 
@@ -74,7 +98,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -84,61 +108,67 @@ export default function DailyFollowUp() {
     }, [viewMode, isHydrated]);
 
     // --- STATE: DATA ---
+    // State for loading
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    // Entry State
     const [entry, setEntry] = useState<JournalEntry>({
         id: format(new Date(), 'yyyy-MM-dd'),
         date: format(new Date(), 'yyyy-MM-dd'),
-        tenantId: "1",
+        tenantId: tenantId || "1",
         projects: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
     });
 
     const [activeTab, setActiveTab] = useState<string>("General");
-
-    // Load active tab from local storage on mount (Client only)
-    useEffect(() => {
-        const saved = localStorage.getItem('daily_active_tab');
-        if (saved && saved !== "General") {
-            setActiveTab(saved);
-        }
-    }, []);
-
-    // Persist Active Tab
-    useEffect(() => {
-        if (activeTab && activeTab !== "General") {
-            localStorage.setItem('daily_active_tab', activeTab);
-        }
-    }, [activeTab]);
-
-    // Load user profile
-    useEffect(() => {
-        if (!user?.uid) return;
-
-        const loadProfile = async () => {
-            try {
-                const docRef = doc(db, "user", user.uid);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    setUserProfile(snap.data());
-                }
-            } catch (e) {
-                console.error("[DailyFollowUp] Error fetching user profile", e);
-            } finally {
-                setProfileLoading(false);
-            }
-        };
-
-        setProfileLoading(true);
-        loadProfile();
-    }, [user]);
-
-
+    const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
+    const [availableTenants, setAvailableTenants] = useState<any[]>([]);
 
     // --- STATE: TASKS ---
     const [projectTasks, setProjectTasks] = useState<Task[]>([]);
+
+    // --- STATE: HISTORY ---
+    const [recentEntries, setRecentEntries] = useState<JournalEntry[]>([]);
+
+    // --- STATE: AI ---
+    const [isAILoading, setIsAILoading] = useState(false);
+    const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+    const [aiSummary, setAiSummary] = useState<string>("");
+
+    // --- STATE: MANUAL TASK ---
+    const [newTaskText, setNewTaskText] = useState("");
+
+    // --- STATE: AUTH UI ---
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    // --- STATE: DIRTY (Unsaved Changes) ---
+    const [isDirty, setIsDirty] = useState(false);
+
+    // Prevent accidental navigation if unsaved
+    // [DEBUG] Disabling listener to see if warning persists.
+    /*
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = ''; // Chrome requires this
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
+    */
+
+    // Permission Logic
+    const allowedProjectNames = useMemo(() => {
+        if (userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'global_pm') return null; // All allowed
+        if (!userProfile) return new Set<string>();
+        const assignedIds = userProfile.assignedProjectIds || [];
+        return new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.name));
+    }, [userRole, userProfile, globalProjects]);
 
     // Subscribe to tasks when Active Tab changes
     const activeProject = globalProjects.find(p => p.name === activeTab);
@@ -151,13 +181,13 @@ export default function DailyFollowUp() {
 
         if (activeTab === "General") {
             // General -> Show ALL Open Tasks (Global overview)
-            unsubscribe = subscribeToOpenTasks((data) => {
+            unsubscribe = subscribeToOpenTasks(tenantId || "1", (data) => {
                 setProjectTasks(data);
             });
         } else {
             // Specific Project
             if (activeProjectId) {
-                unsubscribe = subscribeToProjectTasks(activeProjectId, (data) => {
+                unsubscribe = subscribeToProjectTasks(tenantId || "1", activeProjectId, (data) => {
                     setProjectTasks(data);
                 });
             } else {
@@ -167,21 +197,9 @@ export default function DailyFollowUp() {
         }
 
         return () => unsubscribe();
-    }, [activeTab, activeProjectId, user]);
+    }, [activeTab, activeProjectId, user, tenantId]);
 
-    // Helper to toggle block status
-    const handleToggleBlock = async (task: Task) => {
-        if (!user?.uid) return;
-        try {
-            await toggleTaskBlock(task.id, !task.isBlocking, user.uid);
-        } catch (e) {
-            console.error(e);
-            showToast("Error", "Error updating task", "error");
-        }
-    };
     // Context-Aware Task Filtering
-    // General Tab: Show tasks ONLY for projects that are active in this Daily Entry.
-    // Specific Tab: Show tasks for that project (subscription already handles it).
     const visibleTasks = useMemo(() => {
         if (activeTab !== "General") return projectTasks;
 
@@ -189,121 +207,196 @@ export default function DailyFollowUp() {
         let dailyProjectIds = entry.projects
             .filter(p => p.status !== 'trash')
             .map(p => {
-                // Resolve ID from stored projectId OR lookup by name
                 return p.projectId || globalProjects.find(gp => gp.name === p.name)?.id;
             })
             .filter(Boolean) as string[];
 
         // Permission Filter for General View
-        if (userRole !== 'app_admin' && userRole !== 'global_pm') {
+        if (userRole !== 'superadmin' && userRole !== 'app_admin' && userRole !== 'global_pm') {
             const assignedIds = userProfile?.assignedProjectIds || [];
             dailyProjectIds = dailyProjectIds.filter(id => assignedIds.includes(id));
         }
 
-        if (dailyProjectIds.length === 0) return []; // Empty day or no allowed projects
+        if (dailyProjectIds.length === 0) return [];
 
         return projectTasks.filter(t => t.projectId && dailyProjectIds.includes(t.projectId));
     }, [projectTasks, activeTab, entry.projects, globalProjects, userRole, userProfile]);
 
-    const [recentEntries, setRecentEntries] = useState<JournalEntry[]>([]); // Rich history with Full Entry data
 
-    // Permission Logic
-    const allowedProjectNames = useMemo(() => {
-        if (userRole === 'app_admin' || userRole === 'global_pm') return null; // All allowed
-        if (!userProfile) return new Set<string>();
-        const assignedIds = userProfile.assignedProjectIds || [];
-        return new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.name));
-    }, [userRole, userProfile, globalProjects]);
+    // Load active tab from local storage
+    useEffect(() => {
+        const saved = localStorage.getItem('daily_active_tab');
+        if (saved && saved !== "General") setActiveTab(saved);
+    }, []);
 
-    // AI State
-    const [isAILoading, setIsAILoading] = useState(false);
-    const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-    const [aiSummary, setAiSummary] = useState<string>("");
+    useEffect(() => {
+        if (activeTab && activeTab !== "General") localStorage.setItem('daily_active_tab', activeTab);
+    }, [activeTab]);
 
-    // Manual Task State
-    const [newTaskText, setNewTaskText] = useState("");
+    // Load user profile
+    useEffect(() => {
+        if (!user?.uid) {
+            setProfileLoading(false);
+            return;
+        }
+        const loadProfile = async () => {
+            try {
+                const docRef = doc(db, "users", user.uid);
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                    setUserProfile(snap.data());
+                }
+            } catch (e) {
+                console.error("[DailyFollowUp] Error fetching user profile", e);
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+        setProfileLoading(true);
+        loadProfile();
+    }, [user]);
 
-    // Auth UI State
-    const [isRegistering, setIsRegistering] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    // Navigation Events
+    useEffect(() => {
+        const handleSwitchProject = (e: any) => {
+            const { name } = e.detail;
+            if (name) setActiveTab(name);
+            setViewMode('editor');
+        };
+        const handleSwitchView = (e: any) => {
+            const { view } = e.detail;
+            if (view) setViewMode(view as any);
+        };
+        window.addEventListener('switch-project', handleSwitchProject);
+        window.addEventListener('switch-view', handleSwitchView);
+        return () => {
+            window.removeEventListener('switch-project', handleSwitchProject);
+            window.removeEventListener('switch-view', handleSwitchView);
+        };
+    }, []);
 
-    // 1. Initial Load (User & Projects)
+    // Initial Load & React to Tenant Change
     useEffect(() => {
         if (!user?.uid) return;
-        const loadInit = async () => {
-            // User
-            try {
-                const uSnap = await getDoc(doc(db, "user", user.uid));
-                if (uSnap.exists()) setUserProfile(uSnap.data());
-            } catch (e) { console.error("User Load Error", e); }
 
-            // Projects
+        const loadInit = async () => {
+            // Fetch Available Tenants (SuperAdmin Only)
+            if (userRole === 'superadmin') {
+                try {
+                    const tSnap = await getDocs(collection(db, "tenants"));
+                    const tList = tSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    setAvailableTenants(tList);
+                } catch (e) { console.log("Tenants fetch skipped", e); }
+            }
+
+            // Load Projects for current context
             try {
-                const q = query(collection(db, "projects"));
-                const snap = await getDocs(q);
-                setGlobalProjects(snap.docs.map(d => ({
-                    id: d.id,
-                    ...d.data()
-                } as any)));
+                const targetTenant = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
+                const projs = await getActiveProjects(targetTenant);
+                setGlobalProjects(projs);
             } catch (e) { console.error("Projects Load Error", e); }
 
-            // Recent History (Rich)
+            // Recent History
             try {
-                const recents = await getRecentJournalEntries(60);
+                const recents = await getRecentJournalEntries(tenantId || "1", 60);
                 setRecentEntries(recents);
             } catch (e) { console.error("History Load Error", e); }
         };
-        loadInit();
-    }, [user]);
 
-    // 2. Load Entry Data when Date Changes
+        loadInit();
+
+        // Trigger data load
+        loadData(currentDate);
+
+    }, [user, userRole, tenantId]); // Reload when tenantId changes (Context Switch)
+
+    // Race condition guard
+    const lastLoadRef = useRef<string>("");
+
+    // Load Data
     const loadData = useCallback(async (dateObj: Date) => {
+        const requestId = Date.now().toString();
+        lastLoadRef.current = requestId;
+
         setLoading(true);
         const dateId = format(dateObj, 'yyyy-MM-dd');
+        const currentTenantId = tenantId || "1";
 
-        // Reset state
-        setEntry(prev => ({ ...prev, id: dateId, date: dateId, projects: [] }));
+        // Default Empty State with UNIQUE ID (Format: Tenant_Date_Timestamp)
+        const defaultEntry: JournalEntry = {
+            id: `${currentTenantId}_${dateId}_${Date.now()}`,
+            date: dateId,
+            tenantId: currentTenantId,
+            projects: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
 
         try {
-            const existing = await getJournalEntry(dateId);
-            if (existing) {
-                // --- DATA MIGRATION LAYER ---
-                // Map legacy 'nextWeekTasks' to 'nextSteps' if present
-                const migratedProjects = existing.projects.map(p => ({
-                    ...p,
-                    nextSteps: p.nextSteps || (p as any).nextWeekTasks || ""
-                }));
+            // SuperAdmin Global View Check (Only if Tenant 1 and Role Superadmin)
+            const isMasquerading = tenantId && tenantId !== "1";
 
-                setEntry({
-                    ...existing,
-                    projects: migratedProjects
-                });
+            if (userRole === 'superadmin' && !isMasquerading) {
+                console.log(`[LoadData] Multi-tenant view loading...`);
+                const allEntries: any[] = [];
+                const tenantsToCheck = availableTenants.length > 0 ? availableTenants.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
+
+                for (const tid of tenantsToCheck) {
+                    const existing = await getJournalEntry(tid, dateId);
+                    if (existing) allEntries.push(existing);
+                }
+
+                if (lastLoadRef.current !== requestId) return;
+
+                if (allEntries.length > 0) {
+                    const mergedProjects = allEntries.flatMap(e => e.projects || []);
+                    setEntry({
+                        id: dateId, // Global view still uses date ID for now
+                        date: dateId,
+                        tenantId: "MULTI",
+                        projects: mergedProjects,
+                        createdAt: allEntries[0].createdAt,
+                        updatedAt: new Date().toISOString()
+                    });
+                } else {
+                    setEntry(defaultEntry);
+                }
             } else {
-                // New Entry
-                setEntry({
-                    id: dateId,
-                    date: dateId,
-                    tenantId: "1",
-                    projects: [],
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                });
+                // Regular Load (Targeting Specific Tenant)
+                console.log(`[DailyFollowUp] Loading Entries for: Tenant=${currentTenantId}, Date=${dateId}`);
+                const entries = await getJournalEntriesForDate(currentTenantId, dateId);
+
+                if (lastLoadRef.current !== requestId) return;
+
+                if (entries.length > 0) {
+                    // Load the LATEST entry
+                    const latest = entries[0];
+                    const migratedProjects = latest.projects.map(p => ({ ...p, nextSteps: p.nextSteps || (p as any).nextWeekTasks || "" }));
+                    setEntry({ ...latest, projects: migratedProjects });
+
+                    if (entries.length > 1) {
+                        // Optional: could allow selecting entry
+                    }
+                } else {
+                    setEntry(defaultEntry);
+                }
             }
         } catch (e) {
             console.error("Error loading journal", e);
         } finally {
-            setLoading(false);
+            if (lastLoadRef.current === requestId) setLoading(false);
         }
-    }, []);
+    }, [tenantId, userRole, availableTenants]);
 
     useEffect(() => {
         if (loading) return;
+
 
         // Auto-fix Active Tab:
         // Filter active projects AND apply permissions to ensure we don't land on a restricted project
         let activeProjects = entry.projects.filter(p => p.status !== 'trash');
 
-        if (userRole !== 'app_admin' && userRole !== 'global_pm') {
+        if (userRole !== 'superadmin' && userRole !== 'app_admin' && userRole !== 'global_pm') {
             // Strict filtering for restricted users
             const assignedIds = userProfile?.assignedProjectIds || [];
             activeProjects = activeProjects.filter(p => {
@@ -328,31 +421,81 @@ export default function DailyFollowUp() {
 
     useEffect(() => {
         if (user) {
+            // Wait for tenantId to be loaded for non-superadmins to avoid permission errors
+            // (Superadmins might start with tenantId null/1, but base users strictly need their tenantId)
+            if (userRole !== 'superadmin' && !tenantId) {
+                return;
+            }
             loadData(currentDate);
         }
-    }, [currentDate, loadData, user]);
+    }, [currentDate, loadData, user, tenantId, userRole]);
 
 
 
     // 3. Save Handler
     const handleSave = async () => {
-        if (!auth.currentUser) return alert("No user logged in");
+        if (!auth.currentUser) {
+            showToast("Error", "No has iniciado sesión", "error");
+            return;
+        }
         setSaving(true);
         try {
-            const toSave = { ...entry, updatedAt: new Date().toISOString() };
-            await saveJournalEntry(toSave);
-            setEntry(toSave);
+            const activeProjects = entry.projects.filter(p => p.status !== 'trash');
 
-            // Update local history cache
-            setRecentEntries(prev => {
-                const filtered = prev.filter(p => p.date !== toSave.date);
-                return [toSave, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
+            // Group projects by tenant
+            const projectsByTenant = new Map<string, any[]>();
+
+            for (const project of activeProjects) {
+                const projectInfo = globalProjects.find(gp => gp.name === project.name);
+                // FIX: Use context tenantId as fallback. If masquerading as T4, we save as T4.
+                const projectTenant = projectInfo?.tenantId || tenantId || "1";
+
+                if (!projectsByTenant.has(projectTenant)) {
+                    projectsByTenant.set(projectTenant, []);
+                }
+                projectsByTenant.get(projectTenant)!.push(project);
+            }
+
+            // If no projects, save to user's tenant (active context)
+            if (projectsByTenant.size === 0) {
+                projectsByTenant.set(tenantId || "1", []);
+            }
+
+            console.log(`[Save] Saving to ${projectsByTenant.size} tenant(s):`);
+
+            // Save each tenant's portion
+            for (const [targetTenantId, projects] of projectsByTenant.entries()) {
+                const toSave = {
+                    id: entry.date,
+                    date: entry.date,
+                    tenantId: targetTenantId,
+                    projects: projects,
+                    generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
+                    createdAt: entry.createdAt || new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                console.log(`  → Tenant ${targetTenantId}: ${projects.length} project(s)`);
+                await saveJournalEntry(toSave);
+            }
+
+            // Update UI state with merged view (for SuperAdmin)
+            setEntry({
+                ...entry,
+                updatedAt: new Date().toISOString()
             });
 
-            showToast("UniTaskController", "Guardado correctamente", "success");
+            // Update local history cache (simplified, could be improved)
+            setRecentEntries(prev => {
+                const filtered = prev.filter(p => p.date !== entry.date);
+                return [{ ...entry, updatedAt: new Date().toISOString() }, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
+            });
+
+            showToast("UniTaskController", `Guardado distribuido en ${projectsByTenant.size} tenant(s)`, "success");
+            setIsDirty(false); // [FIX] Only clear dirty flag if save succeeded
         } catch (e) {
             console.error(e);
-            showToast("Error", "Error al guardar", "error");
+            showToast("Error", "Error al guardar: " + (e as Error).message, "error");
+            // DO NOT clear isDirty here. User should try again.
         } finally {
             setSaving(false);
         }
@@ -429,32 +572,47 @@ export default function DailyFollowUp() {
             // Determine Project ID and Name
             let projectId: string | undefined;
             let projectName: string | undefined;
+            let taskTenantId: string = tenantId || "1"; // Default fallback
 
             if (activeTab !== 'General') {
                 const project = globalProjects.find(p => p.name === activeTab);
                 if (project) {
                     projectId = project.id;
                     projectName = project.name;
+                    // FIX: Always use the User's TenantID for creating tasks, even if project is shared/global.
+                    // Strict Multi-Tenancy: I can only create data that belongs to ME/MY TENANT.
+                    taskTenantId = tenantId || "1";
                 }
             }
 
+            // Verify payload before sending
+            const taskData: any = {
+                weekId: entry.date, // Keep Date for legacy weekId
+                relatedJournalEntryId: entry.id, // [FIX] Link to specific entry instance
+                projectId: projectId,
+                tenantId: taskTenantId,
+                title: taskDesc,
+                description: taskDesc,
+                status: 'pending',
+                isBlocking: isBlocked,
+                isActive: true,
+                createdBy: user.uid,
+                assignedTo: user.uid
+            };
+            console.log("[DailyFollowUp] Creating Task Payload:", taskData);
+
             // Create the task
             await createTask(
-                {
-                    weekId: entry.id,
-                    projectId: projectId,
-                    tenantId: "1",
-                    title: taskDesc,
-                    description: taskDesc,
-                    status: 'pending',
-                    isBlocking: isBlocked,
-                    isActive: true,
-                    createdBy: user.uid,
-                    assignedTo: user.uid
-                },
-                user.uid,
+                taskData,
+                user.uid, // authorId
+                addDoc, // INJECTED DEPENDENCY
                 projectName
             );
+
+            // [FIX] Auto-save the Journal Entry to prevent "orphaned tasks"
+            // This ensures meaningful notes are saved alongside the task
+            await handleSave();
+            setIsDirty(false); // [FIX] Force clear dirty state after task creation cycle
 
             // Remove from suggestions
             setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
@@ -530,7 +688,7 @@ export default function DailyFollowUp() {
     // 5. Helpers
     const getVisibleProjects = () => {
         const activeOnly = entry.projects.filter(p => p.status !== 'trash');
-        if (userRole === 'app_admin' || userRole === 'global_pm') return activeOnly;
+        if (userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'global_pm') return activeOnly;
         if (!userProfile) return [];
 
         const assignedIds = userProfile.assignedProjectIds || [];
@@ -573,6 +731,8 @@ export default function DailyFollowUp() {
     };
 
     const updateCurrentData = (field: string, value: string) => {
+        if (!isDirty) console.log(`[DailyFollowUp] Dirtying state due to field: ${field}`);
+        setIsDirty(true); // [FIX] Mark as dirty
         if (activeTab === "General") {
             setEntry(prev => ({ ...prev, generalNotes: value }));
         } else {
@@ -588,7 +748,8 @@ export default function DailyFollowUp() {
     // --- BLOCK LOGIC ---
     const getProjectBlocks = (projectName: string): NoteBlock[] => {
         if (projectName === "General") return []; // General only supports flat notes for now
-        const p = entry.projects.find(p => p.name === projectName);
+        const target = projectName.trim().toLowerCase();
+        const p = entry.projects.find(p => (p.name || "").trim().toLowerCase() === target);
         if (!p) return [];
 
         // Return existing blocks OR migrate legacy pmNotes to a default block
@@ -598,6 +759,8 @@ export default function DailyFollowUp() {
 
     const handleBlockUpdate = (projectName: string, blockId: string, field: 'title' | 'content', value: string) => {
         if (projectName === "General") return; // Not supported on General yet
+
+        setIsDirty(true); // [FIX] Mark as dirty
 
         setEntry(prev => ({
             ...prev,
@@ -669,11 +832,14 @@ export default function DailyFollowUp() {
 
     const getAvailableProjectsToAdd = () => {
         let pool = globalProjects;
-        if (userRole !== 'app_admin' && userRole !== 'global_pm') {
+        console.log("DEBUG: projects pool size:", pool.length);
+        if (userRole !== 'superadmin' && userRole !== 'app_admin' && userRole !== 'global_pm') {
             const assignedIds = userProfile?.assignedProjectIds || [];
             pool = pool.filter(p => assignedIds.includes(p.id));
         }
-        return pool.filter(gp => !entry.projects.some(ep => ep.name === gp.name && ep.status !== 'trash'));
+        const final = pool.filter(gp => !entry.projects.some(ep => ep.name === gp.name && ep.status !== 'trash'));
+        console.log("DEBUG: available to add:", final.length);
+        return final;
     };
 
     // 6. Render
@@ -754,9 +920,18 @@ export default function DailyFollowUp() {
 
                         if (isRegistering) {
                             const confirmPassword = formData.get('confirmPassword') as string;
-                            if (!name) return alert("El nombre es requerido");
-                            if (password !== confirmPassword) return alert("Las contraseñas no coinciden");
-                            if (password.length < 6) return alert("La contraseña debe tener al menos 6 caracteres");
+                            if (!name) {
+                                showToast("Error", "El nombre es requerido", "error");
+                                return;
+                            }
+                            if (password !== confirmPassword) {
+                                showToast("Error", "Las contraseñas no coinciden", "error");
+                                return;
+                            }
+                            if (password.length < 6) {
+                                showToast("Error", "La contraseña debe tener al menos 6 caracteres", "error");
+                                return;
+                            }
 
                             if (registerWithEmail) {
                                 registerWithEmail(email, password, name).catch((err: any) => alert(err.message));
@@ -818,6 +993,22 @@ export default function DailyFollowUp() {
 
     return (
         <AppLayout viewMode={viewMode} onViewChange={setViewMode}>
+            {/* Tenant Missing Warning Banner */}
+            {user && !tenantId && (
+                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
+                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                    <div className="flex-1">
+                        <p className="text-sm font-bold text-amber-400">⚠️ Sin Organización Asignada</p>
+                        <p className="text-xs text-amber-300/80">
+                            Tu cuenta no tiene un <strong>Tenant</strong> asignado. Esto causa errores de permisos.
+                            Contacta a un administrador para que te asigne a una organización.
+                        </p>
+                        <p className="text-[10px] text-amber-500/60 mt-1 font-mono">
+                            UID: {user.uid} | Role: {userRole || 'unknown'} | TenantId: {tenantId || 'null'}
+                        </p>
+                    </div>
+                </div>
+            )}
             <div className="flex h-full gap-6 p-4 pt-2">
 
                 {/* LEFT SIDEBAR: Timeline (Vertical List) */}
@@ -840,8 +1031,12 @@ export default function DailyFollowUp() {
                                             id="timeline-date-picker"
                                             type="date"
                                             className="absolute top-0 right-0 opacity-0 w-0 h-0"
+                                            value={format(currentDate, 'yyyy-MM-dd')}
                                             onChange={(e) => {
-                                                if (e.target.valueAsDate) setCurrentDate(e.target.valueAsDate);
+                                                if (e.target.value) {
+                                                    const [y, m, d] = e.target.value.split('-').map(Number);
+                                                    setCurrentDate(new Date(y, m - 1, d));
+                                                }
                                             }}
                                         />
                                     </div>
@@ -972,13 +1167,32 @@ export default function DailyFollowUp() {
                                         <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
                                         <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}</span>
                                     </h2>
+                                    {userRole === 'superadmin' && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const tid = tenantId || "1";
+                                                    const did = format(currentDate, 'yyyy-MM-dd');
+                                                    const target = `${tid}_${did}`;
+                                                    alert(`Intentando leer: ${target}`);
+                                                    const snap = await getDoc(doc(db, "journal_entries", target));
+                                                    alert(`Resultado: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
+                                                } catch (e: any) {
+                                                    alert(`Error Lectura: ${e.message} code=${e.code}`);
+                                                }
+                                            }}
+                                            className="ml-4 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded"
+                                        >
+                                            TEST READ
+                                        </button>
+                                    )}
                                     {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className={cn("flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded transition-colors",
+                                        className={cn("flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded transition-colors relative",
                                             isLight
                                                 ? "bg-zinc-900 text-white hover:bg-black"
                                                 : "bg-white text-black hover:bg-zinc-200"
@@ -987,8 +1201,24 @@ export default function DailyFollowUp() {
                                         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                                         Guardar
                                     </button>
+                                    {isDirty && (
+                                        <div className="bg-red-600 text-white font-bold text-xs px-3 py-1 rounded animate-pulse">
+                                            ⚠️ NO GUARDADO
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={() => {
+                                            window.onbeforeunload = null;
+                                            alert("Warning Disabled Manually!");
+                                        }}
+                                        className="text-[9px] bg-red-900/50 text-white px-2 py-1 rounded hover:bg-red-800"
+                                    >
+                                        KILL WARNING
+                                    </button>
 
                                     {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
+                                    {/* Add Project Button State */}
+                                    {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
                                 </div>
                             </div>
 
@@ -1013,32 +1243,46 @@ export default function DailyFollowUp() {
                                             )}
                                         >
                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
-                                            {p.name}
+                                            {p.name || "Sin Nombre"}
                                         </button>
                                     );
                                 })}
 
-                                <div className="relative group ml-2 z-50">
-                                    <button className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
-                                        isLight
-                                            ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
-                                            : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
-                                    )}>
+                                <div className="relative ml-2 z-50">
+                                    <button
+                                        onClick={() => setIsAddProjectOpen(!isAddProjectOpen)}
+                                        className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
+                                            isLight
+                                                ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
+                                                : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
+                                        )}>
                                         <Plus className="w-3.5 h-3.5" /> Añadir Proyecto
                                     </button>
-                                    <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-zinc-800 rounded-xl shadow-2xl p-2 hidden group-hover:block max-h-64 overflow-y-auto custom-scrollbar z-50 ring-1 ring-white/10">
-                                        <div className="text-[10px] font-bold text-muted-foreground px-2 py-1 uppercase">Disponibles</div>
-                                        {getAvailableProjectsToAdd().map(gp => (
-                                            <button
-                                                key={gp.id}
-                                                onClick={() => addProject(gp)}
-                                                className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors"
-                                            >
-                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp.color || '#71717a' }} />
-                                                {gp.name}
-                                            </button>
-                                        ))}
-                                    </div>
+
+                                    {isAddProjectOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setIsAddProjectOpen(false)} />
+                                            <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-zinc-800 rounded-xl shadow-2xl p-2 max-h-64 overflow-y-auto custom-scrollbar z-50 ring-1 ring-white/10">
+                                                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1 uppercase">Disponibles ({getAvailableProjectsToAdd().length})</div>
+                                                {getAvailableProjectsToAdd().map(gp => (
+                                                    <button
+                                                        key={gp.id}
+                                                        onClick={() => {
+                                                            addProject(gp);
+                                                            setIsAddProjectOpen(false);
+                                                        }}
+                                                        className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors"
+                                                    >
+                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp.color || '#71717a' }} />
+                                                        {gp.name}
+                                                    </button>
+                                                ))}
+                                                {getAvailableProjectsToAdd().length === 0 && (
+                                                    <div className="text-xs text-zinc-500 px-2 py-2 italic text-center">No hay más proyectos disponibles</div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
@@ -1127,7 +1371,7 @@ export default function DailyFollowUp() {
                                                 <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
                                                 {activeTab === 'General' ? 'Todas las Tareas Activas' : `Tareas Activas: ${activeTab}`}
                                             </label>
-                                            {/* <button
+                                            <button
                                                 onClick={() => handleAI()}
                                                 disabled={isAILoading}
                                                 className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
@@ -1135,7 +1379,7 @@ export default function DailyFollowUp() {
                                             >
                                                 {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                                                 Extraer tareas
-                                            </button> */}
+                                            </button>
                                         </div>
 
                                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
@@ -1304,6 +1548,8 @@ export default function DailyFollowUp() {
                         <UserManagement />
                     ) : viewMode === 'user-roles' ? (
                         <UserRoleManagement />
+                    ) : viewMode === 'tenant-management' ? (
+                        <TenantManagement />
                     ) : viewMode === 'dashboard' ? (
                         <Dashboard
                             entry={entry}

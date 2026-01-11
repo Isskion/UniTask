@@ -1,22 +1,41 @@
 "use client";
 import { useState } from "react";
-import { migrateAllData, MigrationLog } from "@/lib/migration";
+import { migrateToMultiTenant, MigrationLog } from "@/lib/migration";
 import { Database, Play, AlertTriangle, CheckCircle } from "lucide-react";
+
+interface MigrationState {
+    totalWeeks: number;
+    processedWeeks: number;
+    projectsMigrated: number;
+    errors: string[];
+}
 
 export default function MigrationPage() {
     const [running, setRunning] = useState(false);
-    const [log, setLog] = useState<MigrationLog | null>(null);
+    const [log, setLog] = useState<MigrationState | null>(null);
     const [finished, setFinished] = useState(false);
 
     const handleRun = async () => {
-        if (!confirm("⚠️ This will scan all weekly entries and create duplicates in the new 'updates' subcollections. Continue?")) return;
+        if (!confirm("⚠️ This will assign tenantId='1' to all documents without a tenant. Continue?")) return;
 
         setRunning(true);
         setFinished(false);
         try {
-            await migrateAllData((progress) => {
-                setLog({ ...progress });
+            const progressState: MigrationState = { totalWeeks: 0, processedWeeks: 0, projectsMigrated: 0, errors: [] };
+            const results = await migrateToMultiTenant("1", (collection, progress, total) => {
+                progressState.totalWeeks = total;
+                progressState.processedWeeks = progress;
+                setLog({ ...progressState });
             });
+
+            // Summarize results
+            let totalMigrated = 0;
+            const allErrors: string[] = [];
+            Object.values(results).forEach(r => {
+                totalMigrated += r.updated;
+                allErrors.push(...r.errors);
+            });
+            setLog({ totalWeeks: Object.keys(results).length, processedWeeks: Object.keys(results).length, projectsMigrated: totalMigrated, errors: allErrors });
             setFinished(true);
         } catch (e) {
             console.error(e);

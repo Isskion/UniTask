@@ -19,11 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { Shield, Building2, Globe } from 'lucide-react';
 
-interface Tenant {
-    id: string;
-    name: string;
-    isActive?: boolean;
-}
+import { Tenant } from '@/types';
 
 interface TenantSelectorProps {
     onTenantChange?: (tenantId: string) => void;

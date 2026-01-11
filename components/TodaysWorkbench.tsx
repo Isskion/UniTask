@@ -14,7 +14,7 @@ interface TodaysWorkbenchProps {
 }
 
 export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: TodaysWorkbenchProps) {
-    const { user } = useAuth();
+    const { user, tenantId } = useAuth();
     const [notes, setNotes] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -24,7 +24,7 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
 
     useEffect(() => {
         // Subscribe to tasks for this project
-        const unsub = subscribeToAllTasks((allTasks) => {
+        const unsub = subscribeToAllTasks(tenantId || "1", (allTasks) => {
             const relevant = allTasks.filter(t =>
                 t.projectId === project.id &&
                 t.status === 'pending'
@@ -33,7 +33,7 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
             setTasksLoading(false);
         });
         return () => unsub();
-    }, [project.id]);
+    }, [project.id, tenantId]);
 
     const handlePost = async () => {
         if (!notes.trim()) return;
@@ -41,7 +41,8 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
 
         setIsSubmitting(true);
         try {
-            await createUpdate(project.id, {
+            // [UPDATED] Pass tenantId for security rules
+            await createUpdate(project.id, tenantId || "1", {
                 projectId: project.id,
                 date: new Date(),
                 type: 'daily',
