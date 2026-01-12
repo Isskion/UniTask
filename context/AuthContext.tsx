@@ -195,19 +195,62 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const legacyUserRole = viewContext ? getRoleString(viewContext.activeRole) : 'usuario_externo';
     const legacyTenantId = viewContext ? viewContext.activeTenantId : null;
 
+    // --- CLIENT-SIDE FALLBACK FOR USER CREATION ---
+    // This ensures the user document is created even if Cloud Functions (processUserClaims) fail or are not deployed.
+    const createUserProfile = async (user: User, name?: string) => {
+        try {
+            const { doc, setDoc, serverTimestamp, getDoc } = await import('firebase/firestore');
+            const { db } = await import('../lib/firebase');
+
+            const userRef = doc(db, "users", user.uid);
+            const snapshot = await getDoc(userRef);
+
+            if (!snapshot.exists()) {
+                console.log("[AuthContext] Creating user profile on client (Fallback)...");
+                await setDoc(userRef, {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: name || user.displayName || '',
+                    photoURL: user.photoURL || '',
+                    role: 'usuario_externo', // Default safe role
+                    roleLevel: 10,
+                    tenantId: "1",           // Default safe tenant
+                    isActive: false,         // Pending approval
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp()
+                });
+                console.log("[AuthContext] Client-side profile created.");
+            } else {
+                console.log("[AuthContext] User profile already exists.");
+            }
+        } catch (e) {
+            console.error("[AuthContext] Error creating client-side profile:", e);
+        }
+    };
+
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        if (result.user) {
+            await createUserProfile(result.user);
+        }
     };
 
     const loginWithEmail = async (e: string, p: string) => {
-        await signInWithEmailAndPassword(auth, e, p);
+        const result = await signInWithEmailAndPassword(auth, e, p);
+        // Fallback: Check/Create profile on login too, in case registration succeeded but DB failed
+        if (result.user) {
+            await createUserProfile(result.user);
+        }
     };
 
     const registerWithEmail = async (e: string, p: string, name?: string) => {
         const result = await createUserWithEmailAndPassword(auth, e, p);
-        if (name && result.user) {
-            await updateProfile(result.user, { displayName: name });
+        if (result.user) {
+            if (name) {
+                await updateProfile(result.user, { displayName: name });
+            }
+            await createUserProfile(result.user, name);
         }
     };
 
@@ -234,8 +277,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         </AuthContext.Provider>
     );
 };
-
-// --- HOOK PERSONALIZADO ---
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
