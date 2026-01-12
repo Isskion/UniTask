@@ -63,11 +63,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // Extracción defensiva de claims
                     let parsedRole = Number(claims.role);
+                    let realTenantId = (claims.tenantId as string);
+
+                    // --- HYDRATION FALLBACK (Fix for Vercel/No-Cloud-Functions) ---
+                    // If claims are missing, fetch from Firestore Profile
+                    if (isNaN(parsedRole) || !realTenantId) {
+                        try {
+                            const { doc, getDoc } = await import('firebase/firestore');
+                            // @ts-ignore
+                            const { db } = await import('../lib/firebase');
+
+                            const userDocRef = doc(db, 'users', currentUser.uid);
+                            const userSnapshot = await getDoc(userDocRef);
+
+                            if (userSnapshot.exists()) {
+                                const userData = userSnapshot.data();
+                                console.log("[AuthContext] Hydrating identity from Firestore:", userData);
+
+                                if (isNaN(parsedRole)) parsedRole = Number(userData.roleLevel || 10);
+                                if (!realTenantId) realTenantId = userData.tenantId || "1";
+                            }
+                        } catch (e) {
+                            console.error("[AuthContext] Failed to hydrate from Firestore", e);
+                        }
+                    }
+
                     if (isNaN(parsedRole)) {
                         parsedRole = getRoleLevel(claims.role as string);
                     }
                     const realRole = parsedRole || RoleLevel.EXTERNO;
-                    const realTenantId = (claims.tenantId as string) || "unknown";
+                    realTenantId = realTenantId || "unknown"; // Final fallback
 
                     const newIdentity: UserIdentity = {
                         uid: currentUser.uid,
