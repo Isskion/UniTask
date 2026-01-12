@@ -8,19 +8,29 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Get Real Role from Token Claims (Immutable from Client)
-    function getRealRole() {
-      // Default to 0 if role claim is missing
-      return request.auth.token.role != null ? request.auth.token.role : 0;
+    // --- HELPERS WITH FALLBACK ---
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Get Real TenantId from Token Claims
+    // Get Real Role: Prefer Token Claim, Fallback to Firestore Profile
+    function getRealRole() {
+      let tokenRole = request.auth.token.get('role', null);
+      return tokenRole != null 
+        ? tokenRole 
+        : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? getUserData().roleLevel : 0);
+    }
+
+    // Get Real TenantId: Prefer Token Claim, Fallback to Firestore Profile
     function getRealTenantId() {
-       return request.auth.token.tenantId;
+       let tokenTenant = request.auth.token.get('tenantId', null);
+       return tokenTenant != null 
+         ? tokenTenant 
+         : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? getUserData().tenantId : null);
     }
 
     function isSuperAdmin() {
-      // Robust check: matches number 100, string "100", or legacy "superadmin"
       return isAuthenticated() && (
         getRealRole() >= 100 || 
         request.auth.token.role == "100" ||
@@ -58,6 +68,15 @@ service cloud.firestore {
       );
     }
 
+    // --- NEW: INVITES RULES ---
+    // Explicitly allow handling invites despite lack of tenantId claims
+    match /invites/{code} {
+      allow read: if isAuthenticated();
+      // Allow user to mark as used
+      allow update: if isAuthenticated();
+      allow create: if isSuperAdmin() || isAuthenticated(); // Allow any auth user to create invites (controlled by UI)
+    }
+
     // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
     match /{collectionName}/{docId} {
       
@@ -83,13 +102,15 @@ service cloud.firestore {
     
     // Users Collection: Prevent Admin from seeing other tenants' users
     match /users/{userId} {
-      allow read: if isSuperAdmin() || 
+      // ALLOW READ SELF (Fixes "Chicken and Egg" - recursion avoidance: Check ID FIRST)
+      allow get: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+
+      // LIST: Restricted to tenant
+      allow list: if isSuperAdmin() || 
                   (isAuthenticated() && resource.data.tenantId == getRealTenantId());
       
-      // Privilege Escalation Check:
-      // An Admin (80) cannot create a user with Role >= 80 (or 100) unless logic allows, 
-      // but definitively cannot create a Superadmin.
-      allow write: if isSuperAdmin() || (request.auth != null && request.auth.uid == userId);
+      // WRITE: Self-edit or SuperAdmin
+      allow write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
     }
   }
 }

@@ -1563,7 +1563,8 @@ export default function DailyFollowUp() {
                 </div>
 
                 {/* ADMIN DIAGNOSTIC PANEL */}
-                {user?.email?.toLowerCase() === 'argoss01@gmail.com' && <FirebaseDiagnostic />}
+                {/* ADMIN DIAGNOSTIC PANEL - Enabled for debugging */}{" "}
+                {<FirebaseDiagnostic />}
             </div>
         </AppLayout >
     );

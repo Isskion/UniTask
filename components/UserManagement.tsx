@@ -8,6 +8,7 @@ import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
 import { Loader2, Plus, User, Search, RefreshCw, Save, Trash2, Mail, Shield, ShieldCheck, Check, Info, Briefcase, Building, AlertTriangle, UserRound, Globe, Database, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy } from "lucide-react";
 import { createInvite, getAllInvites, InviteCode } from "@/lib/invites";
+import InviteWizard from "./InviteWizard";
 
 import { WeeklyEntry, ProjectEntry, UserProfile as UserData, RoleLevel, getRoleLevel } from "@/types"; // Alias for minimal refactor impact
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ export default function UserManagement() {
     const [updating, setUpdating] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'users' | 'invites'>('users');
     const [generatingInvite, setGeneratingInvite] = useState(false);
+    const [showInviteWizard, setShowInviteWizard] = useState(false);
 
     // Edit Modal State
     const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -955,11 +957,10 @@ export default function UserManagement() {
                                 <p className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-400")}>Genera enlaces de un solo uso para registro automático.</p>
                             </div>
                             <button
-                                onClick={handleCreateInvite}
-                                disabled={generatingInvite}
-                                className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-900/20 disabled:opacity-50"
+                                onClick={() => setShowInviteWizard(true)}
+                                className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-900/20"
                             >
-                                {generatingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                <Plus className="w-4 h-4" />
                                 Generar Nueva
                             </button>
                         </div>
@@ -1090,6 +1091,17 @@ export default function UserManagement() {
                     </div>
                 </div>
             )}
+            {/* Security Prompt is above */}
+
+            {/* Invite Wizard Modal */}
+            <InviteWizard
+                isOpen={showInviteWizard}
+                onClose={() => setShowInviteWizard(false)}
+                onSuccess={() => {
+                    loadData();
+                    // Optional: keep wizard open or close it? Close for now.
+                }}
+            />
         </div>
     );
 }

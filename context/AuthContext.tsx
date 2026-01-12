@@ -228,26 +228,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const { db } = await import('../lib/firebase'); // Keep dynamic if circular dep risk, else move up. 
             // Actually, let's use the exported 'db' from top of file if possible, or dynamic is safer for Context.
 
-            const { doc, setDoc, serverTimestamp, getDoc } = await import('firebase/firestore');
+            const { doc, setDoc, serverTimestamp, getDoc, updateDoc } = await import('firebase/firestore');
+
+            // 1. Check for Invite Code
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteCode = urlParams.get('invite');
+            let inviteData: any = null;
+
+            if (inviteCode) {
+                console.log(`[AuthContext] Found invite code: ${inviteCode}`);
+                const inviteRef = doc(db, "invites", inviteCode);
+                const inviteSnap = await getDoc(inviteRef);
+                if (inviteSnap.exists() && !inviteSnap.data().isUsed) {
+                    inviteData = inviteSnap.data();
+                }
+            }
 
             const userRef = doc(db, "users", user.uid);
             const snapshot = await getDoc(userRef);
 
             if (!snapshot.exists()) {
                 console.log("[AuthContext] Creating user profile on client (Fallback)...");
+
+                // 2. Determine Initial Data (Invite vs Default)
+                const finalRole = inviteData?.role || 'usuario_externo';
+                const finalTenantId = inviteData?.tenantId || "1";
+                const finalProjects = inviteData?.assignedProjectIds || [];
+                const autoActive = !!inviteData;
+
                 await setDoc(userRef, {
                     uid: user.uid,
                     email: user.email,
                     displayName: name || user.displayName || '',
                     photoURL: user.photoURL || '',
-                    role: 'usuario_externo',
-                    roleLevel: 10,
-                    tenantId: "1",
-                    isActive: false,
+                    role: finalRole,
+                    roleLevel: getRoleLevel(finalRole),
+                    tenantId: finalTenantId,
+                    assignedProjectIds: finalProjects,
+                    isActive: autoActive,
                     createdAt: serverTimestamp(),
                     lastLogin: serverTimestamp()
                 });
-                alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE (Fallback)");
+
+                // 3. Consume Invite
+                if (inviteCode && inviteData) {
+                    const inviteRef = doc(db, "invites", inviteCode);
+                    await updateDoc(inviteRef, {
+                        isUsed: true,
+                        usedAt: serverTimestamp(),
+                        usedBy: user.uid
+                    });
+                }
+
+                alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE (Invitación Procesada)");
+
+                if (inviteCode) {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.replaceState({ path: newUrl }, "", newUrl);
+                }
+
                 window.location.reload(); // Refresh to load permissions
             } else {
                 console.log("[AuthContext] User profile already exists.");

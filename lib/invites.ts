@@ -10,6 +10,8 @@ export interface InviteCode {
     isUsed: boolean;
     expiresAt?: any; // Optional expiration
     tenantId: string; // Target Tenant for the new user
+    role: string;    // [NEW] Target Role
+    assignedProjectIds: string[]; // [NEW] Target Projects
 }
 
 const INVITES_COLLECTION = "invites";
@@ -27,16 +29,21 @@ function generateCode(length = 8): string {
 }
 
 /**
- * Creates a new one-time invite code
+ * Creates a new one-time invite code with specific permissions
  */
-export async function createInvite(adminUid: string, tenantId: string = "1"): Promise<string> {
+export async function createInvite(
+    adminUid: string,
+    tenantId: string = "1",
+    role: string = "usuario_externo",
+    assignedProjectIds: string[] = []
+): Promise<string> {
     const code = generateCode();
     const inviteRef = doc(db, INVITES_COLLECTION, code);
 
     // Ensure uniqueness (extremely unlikely to collide, but good practice)
     const existing = await getDoc(inviteRef);
     if (existing.exists()) {
-        return createInvite(adminUid, tenantId); // Retry if exists
+        return createInvite(adminUid, tenantId, role, assignedProjectIds); // Retry if exists
     }
 
     const inviteData: InviteCode = {
@@ -44,7 +51,9 @@ export async function createInvite(adminUid: string, tenantId: string = "1"): Pr
         createdBy: adminUid,
         createdAt: serverTimestamp(),
         isUsed: false,
-        tenantId
+        tenantId,
+        role,
+        assignedProjectIds
     };
 
     await setDoc(inviteRef, inviteData);
