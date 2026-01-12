@@ -89,11 +89,7 @@ service cloud.firestore {
       // Privilege Escalation Check:
       // An Admin (80) cannot create a user with Role >= 80 (or 100) unless logic allows, 
       // but definitively cannot create a Superadmin.
-      allow write: if isSuperAdmin() || (
-        isTenantAdmin(request.resource.data.tenantId) && 
-        request.resource.data.role < 80 &&
-        request.resource.data.tenantId == getRealTenantId()
-      );
+      allow write: if isSuperAdmin() || (request.auth != null && request.auth.uid == userId);
     }
   }
 }

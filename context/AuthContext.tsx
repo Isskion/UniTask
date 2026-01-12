@@ -196,11 +196,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const legacyTenantId = viewContext ? viewContext.activeTenantId : null;
 
     // --- CLIENT-SIDE FALLBACK FOR USER CREATION ---
-    // This ensures the user document is created even if Cloud Functions (processUserClaims) fail or are not deployed.
     const createUserProfile = async (user: User, name?: string) => {
         try {
+            // Use top-level imports or standard firestore instance
+            // @ts-ignore
+            const { db } = await import('../lib/firebase'); // Keep dynamic if circular dep risk, else move up. 
+            // Actually, let's use the exported 'db' from top of file if possible, or dynamic is safer for Context.
+
             const { doc, setDoc, serverTimestamp, getDoc } = await import('firebase/firestore');
-            const { db } = await import('../lib/firebase');
 
             const userRef = doc(db, "users", user.uid);
             const snapshot = await getDoc(userRef);
@@ -212,19 +215,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     email: user.email,
                     displayName: name || user.displayName || '',
                     photoURL: user.photoURL || '',
-                    role: 'usuario_externo', // Default safe role
+                    role: 'usuario_externo',
                     roleLevel: 10,
-                    tenantId: "1",           // Default safe tenant
-                    isActive: false,         // Pending approval
+                    tenantId: "1",
+                    isActive: false,
                     createdAt: serverTimestamp(),
                     lastLogin: serverTimestamp()
                 });
-                console.log("[AuthContext] Client-side profile created.");
+                alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE (Fallback)");
+                window.location.reload(); // Refresh to load permissions
             } else {
                 console.log("[AuthContext] User profile already exists.");
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("[AuthContext] Error creating client-side profile:", e);
+            alert("❌ ERROR CREANDO PERFIL: " + e.message);
         }
     };
 
