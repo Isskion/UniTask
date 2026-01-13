@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { VersionBadge } from "@/components/VersionBadge"; // Moved import to top
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -98,13 +99,18 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
             <div className="flex flex-1 overflow-hidden">
                 {/* SIDEBAR (Desktop) */}
                 <aside className="w-64 flex flex-col border-r border-border bg-card/50">
+
+
                     {/* Header / User */}
                     <div className="h-14 flex items-center px-4 border-b border-border gap-3">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                             <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain theme-logo" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
+                                <VersionBadge />
+                            </div>
                             <p className="text-[10px] text-muted-foreground truncate">Consultant Workspace</p>
                         </div>
                     </div>

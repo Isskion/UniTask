@@ -5,41 +5,70 @@ import { collection, getDocs, writeBatch, doc, setDoc, getDoc, deleteDoc } from 
  * WIPES all Business Data for a fresh start.
  * ...
  */
-export const resetDatabase = async () => {
-    // ... content same as before ... 
-    // Note: I am rewriting this file, so I need to include previous logic or just append/modify.
-    // I will rewrite the whole file to be safe and include migrateUsers.
-    try {
-        console.warn("⚠️ STARTING DATABASE RESET...");
-        const collectionsToWipe = ["tasks", "projects", "journal_entries", "weekly_entries"];
+export interface WipeOptions {
+    tasks?: boolean;
+    journal?: boolean;
+    projects?: boolean;
+    tenants?: boolean;
+    tenantIdFilter?: string | null; // NEW: Constraint for non-superadmins
+}
 
-        for (const colName of collectionsToWipe) {
-            await deleteCollection(colName);
+/**
+ * WIPES selected Business Data for a fresh start.
+ */
+export const resetDatabase = async (options: WipeOptions = { tasks: true, journal: true, projects: true, tenants: false }) => {
+    try {
+        console.warn("⚠️ STARTING DATABASE RESET with options:", options);
+
+        // --- CRITICAL SAFETY CHECK ---
+        // Prevent execution on Production Project ID
+        // @ts-ignore - _databaseId is internal but reliable, or use app.options
+        const projectId = db.app.options.projectId;
+        if (projectId === "unitask-v1") {
+            throw new Error("⛔ FATAL SAFETY ERROR: Cannot wipe data on PRODUCTION project (unitask-v1). Action Aborted.");
+        }
+        // -----------------------------
+
+        // 1. Tasks (Safe-ish)
+        if (options.tasks) {
+            await deleteCollection("tasks", options.tenantIdFilter);
         }
 
-        console.log("Cleaning tenants (preserving '1')...");
-        const tenantsSnapshot = await getDocs(collection(db, "tenants"));
+        // 2. Journal/History (Safe-ish)
+        if (options.journal) {
+            await deleteCollection("journal_entries", options.tenantIdFilter);
+            await deleteCollection("weekly_entries", options.tenantIdFilter);
+        }
 
-        if (!tenantsSnapshot.empty) {
-            const batch = writeBatch(db);
-            let deletedTenants = 0;
+        // 3. Projects (DESTRUCTIVE)
+        if (options.projects) {
+            await deleteCollection("projects", options.tenantIdFilter);
+        }
 
-            for (const d of tenantsSnapshot.docs) {
-                if (d.id !== "1") {
-                    batch.delete(d.ref);
-                    deletedTenants++;
+        // 4. Tenants (NUCLEAR)
+        if (options.tenants) {
+            console.log("Cleaning tenants (preserving '1')...");
+            const tenantsSnapshot = await getDocs(collection(db, "tenants"));
+            if (!tenantsSnapshot.empty) {
+                const batch = writeBatch(db);
+                let deletedTenants = 0;
+                for (const d of tenantsSnapshot.docs) {
+                    if (d.id !== "1") {
+                        batch.delete(d.ref);
+                        deletedTenants++;
+                    }
+                }
+                if (deletedTenants > 0) {
+                    await batch.commit();
+                    console.log(`✅ Deleted ${deletedTenants} tenants.`);
                 }
             }
-            if (deletedTenants > 0) {
-                await batch.commit();
-                console.log(`✅ Deleted ${deletedTenants} tenants.`);
-            }
+            // Reset counters only if tenants are wiped? Or maybe we keep counters?
+            // Usually if we wipe tenants we want to reset the tenant ID counter.
+            await setDoc(doc(db, "system", "counters"), { tenants: 2 }, { merge: true });
         }
 
-        await setDoc(doc(db, "system", "counters"), { tenants: 2 }, { merge: true });
-        console.log("✅ System counters reset to 2.");
-
-        return { success: true, message: "Base de datos inicializada." };
+        return { success: true, message: "Datos seleccionados eliminados correctamente." };
 
     } catch (error) {
         console.error("❌ Reset failed:", error);
@@ -47,10 +76,22 @@ export const resetDatabase = async () => {
     }
 };
 
-const deleteCollection = async (collectionName: string) => {
-    // ... same as before
-    const ref = collection(db, collectionName);
-    const snapshot = await getDocs(ref);
+import { query, where } from "firebase/firestore"; // Ensure import
+
+const deleteCollection = async (collectionName: string, tenantId?: string | null) => {
+    console.log(`Deleting ${collectionName} (Filter: ${tenantId || 'ALL'})...`);
+
+    let q;
+    if (tenantId) {
+        // Safe Delete: Only delete documents belonging to this tenant
+        // This satisfies the "allow list if tenantId matches" rule
+        q = query(collection(db, collectionName), where("tenantId", "==", tenantId));
+    } else {
+        // Superadmin Wipe: Delete everything
+        q = collection(db, collectionName);
+    }
+
+    const snapshot = await getDocs(q);
     if (snapshot.empty) return;
 
     const batchSize = 400;
