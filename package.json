@@ -1,12 +1,15 @@
 {
   "name": "weekly-tracker",
-  "version": "0.2.0",
+  "version": "12.2.0-test",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:emulators": "concurrently \"firebase emulators:start --project demo-unitask\" \"npx cross-env NEXT_PUBLIC_USE_EMULATOR=true next dev\"",
+    "db:backup": "npx tsx scripts/backup_prod.ts",
+    "db:seed": "npx tsx scripts/seed_emulator.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
@@ -24,6 +27,7 @@
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.6.0",
     "tailwind-merge": "^3.4.0"
   },
@@ -33,6 +37,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "firebase-tools": "^15.2.1",
