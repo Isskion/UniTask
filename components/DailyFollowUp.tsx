@@ -27,6 +27,7 @@ import { getActiveProjects } from "@/lib/projects";
 
 import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
+import ChangelogModal from "./ChangelogModal"; // Added import
 
 
 
@@ -146,6 +147,7 @@ export default function DailyFollowUp() {
 
     // --- STATE: DIRTY (Unsaved Changes) ---
     const [isDirty, setIsDirty] = useState(false);
+    const [showChangelog, setShowChangelog] = useState(false); // Added state
 
     // Prevent accidental navigation if unsaved
     // [DEBUG] Disabling listener to see if warning persists.
@@ -992,7 +994,11 @@ export default function DailyFollowUp() {
     }
 
     return (
-        <AppLayout viewMode={viewMode} onViewChange={setViewMode}>
+        <AppLayout
+            viewMode={viewMode}
+            onViewChange={setViewMode}
+            onOpenChangelog={() => setShowChangelog(true)}
+        >
             {/* Tenant Missing Warning Banner */}
             {user && !tenantId && (
                 <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
@@ -1566,6 +1572,11 @@ export default function DailyFollowUp() {
                 {/* ADMIN DIAGNOSTIC PANEL - Enabled for debugging */}{" "}
                 {<FirebaseDiagnostic />}
             </div>
+
+            <ChangelogModal
+                isOpen={showChangelog}
+                onClose={() => setShowChangelog(false)}
+            />
         </AppLayout >
     );
 }

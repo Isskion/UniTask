@@ -191,8 +191,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <span className="text-[10px] bg-red-900/50 px-2 py-0.5 rounded text-white font-mono border border-red-500/20">
                                     {userRole || 'No Role'}
                                 </span>
-                                <VersionBadge onClick={onOpenChangelog} />
-                                <span className="text-xs text-red-500 font-bold">DEBUG</span>
+                                {onOpenChangelog && <VersionBadge onClick={onOpenChangelog} />}
                             </div>
                         </div>
 
