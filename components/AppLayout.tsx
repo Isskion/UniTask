@@ -24,11 +24,13 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { VersionBadge } from "@/components/VersionBadge"; // Added import
 
 interface AppLayoutProps {
     children: React.ReactNode;
     viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management';
     onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management') => void;
+    onOpenChangelog?: () => void; // Added prop
 }
 
 import { useUI } from "@/context/UIContext"; // Import Context
@@ -36,7 +38,7 @@ import { useToast } from "@/context/ToastContext";
 
 
 
-export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) {
+export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }: AppLayoutProps) {
     const { user, logout, userRole } = useAuth();
     const { can } = usePermissions();
     const { toggleCommandMenu } = useUI(); // Use Context hook
@@ -189,6 +191,7 @@ export function AppLayout({ children, viewMode, onViewChange }: AppLayoutProps) 
                                 <span className="text-[10px] bg-red-900/50 px-2 py-0.5 rounded text-white font-mono border border-red-500/20">
                                     {userRole || 'No Role'}
                                 </span>
+                                {onOpenChangelog && <VersionBadge onClick={onOpenChangelog} />}
                             </div>
                         </div>
 

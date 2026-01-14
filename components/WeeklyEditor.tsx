@@ -9,6 +9,7 @@ import TaskList from "./TaskList";
 import TaskManagement from "./TaskManagement"; // Added
 import UserRoleManagement from "./UserRoleManagement";
 import { AppLayout } from "./AppLayout";
+import ChangelogModal from "./ChangelogModal"; // Added import
 import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
@@ -43,6 +44,7 @@ async function fetchExistingIdsClient(tenantId: string = "1") {
 }
 
 export default function WeeklyEditor() {
+    const [showChangelog, setShowChangelog] = useState(false); // Added state
     const { userRole, user, loading: authLoading, tenantId, viewContext } = useAuth(); // [FIX] Added viewContext
     const { addDoc } = useSafeFirestore(); // Safe Hook
     const { showToast } = useToast();
@@ -809,7 +811,11 @@ export default function WeeklyEditor() {
     }
 
     return (
-        <AppLayout viewMode={viewMode} onViewChange={handleViewSwitch}>
+        <AppLayout
+            viewMode={viewMode}
+            onViewChange={handleViewSwitch}
+            onOpenChangelog={() => setShowChangelog(true)} // Connected prop
+        >
             <div className="flex h-full gap-6 p-4 pt-2">
 
                 {/* LEFT SIDEBAR: Week Navigation (Only in Editor Mode) */}
@@ -1296,6 +1302,11 @@ export default function WeeklyEditor() {
                     </div>
                 </div>
             )}
+            {/* Changelog Modal */}
+            <ChangelogModal
+                isOpen={showChangelog}
+                onClose={() => setShowChangelog(false)}
+            />
         </AppLayout >
     );
 }
