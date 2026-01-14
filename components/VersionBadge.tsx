@@ -13,7 +13,7 @@ export function VersionBadge({ onClick }: VersionBadgeProps) {
         <button
             onClick={onClick}
             className={cn(
-                "hidden md:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all border",
+                "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all border",
                 "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 hover:bg-indigo-500/20"
             )}
         >
