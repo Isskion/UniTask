@@ -1569,8 +1569,7 @@ export default function DailyFollowUp() {
                 </div>
 
                 {/* ADMIN DIAGNOSTIC PANEL */}
-                {/* ADMIN DIAGNOSTIC PANEL - Enabled for debugging */}{" "}
-                {<FirebaseDiagnostic />}
+                {userRole === 'superadmin' && <FirebaseDiagnostic />}
             </div>
 
             <ChangelogModal
