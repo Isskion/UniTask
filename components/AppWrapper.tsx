@@ -8,7 +8,7 @@ import { UIProvider } from "@/context/UIContext";
 import { ToastProvider } from "@/context/ToastContext";
 
 export default function AppWrapper() {
-    const { user, loading, loginWithGoogle } = useAuth();
+    const { user, loading, loginWithGoogle, userRole } = useAuth();
 
     if (loading) {
         return (
@@ -50,7 +50,7 @@ export default function AppWrapper() {
                         Contacta con soporte si no tienes acceso.
                     </p>
                 </div>
-                <FirebaseDiagnostic />
+                {/* Login screen diagnostic hidden for security */}
             </div>
         );
     }
@@ -59,7 +59,7 @@ export default function AppWrapper() {
         <UIProvider>
             <ToastProvider>
                 <WeeklyEditor />
-                <FirebaseDiagnostic />
+                {userRole === 'superadmin' && <FirebaseDiagnostic />}
             </ToastProvider>
         </UIProvider>
     );
