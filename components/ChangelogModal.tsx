@@ -12,9 +12,7 @@ interface ChangelogModalProps {
 }
 
 export default function ChangelogModal({ isOpen, onClose }: ChangelogModalProps) {
-    // Basic Theme Hook Fallback since hooks might differ in versions
-    // Assuming useTheme exists based on imports, if not we default roughly
-    const theme = 'dark';
+    const { theme } = useTheme();
     const isLight = theme === 'light';
 
     if (!isOpen) return null;
