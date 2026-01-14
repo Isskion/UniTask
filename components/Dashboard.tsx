@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { JournalEntry, Task, UserProfile } from '@/types';
+import { JournalEntry, Task, UserProfile, getRoleLevel, RoleLevel } from '@/types';
 import { Activity, AlertTriangle, Zap, Ban, CheckCircle2, Circle, TrendingUp, BarChart3, Layers, Calendar, CalendarDays, Filter } from 'lucide-react';
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
@@ -67,7 +67,9 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
 
     // Calculate Allowed Projects
     const allowedProjectIds = useMemo(() => {
-        if (userRole === 'app_admin' || userRole === 'global_pm') return null; // All projects allowed
+        const currentLevel = getRoleLevel(userRole);
+        if (currentLevel >= RoleLevel.PM) return null; // All projects allowed
+
         return userProfile?.assignedProjectIds || [];
     }, [userRole, userProfile]);
 

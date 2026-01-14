@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Shield, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, MapPin, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project, Tenant } from "@/types";
+import { Project, Tenant, getRoleLevel, RoleLevel } from "@/types";
 import { useToast } from "@/context/ToastContext";
 
 // New Components
@@ -52,8 +52,10 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     }, [autoFocusCreate, canCreate]);
 
     useEffect(() => {
-        // Fetch User Profile if we need it for filtering
-        if (user && userRole !== 'app_admin' && userRole !== 'global_pm') {
+        // Fetch User Profile if we need it for filtering (Assume Admin/PM doesn't need assignment filtering)
+        const roleLevel = getRoleLevel(userRole);
+
+        if (user && roleLevel < RoleLevel.PM) {
             getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
                 .then(snap => {
                     if (!snap.empty) {

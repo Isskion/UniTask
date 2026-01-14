@@ -27,7 +27,8 @@ import { getActiveProjects } from "@/lib/projects";
 
 import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
-import ChangelogModal from "./ChangelogModal"; // Added import
+import ChangelogModal from "./ChangelogModal";
+import { getRoleLevel, RoleLevel } from "@/types"; // Added import // Added import
 
 
 
@@ -690,7 +691,11 @@ export default function DailyFollowUp() {
     // 5. Helpers
     const getVisibleProjects = () => {
         const activeOnly = entry.projects.filter(p => p.status !== 'trash');
-        if (userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'global_pm') return activeOnly;
+
+        // [FIX] Use RoleLevel for case-insensitive check (Global_pm vs global_pm)
+        const currentLevel = getRoleLevel(userRole);
+        if (currentLevel >= RoleLevel.PM) return activeOnly; // Admin/PM see all
+
         if (!userProfile) return [];
 
         const assignedIds = userProfile.assignedProjectIds || [];

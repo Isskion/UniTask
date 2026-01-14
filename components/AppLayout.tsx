@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
-import { VersionBadge } from "@/components/VersionBadge"; // Added import
+import { VersionBadge } from "@/components/VersionBadge";
+import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -48,8 +49,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
     // Check if user can manage permissions (with legacy role fallback)
     const canManagePermissions = can('managePermissions', 'special') ||
-        userRole === 'app_admin' ||
-        userRole === 'global_pm';
+        getRoleLevel(userRole) >= RoleLevel.PM;
 
     const NavItem = ({
         mode,
