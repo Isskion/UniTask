@@ -1208,25 +1208,7 @@ export default function DailyFollowUp() {
                                         <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
                                         <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}</span>
                                     </h2>
-                                    {userRole === 'superadmin' && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const tid = tenantId || "1";
-                                                    const did = format(currentDate, 'yyyy-MM-dd');
-                                                    const target = `${tid}_${did}`;
-                                                    alert(`Intentando leer: ${target}`);
-                                                    const snap = await getDoc(doc(db, "journal_entries", target));
-                                                    alert(`Resultado: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
-                                                } catch (e: any) {
-                                                    alert(`Error Lectura: ${e.message} code=${e.code}`);
-                                                }
-                                            }}
-                                            className="ml-4 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded"
-                                        >
-                                            TEST READ
-                                        </button>
-                                    )}
+
                                     {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
                                 </div>
                                 <div className="flex items-center gap-2">
