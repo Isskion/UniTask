@@ -77,26 +77,32 @@ service cloud.firestore {
       allow create: if isSuperAdmin() || isAuthenticated(); // Allow any auth user to create invites (controlled by UI)
     }
 
+    // Permission Groups: Essential for RBAC
+    match /permission_groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
     // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
     match /{collectionName}/{docId} {
       
       // READ: Superadmin Bypass OR matching tenant
-      // We assume documents have a 'tenantId' field.
+      // Note: We use .get('tenantId', '1') to fallback to tenant 1 for legacy docs
       allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
+                  (isAuthenticated() && resource.data.get('tenantId', '1') == getRealTenantId());
 
       // CREATE: 
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
         // Standard User: Must write to their OWN tenant
-        (request.resource.data.tenantId == getRealTenantId())
+        (request.resource.data.get('tenantId', '1') == getRealTenantId())
       );
 
       // UPDATE/DELETE:
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
         // Standard User: Can only touch data in their tenant AND ensure it stays in their tenant
-        (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+        (resource.data.get('tenantId', '1') == getRealTenantId() && request.resource.data.get('tenantId', '1') == getRealTenantId())
       );
     }
     

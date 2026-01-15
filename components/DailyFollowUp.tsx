@@ -13,7 +13,7 @@ import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalE
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, CalendarClock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
@@ -24,6 +24,7 @@ import Dashboard from "./Dashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
 import { getActiveProjects } from "@/lib/projects";
+import { moveProjectToDate } from "@/lib/project-mover";
 
 import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
@@ -143,6 +144,11 @@ export default function DailyFollowUp() {
     // --- STATE: AUTH UI ---
     const [isRegistering, setIsRegistering] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    // --- STATE: MOVE PROJECT ---
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [moveTargetDate, setMoveTargetDate] = useState("");
+    const [isMovingProject, setIsMovingProject] = useState(false);
 
     // --- STATE: DIRTY (Unsaved Changes) ---
     const [isDirty, setIsDirty] = useState(false);
@@ -470,7 +476,7 @@ export default function DailyFollowUp() {
                     date: entry.date,
                     tenantId: targetTenantId,
                     projects: projects,
-                    generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
+                    generalNotes: projects.length === 0 ? (entry.generalNotes || "") : "", // Only save general notes if no projects
                     createdAt: entry.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -683,6 +689,41 @@ export default function DailyFollowUp() {
 
     const handleDismissSuggestion = (taskDesc: string) => {
         setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
+    };
+
+    const handleMoveProject = async () => {
+        if (!moveTargetDate) {
+            showToast("Error", "Selecciona una fecha destino", "error");
+            return;
+        }
+
+        if (activeTab === 'General') return;
+
+        setIsMovingProject(true);
+        try {
+            const result = await moveProjectToDate(
+                tenantId || "1",
+                entry.date, // Source
+                moveTargetDate, // Target
+                activeTab // Project Name
+            );
+
+            if (result.success) {
+                showToast("Éxito", result.message, "success");
+                setShowMoveModal(false);
+                // Reload current data to reflect removal
+                loadData(currentDate);
+                // Ideally reload the target date too if we were viewing it, but navigation is manual.
+                // Switch to General or remove tab?
+                setActiveTab("General");
+            } else {
+                showToast("Error", result.message, "error");
+            }
+        } catch (e: any) {
+            showToast("Error", e.message || "Error al mover proyecto", "error");
+        } finally {
+            setIsMovingProject(false);
+        }
     };
 
     // 5. Helpers
@@ -1189,6 +1230,21 @@ export default function DailyFollowUp() {
                                     {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    {/* MOVE PROJECT BUTTON */}
+                                    {activeTab !== 'General' && (userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'global_pm') && (
+                                        <button
+                                            onClick={() => setShowMoveModal(true)}
+                                            className={cn("flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded transition-colors mr-2 border",
+                                                isLight
+                                                    ? "bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100"
+                                                    : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+                                            )}
+                                            title="Mover Proyecto a otra fecha"
+                                        >
+                                            <CalendarClock className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">Mover</span>
+                                        </button>
+                                    )}
                                     <button
                                         onClick={handleSave}
                                         disabled={saving}
@@ -1565,6 +1621,54 @@ export default function DailyFollowUp() {
                 {/* ADMIN DIAGNOSTIC PANEL */}
                 {/* ADMIN DIAGNOSTIC PANEL - Enabled for debugging */}{" "}
                 {<FirebaseDiagnostic />}
+
+                {/* Move Project Modal */}
+                {showMoveModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                        <div className="bg-card border border-border rounded-2xl shadow-2xl p-6 max-w-sm w-full animate-in zoom-in-95">
+                            <h3 className={cn("text-lg font-bold mb-2 flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                <CalendarClock className="w-5 h-5 text-indigo-500" />
+                                Mover Proyecto
+                            </h3>
+                            <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                                Mover <strong>"{activeTab}"</strong> y sus tareas a otra fecha.
+                            </p>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className={cn("text-xs font-bold uppercase", isLight ? "text-zinc-500" : "text-zinc-500")}>Fecha Destino</label>
+                                    <input
+                                        type="date"
+                                        className={cn("w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none",
+                                            isLight ? "bg-white text-black border-zinc-300" : "bg-black text-white border-white/10"
+                                        )}
+                                        onChange={(e) => setMoveTargetDate(e.target.value)}
+                                        min={format(new Date(), 'yyyy-MM-dd')}
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-3 pt-2">
+                                    <button
+                                        onClick={() => setShowMoveModal(false)}
+                                        className={cn("px-4 py-2 text-sm font-medium transition-colors",
+                                            isLight ? "text-zinc-500 hover:text-black" : "text-zinc-400 hover:text-white"
+                                        )}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleMoveProject}
+                                        disabled={isMovingProject || !moveTargetDate}
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-lg flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isMovingProject && <Loader2 className="w-3 h-3 animate-spin" />}
+                                        Mover
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout >
     );
