@@ -140,8 +140,8 @@ export default function DailyFollowUp() {
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
     const [aiSummary, setAiSummary] = useState<string>("");
 
-    // --- STATE: MANUAL TASK ---
     const [newTaskText, setNewTaskText] = useState("");
+    const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
 
     // --- STATE: AUTH UI ---
     const [isRegistering, setIsRegistering] = useState(false);
@@ -678,9 +678,19 @@ export default function DailyFollowUp() {
         window.addEventListener('switch-project', asAny(handleSwitchProject));
         window.addEventListener('open-new-project-modal', handleOpenNewProject);
 
+        const handleOpenTask = (e: CustomEvent) => {
+            const { taskId } = e.detail;
+            if (taskId) {
+                setPendingTaskId(taskId);
+                setViewMode('task-manager');
+            }
+        };
+        window.addEventListener('open-task', asAny(handleOpenTask));
+
         return () => {
             window.removeEventListener('switch-project', asAny(handleSwitchProject));
             window.removeEventListener('open-new-project-modal', handleOpenNewProject);
+            window.removeEventListener('open-task', asAny(handleOpenTask));
         };
     }, [entry.projects, viewMode, activeTab]); // Dependencies
 
@@ -1560,7 +1570,7 @@ export default function DailyFollowUp() {
                             permissionLoading={profileLoading}
                         />
                     ) : viewMode === 'task-manager' ? (
-                        <TaskManagement />
+                        <TaskManagement initialTaskId={pendingTaskId} />
                     ) : viewMode === 'users' ? (
                         <UserManagement />
                     ) : viewMode === 'user-roles' ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth } from '../lib/firebase'; // Fixed path to lib/firebase
+import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
 import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { RoleLevel, getRoleLevel } from '../types'; // Imported from types.ts (DRY)
 
@@ -69,9 +69,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // If claims are missing, fetch from Firestore Profile
                     if (isNaN(parsedRole) || !realTenantId) {
                         try {
+                            // Use static imports for reliability
                             const { doc, getDoc } = await import('firebase/firestore');
-                            // @ts-ignore
-                            const { db } = await import('../lib/firebase');
 
                             const userDocRef = doc(db, 'users', currentUser.uid);
                             const userSnapshot = await getDoc(userDocRef);
@@ -223,11 +222,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // --- CLIENT-SIDE FALLBACK FOR USER CREATION ---
     const createUserProfile = async (user: User, name?: string) => {
         try {
-            // Use top-level imports or standard firestore instance
-            // @ts-ignore
-            const { db } = await import('../lib/firebase'); // Keep dynamic if circular dep risk, else move up. 
-            // Actually, let's use the exported 'db' from top of file if possible, or dynamic is safer for Context.
-
+            // Use static db
+            // Use dynamic import for Firestore functions only for code splitting if desired, but consistency is better
             const { doc, setDoc, serverTimestamp, getDoc, updateDoc } = await import('firebase/firestore');
 
             // 1. Check for Invite Code
@@ -329,7 +325,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         <AuthContext.Provider value={{
             identity,
             viewContext,
-            loading,
+            // Mask loading state: If user exists but context is not ready, we are still loading.
+            loading: loading || (!!user && !viewContext),
             updateSimulation,
             resetSimulation,
 

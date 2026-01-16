@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
@@ -14,7 +14,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
 
-export default function TaskManagement() {
+export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
     const { userRole, user, tenantId } = useAuth();
     const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
@@ -93,21 +93,10 @@ export default function TaskManagement() {
 
     // Confirmation Modal State
     const [confirmModal, setConfirmModal] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; destructive?: boolean } | null>(null);
+    const retriedIds = useRef<Set<string>>(new Set());
 
-    useEffect(() => {
-        // Fetch User Profile if we need it for filtering
-        if (user && !isAdmin) {
-            getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
-                .then(snap => {
-                    if (!snap.empty) {
-                        setUserProfile(snap.docs[0].data());
-                    }
-                });
-        }
-        loadData();
-    }, [user, userRole]);
-
-    const loadData = async () => {
+    // Data Loader
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
             // Force use of the ACTIVE context tenantId (masqueraded or real)
@@ -129,20 +118,52 @@ export default function TaskManagement() {
             setUsers(loadedUsers);
 
             // Load Tasks (filtered by tenant)
-            // Fix: Explicitly filter by tenantId, do NOT rely on "Admin sees all" here.
-            // If Admin wants to see all, they should switch tenant context or use a special "All" view (future).
             const qt = query(collection(db, "tasks"), where("tenantId", "==", targetTenantId), orderBy("createdAt", "desc"));
             const snapT = await getDocs(qt);
             const loadedTasks: Task[] = [];
             snapT.forEach(doc => loadedTasks.push({ id: doc.id, ...doc.data() } as Task));
             setTasks(loadedTasks);
-
         } catch (error) {
-            console.error("Error loading data:", error);
+            console.error("Error loading TaskManagement data", error);
+            showToast("Error", "No se pudieron cargar los datos", "error");
         } finally {
             setLoading(false);
         }
-    };
+    }, [tenantId, showToast]);
+
+    // Initial Selection from Prop
+    useEffect(() => {
+        if (!loading && initialTaskId) {
+            const target = tasks.find(t => t.id === initialTaskId);
+            if (target) {
+                console.log("[TaskManagement] Selecting initial task:", target.friendlyId);
+                setSelectedTask(target);
+            } else {
+                if (!retriedIds.current.has(initialTaskId)) {
+                    console.warn("[TaskManagement] Task not found, attempting reload for:", initialTaskId);
+                    retriedIds.current.add(initialTaskId);
+                    loadData();
+                } else {
+                    console.error("[TaskManagement] Task ID not found even after reload:", initialTaskId);
+                    showToast("Error", "La tarea solicitada no existe o no tienes acceso.", "error");
+                }
+            }
+        }
+    }, [initialTaskId, loading, tasks, loadData]);
+
+    useEffect(() => {
+        // Fetch User Profile if we need it for filtering
+        if (user && !isAdmin) {
+            getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
+                .then(snap => {
+                    if (!snap.empty) {
+                        setUserProfile(snap.docs[0].data());
+                    }
+                });
+        }
+        loadData();
+    }, [user, userRole, loadData]);
+
 
     // Computed Lists
     const visibleProjects = projects.filter(p => {
@@ -277,16 +298,52 @@ export default function TaskManagement() {
                 });
                 const createdTask = { id: docRef.id, friendlyId, ...formData } as Task;
                 setTasks(prev => [createdTask, ...prev]);
+
+                // NOTIFICATION (NEW TASK)
+                if (formData.assignedTo && formData.assignedTo !== user?.uid) {
+                    addDoc(collection(db, "notifications"), {
+                        userId: formData.assignedTo,
+                        type: 'assignment',
+                        title: 'Nueva Tarea Asignada',
+                        message: `Te han asignado la nueva tarea: ${friendlyId} - ${formData.title}`,
+                        taskId: docRef.id,
+                        read: false,
+                        createdAt: serverTimestamp()
+                    }).catch(e => console.error("Notification Error", e));
+                }
+
                 setSelectedTask(createdTask);
                 setIsNew(false);
             } else {
                 if (selectedTask?.id) {
+                    // Check change BEFORE update (formData vs selectedTask)
+                    const isAssignmentChanged = formData.assignedTo && formData.assignedTo !== selectedTask.assignedTo;
+                    const assignee = formData.assignedTo;
+
                     const { id, ...data } = formData;
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
                         updatedAt: serverTimestamp()
                     });
+
+                    // NOTIFICATION (UPDATE)
+                    if (isAssignmentChanged && assignee && assignee !== user?.uid) {
+                        addDoc(collection(db, "notifications"), {
+                            userId: assignee,
+                            type: 'assignment',
+                            title: 'Tarea Asignada',
+                            message: `Te han asignado la tarea: ${selectedTask.friendlyId} - ${formData.title}`,
+                            taskId: selectedTask.id,
+                            read: false,
+                            createdAt: serverTimestamp()
+                        })
+                            .catch(e => console.error("Notification Error", e));
+                    }
+
                     setTasks(prev => prev.map(t => t.id === selectedTask.id ? { ...t, ...data } as Task : t));
+                    // Update selectedTask reference to match the new saved state
+                    setSelectedTask({ ...selectedTask, ...data } as Task);
+
                     setIsNew(false);
                     showToast("UniTaskController", "Guardado", "success");
                 }
@@ -667,72 +724,34 @@ export default function TaskManagement() {
                                         <input type="range" min="0" max="100" value={formData.progress || 0} onChange={e => setFormData({ ...formData, progress: parseInt(e.target.value) })} className="w-full accent-emerald-500 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer" />
                                     </div>
 
-                                    {/* RACI */}
+                                    {/* Assignment (Replaces RACI) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>Matriz RACI</h3>
-                                        <div className="flex justify-between items-start">
-                                            {(['responsible', 'accountable', 'consulted', 'informed'] as const).map((role) => {
-                                                const assigned = formData.raci?.[role] || [];
-                                                const isActive = activeRaciRole === role;
-                                                const colorClass = role === 'responsible' ? 'bg-blue-600' : role === 'accountable' ? 'bg-emerald-600' : role === 'consulted' ? 'bg-amber-600' : 'bg-zinc-600';
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>Asignación</h3>
 
-                                                return (
-                                                    <div key={role} className="flex flex-col items-center gap-2 relative">
-                                                        <button
-                                                            onClick={() => setActiveRaciRole(isActive ? null : role)}
-                                                            className={cn("w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[10px] shadow-lg transition-transform hover:scale-105", colorClass, isActive && "ring-2 ring-white ring-offset-2 ring-offset-[#121214]")}>
-                                                            {role[0].toUpperCase()}
-                                                        </button>
-
-                                                        {/* Assigned Avatars */}
-                                                        <div className="flex flex-col gap-1 items-center">
-                                                            {assigned.map(uid => {
-                                                                const user = users.find(u => u.uid === uid);
-                                                                return (
-                                                                    <div key={uid} className="w-6 h-6 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-[8px] font-bold text-zinc-400" title={user?.displayName}>
-                                                                        {user?.displayName ? user.displayName.substring(0, 2).toUpperCase() : <UserIcon className="w-3 h-3" />}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-
-                                                        {/* User Dropdown */}
-                                                        {isActive && (
-                                                            <>
-                                                                <div className="fixed inset-0 z-40 cursor-default" onClick={() => setActiveRaciRole(null)} />
-                                                                <div className="absolute top-12 left-1/2 -translate-x-1/2 w-48 bg-popover border border-border rounded-lg shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto custom-scrollbar">
-                                                                    {users.length === 0 && <div className="p-2 text-[10px] text-zinc-500 text-center">No users found</div>}
-                                                                    {users.map(u => {
-                                                                        const isAssigned = assigned.includes(u.uid);
-                                                                        return (
-                                                                            <button
-                                                                                key={u.uid}
-                                                                                onClick={() => {
-                                                                                    // Ensure fully typed RACI object
-                                                                                    const currentRaci = formData.raci || { responsible: [], accountable: [], consulted: [], informed: [] };
-                                                                                    const newRaci = { ...currentRaci };
-                                                                                    const currentIds = newRaci[role] || [];
-
-                                                                                    if (isAssigned) {
-                                                                                        newRaci[role] = currentIds.filter(id => id !== u.uid);
-                                                                                    } else {
-                                                                                        newRaci[role] = [...currentIds, u.uid];
-                                                                                    }
-                                                                                    setFormData({ ...formData, raci: newRaci });
-                                                                                }}
-                                                                                className="w-full text-left px-3 py-2 text-xs text-zinc-300 hover:bg-white/5 flex items-center gap-2"
-                                                                            >
-                                                                                <div className={cn("w-2 h-2 rounded-full", isAssigned ? "bg-green-500" : "bg-zinc-700")} />
-                                                                                <span className="truncate">{u.displayName || u.email}</span>
-                                                                            </button>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg">
+                                                <UserIcon className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Responsable de la Tarea</label>
+                                                <select
+                                                    className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
+                                                        isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
+                                                    )}
+                                                    value={formData.assignedTo || ""}
+                                                    onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
+                                                >
+                                                    <option value="">Seleccionar Responsable...</option>
+                                                    {users.map(u => (
+                                                        <option key={u.uid} value={u.uid}>
+                                                            {u.displayName} ({u.role?.replace('_', ' ')})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="text-[10px] text-zinc-500 mt-1 italic">
+                                                    * Al asignar, el usuario recibirá una notificación inmediata.
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

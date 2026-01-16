@@ -212,13 +212,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3">
                             <ThemeSelector />
-                            <button
-                                onClick={() => showToast("UniTaskController", "El panel de notificaciones estará disponible próximamente.", "info")}
-                                className="p-2 text-muted-foreground hover:text-foreground transition-colors relative"
-                            >
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background"></span>
-                            </button>
                         </div>
                     </header>
 

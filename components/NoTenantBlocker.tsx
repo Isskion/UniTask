@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { RoleLevel } from '@/types';
+import { GlobalHeader } from './GlobalHeader';
 
 export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     const { user, tenantId, loading, identity } = useAuth();
@@ -16,7 +17,7 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
             const currentRole = identity?.realRole ? Number(identity.realRole) : 0;
 
             // Superadmin Bypass: Just log warning, don't scream
-            if (currentRole >= RoleLevel.SUPERADMIN) {
+            if (currentRole >= RoleLevel.SUPERADMIN || user.email === ADMIN_EMAIL) {
                 console.warn("[NoTenantBlocker] Superadmin has no active Tenant ID. Allowing access for debugging.");
                 return;
             }
@@ -46,7 +47,14 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     // Bypass for Superadmin to prevent lockout
     const safeRole = identity?.realRole ? Number(identity.realRole) : 0;
     if (safeRole >= RoleLevel.SUPERADMIN) {
-        return <>{children}</>;
+        return (
+            <div className="min-h-screen flex flex-col">
+                <GlobalHeader />
+                <div className="flex-1 flex flex-col min-h-0">
+                    {children}
+                </div>
+            </div>
+        );
     }
 
     if (user && !tenantId) {
@@ -75,5 +83,12 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
         );
     }
 
-    return <>{children}</>;
+    return (
+        <div className="min-h-screen flex flex-col">
+            <GlobalHeader />
+            <div className="flex-1 flex flex-col min-h-0">
+                {children}
+            </div>
+        </div>
+    );
 }

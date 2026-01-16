@@ -170,7 +170,13 @@ export default function UserManagement() {
 
                 setUsers(loadedUsers);
             } else {
-                const loadedInvites = await getAllInvites();
+                let loadedInvites = await getAllInvites();
+
+                // Security Filter: Non-SuperAdmins only see their own invites
+                if (getRoleLevel(userRole) < 100) {
+                    loadedInvites = loadedInvites.filter(inv => inv.createdBy === user?.uid);
+                }
+
                 // Sort: unused first, then by timestamp descending
                 loadedInvites.sort((a, b) => {
                     if (a.isUsed === b.isUsed) return b.createdAt?.seconds - a.createdAt?.seconds;
@@ -698,12 +704,14 @@ export default function UserManagement() {
                             >
                                 Usuarios ({users.length})
                             </button>
-                            <button
-                                onClick={() => setActiveTab('invites')}
-                                className={cn("hover:text-white transition-colors", activeTab === 'invites' && "text-white underline underline-offset-4 decoration-[#D32F2F]")}
-                            >
-                                Invitaciones
-                            </button>
+                            {userRole !== 'global_pm' && (
+                                <button
+                                    onClick={() => setActiveTab('invites')}
+                                    className={cn("hover:text-white transition-colors", activeTab === 'invites' && "text-white underline underline-offset-4 decoration-[#D32F2F]")}
+                                >
+                                    Invitaciones
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -803,37 +811,7 @@ export default function UserManagement() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <select
-                                                value={formData.role || 'usuario_base'}
-                                                className={cn("w-full appearance-none bg-white/5 border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all",
-                                                    isLight ? "border-zinc-300 focus:ring-red-500/50 text-zinc-700" : "border-white/10 focus:ring-[#D32F2F]/50 text-white"
-                                                )}
-                                                onChange={(e) => {
-                                                    const newRole = e.target.value;
-                                                    const updates: any = { role: newRole };
-                                                    if (newRole === 'superadmin') {
-                                                        updates.tenantId = '1'; // Force UniTaskController for SuperAdmin
-                                                    }
-                                                    setFormData({ ...formData, ...updates });
-                                                }}
-                                            >
-                                                {ROLES.filter(r => {
-                                                    // Hierarchy Logic:
-                                                    // 1. Superadmin (100) sees all.
-                                                    // 2. Others can only assign roles strictly lower than themselves.
-                                                    const myLevel = getRoleLevel(userRole);
-                                                    const targetLevel = getRoleLevel(r.value);
-                                                    // Allow selecting their current role (no change) or lower.
-                                                    // But generally, can't promote to equal/higher.
-                                                    // Exception: Superadmin is God.
-                                                    if (myLevel >= 100) return true;
-                                                    return targetLevel < myLevel;
-                                                }).map(role => (
-                                                    <option key={role.value} value={role.value} className="text-black">
-                                                        {role.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+
                                             {/* Edit Hint */}
                                             <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 drop-shadow-md">
                                                 {/* Edit Button - Hierarchy Check */}

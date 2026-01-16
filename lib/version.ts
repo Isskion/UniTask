@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.2.0';
+export const APP_VERSION = '12.3.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.3.0",
+        date: "2026-01-16",
+        title: "Mejoras en Invitaciones y Seguridad",
+        features: [
+            "Nuevo sistema de invitaciones simplificado: Rol primero, luego Tenant.",
+            "Creación automática de Tenants y Proyectos en un solo paso.",
+            "Recuperación de contraseña segura vía email.",
+            "Mejoras de privacidad: Los administradores solo ven sus propios datos."
+        ]
+    },
     {
         version: "12.2.0",
         date: "2026-01-14",

@@ -15,7 +15,7 @@ const firebaseConfig = {
 
 console.log("🔥 Firebase Config Loaded:", {
     apiKey: firebaseConfig.apiKey ? "SET" : "MISSING",
-    projectId: firebaseConfig.projectId ? "SET" : "MISSING",
+    projectId: firebaseConfig.projectId, // Show actual ID
     env: process.env.NODE_ENV
 });
 

@@ -266,3 +266,15 @@ export function getRoleLevel(role: string | number | null | undefined): number {
     if (typeof role === 'number') return role;
     return ROLE_LEVEL_MAP[role.toLowerCase()] || 0;
 }
+
+export interface Notification {
+    id: string;
+    userId: string; // Recipient UID
+    type: 'assignment' | 'system' | 'mention';
+    title: string;
+    message: string;
+    link?: string; // internal route, e.g. "/tasks?id=123"
+    taskId?: string; // Optional: direct link to data
+    read: boolean;
+    createdAt: any;
+}

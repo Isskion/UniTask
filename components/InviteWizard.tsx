@@ -61,6 +61,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
         setNewTenantName("");
 
         // Initial setup based on current user
+        // Initial setup based on current user
         if (getRoleLevel(userRole) < 100) {
             // Standard users start at Role selection (Step 1 now), but have fixed tenant
             setSelectedTenant(tenantId || "1");
@@ -318,29 +319,37 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2">
-                                        {tenants.map(t => (
-                                            <button
-                                                key={t.id}
-                                                onClick={() => setSelectedTenant(t.id)}
-                                                className={cn(
-                                                    "flex items-center gap-4 p-4 rounded-lg border text-left transition-all",
-                                                    selectedTenant === t.id
-                                                        ? (isRed ? "bg-red-900/20 border-[#D32F2F]" : "bg-zinc-800 border-white")
-                                                        : (isLight ? "bg-white hover:bg-zinc-50 border-zinc-200" : "bg-black/20 hover:bg-white/5 border-white/10")
-                                                )}
-                                            >
-                                                <div className="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center text-xl">🏢</div>
-                                                <div>
-                                                    <div className={cn("font-bold", textBase)}>{t.name}</div>
-                                                    <div className="text-xs text-zinc-500">{t.code}</div>
-                                                </div>
-                                                {selectedTenant === t.id && (
-                                                    <div className="ml-auto text-green-500"><Check /></div>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    tenants.length > 0 ? (
+                                        <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2">
+                                            {tenants.map(t => (
+                                                <button
+                                                    key={t.id}
+                                                    onClick={() => setSelectedTenant(t.id)}
+                                                    className={cn(
+                                                        "flex items-center gap-4 p-4 rounded-lg border text-left transition-all",
+                                                        selectedTenant === t.id
+                                                            ? (isRed ? "bg-red-900/20 border-[#D32F2F]" : "bg-zinc-800 border-white")
+                                                            : (isLight ? "bg-white hover:bg-zinc-50 border-zinc-200" : "bg-black/20 hover:bg-white/5 border-white/10")
+                                                    )}
+                                                >
+                                                    <div className="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center text-xl">🏢</div>
+                                                    <div>
+                                                        <div className={cn("font-bold", textBase)}>{t.name}</div>
+                                                        <div className="text-xs text-zinc-500">{t.code}</div>
+                                                    </div>
+                                                    {selectedTenant === t.id && (
+                                                        <div className="ml-auto text-green-500"><Check /></div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-6 rounded-xl border border-dashed border-zinc-700 bg-white/5 text-center">
+                                            <Building className="w-8 h-8 mx-auto mb-2 text-zinc-500" />
+                                            <p className="text-zinc-400 font-medium">Asignado a tu Organización actual</p>
+                                            <div className="text-xs text-zinc-600 mt-1 font-mono">{tenantId}</div>
+                                        </div>
+                                    )
                                 )}
                             </div>
                         )}

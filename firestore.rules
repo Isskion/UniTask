@@ -77,6 +77,14 @@ service cloud.firestore {
       allow create: if isSuperAdmin() || isAuthenticated(); // Allow any auth user to create invites (controlled by UI)
     }
 
+    // Notifications: User-specific
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+    }
+
     // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
     match /{collectionName}/{docId} {
       
