@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { NotificationBell } from "@/components/NotificationBell";
 import { VersionBadge } from "@/components/VersionBadge";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 
@@ -182,8 +183,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             </button>
 
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span className="text-muted-foreground">Workspace</span>
-                                <span className="text-muted-foreground/50">/</span>
+                                <span className="text-muted-foreground hidden sm:inline">Workspace</span>
+                                <span className="text-muted-foreground/50 hidden sm:inline">/</span>
                                 <span className="text-foreground font-medium capitalize">
                                     {viewMode === 'editor' ? 'Follow-Up' : viewMode}
                                 </span>
@@ -212,6 +213,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3">
                             <ThemeSelector />
+                            <NotificationBell />
                         </div>
                     </header>
 

@@ -49,7 +49,7 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     if (safeRole >= RoleLevel.SUPERADMIN) {
         return (
             <div className="min-h-screen flex flex-col">
-                <GlobalHeader />
+                {/* GlobalHeader Removed per user request */}
                 <div className="flex-1 flex flex-col min-h-0">
                     {children}
                 </div>
@@ -85,7 +85,7 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen flex flex-col">
-            <GlobalHeader />
+            {/* GlobalHeader Removed per user request */}
             <div className="flex-1 flex flex-col min-h-0">
                 {children}
             </div>

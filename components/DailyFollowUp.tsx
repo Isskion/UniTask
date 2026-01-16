@@ -7,6 +7,7 @@ import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
 import { AppLayout } from "./AppLayout";
 import { Project, JournalEntry, Task, NoteBlock } from "@/types";
+import { NotificationBell } from "./NotificationBell"; // Re-applied Import Fix
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
 import { es } from "date-fns/locale";
@@ -14,7 +15,7 @@ import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalE
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
@@ -150,6 +151,10 @@ export default function DailyFollowUp() {
     // --- STATE: DIRTY (Unsaved Changes) ---
     const [isDirty, setIsDirty] = useState(false);
     const [showChangelog, setShowChangelog] = useState(false); // Added state
+    // Move Feature State
+    const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
+    const [moveTargetDate, setMoveTargetDate] = useState("");
+
 
     // Prevent accidental navigation if unsaved
     // [DEBUG] Disabling listener to see if warning persists.
@@ -698,6 +703,123 @@ export default function DailyFollowUp() {
     const handleDismissSuggestion = (taskDesc: string) => {
         setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
     };
+
+    // --- MOVE PROJECT LOGIC ---
+    const handleInitMove = () => {
+        if (!activeTab || activeTab === "General") return;
+        setMoveTargetDate(format(addDays(new Date(entry.date), 1), 'yyyy-MM-dd')); // Default tomorrow
+        setIsMoveModalOpen(true);
+    };
+
+    const handleMoveProject = async () => {
+        if (!user || !tenantId) return;
+        if (!moveTargetDate) return;
+
+        setLoading(true);
+        try {
+            const currentLevel = getRoleLevel(userRole);
+            if (currentLevel < RoleLevel.PM) {
+                showToast("Permiso Denegado", "Se requiere nivel PM o superior para mover entradas.", "error");
+                return;
+            }
+
+            const sourceDate = entry.date;
+            const targetDate = moveTargetDate;
+            const projectName = activeTab;
+
+            if (sourceDate === targetDate) {
+                showToast("Error", "La fecha destino debe ser diferente.", "error");
+                return;
+            }
+
+            // 1. Get Source Content
+            const sourceProj = entry.projects.find(p => p.name === projectName);
+            if (!sourceProj) return;
+
+            // 2. Fetch Target Entry
+            const targetEntry = await getJournalEntry(tenantId, targetDate) || {
+                id: targetDate,
+                date: targetDate,
+                tenantId: tenantId,
+                projects: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
+            // 3. Prepare Source Content (Blocks + Notes)
+            let contentToMove = sourceProj.pmNotes || "";
+            if (sourceProj.blocks && sourceProj.blocks.length > 0) {
+                contentToMove = sourceProj.blocks.map(b => `[${b.title}]: ${b.content}`).join('\n\n');
+            }
+
+            // 4. Update Target
+            const existingTargetProjIndex = targetEntry.projects.findIndex(p => p.name === projectName);
+            const auditHeader = `\n\n📅 [MOVIDO] Entrada traída del día ${sourceDate} por ${user.email || user.displayName}:\n----------------------------------------\n`;
+
+            if (existingTargetProjIndex !== -1) {
+                // Append to existing
+                const tp = targetEntry.projects[existingTargetProjIndex];
+                const newContent = (tp.pmNotes || "") + auditHeader + contentToMove;
+                // Merge blocks? For simplicity, we append to pmNotes or Main Block. 
+                // Let's append to pmNotes to be safe, or add a new block.
+                // Better: Add a new Block "Entrada Movida"
+                const movedBlock: NoteBlock = {
+                    id: `moved-${Date.now()}`,
+                    title: `Movido de ${sourceDate}`,
+                    content: contentToMove
+                };
+
+                const updatedBlocks = [...(tp.blocks || []), movedBlock];
+                targetEntry.projects[existingTargetProjIndex] = { ...tp, blocks: updatedBlocks, pmNotes: (tp.pmNotes || "") + " (Ver bloques movidos)" };
+            } else {
+                // Create new project entry in target
+                targetEntry.projects.push({
+                    ...sourceProj,
+                    pmNotes: "",
+                    blocks: [{
+                        id: `moved-${Date.now()}`,
+                        title: `Movido de ${sourceDate}`,
+                        content: contentToMove
+                    }],
+                    status: 'active'
+                });
+            }
+
+            // 5. Update Source (Audit Trace, DO NOT DELETE)
+            // Replace content with trace
+            const traceMessage = `➡ [REGISTRO] Entrada movida al día ${targetDate} por ${user.email || user.displayName}.`;
+            const updatedSourceProjects = entry.projects.map(p => {
+                if (p.name === projectName) {
+                    return {
+                        ...p,
+                        pmNotes: traceMessage,
+                        blocks: [{ id: 'trace', title: 'Registro de Movimiento', content: traceMessage }],
+                        // Optional: status: 'archived' ? User asked to "Follow it", so maybe keep active but empty.
+                    };
+                }
+                return p;
+            });
+
+            const updatedSourceEntry = { ...entry, projects: updatedSourceProjects, updatedAt: new Date().toISOString() };
+
+            // 6. Save BOTH
+            await saveJournalEntry(targetEntry); // Save target first
+            await saveJournalEntry(updatedSourceEntry); // Save source
+
+            // 7. Refresh
+            setEntry(updatedSourceEntry);
+            showToast("Éxito", `Entrada movida al día ${targetDate}`, "success");
+            setIsMoveModalOpen(false);
+            setIsDirty(false); // Clean state
+
+        } catch (e) {
+            console.error("Move Error:", e);
+            showToast("Error", "No se pudo mover la entrada", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     // 5. Helpers
     const getVisibleProjects = () => {
@@ -1318,10 +1440,24 @@ export default function DailyFollowUp() {
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                                     {/* Left: PM Notes (Blocks) */}
                                     <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
-                                        <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
-                                            <PenSquare className="w-3 h-3" />
-                                            {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
-                                        </label>
+                                        <div className="flex justify-between items-center w-full mb-2">
+                                            <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
+                                                <PenSquare className="w-3 h-3" />
+                                                {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
+                                            </label>
+
+                                            {/* MOVE BUTTON (PM+) */}
+                                            {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
+                                                <button
+                                                    onClick={handleInitMove}
+                                                    className="text-[10px] flex items-center gap-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-2 py-1 rounded border border-zinc-200 transition-colors"
+                                                    title="Mover entrada a otra fecha"
+                                                >
+                                                    <ArrowRight className="w-3 h-3" />
+                                                    Mover Entrada
+                                                </button>
+                                            )}
+                                        </div>
 
                                         {activeTab === 'General' ? (
                                             <textarea
@@ -1597,6 +1733,46 @@ export default function DailyFollowUp() {
                 isOpen={showChangelog}
                 onClose={() => setShowChangelog(false)}
             />
+
+            {/* MOVE MODAL */}
+            {isMoveModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
+                        <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>Mover Entrada</h3>
+                        <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                            Mover las notas de <strong>{activeTab}</strong> al día:
+                        </p>
+
+                        <input
+                            type="date"
+                            value={moveTargetDate}
+                            onChange={(e) => setMoveTargetDate(e.target.value)}
+                            className={cn("w-full p-2 rounded-lg border mb-4 text-sm",
+                                isLight
+                                    ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-zinc-500"
+                                    : "bg-black/20 border-zinc-700 text-white focus:ring-primary"
+                            )}
+                        />
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setIsMoveModalOpen(false)}
+                                className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleMoveProject}
+                                disabled={loading || !moveTargetDate}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
+                            >
+                                {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                                Confirmar Mover
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout >
     );
 }

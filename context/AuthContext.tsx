@@ -295,9 +295,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        if (result.user) {
-            await createUserProfile(result.user);
+        try {
+            const result = await signInWithPopup(auth, provider);
+            if (result.user) {
+                await createUserProfile(result.user);
+            }
+        } catch (error: any) {
+            if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
+                console.log("[AuthContext] Login popup cancelled by user. This is expected.");
+                return;
+            }
+            console.error("[AuthContext] Google Login Error:", error);
+            alert("Error al iniciar sesión con Google: " + error.message);
         }
     };
 
