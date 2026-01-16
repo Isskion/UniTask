@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import Link from "next/link";
 import ProjectManagement from "./ProjectManagement";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
@@ -970,6 +971,11 @@ export default function DailyFollowUp() {
                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
+                        <div className="flex justify-end mt-1">
+                            <Link href="/forgot-password" className="text-xs text-zinc-500 hover:text-white transition-colors">
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </div>
 
                         {isRegistering && (
                             <div className="relative animate-in fade-in slide-in-from-top-1">
@@ -992,9 +998,9 @@ export default function DailyFollowUp() {
                         Acceso restringido a personal autorizado. <br />
                         Contacta con soporte si no tienes acceso.
                     </p>
-                </div>
+                </div >
                 <FirebaseDiagnostic />
-            </div>
+            </div >
         );
     }
 

@@ -978,12 +978,40 @@ export default function UserManagement() {
                                                 : "bg-[#18181b] border-white/5 hover:bg-[#202024] hover:border-white/10 text-zinc-200")
                                         )
                                 )}>
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-2">
-                                            <Ticket className={cn("w-5 h-5", invite.isUsed ? (isLight ? "text-zinc-400" : "text-zinc-600") : (isRed ? "text-[#D32F2F]" : "text-white"))} />
-                                            <span className={cn("font-mono font-bold text-lg tracking-wider", isLight ? "text-zinc-900" : "text-white")}>{invite.code}</span>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-2">
+                                                <Ticket className={cn("w-5 h-5", invite.isUsed ? (isLight ? "text-zinc-400" : "text-zinc-600") : (isRed ? "text-[#D32F2F]" : "text-white"))} />
+                                                <span className={cn("font-mono font-bold text-lg tracking-wider", isLight ? "text-zinc-900" : "text-white")}>{invite.code}</span>
+                                            </div>
+                                            {invite.isUsed && <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full uppercase font-bold">Usada</span>}
                                         </div>
-                                        {invite.isUsed && <span className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full uppercase font-bold">Usada</span>}
+
+                                        {/* Invite Details Badges */}
+                                        <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wider">
+                                            {/* Role Badge */}
+                                            {(() => {
+                                                const r = ROLES.find(r => r.value === invite.role);
+                                                return (
+                                                    <span className={cn("px-2 py-0.5 rounded border flex items-center gap-1",
+                                                        invite.role === 'superadmin'
+                                                            ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                                                            : (r?.color ? r.color.replace('text-', 'bg-') + "/10 " + r.color + " border-" + r.color.replace('text-', '') + "/20" : "bg-zinc-800 text-zinc-400 border-zinc-700")
+                                                    )}>
+                                                        <Shield className="w-3 h-3" />
+                                                        {r?.label || invite.role}
+                                                    </span>
+                                                );
+                                            })()}
+
+                                            {/* Tenant Badge */}
+                                            {invite.tenantId && (
+                                                <span className="px-2 py-0.5 rounded border bg-amber-500/10 text-amber-500 border-amber-500/20 flex items-center gap-1">
+                                                    <Building className="w-3 h-3" />
+                                                    {availableTenants.find(t => t.id === invite.tenantId)?.name || invite.tenantId}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {!invite.isUsed ? (
