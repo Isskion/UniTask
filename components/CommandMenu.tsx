@@ -64,7 +64,7 @@ export function CommandMenu() {
                 try {
                     // Profile
                     if (userRole !== 'app_admin' && userRole !== 'global_pm') {
-                        const snap = await getDoc(doc(db, "user", user.uid));
+                        const snap = await getDoc(doc(db, "users", user.uid));
                         if (snap.exists()) setUserProfile(snap.data());
                     }
 

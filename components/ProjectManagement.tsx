@@ -250,7 +250,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                         className={cn(
                             "group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border",
                             selectedProject?.id === p.id
-                                ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/10 border-primary/50")
+                                ? (isLight ? "bg-zinc-200 border-zinc-300 shadow-sm" : "bg-primary/10 border-primary/50")
                                 : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-primary/5 hover:border-primary/10")
                         )}
                     >
