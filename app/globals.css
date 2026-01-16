@@ -98,42 +98,56 @@
   --ring: hsl(240 5.9% 10%);
 }
 
-/* RED THEME (Adobe & Cloud Dancer) */
+/* RED THEME (Adobe & Cloud Dancer) -> Updated foreground to WHITE (Uniformity Request) */
 :root[data-theme="red"] {
   /* Adobe/Terracotta (Background) ~ #9E4839 */
   --background: hsl(10, 40%, 42%);
 
-  /* Cloud Dancer (Foreground/Text) ~ #F0EEE9 */
-  --foreground: hsl(40, 20%, 94%);
+  /* Cloud Dancer (Foreground/Text) ~ #F0EEE9 -> REPLACED by 13-1022 TCX -> REPLACED by WHITE per user request */
+  /* --foreground: hsl(40, 20%, 94%); */
+  /* --foreground: hsl(24, 81%, 77%); */
+  --foreground: hsl(0, 0%, 100%);
 
   /* Cards: Slightly lighter Adobe/Terracotta to distinguish from background */
   --card: hsl(10, 40%, 46%);
-  --card-foreground: hsl(40, 20%, 94%);
+  /* --card-foreground: hsl(40, 20%, 94%); */
+  /* --card-foreground: hsl(24, 81%, 77%); */
+  --card-foreground: hsl(0, 0%, 100%);
 
   --popover: hsl(10, 40%, 46%);
-  --popover-foreground: hsl(40, 20%, 94%);
+  /* --popover-foreground: hsl(40, 20%, 94%); */
+  /* --popover-foreground: hsl(24, 81%, 77%); */
+  --popover-foreground: hsl(0, 0%, 100%);
 
-  /* Primary: Cloud Dancer */
-  --primary: hsl(40, 20%, 94%);
+  /* Primary: Cloud Dancer -> Caramel Cream -> White */
+  /* --primary: hsl(40, 20%, 94%); */
+  /* --primary: hsl(24, 81%, 77%); */
+  --primary: hsl(0, 0%, 100%);
   --primary-foreground: hsl(10, 40%, 42%);
 
   /* Secondary: Darker Adobe for contrast elements */
   --secondary: hsl(10, 40%, 35%);
-  --secondary-foreground: hsl(40, 20%, 94%);
+  /* --secondary-foreground: hsl(40, 20%, 94%); */
+  /* --secondary-foreground: hsl(24, 81%, 77%); */
+  --secondary-foreground: hsl(0, 0%, 100%);
 
   --muted: hsl(10, 30%, 38%);
   /* Muted Text: Pure White for maximum visibility per user feedback */
   --muted-foreground: hsl(0, 0%, 100%);
 
   --accent: hsl(10, 40%, 50%);
-  --accent-foreground: hsl(40, 20%, 94%);
+  /* --accent-foreground: hsl(40, 20%, 94%); */
+  /* --accent-foreground: hsl(24, 81%, 77%); */
+  --accent-foreground: hsl(0, 0%, 100%);
 
   --destructive: hsl(0, 0%, 100%);
   --destructive-foreground: hsl(10, 40%, 42%);
 
   --border: hsl(10, 40%, 50%);
   --input: hsl(10, 40%, 50%);
-  --ring: hsl(40, 20%, 94%);
+  /* --ring: hsl(40, 20%, 94%); */
+  /* --ring: hsl(24, 81%, 77%); */
+  --ring: hsl(0, 0%, 100%);
 }
 
 @utility glass-panel {

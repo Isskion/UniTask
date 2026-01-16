@@ -231,7 +231,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     const ProjectList = () => (
         <div className="h-full flex flex-col">
             <div className={cn("p-4 border-b flex justify-between items-center", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
-                <h2 className={cn("text-sm font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Proyectos ({visibleProjects.length})</h2>
+                <h2 className={cn("text-sm font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-foreground")}>Proyectos ({visibleProjects.length})</h2>
                 {canCreate && (
                     <button
                         onClick={handleCreateClick}
@@ -259,8 +259,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             <div>
                                 <div className={cn("text-sm font-bold",
                                     selectedProject?.id === p.id
-                                        ? (isLight ? "text-white" : "text-white")
-                                        : (isLight ? "text-zinc-900" : "text-zinc-200 group-hover:text-white")
+                                        ? (isLight ? "text-foreground" : "text-foreground")
+                                        : (isLight ? "text-zinc-900" : "text-zinc-200 group-hover:text-foreground")
                                 )}>
                                     {p.name}
                                 </div>
@@ -276,7 +276,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                         {canEdit && (
                             <button
                                 onClick={(e) => handleEditClick(p, e)}
-                                className={cn("opacity-0 group-hover:opacity-100 p-2 rounded-full transition-all", isLight ? "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900" : "hover:bg-white/10 text-zinc-300 hover:text-white")}
+                                className={cn("opacity-0 group-hover:opacity-100 p-2 rounded-full transition-all", isLight ? "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900" : "hover:bg-white/10 text-zinc-300 hover:text-foreground")}
                                 title="Editar Detalles"
                             >
                                 <Edit2 className="w-3.5 h-3.5" />
@@ -305,9 +305,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                 !selectedProject ? "hidden lg:flex" : "flex"
             )}>
                 {!selectedProject ? (
-                    <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-white")}>
+                    <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-foreground")}>
                         <LayoutTemplate className="w-16 h-16 mb-4 opacity-80" />
-                        <p className={cn("font-medium text-lg", isLight ? "text-zinc-500" : "text-white")}>Selecciona un proyecto para ver su actividad.</p>
+                        <p className={cn("font-medium text-lg", isLight ? "text-zinc-500" : "text-foreground")}>Selecciona un proyecto para ver su actividad.</p>
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col h-full relative">
@@ -317,18 +317,18 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             isLight ? "bg-zinc-50 border-zinc-200" : "bg-card/50 border-border"
                         )}>
                             <div className="flex items-center gap-3">
-                                <button className={cn("lg:hidden hover:text-white", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400")} onClick={() => setSelectedProject(null)}>
+                                <button className={cn("lg:hidden hover:text-foreground", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400")} onClick={() => setSelectedProject(null)}>
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
 
                                 {isNew ? (
-                                    <h1 className={cn("text-lg font-bold tracking-tight flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                    <h1 className={cn("text-lg font-bold tracking-tight flex items-center gap-2", isLight ? "text-zinc-900" : "text-foreground")}>
                                         <Plus className="w-5 h-5 text-primary" />
                                         Creando Nuevo Proyecto
                                     </h1>
                                 ) : (
                                     <div className="flex items-center gap-3">
-                                        <h1 className={cn("text-lg font-bold tracking-tight", isLight ? "text-zinc-900" : "text-white")}>{selectedProject.name}</h1>
+                                        <h1 className={cn("text-lg font-bold tracking-tight", isLight ? "text-zinc-900" : "text-foreground")}>{selectedProject.name}</h1>
                                         <span className={cn("text-[10px] px-2 py-0.5 rounded font-mono uppercase", selectedProject.isActive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-500")}>
                                             {selectedProject.isActive ? "Activo" : "Inactivo"}
                                         </span>
@@ -354,7 +354,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                 {userTab === 'settings' && (
                                     <button
                                         onClick={handleBack}
-                                        className={cn("text-xs font-medium px-3", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")}
+                                        className={cn("text-xs font-medium px-3", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-foreground")}
                                     >
                                         {isNew ? "Cancelar Creación" : "Volver a Bitácora"}
                                     </button>
@@ -375,7 +375,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             onCancel={() => setShowCompose(false)}
                                         />
                                     )}
-                                    <h2 className={cn("text-xl font-bold mb-4 px-4 pt-4", isLight ? "text-zinc-900" : "text-white")}>Bitácora</h2>
+                                    <h2 className={cn("text-xl font-bold mb-4 px-4 pt-4", isLight ? "text-zinc-900" : "text-foreground")}>Bitácora</h2>
                                     <ProjectActivityFeed
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}
@@ -389,7 +389,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     <div className={cn("border rounded-2xl p-6 space-y-6", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
 
                                         <div className={cn("flex items-center justify-between border-b pb-4", isLight ? "border-zinc-100" : "border-white/5")}>
-                                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-foreground")}>
                                                 <FolderGit2 className={cn("w-5 h-5", isLight ? "text-zinc-900" : "text-primary")} />
                                                 {isNew ? "Definir nuevo proyecto" : "Configuración del Proyecto"}
                                             </h3>
@@ -407,7 +407,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         {/* Tenant Selector (SuperAdmin Only) */}
                                         {userRole === 'superadmin' && (
                                             <div className={cn("p-4 rounded-lg border", isLight ? "bg-slate-50 border-slate-200" : "bg-white/5 border-white/10")}>
-                                                <label className={cn("text-[10px] uppercase font-bold mb-2 block", isLight ? "text-zinc-700" : "text-white")}>
+                                                <label className={cn("text-[10px] uppercase font-bold mb-2 block", isLight ? "text-zinc-700" : "text-foreground")}>
                                                     Organización (Tenant)
                                                 </label>
                                                 <select
@@ -434,7 +434,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         {/* Name & Code */}
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Código (Corto)</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>Código (Corto)</label>
                                                 <input
                                                     disabled={!canEdit}
                                                     className={cn("w-full border rounded-lg px-3 py-2 font-mono focus:border-primary outline-none uppercase disabled:opacity-50",
@@ -447,7 +447,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Nombre Completo</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>Nombre Completo</label>
                                                 <input
                                                     disabled={!canEdit}
                                                     className={cn("w-full border rounded-lg px-3 py-2 font-bold focus:border-primary outline-none disabled:opacity-50",
@@ -462,7 +462,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                                         {/* Contact Info */}
                                         <div className="space-y-2">
-                                            <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-white")}><Mail className="w-3 h-3" /> Email Contacto</label>
+                                            <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-foreground")}><Mail className="w-3 h-3" /> Email Contacto</label>
                                             <input
                                                 disabled={!canEdit}
                                                 className={cn("w-full border rounded-lg px-3 py-2 focus:border-primary outline-none disabled:opacity-50",
@@ -476,7 +476,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-white")}><Phone className="w-3 h-3" /> Teléfono</label>
+                                                <label className={cn("text-[10px] uppercase font-bold flex items-center gap-1", isLight ? "text-zinc-700" : "text-foreground")}><Phone className="w-3 h-3" /> Teléfono</label>
                                                 <input
                                                     disabled={!canEdit}
                                                     className={cn("w-full border rounded-lg px-3 py-2 focus:border-primary outline-none disabled:opacity-50",
@@ -488,7 +488,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-white")}>Color Identificativo</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>Color Identificativo</label>
                                                 <div className="flex gap-2 flex-wrap">
                                                     {["#ef4444", "#f97316", "#f59e0b", "#84cc16", "#10b981", "#06b6d4", "#3b82f6", "#71717a", "#a855f7", "#ec4899"].map(c => (
                                                         <button
@@ -506,7 +506,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         <div className={cn("pt-6 border-t flex items-center justify-end gap-3", isLight ? "border-zinc-100" : "border-white/5")}>
                                             <button
                                                 onClick={handleBack}
-                                                className={cn("px-4 py-2 text-sm font-medium", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400 hover:text-white")}
+                                                className={cn("px-4 py-2 text-sm font-medium", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-zinc-400 hover:text-foreground")}
                                             >
                                                 Cancelar
                                             </button>

@@ -401,8 +401,8 @@ export default function UserManagement() {
                         <div className={cn("p-4 border-b flex justify-between items-center transition-colors",
                             isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
                         )}>
-                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                <Edit2 className={cn("w-4 h-4", isLight ? "text-red-600" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
+                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-foreground")}>
+                                <Edit2 className={cn("w-4 h-4", isLight ? "text-red-600" : (isRed ? "text-foreground" : "text-white"))} />
                                 Editar Perfil
                             </h3>
                             <button onClick={() => setEditingUser(null)} className="text-zinc-400 hover:text-white">
@@ -429,7 +429,7 @@ export default function UserManagement() {
                                             isLight
                                                 ? "border-zinc-300 text-zinc-900 focus:border-red-500 placeholder-zinc-400 hover:border-zinc-400"
                                                 : (isRed
-                                                    ? "border-white/10 text-white focus:border-[#D32F2F] placeholder-zinc-700 hover:border-white/20"
+                                                    ? "border-white/10 text-foreground focus:border-[#D32F2F] placeholder-zinc-700 hover:border-white/20"
                                                     : "border-zinc-700 text-white focus:border-white/20 placeholder-zinc-600 hover:border-zinc-600")
                                         )}
                                         placeholder="Nombre completo"
@@ -698,8 +698,8 @@ export default function UserManagement() {
                                     activeTab === 'users'
                                         ? (isLight
                                             ? "text-red-600 underline underline-offset-4 decoration-red-600 font-bold"
-                                            : (isRed ? "text-white underline underline-offset-4 decoration-[#D32F2F]" : "text-white underline underline-offset-4 decoration-white"))
-                                        : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                                            : (isRed ? "text-foreground underline underline-offset-4 decoration-[#D32F2F]" : "text-white underline underline-offset-4 decoration-white"))
+                                        : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-muted-foreground hover:text-foreground")
                                 )}
                             >
                                 Usuarios ({users.length})
@@ -739,7 +739,7 @@ export default function UserManagement() {
                 {activeTab === 'users' ? (
                     <div className="flex flex-col gap-3 p-2">
                         {/* Header Row */}
-                        <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold text-white/70 uppercase tracking-wider">
+                        <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold text-foreground/70 uppercase tracking-wider">
                             <div className={getRoleLevel(userRole) >= 100 ? "col-span-4" : "col-span-5"}>Usuario / Perfil</div>
                             <div className={getRoleLevel(userRole) >= 100 ? "col-span-2" : "col-span-3"}>Email</div>
                             {getRoleLevel(userRole) >= 100 && <div className="col-span-2">Tenant</div>}
@@ -758,7 +758,7 @@ export default function UserManagement() {
                                         isLight
                                             ? "bg-white border-zinc-200 hover:border-red-200 hover:bg-red-50 text-zinc-900"
                                             : (isRed
-                                                ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:bg-[#D32F2F]/20 hover:border-[#D32F2F]/30 text-white"
+                                                ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:bg-[#D32F2F]/20 hover:border-[#D32F2F]/30 text-foreground"
                                                 : "bg-[#18181b] border-white/5 hover:bg-[#202024] hover:border-white/10 text-zinc-200")
                                     )}
                                 >
@@ -779,7 +779,7 @@ export default function UserManagement() {
                                                     <img src={u.photoURL} alt={u.displayName} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <span className={cn("font-bold text-sm transition-colors",
-                                                        isLight ? "text-zinc-500 group-hover:text-zinc-700" : "text-white group-hover:text-white"
+                                                        isLight ? "text-zinc-500 group-hover:text-zinc-700" : "text-foreground group-hover:text-foreground"
                                                     )}>
                                                         {u.displayName?.substring(0, 2).toUpperCase()}
                                                     </span>
@@ -787,7 +787,7 @@ export default function UserManagement() {
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className={cn("font-bold flex items-center gap-2 text-sm transition-colors",
-                                                    isLight ? "text-zinc-700 group-hover:text-zinc-900" : (isRed ? "text-zinc-200 group-hover:text-white" : "text-zinc-300 group-hover:text-white")
+                                                    isLight ? "text-zinc-700 group-hover:text-zinc-900" : (isRed ? "text-foreground group-hover:text-foreground" : "text-zinc-300 group-hover:text-white")
                                                 )}>
                                                     <span className="truncate">{u.displayName}</span>
                                                     {!u.isActive && (

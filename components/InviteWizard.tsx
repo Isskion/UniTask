@@ -161,7 +161,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
     // --- STYLES ---
     const bgBase = isLight ? "bg-white" : (isRed ? "bg-[#1a0505]" : "bg-black");
     const borderBase = isLight ? "border-zinc-200" : (isRed ? "border-red-900/30" : "border-zinc-800");
-    const textBase = isLight ? "text-zinc-900" : "text-white";
+    const textBase = isLight ? "text-zinc-900" : "text-foreground";
     const textMuted = isLight ? "text-zinc-500" : "text-zinc-400";
     const accentColor = isRed ? "text-[#D32F2F]" : (isLight ? "text-red-600" : "text-red-500");
     const primaryBtn = isRed ? "bg-[#D32F2F] hover:bg-[#B71C1C]" : "bg-white text-black hover:bg-zinc-200";
