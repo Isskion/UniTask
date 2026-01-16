@@ -37,11 +37,13 @@ interface AppLayoutProps {
 
 import { useUI } from "@/context/UIContext"; // Import Context
 import { useToast } from "@/context/ToastContext";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 
 
 export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }: AppLayoutProps) {
-    const { user, logout, userRole } = useAuth();
+    const { user, logout, userRole, tenantId } = useAuth();
     const { can } = usePermissions();
     const { toggleCommandMenu } = useUI(); // Use Context hook
     const { showToast } = useToast();
@@ -92,6 +94,74 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     };
 
 
+
+
+    // --- GLOBAL DEADLINE CHECK ---
+    React.useEffect(() => {
+        // REF: Debounce to prevent React Strict Mode duplicate execution
+        const timer = setTimeout(() => {
+            const checkDeadlines = async () => {
+                // Only run if user is logged in
+                if (!user || !tenantId) return;
+
+                // THROTTLE: Prevents duplicate execution from React Strict Mode.
+                const lastRun = sessionStorage.getItem('deadline_check_ts');
+                if (lastRun && (Date.now() - parseInt(lastRun)) < 5000) return;
+                sessionStorage.setItem('deadline_check_ts', Date.now().toString());
+
+                try {
+                    // 1. Get ACTIVE tasks assigned to CURRENT USER
+                    const qT = query(
+                        collection(db, "tasks"),
+                        where("tenantId", "==", tenantId),
+                        where("assignedTo", "==", user.uid)
+                    );
+                    const snapT = await getDocs(qT);
+
+                    const now = new Date();
+                    const overdueTasks = snapT.docs
+                        .map(d => ({ id: d.id, ...d.data() } as any))
+                        .filter(t =>
+                            t.tenantId === tenantId &&
+                            ['pending', 'in_progress', 'review'].includes(t.status) &&
+                            t.endDate && new Date(t.endDate) < now
+                        );
+
+                    if (overdueTasks.length === 0) return;
+
+                    // 2. Check existing notifications for current user
+                    for (const task of overdueTasks) {
+                        const qN = query(
+                            collection(db, "notifications"),
+                            where("taskId", "==", task.id),
+                            where("type", "==", "deadline_expired"),
+                            where("userId", "==", user.uid)
+                        );
+                        const snapN = await getDocs(qN);
+
+                        if (snapN.empty) {
+                            console.log(`[Deadline Check] Notifying current user for task ${task.friendlyId}`);
+                            await addDoc(collection(db, "notifications"), {
+                                userId: user.uid,
+                                type: 'deadline_expired',
+                                title: 'Tarea Vencida',
+                                message: `Tu tarea ${task.friendlyId} - "${task.title}" ha alcanzado su fecha límite.`,
+                                taskId: task.id,
+                                read: false,
+                                createdAt: serverTimestamp(),
+                                link: `/?view=task-manager&taskId=${task.id}`
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("[Deadline Check] Error:", e);
+                }
+            };
+            checkDeadlines();
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [user, tenantId]);
 
     return (
         <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary/30">

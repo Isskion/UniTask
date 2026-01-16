@@ -22,11 +22,12 @@ export function NotificationBell() {
         if (!user) return;
 
         // Listen for notifications for the current user
+        // OPTIMIZATION: Removed orderBy to avoid missing index errors (400).
+        // Sorting is done client-side.
         const q = query(
             collection(db, "notifications"),
             where("userId", "==", user.uid),
-            orderBy("createdAt", "desc"),
-            limit(20)
+            limit(50)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -38,6 +39,14 @@ export function NotificationBell() {
                 items.push(notif);
                 if (!notif.read) unread++;
             });
+
+            // Client-side Sort (Newest First)
+            items.sort((a, b) => { // Handle timestamps
+                const tA = a.createdAt?.seconds || 0;
+                const tB = b.createdAt?.seconds || 0;
+                return tB - tA;
+            });
+
             setNotifications(items);
             setUnreadCount(unread);
         }, (error) => {
@@ -83,10 +92,10 @@ export function NotificationBell() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full hover:bg-white/10 relative transition-colors"
+                className="p-2 rounded-full hover:bg-accent relative transition-colors"
                 title="Notificaciones"
             >
-                <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-white" : "text-zinc-400")} />
+                <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-foreground" : "text-muted-foreground")} />
                 {unreadCount > 0 && (
                     <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border border-[#121214]">
                         {unreadCount > 9 ? '9+' : unreadCount}

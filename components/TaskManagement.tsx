@@ -27,6 +27,30 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
 
+    // AUTO-SELECT TASK FROM ID (Fix for Notifications)
+    useEffect(() => {
+        if (initialTaskId) {
+            const loadDeepLinkedTask = async () => {
+                try {
+                    const { doc, getDoc } = await import("firebase/firestore");
+                    const docRef = doc(db, "tasks", initialTaskId);
+                    const snap = await getDoc(docRef);
+                    if (snap.exists()) {
+                        const taskData = { id: snap.id, ...snap.data() } as Task;
+                        // Determine status of this task to set sidebar filter?
+                        // For now just set selectedTask.
+                        setSelectedTask(taskData);
+                        setFormData(taskData); // Sync Form Data
+                        setSidebarFilter('all'); // Ensure visibility
+                    }
+                } catch (e) {
+                    console.error("Error loading deep linked task:", e);
+                }
+            };
+            loadDeepLinkedTask();
+        }
+    }, [initialTaskId]);
+
     // Sidebar Filters
     const [sidebarSearch, setSidebarSearch] = useState("");
     const [sidebarFilter, setSidebarFilter] = useState<'all' | 'active' | 'completed'>('active');
@@ -240,7 +264,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 title: "",
                 status: 'pending',
                 projectId: "", // User must select
-                startDate: new Date().toISOString(),
+                // startDate: REMOVED - Uses createdAt
                 acceptanceCriteria: [
                     { id: '1', text: 'Criterio de aceptación 1', completed: false }
                 ],
@@ -691,23 +715,23 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             </div>
 
                                             <div className="flex-1 flex flex-col justify-center gap-3 relative">
-                                                {/* Start Date */}
-                                                <div className="relative group">
-                                                    <label className="text-[9px] text-white font-bold uppercase block mb-1">Inicio</label>
-                                                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDatePickerTarget('startDate'); setCurrentMonth(formData.startDate ? new Date(formData.startDate) : new Date()); }}>
-                                                        <CalendarIcon className="w-4 h-4 text-zinc-400 group-hover:text-indigo-400 transition-colors" />
-                                                        <span className="text-xs text-zinc-300 font-mono">{formData.startDate ? format(new Date(formData.startDate), 'dd MMM yyyy', { locale: es }) : 'Seleccionar'}</span>
+                                                {/* Start Date (Read Only - CreatedAt) */}
+                                                <div className="relative group opacity-80">
+                                                    <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Inicio (Creación)</label>
+                                                    <div className="flex items-center gap-2 cursor-not-allowed">
+                                                        <CalendarIcon className="w-4 h-4 text-zinc-500" />
+                                                        <span className="text-xs text-zinc-500 font-mono">
+                                                            {formData.createdAt
+                                                                ? format(formData.createdAt.toDate ? formData.createdAt.toDate() : new Date(formData.createdAt), 'dd MMM yyyy', { locale: es })
+                                                                : (isNew ? format(new Date(), 'dd MMM yyyy', { locale: es }) : "Pendiente")
+                                                            }
+                                                        </span>
                                                     </div>
-                                                    {datePickerTarget === 'startDate' && (
-                                                        <>
-                                                            <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setDatePickerTarget(null); }} />
-                                                            <CustomDatePicker target="startDate" value={formData.startDate} onClose={() => setDatePickerTarget(null)} onSelect={(d) => setFormData({ ...formData, startDate: d })} />
-                                                        </>
-                                                    )}
                                                 </div>
                                                 {/* End Date */}
+                                                {/* End Date - DEADLINE */}
                                                 <div className="relative group">
-                                                    <label className="text-[9px] text-white font-bold uppercase block mb-1">Fin Estimado</label>
+                                                    <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-red-600" : "text-red-400")}>Deadline (Fin)</label>
                                                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setDatePickerTarget('endDate'); setCurrentMonth(formData.endDate ? new Date(formData.endDate) : new Date()); }}>
                                                         <CalendarIcon className="w-4 h-4 text-zinc-400 group-hover:text-amber-400 transition-colors" />
                                                         <span className="text-xs text-zinc-300 font-mono">{formData.endDate ? format(new Date(formData.endDate), 'dd MMM yyyy', { locale: es }) : 'Seleccionar'}</span>

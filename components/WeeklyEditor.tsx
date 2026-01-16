@@ -1153,7 +1153,7 @@ export default function WeeklyEditor() {
                     }
                     {viewMode === 'users' && <UserManagement />}
 
-                    {viewMode === 'task-manager' && <TaskManagement />}
+                    {viewMode === 'task-manager' && <TaskManagement initialTaskId={searchParams.get('taskId')} />}
 
                     {viewMode === 'tasks' && <TaskDashboard
                         projects={

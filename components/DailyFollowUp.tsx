@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation"; // Added for routing
 import ProjectManagement from "./ProjectManagement";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
@@ -35,6 +36,7 @@ import { getRoleLevel, RoleLevel } from "@/types"; // Added import // Added impo
 
 
 export default function DailyFollowUp() {
+    const searchParams = useSearchParams();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
@@ -1706,7 +1708,7 @@ export default function DailyFollowUp() {
                             permissionLoading={profileLoading}
                         />
                     ) : viewMode === 'task-manager' ? (
-                        <TaskManagement initialTaskId={pendingTaskId} />
+                        <TaskManagement initialTaskId={pendingTaskId || searchParams.get('taskId')} />
                     ) : viewMode === 'users' ? (
                         <UserManagement />
                     ) : viewMode === 'user-roles' ? (
