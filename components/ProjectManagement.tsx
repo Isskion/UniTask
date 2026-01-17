@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, where } from "firebase/firestore";
-import { getActiveProjects, createProject, updateProject } from "@/lib/projects";
+import { collection, getDocs, doc, query, orderBy, where, updateDoc } from "firebase/firestore";
+import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
-import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, Shield, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, MapPin, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2 } from "lucide-react";
+import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, Tenant, getRoleLevel, RoleLevel } from "@/types";
 import { useToast } from "@/context/ToastContext";
@@ -19,11 +18,10 @@ import TodaysWorkbench from "./TodaysWorkbench";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
-    const { updateDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { showToast } = useToast();
-    const { can, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
+    const { can } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,6 +37,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     const [showCompose, setShowCompose] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [searchQuery, setSearchQuery] = useState(""); // Search State
 
     // Permissions Helper - now using usePermissions hook
     const canCreate = can('create', 'project');
@@ -108,6 +107,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         setUserTab('feed');
         setIsNew(false);
         setFormData({}); // Clear form
+        setSearchQuery(""); // Clear search on project switch
     };
 
     // 2. Open Full Edit Form (Pencil)
@@ -338,6 +338,34 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                             {/* Header Actions */}
                             <div className="flex items-center gap-2">
+                                {/* SEARCH BAR */}
+                                {userTab === 'feed' && !isNew && (
+                                    <div className={cn("relative flex items-center transition-all duration-300 group mr-2",
+                                        searchQuery ? "w-64" : "w-10 focus-within:w-64"
+                                    )}>
+                                        <Search className={cn("w-4 h-4 absolute left-3 z-10 transition-colors cursor-pointer",
+                                            isLight ? "text-zinc-400 group-focus-within:text-zinc-600" : "text-zinc-400 group-focus-within:text-zinc-300"
+                                        )} />
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar en bitácora..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className={cn("w-full pl-9 pr-4 py-1.5 text-xs rounded-full border bg-transparent transition-all outline-none",
+                                                searchQuery ? "opacity-100" : "opacity-0 focus:opacity-100 group-focus-within:opacity-100 cursor-pointer focus:cursor-text",
+                                                isLight
+                                                    ? "border-zinc-200 focus:border-zinc-400 focus:bg-white placeholder:text-zinc-400 text-zinc-900"
+                                                    : "border-white/10 focus:border-white/20 focus:bg-white/5 placeholder:text-zinc-600 text-zinc-200"
+                                            )}
+                                        />
+                                        {searchQuery && (
+                                            <button onClick={() => setSearchQuery("")} className="absolute right-3 text-zinc-400 hover:text-zinc-600">
+                                                <XCircle className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
                                 {userTab === 'feed' && !isNew && (
                                     <button
                                         onClick={() => setShowCompose(!showCompose)}
@@ -379,6 +407,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     <ProjectActivityFeed
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}
+                                        searchQuery={searchQuery}
                                     />
                                 </>
                             )}
@@ -536,6 +565,6 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }

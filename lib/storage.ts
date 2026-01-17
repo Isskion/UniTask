@@ -83,6 +83,21 @@ export async function getRecentJournalEntries(tenantId: string, limitCount: numb
     }
 }
 
+export async function getAllJournalEntries(tenantId: string): Promise<JournalEntry[]> {
+    try {
+        const q = query(
+            collection(db, "journal_entries"),
+            where("tenantId", "==", tenantId),
+            orderBy("date", "desc")
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.data() as JournalEntry);
+    } catch (e) {
+        console.error("Error fetching all entries", e);
+        return [];
+    }
+}
+
 // --- LEGACY WEEKLY ENTRIES ---
 const COLLECTION_NAME = "weekly_entries";
 

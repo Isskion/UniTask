@@ -12,11 +12,11 @@ import { NotificationBell } from "./NotificationBell"; // Re-applied Import Fix
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
 import { es } from "date-fns/locale";
-import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalEntriesForDate } from "@/lib/storage";
+import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalEntriesForDate, getAllJournalEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight, Search } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
@@ -41,6 +41,10 @@ export default function DailyFollowUp() {
     const isLight = theme === 'light';
     const isRed = theme === 'red';
 
+    // --- SEARCH STATE ---
+    const [searchQuery, setSearchQuery] = useState("");
+    const [fullHistory, setFullHistory] = useState<JournalEntry[] | null>(null);
+    const [isSearchingHistory, setIsSearchingHistory] = useState(false);
 
     const {
         user,
@@ -1207,10 +1211,30 @@ export default function DailyFollowUp() {
 
                                     // Start with days that have data (active + permitted)
                                     const rawDates = recentEntries
-                                        .filter(e => e.projects.some(p =>
-                                            p.status !== 'trash' &&
-                                            (!allowedProjectNames || allowedProjectNames.has(p.name))
-                                        ))
+                                        .filter(e => {
+                                            // 1. Basic Filter
+                                            const hasActiveProjects = e.projects.some(p =>
+                                                p.status !== 'trash' &&
+                                                (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                            );
+                                            if (!hasActiveProjects) return false;
+
+                                            // 2. Search Filter
+                                            if (searchQuery) {
+                                                const lowerQ = searchQuery.toLowerCase();
+                                                if (activeTab === 'General') {
+                                                    return e.generalNotes?.toLowerCase().includes(lowerQ);
+                                                } else {
+                                                    const proj = e.projects.find(p => p.name === activeTab);
+                                                    if (!proj) return false;
+                                                    return proj.blocks?.some(b =>
+                                                        (b.title?.toLowerCase().includes(lowerQ)) ||
+                                                        (b.content?.toLowerCase().includes(lowerQ))
+                                                    ) || false;
+                                                }
+                                            }
+                                            return true;
+                                        })
                                         .map(e => e.date);
 
                                     // Add Today and Selected (Active) Day
@@ -1322,6 +1346,9 @@ export default function DailyFollowUp() {
                                         <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
                                         <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}</span>
                                     </h2>
+
+                                    {/* SEARCH BAR REMOVED */}
+
                                     {userRole === 'superadmin' && (
                                         <button
                                             onClick={async () => {

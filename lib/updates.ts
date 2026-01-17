@@ -56,7 +56,12 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
             // Note: Subcollections might typically be owned by the parent project implicitly, 
             // but for strict rules, we might need to filter. 
             // Currently assuming parent access implies subcollection access if rules allow.
-            const qUpdates = query(updatesRef, orderBy("date", "desc"), limit(limitCount));
+            let qUpdates;
+            if (limitCount === -1) {
+                qUpdates = query(updatesRef, where("tenantId", "==", tenantId), orderBy("date", "desc"));
+            } else {
+                qUpdates = query(updatesRef, where("tenantId", "==", tenantId), orderBy("date", "desc"), limit(limitCount));
+            }
             const snapUpdates = await getDocs(qUpdates);
             snapUpdates.forEach(d => results.push({ id: d.id, ...d.data() } as ProjectUpdate));
         } catch (e) {
@@ -67,13 +72,25 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
         // CRITICAL: Must filter by tenantId to satisfy row-level security
         try {
             const tasksRef = collection(db, TASKS_COLLECTION);
-            const qTasks = query(
-                tasksRef,
-                where("projectId", "==", projectId),
-                where("tenantId", "==", tenantId), // Added Security Constraint
-                orderBy("createdAt", "desc"),
-                limit(limitCount)
-            );
+            let qTasks;
+
+            if (limitCount === -1) {
+                qTasks = query(
+                    tasksRef,
+                    where("projectId", "==", projectId),
+                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    orderBy("createdAt", "desc")
+                );
+            } else {
+                qTasks = query(
+                    tasksRef,
+                    where("projectId", "==", projectId),
+                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    orderBy("createdAt", "desc"),
+                    limit(limitCount)
+                );
+            }
+
             const snapTasks = await getDocs(qTasks);
             snapTasks.forEach(d => {
                 const t = d.data() as Task;
@@ -99,12 +116,22 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
         // CRITICAL: Must filter by tenantId
         try {
             const journalRef = collection(db, JOURNAL_COLLECTION);
-            const qJournal = query(
-                journalRef,
-                where("tenantId", "==", tenantId), // Added Security Constraint
-                orderBy("date", "desc"),
-                limit(30)
-            );
+            let qJournal;
+
+            if (limitCount === -1) {
+                qJournal = query(
+                    journalRef,
+                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    orderBy("date", "desc")
+                );
+            } else {
+                qJournal = query(
+                    journalRef,
+                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    orderBy("date", "desc"),
+                    limit(30)
+                );
+            }
             const snapJournal = await getDocs(qJournal);
 
             snapJournal.forEach(d => {

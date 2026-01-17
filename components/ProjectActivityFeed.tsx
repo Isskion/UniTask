@@ -13,29 +13,72 @@ import { useAuth } from "@/context/AuthContext";
 
 interface ProjectActivityFeedProps {
     projectId: string;
+    searchQuery?: string;
 }
 
-export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedProps) {
+export default function ProjectActivityFeed({ projectId, searchQuery = "" }: ProjectActivityFeedProps) {
     const { theme } = useTheme();
     const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
     const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fullHistoryLoaded, setFullHistoryLoaded] = useState(false);
+    const [fetchingHistory, setFetchingHistory] = useState(false);
 
     useEffect(() => {
-        loadUpdates();
+        loadUpdates(false);
     }, [projectId, tenantId]);
 
-    const loadUpdates = async () => {
-        setLoading(true);
-        // Fallback to "1" if no tenant, but typically should be set
-        const data = await getProjectUpdates(projectId, tenantId || "1");
-        setUpdates(data);
-        setLoading(false);
+    // Trigger Full History Load when searching - Debounced slightly by effect nature, but need gating
+    useEffect(() => {
+        if (searchQuery && !fullHistoryLoaded && !fetchingHistory) {
+            loadUpdates(true);
+        }
+    }, [searchQuery, fullHistoryLoaded, fetchingHistory]);
+
+    const loadUpdates = async (loadFull: boolean) => {
+        // If loading full history, only set fetching flag, don't wipe UI
+        if (loadFull) {
+            setFetchingHistory(true);
+        } else {
+            setLoading(true);
+        }
+
+        // limit = -1 for full history, 50 for default
+        const limitCount = loadFull ? -1 : 50;
+
+        try {
+            const data = await getProjectUpdates(projectId, tenantId || "1", limitCount);
+
+            // Only update if we have data or if it's the initial load
+            // If historical fetch fails (e.g. index error), we might get partial data. 
+            // We should still likely update, but strictly logically.
+            setUpdates(data);
+
+            if (loadFull) {
+                setFullHistoryLoaded(true);
+            }
+        } catch (e) {
+            console.error("Failed to load updates", e);
+        } finally {
+            setLoading(false);
+            setFetchingHistory(false);
+        }
     };
 
+    // Filter Updates based on Search Query
+    const filteredUpdates = updates.filter(update => {
+        if (!searchQuery) return true;
+        const lowerQ = searchQuery.toLowerCase();
+        return (
+            (update.content.notes?.toLowerCase().includes(lowerQ)) ||
+            (update.authorName?.toLowerCase().includes(lowerQ)) ||
+            (update.content.nextSteps?.some(step => step.toLowerCase().includes(lowerQ)))
+        );
+    });
+
     // Group by Date for the "Day Header" effect
-    const grouped = updates.reduce((acc, update) => {
+    const grouped = filteredUpdates.reduce((acc, update) => {
         const dateKey = update.date?.toDate ? format(update.date.toDate(), 'yyyy-MM-dd') : 'unknown';
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(update);
@@ -83,7 +126,7 @@ export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedPr
                         {/* Updates for this day */}
                         <div className="grid gap-4">
                             {group.map(update => (
-                                <UpdateCard key={update.id} update={update} isLight={isLight} />
+                                <UpdateCard key={update.id} update={update} isLight={isLight} searchQuery={searchQuery} />
                             ))}
                         </div>
                     </div>
@@ -93,7 +136,25 @@ export default function ProjectActivityFeed({ projectId }: ProjectActivityFeedPr
     );
 }
 
-function UpdateCard({ update, isLight }: { update: ProjectUpdate, isLight: boolean }) {
+// Helper for highlighting text
+const HighlightText = ({ text, highlight }: { text: string, highlight?: string }) => {
+    if (!highlight || !text) return <>{text}</>;
+
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return (
+        <>
+            {parts.map((part, i) =>
+                part.toLowerCase() === highlight.toLowerCase() ? (
+                    <span key={i} className="text-red-500 font-bold bg-red-500/10 rounded-sm px-0.5 -mx-0.5">{part}</span>
+                ) : (
+                    part
+                )
+            )}
+        </>
+    );
+};
+
+function UpdateCard({ update, isLight, searchQuery }: { update: ProjectUpdate, isLight: boolean, searchQuery?: string }) {
     return (
         <div className={cn("border rounded-xl p-5 hover:bg-opacity-80 transition-colors shadow-sm relative overflow-hidden group",
             isLight ? "bg-white border-zinc-200 hover:bg-zinc-50" : "bg-card/30 border-white/5 hover:bg-card/50"
@@ -110,7 +171,7 @@ function UpdateCard({ update, isLight }: { update: ProjectUpdate, isLight: boole
                     {update.authorName?.[0] || 'S'}
                 </div>
                 <span className={cn("text-xs font-medium", isLight ? "text-zinc-700" : "text-zinc-400")}>
-                    {update.authorName || 'Sistema'}
+                    <HighlightText text={update.authorName || 'Sistema'} highlight={searchQuery} />
                 </span>
                 <span className={cn("text-[10px]", isLight ? "text-zinc-500" : "text-zinc-500")}>
                     • {update.date?.toDate ? format(update.date.toDate(), 'HH:mm') : ''}
@@ -120,7 +181,7 @@ function UpdateCard({ update, isLight }: { update: ProjectUpdate, isLight: boole
             {/* Content: Notes */}
             {update.content.notes && (
                 <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mb-4 font-light", isLight ? "text-zinc-900" : "text-zinc-200")}>
-                    {update.content.notes}
+                    <HighlightText text={update.content.notes} highlight={searchQuery} />
                 </div>
             )}
 
@@ -134,7 +195,7 @@ function UpdateCard({ update, isLight }: { update: ProjectUpdate, isLight: boole
                         {update.content.nextSteps.map((step, i) => (
                             <li key={i} className={cn("text-xs flex items-start gap-2", isLight ? "text-zinc-800" : "text-zinc-300")}>
                                 <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                                {step}
+                                <HighlightText text={step} highlight={searchQuery} />
                             </li>
                         ))}
                     </ul>
