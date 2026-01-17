@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, query, orderBy, where, updateDoc } from "firebase/firestore";
 import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft } from "lucide-react";
+import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, Tenant, getRoleLevel, RoleLevel } from "@/types";
 import { useToast } from "@/context/ToastContext";
@@ -30,6 +30,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [userTab, setUserTab] = useState<'feed' | 'settings'>('feed');
+    const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
     const [formData, setFormData] = useState<Partial<Project>>({});
@@ -338,12 +339,27 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                             {/* Header Actions */}
                             <div className="flex items-center gap-2">
+
+                                {/* COPY BUTTON (Only when searching) */}
+                                {userTab === 'feed' && !isNew && searchQuery && (
+                                    <button
+                                        onClick={() => feedRef.current?.copyResults()}
+                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2",
+                                            isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600" : "bg-white/5 hover:bg-white/10 text-zinc-400"
+                                        )}
+                                        title="Copiar resultados filtrados"
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                        <span className="text-xs font-bold hidden md:inline">Copiar</span>
+                                    </button>
+                                )}
+
                                 {/* SEARCH BAR */}
                                 {userTab === 'feed' && !isNew && (
                                     <div className={cn("relative flex items-center transition-all duration-300 group mr-2",
-                                        searchQuery ? "w-64" : "w-10 focus-within:w-64"
+                                        searchQuery ? "w-64" : "w-12 focus-within:w-64"
                                     )}>
-                                        <Search className={cn("w-4 h-4 absolute left-3 z-10 transition-colors cursor-pointer",
+                                        <Search className={cn("w-4 h-4 absolute left-4 z-10 transition-colors pointer-events-none",
                                             isLight ? "text-zinc-400 group-focus-within:text-zinc-600" : "text-zinc-400 group-focus-within:text-zinc-300"
                                         )} />
                                         <input
@@ -351,15 +367,15 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             placeholder="Buscar en bitácora..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className={cn("w-full pl-9 pr-4 py-1.5 text-xs rounded-full border bg-transparent transition-all outline-none",
-                                                searchQuery ? "opacity-100" : "opacity-0 focus:opacity-100 group-focus-within:opacity-100 cursor-pointer focus:cursor-text",
+                                            className={cn("w-full pl-10 pr-4 py-2 text-xs rounded-full border bg-transparent transition-all outline-none z-20 cursor-pointer",
+                                                searchQuery ? "opacity-100" : "opacity-0 focus:opacity-100 group-focus-within:opacity-100 placeholder:opacity-0 focus:placeholder:opacity-100",
                                                 isLight
                                                     ? "border-zinc-200 focus:border-zinc-400 focus:bg-white placeholder:text-zinc-400 text-zinc-900"
                                                     : "border-white/10 focus:border-white/20 focus:bg-white/5 placeholder:text-zinc-600 text-zinc-200"
                                             )}
                                         />
                                         {searchQuery && (
-                                            <button onClick={() => setSearchQuery("")} className="absolute right-3 text-zinc-400 hover:text-zinc-600">
+                                            <button onClick={() => setSearchQuery("")} className="absolute right-3 z-30 text-zinc-400 hover:text-zinc-600">
                                                 <XCircle className="w-3 h-3" />
                                             </button>
                                         )}
@@ -405,8 +421,10 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     )}
                                     <h2 className={cn("text-xl font-bold mb-4 px-4 pt-4", isLight ? "text-zinc-900" : "text-foreground")}>Bitácora</h2>
                                     <ProjectActivityFeed
+                                        ref={feedRef}
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}
+                                        projectName={selectedProject.name}
                                         searchQuery={searchQuery}
                                     />
                                 </>

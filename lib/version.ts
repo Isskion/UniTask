@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.4.3';
+export const APP_VERSION = '12.4.4';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.4.4",
+        date: "2026-01-17",
+        title: "Exportación y Mejoras de UX",
+        features: [
+            "Nueva función 'Copiar Resultados': Exporta la búsqueda filtrada al portapapeles con un solo clic.",
+            "Formato de exportación optimizado para email/chat (incluye nombre de proyecto, fecha y notas).",
+            "Mejora en la usabilidad del buscador: Área de clic ampliada para facilitar la apertura."
+        ]
+    },
     {
         version: "12.4.3",
         date: "2026-01-17",

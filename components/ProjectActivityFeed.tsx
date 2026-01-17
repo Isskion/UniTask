@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { ProjectUpdate } from "@/types";
 import { getProjectUpdates } from "@/lib/updates";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
@@ -8,18 +8,25 @@ import { es } from "date-fns/locale";
 import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/context/ToastContext";
 
 import { useAuth } from "@/context/AuthContext";
 
 interface ProjectActivityFeedProps {
     projectId: string;
+    projectName?: string;
     searchQuery?: string;
 }
 
-export default function ProjectActivityFeed({ projectId, searchQuery = "" }: ProjectActivityFeedProps) {
+export interface ProjectActivityFeedHandle {
+    copyResults: () => void;
+}
+
+const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectName = "Proyecto", searchQuery = "" }, ref) => {
     const { theme } = useTheme();
     const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
+    const { showToast } = useToast();
     const [updates, setUpdates] = useState<ProjectUpdate[]>([]);
     const [loading, setLoading] = useState(true);
     const [fullHistoryLoaded, setFullHistoryLoaded] = useState(false);
@@ -76,6 +83,33 @@ export default function ProjectActivityFeed({ projectId, searchQuery = "" }: Pro
             (update.content.nextSteps?.some(step => step.toLowerCase().includes(lowerQ)))
         );
     });
+
+    // Expose Copy Function
+    useImperativeHandle(ref, () => ({
+        copyResults: () => {
+            if (filteredUpdates.length === 0) {
+                showToast("Portapapeles", "No hay resultados para copiar", "warning");
+                return;
+            }
+
+            const header = `RESULTADOS DE BÚSQUEDA: "${searchQuery}"\nPROYECTO: ${projectName}\nFECHA: ${new Date().toLocaleDateString()}\n----------------------------------------\n\n`;
+
+            const content = filteredUpdates.map(u => {
+                const date = u.date?.toDate ? format(u.date.toDate(), 'dd/MM/yyyy HH:mm') : 'Fecha Desc.';
+                const author = u.authorName || 'Sistema';
+                let text = `[${date}] ${author}:\n${u.content.notes || ''}\n`;
+
+                if (u.content.nextSteps && u.content.nextSteps.length > 0) {
+                    text += `ACCIONES: \n${u.content.nextSteps.map(s => ` - ${s}`).join('\n')}\n`;
+                }
+                return text;
+            }).join('\n----------------------------------------\n\n');
+
+            navigator.clipboard.writeText(header + content)
+                .then(() => showToast("Portapapeles", "Resultados copiados al portapapeles", "success"))
+                .catch(() => showToast("Error", "No se pudo copiar al portapapeles", "error"));
+        }
+    }));
 
     // Group by Date for the "Day Header" effect
     const grouped = filteredUpdates.reduce((acc, update) => {
@@ -134,7 +168,9 @@ export default function ProjectActivityFeed({ projectId, searchQuery = "" }: Pro
             })}
         </div>
     );
-}
+});
+
+export default ProjectActivityFeed;
 
 // Helper for highlighting text
 const HighlightText = ({ text, highlight }: { text: string, highlight?: string }) => {
