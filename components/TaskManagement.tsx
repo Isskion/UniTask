@@ -7,12 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2 } from "lucide-react";
+import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
+import { FileUploader } from "./FileUploader";
 
 export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
     const { userRole, user, tenantId } = useAuth();
@@ -597,8 +598,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 </div>
                                             </>
                                         )}
-                                    </div>
-                                </div>
+
+                                    </div></div></div></div>
+
+                        <div className="space-y-4">
+
+                            {/* TITLE */}
+                            <div>
                                 <button
                                     onClick={() => setFormData({ ...formData, isBlocking: !formData.isBlocking })}
                                     className={cn(

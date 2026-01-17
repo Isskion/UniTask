@@ -140,6 +140,7 @@ export interface NoteBlock {
     id: string; // "block-1"
     title?: string;
     content: string;
+    type?: 'notes' | 'task';
 }
 
 export interface ProjectEntry {

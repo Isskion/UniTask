@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, initializeFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 // We won't use analytics server-side for now to avoid errors
 
@@ -25,6 +26,7 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
 });
+const storage = getStorage(app);
 const auth = getAuth(app);
 
-export { db, auth };
+export { db, auth, storage };

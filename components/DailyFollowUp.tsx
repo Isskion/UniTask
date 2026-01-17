@@ -1443,10 +1443,78 @@ export default function DailyFollowUp() {
                                     {/* Left: PM Notes (Blocks) */}
                                     <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
                                         <div className="flex justify-between items-center w-full mb-2">
-                                            <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
-                                                <PenSquare className="w-3 h-3" />
-                                                {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
-                                            </label>
+                                            <div className="flex items-center gap-3">
+                                                <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
+                                                    <PenSquare className="w-3 h-3" />
+                                                    {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
+                                                </label>
+
+                                                {/* PDF SCAN BUTTON */}
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="file"
+                                                        accept="application/pdf"
+                                                        className="hidden"
+                                                        id="daily-pdf-scan"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            setSaving(true);
+                                                            showToast("UniTask AI", "Leyendo documento...", "info");
+                                                            try {
+                                                                const reader = new FileReader();
+                                                                reader.onload = async () => {
+                                                                    const base64String = (reader.result as string).split(',')[1];
+                                                                    const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
+                                                                    const json = await res.json();
+
+                                                                    if (json.success && json.data) {
+                                                                        const { title, description, action_items, endDate, full_content } = json.data;
+
+                                                                        // 1. Create Clean Note Block (Just Content)
+                                                                        const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
+
+                                                                        if (activeTab === 'General') {
+                                                                            setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
+                                                                        } else {
+                                                                            // Add as new block to project
+                                                                            const newBlock: NoteBlock = {
+                                                                                id: crypto.randomUUID(),
+                                                                                title: title || "Resumen PDF",
+                                                                                content: md,
+                                                                                type: 'notes'
+                                                                            };
+                                                                            setEntry(prev => ({
+                                                                                ...prev,
+                                                                                projects: prev.projects.map(p =>
+                                                                                    p.name === activeTab
+                                                                                        ? { ...p, blocks: [...(p.blocks || []), newBlock] }
+                                                                                        : p
+                                                                                )
+                                                                            }));
+                                                                        }
+
+                                                                        // 2. Chain AI Analysis (Populate UI State directly)
+                                                                        setAiSummary(description || "Sin resumen disponible");
+                                                                        setAiSuggestions(action_items || []);
+
+                                                                        showToast("UniTask AI", "Documento leído. Revisar conclusiones de IA.", "success");
+                                                                    } else {
+                                                                        console.error("[PDF Analysis] Server Error:", json);
+                                                                        showToast("Error", `Fallo al procesar: ${json.error || "Error desconocido"}`, "error");
+                                                                    }
+                                                                    setSaving(false);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
+                                                            e.target.value = "";
+                                                        }}
+                                                    />
+                                                    <label htmlFor="daily-pdf-scan" className={cn("cursor-pointer flex items-center gap-1.5 text-[10px] px-2 py-1 rounded border transition-all hover:scale-105 active:scale-95", isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20")} title="Escanear PDF y añadir a notas">
+                                                        <Sparkles className="w-3.5 h-3.5" /> <span className="font-bold">Escanear PDF</span>
+                                                    </label>
+                                                </div>
+                                            </div>
 
                                             {/* MOVE BUTTON (PM+) */}
                                             {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (

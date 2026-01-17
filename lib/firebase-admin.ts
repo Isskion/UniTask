@@ -3,6 +3,7 @@ import "server-only";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 // NOTE: In standard production, you would use a Service Account Key (JSON).
 // For simplicity/security in this specific Vercel/Local setup, we might rely on 
@@ -39,5 +40,6 @@ const firebaseAdminConfig = {
 const adminApp = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseAdminConfig);
 const adminAuth = getAuth(adminApp);
 const adminDb = getFirestore(adminApp);
+const adminStorage = getStorage(adminApp);
 
-export { adminAuth, adminDb };
+export { adminAuth, adminDb, adminStorage };
