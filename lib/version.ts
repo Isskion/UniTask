@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.3.0';
+export const APP_VERSION = '12.4.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.4.0",
+        date: "2026-01-17",
+        title: "Inteligencia Artificial 2.0 & PDF",
+        features: [
+            "Actualización a Gemini 2.0 Flash: Más rápido y eficiente.",
+            "Lectura de PDF Mejorada: Separación clara entre contenido original y análisis.",
+            "Detección de Idioma: La IA respeta el idioma del documento.",
+            "Corrección de permisos en la extracción automática de tareas."
+        ]
+    },
     {
         version: "12.3.0",
         date: "2026-01-16",
