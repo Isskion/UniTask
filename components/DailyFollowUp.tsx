@@ -1446,87 +1446,96 @@ export default function DailyFollowUp() {
                                             <div className="flex items-center gap-3">
                                                 <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
                                                     <PenSquare className="w-3 h-3" />
-                                                    {activeTab === 'General' ? 'Notas Generales' : `Bloques de Notas: ${activeTab}`}
+                                                    {activeTab === 'General'
+                                                        ? 'Notas Generales'
+                                                        : `Minuta: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
+                                                    }
                                                 </label>
 
-                                                {/* PDF SCAN BUTTON */}
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="file"
-                                                        accept="application/pdf"
-                                                        className="hidden"
-                                                        id="daily-pdf-scan"
-                                                        onChange={async (e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (!file) return;
-                                                            setSaving(true);
-                                                            showToast("UniTask AI", "Leyendo documento...", "info");
-                                                            try {
-                                                                const reader = new FileReader();
-                                                                reader.onload = async () => {
-                                                                    const base64String = (reader.result as string).split(',')[1];
-                                                                    const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
-                                                                    const json = await res.json();
+                                                <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
+                                                    {/* PDF SCAN BUTTON */}
+                                                    <div className="flex items-center">
+                                                        <input
+                                                            type="file"
+                                                            accept="application/pdf"
+                                                            className="hidden"
+                                                            id="daily-pdf-scan"
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                setSaving(true);
+                                                                showToast("UniTask AI", "Leyendo documento...", "info");
+                                                                try {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = async () => {
+                                                                        const base64String = (reader.result as string).split(',')[1];
+                                                                        const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
+                                                                        const json = await res.json();
 
-                                                                    if (json.success && json.data) {
-                                                                        const { title, description, action_items, endDate, full_content } = json.data;
+                                                                        if (json.success && json.data) {
+                                                                            const { title, description, action_items, endDate, full_content } = json.data;
 
-                                                                        // 1. Create Clean Note Block (Just Content)
-                                                                        const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
+                                                                            // 1. Create Clean Note Block (Just Content)
+                                                                            const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
 
-                                                                        if (activeTab === 'General') {
-                                                                            setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
+                                                                            if (activeTab === 'General') {
+                                                                                setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
+                                                                            } else {
+                                                                                // Add as new block to project
+                                                                                const newBlock: NoteBlock = {
+                                                                                    id: crypto.randomUUID(),
+                                                                                    title: title || "Resumen PDF",
+                                                                                    content: md,
+                                                                                    type: 'notes'
+                                                                                };
+                                                                                setEntry(prev => ({
+                                                                                    ...prev,
+                                                                                    projects: prev.projects.map(p =>
+                                                                                        p.name === activeTab
+                                                                                            ? { ...p, blocks: [...(p.blocks || []), newBlock] }
+                                                                                            : p
+                                                                                    )
+                                                                                }));
+                                                                            }
+
+                                                                            // 2. Chain AI Analysis (Populate UI State directly)
+                                                                            setAiSummary(description || "Sin resumen disponible");
+                                                                            setAiSuggestions(action_items || []);
+
+                                                                            showToast("UniTask AI", "Documento leído. Revisar conclusiones de IA.", "success");
                                                                         } else {
-                                                                            // Add as new block to project
-                                                                            const newBlock: NoteBlock = {
-                                                                                id: crypto.randomUUID(),
-                                                                                title: title || "Resumen PDF",
-                                                                                content: md,
-                                                                                type: 'notes'
-                                                                            };
-                                                                            setEntry(prev => ({
-                                                                                ...prev,
-                                                                                projects: prev.projects.map(p =>
-                                                                                    p.name === activeTab
-                                                                                        ? { ...p, blocks: [...(p.blocks || []), newBlock] }
-                                                                                        : p
-                                                                                )
-                                                                            }));
+                                                                            console.error("[PDF Analysis] Server Error:", json);
+                                                                            showToast("Error", `Fallo al procesar: ${json.error || "Error desconocido"}`, "error");
                                                                         }
+                                                                        setSaving(false);
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
+                                                                e.target.value = "";
+                                                            }}
+                                                        />
+                                                        <label htmlFor="daily-pdf-scan" className={cn("cursor-pointer flex items-center justify-center gap-1.5 text-[10px] w-[85px] py-0.5 rounded-full border transition-all hover:scale-105 active:scale-95 shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title="Escanear PDF y añadir a notas">
+                                                            <Sparkles className="w-3 h-3" /> <span className="font-bold">Escanear</span>
+                                                        </label>
+                                                    </div>
 
-                                                                        // 2. Chain AI Analysis (Populate UI State directly)
-                                                                        setAiSummary(description || "Sin resumen disponible");
-                                                                        setAiSuggestions(action_items || []);
-
-                                                                        showToast("UniTask AI", "Documento leído. Revisar conclusiones de IA.", "success");
-                                                                    } else {
-                                                                        console.error("[PDF Analysis] Server Error:", json);
-                                                                        showToast("Error", `Fallo al procesar: ${json.error || "Error desconocido"}`, "error");
-                                                                    }
-                                                                    setSaving(false);
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
-                                                            e.target.value = "";
-                                                        }}
-                                                    />
-                                                    <label htmlFor="daily-pdf-scan" className={cn("cursor-pointer flex items-center gap-1.5 text-[10px] px-2 py-1 rounded border transition-all hover:scale-105 active:scale-95", isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20")} title="Escanear PDF y añadir a notas">
-                                                        <Sparkles className="w-3.5 h-3.5" /> <span className="font-bold">Escanear PDF</span>
-                                                    </label>
+                                                    {/* MOVE BUTTON (PM+) */}
+                                                    {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
+                                                        <button
+                                                            onClick={handleInitMove}
+                                                            className={cn("text-[10px] flex items-center justify-center gap-1 w-[85px] py-0.5 rounded-full border transition-colors shadow-sm font-bold",
+                                                                isLight
+                                                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
+                                                                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                                            )}
+                                                            title="Mover entrada a otra fecha"
+                                                        >
+                                                            <ArrowRight className="w-3 h-3" />
+                                                            Mover
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
-
-                                            {/* MOVE BUTTON (PM+) */}
-                                            {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
-                                                <button
-                                                    onClick={handleInitMove}
-                                                    className="text-[10px] flex items-center gap-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 px-2 py-1 rounded border border-zinc-200 transition-colors"
-                                                    title="Mover entrada a otra fecha"
-                                                >
-                                                    <ArrowRight className="w-3 h-3" />
-                                                    Mover Entrada
-                                                </button>
-                                            )}
                                         </div>
 
                                         {activeTab === 'General' ? (

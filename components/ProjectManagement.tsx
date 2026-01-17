@@ -443,7 +443,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                     value={formData.code || ""}
                                                     onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                                     placeholder="ABC"
-                                                    maxLength={5}
+                                                    maxLength={4}
                                                 />
                                             </div>
                                             <div className="space-y-2">
