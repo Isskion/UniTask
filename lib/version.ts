@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.4.2';
+export const APP_VERSION = '12.4.3';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.4.3",
+        date: "2026-01-17",
+        title: "Buscador Avanzado de Bitácora",
+        features: [
+            "Búsqueda Global: Ahora busca en TODOS los registros históricos, no solo en los recientes.",
+            "Resaltado de Términos: Las palabras encontradas se marcan en rojo para rápida identificación.",
+            "Mejor Ubicación: Buscador integrado en la cabecera del proyecto para fácil acceso.",
+            "Corrección de permisos en consultas históricas."
+        ]
+    },
     {
         version: "12.4.2",
         date: "2026-01-17",
