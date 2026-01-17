@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.4.1';
+export const APP_VERSION = '12.4.2';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.4.2",
+        date: "2026-01-17",
+        title: "Mejoras de UI y Estabilidad",
+        features: [
+            "Refinamiento de botones: Diseño compacto y mejor ubicación en cabecera.",
+            "Nueva opción para ocultar/mostrar el panel de tareas lateral.",
+            "Corrección CRÍTICA: Solución a caída del servidor por error de sintaxis."
+        ]
+    },
     {
         version: "12.4.1",
         date: "2026-01-17",

@@ -132,6 +132,9 @@ export default function DailyFollowUp() {
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
     const [availableTenants, setAvailableTenants] = useState<any[]>([]);
 
+    // --- STATE: UI ---
+    const [isTasksPanelVisible, setIsTasksPanelVisible] = useState(false);
+
     // --- STATE: TASKS ---
     const [projectTasks, setProjectTasks] = useState<Task[]>([]);
 
@@ -568,6 +571,7 @@ export default function DailyFollowUp() {
                 ...result.proximosPasos
             ];
             setAiSuggestions(suggestions);
+            setIsTasksPanelVisible(true); // Auto-open on success
 
         } catch (e) {
             console.error(e);
@@ -1340,36 +1344,135 @@ export default function DailyFollowUp() {
                                     {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        className={cn("flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded transition-colors relative",
-                                            isLight
-                                                ? "bg-zinc-900 text-white hover:bg-black"
-                                                : "bg-white text-black hover:bg-zinc-200"
-                                        )}
-                                    >
-                                        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                        Guardar
-                                    </button>
-                                    {isDirty && (
-                                        <div className="bg-red-600 text-white font-bold text-xs px-3 py-1 rounded animate-pulse">
-                                            ⚠️ NO GUARDADO
-                                        </div>
-                                    )}
-                                    <button
-                                        onClick={() => {
-                                            window.onbeforeunload = null;
-                                            alert("Warning Disabled Manually!");
-                                        }}
-                                        className="text-[9px] bg-red-900/50 text-white px-2 py-1 rounded hover:bg-red-800"
-                                    >
-                                        KILL WARNING
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        {/* --- HEADER ACTIONS --- */}
 
-                                    {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
-                                    {/* Add Project Button State */}
-                                    {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
+                                        {/* 1. TASKS TOGGLE */}
+                                        <button
+                                            onClick={() => setIsTasksPanelVisible(!isTasksPanelVisible)}
+                                            className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                isLight
+                                                    ? (isTasksPanelVisible
+                                                        ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200"
+                                                        : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100")
+                                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
+                                            )}
+                                            title={isTasksPanelVisible ? "Ocultar panel de tareas" : "Ver tareas"}
+                                        >
+                                            <ListTodo className="w-3 h-3" />
+                                            {isTasksPanelVisible ? "Ocultar" : "Tareas"}
+                                        </button>
+
+                                        {/* 2. SCAN PDF */}
+                                        <div>
+                                            <input
+                                                type="file"
+                                                accept="application/pdf"
+                                                className="hidden"
+                                                id="daily-pdf-scan-header"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setSaving(true);
+                                                    showToast("UniTask AI", "Leyendo documento...", "info");
+                                                    try {
+                                                        const reader = new FileReader();
+                                                        reader.onload = async () => {
+                                                            const base64String = (reader.result as string).split(',')[1];
+                                                            const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
+                                                            const json = await res.json();
+
+                                                            if (json.success && json.data) {
+                                                                const { title, description, action_items, endDate, full_content } = json.data;
+                                                                const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
+
+                                                                if (activeTab === 'General') {
+                                                                    setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
+                                                                } else {
+                                                                    const newBlock: NoteBlock = {
+                                                                        id: crypto.randomUUID(),
+                                                                        title: title || "Resumen PDF",
+                                                                        content: md,
+                                                                        type: 'notes'
+                                                                    };
+                                                                    setEntry(prev => ({
+                                                                        ...prev,
+                                                                        projects: prev.projects.map(p =>
+                                                                            p.name === activeTab
+                                                                                ? { ...p, blocks: [...(p.blocks || []), newBlock] }
+                                                                                : p
+                                                                        )
+                                                                    }));
+                                                                }
+                                                                setAiSummary(description || "Sin resumen disponible");
+                                                                setAiSuggestions(action_items || []);
+                                                                setIsTasksPanelVisible(true); // Auto-open panel
+                                                                showToast("UniTask AI", "Documento leído.", "success");
+                                                            } else {
+                                                                console.error(json);
+                                                                showToast("Error", `Fallo al procesar: ${json.error}`, "error");
+                                                            }
+                                                            setSaving(false);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
+                                                    e.target.value = "";
+                                                }}
+                                            />
+                                            <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title="Escanear PDF">
+                                                <Sparkles className="w-3 h-3" /> Escanear
+                                            </label>
+                                        </div>
+
+                                        {/* 3. MOVE (PM+ only) */}
+                                        {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
+                                            <button
+                                                onClick={handleInitMove}
+                                                className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                    isLight
+                                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
+                                                        : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                                )}
+                                                title="Mover notas"
+                                            >
+                                                <ArrowRight className="w-3 h-3" />
+                                                Mover
+                                            </button>
+                                        )}
+
+                                        <div className="w-px h-6 bg-border mx-1" />
+
+                                        {/* 4. SAVE (Unified Style) */}
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                            className={cn("flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                isLight
+                                                    ? "bg-zinc-900 text-white border-zinc-900 hover:bg-black hover:scale-105 active:scale-95"
+                                                    : "bg-white text-black border-white hover:bg-zinc-200 hover:scale-105 active:scale-95"
+                                            )}
+                                        >
+                                            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                            Guardar
+                                        </button>
+
+                                        {isDirty && (
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ml-1" title="Cambios sin guardar" />
+                                        )}
+
+                                        <button
+                                            onClick={() => {
+                                                window.onbeforeunload = null;
+                                                showToast("Debug", "Warning Disabled", "info");
+                                            }}
+                                            className="w-1.5 h-1.5 rounded-full bg-red-900/10 hover:bg-red-500 transition-colors ml-1"
+                                            title="Debug: Kill Warning"
+                                        />
+
+                                        {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
+                                        {/* Add Project Button State */}
+                                        {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
+                                    </div>
                                 </div>
                             </div>
 
@@ -1439,7 +1542,9 @@ export default function DailyFollowUp() {
 
                             {/* Content Editor */}
                             <div className="flex-1 p-6 overflow-y-auto mb-10 relative z-0">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                                <div className={cn("grid gap-6 h-full transition-all duration-300",
+                                    isTasksPanelVisible ? "grid-cols-1 lg:grid-cols-[1.5fr_1fr]" : "grid-cols-1"
+                                )}>
                                     {/* Left: PM Notes (Blocks) */}
                                     <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
                                         <div className="flex justify-between items-center w-full mb-2">
@@ -1451,92 +1556,10 @@ export default function DailyFollowUp() {
                                                         : `Minuta: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
                                                     }
                                                 </label>
-
-                                                <div className="flex flex-col items-end gap-1.5 shrink-0 ml-4">
-                                                    {/* PDF SCAN BUTTON */}
-                                                    <div className="flex items-center">
-                                                        <input
-                                                            type="file"
-                                                            accept="application/pdf"
-                                                            className="hidden"
-                                                            id="daily-pdf-scan"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files?.[0];
-                                                                if (!file) return;
-                                                                setSaving(true);
-                                                                showToast("UniTask AI", "Leyendo documento...", "info");
-                                                                try {
-                                                                    const reader = new FileReader();
-                                                                    reader.onload = async () => {
-                                                                        const base64String = (reader.result as string).split(',')[1];
-                                                                        const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
-                                                                        const json = await res.json();
-
-                                                                        if (json.success && json.data) {
-                                                                            const { title, description, action_items, endDate, full_content } = json.data;
-
-                                                                            // 1. Create Clean Note Block (Just Content)
-                                                                            const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
-
-                                                                            if (activeTab === 'General') {
-                                                                                setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
-                                                                            } else {
-                                                                                // Add as new block to project
-                                                                                const newBlock: NoteBlock = {
-                                                                                    id: crypto.randomUUID(),
-                                                                                    title: title || "Resumen PDF",
-                                                                                    content: md,
-                                                                                    type: 'notes'
-                                                                                };
-                                                                                setEntry(prev => ({
-                                                                                    ...prev,
-                                                                                    projects: prev.projects.map(p =>
-                                                                                        p.name === activeTab
-                                                                                            ? { ...p, blocks: [...(p.blocks || []), newBlock] }
-                                                                                            : p
-                                                                                    )
-                                                                                }));
-                                                                            }
-
-                                                                            // 2. Chain AI Analysis (Populate UI State directly)
-                                                                            setAiSummary(description || "Sin resumen disponible");
-                                                                            setAiSuggestions(action_items || []);
-
-                                                                            showToast("UniTask AI", "Documento leído. Revisar conclusiones de IA.", "success");
-                                                                        } else {
-                                                                            console.error("[PDF Analysis] Server Error:", json);
-                                                                            showToast("Error", `Fallo al procesar: ${json.error || "Error desconocido"}`, "error");
-                                                                        }
-                                                                        setSaving(false);
-                                                                    };
-                                                                    reader.readAsDataURL(file);
-                                                                } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
-                                                                e.target.value = "";
-                                                            }}
-                                                        />
-                                                        <label htmlFor="daily-pdf-scan" className={cn("cursor-pointer flex items-center justify-center gap-1.5 text-[10px] w-[85px] py-0.5 rounded-full border transition-all hover:scale-105 active:scale-95 shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title="Escanear PDF y añadir a notas">
-                                                            <Sparkles className="w-3 h-3" /> <span className="font-bold">Escanear</span>
-                                                        </label>
-                                                    </div>
-
-                                                    {/* MOVE BUTTON (PM+) */}
-                                                    {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
-                                                        <button
-                                                            onClick={handleInitMove}
-                                                            className={cn("text-[10px] flex items-center justify-center gap-1 w-[85px] py-0.5 rounded-full border transition-colors shadow-sm font-bold",
-                                                                isLight
-                                                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
-                                                                    : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
-                                                            )}
-                                                            title="Mover entrada a otra fecha"
-                                                        >
-                                                            <ArrowRight className="w-3 h-3" />
-                                                            Mover
-                                                        </button>
-                                                    )}
-                                                </div>
                                             </div>
                                         </div>
+
+
 
                                         {activeTab === 'General' ? (
                                             <textarea
@@ -1607,168 +1630,170 @@ export default function DailyFollowUp() {
                                     </div>
 
                                     {/* Right: Active Tasks & AI */}
-                                    <div className="flex flex-col gap-2 h-full border-l border-border pl-6">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                                <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
-                                                {activeTab === 'General' ? 'Todas las Tareas Activas' : `Tareas Activas: ${activeTab}`}
-                                            </label>
-                                            <button
-                                                onClick={() => handleAI()}
-                                                disabled={isAILoading}
-                                                className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
-                                                title="Analizar notas y extraer tareas"
-                                            >
-                                                {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                Extraer tareas
-                                            </button>
-                                        </div>
-
-                                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
-
-                                            {/* MANUAL ENTRY */}
-                                            <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
-                                                isLight
-                                                    ? "bg-white border-zinc-200 focus-within:border-zinc-400"
-                                                    : "bg-muted/40 border-border focus-within:border-primary/50"
-                                            )}>
-                                                <input
-                                                    type="text"
-                                                    value={newTaskText}
-                                                    onChange={(e) => setNewTaskText(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
-                                                    placeholder="Nueva tarea manual..."
-                                                    className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
-                                                />
-                                                <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
-                                                    <Plus className="w-4 h-4" />
-                                                </button>
-                                                <button onClick={() => handleManualAddTask(true)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-red-400 disabled:opacity-30">
-                                                    <AlertTriangle className="w-4 h-4" />
+                                    {isTasksPanelVisible && (
+                                        <div className="flex flex-col gap-2 h-full border-l border-border pl-6">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                    <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
+                                                    {activeTab === 'General' ? 'Todas las Tareas Activas' : `Tareas Activas: ${activeTab}`}
+                                                </label>
+                                                <button
+                                                    onClick={() => handleAI()}
+                                                    disabled={isAILoading}
+                                                    className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
+                                                    title="Analizar notas y extraer tareas"
+                                                >
+                                                    {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                    Extraer tareas
                                                 </button>
                                             </div>
 
-                                            {/* AI RESULTS AREA */}
-                                            {(aiSummary || aiSuggestions.length > 0) && (
-                                                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
 
-                                                    {/* Summary */}
-                                                    {aiSummary && (
-                                                        <div className="mb-2">
-                                                            <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
-                                                                <Activity className="w-3 h-3" /> Resumen / Contexto
-                                                            </h4>
-                                                            <p className="text-xs text-primary/80 leading-relaxed italic">
-                                                                "{aiSummary}"
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Suggestions List */}
-                                                    {aiSuggestions.length > 0 && (
-                                                        <div>
-                                                            <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Sugerencias ({aiSuggestions.length})</h4>
-                                                            <div className="space-y-1">
-                                                                {aiSuggestions.map((sugg, idx) => (
-                                                                    <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
-                                                                        <p className="text-xs text-foreground flex-1">{sugg}</p>
-                                                                        <div className="flex flex-col gap-1">
-                                                                            <button
-                                                                                onClick={() => handleAcceptSuggestion(sugg, false)}
-                                                                                className="p-1 hover:bg-green-500/20 text-green-500 rounded"
-                                                                                title="Crear Tarea"
-                                                                            >
-                                                                                <Plus className="w-3 h-3" />
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => handleAcceptSuggestion(sugg, true)}
-                                                                                className="p-1 hover:bg-red-500/20 text-red-500 rounded"
-                                                                                title="Crear como BLOQUEANTE"
-                                                                            >
-                                                                                <AlertTriangle className="w-3 h-3" />
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => handleDismissSuggestion(sugg)}
-                                                                                className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
-                                                                                title="Descartar"
-                                                                            >
-                                                                                <Activity className="w-3 h-3 rotate-45" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    <button
-                                                        onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
-                                                        className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
-                                                    >
-                                                        Cerrar sugerencias
+                                                {/* MANUAL ENTRY */}
+                                                <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 focus-within:border-zinc-400"
+                                                        : "bg-muted/40 border-border focus-within:border-primary/50"
+                                                )}>
+                                                    <input
+                                                        type="text"
+                                                        value={newTaskText}
+                                                        onChange={(e) => setNewTaskText(e.target.value)}
+                                                        onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
+                                                        placeholder="Nueva tarea manual..."
+                                                        className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
+                                                    />
+                                                    <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
+                                                        <Plus className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => handleManualAddTask(true)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-red-400 disabled:opacity-30">
+                                                        <AlertTriangle className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            )}
 
-                                            {visibleTasks.length === 0 ? (
-                                                <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
-                                                    No hay tareas activas para los proyectos de hoy
-                                                </div>
-                                            ) : (
-                                                visibleTasks.filter(t => t.status !== 'completed').map(task => (
-                                                    <div
-                                                        key={task.id}
-                                                        className={cn(
-                                                            "group p-3 rounded-lg border transition-all relative",
-                                                            task.isBlocking
-                                                                ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/10"
-                                                                : (isLight
-                                                                    ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-sm"
-                                                                    : "bg-card border-border hover:border-primary/20 hover:bg-muted/50")
-                                                        )}
-                                                    >
-                                                        <div className="flex justify-between items-start gap-3">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="font-mono text-[9px] text-zinc-300/80 bg-white/10 px-1.5 py-0.5 rounded">
-                                                                        {task.friendlyId || 'TSK'}
-                                                                    </span>
-                                                                    {task.isBlocking && (
-                                                                        <span className="text-[9px] font-bold text-red-500 bg-red-950/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                                                            <AlertTriangle className="w-2.5 h-2.5" /> BLOQUEANTE
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                <p className={cn(
-                                                                    "text-xs leading-relaxed line-clamp-3",
-                                                                    task.isBlocking
-                                                                        ? "text-red-200"
-                                                                        : (isLight ? "text-zinc-900" : "text-zinc-200")
-                                                                )}>
-                                                                    {task.description}
+                                                {/* AI RESULTS AREA */}
+                                                {(aiSummary || aiSuggestions.length > 0) && (
+                                                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
+                                                        <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+
+                                                        {/* Summary */}
+                                                        {aiSummary && (
+                                                            <div className="mb-2">
+                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
+                                                                    <Activity className="w-3 h-3" /> Resumen / Contexto
+                                                                </h4>
+                                                                <p className="text-xs text-primary/80 leading-relaxed italic">
+                                                                    "{aiSummary}"
                                                                 </p>
                                                             </div>
+                                                        )}
 
-                                                            {/* Actions */}
-                                                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button
-                                                                    onClick={() => handleToggleBlock(task)}
-                                                                    title={task.isBlocking ? "Desbloquear" : "Bloquear"}
-                                                                    className={cn(
-                                                                        "p-1.5 rounded hover:bg-white/10 transition-colors",
-                                                                        task.isBlocking ? "text-red-400" : "text-zinc-500 hover:text-red-400"
-                                                                    )}
-                                                                >
-                                                                    <AlertTriangle className="w-3.5 h-3.5" />
-                                                                </button>
+                                                        {/* Suggestions List */}
+                                                        {aiSuggestions.length > 0 && (
+                                                            <div>
+                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Sugerencias ({aiSuggestions.length})</h4>
+                                                                <div className="space-y-1">
+                                                                    {aiSuggestions.map((sugg, idx) => (
+                                                                        <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
+                                                                            <p className="text-xs text-foreground flex-1">{sugg}</p>
+                                                                            <div className="flex flex-col gap-1">
+                                                                                <button
+                                                                                    onClick={() => handleAcceptSuggestion(sugg, false)}
+                                                                                    className="p-1 hover:bg-green-500/20 text-green-500 rounded"
+                                                                                    title="Crear Tarea"
+                                                                                >
+                                                                                    <Plus className="w-3 h-3" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleAcceptSuggestion(sugg, true)}
+                                                                                    className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                                                                                    title="Crear como BLOQUEANTE"
+                                                                                >
+                                                                                    <AlertTriangle className="w-3 h-3" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDismissSuggestion(sugg)}
+                                                                                    className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
+                                                                                    title="Descartar"
+                                                                                >
+                                                                                    <Activity className="w-3 h-3 rotate-45" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <button
+                                                            onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
+                                                            className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
+                                                        >
+                                                            Cerrar sugerencias
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {visibleTasks.length === 0 ? (
+                                                    <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
+                                                        No hay tareas activas para los proyectos de hoy
+                                                    </div>
+                                                ) : (
+                                                    visibleTasks.filter(t => t.status !== 'completed').map(task => (
+                                                        <div
+                                                            key={task.id}
+                                                            className={cn(
+                                                                "group p-3 rounded-lg border transition-all relative",
+                                                                task.isBlocking
+                                                                    ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/10"
+                                                                    : (isLight
+                                                                        ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-sm"
+                                                                        : "bg-card border-border hover:border-primary/20 hover:bg-muted/50")
+                                                            )}
+                                                        >
+                                                            <div className="flex justify-between items-start gap-3">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <span className="font-mono text-[9px] text-zinc-300/80 bg-white/10 px-1.5 py-0.5 rounded">
+                                                                            {task.friendlyId || 'TSK'}
+                                                                        </span>
+                                                                        {task.isBlocking && (
+                                                                            <span className="text-[9px] font-bold text-red-500 bg-red-950/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                                                <AlertTriangle className="w-2.5 h-2.5" /> BLOQUEANTE
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className={cn(
+                                                                        "text-xs leading-relaxed line-clamp-3",
+                                                                        task.isBlocking
+                                                                            ? "text-red-200"
+                                                                            : (isLight ? "text-zinc-900" : "text-zinc-200")
+                                                                    )}>
+                                                                        {task.description}
+                                                                    </p>
+                                                                </div>
+
+                                                                {/* Actions */}
+                                                                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button
+                                                                        onClick={() => handleToggleBlock(task)}
+                                                                        title={task.isBlocking ? "Desbloquear" : "Bloquear"}
+                                                                        className={cn(
+                                                                            "p-1.5 rounded hover:bg-white/10 transition-colors",
+                                                                            task.isBlocking ? "text-red-400" : "text-zinc-500 hover:text-red-400"
+                                                                        )}
+                                                                    >
+                                                                        <AlertTriangle className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ))
-                                            )}
+                                                    ))
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1814,44 +1839,46 @@ export default function DailyFollowUp() {
             />
 
             {/* MOVE MODAL */}
-            {isMoveModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
-                        <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>Mover Entrada</h3>
-                        <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                            Mover las notas de <strong>{activeTab}</strong> al día:
-                        </p>
+            {
+                isMoveModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
+                            <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>Mover Entrada</h3>
+                            <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                                Mover las notas de <strong>{activeTab}</strong> al día:
+                            </p>
 
-                        <input
-                            type="date"
-                            value={moveTargetDate}
-                            onChange={(e) => setMoveTargetDate(e.target.value)}
-                            className={cn("w-full p-2 rounded-lg border mb-4 text-sm",
-                                isLight
-                                    ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-zinc-500"
-                                    : "bg-black/20 border-zinc-700 text-white focus:ring-primary"
-                            )}
-                        />
+                            <input
+                                type="date"
+                                value={moveTargetDate}
+                                onChange={(e) => setMoveTargetDate(e.target.value)}
+                                className={cn("w-full p-2 rounded-lg border mb-4 text-sm",
+                                    isLight
+                                        ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-zinc-500"
+                                        : "bg-black/20 border-zinc-700 text-white focus:ring-primary"
+                                )}
+                            />
 
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setIsMoveModalOpen(false)}
-                                className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleMoveProject}
-                                disabled={loading || !moveTargetDate}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
-                            >
-                                {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-                                Confirmar Mover
-                            </button>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setIsMoveModalOpen(false)}
+                                    className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleMoveProject}
+                                    disabled={loading || !moveTargetDate}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
+                                >
+                                    {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                                    Confirmar Mover
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </AppLayout >
     );
 }
