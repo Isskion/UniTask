@@ -346,12 +346,12 @@ export default function TaskMasterDataManagement() {
                     <>
                         {/* Header */}
                         <div className={cn(
-                            "flex justify-between items-end mb-6 p-6 rounded-xl transition-all",
+                            "flex justify-between items-end mb-6 p-6 rounded-xl border shadow-sm transition-colors",
                             isLight
-                                ? "bg-white border border-zinc-200 shadow-sm"
+                                ? "bg-white border-zinc-200"
                                 : (theme === 'red'
-                                    ? "bg-transparent border-none shadow-none p-0"
-                                    : "bg-card border border-border shadow-sm")
+                                    ? "bg-[#D32F2F]/10 border-[#D32F2F]/20"
+                                    : "bg-card border-border")
                         )}>
                             <div>
                                 <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-white" : "text-foreground")}>Gestión de Tareas</h1>
