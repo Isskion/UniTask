@@ -26,10 +26,11 @@ const HighlightText = ({ text, highlight }: { text: string, highlight?: string }
     );
 };
 
-export function ActivityAuditModal({ taskId, tenantId, onClose, isLight }: { taskId: string, tenantId: string | null, onClose: () => void, isLight: boolean }) {
+export function ActivityAuditModal({ taskId, tenantId, onClose, isLight, theme }: { taskId: string, tenantId: string | null, onClose: () => void, isLight: boolean, theme?: string }) {
     const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const isRed = theme === 'red';
 
     useEffect(() => {
         if (!tenantId) return;
@@ -67,10 +68,14 @@ export function ActivityAuditModal({ taskId, tenantId, onClose, isLight }: { tas
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div className={cn("rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 scale-100 animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col", isLight ? "bg-white" : "bg-[#18181b] border border-white/10")} onClick={e => e.stopPropagation()}>
+            <div className={cn("rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 scale-100 animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col",
+                isLight ? "bg-white" : (isRed ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-[#18181b] border border-white/10")
+            )} onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center",
+                            isLight ? "bg-indigo-500/10 text-indigo-500" : (isRed ? "bg-[#D32F2F]/10 text-[#D32F2F]" : "bg-indigo-500/10 text-indigo-500")
+                        )}>
                             <History className="w-5 h-5" />
                         </div>
                         <div>
@@ -90,29 +95,33 @@ export function ActivityAuditModal({ taskId, tenantId, onClose, isLight }: { tas
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={cn(
-                            "w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all",
+                            "w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:ring-2 outline-none transition-all",
                             isLight
-                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus:bg-white"
-                                : "bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-black/40"
+                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:ring-indigo-500/20"
+                                : (isRed
+                                    ? "bg-[#D32F2F]/5 border-[#D32F2F]/20 text-white placeholder:text-zinc-500 focus:bg-black/40 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]/50"
+                                    : "bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-black/40 focus:ring-indigo-500/20")
                         )}
                     />
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
                     {loading ? (
-                        <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-zinc-500" /></div>
+                        <div className="flex justify-center py-10"><Loader2 className={cn("w-6 h-6 animate-spin", isRed ? "text-[#D32F2F]" : "text-zinc-500")} /></div>
                     ) : filteredActivities.length === 0 ? (
                         <div className="text-center py-10 text-zinc-500 italic text-sm">
                             {searchQuery ? "No se encontraron resultados." : "No hay actividad registrada aún."}
                         </div>
                     ) : (
                         filteredActivities.map((act) => (
-                            <div key={act.id} className={cn("flex gap-3 p-3 rounded-xl border relative", isLight ? "bg-zinc-50 border-zinc-200" : "bg-white/5 border-white/5")}>
+                            <div key={act.id} className={cn("flex gap-3 p-3 rounded-xl border relative",
+                                isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/5 border-[#D32F2F]/10" : "bg-white/5 border-white/5")
+                            )}>
                                 {/* Timeline Line */}
                                 <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-zinc-700/20 last:hidden" />
 
                                 <div className="flex-shrink-0 mt-1">
-                                    <div className="w-2 h-2 rounded-full bg-indigo-500 ring-4 ring-indigo-500/20" />
+                                    <div className={cn("w-2 h-2 rounded-full ring-4", isRed ? "bg-[#D32F2F] ring-[#D32F2F]/20" : "bg-indigo-500 ring-indigo-500/20")} />
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex justify-between items-start">

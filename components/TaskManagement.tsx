@@ -799,7 +799,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     </div></div></div></div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 pt-2">
 
                             {/* TITLE */}
                             <div>
@@ -1168,6 +1168,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         tenantId={tenantId}
                         onClose={() => setShowAuditLog(false)}
                         isLight={isLight}
+                        theme={theme}
                     />
                 )}
             </div>
