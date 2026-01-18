@@ -223,15 +223,58 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                 });
             }
 
-            // Cumulative Calculation - starting from 0 and accumulating "active" (created) tasks
-            let cumulativeAcc = 0;
+            // Active History Calculation (Backlog at specific point in time)
+            // Logic: For each bucket date D, count tasks where:
+            // 1. Created At <= D
+            // 2. Closed At > D OR (Closed At is null)
             const finalData = buckets.map(b => {
-                cumulativeAcc += b.active;
+                const bucketEndDateStr = b.dateKey;
+                // Parse bucket date to get end of that day/month
+                let bucketEnd: Date;
+                if (timeScope === 'year') {
+                    // key is yyyy-MM
+                    bucketEnd = endOfMonth(parseISO(bucketEndDateStr + "-01"));
+                } else {
+                    // key is yyyy-MM-dd
+                    bucketEnd = parseISO(bucketEndDateStr);
+                    // Set to end of day to include tasks created that day
+                    bucketEnd.setHours(23, 59, 59, 999);
+                }
+
+                // Count active tasks at that moment from ALL relevant tasks (not just those created in this period)
+                const activeAtTime = relevantTasks.filter(t => {
+                    const cDate = getTaskDate(t);
+                    if (!cDate || cDate > bucketEnd) return false; // Created after this bucket
+
+                    // Check if closed
+                    if (t.closedAt) {
+                        const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
+                        if (isValid(closedDate) && closedDate <= bucketEnd) {
+                            return false; // Already closed before this bucket ended
+                        }
+                    } else if (t.status === 'completed') {
+                        // Fallback: If status is completed but no closedAt, check updatedAt or assume closed now?
+                        // To be safe and show history, if no closedAt, we might assume it's still open or use updatedAt.
+                        // Let's use updatedAt as proxy if available, else exclude if we want strict history.
+                        // Better approach: If status is completed but no closedAt, treat as closed "now" (so active in past).
+                        // However, to avoid "never ending" tasks in history, let's check updatedAt.
+                        if (t.updatedAt) {
+                            const uDate = (t.updatedAt as any).toDate ? (t.updatedAt as any).toDate() : new Date(t.updatedAt);
+                            if (isValid(uDate) && uDate <= bucketEnd) return false;
+                        }
+                    }
+
+                    return true;
+                }).length;
+
                 return {
                     name: b.label.toUpperCase(),
-                    active: b.active,
-                    completed: b.completed,
-                    cumulative: cumulativeAcc
+                    active: b.active, // Newly created in this bucket
+                    completed: b.completed, // Completed in this bucket (approx based on creation?? No, 'active' var above is actually created count logic from lines 186/203/221)
+                    // Note: 'active' and 'completed' in 'buckets' map are strictly "Created in this bucket" or "Created in bucket AND completed".
+                    // That's confusing naming from previous code.
+                    // Let's keep 'active' as 'New Tasks' for the bar chart.
+                    cumulative: activeAtTime // The green line
                 };
             });
 
