@@ -316,7 +316,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 {/* SCOPE SELECTOR */}
                 <div className="flex bg-card p-1 rounded-xl border border-border shadow-md">
-                    {(['day', 'week', 'month', 'year'] as TimeScope[]).map((scope) => (
+                    {(['week', 'month', 'year'] as TimeScope[]).map((scope) => (
                         <button
                             key={scope}
                             onClick={() => setTimeScope(scope)}
@@ -327,7 +327,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             )}
                         >
-                            {scope === 'day' ? 'Día' : scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
+                            {scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
                         </button>
                     ))}
                 </div>

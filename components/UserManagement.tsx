@@ -244,7 +244,7 @@ export default function UserManagement() {
         if (!user) return;
         setGeneratingInvite(true);
         try {
-            await createInvite(user.uid, tenantId || "1");
+            await createInvite(user.uid, tenantId || "1", "usuario_externo", [], userRole);
             await loadData();
         } catch (error) {
             console.error("Error creating invite:", error);
@@ -704,7 +704,7 @@ export default function UserManagement() {
                             >
                                 Usuarios ({users.length})
                             </button>
-                            {userRole !== 'global_pm' && (
+                            {getRoleLevel(userRole) >= 80 && (
                                 <button
                                     onClick={() => setActiveTab('invites')}
                                     className={cn("hover:text-white transition-colors", activeTab === 'invites' && "text-white underline underline-offset-4 decoration-[#D32F2F]")}

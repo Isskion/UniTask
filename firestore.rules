@@ -8,8 +8,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // --- HELPERS WITH FALLBACK ---
-
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
@@ -38,12 +36,6 @@ service cloud.firestore {
       );
     }
 
-    function isTenantAdmin(tenantId) {
-      return isAuthenticated() && 
-             getRealRole() >= 80 && 
-             getRealTenantId() == tenantId;
-    }
-
     // --- RULES ---
 
     // Tenants Collection: Only Superadmins view the master list
@@ -52,7 +44,6 @@ service cloud.firestore {
     }
 
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
-    // Matches projects/{projectId} AND projects/{projectId}/updates/{updateId}
     match /projects/{document=**} {
       allow read: if isSuperAdmin() || 
                   (isAuthenticated() && resource.data.tenantId == getRealTenantId());
@@ -68,24 +59,34 @@ service cloud.firestore {
       );
     }
 
-    // --- NEW: INVITES RULES ---
-    // Explicitly allow handling invites despite lack of tenantId claims
+    // --- [HARDENED] INVITES RULES ---
+    // VULN-001 Fix: Disable LIST access. Only allow GET by known code.
     match /invites/{code} {
-      allow read: if isAuthenticated();
-      // Allow user to mark as used
-      allow update: if isAuthenticated();
-      allow create: if isSuperAdmin() || isAuthenticated(); // Allow any auth user to create invites (controlled by UI)
+      // Allow reading specific invite if you know the code
+      allow get: if isAuthenticated();
+      
+      // DENY listing all invites to prevent leakage
+      allow list: if false; 
+
+      // Allow creating invites:
+      // 1. SuperAdmins always allowed
+      // 2. Auth users allowed (but logic constraints handled in app code + basic validation)
+      allow create: if isAuthenticated();
+      
+      // Allow user to mark as used (consume invite)
+      allow update: if isAuthenticated() && (
+        // Only allow changing these specific fields
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed', 'usedBy', 'usedAt'])
+      );
     }
 
     // Notifications: User-specific
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
-      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow read, write: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow create: if isAuthenticated() && (request.resource.data.userId == request.auth.uid || isSuperAdmin());
     }
 
-    // Explicit Tasks Rules (Clarification for non-superadmins)
+    // Tasks Rules
     match /tasks/{taskId} {
       allow read: if isSuperAdmin() || 
                   (isAuthenticated() && resource.data.tenantId == getRealTenantId());
@@ -101,49 +102,22 @@ service cloud.firestore {
       );
     }
 
-    // Task Activities (Audit Log)
+    // --- [HARDENED] AUDIT LOGS ---
+    // VULN-002 Fix: Immutable logs. No Update/Delete allowed.
     match /task_activities/{activityId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      // Allow update/delete if needed, or restricting it to superadmin/creator?
-      // For now, allow write for authenticated users to keep it simple and functional.
-      allow write: if isAuthenticated();
+      allow read: if isAuthenticated(); // Visible to team
+      allow create: if isAuthenticated(); // Allow logging actions
+      allow update, delete: if false; // IMMUTABLE: Security Requirement
     }
 
-    // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
-    match /{collectionName}/{docId} {
-      
-      // READ: Superadmin Bypass OR matching tenant
-      // We assume documents have a 'tenantId' field.
-      allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
-
-      // CREATE: 
-      allow create: if isAuthenticated() && (
-        isSuperAdmin() || 
-        // Standard User: Must write to their OWN tenant
-        (request.resource.data.tenantId == getRealTenantId())
-      );
-
-      // UPDATE/DELETE:
-      allow update, delete: if isAuthenticated() && (
-        isSuperAdmin() || 
-        // Standard User: Can only touch data in their tenant AND ensure it stays in their tenant
-        (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
-      );
-    }
-    
-    // Users Collection: Prevent Admin from seeing other tenants' users
+    // Users Collection
     match /users/{userId} {
-      // ALLOW READ SELF (Fixes "Chicken and Egg" - recursion avoidance: Check ID FIRST)
       allow get: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
-
-      // LIST: Restricted to tenant
       allow list: if isSuperAdmin() || 
                   (isAuthenticated() && resource.data.tenantId == getRealTenantId());
-      
-      // WRITE: Self-edit or SuperAdmin
       allow write: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
     }
+    
+    // REMOVED VULN-003: Wildcard match /{collectionName}/{docId} deleted.
   }
 }

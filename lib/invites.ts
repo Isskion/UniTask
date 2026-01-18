@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebase";
 import { doc, setDoc, getDoc, updateDoc, collection, query, where, getDocs, serverTimestamp, Timestamp } from "firebase/firestore";
+import { getRoleLevel } from "@/types"; // We will need to import this helper or replicate it
 
 export interface InviteCode {
     code: string;
@@ -29,21 +30,74 @@ function generateCode(length = 8): string {
 }
 
 /**
+ * Helper to get user role level from string
+ * Ideally this should be imported from types.ts to avoid duplication
+ */
+function getRoleLevelNum(role: string): number {
+    switch (role) {
+        case 'superadmin': return 100;
+        case 'app_admin': return 80;
+        case 'global_pm': return 60;
+        case 'consultor': return 20;
+        case 'usuario_base': return 10;
+        case 'usuario_externo': return 5;
+        default: return 0;
+    }
+}
+
+/**
  * Creates a new one-time invite code with specific permissions
+ * Incorporates security limits:
+ * - Block Global_PM (level 60) and below
+ * - Limit App_Admin (level 80) to max 5 active invites
+ * - Block App_Admin from creating invites for roles >= 80
  */
 export async function createInvite(
     adminUid: string,
     tenantId: string = "1",
     role: string = "usuario_externo",
-    assignedProjectIds: string[] = []
+    assignedProjectIds: string[] = [],
+    creatorRole: string // Pass creator role to validate permissions
 ): Promise<string> {
+
+    const creatorLevel = getRoleLevelNum(creatorRole);
+    const targetLevel = getRoleLevelNum(role);
+
+    // 1. Block unauthorized roles
+    if (creatorLevel < 80) {
+        throw new Error("Permisos insuficientes: Solo Administradores pueden crear invitaciones.");
+    }
+
+    // 2. Logic for App Admin (Level 80)
+    if (creatorLevel === 80) {
+        // A. Prevent Role Escalation (Cannot invite other Admins or multiple levels above)
+        // Strictly, Admin (80) cannot create another Admin (80). Only lower levels.
+        if (targetLevel >= 80) {
+            throw new Error("Seguridad: No puedes crear invitaciones para un rol igual o superior al tuyo.");
+        }
+
+        // B. Enforce Limit of 5 Active Invites
+        const q = query(
+            collection(db, INVITES_COLLECTION),
+            where("createdBy", "==", adminUid),
+            where("isUsed", "==", false)
+        );
+        const snapshot = await getDocs(q);
+
+        if (snapshot.size >= 5) {
+            throw new Error("Límite alcanzado: Tienes 5 invitaciones activas. Elimina o espera a que se usen.");
+        }
+    }
+
+    // ... Proceed with creation ...
+
     const code = generateCode();
     const inviteRef = doc(db, INVITES_COLLECTION, code);
 
     // Ensure uniqueness (extremely unlikely to collide, but good practice)
     const existing = await getDoc(inviteRef);
     if (existing.exists()) {
-        return createInvite(adminUid, tenantId, role, assignedProjectIds); // Retry if exists
+        return createInvite(adminUid, tenantId, role, assignedProjectIds, creatorRole); // Retry if exists
     }
 
     const inviteData: InviteCode = {
