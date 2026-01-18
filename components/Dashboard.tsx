@@ -148,28 +148,36 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         }));
     }, [availableGlobalProjects]);
 
-    // Chart Data (Memoized & Protected)
+    // Initialize selection with ALL projects once available
+    const [hasInitialized, setHasInitialized] = useState(false);
+    useEffect(() => {
+        if (!hasInitialized && uniqueProjects.length > 0) {
+            setSelectedProjectIds(new Set(uniqueProjects.map(p => p.projectId)));
+            setHasInitialized(true);
+        }
+    }, [uniqueProjects, hasInitialized]);
+
+    // Active History Calculation
     const chartData = useMemo(() => {
         try {
-            // Safety checks
             if (!entry || !entry.date) return [];
             let entryDate = parseISO(entry.date);
             if (!isValid(entryDate)) entryDate = new Date();
 
             let relevantTasks = tasks;
-
             // Permission Filter
             if (allowedProjectIds) {
                 relevantTasks = relevantTasks.filter(t => t.projectId && allowedProjectIds.includes(t.projectId));
             }
 
-            // Multi-Project Filter
-            if (selectedProjectIds.size > 0) {
-                relevantTasks = relevantTasks.filter(t => t.projectId && selectedProjectIds.has(t.projectId));
-            }
+            // DO NOT Filter by selectedProjectIds here for the buckets generation if we want consistent X-axis?
+            // Actually, we want the chart to reflect selection.
+            // BUT for the "Total Active" calc, do we sum ONLY selected? 
+            // User: "Total Activo, de todos los proyectos seleccionados sumados" -> YES.
 
             let buckets: { label: string; dateKey: string; active: number; completed: number }[] = [];
-
+            // ... (bucket generation logic same as before, abbreviated here by keeping existing buckets var or re-generating)
+            // Re-generating bucket structure to be safe since I'm in Replace Tool
             if (timeScope === 'year') {
                 const start = startOfYear(entryDate);
                 const end = endOfYear(entryDate);
@@ -179,15 +187,6 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     dateKey: format(m, 'yyyy-MM'),
                     active: 0, completed: 0
                 }));
-                // Fill
-                relevantTasks.forEach(t => {
-                    const d = getTaskDate(t);
-                    if (d && isSameYear(d, entryDate)) {
-                        const k = format(d, 'yyyy-MM');
-                        const b = buckets.find(b => b.dateKey === k);
-                        if (b) { b.active++; if (t.status === 'completed') b.completed++; }
-                    }
-                });
             } else if (timeScope === 'month') {
                 const start = startOfMonth(entryDate);
                 const end = endOfMonth(entryDate);
@@ -197,16 +196,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     dateKey: format(d, 'yyyy-MM-dd'),
                     active: 0, completed: 0
                 }));
-                relevantTasks.forEach(t => {
-                    const d = getTaskDate(t);
-                    if (d && isSameMonth(d, entryDate)) {
-                        const k = format(d, 'yyyy-MM-dd');
-                        const b = buckets.find(b => b.dateKey === k);
-                        if (b) { b.active++; if (t.status === 'completed') b.completed++; }
-                    }
-                });
             } else {
-                // Week / Day -> Weekly view
                 const start = startOfWeek(entryDate, { weekStartsOn: 1 });
                 const end = endOfWeek(entryDate, { weekStartsOn: 1 });
                 const days = eachDayOfInterval({ start, end });
@@ -215,52 +205,30 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     dateKey: format(d, 'yyyy-MM-dd'),
                     active: 0, completed: 0
                 }));
-                relevantTasks.forEach(t => {
-                    const d = getTaskDate(t);
-                    if (d) {
-                        const k = format(d, 'yyyy-MM-dd');
-                        const b = buckets.find(b => b.dateKey === k);
-                        if (b) { b.active++; if (t.status === 'completed') b.completed++; }
-                    }
-                });
             }
 
-            // Active History Calculation (Backlog at specific point in time)
-            // Logic: For each bucket date D, count tasks where:
-            // 1. Created At <= D
-            // 2. Closed At > D OR (Closed At is null)
             const finalData = buckets.map(b => {
                 const bucketEndDateStr = b.dateKey;
-                // Parse bucket date to get end of that day/month
                 let bucketEnd: Date;
                 if (timeScope === 'year') {
-                    // key is yyyy-MM
                     bucketEnd = endOfMonth(parseISO(bucketEndDateStr + "-01"));
                 } else {
-                    // key is yyyy-MM-dd
                     bucketEnd = parseISO(bucketEndDateStr);
-                    // Set to end of day to include tasks created that day
                     bucketEnd.setHours(23, 59, 59, 999);
                 }
 
-                // Identify which projects to track for this bucket
-                // If specific projects selected, only track those. If 'All', track all available uniqueProjects.
-                const projectsToTrack = selectedProjectIds.size > 0
-                    ? uniqueProjects.filter(p => selectedProjectIds.has(p.projectId))
-                    : uniqueProjects;
+                // Check active projects based on SELECTION (Strict)
+                const projectsToTrack = uniqueProjects.filter(p => selectedProjectIds.has(p.projectId));
 
                 const activeByProject: Record<string, number> = {};
                 let totalActiveAtTime = 0;
 
-                // 1. Calculate per project
                 projectsToTrack.forEach(proj => {
                     const pid = proj.projectId;
                     const count = relevantTasks.filter(t => {
                         if (t.projectId !== pid) return false;
-
                         const cDate = getTaskDate(t);
                         if (!cDate || cDate > bucketEnd) return false;
-
                         if (t.closedAt) {
                             const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
                             if (isValid(closedDate) && closedDate <= bucketEnd) return false;
@@ -279,7 +247,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
 
                 return {
                     name: b.label.toUpperCase(),
-                    active: b.active, // Newly created in this bucket (for Area chart)
+                    active: b.active,
                     completed: b.completed,
                     totalActive: totalActiveAtTime,
                     ...activeByProject
@@ -292,15 +260,50 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             console.error("Chart generation error", e);
             return [];
         }
-    }, [tasks, timeScope, entry, selectedProjectIds, uniqueProjects]);
+    }, [tasks, timeScope, entry, selectedProjectIds, uniqueProjects, allowedProjectIds]);
 
     const openTasksCount = filteredTasks.filter(t => t.status !== 'completed').length;
     const blockersCount = filteredTasks.filter(t => t.isBlocking).length;
 
-    // Determine which lines to render
-    const projectsLinesToRender = selectedProjectIds.size > 0
-        ? uniqueProjects.filter(p => selectedProjectIds.has(p.projectId))
-        : uniqueProjects;
+    // Determine lines strictly by selection
+    const projectsLinesToRender = uniqueProjects.filter(p => selectedProjectIds.has(p.projectId));
+
+    // Custom Tooltip Component
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            // Sort payload by value descending (excluding totalActive for sorting? or keep it?)
+            // User said: "cada nombre vaya en el orden de su linea" -> Sorted descending by value.
+            // Filter out 'active' (the blue bars) and 'totalActive' might be separate?
+            // Payload contains all lines.
+
+            // We want to sort only the PROJECT lines. Total Active usually stays at bottom or top?
+            // "Los que tengan cero tareas activas, deben ir por la barra inferior... no lo fuerces" -> Hidden from tooltip if 0?
+
+            const items = [...payload].sort((a, b) => b.value - a.value);
+
+            return (
+                <div className="bg-popover border border-border p-2 rounded-lg shadow-lg text-[10px]">
+                    {/* <p className="font-bold mb-1">{label}</p> */ /* Removed Label as requested */}
+                    {items.map((entry: any) => {
+                        // Skip 'Nuevas' (Bar) as requested ("quita el nuevas")
+                        if (entry.name === 'Nuevas') return null;
+
+                        return (
+                            <div key={entry.name} className="flex items-center gap-2 mb-0.5 last:mb-0">
+                                <div
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: entry.color }}
+                                />
+                                <span className="font-medium text-foreground">{entry.name}:</span>
+                                <span className="font-mono font-bold text-foreground">{entry.value}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+        return null;
+    };
 
     if (error) {
         return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
@@ -309,8 +312,9 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
     return (
         <div className="flex flex-col h-full bg-background text-foreground lg:pr-2 overflow-y-auto custom-scrollbar p-6">
 
-            {/* SCOPE SELECTOR */}
-            <div className="flex justify-center mb-6">
+            {/* HEADER CONTROLS */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                {/* SCOPE SELECTOR */}
                 <div className="flex bg-card p-1 rounded-xl border border-border shadow-md">
                     {(['day', 'week', 'month', 'year'] as TimeScope[]).map((scope) => (
                         <button
@@ -327,6 +331,22 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                         </button>
                     ))}
                 </div>
+
+                {/* PROJECT SELECTION COMMANDS */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setSelectedProjectIds(new Set(uniqueProjects.map(p => p.projectId)))}
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        Todos
+                    </button>
+                    <button
+                        onClick={() => setSelectedProjectIds(new Set())}
+                        className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        Ninguno
+                    </button>
+                </div>
             </div>
 
             {/* CHART */}
@@ -339,14 +359,12 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                         <h2 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
                             <BarChart3 className="w-6 h-6 text-[#6366f1]" />
                             {selectedProjectIds.size > 0
-                                ? (selectedProjectIds.size === 1
-                                    ? uniqueProjects.find(p => selectedProjectIds.has(p.projectId))?.name || 'Proyecto'
-                                    : `${selectedProjectIds.size} Proyectos`)
-                                : 'Flujo de Tareas'
+                                ? "Datos de Tareas"
+                                : 'Selecciona Proyectos'
                             }
                         </h2>
                         <p className="text-muted-foreground text-sm capitalize">
-                            Vistazo: {timeScope === 'day' ? 'Hoy' : timeScope}
+                            {timeScope} &bull; {projectsLinesToRender.length} Proyectos Visibles
                         </p>
                     </div>
                 </div>
@@ -370,17 +388,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                             />
                             <YAxis yAxisId="left" hide />
                             <YAxis yAxisId="right" orientation="right" hide />
-                            <Tooltip
-                                contentStyle={{
-                                    backgroundColor: 'hsl(var(--popover))',
-                                    border: '1px solid hsl(var(--border))',
-                                    borderRadius: '8px',
-                                    color: 'hsl(var(--popover-foreground))'
-                                }}
-                                itemStyle={{ color: 'hsl(var(--foreground))' }}
-                                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
-                                labelStyle={{ display: 'none' }}
-                            />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }} />
                             <Area
                                 yAxisId="left"
                                 type="monotone"
@@ -408,22 +416,26 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                         stroke={pColor}
                                         strokeWidth={2}
                                         dot={false}
-                                        strokeOpacity={0.7}
+                                        activeDot={{ r: 4, strokeWidth: 0 }}
+                                        strokeOpacity={1}
                                         name={`${p.code || p.name}`}
+                                        connectNulls={false} // Ensure 0s are respectful
                                     />
                                 );
                             })}
 
                             {/* Total Active Line (Black) */}
-                            <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="totalActive"
-                                stroke="#000000"
-                                strokeWidth={2}
-                                dot={{ r: 2, strokeWidth: 1 }}
-                                name="Total Activas"
-                            />
+                            {projectsLinesToRender.length > 0 && (
+                                <Line
+                                    yAxisId="right"
+                                    type="monotone"
+                                    dataKey="totalActive"
+                                    stroke="#000000"
+                                    strokeWidth={2}
+                                    dot={{ r: 2, strokeWidth: 1 }}
+                                    name="Total Activas"
+                                />
+                            )}
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
