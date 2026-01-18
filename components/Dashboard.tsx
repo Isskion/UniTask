@@ -601,42 +601,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     <p>No hay proyectos activos para este periodo.</p>
                 </div>
             )}
-            {/* DEBUG FOOTER for Superadmins/Admins during troubleshooting */}
-            {(userRole === 'superadmin' || userRole === 'app_admin') && (
-                <div className="mt-8 p-4 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-mono text-zinc-500 overflow-x-auto">
-                    <h4 className="font-bold text-zinc-300 mb-2 uppercase flex items-center gap-2">
-                        <Bug className="w-3 h-3" /> Estado del Sistema (Debug)
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <span className="block text-zinc-600">Usuario</span>
-                            <span className="text-zinc-300">{user?.email}</span>
-                        </div>
-                        <div>
-                            <span className="block text-zinc-600">Tenant ID (Context)</span>
-                            <span className={cn("font-bold", tenantId === '1' ? "text-emerald-500" : "text-amber-500")}>
-                                {tenantId || "NULL"}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="block text-zinc-600">Rol Activo</span>
-                            <span className="text-zinc-300">{userRole} (Level: {getRoleLevel(userRole)})</span>
-                        </div>
-                        <div>
-                            <span className="block text-zinc-600">Tareas (Cargadas vs Filtradas)</span>
-                            <span className="text-zinc-300">{tasks.length} / {filteredTasks.length}</span>
-                        </div>
-                        <div>
-                            <span className="block text-zinc-600">Rango Fecha</span>
-                            <span className="text-zinc-300">{entry?.date || "N/A"}</span>
-                        </div>
-                        <div>
-                            <span className="block text-zinc-600">Proyectos Permitidos</span>
-                            <span className="text-zinc-300">{(allowedProjectIds || []).length > 0 ? (allowedProjectIds || []).length : "ALL (Admin)"}</span>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+
+        </div >
     );
 }

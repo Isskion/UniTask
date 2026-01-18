@@ -343,15 +343,21 @@ export default function TaskMasterDataManagement() {
                 {activeSection === 'dashboard' ? (
                     <>
                         {/* Header */}
-                        <div className="flex justify-between items-end mb-6">
+                        <div className={cn(
+                            "flex justify-between items-end mb-6 p-6 rounded-xl border shadow-sm",
+                            isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-white border-red-100" : "bg-card border-border")
+                        )}>
                             <div>
-                                <h1 className="text-2xl font-bold tracking-tight mb-1">Gestión de Tareas</h1>
-                                <p className="text-muted-foreground text-sm">Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
+                                <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-red-900" : "text-foreground")}>Gestión de Tareas</h1>
+                                <p className={cn("text-sm", theme === 'red' ? "text-red-700/70" : "text-muted-foreground")}>Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleRecoverData}
-                                    className="flex items-center gap-2 px-3 py-2 border border-dashed border-zinc-400 text-zinc-500 rounded-lg text-xs font-medium hover:bg-muted transition-all"
+                                    className={cn(
+                                        "flex items-center gap-2 px-3 py-2 border border-dashed rounded-lg text-xs font-medium transition-all",
+                                        theme === 'red' ? "border-red-200 text-red-600 hover:bg-red-50" : "border-zinc-400 text-zinc-500 hover:bg-muted"
+                                    )}
                                     title="Escanear tareas y restaurar opciones perdidas"
                                 >
                                     <Save className="w-3.5 h-3.5" /> Recuperar Datos
@@ -367,7 +373,9 @@ export default function TaskMasterDataManagement() {
 
                         {/* Create Block Form */}
                         {isCreatingBlock && (
-                            <div className="mb-8 p-4 rounded-xl border bg-card animate-in slide-in-from-top-4">
+                            <div className={cn("mb-8 p-4 rounded-xl border animate-in slide-in-from-top-4",
+                                isLight ? "bg-white" : (theme === 'red' ? "bg-white border-red-100" : "bg-card")
+                            )}>
                                 <h3 className="text-sm font-bold mb-3">Definir Nuevo Criterio</h3>
                                 <div className="flex gap-3 items-end">
                                     <div className="flex-1">
