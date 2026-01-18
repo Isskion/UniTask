@@ -71,7 +71,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -83,15 +83,15 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles') {
-                setViewMode(view);
+            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master') {
+                setViewMode(view as any);
                 setIsHydrated(true);
                 return;
             }
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles') {
+            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master') {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -328,7 +328,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
