@@ -379,6 +379,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 }}
                                 itemStyle={{ color: 'hsl(var(--foreground))' }}
                                 cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                                labelStyle={{ display: 'none' }}
                             />
                             <Area
                                 yAxisId="left"
@@ -389,6 +390,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 fill="url(#colorActive)"
                                 strokeWidth={3}
                                 name="Nuevas"
+                                tooltipType="none"
                             />
 
                             {/* Individual Project Lines */}
