@@ -8,6 +8,7 @@ import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
 import { Loader2, Plus, User, Search, RefreshCw, Save, Trash2, Mail, Shield, ShieldCheck, Check, Info, Briefcase, Building, AlertTriangle, UserRound, Globe, Database, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy } from "lucide-react";
 import { createInvite, getAllInvites, InviteCode } from "@/lib/invites";
+import { createInviteAction } from "@/app/actions/invites"; // Secure Server Action
 import InviteWizard from "./InviteWizard";
 
 import { WeeklyEntry, ProjectEntry, UserProfile as UserData, RoleLevel, getRoleLevel } from "@/types"; // Alias for minimal refactor impact
@@ -244,11 +245,23 @@ export default function UserManagement() {
         if (!user) return;
         setGeneratingInvite(true);
         try {
-            await createInvite(user.uid, tenantId || "1", "usuario_externo", [], userRole);
+            // --- SECURE SERVER ACTION ---
+            const token = await user.getIdToken();
+            const result = await createInviteAction(
+                token,
+                tenantId || "1",
+                "usuario_externo",
+                [] // No projects by default for quick invite? or maybe we should pass current project?
+            );
+
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            // await createInvite(user.uid, tenantId || "1", "usuario_externo", [], userRole);
             await loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error creating invite:", error);
-            alert("Error creando invitación. Revisa permisos.");
+            alert(error.message || "Error creando invitación.");
         } finally {
             setGeneratingInvite(false);
         }

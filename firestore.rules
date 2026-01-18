@@ -53,9 +53,15 @@ service cloud.firestore {
         (request.resource.data.tenantId == getRealTenantId())
       );
       
-      allow update, delete: if isAuthenticated() && (
+      allow update: if isAuthenticated() && (
         isSuperAdmin() || 
         (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+      );
+
+      // Delete: Only App Admins (Level >= 80) or SuperAdmins
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (resource.data.tenantId == getRealTenantId() && getRealRole() >= 80)
       );
     }
 
@@ -69,9 +75,9 @@ service cloud.firestore {
       allow list: if false; 
 
       // Allow creating invites:
-      // 1. SuperAdmins always allowed
-      // 2. Auth users allowed (but logic constraints handled in app code + basic validation)
-      allow create: if isAuthenticated();
+      // 1. SuperAdmins always allowed (kept for legacy/dashboard direct access if needed, but safer to block all)
+      // 2. Auth users DENIED. Must use Server Action.
+      allow create: if false; // LOCKED DOWN. Use Server Action (Admin SDK).
       
       // Allow user to mark as used (consume invite)
       allow update: if isAuthenticated() && (
@@ -96,9 +102,19 @@ service cloud.firestore {
         (request.resource.data.tenantId == getRealTenantId())
       );
 
-      allow update, delete: if isAuthenticated() && (
+      // Update: Tenant Members can update (status, etc)
+      allow update: if isAuthenticated() && (
         isSuperAdmin() || 
         (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+      );
+      
+      // Delete: Only Creator or Admin (Level >= 80)
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (resource.data.tenantId == getRealTenantId() && (
+            resource.data.createdBy == request.auth.uid || 
+            getRealRole() >= 80
+        ))
       );
     }
 

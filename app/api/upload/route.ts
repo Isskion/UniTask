@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminStorage } from "@/lib/firebase-admin";
+import { adminStorage, adminAuth } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
     try {
+        // 1. SECURITY: Verify Token
+        const authHeader = req.headers.get("Authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const idToken = authHeader.split("Bearer ")[1];
+        let uid = "";
+        try {
+            const decoded = await adminAuth.verifyIdToken(idToken);
+            uid = decoded.uid;
+            // Ideally check tenantId match too, but existence of valid token is a huge improvement.
+        } catch (e) {
+            return NextResponse.json({ error: "Invalid Token" }, { status: 401 });
+        }
+
         const formData = await req.formData();
         const file = formData.get("file") as File;
         const tenantId = formData.get("tenantId") as string;

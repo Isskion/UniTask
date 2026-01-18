@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { createInvite } from "@/lib/invites";
+import { createInviteAction } from "@/app/actions/invites"; // Secure Server Action
 import { createTenant } from "@/lib/tenants";
 import { createProject } from "@/lib/projects"; // Added import
 import { getActiveProjects } from "@/lib/projects";
@@ -133,18 +134,25 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                 finalSelectedProjects = [newProjectId];
             }
 
-            const code = await createInvite(
-                user.uid,
+            // --- SECURE SERVER ACTION ---
+            const token = await user.getIdToken();
+            const result = await createInviteAction(
+                token,
                 targetTenantId,
                 selectedRole,
                 finalSelectedProjects
             );
-            setGeneratedCode(code);
+
+            if (!result.success) {
+                throw new Error(result.error || "Error creando invitación (Server)");
+            }
+
+            setGeneratedCode(result.code!);
             setStep(4); // Success Step
             onSuccess();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Error generando invitación");
+            alert(e.message || "Error generando invitación");
         } finally {
             setLoading(false);
         }

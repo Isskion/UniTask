@@ -1,14 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { adminAuth } from "@/lib/firebase-admin";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
 
 export async function POST(req: NextRequest) {
     console.log("[AnalyzePDF] Request received");
+
+    // 1. SECURITY: Verify Main Auth Token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+        return NextResponse.json({ error: "Unauthorized: Missing Token" }, { status: 401 });
+    }
+
+    // Verify token using Admin SDK
+    try {
+        const idToken = authHeader.split("Bearer ")[1];
+        await adminAuth.verifyIdToken(idToken);
+    } catch (e) {
+        console.error("[AnalyzePDF] Auth Failed:", e);
+        return NextResponse.json({ error: "Unauthorized: Invalid Token" }, { status: 401 });
+    }
+
     console.log(`[AnalyzePDF] Using API Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'UNDEFINED'}`);
-    console.log(`[AnalyzePDF] Model: gemini-1.5-flash`);
+    console.log(`[AnalyzePDF] Model: gemini-2.0-flash`);
 
     if (!apiKey) {
+        // ...
         console.error("[AnalyzePDF] CRITICAL: No API Key found in environment variables.");
         return NextResponse.json({ error: "Server Configuration Error: Missing API Key. Check log." }, { status: 500 });
     }
