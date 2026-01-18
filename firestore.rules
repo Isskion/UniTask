@@ -101,6 +101,15 @@ service cloud.firestore {
       );
     }
 
+    // Task Activities (Audit Log)
+    match /task_activities/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      // Allow update/delete if needed, or restricting it to superadmin/creator?
+      // For now, allow write for authenticated users to keep it simple and functional.
+      allow write: if isAuthenticated();
+    }
+
     // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
     match /{collectionName}/{docId} {
       

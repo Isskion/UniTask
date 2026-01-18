@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.5.0';
+export const APP_VERSION = '12.7.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,36 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.7.0",
+        date: "2026-01-18",
+        title: "Bitácora de Tareas y Auditoría",
+        features: [
+            "Nueva Bitácora (Audit Log): Registro detallado de cambios críticos por tarea.",
+            "Visualización de Historial: Modal con timeline de quién modificó qué y cuándo.",
+            "Control Preventivo de Fechas: Bloqueo de selección de días pasados en el calendario (sin impedir guardar historial existente)."
+        ]
+    },
+    {
+        version: "12.6.1",
+        date: "2026-01-18",
+        title: "Hotfix: Validación de Fechas",
+        features: [
+            "Corrección: Se eliminó el bloqueo que impedía guardar/actualizar tareas vencidas.",
+            "Mejora: Ahora es posible gestionar fechas pasadas sin restricciones."
+        ]
+    },
+    {
+        version: "12.6.0",
+        date: "2026-01-18",
+        title: "Reingeniería de Tareas y Dependencias",
+        features: [
+            "Nueva UI de Tareas: Diseño de dos columnas (Operativa vs Clasificación) para mayor claridad.",
+            "Trazabilidad Simplificada: RTM ID editable integrado directamente en la cabecera.",
+            "Gestión Avanzada de Dependencias: Filtrado por proyecto, navegación directa y bloqueo de cierre.",
+            "Ocultamiento automático de tareas bloqueantes ya completadas."
+        ]
+    },
     {
         version: "12.5.0",
         date: "2026-01-18",
