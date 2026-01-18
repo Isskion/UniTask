@@ -377,58 +377,86 @@ export default function TaskMasterDataManagement() {
                             </div>
                         </div>
 
-                        {/* Create Block Form */}
+                        {/* Create Block Form - Matching UserRoleManagement Modal Structure */}
                         {isCreatingBlock && (
-                            <div className={cn("mb-8 p-4 rounded-xl border animate-in slide-in-from-top-4",
-                                isLight ? "bg-white" : (theme === 'red' ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-card")
+                            <div className={cn("mb-8 rounded-xl border overflow-hidden animate-in slide-in-from-top-4 shadow-xl",
+                                isLight
+                                    ? "bg-white border-zinc-200 shadow-zinc-200"
+                                    : (theme === 'red'
+                                        ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20"
+                                        : "bg-[#09090b] border-white/10 shadow-black")
                             )}>
-                                <h3 className="text-sm font-bold mb-3">Definir Nuevo Criterio</h3>
-                                <div className="flex gap-3 items-end">
-                                    <div className="flex-1">
-                                        <label className="text-xs text-muted-foreground font-bold uppercase">Nombre (ej. País, Versión)</label>
-                                        <input
-                                            value={blockFormName}
-                                            onChange={e => setBlockFormName(e.target.value)}
-                                            className={cn(
-                                                "w-full mt-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
-                                                isLight
-                                                    ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
-                                                    : (theme === 'red'
-                                                        ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
-                                                        : "bg-zinc-900 border-zinc-700 text-white")
-                                            )}
-                                            placeholder="Nombre del bloque..."
-                                            autoFocus
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs text-muted-foreground font-bold uppercase">Color</label>
-                                        <div className="mt-1 flex gap-2">
-                                            <input type="color" value={blockFormColor} onChange={e => setBlockFormColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0" />
+                                {/* Form Header */}
+                                <div className={cn("px-4 py-3 border-b flex items-center justify-between",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                )}>
+                                    <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                        <Plus className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
+                                        Definir Nuevo Criterio
+                                    </h3>
+                                </div>
+
+                                {/* Form Body */}
+                                <div className="p-4 space-y-4">
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className={cn("block text-xs font-bold uppercase mb-2", isLight ? "text-muted-foreground" : "text-zinc-400")}>Nombre (ej. País, Versión)</label>
+                                            <input
+                                                value={blockFormName}
+                                                onChange={e => setBlockFormName(e.target.value)}
+                                                className={cn(
+                                                    "w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                        : (theme === 'red'
+                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
+                                                            : "bg-zinc-900 border-zinc-700 text-white")
+                                                )}
+                                                placeholder="Ej: Departamento"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={cn("block text-xs font-bold uppercase mb-2", isLight ? "text-muted-foreground" : "text-zinc-400")}>Color</label>
+                                            <div className="h-[38px] flex items-center">
+                                                <input
+                                                    type="color"
+                                                    value={blockFormColor}
+                                                    onChange={e => setBlockFormColor(e.target.value)}
+                                                    className={cn("w-10 h-full rounded-lg cursor-pointer border transition-colors p-0",
+                                                        isLight ? "border-zinc-200" : (theme === 'red' ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
+                                                    )}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setIsCreatingBlock(false)}
-                                            className={cn("px-4 py-2 border rounded-lg text-sm font-medium transition-colors",
-                                                isLight ? "hover:bg-zinc-100" : (theme === 'red' ? "border-transparent text-red-200 hover:text-white hover:bg-white/5" : "hover:bg-white/10")
-                                            )}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            onClick={handleCreateBlock}
-                                            disabled={!blockFormName.trim()}
-                                            className={cn(
-                                                "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all",
-                                                theme === 'red'
-                                                    ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
-                                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            )}
-                                        >
-                                            Crear
-                                        </button>
-                                    </div>
+                                </div>
+
+                                {/* Form Footer */}
+                                <div className={cn("px-4 py-3 border-t flex justify-end gap-2",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                )}>
+                                    <button
+                                        onClick={() => setIsCreatingBlock(false)}
+                                        className={cn("px-4 py-2 rounded font-medium text-sm transition-colors",
+                                            isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
+                                        )}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleCreateBlock}
+                                        disabled={!blockFormName.trim()}
+                                        className={cn(
+                                            "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all flex items-center gap-2",
+                                            theme === 'red'
+                                                ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                                : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                        )}
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        Crear Bloque
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -541,58 +569,85 @@ export default function TaskMasterDataManagement() {
                                 </div>
                             </div>
 
-                            {/* Edit Block Form (Inline Modal?) */}
+                            {/* Edit Block Form - Matching UserRoleManagement Modal Structure */}
                             {isEditingBlock && (
-                                <div className={cn("mb-6 p-4 rounded-xl border animate-in slide-in-from-top-2",
-                                    isLight ? "bg-white" : (theme === 'red' ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-card")
+                                <div className={cn("mb-6 rounded-xl border overflow-hidden animate-in slide-in-from-top-2 shadow-xl",
+                                    isLight
+                                        ? "bg-white border-zinc-200 shadow-zinc-200"
+                                        : (theme === 'red'
+                                            ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20"
+                                            : "bg-[#09090b] border-white/10 shadow-black")
                                 )}>
-                                    <h3 className="text-sm font-bold mb-3">Editar Bloque</h3>
-                                    <div className="flex gap-3 items-end">
-                                        <div className="flex-1">
-                                            <label className="text-xs text-muted-foreground font-bold uppercase">Nombre</label>
-                                            <input
+                                    {/* Form Header */}
+                                    <div className={cn("px-4 py-3 border-b flex items-center justify-between",
+                                        isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                    )}>
+                                        <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                            <Edit2 className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
+                                            Editar Bloque
+                                        </h3>
+                                    </div>
 
-                                                value={blockFormName}
-                                                onChange={e => setBlockFormName(e.target.value)}
-                                                className={cn(
-                                                    "w-full mt-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
-                                                    isLight
-                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
-                                                        : (theme === 'red'
-                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
-                                                            : "bg-zinc-900 border-zinc-700 text-white")
-                                                )}
-                                                autoFocus
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-muted-foreground font-bold uppercase">Color</label>
-                                            <div className="mt-1 flex gap-2">
-                                                <input type="color" value={blockFormColor} onChange={e => setBlockFormColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0" />
+                                    {/* Form Body */}
+                                    <div className="p-4 space-y-4">
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <label className={cn("block text-xs font-bold uppercase mb-2", isLight ? "text-muted-foreground" : "text-zinc-400")}>Nombre</label>
+                                                <input
+                                                    value={blockFormName}
+                                                    onChange={e => setBlockFormName(e.target.value)}
+                                                    className={cn(
+                                                        "w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                                        isLight
+                                                            ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                            : (theme === 'red'
+                                                                ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
+                                                                : "bg-zinc-900 border-zinc-700 text-white")
+                                                    )}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className={cn("block text-xs font-bold uppercase mb-2", isLight ? "text-muted-foreground" : "text-zinc-400")}>Color</label>
+                                                <div className="h-[38px] flex items-center">
+                                                    <input
+                                                        type="color"
+                                                        value={blockFormColor}
+                                                        onChange={e => setBlockFormColor(e.target.value)}
+                                                        className={cn("w-10 h-full rounded-lg cursor-pointer border transition-colors p-0",
+                                                            isLight ? "border-zinc-200" : (theme === 'red' ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
+                                                        )}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setIsEditingBlock(false)}
-                                                className={cn("px-4 py-2 border rounded-lg text-sm font-medium transition-colors",
-                                                    isLight ? "hover:bg-zinc-100" : (theme === 'red' ? "border-transparent text-red-200 hover:text-white hover:bg-white/5" : "hover:bg-white/10")
-                                                )}
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                onClick={handleUpdateBlock}
-                                                disabled={!blockFormName.trim()}
-                                                className={cn(
-                                                    "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all",
-                                                    theme === 'red'
-                                                        ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
-                                                        : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                                )}
-                                            >
-                                                Guardar
-                                            </button>
-                                        </div>
+                                    </div>
+
+                                    {/* Form Footer */}
+                                    <div className={cn("px-4 py-3 border-t flex justify-end gap-2",
+                                        isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                    )}>
+                                        <button
+                                            onClick={() => setIsEditingBlock(false)}
+                                            className={cn("px-4 py-2 rounded font-medium text-sm transition-colors",
+                                                isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
+                                            )}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={handleUpdateBlock}
+                                            disabled={!blockFormName.trim()}
+                                            className={cn(
+                                                "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all flex items-center gap-2",
+                                                theme === 'red'
+                                                    ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                            )}
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            Guardar
+                                        </button>
                                     </div>
                                 </div>
                             )}
