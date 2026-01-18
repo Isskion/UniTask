@@ -186,6 +186,16 @@ export interface WeeklyEntry {
 }
 
 // Action Item / Task Definition
+// 11. Dynamic Attribute Definition (Meta-Master Data)
+export interface AttributeDefinition {
+    id: string;
+    name: string;
+    color: string;
+    tenantId: string;
+    isActive: boolean;
+    mappedField?: string; // If set, maps to a root property (e.g. 'priority') instead of attributes[]
+}
+
 export interface Task {
     id: string;
     friendlyId?: string; // e.g. "EUP-1"
@@ -208,6 +218,9 @@ export interface Task {
     scope?: string; // "Alcance"
     area?: string; // "Area" (Master Data)
     module?: string; // "Modulo" (Master Data)
+
+    // Dynamic Attributes (User Defined)
+    attributes?: Record<string, string>; // { "attr_id": "option_id" }
 
     // Section 1: Requirements
     okrLink?: string;
@@ -238,6 +251,7 @@ export interface Task {
 
     // Section 6: Dependencies
     dependencies?: string[]; // IDs of blocking tasks
+    customIdFields?: Record<string, string>; // Deprecated: Migration to attributes pending
 
     isActive: boolean;
     createdBy: string;
@@ -284,4 +298,13 @@ export interface Notification {
     taskId?: string; // Optional: direct link to data
     read: boolean;
     createdAt: any;
+}
+
+export interface MasterDataItem {
+    id: string;
+    name: string;
+    color: string;
+    type: string;
+    tenantId?: string;
+    isActive?: boolean;
 }

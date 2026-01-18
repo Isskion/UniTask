@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Task, Project, UserProfile } from "@/types";
+import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
@@ -17,12 +17,8 @@ import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
 import { ActivityAuditModal } from "./ActivityAuditModal";
 
-interface MasterDataItem {
-    id: string;
-    name: string;
-    color: string;
-    type: 'priority' | 'area' | 'scope' | 'module';
-}
+// Local MasterDataItem definition removed in favor of types.ts
+
 
 export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
     const { userRole, user, tenantId } = useAuth();
@@ -38,39 +34,38 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [userProfile, setUserProfile] = useState<any>(null);
 
     // Master Data State
-    const [masterData, setMasterData] = useState<{
-        priority: MasterDataItem[];
-        area: MasterDataItem[];
-        scope: MasterDataItem[];
-        module: MasterDataItem[];
-    }>({
-        priority: [],
-        area: [],
-        scope: [],
-        module: []
+    const [attributeDefinitions, setAttributeDefinitions] = useState<AttributeDefinition[]>([]);
+    const [masterData, setMasterData] = useState<Record<string, MasterDataItem[]>>({
+        priority: [], area: [], scope: [], module: []
     });
 
+    // Load Attribute Definitions
     useEffect(() => {
-        if (!user || !tenantId) return;
+        if (!tenantId) return;
+        const q = query(collection(db, 'attribute_definitions'), where('tenantId', '==', tenantId));
+        return onSnapshot(q, snap => {
+            setAttributeDefinitions(snap.docs.map(d => ({ id: d.id, ...d.data() } as AttributeDefinition)));
+        });
+    }, [tenantId]);
 
-        const unsubscribe = onSnapshot(
-            query(collection(db, 'master_data'), where('tenantId', '==', tenantId)),
-            (snapshot) => {
-                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as MasterDataItem[];
-                setMasterData({
-                    priority: data.filter(i => i.type === 'priority').sort((a, b) => a.name.localeCompare(b.name)),
-                    area: data.filter(i => i.type === 'area').sort((a, b) => a.name.localeCompare(b.name)),
-                    scope: data.filter(i => i.type === 'scope').sort((a, b) => a.name.localeCompare(b.name)),
-                    module: data.filter(i => i.type === 'module').sort((a, b) => a.name.localeCompare(b.name)),
-                });
-            },
-            (error) => {
-                console.error("Error fetching master data:", error);
-            }
-        );
+    // Load Master Data (All Types)
+    useEffect(() => {
+        if (!tenantId) return;
+        const q = query(collection(db, 'master_data'), where('tenantId', '==', tenantId));
+        return onSnapshot(q, snap => {
+            const allItems = snap.docs.map(d => ({ id: d.id, ...d.data() } as MasterDataItem));
+            const grouped: Record<string, MasterDataItem[]> = { priority: [], area: [], scope: [], module: [] };
 
-        return () => unsubscribe();
-    }, [user, tenantId]);
+            allItems.forEach(item => {
+                if (!grouped[item.type]) grouped[item.type] = [];
+                grouped[item.type].push(item);
+            });
+
+            // Sort
+            Object.keys(grouped).forEach(k => grouped[k].sort((a, b) => a.name.localeCompare(b.name)));
+            setMasterData(grouped);
+        });
+    }, [tenantId]);
 
     // AUTO-SELECT TASK FROM ID (Fix for Notifications)
     useEffect(() => {
@@ -132,6 +127,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (JSON.stringify(formData.raci) !== JSON.stringify(selectedTask.raci)) return true;
         if (JSON.stringify(formData.dependencies) !== JSON.stringify(selectedTask.dependencies)) return true;
         if (JSON.stringify(formData.acceptanceCriteria) !== JSON.stringify(selectedTask.acceptanceCriteria)) return true;
+        if (JSON.stringify(formData.attributes) !== JSON.stringify(selectedTask.attributes)) return true;
 
         return false;
     };
@@ -755,9 +751,14 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             <div className="max-w-6xl mx-auto">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex flex-col gap-1">
-                                        <div className={cn("text-[10px] font-bold uppercase tracking-widest font-mono flex items-center gap-3", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                        <div className={cn("text-[10px] font-bold uppercase tracking-widest font-mono flex flex-wrap items-center gap-x-4 gap-y-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
                                             <span>ID: {selectedTask.friendlyId || selectedTask.id}</span>
-                                            {/* Related Journal Entry ID */}
+
+                                            {/* Dynamic Reception Blocks */}
+                                            {/* Dynamic Attributes (User Defined Blocks) */}
+                                            {/* Dynamic Attributes Removed from Header per User Request */}
+
+                                            {/* Related Journal Entry ID (Legacy/Specific) */}
                                             <span className="text-zinc-400 flex items-center gap-1">| ENTRY ID:
                                                 <input
                                                     className={cn("bg-transparent outline-none w-16 border-b border-transparent hover:border-zinc-500 focus:border-indigo-500 transition-colors text-center p-0 h-4 font-mono", isLight ? "text-zinc-600" : "text-zinc-300")}
@@ -1058,61 +1059,82 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 {!isNew && <div className="text-[9px] text-zinc-600 dark:text-zinc-500 mt-1">El proyecto no se puede cambiar editar.</div>}
                                             </div>
 
-                                            {/* 2. New Classification Fields */}
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {/* Stacked Layout for Classification */}
+                                            {/* Stacked Layout for Classification */}
 
-                                                {/* Priority */}
-                                                <div>
-                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
-                                                    <PowerSelect
-                                                        value={formData.priority || ""}
-                                                        onChange={(val) => setFormData({ ...formData, priority: val as any })}
-                                                        options={[
-                                                            ...masterData.priority.map(i => ({ value: i.name, label: i.name, color: i.color })),
-                                                            ...(masterData.priority.length === 0 ? [
-                                                                { value: 'low', label: 'Baja', color: '#10b981' },
-                                                                { value: 'medium', label: 'Media', color: '#f59e0b' },
-                                                                { value: 'high', label: 'Alta', color: '#ef4444' }
-                                                            ] : [])
-                                                        ]}
-                                                        placeholder="Normal"
-                                                    />
-                                                </div>
-
-                                                {/* Area */}
-                                                <div>
-                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Área *</label>
-                                                    <PowerSelect
-                                                        value={formData.area || ""}
-                                                        onChange={(val) => setFormData({ ...formData, area: val })}
-                                                        options={masterData.area.map(i => ({ value: i.name, label: i.name, color: i.color }))}
-                                                        placeholder="Seleccionar Área"
-                                                    />
-                                                </div>
-
-                                                {/* Scope */}
-                                                <div>
-                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
-                                                    <PowerSelect
-                                                        value={formData.scope || ""}
-                                                        onChange={(val) => setFormData({ ...formData, scope: val })}
-                                                        options={masterData.scope.map(i => ({ value: i.name, label: i.name, color: i.color }))}
-                                                        placeholder="Seleccionar Alcance"
-                                                    />
-                                                </div>
-
-                                                {/* Module */}
-                                                <div>
-                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo *</label>
-                                                    <PowerSelect
-                                                        value={formData.module || ""}
-                                                        onChange={(val) => setFormData({ ...formData, module: val })}
-                                                        options={masterData.module.map(i => ({ value: i.name, label: i.name, color: i.color }))}
-                                                        placeholder="Seleccionar Módulo"
-                                                    />
-                                                </div>
+                                            {/* Priority */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
+                                                <PowerSelect
+                                                    value={formData.priority || ""}
+                                                    onChange={(val) => setFormData({ ...formData, priority: val as any })}
+                                                    options={[
+                                                        ...(masterData.priority?.map(i => ({ value: i.name, label: i.name, color: i.color })) || []),
+                                                        ...((!masterData.priority || masterData.priority.length === 0) ? [
+                                                            { value: 'low', label: 'Baja', color: '#10b981' },
+                                                            { value: 'medium', label: 'Media', color: '#f59e0b' },
+                                                            { value: 'high', label: 'Alta', color: '#ef4444' }
+                                                        ] : [])
+                                                    ]}
+                                                    placeholder="Normal"
+                                                />
                                             </div>
+
+                                            {/* Area */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Área *</label>
+                                                <PowerSelect
+                                                    value={formData.area || ""}
+                                                    onChange={(val) => setFormData({ ...formData, area: val })}
+                                                    options={(masterData.area || []).map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                    placeholder="Seleccionar Área"
+                                                />
+                                            </div>
+
+                                            {/* Scope */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
+                                                <PowerSelect
+                                                    value={formData.scope || ""}
+                                                    onChange={(val) => setFormData({ ...formData, scope: val })}
+                                                    options={(masterData.scope || []).map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                    placeholder="Seleccionar Alcance"
+                                                />
+                                            </div>
+
+                                            {/* Module */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo *</label>
+                                                <PowerSelect
+                                                    value={formData.module || ""}
+                                                    onChange={(val) => setFormData({ ...formData, module: val })}
+                                                    options={(masterData.module || []).map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                    placeholder="Seleccionar Módulo"
+                                                />
+                                            </div>
+
+                                            {/* Dynamic Attributes (Exclude System Blocks) */}
+                                            {attributeDefinitions.filter(attr => {
+                                                const systemKeys = ['priority', 'area', 'scope', 'module'];
+                                                return !systemKeys.includes(attr.id) && !systemKeys.includes(attr.mappedField as any);
+                                            }).map(attr => (
+                                                <div key={attr.id}>
+                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                                        {attr.name}
+                                                    </label>
+                                                    <PowerSelect
+                                                        value={formData.attributes?.[attr.id] || ""}
+                                                        onChange={(val) => setFormData({
+                                                            ...formData,
+                                                            attributes: {
+                                                                ...(formData.attributes || {}),
+                                                                [attr.id]: val
+                                                            }
+                                                        })}
+                                                        options={(masterData[attr.id] || []).map(i => ({ value: i.id, label: i.name, color: i.color }))}
+                                                        placeholder={`Seleccionar ${attr.name}`}
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
 

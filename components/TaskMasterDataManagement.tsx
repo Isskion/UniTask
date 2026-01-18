@@ -1,48 +1,138 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
-import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2 } from 'lucide-react';
+import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2, Box, Layers } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeFirestore } from '@/hooks/useSafeFirestore';
-import { collection, query, where, getDocs, orderBy, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, deleteDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { AttributeDefinition } from '@/types';
+
+const getIconForField = (field: string) => {
+    switch (field) {
+        case 'priority': return ListTodo;
+        case 'area': return FolderGit2;
+        case 'scope': return Briefcase;
+        case 'module': return Layout;
+        default: return Box;
+    }
+};
 
 interface MasterDataItem {
     id: string;
     name: string;
     color: string;
-    type: 'priority' | 'area' | 'scope' | 'module';
+    type: string; // 'priority' | 'area' | ... or 'attr_xyz'
     tenantId: string;
     isActive: boolean;
 }
 
+const SYSTEM_SECTIONS = [
+    { id: 'priority', label: 'Prioridades', icon: ListTodo, color: '#f59e0b', description: 'Urgencia' },
+    { id: 'area', label: 'Áreas', icon: FolderGit2, color: '#3b82f6', description: 'Departamentos' },
+    { id: 'scope', label: 'Alcance', icon: Briefcase, color: '#8b5cf6', description: 'Tipos de trabajo' },
+    { id: 'module', label: 'Módulos', icon: Layout, color: '#10b981', description: 'Módulos del sistema' },
+];
+
 export default function TaskMasterDataManagement() {
     const { theme } = useTheme();
     const { user, tenantId } = useAuth();
-    const { addDoc, deleteDoc: safeDeleteDoc } = useSafeFirestore();
+    const { addDoc, deleteDoc: safeDeleteDoc, updateDoc: safeUpdateDoc } = useSafeFirestore();
     const isLight = theme === 'light';
-    const isRed = theme === 'red';
 
-    const [activeSection, setActiveSection] = useState<'dashboard' | 'priority' | 'area' | 'scope' | 'module'>('dashboard');
-    const [items, setItems] = useState<MasterDataItem[]>([]);
+    // State
+    const [activeSection, setActiveSection] = useState<string>('dashboard');
+    const [items, setItems] = useState<MasterDataItem[]>([]); // Options for the active section (VIEW MODE)
+    const [allMasterData, setAllMasterData] = useState<Record<string, MasterDataItem[]>>({}); // All options (DASHBOARD PREVIEW MODE)
+    const [customAttributes, setCustomAttributes] = useState<AttributeDefinition[]>([]);
     const [loading, setLoading] = useState(false);
 
-    // Form State
+    // Form State (Options)
     const [newItemName, setNewItemName] = useState("");
     const [newItemColor, setNewItemColor] = useState("#6366f1");
     const [isAdding, setIsAdding] = useState(false);
 
-    const sections = [
-        { id: 'priority', label: 'Prioridades', icon: ListTodo, color: '#f59e0b', description: 'Define niveles de urgencia (Alta, Media, Baja)' },
-        { id: 'area', label: 'Áreas', icon: FolderGit2, color: '#3b82f6', description: 'Departamentos o áreas de negocio (Finanzas, IT, RRHH)' },
-        { id: 'scope', label: 'Alcance', icon: Briefcase, color: '#8b5cf6', description: 'Tipos de trabajo o alcance (Proyecto, Soporte, Mantenimiento)' },
-        { id: 'module', label: 'Módulos', icon: Layout, color: '#10b981', description: 'Módulos del sistema afectados (WMS, TMS, ERP)' },
-    ];
+    // Form State (New/Edit Block)
+    const [isCreatingBlock, setIsCreatingBlock] = useState(false);
+    const [isEditingBlock, setIsEditingBlock] = useState(false); // New: Edit Mode
+    const [blockFormName, setBlockFormName] = useState("");
+    const [blockFormColor, setBlockFormColor] = useState("#ec4899");
 
+    // Load Attributes (Blocks)
     useEffect(() => {
-        // Load all items initially for dashboard, or filter when section changes
+        if (!tenantId) return;
+        const q = query(collection(db, 'attribute_definitions'), where('tenantId', '==', tenantId));
+        const unsubscribe = onSnapshot(q, (snap) => {
+            const attrs = snap.docs.map(d => ({ id: d.id, ...d.data() } as AttributeDefinition));
+            setCustomAttributes(attrs);
+        });
+        return () => unsubscribe();
+    }, [tenantId]);
+
+    // Bootstrap Defaults removed - System sections are hardcoded now
+
+    // Load All Master Data for Dashboard Preview
+    useEffect(() => {
+        if (!tenantId) return;
+        const q = query(collection(db, 'master_data'), where('tenantId', '==', tenantId));
+        return onSnapshot(q, (snap) => {
+            const data: Record<string, MasterDataItem[]> = {};
+            snap.forEach(doc => {
+                const item = { id: doc.id, ...doc.data() } as MasterDataItem;
+                if (!data[item.type]) data[item.type] = [];
+                data[item.type].push(item);
+            });
+            // Sort
+            Object.keys(data).forEach(k => data[k].sort((a, b) => a.name.localeCompare(b.name)));
+            setAllMasterData(data);
+        });
+    }, [tenantId]);
+
+    // Computed Sections (Mixed: System + Custom)
+    const sections = useMemo(() => {
+        // MERGE LOGIC:
+        // 1. System Sections serve as base.
+        // 2. If a custom attribute exists with the same ID or mappedField, we MERGE it (take name/color from DB, keep icon/desc from System).
+        // 3. Pure custom attributes are added as is.
+
+        const mergedSections = SYSTEM_SECTIONS.map(sys => {
+            // Find override in DB
+            const override = customAttributes.find(attr => attr.id === sys.id || attr.mappedField === sys.id);
+            if (override) {
+                return {
+                    ...sys,
+                    label: override.name, // Allow renaming system blocks
+                    color: override.color, // Allow recoloring system blocks
+                    // Keep icon and description fixed for consistency? Or allow override?
+                    // Let's keep icon fixed.
+                    isCustom: false, // Still system, but edited
+                    originalId: sys.id // Track original ID
+                };
+            }
+            return { ...sys, isCustom: false };
+        });
+
+        // Filter out customs that were already used as overrides
+        const systemIds = SYSTEM_SECTIONS.map(s => s.id);
+        const pureCustoms = customAttributes.filter(attr => !systemIds.includes(attr.id) && !systemIds.includes(attr.mappedField as any));
+
+        return [
+            ...mergedSections,
+            ...pureCustoms.map(attr => ({
+                id: attr.id,
+                label: attr.name,
+                icon: Box,
+                color: attr.color,
+                description: 'Personalizado',
+                isCustom: true
+            }))
+        ];
+    }, [customAttributes]);
+
+    // Load Options for Active Section
+    useEffect(() => {
         loadItems(activeSection === 'dashboard' ? undefined : activeSection);
     }, [activeSection, tenantId]);
 
@@ -51,28 +141,17 @@ export default function TaskMasterDataManagement() {
         setLoading(true);
         try {
             let q;
-            if (type) {
-                q = query(
-                    collection(db, 'master_data'),
-                    where('tenantId', '==', tenantId),
-                    where('type', '==', type)
-                );
+            if (type && type !== 'dashboard') {
+                q = query(collection(db, 'master_data'), where('tenantId', '==', tenantId), where('type', '==', type));
             } else {
-                q = query(
-                    collection(db, 'master_data'),
-                    where('tenantId', '==', tenantId)
-                );
+                // For Dashboard, we might want entry counts, but for now let's just enable navigation
+                setLoading(false);
+                return;
             }
 
             const snapshot = await getDocs(q);
-            const loadedItems = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as MasterDataItem[];
-
-            // Client-side sort fallback
+            const loadedItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MasterDataItem));
             loadedItems.sort((a, b) => a.name.localeCompare(b.name));
-
             setItems(loadedItems);
         } catch (error) {
             console.error("Error loading master data:", error);
@@ -81,242 +160,418 @@ export default function TaskMasterDataManagement() {
         }
     };
 
-    const handleAddItem = async () => {
+    const handleAddOption = async () => {
         if (!newItemName.trim() || !tenantId) return;
-
         try {
             setIsAdding(true);
             await addDoc(collection(db, 'master_data'), {
                 name: newItemName.trim(),
                 color: newItemColor,
-                type: activeSection,
+                type: activeSection, // Links to System Section OR Attribute Definition ID
                 tenantId: tenantId,
                 isActive: true,
                 createdAt: serverTimestamp(),
                 createdBy: user?.uid || 'system'
             });
-
             setNewItemName("");
-            // Reload specific type or all if in dashboard (though we are only adding in detail view)
-            await loadItems(activeSection as string);
+            await loadItems(activeSection);
         } catch (error) {
             console.error("Error adding item:", error);
-            alert("Error al crear el elemento");
+        } finally {
+            setIsAdding(false);
+        }
+    };
+
+    const handleCreateBlock = async () => {
+        if (!blockFormName.trim() || !tenantId) return;
+        try {
+            setIsAdding(true);
+            await addDoc(collection(db, 'attribute_definitions'), {
+                name: blockFormName.trim(),
+                color: blockFormColor,
+                tenantId,
+                isActive: true,
+                createdAt: serverTimestamp()
+            });
+            setBlockFormName("");
+            setIsCreatingBlock(false);
+        } catch (error) {
+            console.error("Error creating block:", error);
+        } finally {
+            setIsAdding(false);
+        }
+    };
+
+    const handleUpdateBlock = async () => {
+        if (!activeSection || !blockFormName.trim() || !tenantId) return;
+        try {
+            setIsAdding(true);
+            const { doc, setDoc } = await import("firebase/firestore");
+
+            // Logic:
+            // If it's a pure custom block (activeSection is an ID), we update it.
+            // If it's a SYSTEM block (activeSection is 'priority'), we check if an override exists.
+            // If override exists (ID matches or mappedField matches), update it.
+            // If not, CREATE a new attribute_definition with mappedField = activeSection to act as override.
+
+            // Check if we have an existing definition for this ID
+            // We can look at `customAttributes`
+            const existingDef = customAttributes.find(attr => attr.id === activeSection || attr.mappedField === activeSection);
+
+            if (existingDef) {
+                // Update existing
+                await safeUpdateDoc(doc(db, 'attribute_definitions', existingDef.id), {
+                    name: blockFormName.trim(),
+                    color: blockFormColor
+                });
+            } else {
+                // Determine if it's a system ID we are overriding
+                const isSystem = SYSTEM_SECTIONS.some(s => s.id === activeSection);
+                if (isSystem) {
+                    // Create Override
+                    await setDoc(doc(db, 'attribute_definitions', activeSection), {
+                        name: blockFormName.trim(),
+                        color: blockFormColor,
+                        tenantId,
+                        isActive: true,
+                        mappedField: activeSection, // Link to system
+                        createdAt: serverTimestamp()
+                    });
+                } else {
+                    // Should not happen for pure customs not in list, but fallback logic
+                    console.error("Cannot update unknown block type");
+                }
+            }
+            setIsEditingBlock(false);
+        } catch (error) {
+            console.error("Error updating block:", error);
         } finally {
             setIsAdding(false);
         }
     };
 
     const handleDeleteItem = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar este elemento?")) return;
+        if (!confirm("¿Eliminar opción?")) return;
+        await safeDeleteDoc(doc(db, 'master_data', id));
+        loadItems(activeSection);
+    };
+
+    const handleDeleteBlock = async (id: string) => {
+        if (!confirm("¿Eliminar este bloque y todas sus opciones? Esta acción no se puede deshacer.")) return;
+        // 1. Delete Definition
+        await safeDeleteDoc(doc(db, 'attribute_definitions', id));
+        // 2. Delete Options (Best effort client side, ideally backend function)
+        const q = query(collection(db, 'master_data'), where('type', '==', id));
+        const snap = await getDocs(q);
+        snap.forEach(d => safeDeleteDoc(d.ref));
+    };
+
+    const handleRecoverData = async () => {
+        if (!confirm("Esta acción escaneará todas las tareas existentes y recreará las opciones de Área, Alcance y Módulo que se hayan borrado accidentalmente. ¿Continuar?")) return;
+
+        setLoading(true);
         try {
-            await safeDeleteDoc(doc(db, 'master_data', id));
-            await loadItems(activeSection as string);
+            // 1. Fetch all tasks
+            const tasksSnapshot = await getDocs(query(collection(db, 'tasks'), where('tenantId', '==', tenantId)));
+            const tasks = tasksSnapshot.docs.map(d => d.data());
+
+            // 2. Extract unique values
+            const recoveredOptions: Record<string, Set<string>> = {
+                area: new Set(),
+                scope: new Set(),
+                module: new Set()
+            };
+
+            tasks.forEach((task: any) => {
+                if (task.area) recoveredOptions.area.add(task.area);
+                if (task.scope) recoveredOptions.scope.add(task.scope);
+                if (task.module) recoveredOptions.module.add(task.module);
+            });
+
+            // 3. Fetch existing master data to avoid duplicates
+            const existingSnapshot = await getDocs(query(collection(db, 'master_data'), where('tenantId', '==', tenantId)));
+            const existingData = existingSnapshot.docs.map(d => d.data());
+
+            let restoredCount = 0;
+
+            const processType = async (type: string, values: Set<string>) => {
+                for (const name of Array.from(values)) {
+                    // Check if exists (case insensitive?)
+                    const exists = existingData.find((d: any) => d.type === type && d.name.toLowerCase() === name.toLowerCase());
+                    if (!exists) {
+                        await addDoc(collection(db, 'master_data'), {
+                            name: name,
+                            color: '#94a3b8', // Default Slate-400
+                            type: type,
+                            tenantId: tenantId,
+                            isActive: true,
+                            createdAt: serverTimestamp(),
+                            createdBy: 'recovery_script'
+                        });
+                        restoredCount++;
+                    }
+                }
+            };
+
+            await processType('area', recoveredOptions.area);
+            await processType('scope', recoveredOptions.scope);
+            await processType('module', recoveredOptions.module);
+
+            alert(`Proceso finalizado. Se han restaurado ${restoredCount} opciones.`);
+            window.location.reload(); // Refresh to see changes
+
         } catch (error) {
-            console.error("Error deleting item:", error);
-            alert("Error al eliminar el elemento");
+            console.error("Recovery failed:", error);
+            alert("Error al recuperar datos. Revisa la consola.");
+        } finally {
+            setLoading(false);
         }
     };
 
     const activeSectionData = sections.find(s => s.id === activeSection);
 
-    // Filter items for dashboard view
-    const getItemsByType = (type: string) => items.filter(i => i.type === type);
-
     return (
-        <div className={cn("flex-1 p-8 overflow-y-auto h-full",
-            isLight ? "bg-white" : "bg-[#09090b]"
-        )}>
-            {/* Header */}
-            <div className="flex items-center gap-2 mb-8 text-sm text-zinc-500">
-                <span className="cursor-pointer hover:text-zinc-300" onClick={() => setActiveSection('dashboard')}>Administración</span>
-                <ChevronRight className="w-4 h-4" />
-                <span className={cn("font-bold", isLight ? "text-zinc-900" : "text-white")}>
-                    {activeSection === 'dashboard' ? 'Gestión de Tareas' : activeSectionData?.label}
-                </span>
+        <div className={cn("flex-1 p-6 overflow-y-auto h-full", isLight ? "bg-zinc-50/50" : "bg-[#09090b]")}>
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-2 mb-6 text-xs font-medium text-zinc-500">
+                <span className="cursor-pointer hover:text-foreground" onClick={() => setActiveSection('dashboard')}>Admin</span>
+                <ChevronRight className="w-3 h-3" />
+                <span className="text-foreground">{activeSection === 'dashboard' ? 'Maestros y Atributos' : activeSectionData?.label}</span>
             </div>
 
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-6xl mx-auto">
                 {activeSection === 'dashboard' ? (
                     <>
-                        <h1 className={cn("text-3xl font-bold mb-2", isLight ? "text-zinc-900" : "text-white")}>Gestión de Maestros de Tareas</h1>
-                        <p className={cn("mb-8", isLight ? "text-zinc-600" : "text-zinc-400")}>Configura las listas desplegables y opciones disponibles en el formulario de tareas.</p>
+                        {/* Header */}
+                        <div className="flex justify-between items-end mb-6">
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight mb-1">Gestión de Tareas</h1>
+                                <p className="text-muted-foreground text-sm">Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleRecoverData}
+                                    className="flex items-center gap-2 px-3 py-2 border border-dashed border-zinc-400 text-zinc-500 rounded-lg text-xs font-medium hover:bg-muted transition-all"
+                                    title="Escanear tareas y restaurar opciones perdidas"
+                                >
+                                    <Save className="w-3.5 h-3.5" /> Recuperar Datos
+                                </button>
+                                <button
+                                    onClick={() => setIsCreatingBlock(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" /> Nuevo Bloque
+                                </button>
+                            </div>
+                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                        {/* Create Block Form */}
+                        {isCreatingBlock && (
+                            <div className="mb-8 p-4 rounded-xl border bg-card animate-in slide-in-from-top-4">
+                                <h3 className="text-sm font-bold mb-3">Definir Nuevo Criterio</h3>
+                                <div className="flex gap-3 items-end">
+                                    <div className="flex-1">
+                                        <label className="text-xs text-muted-foreground font-bold uppercase">Nombre (ej. País, Versión)</label>
+                                        <input
+                                            value={blockFormName}
+                                            onChange={e => setBlockFormName(e.target.value)}
+                                            className="w-full mt-1 px-3 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                            placeholder="Nombre del bloque..."
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-muted-foreground font-bold uppercase">Color</label>
+                                        <div className="mt-1 flex gap-2">
+                                            <input type="color" value={blockFormColor} onChange={e => setBlockFormColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0" />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsCreatingBlock(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted">Cancelar</button>
+                                        <button onClick={handleCreateBlock} disabled={!blockFormName.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50">Crear</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Grid - Compat Mode (50% Size Reduction requested) */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                             {sections.map(section => {
-                                const sectionItems = getItemsByType(section.id);
+                                // Custom Block Logic
+                                // Use raw ID as type
+                                const blockOptions = allMasterData[section.id] || [];
+                                const previewOptions = blockOptions.slice(0, 3);
+
                                 return (
                                     <div
                                         key={section.id}
-                                        onClick={() => setActiveSection(section.id as any)}
+                                        onClick={() => setActiveSection(section.id)}
                                         className={cn(
-                                            "group relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 cursor-pointer hover:shadow-2xl flex flex-col h-full",
-                                            isLight
-                                                ? "bg-white border-zinc-200 hover:border-zinc-300 shadow-sm"
-                                                : "bg-[#18181b] border-white/5 hover:border-white/10 hover:shadow-black/50"
+                                            "group relative overflow-hidden rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98]",
+                                            isLight ? "bg-white border-zinc-200 hover:border-zinc-300" : "bg-card border-white/5 hover:border-white/10"
                                         )}
                                     >
-                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
-                                            <section.icon className="w-24 h-24" style={{ color: section.color }} />
-                                        </div>
-
-                                        <div className="relative z-10 flex flex-col h-full">
-                                            <div className="mb-auto">
-                                                <div className="mb-4 inline-flex p-3 rounded-xl bg-opacity-10 backdrop-blur-sm" style={{ backgroundColor: `${section.color}20` }}>
-                                                    <section.icon className="w-8 h-8" style={{ color: section.color }} />
-                                                </div>
-                                                <h3 className={cn("text-xl font-bold mb-2", isLight ? "text-zinc-900" : "text-white")}>{section.label}</h3>
-                                                <p className={cn("text-sm leading-relaxed mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                                                    {section.description}
-                                                </p>
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors" style={{ backgroundColor: `${section.color}15`, color: section.color }}>
+                                                <section.icon className="w-5 h-5" />
                                             </div>
-
-                                            {/* Tag Preview Area */}
-                                            <div className="mt-4 flex flex-wrap gap-2">
-                                                {sectionItems.length > 0 ? (
-                                                    sectionItems.slice(0, 5).map(item => (
-                                                        <span
-                                                            key={item.id}
-                                                            className="text-[10px] font-bold px-2 py-1 rounded-md shadow-sm border border-black/5"
-                                                            style={{ backgroundColor: item.color, color: '#fff' }}
-                                                        >
-                                                            {item.name}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className="text-xs italic text-zinc-500 opacity-50">Sin elementos definidos</span>
-                                                )}
-                                                {sectionItems.length > 5 && (
-                                                    <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-zinc-800 text-zinc-400 border border-white/10">
-                                                        +{sectionItems.length - 5}
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="font-bold text-sm truncate">{section.label}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded font-mono">
+                                                        {blockOptions.length}
                                                     </span>
-                                                )}
+                                                    {(section as any).isCustom && (
+                                                        <span className="text-[8px] uppercase tracking-wider text-muted-foreground opacity-50">Custom</span>
+                                                    )}
+                                                </div>
                                             </div>
-
-                                            <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-wider opacity-60 group-hover:opacity-100 transition-opacity border-t pt-4 border-dashed border-zinc-700/50" style={{ color: section.color }}>
-                                                Gestionar <ChevronRight className="w-4 h-4" />
-                                            </div>
+                                            {/* Delete moved to detail view */}
                                         </div>
+
+                                        {/* Options Preview */}
+                                        <div className="space-y-1">
+                                            {previewOptions.length > 0 ? (
+                                                previewOptions.map(opt => (
+                                                    <div key={opt.id} className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: opt.color || section.color }} />
+                                                        <span className="truncate max-w-[120px]">{opt.name}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-[10px] text-muted-foreground/50 italic pl-1">Sin opciones...</div>
+                                            )}
+                                            {blockOptions.length > 3 && (
+                                                <div className="text-[9px] text-muted-foreground/50 pl-3.5">
+                                                    +{blockOptions.length - 3} más...
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="absolute right-0 top-0 w-12 h-12 bg-gradient-to-bl from-white/5 to-transparent pointer-events-none" />
                                     </div>
-                                )
+                                );
                             })}
                         </div>
                     </>
                 ) : (
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h1 className={cn("text-2xl font-bold flex items-center gap-3", isLight ? "text-zinc-900" : "text-white")}>
-                                    <div className="p-2 rounded-lg bg-opacity-10" style={{ backgroundColor: `${activeSectionData?.color}20` }}>
-                                        {activeSectionData && <activeSectionData.icon className="w-6 h-6" style={{ color: activeSectionData.color }} />}
-                                    </div>
-                                    Gestión de {activeSectionData?.label}
-                                </h1>
-                                <p className={cn("mt-1", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                                    Crea y gestiona las etiquetas para {activeSectionData?.label.toLowerCase()}.
-                                </p>
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        {/* Detail View Header */}
+                        <div className="flex justify-between items-center mb-6 pb-6 border-b">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${activeSectionData?.color}20`, color: activeSectionData?.color }}>
+                                    {activeSectionData && <activeSectionData.icon className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold">{activeSectionData?.label}</h1>
+                                    <p className="text-xs text-muted-foreground">Gestionando opciones para {activeSectionData?.label}</p>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => setActiveSection('dashboard')}
-                                className={cn("px-4 py-2 rounded-lg text-sm font-medium transition-colors border",
-                                    isLight
-                                        ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50"
-                                        : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10"
-                                )}
-                            >
-                                Volver al Dashboard
-                            </button>
-                        </div>
-
-                        {/* Add New Item */}
-                        <div className={cn("p-4 rounded-xl border mb-6 flex gap-4 items-end",
-                            isLight ? "bg-zinc-50 border-zinc-200" : "bg-white/5 border-white/10"
-                        )}>
-                            <div className="flex-1">
-                                <label className={cn("block text-xs font-bold uppercase mb-1", isLight ? "text-zinc-500" : "text-zinc-400")}>Nombre de la Etiqueta</label>
-                                <input
-                                    value={newItemName}
-                                    onChange={(e) => setNewItemName(e.target.value)}
-                                    placeholder={`Ej: ${activeSection === 'priority' ? 'Alta' : 'Nuevo Item'}`}
-                                    className={cn("w-full px-4 py-2 rounded-lg border focus:outline-none transition-all",
-                                        isLight
-                                            ? "bg-white border-zinc-300 text-zinc-900 focus:border-indigo-500"
-                                            : "bg-black/20 border-white/10 text-white focus:border-indigo-500"
-                                    )}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
-                                />
-                            </div>
-                            <div>
-                                <label className={cn("block text-xs font-bold uppercase mb-1", isLight ? "text-zinc-500" : "text-zinc-400")}>Color</label>
-                                <input
-                                    type="color"
-                                    value={newItemColor}
-                                    onChange={(e) => setNewItemColor(e.target.value)}
-                                    className={cn("w-20 h-10 rounded-lg border cursor-pointer",
-                                        isLight ? "bg-white border-zinc-300" : "bg-black/20 border-white/10"
-                                    )}
-                                />
-                            </div>
-                            <button
-                                onClick={handleAddItem}
-                                disabled={isAdding || !newItemName.trim()}
-                                className={cn("px-6 py-2 rounded-lg font-bold flex items-center gap-2 transition-all h-10",
-                                    isLight
-                                        ? "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
-                                        : "bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
-                                )}
-                            >
-                                {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                Agregar
-                            </button>
-                        </div>
-
-                        {/* List */}
-                        {loading ? (
-                            <div className="py-10 text-center text-zinc-500 flex flex-col items-center">
-                                <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                                Cargando...
-                            </div>
-                        ) : items.length === 0 ? (
-                            <div className="py-12 text-center border border-dashed rounded-xl border-zinc-700/50">
-                                <p className="text-zinc-500 italic">No hay elementos definidos todavía.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {items.map(item => (
-                                    <div
-                                        key={item.id}
-                                        className={cn("group p-3 rounded-xl border flex items-center justify-between transition-all hover:scale-[1.01]",
-                                            isLight
-                                                ? "bg-white border-zinc-200 hover:border-indigo-300 hover:shadow-md"
-                                                : "bg-[#18181b] border-white/5 hover:border-white/20 hover:shadow-lg"
-                                        )}
-                                        style={{ borderLeftWidth: '4px', borderLeftColor: item.color }}
+                            <div className="flex gap-2">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setBlockFormName(activeSectionData?.label || "");
+                                            setBlockFormColor(activeSectionData?.color || "#ec4899");
+                                            setIsEditingBlock(true);
+                                        }}
+                                        className="px-3 py-1.5 border rounded-lg text-xs font-medium hover:bg-muted flex items-center gap-2"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-inner"
-                                                style={{ backgroundColor: `${item.color}30`, color: item.color }}
-                                            >
-                                                {item.name.substring(0, 2).toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div className={cn("font-bold text-sm", isLight ? "text-zinc-800" : "text-zinc-200")}>{item.name}</div>
-                                                <div className="text-[10px] text-zinc-500 font-mono">ID: {item.id.substring(0, 8)}...</div>
+                                        <Edit2 className="w-3.5 h-3.5" /> Editar
+                                    </button>
+                                    {(activeSectionData as any)?.isCustom && (
+                                        <button
+                                            onClick={() => {
+                                                if (confirm("¿Estás seguro de que quieres eliminar este bloque? Esta acción borrará el bloque y todas sus opciones asociadas. No se puede deshacer.")) {
+                                                    handleDeleteBlock(activeSection);
+                                                    setActiveSection('dashboard');
+                                                }
+                                            }}
+                                            className="px-3 py-1.5 border border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-lg text-xs font-medium transition-colors flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" /> Borrar
+                                        </button>
+                                    )}
+                                    <button onClick={() => setActiveSection('dashboard')} className="px-3 py-1.5 border rounded-lg text-xs font-medium hover:bg-muted">
+                                        Esc
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Edit Block Form (Inline Modal?) */}
+                            {isEditingBlock && (
+                                <div className="mb-6 p-4 rounded-xl border bg-card animate-in slide-in-from-top-2">
+                                    <h3 className="text-sm font-bold mb-3">Editar Bloque</h3>
+                                    <div className="flex gap-3 items-end">
+                                        <div className="flex-1">
+                                            <label className="text-xs text-muted-foreground font-bold uppercase">Nombre</label>
+                                            <input
+                                                value={blockFormName}
+                                                onChange={e => setBlockFormName(e.target.value)}
+                                                className="w-full mt-1 px-3 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-muted-foreground font-bold uppercase">Color</label>
+                                            <div className="mt-1 flex gap-2">
+                                                <input type="color" value={blockFormColor} onChange={e => setBlockFormColor(e.target.value)} className="w-10 h-10 rounded-lg cursor-pointer border-0 p-0" />
                                             </div>
                                         </div>
-
-                                        <button
-                                            onClick={() => handleDeleteItem(item.id)}
-                                            className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                            title="Eliminar"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setIsEditingBlock(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted">Cancelar</button>
+                                            <button onClick={handleUpdateBlock} disabled={!blockFormName.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50">Guardar</button>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Add Option */}
+                        <div className="flex gap-3 mb-6">
+                            <input
+                                value={newItemName}
+                                onChange={e => setNewItemName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddOption()}
+                                placeholder="Nueva opción..."
+                                className="flex-1 px-4 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                autoFocus
+                            />
+                            <input
+                                type="color"
+                                value={newItemColor}
+                                onChange={e => setNewItemColor(e.target.value)}
+                                className="w-10 h-10 rounded-lg cursor-pointer border p-0"
+                            />
+                            <button
+                                onClick={handleAddOption}
+                                disabled={!newItemName.trim() || isAdding}
+                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                Añadir
+                            </button>
+                        </div>
+
+                        {/* Options List */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {items.map(item => (
+                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:border-primary/50 transition-colors group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                                        <span className="text-sm font-medium">{item.name}</span>
+                                    </div>
+                                    <button onClick={() => handleDeleteItem(item.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {items.length === 0 && !loading && (
+                                <div className="col-span-full py-12 text-center text-muted-foreground text-sm italic border border-dashed rounded-xl">
+                                    No hay opciones definidas.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Project, Task, UserProfile } from '@/types';
+import { Project, Task, UserProfile, AttributeDefinition, MasterDataItem } from '@/types';
 import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -13,11 +13,7 @@ import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase
 import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 
-interface MasterDataItem {
-    id: string;
-    name: string;
-    color: string;
-}
+
 
 interface TaskDashboardProps {
     projects: {
@@ -42,16 +38,9 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
     // Data for Filters
     const [users, setUsers] = useState<UserProfile[]>([]);
-    const [masterData, setMasterData] = useState<{
-        priority: MasterDataItem[];
-        area: MasterDataItem[];
-        scope: MasterDataItem[];
-        module: MasterDataItem[];
-    }>({
-        priority: [],
-        area: [],
-        scope: [],
-        module: []
+    const [attributeDefinitions, setAttributeDefinitions] = useState<AttributeDefinition[]>([]);
+    const [masterData, setMasterData] = useState<Record<string, MasterDataItem[]>>({
+        priority: [], area: [], scope: [], module: []
     });
 
     // 1. Load Tasks (Real-time)
@@ -83,20 +72,33 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         };
         fetchUsers();
 
+        // Attribute Definitions
+        const qAttr = query(collection(db, "attribute_definitions"), where("tenantId", "==", tenantId));
+        const unsubAttr = onSnapshot(qAttr, (snap) => {
+            const list: AttributeDefinition[] = [];
+            snap.forEach(d => list.push({ id: d.id, ...d.data() } as AttributeDefinition));
+            setAttributeDefinitions(list);
+        });
+
         // Master Data (Real-time for consistency)
         const qmd = query(collection(db, "master_data"), where("tenantId", "==", tenantId));
         const unsubMD = onSnapshot(qmd, (snap) => {
-            const data: any = { priority: [], area: [], scope: [], module: [] };
+            const data: Record<string, MasterDataItem[]> = { priority: [], area: [], scope: [], module: [] };
             snap.forEach(doc => {
-                const item = doc.data();
-                if (data[item.type]) {
-                    data[item.type].push({ id: doc.id, ...item });
-                }
+                const dataRaw = doc.data();
+                const type = dataRaw.type;
+                if (!type) return;
+
+                if (!data[type]) data[type] = [];
+                data[type].push({ ...dataRaw, id: doc.id } as MasterDataItem);
             });
             setMasterData(data);
         });
 
-        return () => unsubMD();
+        return () => {
+            unsubMD();
+            unsubAttr();
+        };
     }, [tenantId]);
 
 
@@ -213,6 +215,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                 projects={projects}
                 users={users}
                 masterData={masterData}
+                attributeDefinitions={attributeDefinitions}
             />
 
             {/* Header / Toolbar */}

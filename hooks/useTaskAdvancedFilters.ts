@@ -10,6 +10,7 @@ export interface TaskFiltersState {
     scope: string[];
     module: string[];
     assignedTo: string[];
+    attributes?: Record<string, string[]>; // { attrId: ['opt1', 'opt2'] }
     search: string;
 }
 
@@ -21,6 +22,7 @@ export const initialFilters: TaskFiltersState = {
     scope: [],
     module: [],
     assignedTo: [],
+    attributes: {},
     search: ''
 };
 
@@ -88,6 +90,17 @@ export function useTaskAdvancedFilters(
             // Assigned To Filter
             if (filters.assignedTo.length > 0) {
                 if (!task.assignedTo || !filters.assignedTo.includes(task.assignedTo)) return false;
+            }
+
+            // Dynamic Attributes Filter
+            if (filters.attributes) {
+                for (const [attrId, selectedOptions] of Object.entries(filters.attributes)) {
+                    if (selectedOptions && selectedOptions.length > 0) {
+                        const taskValue = task.attributes?.[attrId];
+                        // If task has no value for this attribute, or value not in selected options
+                        if (!taskValue || !selectedOptions.includes(taskValue)) return false;
+                    }
+                }
             }
 
             // Text Search (Friendly ID, Title, Description)

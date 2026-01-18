@@ -1,17 +1,12 @@
-"use client";
-
 import { useMemo } from "react";
 import { Filter, X, Trash2 } from "lucide-react";
 import { MultiPowerSelect } from "./ui/MultiPowerSelect";
 import { TaskFiltersState } from "@/hooks/useTaskAdvancedFilters";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
+import { AttributeDefinition, MasterDataItem } from "@/types";
 
-interface MasterDataItem {
-    id: string;
-    name: string;
-    color: string;
-}
+
 
 interface TaskFiltersProps {
     isOpen: boolean;
@@ -20,15 +15,11 @@ interface TaskFiltersProps {
     setFilters: (f: TaskFiltersState) => void;
     projects: { id: string; name: string; color?: string }[];
     users: { uid: string; displayName: string }[];
-    masterData: {
-        priority: MasterDataItem[];
-        area: MasterDataItem[];
-        scope: MasterDataItem[];
-        module: MasterDataItem[];
-    };
+    masterData: Record<string, MasterDataItem[]>;
+    attributeDefinitions: AttributeDefinition[];
 }
 
-export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, users, masterData }: TaskFiltersProps) {
+export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, users, masterData, attributeDefinitions }: TaskFiltersProps) {
     const { theme } = useTheme();
     const isLight = theme === 'light';
 
@@ -51,6 +42,11 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
         if (filters.scope.length > 0) count++;
         if (filters.module.length > 0) count++;
         if (filters.assignedTo.length > 0) count++;
+        if (filters.attributes) {
+            Object.values(filters.attributes).forEach(vals => {
+                if (vals && vals.length > 0) count++;
+            });
+        }
         return count;
     }, [filters]);
 
@@ -63,7 +59,8 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
             area: [],
             scope: [],
             module: [],
-            assignedTo: []
+            assignedTo: [],
+            attributes: {}
         });
     };
 
@@ -136,7 +133,14 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                                 <MultiPowerSelect
                                     values={filters.priority}
                                     onChange={(val) => setFilters({ ...filters, priority: val })}
-                                    options={masterData.priority.map(m => ({ value: m.name, label: m.name, color: m.color }))} // Using Name as value based on types
+                                    options={[
+                                        ...(masterData.priority?.map(m => ({ value: m.name, label: m.name, color: m.color })) || []),
+                                        ...((!masterData.priority || masterData.priority.length === 0) ? [
+                                            { value: 'low', label: 'Baja', color: '#10b981' },
+                                            { value: 'medium', label: 'Media', color: '#f59e0b' },
+                                            { value: 'high', label: 'Alta', color: '#ef4444' }
+                                        ] : [])
+                                    ]}
                                     placeholder="Cualquier prioridad"
                                 />
                             </div>
@@ -146,7 +150,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                                 <MultiPowerSelect
                                     values={filters.area}
                                     onChange={(val) => setFilters({ ...filters, area: val })}
-                                    options={masterData.area.map(m => ({ value: m.name, label: m.name, color: m.color }))}
+                                    options={(masterData.area || []).map(m => ({ value: m.name, label: m.name, color: m.color }))}
                                     placeholder="Todas las áreas"
                                 />
                             </div>
@@ -156,7 +160,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                                 <MultiPowerSelect
                                     values={filters.module}
                                     onChange={(val) => setFilters({ ...filters, module: val })}
-                                    options={masterData.module.map(m => ({ value: m.name, label: m.name, color: m.color }))}
+                                    options={(masterData.module || []).map(m => ({ value: m.name, label: m.name, color: m.color }))}
                                     placeholder="Todos los módulos"
                                 />
                             </div>
@@ -166,10 +170,32 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                                 <MultiPowerSelect
                                     values={filters.scope}
                                     onChange={(val) => setFilters({ ...filters, scope: val })}
-                                    options={masterData.scope.map(m => ({ value: m.name, label: m.name, color: m.color }))}
+                                    options={(masterData.scope || []).map(m => ({ value: m.name, label: m.name, color: m.color }))}
                                     placeholder="Cualquier alcance"
                                 />
                             </div>
+
+                            {/* Dynamic Attributes (Exclude System Blocks) */}
+                            {attributeDefinitions.filter(attr => {
+                                const systemKeys = ['priority', 'area', 'scope', 'module'];
+                                return !systemKeys.includes(attr.id) && !systemKeys.includes(attr.mappedField as any);
+                            }).map(attr => (
+                                <div key={attr.id} className="space-y-2">
+                                    <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>{attr.name}</label>
+                                    <MultiPowerSelect
+                                        values={filters.attributes?.[attr.id] || []}
+                                        onChange={(val) => setFilters({
+                                            ...filters,
+                                            attributes: {
+                                                ...(filters.attributes || {}),
+                                                [attr.id]: val
+                                            }
+                                        })}
+                                        options={(masterData[attr.id] || []).map(m => ({ value: m.id, label: m.name, color: m.color }))}
+                                        placeholder={`Filtrar por ${attr.name}...`}
+                                    />
+                                </div>
+                            ))}
                         </div>
 
                         <div className="h-px bg-gradient-to-r from-transparent via-zinc-500/20 to-transparent my-4" />
