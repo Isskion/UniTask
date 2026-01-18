@@ -331,12 +331,14 @@ export default function TaskMasterDataManagement() {
     const activeSectionData = sections.find(s => s.id === activeSection);
 
     return (
-        <div className={cn("flex-1 p-6 overflow-y-auto h-full", isLight ? "bg-zinc-50/50" : "bg-[#09090b]")}>
+        <div className={cn("flex-1 p-6 overflow-y-auto h-full transition-colors duration-300",
+            isLight ? "bg-zinc-50/50" : (theme === 'red' ? "bg-[#D32F2F]/10" : "bg-[#09090b]")
+        )}>
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 mb-6 text-xs font-medium text-zinc-500">
-                <span className="cursor-pointer hover:text-foreground" onClick={() => setActiveSection('dashboard')}>Admin</span>
+            <div className={cn("flex items-center gap-2 mb-6 text-xs font-medium", theme === 'red' ? "text-red-200/60" : "text-zinc-500")}>
+                <span className={cn("cursor-pointer hover:underline", theme === 'red' ? "hover:text-white" : "hover:text-foreground")} onClick={() => setActiveSection('dashboard')}>Admin</span>
                 <ChevronRight className="w-3 h-3" />
-                <span className="text-foreground">{activeSection === 'dashboard' ? 'Maestros y Atributos' : activeSectionData?.label}</span>
+                <span className={cn(theme === 'red' ? "text-white" : "text-foreground")}>{activeSection === 'dashboard' ? 'Maestros y Atributos' : activeSectionData?.label}</span>
             </div>
 
             <div className="max-w-6xl mx-auto">
@@ -344,8 +346,12 @@ export default function TaskMasterDataManagement() {
                     <>
                         {/* Header */}
                         <div className={cn(
-                            "flex justify-between items-end mb-6 p-6 rounded-xl border shadow-sm transition-colors",
-                            isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-card border-border")
+                            "flex justify-between items-end mb-6 p-6 rounded-xl transition-all",
+                            isLight
+                                ? "bg-white border border-zinc-200 shadow-sm"
+                                : (theme === 'red'
+                                    ? "bg-transparent border-none shadow-none p-0"
+                                    : "bg-card border border-border shadow-sm")
                         )}>
                             <div>
                                 <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-white" : "text-foreground")}>Gestión de Tareas</h1>
