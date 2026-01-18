@@ -416,7 +416,7 @@ export default function TaskMasterDataManagement() {
                                         onClick={() => setActiveSection(section.id)}
                                         className={cn(
                                             "group relative overflow-hidden rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98]",
-                                            isLight ? "bg-white border-zinc-200 hover:border-zinc-300" : "bg-card border-white/5 hover:border-white/10"
+                                            isLight ? "bg-white border-zinc-200 hover:border-zinc-300" : (theme === 'red' ? "bg-white border-red-100 hover:border-red-200" : "bg-card border-white/5 hover:border-white/10")
                                         )}
                                     >
                                         <div className="flex items-center gap-3 mb-3">
@@ -508,7 +508,9 @@ export default function TaskMasterDataManagement() {
 
                             {/* Edit Block Form (Inline Modal?) */}
                             {isEditingBlock && (
-                                <div className="mb-6 p-4 rounded-xl border bg-card animate-in slide-in-from-top-2">
+                                <div className={cn("mb-6 p-4 rounded-xl border animate-in slide-in-from-top-2",
+                                    isLight ? "bg-white" : (theme === 'red' ? "bg-white border-red-100" : "bg-card")
+                                )}>
                                     <h3 className="text-sm font-bold mb-3">Editar Bloque</h3>
                                     <div className="flex gap-3 items-end">
                                         <div className="flex-1">
@@ -564,7 +566,10 @@ export default function TaskMasterDataManagement() {
                         {/* Options List */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {items.map(item => (
-                                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:border-primary/50 transition-colors group">
+                                <div key={item.id} className={cn(
+                                    "flex items-center justify-between p-3 rounded-lg border transition-colors group",
+                                    isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-white border-red-100" : "bg-card hover:border-primary/50")
+                                )}>
                                     <div className="flex items-center gap-3">
                                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                                         <span className="text-sm font-medium">{item.name}</span>
