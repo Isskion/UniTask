@@ -344,19 +344,19 @@ export default function TaskMasterDataManagement() {
                     <>
                         {/* Header */}
                         <div className={cn(
-                            "flex justify-between items-end mb-6 p-6 rounded-xl border shadow-sm",
-                            isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-white border-red-100" : "bg-card border-border")
+                            "flex justify-between items-end mb-6 p-6 rounded-xl border shadow-sm transition-colors",
+                            isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-card border-border")
                         )}>
                             <div>
-                                <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-red-900" : "text-foreground")}>Gestión de Tareas</h1>
-                                <p className={cn("text-sm", theme === 'red' ? "text-red-700/70" : "text-muted-foreground")}>Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
+                                <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-white" : "text-foreground")}>Gestión de Tareas</h1>
+                                <p className={cn("text-sm", theme === 'red' ? "text-white/70" : "text-muted-foreground")}>Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={handleRecoverData}
                                     className={cn(
                                         "flex items-center gap-2 px-3 py-2 border border-dashed rounded-lg text-xs font-medium transition-all",
-                                        theme === 'red' ? "border-red-200 text-red-600 hover:bg-red-50" : "border-zinc-400 text-zinc-500 hover:bg-muted"
+                                        theme === 'red' ? "border-[#D32F2F]/30 text-white hover:bg-[#D32F2F]/20" : "border-zinc-400 text-zinc-500 hover:bg-muted"
                                     )}
                                     title="Escanear tareas y restaurar opciones perdidas"
                                 >
@@ -374,7 +374,7 @@ export default function TaskMasterDataManagement() {
                         {/* Create Block Form */}
                         {isCreatingBlock && (
                             <div className={cn("mb-8 p-4 rounded-xl border animate-in slide-in-from-top-4",
-                                isLight ? "bg-white" : (theme === 'red' ? "bg-white border-red-100" : "bg-card")
+                                isLight ? "bg-white" : (theme === 'red' ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-card")
                             )}>
                                 <h3 className="text-sm font-bold mb-3">Definir Nuevo Criterio</h3>
                                 <div className="flex gap-3 items-end">
@@ -383,7 +383,14 @@ export default function TaskMasterDataManagement() {
                                         <input
                                             value={blockFormName}
                                             onChange={e => setBlockFormName(e.target.value)}
-                                            className="w-full mt-1 px-3 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                            className={cn(
+                                                "w-full mt-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                                isLight
+                                                    ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
+                                                    : (theme === 'red'
+                                                        ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
+                                                        : "bg-zinc-900 border-zinc-700 text-white")
+                                            )}
                                             placeholder="Nombre del bloque..."
                                             autoFocus
                                         />
@@ -395,8 +402,26 @@ export default function TaskMasterDataManagement() {
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => setIsCreatingBlock(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted">Cancelar</button>
-                                        <button onClick={handleCreateBlock} disabled={!blockFormName.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50">Crear</button>
+                                        <button
+                                            onClick={() => setIsCreatingBlock(false)}
+                                            className={cn("px-4 py-2 border rounded-lg text-sm font-medium transition-colors",
+                                                isLight ? "hover:bg-zinc-100" : (theme === 'red' ? "border-transparent text-red-200 hover:text-white hover:bg-white/5" : "hover:bg-white/10")
+                                            )}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={handleCreateBlock}
+                                            disabled={!blockFormName.trim()}
+                                            className={cn(
+                                                "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all",
+                                                theme === 'red'
+                                                    ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                            )}
+                                        >
+                                            Crear
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -416,7 +441,11 @@ export default function TaskMasterDataManagement() {
                                         onClick={() => setActiveSection(section.id)}
                                         className={cn(
                                             "group relative overflow-hidden rounded-xl border p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98]",
-                                            isLight ? "bg-white border-zinc-200 hover:border-zinc-300" : (theme === 'red' ? "bg-white border-red-100 hover:border-red-200" : "bg-card border-white/5 hover:border-white/10")
+                                            isLight
+                                                ? "bg-white border-zinc-200 hover:border-zinc-300"
+                                                : (theme === 'red'
+                                                    ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:border-[#D32F2F]/40 hover:shadow-lg hover:shadow-[#D32F2F]/10"
+                                                    : "bg-card border-white/5 hover:border-white/10")
                                         )}
                                     >
                                         <div className="flex items-center gap-3 mb-3">
@@ -509,16 +538,24 @@ export default function TaskMasterDataManagement() {
                             {/* Edit Block Form (Inline Modal?) */}
                             {isEditingBlock && (
                                 <div className={cn("mb-6 p-4 rounded-xl border animate-in slide-in-from-top-2",
-                                    isLight ? "bg-white" : (theme === 'red' ? "bg-white border-red-100" : "bg-card")
+                                    isLight ? "bg-white" : (theme === 'red' ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-card")
                                 )}>
                                     <h3 className="text-sm font-bold mb-3">Editar Bloque</h3>
                                     <div className="flex gap-3 items-end">
                                         <div className="flex-1">
                                             <label className="text-xs text-muted-foreground font-bold uppercase">Nombre</label>
                                             <input
+
                                                 value={blockFormName}
                                                 onChange={e => setBlockFormName(e.target.value)}
-                                                className="w-full mt-1 px-3 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                                className={cn(
+                                                    "w-full mt-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
+                                                        : (theme === 'red'
+                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
+                                                            : "bg-zinc-900 border-zinc-700 text-white")
+                                                )}
                                                 autoFocus
                                             />
                                         </div>
@@ -529,8 +566,26 @@ export default function TaskMasterDataManagement() {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button onClick={() => setIsEditingBlock(false)} className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted">Cancelar</button>
-                                            <button onClick={handleUpdateBlock} disabled={!blockFormName.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50">Guardar</button>
+                                            <button
+                                                onClick={() => setIsEditingBlock(false)}
+                                                className={cn("px-4 py-2 border rounded-lg text-sm font-medium transition-colors",
+                                                    isLight ? "hover:bg-zinc-100" : (theme === 'red' ? "border-transparent text-red-200 hover:text-white hover:bg-white/5" : "hover:bg-white/10")
+                                                )}
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleUpdateBlock}
+                                                disabled={!blockFormName.trim()}
+                                                className={cn(
+                                                    "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all",
+                                                    theme === 'red'
+                                                        ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                )}
+                                            >
+                                                Guardar
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -544,7 +599,14 @@ export default function TaskMasterDataManagement() {
                                 onChange={e => setNewItemName(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleAddOption()}
                                 placeholder="Nueva opción..."
-                                className="flex-1 px-4 py-2 bg-background border rounded-lg text-sm focus:ring-2 ring-primary/20 outline-none"
+                                className={cn(
+                                    "flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                    isLight
+                                        ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
+                                        : (theme === 'red'
+                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
+                                            : "bg-zinc-900 border-zinc-700 text-white")
+                                )}
                                 autoFocus
                             />
                             <input
@@ -556,7 +618,12 @@ export default function TaskMasterDataManagement() {
                             <button
                                 onClick={handleAddOption}
                                 disabled={!newItemName.trim() || isAdding}
-                                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2"
+                                className={cn(
+                                    "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all",
+                                    theme === 'red'
+                                        ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                )}
                             >
                                 {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                                 Añadir
@@ -568,7 +635,11 @@ export default function TaskMasterDataManagement() {
                             {items.map(item => (
                                 <div key={item.id} className={cn(
                                     "flex items-center justify-between p-3 rounded-lg border transition-colors group",
-                                    isLight ? "bg-white border-zinc-200" : (theme === 'red' ? "bg-white border-red-100" : "bg-card hover:border-primary/50")
+                                    isLight
+                                        ? "bg-white border-zinc-200"
+                                        : (theme === 'red'
+                                            ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:border-[#D32F2F]/40"
+                                            : "bg-card hover:border-primary/50")
                                 )}>
                                     <div className="flex items-center gap-3">
                                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
