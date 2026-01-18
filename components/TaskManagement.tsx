@@ -818,7 +818,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                 </button>
                             </div>
                             <input
-                                className={cn("text-xl md:text-2xl font-bold bg-transparent outline-none w-full leading-tight",
+                                className={cn("text-xl md:text-2xl font-bold bg-transparent outline-none w-[calc(100%-1rem)] ml-2 leading-tight",
                                     isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-600"
                                 )}
                                 value={formData.title || ""}
