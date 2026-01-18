@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.7.0';
+export const APP_VERSION = '12.8.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.8.0",
+        date: "2026-01-18",
+        title: "Task Dashboard 2.0 & Analítica",
+        features: [
+            "Filtros Avanzados: Panel lateral de filtrado multicriterio (Prioridad, Área, Módulo, Alcance)",
+            "Visualización Enriquecida: Badges de metadatos, Deadline con alerta visual de vencimiento y Avatar de responsable en lista.",
+            "Gestión Multiproyecto: Nuevo selector para visualizar tareas de múltiples proyectos a la vez (respetando permisos).",
+            "Bugfix: Corrección de campo faltante 'ID Entrada Asociada' en el editor de tareas."
+        ]
+    },
     {
         version: "12.7.0",
         date: "2026-01-18",

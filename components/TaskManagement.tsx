@@ -121,7 +121,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (!selectedTask) return false;
 
         // Compare key fields (Added isBlocking and new classification fields)
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedJournalEntryId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -757,12 +757,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     <div className="flex flex-col gap-1">
                                         <div className={cn("text-[10px] font-bold uppercase tracking-widest font-mono flex items-center gap-3", isLight ? "text-zinc-500" : "text-zinc-400")}>
                                             <span>ID: {selectedTask.friendlyId || selectedTask.id}</span>
-                                            {/* RTM & Traceability Info Inline */}
-                                            <span className="text-zinc-400 flex items-center gap-1">| RTM:
+                                            {/* Related Journal Entry ID */}
+                                            <span className="text-zinc-400 flex items-center gap-1">| ENTRY ID:
                                                 <input
                                                     className={cn("bg-transparent outline-none w-16 border-b border-transparent hover:border-zinc-500 focus:border-indigo-500 transition-colors text-center p-0 h-4 font-mono", isLight ? "text-zinc-600" : "text-zinc-300")}
-                                                    value={formData.rtmId || ""}
-                                                    onChange={e => setFormData({ ...formData, rtmId: e.target.value })}
+                                                    value={formData.relatedJournalEntryId || ""}
+                                                    onChange={e => setFormData({ ...formData, relatedJournalEntryId: e.target.value })}
                                                     placeholder="-"
                                                 />
                                             </span>
