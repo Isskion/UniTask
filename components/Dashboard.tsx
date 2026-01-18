@@ -556,47 +556,40 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 />
                             </div>
 
+
                             <div className="h-px w-full bg-border mb-4" />
 
-                            <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
-                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <Activity className="w-3 h-3" /> Tareas Activas
-                                </h4>
-                                {myTasks.length === 0 ? (
-                                    <div className="text-muted-foreground text-xs italic text-center py-8 border border-dashed border-border rounded-lg">
-                                        Todo completado
-                                    </div>
-                                ) : (
-                                    myTasks.map(task => (
-                                        <div key={task.id} className={cn(
-                                            "group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border",
-                                            task.isBlocking
-                                                ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/20"
-                                                : "bg-muted/50 border-border hover:bg-muted hover:border-sidebar-border"
-                                        )}>
-                                            <div className="mt-0.5 shrink-0">
-                                                {task.isBlocking ?
-                                                    <Ban className="w-3.5 h-3.5 text-destructive" /> :
-                                                    <Circle className="w-3.5 h-3.5 text-muted-foreground group-hover/task:text-primary" />
-                                                }
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="font-mono text-[9px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">{task.friendlyId}</span>
+                            {/* Blocking Tasks Only */}
+                            {(() => {
+                                const blockingTasks = sortTasks(
+                                    filteredTasks.filter(t => t.projectId === project.projectId && t.status !== 'completed' && t.isBlocking)
+                                );
+
+                                if (blockingTasks.length === 0) return null;
+
+                                return (
+                                    <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
+                                        <h4 className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-2 flex items-center gap-2 animate-pulse">
+                                            <Ban className="w-3 h-3" /> Bloqueos Activos
+                                        </h4>
+                                        {blockingTasks.map(task => (
+                                            <div key={task.id} className="group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border bg-destructive/10 border-destructive/20 hover:bg-destructive/20">
+                                                <div className="mt-0.5 shrink-0">
+                                                    <Ban className="w-3.5 h-3.5 text-destructive" />
                                                 </div>
-                                                <p className={cn(
-                                                    "leading-relaxed break-words line-clamp-2",
-                                                    task.isBlocking ? "text-destructive-foreground font-medium" : "text-foreground"
-                                                )}>
-                                                    {task.description}
-                                                </p>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="font-mono text-[9px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">{task.friendlyId}</span>
+                                                    </div>
+                                                    <p className="leading-relaxed break-words line-clamp-2 text-destructive-foreground font-medium">
+                                                        {task.description}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-
-
+                                        ))}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     );
                 })}

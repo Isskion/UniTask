@@ -356,6 +356,16 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                             <Building className="w-8 h-8 mx-auto mb-2 text-zinc-500" />
                                             <p className="text-zinc-400 font-medium">Asignado a tu Organización actual</p>
                                             <div className="text-xs text-zinc-600 mt-1 font-mono">{tenantId}</div>
+
+                                            {/* Debug Option for SuperAdmins who see empty list */}
+                                            {getRoleLevel(userRole) >= 100 && (
+                                                <button
+                                                    onClick={loadTenants}
+                                                    className="mt-4 text-xs text-blue-400 hover:text-blue-300 underline"
+                                                >
+                                                    ¿Eres SuperAdmin? Reintentar carga de tenants
+                                                </button>
+                                            )}
                                         </div>
                                     )
                                 )}

@@ -30,9 +30,9 @@ service cloud.firestore {
 
     function isSuperAdmin() {
       return isAuthenticated() && (
-        getRealRole() >= 100 || 
+        request.auth.token.role == "superadmin" ||
         request.auth.token.role == "100" ||
-        request.auth.token.role == "superadmin"
+        getRealRole() >= 100
       );
     }
 
