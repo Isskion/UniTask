@@ -85,6 +85,22 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
     }
 
+    // Explicit Tasks Rules (Clarification for non-superadmins)
+    match /tasks/{taskId} {
+      allow read: if isSuperAdmin() || 
+                  (isAuthenticated() && resource.data.tenantId == getRealTenantId());
+      
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (request.resource.data.tenantId == getRealTenantId())
+      );
+
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (resource.data.tenantId == getRealTenantId() && request.resource.data.tenantId == getRealTenantId())
+      );
+    }
+
     // Other Standard Collections (Tasks, Journal, etc): strict multi-tenancy
     match /{collectionName}/{docId} {
       

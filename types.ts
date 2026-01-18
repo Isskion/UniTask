@@ -203,6 +203,12 @@ export interface Task {
     status: 'pending' | 'in_progress' | 'review' | 'completed';
     isBlocking?: boolean; // New: Condition flag
 
+    // Section 1: Classification [NEW]
+    priority?: 'high' | 'medium' | 'low';
+    scope?: string; // "Alcance"
+    area?: string; // "Area" (Master Data)
+    module?: string; // "Modulo" (Master Data)
+
     // Section 1: Requirements
     okrLink?: string;
 

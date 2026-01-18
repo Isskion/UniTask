@@ -12,22 +12,24 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
 export function NotificationBell() {
-    const { user } = useAuth();
+    const { user, tenantId } = useAuth(); // Correctly get tenantId from Context
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !tenantId) return; // Wait for both
 
         // Listen for notifications for the current user
-        // OPTIMIZATION: Removed orderBy to avoid missing index errors (400).
-        // Sorting is done client-side.
+        // SAFEGUARD: Filter by BOTH userId and tenantId to satisfy strict rules
         const q = query(
             collection(db, "notifications"),
             where("userId", "==", user.uid),
-            limit(50)
+            // where("tenantId", "==", "3"), // Hardcoded debug (Removed)
+            // If tenantId is missing (legacy), this might filter them out, 
+            // but it's necessary for security rules compliance.
+            where("tenantId", "==", tenantId)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

@@ -3,16 +3,13 @@ const fs = require('fs');
 const path = require('path');
 
 // Try to correct the double extension if needed, or check both
-let serviceAccount;
-try {
-    serviceAccount = require('../serviceAccountKey.json.json');
-} catch (e) {
-    serviceAccount = require('../serviceAccountKey.json');
-}
+// Direct import for production deployment
+const serviceAccount = require("../serviceAccountKey-prod.json");
 
 if (!admin.apps.length) {
     admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+        credential: admin.credential.cert(serviceAccount),
+        projectId: "minuta-f75a4"
     });
 }
 

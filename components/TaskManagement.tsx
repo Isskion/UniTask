@@ -76,8 +76,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
         if (!selectedTask) return false;
 
-        // Compare key fields (Added isBlocking)
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'progress', 'startDate', 'endDate', 'projectId'];
+        // Compare key fields (Added isBlocking and new classification fields)
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -300,6 +300,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (!isAdmin) {
             const isAllowed = visibleProjects.some(p => p.id === formData.projectId);
             if (!isAllowed) return showToast("UniTaskController", "No tienes permisos para crear tareas en este proyecto.", "error");
+        }
+
+        // VALIDATION: Deadline cannot be in the past
+        if (formData.endDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Start of today
+
+            const deadline = new Date(formData.endDate);
+            // We assume deadline string (ISO) usually implies a day. 
+            // If it has time, we should probably compare dates only.
+            // But let's be strict: if the selected *day* is before today.
+            deadline.setHours(0, 0, 0, 0);
+
+            if (deadline < today) {
+                return showToast("UniTaskController", "La fecha límite no puede ser anterior a hoy.", "error");
+            }
         }
 
         // Dependency Check Logic
@@ -638,21 +654,87 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     {/* Project Selector - Added context block */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Proyecto Asignado</h3>
-                                        <div className="flex items-center gap-2">
-                                            <FolderGit2 className="w-4 h-4 text-indigo-500" />
-                                            <select
-                                                className={cn("border rounded-lg px-3 py-2 text-xs focus:outline-none w-full",
-                                                    isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
-                                                )}
-                                                value={formData.projectId || ""}
-                                                onChange={e => setFormData({ ...formData, projectId: e.target.value })}
-                                            >
-                                                <option value="" disabled>Seleccionar Proyecto...</option>
-                                                {visibleProjects.map(p => (
-                                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                                ))}
-                                            </select>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Clasificación & Proyecto</h3>
+
+                                        <div className="space-y-4">
+                                            {/* 1. Project Selector */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Proyecto Asignado</label>
+                                                <div className="flex items-center gap-2">
+                                                    <FolderGit2 className="w-4 h-4 text-indigo-500" />
+                                                    <select
+                                                        className={cn("border rounded-lg px-3 py-2 text-xs focus:outline-none w-full",
+                                                            isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
+                                                        )}
+                                                        value={formData.projectId || ""}
+                                                        onChange={e => setFormData({ ...formData, projectId: e.target.value })}
+                                                    >
+                                                        <option value="" disabled>Seleccionar Proyecto...</option>
+                                                        {visibleProjects.map(p => (
+                                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            {/* 2. New Classification Fields */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {/* Priority */}
+                                                <div>
+                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
+                                                    <select
+                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
+                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
+                                                        )}
+                                                        value={formData.priority || ""}
+                                                        onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
+                                                    >
+                                                        <option value="">Normal</option>
+                                                        <option value="low">Baja</option>
+                                                        <option value="medium">Media</option>
+                                                        <option value="high">Alta (Urgente)</option>
+                                                    </select>
+                                                </div>
+
+                                                {/* Area (Master Data Placeholder) */}
+                                                <div>
+                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Área *</label>
+                                                    <input
+                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
+                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
+                                                        )}
+                                                        placeholder="Ej. Finanzas"
+                                                        value={formData.area || ""}
+                                                        onChange={e => setFormData({ ...formData, area: e.target.value })}
+                                                    />
+                                                </div>
+
+                                                {/* Scope */}
+                                                <div>
+                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
+                                                    <input
+                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
+                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
+                                                        )}
+                                                        placeholder="Definir alcance..."
+                                                        value={formData.scope || ""}
+                                                        onChange={e => setFormData({ ...formData, scope: e.target.value })}
+                                                    />
+                                                </div>
+
+                                                {/* Module (Master Data Placeholder) */}
+                                                <div>
+                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo *</label>
+                                                    <input
+                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
+                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
+                                                        )}
+                                                        placeholder="Ej. Contabilidad"
+                                                        value={formData.module || ""}
+                                                        onChange={e => setFormData({ ...formData, module: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

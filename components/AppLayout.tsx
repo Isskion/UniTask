@@ -101,7 +101,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
         // REF: Debounce to prevent React Strict Mode duplicate execution
         const timer = setTimeout(() => {
             const checkDeadlines = async () => {
-                // Only run if user is logged in
+                // Only run if user is logged in and tenant is ready
                 if (!user || !tenantId) return;
 
                 // THROTTLE: Prevents duplicate execution from React Strict Mode.
@@ -110,54 +110,82 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                 sessionStorage.setItem('deadline_check_ts', Date.now().toString());
 
                 try {
-                    // 1. Get ACTIVE tasks assigned to CURRENT USER
-                    const qT = query(
-                        collection(db, "tasks"),
-                        where("tenantId", "==", tenantId),
-                        where("assignedTo", "==", user.uid)
-                    );
-                    const snapT = await getDocs(qT);
+                    // [DEBUG] Log context to catch mismatches
+                    console.log(`[Deadline Check] Running for ${user.email} (UID: ${user.uid}) in Tenant ${tenantId}`);
+                    // console.log(`[Deadline Check] Claims:`, (user as any).reloadUserInfo?.customAttributes); // Optional deep debug
 
-                    const now = new Date();
-                    const overdueTasks = snapT.docs
-                        .map(d => ({ id: d.id, ...d.data() } as any))
-                        .filter(t =>
-                            t.tenantId === tenantId &&
-                            ['pending', 'in_progress', 'review'].includes(t.status) &&
-                            t.endDate && new Date(t.endDate) < now
+                    // 1. Get ACTIVE tasks assigned to CURRENT USER
+                    let overdueTasks: any[] = [];
+                    try {
+                        console.log(`[Deadline Check] 1. Fetching Tasks for Tenant ${tenantId}...`);
+                        const qT = query(
+                            collection(db, "tasks"),
+                            where("tenantId", "==", tenantId),
+                            where("assignedTo", "==", user.uid)
                         );
+                        const snapT = await getDocs(qT);
+
+                        const now = new Date();
+                        overdueTasks = snapT.docs
+                            .map(d => ({ id: d.id, ...d.data() } as any))
+                            .filter(t =>
+                                t.tenantId === tenantId &&
+                                ['pending', 'in_progress', 'review'].includes(t.status) &&
+                                t.endDate && new Date(t.endDate) < now
+                            );
+                        console.log(`[Deadline Check] Found ${overdueTasks.length} overdue tasks.`);
+                    } catch (e: any) {
+                        console.error("[Deadline Check] ❌ Error fetching tasks (Step 1):", e.code, e.message);
+                        return; // Stop if we can't get tasks
+                    }
 
                     if (overdueTasks.length === 0) return;
 
-                    // 2. Check existing notifications for current user
-                    for (const task of overdueTasks) {
+                    // 2. Check existing notifications for current user (Strict Multi-tenancy)
+                    try {
+                        // FIX: Include tenantId in query to satisfy strict security rules
                         const qN = query(
                             collection(db, "notifications"),
-                            where("taskId", "==", task.id),
-                            where("type", "==", "deadline_expired"),
-                            where("userId", "==", user.uid)
+                            where("userId", "==", user.uid),
+                            where("tenantId", "==", tenantId)
                         );
                         const snapN = await getDocs(qN);
 
-                        if (snapN.empty) {
-                            console.log(`[Deadline Check] Notifying current user for task ${task.friendlyId}`);
-                            await addDoc(collection(db, "notifications"), {
-                                userId: user.uid,
-                                type: 'deadline_expired',
-                                title: 'Tarea Vencida',
-                                message: `Tu tarea ${task.friendlyId} - "${task.title}" ha alcanzado su fecha límite.`,
-                                taskId: task.id,
-                                read: false,
-                                createdAt: serverTimestamp(),
-                                link: `/?view=task-manager&taskId=${task.id}`
-                            });
+                        // In-memory filter for type
+                        const notifiedTaskIds = new Set(
+                            snapN.docs
+                                .map(d => d.data())
+                                .filter((n: any) => n.type === 'deadline_expired')
+                                .map((n: any) => n.taskId)
+                        );
+
+                        for (const task of overdueTasks) {
+                            if (notifiedTaskIds.has(task.id)) continue;
+
+                            try {
+                                console.log(`[Deadline Check] Notifying current user for task ${task.friendlyId}`);
+                                await addDoc(collection(db, "notifications"), {
+                                    userId: user.uid,
+                                    tenantId: tenantId, // CRITICAL: Attribute to current tenant
+                                    type: 'deadline_expired',
+                                    title: 'Tarea Vencida',
+                                    message: `Tu tarea ${task.friendlyId} - "${task.title}" ha alcanzado su fecha límite.`,
+                                    taskId: task.id,
+                                    read: false,
+                                    createdAt: serverTimestamp(),
+                                    link: `/?view=task-manager&taskId=${task.id}`
+                                });
+                            } catch (e: any) {
+                                console.error(`[Deadline Check] ❌ Error creating notification for task ${task.id}:`, e.code, e.message);
+                            }
                         }
+                    } catch (e: any) {
+                        console.error("[Deadline Check] ❌ Error fetching notifications (Step 2):", e.code, e.message);
                     }
-                } catch (e) {
-                    console.error("[Deadline Check] Error:", e);
+                } catch (e: any) {
+                    console.error("[Deadline Check] UNCAUGHT ERROR:", e);
                 }
-            };
-            checkDeadlines();
+            }; checkDeadlines();
         }, 3000);
 
         return () => clearTimeout(timer);
