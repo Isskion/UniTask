@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, serverTimestamp, where } from "firebase/firestore";
+import { collection, getDocs, doc, query, orderBy, serverTimestamp, where, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -14,6 +14,14 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
 import { FileUploader } from "./FileUploader";
+import { PowerSelect } from "./ui/PowerSelect";
+
+interface MasterDataItem {
+    id: string;
+    name: string;
+    color: string;
+    type: 'priority' | 'area' | 'scope' | 'module';
+}
 
 export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
     const { userRole, user, tenantId } = useAuth();
@@ -27,6 +35,41 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Master Data State
+    const [masterData, setMasterData] = useState<{
+        priority: MasterDataItem[];
+        area: MasterDataItem[];
+        scope: MasterDataItem[];
+        module: MasterDataItem[];
+    }>({
+        priority: [],
+        area: [],
+        scope: [],
+        module: []
+    });
+
+    useEffect(() => {
+        if (!user || !tenantId) return;
+
+        const unsubscribe = onSnapshot(
+            query(collection(db, 'master_data'), where('tenantId', '==', tenantId)),
+            (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as MasterDataItem[];
+                setMasterData({
+                    priority: data.filter(i => i.type === 'priority').sort((a, b) => a.name.localeCompare(b.name)),
+                    area: data.filter(i => i.type === 'area').sort((a, b) => a.name.localeCompare(b.name)),
+                    scope: data.filter(i => i.type === 'scope').sort((a, b) => a.name.localeCompare(b.name)),
+                    module: data.filter(i => i.type === 'module').sort((a, b) => a.name.localeCompare(b.name)),
+                });
+            },
+            (error) => {
+                console.error("Error fetching master data:", error);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [user, tenantId]);
 
     // AUTO-SELECT TASK FROM ID (Fix for Notifications)
     useEffect(() => {
@@ -682,56 +725,51 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 {/* Priority */}
                                                 <div>
                                                     <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
-                                                    <select
-                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
-                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                        )}
+                                                    <PowerSelect
                                                         value={formData.priority || ""}
-                                                        onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
-                                                    >
-                                                        <option value="">Normal</option>
-                                                        <option value="low">Baja</option>
-                                                        <option value="medium">Media</option>
-                                                        <option value="high">Alta (Urgente)</option>
-                                                    </select>
+                                                        onChange={(val) => setFormData({ ...formData, priority: val as any })}
+                                                        options={[
+                                                            ...masterData.priority.map(i => ({ value: i.name, label: i.name, color: i.color })),
+                                                            ...(masterData.priority.length === 0 ? [
+                                                                { value: 'low', label: 'Baja', color: '#10b981' },
+                                                                { value: 'medium', label: 'Media', color: '#f59e0b' },
+                                                                { value: 'high', label: 'Alta', color: '#ef4444' }
+                                                            ] : [])
+                                                        ]}
+                                                        placeholder="Normal"
+                                                    />
                                                 </div>
 
-                                                {/* Area (Master Data Placeholder) */}
+                                                {/* Area */}
                                                 <div>
                                                     <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Área *</label>
-                                                    <input
-                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
-                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                        )}
-                                                        placeholder="Ej. Finanzas"
+                                                    <PowerSelect
                                                         value={formData.area || ""}
-                                                        onChange={e => setFormData({ ...formData, area: e.target.value })}
+                                                        onChange={(val) => setFormData({ ...formData, area: val })}
+                                                        options={masterData.area.map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                        placeholder="Seleccionar Área"
                                                     />
                                                 </div>
 
                                                 {/* Scope */}
                                                 <div>
                                                     <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
-                                                    <input
-                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
-                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                        )}
-                                                        placeholder="Definir alcance..."
+                                                    <PowerSelect
                                                         value={formData.scope || ""}
-                                                        onChange={e => setFormData({ ...formData, scope: e.target.value })}
+                                                        onChange={(val) => setFormData({ ...formData, scope: val })}
+                                                        options={masterData.scope.map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                        placeholder="Seleccionar Alcance"
                                                     />
                                                 </div>
 
-                                                {/* Module (Master Data Placeholder) */}
+                                                {/* Module */}
                                                 <div>
                                                     <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo *</label>
-                                                    <input
-                                                        className={cn("w-full border rounded-lg px-2 py-1.5 text-xs focus:outline-none",
-                                                            isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                        )}
-                                                        placeholder="Ej. Contabilidad"
+                                                    <PowerSelect
                                                         value={formData.module || ""}
-                                                        onChange={e => setFormData({ ...formData, module: e.target.value })}
+                                                        onChange={(val) => setFormData({ ...formData, module: val })}
+                                                        options={masterData.module.map(i => ({ value: i.name, label: i.name, color: i.color }))}
+                                                        placeholder="Seleccionar Módulo"
                                                     />
                                                 </div>
                                             </div>

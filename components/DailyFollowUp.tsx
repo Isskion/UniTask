@@ -16,7 +16,7 @@ import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalE
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight, Search } from "lucide-react";
+import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight, Search, Layout } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
@@ -31,7 +31,8 @@ import { getActiveProjects } from "@/lib/projects";
 import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
 import ChangelogModal from "./ChangelogModal";
-import { getRoleLevel, RoleLevel } from "@/types"; // Added import // Added import
+import { getRoleLevel, RoleLevel } from "@/types"; // Added import
+import TaskMasterDataManagement from "./TaskMasterDataManagement"; // Master Data Manager // Added import
 
 
 
@@ -108,7 +109,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -1851,6 +1852,8 @@ export default function DailyFollowUp() {
                             userProfile={userProfile}
                             userRole={userRole}
                         />
+                    ) : viewMode === 'admin-task-master' ? (
+                        <TaskMasterDataManagement />
                     ) : (
                         <div className="p-10 text-center text-zinc-500">Módulo en construcción: {viewMode}</div>
                     )}

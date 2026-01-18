@@ -18,7 +18,8 @@ import {
     LogOut,
     ClipboardList,
     Shield,
-    Building
+    Building,
+    ListTodo
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -30,8 +31,8 @@ import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -224,13 +225,20 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         </div>
 
                         {/* Secondary */}
+                        {/* ADMINISTRATION */}
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Connect</p>
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Administración</p>
+
+                            {/* Consolidated Task Master Data (Global PM+) */}
+                            {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                <NavItem mode="admin-task-master" icon={Layout} label="Gestión de Tareas" />
+                            )}
+
                             {canManagePermissions && (
-                                <NavItem mode="users" icon={Users} label="People" />
+                                <NavItem mode="users" icon={Users} label="Personas" />
                             )}
                             {canManagePermissions && (
-                                <NavItem mode="user-roles" icon={Shield} label="User Roles" />
+                                <NavItem mode="user-roles" icon={Shield} label="Roles y Permisos" />
                             )}
                             {userRole === 'superadmin' && (
                                 <NavItem mode="tenant-management" icon={Building} label="Tenants" />
