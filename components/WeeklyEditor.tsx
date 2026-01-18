@@ -10,7 +10,7 @@ import TaskManagement from "./TaskManagement"; // Added
 import UserRoleManagement from "./UserRoleManagement";
 import { AppLayout } from "./AppLayout";
 import ChangelogModal from "./ChangelogModal"; // Added import
-import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel
+import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -50,7 +50,7 @@ export default function WeeklyEditor() {
     const { showToast } = useToast();
     const [userProfile, setUserProfile] = useState<any>(null); // Store full user profile for assignments
     const [profileLoading, setProfileLoading] = useState(true); // Track potential fetch delay
-    const [globalProjects, setGlobalProjects] = useState<{ id: string, name: string, code: string, color?: string }[]>([]); // Cache for global projects
+    const [globalProjects, setGlobalProjects] = useState<Project[]>([]); // Cache for global projects (Full Type)
     const [weeklyProjectMap, setWeeklyProjectMap] = useState<Record<string, { code: string, color: string }[]>>({}); // WeekID -> Active Projects Codes
 
     // Always work with MONDAY as the anchor
@@ -164,10 +164,8 @@ export default function WeeklyEditor() {
                 const snap = await getDocs(q);
                 const loaded = snap.docs.map(d => ({
                     id: d.id,
-                    name: d.data().name,
-                    code: d.data().code,
-                    color: d.data().color
-                }));
+                    ...d.data()
+                })) as Project[];
                 setGlobalProjects(loaded);
             } catch (e) {
                 console.error("Error fetching global projects", e);

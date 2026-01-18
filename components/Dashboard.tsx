@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { JournalEntry, Task, UserProfile, getRoleLevel, RoleLevel } from '@/types';
+import { JournalEntry, Task, UserProfile, getRoleLevel, RoleLevel, Project } from '@/types';
 import { Bug, Activity, TrendingUp, Circle, Ban, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, Calendar as CalendarIcon, ArrowUpRight, Filter, AlertTriangle, FileText, BarChart3, PieChart } from "lucide-react";
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 interface DashboardProps {
     entry: JournalEntry;
-    globalProjects?: { id: string, name: string }[];
+    globalProjects?: Project[];
     userProfile?: UserProfile | null;
     userRole?: string | null;
 }
@@ -142,7 +142,9 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         // Use availableGlobalProjects which is already filtered by permissions
         return availableGlobalProjects.map(gp => ({
             projectId: gp.id,
-            name: gp.name
+            name: gp.name,
+            color: gp.color,
+            code: gp.code
         }));
     }, [availableGlobalProjects]);
 
@@ -241,40 +243,46 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     bucketEnd.setHours(23, 59, 59, 999);
                 }
 
-                // Count active tasks at that moment from ALL relevant tasks (not just those created in this period)
-                const activeAtTime = relevantTasks.filter(t => {
-                    const cDate = getTaskDate(t);
-                    if (!cDate || cDate > bucketEnd) return false; // Created after this bucket
+                // Identify which projects to track for this bucket
+                // If specific projects selected, only track those. If 'All', track all available uniqueProjects.
+                const projectsToTrack = selectedProjectIds.size > 0
+                    ? uniqueProjects.filter(p => selectedProjectIds.has(p.projectId))
+                    : uniqueProjects;
 
-                    // Check if closed
-                    if (t.closedAt) {
-                        const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
-                        if (isValid(closedDate) && closedDate <= bucketEnd) {
-                            return false; // Already closed before this bucket ended
-                        }
-                    } else if (t.status === 'completed') {
-                        // Fallback: If status is completed but no closedAt, check updatedAt or assume closed now?
-                        // To be safe and show history, if no closedAt, we might assume it's still open or use updatedAt.
-                        // Let's use updatedAt as proxy if available, else exclude if we want strict history.
-                        // Better approach: If status is completed but no closedAt, treat as closed "now" (so active in past).
-                        // However, to avoid "never ending" tasks in history, let's check updatedAt.
-                        if (t.updatedAt) {
-                            const uDate = (t.updatedAt as any).toDate ? (t.updatedAt as any).toDate() : new Date(t.updatedAt);
-                            if (isValid(uDate) && uDate <= bucketEnd) return false;
-                        }
-                    }
+                const activeByProject: Record<string, number> = {};
+                let totalActiveAtTime = 0;
 
-                    return true;
-                }).length;
+                // 1. Calculate per project
+                projectsToTrack.forEach(proj => {
+                    const pid = proj.projectId;
+                    const count = relevantTasks.filter(t => {
+                        if (t.projectId !== pid) return false;
+
+                        const cDate = getTaskDate(t);
+                        if (!cDate || cDate > bucketEnd) return false;
+
+                        if (t.closedAt) {
+                            const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
+                            if (isValid(closedDate) && closedDate <= bucketEnd) return false;
+                        } else if (t.status === 'completed') {
+                            if (t.updatedAt) {
+                                const uDate = (t.updatedAt as any).toDate ? (t.updatedAt as any).toDate() : new Date(t.updatedAt);
+                                if (isValid(uDate) && uDate <= bucketEnd) return false;
+                            }
+                        }
+                        return true;
+                    }).length;
+
+                    activeByProject[pid] = count;
+                    totalActiveAtTime += count;
+                });
 
                 return {
                     name: b.label.toUpperCase(),
-                    active: b.active, // Newly created in this bucket
-                    completed: b.completed, // Completed in this bucket (approx based on creation?? No, 'active' var above is actually created count logic from lines 186/203/221)
-                    // Note: 'active' and 'completed' in 'buckets' map are strictly "Created in this bucket" or "Created in bucket AND completed".
-                    // That's confusing naming from previous code.
-                    // Let's keep 'active' as 'New Tasks' for the bar chart.
-                    cumulative: activeAtTime // The green line
+                    active: b.active, // Newly created in this bucket (for Area chart)
+                    completed: b.completed,
+                    totalActive: totalActiveAtTime,
+                    ...activeByProject
                 };
             });
 
@@ -284,10 +292,15 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             console.error("Chart generation error", e);
             return [];
         }
-    }, [tasks, timeScope, entry, selectedProjectIds]);
+    }, [tasks, timeScope, entry, selectedProjectIds, uniqueProjects]);
 
     const openTasksCount = filteredTasks.filter(t => t.status !== 'completed').length;
     const blockersCount = filteredTasks.filter(t => t.isBlocking).length;
+
+    // Determine which lines to render
+    const projectsLinesToRender = selectedProjectIds.size > 0
+        ? uniqueProjects.filter(p => selectedProjectIds.has(p.projectId))
+        : uniqueProjects;
 
     if (error) {
         return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
@@ -377,14 +390,37 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 strokeWidth={3}
                                 name="Nuevas"
                             />
+
+                            {/* Individual Project Lines */}
+                            {projectsLinesToRender.map((p, idx) => {
+                                // Fallback colors if project has no color
+                                const defaultColors = ['#f472b6', '#22d3ee', '#a78bfa', '#facc15', '#4ade80', '#fb923c'];
+                                const pColor = p.color || defaultColors[idx % defaultColors.length];
+
+                                return (
+                                    <Line
+                                        key={p.projectId}
+                                        yAxisId="right"
+                                        type="monotone"
+                                        dataKey={p.projectId}
+                                        stroke={pColor}
+                                        strokeWidth={2}
+                                        dot={false}
+                                        strokeOpacity={0.7}
+                                        name={`${p.code || p.name}`}
+                                    />
+                                );
+                            })}
+
+                            {/* Total Active Line (Black) */}
                             <Line
                                 yAxisId="right"
                                 type="monotone"
-                                dataKey="cumulative"
-                                stroke="#10b981"
-                                strokeWidth={3}
-                                dot={false}
-                                name="Acumulado"
+                                dataKey="totalActive"
+                                stroke="#000000"
+                                strokeWidth={2}
+                                dot={{ r: 2, strokeWidth: 1 }}
+                                name="Total Activas"
                             />
                         </ComposedChart>
                     </ResponsiveContainer>
