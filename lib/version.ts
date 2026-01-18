@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.4.4';
+export const APP_VERSION = '12.5.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.5.0",
+        date: "2026-01-18",
+        title: "Gestión de Datos Maestros",
+        features: [
+            "Nueva Administración de Datos Maestros: Prioridad, Área, Alcance y Módulo.",
+            "Desplegables Dinámicos: Selección con vista previa de colores y estilos 'chip'.",
+            "Dashboard de Configuración: Vista centralizada para gestionar etiquetas del sistema.",
+            "Mejoras visuales: Adaptación a temas claro, oscuro y rojo."
+        ]
+    },
     {
         version: "12.4.4",
         date: "2026-01-17",
