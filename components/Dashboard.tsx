@@ -223,11 +223,19 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                 });
             }
 
-            return buckets.map(b => ({
-                name: b.label.toUpperCase(),
-                active: b.active,
-                completed: b.completed
-            }));
+            // Cumulative Calculation - starting from 0 and accumulating "active" (created) tasks
+            let cumulativeAcc = 0;
+            const finalData = buckets.map(b => {
+                cumulativeAcc += b.active;
+                return {
+                    name: b.label.toUpperCase(),
+                    active: b.active,
+                    completed: b.completed,
+                    cumulative: cumulativeAcc
+                };
+            });
+
+            return finalData;
 
         } catch (e) {
             console.error("Chart generation error", e);
@@ -304,7 +312,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <YAxis hide />
+                            <YAxis yAxisId="left" hide />
+                            <YAxis yAxisId="right" orientation="right" hide />
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: 'hsl(var(--popover))',
@@ -316,12 +325,23 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                 cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
                             />
                             <Area
+                                yAxisId="left"
                                 type="monotone"
                                 dataKey="active"
                                 stroke="#6366f1"
                                 fillOpacity={1}
                                 fill="url(#colorActive)"
                                 strokeWidth={3}
+                                name="Nuevas"
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="cumulative"
+                                stroke="#10b981"
+                                strokeWidth={3}
+                                dot={false}
+                                name="Acumulado"
                             />
                         </ComposedChart>
                     </ResponsiveContainer>
