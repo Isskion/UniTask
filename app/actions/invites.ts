@@ -19,7 +19,13 @@ function generateCode(length = 8): string {
     return result;
 }
 
-function getRoleLevelNum(role: string): number {
+function getRoleLevelNum(role: string | number): number {
+    // Check if it's already a numeric level (number or string)
+    const numericLevel = Number(role);
+    if (!isNaN(numericLevel)) {
+        return numericLevel;
+    }
+
     switch (role) {
         case 'superadmin': return 100;
         case 'app_admin': return 80;
