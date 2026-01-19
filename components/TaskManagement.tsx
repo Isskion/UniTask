@@ -10,7 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem } from "@/types";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
 import { FileUploader } from "./FileUploader";
@@ -599,12 +599,17 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 </div>
 
                 <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                    {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => (
+                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => (
                         <div key={d} className="text-[10px] text-zinc-600 font-bold">{d}</div>
                     ))}
                 </div>
 
                 <div className="grid grid-cols-7 gap-1">
+                    {/* Empty cells for start of month alignment (Mon-Sun) */}
+                    {Array.from({ length: (getDay(startOfMonth(currentMonth)) + 6) % 7 }).map((_, i) => (
+                        <div key={`empty-${i}`} />
+                    ))}
+
                     {days.map(d => {
                         const isSelected = value && isSameDay(new Date(value), d);
                         // Prevent selection of past dates for Deadline (endDate), but allow if already selected

@@ -6,7 +6,7 @@ import { Bug, Activity, TrendingUp, Circle, Ban, CheckCircle2, ChevronDown, Chev
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid, eachWeekOfInterval, getWeek, endOfDay } from 'date-fns';
+import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid, eachWeekOfInterval, getWeek, endOfDay, addWeeks, subWeeks, addMonths, subMonths, addYears, subYears } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +32,50 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     const [error, setError] = useState<string | null>(null);
     const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
     const [timeScope, setTimeScope] = useState<TimeScope>('week');
+
+    // [NEW] Historical Navigation State
+    const [currentDate, setCurrentDate] = useState<Date>(() => {
+        if (entry && entry.date) {
+            const d = parseISO(entry.date);
+            return isValid(d) ? d : new Date();
+        }
+        return new Date();
+    });
+
+    // Update currentDate if entry changes (optional, usually entry is initial)
+    useEffect(() => {
+        if (entry && entry.date) {
+            const d = parseISO(entry.date);
+            if (isValid(d)) setCurrentDate(d);
+        }
+    }, [entry]);
+
+    // Navigation Handlers
+    const handlePrev = () => {
+        setCurrentDate(prev => {
+            switch (timeScope) {
+                case 'week': return subWeeks(prev, 1);
+                case 'month': return subMonths(prev, 1);
+                case 'year': return subYears(prev, 1);
+                default: return subWeeks(prev, 1);
+            }
+        });
+    };
+
+    const handleNext = () => {
+        setCurrentDate(prev => {
+            switch (timeScope) {
+                case 'week': return addWeeks(prev, 1);
+                case 'month': return addMonths(prev, 1);
+                case 'year': return addYears(prev, 1);
+                default: return addWeeks(prev, 1);
+            }
+        });
+    };
+
+    const handleToday = () => {
+        setCurrentDate(new Date());
+    };
 
     // Subscribe to ALL tasks
     useEffect(() => {
@@ -124,7 +168,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         } catch (e) {
             return [];
         }
-    }, [tasks, timeScope, entry, allowedProjectIds]);
+    }, [tasks, timeScope, currentDate, allowedProjectIds]);
 
 
     // [KPI METRIC] Total Open Tasks (Backlog) - NOT filtered by time scope
@@ -199,9 +243,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     // Chart Data Generation
     const chartData = useMemo(() => {
         try {
-            if (!entry || !entry.date) return [];
-            let entryDate = parseISO(entry.date);
-            if (!isValid(entryDate)) entryDate = new Date();
+            const entryDate = currentDate;
 
             let relevantTasks = tasks;
             if (allowedProjectIds) {
@@ -263,13 +305,28 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                 const createdAt = getTaskDate(task);
                 if (!createdAt) return;
 
+                // [DEBUG] Fliping Tracing
+                const isFliping = task.projectId?.toLowerCase().includes('flip');
+                if (isFliping && timeScope === 'week') {
+                    // console.log("Fliping Task:", task.id, "Created:", createdAt, "Status:", task.status);
+                }
+
                 // "Nuevas" (Created in period)
                 const bucket = buckets.find(b => {
                     if (timeScope === 'year') return b.dateKey === format(createdAt, 'yyyy-MM');
                     if (timeScope === 'month') return b.dateKey === format(createdAt, 'yyyy-Iw');
                     return b.dateKey === format(createdAt, 'yyyy-MM-dd');
                 });
-                if (bucket) bucket.active++;
+                if (bucket) {
+                    bucket.active++;
+                    if (isFliping && timeScope === 'week') {
+                        // console.log("bFound Bucket for Fliping:", bucket.label);
+                    }
+                } else {
+                    if (isFliping && timeScope === 'week') {
+                        // console.log("NO Bucket for Fliping Task:", createdAt, "Format:", format(createdAt, 'yyyy-MM-dd'));
+                    }
+                }
 
                 // "Completadas"
                 if (task.status === 'completed') {
@@ -342,7 +399,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             console.error("Chart generation error", e);
             return [];
         }
-    }, [tasks, timeScope, entry, selectedProjectIds, uniqueProjects, allowedProjectIds]);
+    }, [tasks, timeScope, currentDate, selectedProjectIds, uniqueProjects, allowedProjectIds]);
 
     if (error) {
         return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
@@ -387,9 +444,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
     // Helper: Header Date Context
     const getDateContext = () => {
-        if (!entry?.date) return 'Periodo Actual';
-        const d = parseISO(entry.date);
-        if (!isValid(d)) return 'Periodo Actual';
+        const d = currentDate;
 
         if (timeScope === 'week') return `Semana del ${format(startOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })} al ${format(endOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })}`;
         if (timeScope === 'month') return `Mes de ${format(d, 'MMMM yyyy', { locale: es }).toUpperCase()}`;
@@ -402,22 +457,37 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
             {/* HEADER CONTROLS */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                {/* SCOPE SELECTOR */}
-                <div className="flex bg-card p-1 rounded-xl border border-border shadow-md">
-                    {(['week', 'month', 'year'] as TimeScope[]).map((scope) => (
-                        <button
-                            key={scope}
-                            onClick={() => setTimeScope(scope)}
-                            className={cn(
-                                "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
-                                timeScope === scope
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            )}
-                        >
-                            {scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
+                {/* SCOPE SELECTOR & NAVIGATION */}
+                <div className="flex items-center gap-2">
+                    <div className="flex bg-card p-1 rounded-xl border border-border shadow-md">
+                        {(['week', 'month', 'year'] as TimeScope[]).map((scope) => (
+                            <button
+                                key={scope}
+                                onClick={() => setTimeScope(scope)}
+                                className={cn(
+                                    "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
+                                    timeScope === scope
+                                        ? "bg-primary text-primary-foreground shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                )}
+                            >
+                                {scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* NAVIGATION BUTTONS */}
+                    <div className="flex bg-card p-1 rounded-xl border border-border shadow-md items-center">
+                        <button onClick={handlePrev} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
+                            <ChevronLeft className="w-4 h-4" />
                         </button>
-                    ))}
+                        <button onClick={handleToday} className="px-3 py-1.5 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors">
+                            HOY
+                        </button>
+                        <button onClick={handleNext} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
+                            <ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* PROJECT SELECTION COMMANDS */}

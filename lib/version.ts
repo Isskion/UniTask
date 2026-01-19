@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.9.0';
+export const APP_VERSION = '12.9.1';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.9.1",
+        date: "2026-01-19",
+        title: "Navegación Histórica y Correcciones",
+        features: [
+            "Navegación Temporal: Nuevos controles (< HOY >) en el Dashboard para explorar datos históricos.",
+            "Corrección Calendario: Ajuste en la alineación de días y cambio a inicio en Lunes en el selector de fechas.",
+            "Estabilidad Dashboard: Mejoras en la carga y visualización de datos por periodos."
+        ]
+    },
     {
         version: "12.9.0",
         date: "2026-01-19",
