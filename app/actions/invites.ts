@@ -83,14 +83,15 @@ export async function createInviteAction(
                 return { success: false, error: "Seguridad: No puedes crear invitaciones para un rol igual o superior al tuyo." };
             }
 
-            // B. Enforce Limit of 5 Total Invites
-            // Using Admin SDK to query safely (user cannot spoof this query)
+            // [REMOVED] Enforce Limit of 5 Total Invites (Requested by User)
+            /*
             const q = adminDb.collection('invites').where("createdBy", "==", uid);
             const snapshot = await q.get();
 
             if (snapshot.size >= 5) {
                 return { success: false, error: "Límite TOTAL alcanzado: Solo puedes generar 5 invitaciones en total." };
             }
+            */
         }
 
         // 3. Create Invite

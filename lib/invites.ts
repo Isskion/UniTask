@@ -76,7 +76,8 @@ export async function createInvite(
             throw new Error("Seguridad: No puedes crear invitaciones para un rol igual o superior al tuyo.");
         }
 
-        // B. Enforce Limit of 5 Active Invites
+        // [REMOVED] Enforce Limit of 5 Active Invites
+        /*
         const q = query(
             collection(db, INVITES_COLLECTION),
             where("createdBy", "==", adminUid),
@@ -87,6 +88,7 @@ export async function createInvite(
         if (snapshot.size >= 5) {
             throw new Error("Límite alcanzado: Tienes 5 invitaciones activas. Elimina o espera a que se usen.");
         }
+        */
     }
 
     // ... Proceed with creation ...

@@ -192,7 +192,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                 const end = endOfMonth(entryDate);
                 const days = eachDayOfInterval({ start, end });
                 buckets = days.map(d => ({
-                    label: format(d, 'd'),
+                    label: format(d, 'EEE', { locale: es }),
                     dateKey: format(d, 'yyyy-MM-dd'),
                     active: 0, completed: 0
                 }));
@@ -206,6 +206,56 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     active: 0, completed: 0
                 }));
             }
+
+            // [FIX] Populate Buckets with Created/Completed counts
+            relevantTasks.forEach(task => {
+                // Filter by selected projects first?
+                // The chart usually shows global "Created" vs "Completed" volume, but user wants "tasks created...".
+                // If we filter by permissions (relevantTasks), that is correct.
+                // Should we filter by SELECTION?
+                // "Datos de Tareas... Selecciona Proyectos".
+                // Yes, user likely wants metrics for the selected projects.
+                if (task.projectId && !selectedProjectIds.has(task.projectId) && selectedProjectIds.size > 0) return;
+
+                const createdAt = getTaskDate(task);
+                if (!createdAt) return;
+
+                // Find bucket
+                const bucket = buckets.find(b => {
+                    if (timeScope === 'year') {
+                        return b.dateKey === format(createdAt, 'yyyy-MM');
+                    } else {
+                        return b.dateKey === format(createdAt, 'yyyy-MM-dd');
+                    }
+                });
+
+                if (bucket) {
+                    bucket.active++; // Count as "Created" (Nuevas)
+                }
+
+                if (task.status === 'completed') {
+                    // Use closedAt/updatedAt for completion
+                    const closedDateRaw = task.closedAt || task.updatedAt;
+                    let closedDate: Date | null = null;
+                    if (closedDateRaw) {
+                        if ((closedDateRaw as any).toDate) closedDate = (closedDateRaw as any).toDate();
+                        else closedDate = new Date(closedDateRaw as any);
+                    }
+
+                    if (closedDate && isValid(closedDate)) {
+                        const closeBucket = buckets.find(b => {
+                            if (timeScope === 'year') {
+                                return b.dateKey === format(closedDate!, 'yyyy-MM'); // TS verified not null
+                            } else {
+                                return b.dateKey === format(closedDate!, 'yyyy-MM-dd');
+                            }
+                        });
+                        if (closeBucket) {
+                            closeBucket.completed++;
+                        }
+                    }
+                }
+            });
 
             const finalData = buckets.map(b => {
                 const bucketEndDateStr = b.dateKey;
