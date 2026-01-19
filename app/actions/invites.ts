@@ -73,7 +73,7 @@ export async function createInviteAction(
 
         // Block unauthorized roles
         if (creatorLevel < 80) {
-            return { success: false, error: "Permisos insuficientes: Solo Administradores pueden crear invitaciones." };
+            return { success: false, error: `Permisos insuficientes: Solo Administradores pueden crear invitaciones. (Tu Rol actual detectado: ${creatorRole}, Nivel: ${creatorLevel})` };
         }
 
         // Logic for App Admin (Level 80)

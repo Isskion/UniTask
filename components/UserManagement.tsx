@@ -246,7 +246,8 @@ export default function UserManagement() {
         setGeneratingInvite(true);
         try {
             // --- SECURE SERVER ACTION ---
-            const token = await user.getIdToken();
+            // Force refresh to ensure claims (role) are up to date
+            const token = await user.getIdToken(true);
             const result = await createInviteAction(
                 token,
                 tenantId || "1",
