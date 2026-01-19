@@ -935,7 +935,7 @@ export default function UserManagement() {
                                             // PRIORITY 3: Legacy Role
                                             const roleInfo = ROLES.find(r => r.value === u.role);
                                             const expectedLevel = getRoleLevel(u.role);
-                                            const isMismatch = u.role !== 'superadmin' && expectedLevel !== u.roleLevel;
+                                            const isMismatch = expectedLevel !== u.roleLevel;
 
                                             return (
                                                 <div className="flex items-center gap-2">
