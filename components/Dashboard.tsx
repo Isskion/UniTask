@@ -6,7 +6,7 @@ import { Bug, Activity, TrendingUp, Circle, Ban, CheckCircle2, ChevronDown, Chev
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid } from 'date-fns';
+import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid, eachWeekOfInterval, getWeek, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -19,8 +19,14 @@ interface DashboardProps {
 
 type TimeScope = 'day' | 'week' | 'month' | 'year';
 
-export default function Dashboard({ entry, globalProjects = [], userProfile, userRole }: DashboardProps) {
-    const { user, tenantId } = useAuth();
+export default function Dashboard({ entry, globalProjects = [], userProfile: propProfile, userRole: propRole }: DashboardProps) {
+    // [FIX] Use AuthContext as Source of Truth for Role/Profile to ensure freshness (e.g. after role change)
+    const { user, tenantId, userRole, userProfile: authProfile } = useAuth();
+
+    // Fallback to props if Context not ready (though Context is usually faster/fresher)
+    const finalProfile = authProfile || propProfile;
+    const finalRole = userRole || propRole;
+
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -67,11 +73,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
 
     // Calculate Allowed Projects
     const allowedProjectIds = useMemo(() => {
-        const currentLevel = getRoleLevel(userRole);
-        if (currentLevel >= RoleLevel.PM) return null; // All projects allowed
+        const currentLevel = getRoleLevel(finalRole);
+        if (currentLevel >= RoleLevel.PM) return null; // All projects allowed for PM/Admin
 
-        return userProfile?.assignedProjectIds || [];
-    }, [userRole, userProfile]);
+        return finalProfile?.assignedProjectIds || [];
+    }, [finalRole, finalProfile]);
 
     // Filter Global Projects for Dropdown
     const availableGlobalProjects = useMemo(() => {
@@ -79,15 +85,18 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         return globalProjects.filter(p => allowedProjectIds.includes(p.id));
     }, [globalProjects, allowedProjectIds]);
 
-    // Filter Tasks (Memoized & Protected)
-    const filteredTasks = useMemo(() => {
+    // Filter Tasks (Memoized & Protected) - Used for Chart Calculations within window
+    const filteredTasksInWindow = useMemo(() => {
+        // Only for "Created in Period" logic? 
+        // Actually, the "Metrics" usually show "Total Open" regardless of creation date.
+        // But the "Active" line in chart might mean "New".
+        // Let's keep this for "New" tasks logic.
+
         if (!entry || !entry.date) return [];
 
         try {
             let entryDate = parseISO(entry.date);
             if (!isValid(entryDate)) {
-                // Fallback to today if entry date is broken
-                console.warn("Invalid entry date, defaulting to today");
                 entryDate = new Date();
             }
 
@@ -102,44 +111,74 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
 
                 try {
                     switch (timeScope) {
-                        case 'day':
-                            return isSameDay(taskDate, entryDate);
-                        case 'week':
-                            return isSameWeek(taskDate, entryDate, { weekStartsOn: 1 });
-                        case 'month':
-                            return isSameMonth(taskDate, entryDate);
-                        case 'year':
-                            return isSameYear(taskDate, entryDate);
-                        default:
-                            return isSameWeek(taskDate, entryDate, { weekStartsOn: 1 });
+                        case 'day': return isSameDay(taskDate, entryDate);
+                        case 'week': return isSameWeek(taskDate, entryDate, { weekStartsOn: 1 });
+                        case 'month': return isSameMonth(taskDate, entryDate);
+                        case 'year': return isSameYear(taskDate, entryDate);
+                        default: return isSameWeek(taskDate, entryDate, { weekStartsOn: 1 });
                     }
                 } catch (e) {
-                    console.error("Date comparison error", e);
                     return false;
                 }
             });
         } catch (e) {
-            console.error("Filtering crash:", e);
             return [];
         }
-    }, [tasks, timeScope, entry]);
+    }, [tasks, timeScope, entry, allowedProjectIds]);
 
-    // Compute Stats
+
+    // [KPI METRIC] Total Open Tasks (Backlog) - NOT filtered by time scope
+    // This answers "How many active tasks do I have right now?"
+    const totalBacklogCount = useMemo(() => {
+        return tasks.filter(t => {
+            if (t.status === 'completed') return false;
+            // Permission check
+            if (allowedProjectIds && (!t.projectId || !allowedProjectIds.includes(t.projectId))) return false;
+            // Selection Check (Dynamic) - User asked for "Activas" to reflect selection
+            if (selectedProjectIds.size > 0 && t.projectId && !selectedProjectIds.has(t.projectId)) return false;
+            return true;
+        }).length;
+    }, [tasks, allowedProjectIds, selectedProjectIds]);
+
+    const blockersCount = useMemo(() => {
+        return tasks.filter(t => {
+            if (!t.isBlocking || t.status === 'completed') return false;
+            if (allowedProjectIds && (!t.projectId || !allowedProjectIds.includes(t.projectId))) return false;
+            if (selectedProjectIds.size > 0 && t.projectId && !selectedProjectIds.has(t.projectId)) return false;
+            return true;
+        }).length;
+    }, [tasks, allowedProjectIds, selectedProjectIds]);
+
+
+    // Compute Stats for Project Cards (Total/Completed/Blocked % of ALL TIME?)
+    // Usually project cards show the Project's overall health.
     const projectStats = useMemo(() => {
         const stats: Record<string, { total: number; completed: number; blocked: number }> = {};
-        filteredTasks.forEach(t => {
+
+        // Filter tasks by PERMISSION only, not by TimeScope, to show full project health
+        const accessibleTasks = tasks.filter(t => {
+            if (allowedProjectIds && (!t.projectId || !allowedProjectIds.includes(t.projectId))) return false;
+            return true;
+        });
+
+        accessibleTasks.forEach(t => {
             const pid = t.projectId || 'global';
             if (!stats[pid]) stats[pid] = { total: 0, completed: 0, blocked: 0 };
+
+            // Only count Active for "Total"? or Total Historic?
+            // "Percentage" usually implies "Completion of current scope". 
+            // Let's count Open + Completed (Active lifecycle).
+            // Actually, usually "Total" = Open + Completed. 
+            // Simple:
             stats[pid].total++;
             if (t.status === 'completed') stats[pid].completed++;
-            if (t.isBlocking) stats[pid].blocked++;
+            if (t.isBlocking && t.status !== 'completed') stats[pid].blocked++;
         });
         return stats;
-    }, [filteredTasks]);
+    }, [tasks, allowedProjectIds]);
 
-    // Unique Projects: Always show ALL permitted projects, regardless of current tasks/entry
+    // Unique Projects
     const uniqueProjects = useMemo(() => {
-        // Use availableGlobalProjects which is already filtered by permissions
         return availableGlobalProjects.map(gp => ({
             projectId: gp.id,
             name: gp.name,
@@ -148,7 +187,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         }));
     }, [availableGlobalProjects]);
 
-    // Initialize selection with ALL projects once available
+    // Initialize selection
     const [hasInitialized, setHasInitialized] = useState(false);
     useEffect(() => {
         if (!hasInitialized && uniqueProjects.length > 0) {
@@ -157,7 +196,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         }
     }, [uniqueProjects, hasInitialized]);
 
-    // Active History Calculation
+    // Chart Data Generation
     const chartData = useMemo(() => {
         try {
             if (!entry || !entry.date) return [];
@@ -165,120 +204,113 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             if (!isValid(entryDate)) entryDate = new Date();
 
             let relevantTasks = tasks;
-            // Permission Filter
             if (allowedProjectIds) {
                 relevantTasks = relevantTasks.filter(t => t.projectId && allowedProjectIds.includes(t.projectId));
             }
 
-            // DO NOT Filter by selectedProjectIds here for the buckets generation if we want consistent X-axis?
-            // Actually, we want the chart to reflect selection.
-            // BUT for the "Total Active" calc, do we sum ONLY selected? 
-            // User: "Total Activo, de todos los proyectos seleccionados sumados" -> YES.
+            type Bucket = {
+                label: string;
+                dateKey: string;
+                bucketEnd: Date;
+                active: number;
+                completed: number
+            };
+            let buckets: Bucket[] = [];
 
-            let buckets: { label: string; dateKey: string; active: number; completed: number }[] = [];
-            // ... (bucket generation logic same as before, abbreviated here by keeping existing buckets var or re-generating)
-            // Re-generating bucket structure to be safe since I'm in Replace Tool
+            // [FIX] Bucket Generation - Cleaner Labels
             if (timeScope === 'year') {
                 const start = startOfYear(entryDate);
                 const end = endOfYear(entryDate);
                 const months = eachMonthOfInterval({ start, end });
                 buckets = months.map(m => ({
-                    label: format(m, 'MMM', { locale: es }),
+                    label: format(m, 'MMM', { locale: es }).toUpperCase(), // ENE, FEB...
                     dateKey: format(m, 'yyyy-MM'),
+                    bucketEnd: endOfMonth(m),
                     active: 0, completed: 0
                 }));
             } else if (timeScope === 'month') {
+                // [NEW] Monthly View -> Aggregated by WEEK
                 const start = startOfMonth(entryDate);
                 const end = endOfMonth(entryDate);
-                const days = eachDayOfInterval({ start, end });
-                buckets = days.map(d => ({
-                    label: format(d, 'EEE', { locale: es }),
-                    dateKey: format(d, 'yyyy-MM-dd'),
-                    active: 0, completed: 0
-                }));
-            } else {
+                const weeks = eachWeekOfInterval({ start, end }, { weekStartsOn: 1 });
+
+                buckets = weeks.map(w => {
+                    const weekNum = getWeek(w, { weekStartsOn: 1 });
+                    const monthName = format(w, 'MMM', { locale: es }).toUpperCase();
+                    return {
+                        label: `SEM ${weekNum} (${monthName})`,
+                        dateKey: format(w, 'yyyy-Iw'), // Year-Week
+                        bucketEnd: endOfWeek(w, { weekStartsOn: 1 }),
+                        active: 0, completed: 0
+                    };
+                });
+            } else { // Week
                 const start = startOfWeek(entryDate, { weekStartsOn: 1 });
                 const end = endOfWeek(entryDate, { weekStartsOn: 1 });
                 const days = eachDayOfInterval({ start, end });
                 buckets = days.map(d => ({
-                    label: format(d, 'EEE', { locale: es }),
+                    label: format(d, 'EEE', { locale: es }).toUpperCase(), // LUN, MAR...
                     dateKey: format(d, 'yyyy-MM-dd'),
+                    bucketEnd: endOfDay(d),
                     active: 0, completed: 0
                 }));
             }
 
-            // [FIX] Populate Buckets with Created/Completed counts
+            // Populate Buckets
             relevantTasks.forEach(task => {
-                // Filter by selected projects first?
-                // The chart usually shows global "Created" vs "Completed" volume, but user wants "tasks created...".
-                // If we filter by permissions (relevantTasks), that is correct.
-                // Should we filter by SELECTION?
-                // "Datos de Tareas... Selecciona Proyectos".
-                // Yes, user likely wants metrics for the selected projects.
                 if (task.projectId && !selectedProjectIds.has(task.projectId) && selectedProjectIds.size > 0) return;
 
                 const createdAt = getTaskDate(task);
                 if (!createdAt) return;
 
-                // Find bucket
+                // "Nuevas" (Created in period)
                 const bucket = buckets.find(b => {
-                    if (timeScope === 'year') {
-                        return b.dateKey === format(createdAt, 'yyyy-MM');
-                    } else {
-                        return b.dateKey === format(createdAt, 'yyyy-MM-dd');
-                    }
+                    if (timeScope === 'year') return b.dateKey === format(createdAt, 'yyyy-MM');
+                    if (timeScope === 'month') return b.dateKey === format(createdAt, 'yyyy-Iw');
+                    return b.dateKey === format(createdAt, 'yyyy-MM-dd');
                 });
+                if (bucket) bucket.active++;
 
-                if (bucket) {
-                    bucket.active++; // Count as "Created" (Nuevas)
-                }
-
+                // "Completadas"
                 if (task.status === 'completed') {
-                    // Use closedAt/updatedAt for completion
                     const closedDateRaw = task.closedAt || task.updatedAt;
                     let closedDate: Date | null = null;
                     if (closedDateRaw) {
                         if ((closedDateRaw as any).toDate) closedDate = (closedDateRaw as any).toDate();
                         else closedDate = new Date(closedDateRaw as any);
                     }
-
                     if (closedDate && isValid(closedDate)) {
                         const closeBucket = buckets.find(b => {
-                            if (timeScope === 'year') {
-                                return b.dateKey === format(closedDate!, 'yyyy-MM'); // TS verified not null
-                            } else {
-                                return b.dateKey === format(closedDate!, 'yyyy-MM-dd');
-                            }
+                            if (timeScope === 'year') return b.dateKey === format(closedDate!, 'yyyy-MM');
+                            if (timeScope === 'month') return b.dateKey === format(closedDate!, 'yyyy-Iw');
+                            return b.dateKey === format(closedDate!, 'yyyy-MM-dd');
                         });
-                        if (closeBucket) {
-                            closeBucket.completed++;
-                        }
+                        if (closeBucket) closeBucket.completed++;
                     }
                 }
             });
 
+            // Calculate "Total Active" (Backlog snapshot) at each point
             const finalData = buckets.map(b => {
-                const bucketEndDateStr = b.dateKey;
-                let bucketEnd: Date;
-                if (timeScope === 'year') {
-                    bucketEnd = endOfMonth(parseISO(bucketEndDateStr + "-01"));
-                } else {
-                    bucketEnd = parseISO(bucketEndDateStr);
-                    bucketEnd.setHours(23, 59, 59, 999);
-                }
+                const bucketEnd = new Date(b.bucketEnd);
+                // Ensure bucketEnd captures the whole day
+                if (timeScope !== 'year') bucketEnd.setHours(23, 59, 59, 999);
 
-                // Check active projects based on SELECTION (Strict)
                 const projectsToTrack = uniqueProjects.filter(p => selectedProjectIds.has(p.projectId));
-
                 const activeByProject: Record<string, number> = {};
                 let totalActiveAtTime = 0;
 
                 projectsToTrack.forEach(proj => {
                     const pid = proj.projectId;
+                    // Count tasks for this project that:
+                    // 1. Created BEFORE bucket end
+                    // 2. Closed AFTER bucket end (or Open)
                     const count = relevantTasks.filter(t => {
                         if (t.projectId !== pid) return false;
                         const cDate = getTaskDate(t);
                         if (!cDate || cDate > bucketEnd) return false;
+
+                        // Check if it was closed before this bucket end
                         if (t.closedAt) {
                             const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
                             if (isValid(closedDate) && closedDate <= bucketEnd) return false;
@@ -296,11 +328,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                 });
 
                 return {
-                    name: b.label.toUpperCase(),
-                    active: b.active,
-                    completed: b.completed,
-                    totalActive: totalActiveAtTime,
-                    ...activeByProject
+                    name: b.label,
+                    active: b.active, // Created
+                    completed: b.completed, // Closed
+                    totalActive: totalActiveAtTime, // Backlog Snapshot
+                    ...activeByProject // Breakdown
                 };
             });
 
@@ -312,52 +344,58 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
         }
     }, [tasks, timeScope, entry, selectedProjectIds, uniqueProjects, allowedProjectIds]);
 
-    const openTasksCount = filteredTasks.filter(t => t.status !== 'completed').length;
-    const blockersCount = filteredTasks.filter(t => t.isBlocking).length;
+    if (error) {
+        return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
+    }
 
-    // Determine lines strictly by selection
-    const projectsLinesToRender = uniqueProjects.filter(p => selectedProjectIds.has(p.projectId));
-
-    // Custom Tooltip Component
+    // Custom Tooltip Component (Refactored)
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
-            // Sort payload by value descending (excluding totalActive for sorting? or keep it?)
-            // User said: "cada nombre vaya en el orden de su linea" -> Sorted descending by value.
-            // Filter out 'active' (the blue bars) and 'totalActive' might be separate?
-            // Payload contains all lines.
 
-            // We want to sort only the PROJECT lines. Total Active usually stays at bottom or top?
-            // "Los que tengan cero tareas activas, deben ir por la barra inferior... no lo fuerces" -> Hidden from tooltip if 0?
+            // [STABLE SORT]
+            // Priority: Value > 0 first, then Alphabetical
+            const items = [...payload].filter(i => i.name !== 'Nuevas').sort((a: any, b: any) => {
+                const valA = a.value || 0;
+                const valB = b.value || 0;
 
-            const items = [...payload].sort((a, b) => b.value - a.value);
+                // Keep 0s at the bottom
+                if (valA > 0 && valB === 0) return -1;
+                if (valA === 0 && valB > 0) return 1;
+
+                // Stable alphabetical
+                return (a.name || '').localeCompare(b.name || '');
+            });
 
             return (
                 <div className="bg-popover border border-border p-2 rounded-lg shadow-lg text-[10px]">
-                    {/* <p className="font-bold mb-1">{label}</p> */ /* Removed Label as requested */}
-                    {items.map((entry: any) => {
-                        // Skip 'Nuevas' (Bar) as requested ("quita el nuevas")
-                        if (entry.name === 'Nuevas') return null;
-
-                        return (
-                            <div key={entry.name} className="flex items-center gap-2 mb-0.5 last:mb-0">
-                                <div
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ backgroundColor: entry.color }}
-                                />
-                                <span className="font-medium text-foreground">{entry.name}:</span>
-                                <span className="font-mono font-bold text-foreground">{entry.value}</span>
-                            </div>
-                        );
-                    })}
+                    <div className="font-bold border-b border-border/50 pb-1 mb-1 text-center">{label}</div>
+                    {items.map((entry: any) => (
+                        <div key={entry.name} className={cn("flex items-center gap-2 mb-0.5 last:mb-0", entry.value === 0 ? "opacity-50" : "")}>
+                            <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="font-medium text-foreground">{entry.name}:</span>
+                            <span className="font-mono font-bold text-foreground">{entry.value}</span>
+                        </div>
+                    ))}
                 </div>
             );
         }
         return null;
     };
 
-    if (error) {
-        return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
-    }
+    // Helper: Header Date Context
+    const getDateContext = () => {
+        if (!entry?.date) return 'Periodo Actual';
+        const d = parseISO(entry.date);
+        if (!isValid(d)) return 'Periodo Actual';
+
+        if (timeScope === 'week') return `Semana del ${format(startOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })} al ${format(endOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })}`;
+        if (timeScope === 'month') return `Mes de ${format(d, 'MMMM yyyy', { locale: es }).toUpperCase()}`;
+        if (timeScope === 'year') return `Año ${format(d, 'yyyy')}`;
+        return 'Periodo Personalizado';
+    };
 
     return (
         <div className="flex flex-col h-full bg-background text-foreground lg:pr-2 overflow-y-auto custom-scrollbar p-6">
@@ -414,7 +452,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                             }
                         </h2>
                         <p className="text-muted-foreground text-sm capitalize">
-                            {timeScope} &bull; {projectsLinesToRender.length} Proyectos Visibles
+                            {getDateContext()}
                         </p>
                     </div>
                 </div>
@@ -452,7 +490,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                             />
 
                             {/* Individual Project Lines */}
-                            {projectsLinesToRender.map((p, idx) => {
+                            {uniqueProjects.filter(p => selectedProjectIds.has(p.projectId)).map((p, idx) => {
                                 // Fallback colors if project has no color
                                 const defaultColors = ['#f472b6', '#22d3ee', '#a78bfa', '#facc15', '#4ade80', '#fb923c'];
                                 const pColor = p.color || defaultColors[idx % defaultColors.length];
@@ -469,13 +507,13 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                                         activeDot={{ r: 4, strokeWidth: 0 }}
                                         strokeOpacity={1}
                                         name={`${p.code || p.name}`}
-                                        connectNulls={false} // Ensure 0s are respectful
+                                        connectNulls={false}
                                     />
                                 );
                             })}
 
                             {/* Total Active Line (Black) */}
-                            {projectsLinesToRender.length > 0 && (
+                            {selectedProjectIds.size > 0 && (
                                 <Line
                                     yAxisId="right"
                                     type="monotone"
@@ -495,7 +533,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             <div className="flex justify-end gap-3 mb-6">
                 <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
-                    ACTIVAS: <span className="text-foreground font-bold">{loading ? "..." : openTasksCount}</span>
+                    ACTIVAS (TOTAL): <span className="text-foreground font-bold">{loading ? "..." : totalBacklogCount}</span>
                 </div>
                 <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
@@ -512,11 +550,18 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                     const total = stats.total;
                     const completed = stats.completed;
                     const blocked = stats.blocked;
+                    // Correct percentage calculation: Completed / Total (Active+Completed)
                     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
                     const isSelected = selectedProjectIds.has(project.projectId);
 
+                    // For the list below, we want ALL OPEN TASKS for this project, 
+                    // not just those in the current week/month window.
+                    // "Blockers" visualization should be actionable.
                     const myTasks = sortTasks(
-                        filteredTasks.filter(t => t.projectId === project.projectId && t.status !== 'completed')
+                        tasks.filter(t => t.projectId === project.projectId && t.status !== 'completed' && t.isBlocking)
+                        // Filter "filteredTasksInWindow" if we only want to show recent blockers?
+                        // Usually blockers are urgent regardless of creation date.
+                        // We will use "ALL" blockers for the project card.
                     );
 
                     // Health Logic
@@ -545,7 +590,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                         color = 'text-muted-foreground';
                         ring = 'border-border'; // Neutral ring
                         label = 'No Tasks';
-                        reason = 'No hay tareas activas en este periodo.';
+                        reason = 'No hay tareas registradas.';
                         barColor = 'bg-muted';
                     }
 
@@ -610,36 +655,28 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
                             <div className="h-px w-full bg-border mb-4" />
 
                             {/* Blocking Tasks Only */}
-                            {(() => {
-                                const blockingTasks = sortTasks(
-                                    filteredTasks.filter(t => t.projectId === project.projectId && t.status !== 'completed' && t.isBlocking)
-                                );
-
-                                if (blockingTasks.length === 0) return null;
-
-                                return (
-                                    <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
-                                        <h4 className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-2 flex items-center gap-2 animate-pulse">
-                                            <Ban className="w-3 h-3" /> Bloqueos Activos
-                                        </h4>
-                                        {blockingTasks.map(task => (
-                                            <div key={task.id} className="group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border bg-destructive/10 border-destructive/20 hover:bg-destructive/20">
-                                                <div className="mt-0.5 shrink-0">
-                                                    <Ban className="w-3.5 h-3.5 text-destructive" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <span className="font-mono text-[9px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">{task.friendlyId}</span>
-                                                    </div>
-                                                    <p className="leading-relaxed break-words line-clamp-2 text-destructive-foreground font-medium">
-                                                        {task.description}
-                                                    </p>
-                                                </div>
+                            {myTasks.length > 0 ? (
+                                <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
+                                    <h4 className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-2 flex items-center gap-2 animate-pulse">
+                                        <Ban className="w-3 h-3" /> Bloqueos Activos
+                                    </h4>
+                                    {myTasks.map(task => (
+                                        <div key={task.id} className="group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border bg-destructive/10 border-destructive/20 hover:bg-destructive/20">
+                                            <div className="mt-0.5 shrink-0">
+                                                <Ban className="w-3.5 h-3.5 text-destructive" />
                                             </div>
-                                        ))}
-                                    </div>
-                                );
-                            })()}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <span className="font-mono text-[9px] text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">{task.friendlyId}</span>
+                                                </div>
+                                                <p className="leading-relaxed break-words line-clamp-2 text-destructive-foreground font-medium">
+                                                    {task.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
                     );
                 })}
@@ -648,7 +685,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile, use
             {uniqueProjects.length === 0 && (
                 <div className="col-span-full text-center p-12 border border-dashed border-border rounded-3xl text-muted-foreground flex flex-col items-center gap-4 bg-card/50">
                     <TrendingUp className="w-12 h-12 opacity-20" />
-                    <p>No hay proyectos activos para este periodo.</p>
+                    <p>No hay proyectos activos.</p>
                 </div>
             )}
 

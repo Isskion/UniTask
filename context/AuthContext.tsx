@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
 import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { RoleLevel, getRoleLevel } from '../types'; // Imported from types.ts (DRY)
+import { RoleLevel, getRoleLevel, UserProfile } from '../types'; // Imported from types.ts (DRY)
 
 // --- DEFINICIÓN DE TIPOS (Strict Typing) ---
 
@@ -29,6 +29,7 @@ interface AuthContextType {
     user: User | null; // Compatibility with legacy code
     userRole: string; // Legacy: mapped from viewContext (active context)
     tenantId: string | null; // Legacy: mapped from viewContext (active context)
+    userProfile: UserProfile | null; // [NEW] Expose full profile as Source of Truth
 
     // Métodos de control
     updateSimulation: (updates: Partial<ViewContext>) => void;
@@ -50,10 +51,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [viewContext, setViewContext] = useState<ViewContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
         // TEST MODE REMOVED BY REQUEST
 
+        // TEST MODE REMOVED BY REQUEST
+
+        // [DEV-ONLY] Bypass removed after screenshot generation.
 
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
@@ -64,30 +69,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const tokenResult = await currentUser.getIdTokenResult(true);
                     const claims = tokenResult.claims;
 
-                    // Extracción defensiva de claims
+                    // Extracción base de claims
                     let parsedRole = Number(claims.role);
                     let realTenantId = (claims.tenantId as string);
 
-                    // --- HYDRATION FALLBACK (Fix for Vercel/No-Cloud-Functions) ---
-                    // If claims are missing, fetch from Firestore Profile
-                    if (isNaN(parsedRole) || !realTenantId) {
-                        try {
-                            // Use static imports for reliability
-                            const { doc, getDoc } = await import('firebase/firestore');
+                    // [UPDATED] ALWAYS Fetch from Firestore to ensure latest role/tenant (Bypass Stale Claims)
+                    // The user requested "recarga de rol al acceder" to avoid cache issues.
+                    try {
+                        const { doc, getDoc } = await import('firebase/firestore');
+                        const userDocRef = doc(db, 'users', currentUser.uid);
+                        // Force server fetch if possible, though default getDoc is usually fine.
+                        const userSnapshot = await getDoc(userDocRef);
 
-                            const userDocRef = doc(db, 'users', currentUser.uid);
-                            const userSnapshot = await getDoc(userDocRef);
+                        if (userSnapshot.exists()) {
+                            const userData = userSnapshot.data();
+                            console.log("[AuthContext] Hydrating identity from Firestore (Fresh):", userData);
 
-                            if (userSnapshot.exists()) {
-                                const userData = userSnapshot.data();
-                                console.log("[AuthContext] Hydrating identity from Firestore:", userData);
-
-                                if (isNaN(parsedRole)) parsedRole = Number(userData.roleLevel || 10);
-                                if (!realTenantId) realTenantId = userData.tenantId || "1";
+                            // Prefer Firestore Data over Claims (Source of Truth)
+                            // We recalculate level from string 'role' to be safe, or use 'roleLevel' if present.
+                            if (userData.role) {
+                                parsedRole = getRoleLevel(userData.role);
+                            } else if (userData.roleLevel) {
+                                parsedRole = Number(userData.roleLevel);
                             }
-                        } catch (e) {
-                            console.error("[AuthContext] Failed to hydrate from Firestore", e);
+
+                            if (userData.tenantId) {
+                                realTenantId = userData.tenantId;
+                            }
+                            // Store full profile
+                            setUserProfile(userData as UserProfile);
                         }
+                    } catch (e) {
+                        console.error("[AuthContext] Failed to hydrate from Firestore, relying on claims", e);
                     }
 
                     if (isNaN(parsedRole)) {
@@ -144,6 +157,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // Logout / No user
                     setIdentity(null);
                     setViewContext(null);
+                    setUserProfile(null); // Clear profile
                     localStorage.removeItem('superadmin_simulation_context'); // Clear on logout
                 }
             } catch (error) {
@@ -346,6 +360,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             user,
             userRole: legacyUserRole,
             tenantId: legacyTenantId,
+            userProfile, // [NEW]
             loginWithGoogle,
             loginWithEmail,
             registerWithEmail,

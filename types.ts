@@ -65,6 +65,7 @@ export interface UserProfile {
     role: 'superadmin' | 'app_admin' | 'global_pm' | 'consultor' | 'usuario_base' | 'usuario_externo';
     tenantId: string; // Multi-tenant: Required for all users
     isActive: boolean;
+    roleLevel?: number; // Added for caching/performance
     lastLogin?: any;
     // Extended fields
     company?: string;

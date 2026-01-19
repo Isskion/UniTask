@@ -213,14 +213,22 @@ export default function UserManagement() {
 
         setUpdating(uid);
         try {
-            const updates: any = { role: newRole };
+            const updates: any = {
+                role: newRole,
+                roleLevel: getRoleLevel(newRole)
+            };
             if (newRole === 'superadmin') {
                 updates.tenantId = '1';
                 updates.permissionGroupId = null;
             }
 
             await updateDoc(doc(db, "users", uid), updates);
-            setUsers(prev => prev.map(u => u.uid === uid ? { ...u, role: newRole as any, ...(newRole === 'superadmin' ? { tenantId: '1', permissionGroupId: undefined } : {}) } : u));
+            setUsers(prev => prev.map(u => u.uid === uid ? {
+                ...u,
+                role: newRole as any,
+                roleLevel: getRoleLevel(newRole),
+                ...(newRole === 'superadmin' ? { tenantId: '1', permissionGroupId: undefined } : {})
+            } : u));
         } catch (error) {
             alert("Error al actualizar rol. Verifica permisos.");
         }
@@ -294,12 +302,36 @@ export default function UserManagement() {
                 return acc;
             }, {} as any);
 
+            // Ensure roleLevel is synchronized with role
+            if (payload.role) {
+                payload.roleLevel = getRoleLevel(payload.role);
+            }
+
             await updateDoc(doc(db, "users", editingUser.uid), payload);
             setUsers(prev => prev.map(u => u.uid === editingUser.uid ? { ...u, ...payload } : u));
             setEditingUser(null); // Close modal
         } catch (error) {
             console.error("Error saving user:", error);
             alert("Error al guardar cambios: " + (error as any).message);
+        } finally {
+            setUpdating(null);
+        }
+    };
+
+    const handleFixRole = async (user: UserData) => {
+        const expected = getRoleLevel(user.role);
+        if (!confirm(`⚠️ CORRECCIÓN DE DATOS\n\nUsuario: ${user.displayName}\nRol: ${user.role}\nNivel Actual: ${user.roleLevel} (Incorrecto)\nNivel Esperado: ${expected} (Correcto)\n\n¿Reparar la base de datos ahora?`)) return;
+
+        setUpdating(user.uid);
+        try {
+            await updateDoc(doc(db, "users", user.uid), {
+                roleLevel: expected
+            });
+            setUsers(prev => prev.map(u => u.uid === user.uid ? { ...u, roleLevel: expected } : u));
+            alert("✅ Usuario reparado exitosamente.");
+        } catch (error) {
+            console.error(error);
+            alert("Error al reparar usuario.");
         } finally {
             setUpdating(null);
         }
@@ -902,14 +934,33 @@ export default function UserManagement() {
 
                                             // PRIORITY 3: Legacy Role
                                             const roleInfo = ROLES.find(r => r.value === u.role);
+                                            const expectedLevel = getRoleLevel(u.role);
+                                            const isMismatch = u.role !== 'superadmin' && expectedLevel !== u.roleLevel;
+
                                             return (
-                                                <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                                                    <span className={cn(
-                                                        "px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800/50 border border-zinc-700/50 whitespace-nowrap shadow-sm",
-                                                        roleInfo?.color
-                                                    )}>
-                                                        {roleInfo?.label || u.role}
-                                                    </span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                                                        <span className={cn(
+                                                            "px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800/50 border border-zinc-700/50 whitespace-nowrap shadow-sm",
+                                                            roleInfo?.color
+                                                        )}>
+                                                            {roleInfo?.label || u.role}
+                                                        </span>
+                                                    </div>
+
+                                                    {isMismatch && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleFixRole(u);
+                                                            }}
+                                                            className="flex items-center gap-1 bg-yellow-500/20 text-yellow-500 px-2.5 py-1 rounded-full text-[10px] font-bold border border-yellow-500/50 hover:bg-yellow-500/40 animate-pulse transition-all shadow-[0_0_10px_-3px_rgba(234,179,8,0.5)] z-20"
+                                                            title={`Detectada inconsistencia: Nivel DB ${u.roleLevel} vs Esperado ${expectedLevel}. Clic para reparar.`}
+                                                        >
+                                                            <AlertTriangle className="w-3 h-3" />
+                                                            <span>Reparar</span>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             );
                                         })()}

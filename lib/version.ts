@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.8.0';
+export const APP_VERSION = '12.9.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.9.0",
+        date: "2026-01-19",
+        title: "Mejora de Visualización Mensual",
+        features: [
+            "Agrupación Semanal: La vista mensual ahora organiza las tareas por semanas (Sem X - Mes) para una mejor planificación.",
+            "Contexto Temporal: El encabezado ahora indica explícitamente el mes o periodo seleccionado.",
+            "Estabilidad: Corrección en la lógica de cálculo de backlog para vistas agrupadas."
+        ]
+    },
     {
         version: "12.8.0",
         date: "2026-01-18",
