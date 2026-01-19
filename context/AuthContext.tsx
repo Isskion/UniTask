@@ -52,59 +52,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
 
     useEffect(() => {
-        // TEST MODE BYPASS for Screenshot Generation
-        const isTestMode = typeof window !== 'undefined' && localStorage.getItem('TEST_MODE') === 'true';
-        if (isTestMode) {
-            console.log("⚠️ TEST MODE ACTIVATED: Bypassing Auth");
-            const mockUser: UserProfile = {
-                uid: 'test-admin',
-                email: 'admin@unitask.com',
-                displayName: 'Test Admin',
-                photoURL: 'https://ui-avatars.com/api/?name=Test+Admin',
-                role: 'app_admin', // Admin role for full access
-                isActive: true, // Active
-                createdAt: Timestamp.now(),
-                lastLogin: Timestamp.now(),
-                // Minimal Firebase User properties to satisfy the interface
-                providerId: 'test',
-                refreshToken: 'test-refresh-token',
-                tenantId: null,
-                delete: async () => { },
-                getIdToken: async () => 'test-id-token',
-                getIdTokenResult: async () => ({
-                    authTime: 'test',
-                    claims: { role: RoleLevel.SUPERADMIN, tenantId: '1' }, // Mock claims for identity
-                    expirationTime: 'test',
-                    issuedAtTime: 'test',
-                    signInProvider: 'test',
-                    signInSecondFactor: null,
-                    token: 'test-token'
-                }),
-                reload: async () => { },
-                toJSON: () => ({}),
-                metadata: {
-                    creationTime: 'test',
-                    lastSignInTime: 'test'
-                },
-                providerData: [],
-                emailVerified: true,
-                isAnonymous: false
-            };
-            setUser(mockUser);
-            setIdentity({
-                uid: mockUser.uid,
-                email: mockUser.email,
-                realRole: RoleLevel.SUPERADMIN,
-                realTenantId: '1'
-            });
-            setViewContext({
-                activeRole: RoleLevel.SUPERADMIN,
-                activeTenantId: '1',
-                isMasquerading: false
-            });
-            setLoading(false);
-            return;
-        }
+        // TEST MODE REMOVED BY REQUEST
+
 
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {

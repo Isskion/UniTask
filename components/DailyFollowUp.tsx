@@ -1407,7 +1407,23 @@ export default function DailyFollowUp() {
                                                         const reader = new FileReader();
                                                         reader.onload = async () => {
                                                             const base64String = (reader.result as string).split(',')[1];
-                                                            const res = await fetch('/api/analyze-pdf', { method: 'POST', body: JSON.stringify({ base64Data: base64String }) });
+
+                                                            // [FIX] Add Auth Token
+                                                            const token = await user?.getIdToken();
+                                                            if (!token) {
+                                                                showToast("Error", "No estás autenticado", "error");
+                                                                setSaving(false);
+                                                                return;
+                                                            }
+
+                                                            const res = await fetch('/api/analyze-pdf', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    'Authorization': `Bearer ${token}`
+                                                                },
+                                                                body: JSON.stringify({ base64Data: base64String })
+                                                            });
                                                             const json = await res.json();
 
                                                             if (json.success && json.data) {
