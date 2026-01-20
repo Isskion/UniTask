@@ -1,60 +1,106 @@
-# UniTask Controller - Manual de Usuario
-**Versión de Cobertura: 12.10.4**
-*Última actualización: 20 de enero, 2026*
+# Manual de Usuario: UniTask Controller 🚀
+**Versión del Documento: 12.10.5**
+*Tu asistente inteligente para la gestión de proyectos y seguimiento diario.*
 
 ---
 
 ## 1. Introducción
-UniTask Controller es una plataforma integral para la gestión de proyectos, tareas y seguimiento diario de consultores. Diseñada para optimizar el flujo de trabajo, permite registrar bitácoras diarias, gestionar tareas con plazos críticos y administrar múltiples proyectos e inquilinos (Tenants) de forma centralizada.
+Bienvenido a **UniTask Controller**. Esta herramienta ha sido diseñada para ayudarte a organizar tu trabajo diario de forma sencilla, centralizar tus tareas y automatizar reportes utilizando Inteligencia Artificial. 
 
-## 2. Soporte Multi-idioma (i18n) - Novedad v12.10.x
-A partir de la versión 12.10.0, UniTask es una herramienta global que soporta 6 idiomas:
-- **Español, Inglés, Alemán, Francés, Catalán y Portugués.**
-
-### Cómo cambiar el idioma:
-En la cabecera (Header) de la aplicación, encontrará un selector con la bandera del idioma actual. Al hacer clic, podrá seleccionar cualquiera de los idiomas soportados. La interfaz se actualizará instantáneamente, incluyendo:
-- Etiquetas de menús y botones.
-- Mensajes de confirmación y alertas (Toasts).
-- Formatos de fecha dinámicos según la región.
-
-## 3. Seguimiento Diario (Daily Follow-Up)
-El núcleo de la aplicación donde se registra el trabajo cotidiano.
-- **Bitácora Diaria:** Notas organizadas por bloques para cada proyecto activo.
-- **Selector de Fecha:** Navega mediante el calendario o los botones `< HOY >` para revisar o completar días anteriores.
-- **Integración AI:** 
-    - **Extraer Tareas:** Analiza tus notas para detectar compromisos y crear tareas automáticamente.
-    - **Resumen Ejecutivo:** Genera un resumen profesional del día para compartir con clientes o responsables.
-- **Escaneo PDF (Gemini 2.0):** Sube documentos PDF (actas de reunión, requerimientos) para que la IA extraiga puntos clave y los añada a tus notas.
-
-## 4. Gestión de Tareas (Task Manager)
-Organiza tu backlog y colabora eficientemente.
-- **Dashboard de Tareas:** Vista general con métricas de cumplimiento y alertas de vencimiento.
-- **Filtros Avanzados:** Panel lateral para filtrar por Prioridad, Área, Módulo y Alcance.
-- **Tareas Bloqueantes:** Marca tareas como críticas. El sistema alertará visualmente si hay bloqueos pendientes.
-- **Bitácora de Auditoría:** Cada tarea mantiene un historial de cambios para saber quién modificó qué y cuándo.
-
-## 5. Reportes y Analítica
-Generación de documentos y visualización de datos.
-- **Minuta Diaria:** Genera un documento PDF/HTML profesional con el resumen de la actividad y estado de tareas de un día específico.
-- **Diseñador de Plantillas:** Crea estructuras personalizadas para diferentes tipos de reportes.
-- **Visual Zone Designer:** Herramienta interactiva para definir zonas de interés en documentos PDF para la extracción automática de datos.
-
-## 6. Proyectos y Clientes
-Administra la cartera de proyectos activos.
-- **Listado de Proyectos:** Vista centralizada con indicadores de salud (Semáforo).
-- **Mover Entradas:** Si no terminaste algo hoy, utiliza la función "Mover Tareas" para trasladar el pendiente al día siguiente con un clic.
-- **Buscador Global:** Encuentra términos específicos en todo el historial del proyecto con resaltado visual.
-
-## 7. Administración y Seguridad
-Control total para administradores y Project Managers.
-- **Gestión de Usuarios:** Invitaciones mediante Wizard, asignación de roles y seguimiento de actividad.
-- **Multi-Tenant:** Aislamiento total. Los usuarios solo acceden a los datos de su organización o cliente asignado.
-- **Gestión de Datos Maestros:** Configura las etiquetas de Prioridad, Área y Módulo que se usarán en todo el sistema.
-
-## 8. Atajos y Utilidades
-- **Menú de Comandos (Alt+K):** Abre la consola de navegación rápida. Escribe el nombre de un proyecto o sección para saltar directamente.
-- **Temas Visuales:** Soporte para modo **Claro**, **Oscuro** y el **Tema Rojo** corporativo.
-- **Changelog:** Haz clic en la versión (ej: v12.10.4) en el header para ver qué hay de nuevo.
+Si eres consultor, gestor de proyectos o parte de un equipo técnico, UniTask te permitirá registrar tus avances, gestionar pendientes y mantener a todos informados con el mínimo esfuerzo.
 
 ---
-*UniTask Controller - Eficiencia en el Seguimiento de Proyectos.*
+
+## 2. Requisitos y Acceso
+### 2.1 Requisitos
+UniTask es una aplicación web, lo que significa que no necesitas instalar nada en tu ordenador. Solo necesitas:
+- Un navegador moderno (Google Chrome, Microsoft Edge, Safari o Firefox).
+- Conexión a Internet.
+- Una cuenta activa proporcionada por tu administrador.
+
+### 2.2 Acceso al sistema
+1. Ingresa a la URL proporcionada por tu organización.
+2. Introduce tu correo electrónico y contraseña.
+3. Si es tu primera vez, es posible que hayas recibido una **Invitación por correo**. Haz clic en el enlace de la invitación para configurar tu perfil.
+
+---
+
+## 3. Navegación Principal
+Una vez dentro, verás un panel lateral a la izquierda que es tu mapa para moverte por la herramienta:
+- **Panel de Control (Dashboard):** Tu resumen visual de tareas y métricas.
+- **Seguimiento Diario (Follow-Up):** Tu diario de trabajo (donde más tiempo pasarás).
+- **Mis Proyectos:** Lista de proyectos en los que participas.
+- **Gestor de Tareas:** Listado detallado y edición de todos tus pendientes.
+- **Administración:** (Solo para gestores) Gestión de personas, roles y etiquetas.
+
+---
+
+## 4. Funcionalidades Principales
+
+### 4.1 Seguimiento Diario (Follow-Up)
+Aquí es donde registras qué has hecho hoy.
+1. **Selección de Fecha:** Por defecto, verás el día de hoy. Puedes usar las flechas `<` y `>` para moverte entre días o hacer clic en el calendario.
+2. **Registro por Proyecto:** Verás una tarjeta por cada proyecto asignado. 
+   - **Avances/Discusión:** Escribe aquí lo que has hecho.
+   - **Conclusiones:** Qué se decidió o qué puntos son clave.
+   - **Siguientes Pasos:** Qué queda pendiente por hacer.
+3. **Guardado:** Los cambios se guardan automáticamente, pero verás un indicador de "Guardando..." para mayor seguridad.
+4. **Herramientas de IA (Botón de Chispa ✨):**
+   - **Analizar Notas:** La IA leerá tus apuntes y detectará tareas automáticamente.
+   - **Resumen Ejecutivo:** Genera un pequeño párrafo profesional basado en lo que escribiste.
+5. **Escanear PDF:** Si tienes un acta de reunión en PDF, arrástrala al botón de escanear. La IA extraerá los puntos más importantes y los pondrá directamente en tus notas.
+
+### 4.2 Gestor de Tareas (Task Manager)
+Para crear y gestionar tus pendientes de forma profesional.
+- **Crear Tarea:** Haz clic en el botón `+`. 
+- **Clasificación:** Puedes asignar a cada tarea una **Prioridad** (Baja, Media, Alta, Crítica), un **Área** (ej: Back-end, Diseño) y un **Módulo**.
+- **RACI (Responsables):** Define quién es el **Responsable** (quien lo hace), el **Aprobador** (quien responde), **Consultado** e **Informado**.
+- **Dependencias:** Si una tarea no puede empezar hasta que otra termine, puedes vincularlas aquí.
+- **Estados:** Cambia de "Pendiente" a "En Progreso", "En Revisión" o "Completada".
+
+### 4.3 Panel de Control (Dashboard)
+Tu torre de control para no perderte nada.
+- **Métricas:** Verás cuántas tareas tienes vencidas, cuántas activas y el progreso general.
+- **Filtros:** Usa el panel de filtros para ver solo lo que te interesa (ej: "Solo tareas críticas de esta semana").
+- **Exportar:** Puedes descargar tu lista de tareas en **CSV** (para Excel) o copiar un reporte en texto plano para pegarlo en un chat o correo.
+
+---
+
+## 5. Funcionalidades Secundarias
+
+### 5.1 Reportes (Minutas)
+Si necesitas enviar un resumen formal a un cliente:
+1. Ve a la vista de **Reportes**.
+2. Selecciona una plantilla o el día que quieras reportar.
+3. El sistema generará automáticamente un documento limpio con tus notas y el estado de las tareas asociadas.
+
+### 5.2 Personalización (Idiomas y Temas)
+- **Idiomas:** En la esquina superior derecha, haz clic en la bandera para cambiar entre **Español, Inglés, Alemán, Francés, Catalán o Portugués**.
+- **Temas:** Puedes elegir entre modo **Claro** (fondo blanco), **Oscuro** (fondo negro) o el **Tema Rojo** institucional.
+
+---
+
+## 6. Administración (Perfiles con Permisos)
+Si tienes el rol de "Admin" o "PM", tendrás acceso a:
+- **Invitaciones:** Envía enlaces de acceso a nuevos miembros del equipo.
+- **Roles:** Define quién puede editar o solo ver (Administrador, Consultor, Cliente).
+- **Datos Maestros:** Configura qué opciones aparecen en los desplegables de Prioridad, Área o Módulos para que se adapten a tu empresa.
+
+---
+
+## 7. Preguntas Frecuentes y Ayuda
+
+**¿Por qué no veo un proyecto en mi lista?**
+Probablemente el Administrador aún no te ha "asignado" a ese proyecto. Pide a tu responsable que verifique tu perfil en la sección de "Gestión de Usuarios".
+
+**¿Cómo funciona la IA Gemini?**
+Utilizamos la tecnología de Google para entender el lenguaje natural. No necesitas comandos especiales, escribe normalmente y la IA intentará ayudarte a organizar la información.
+
+**He borrado algo por error, ¿qué hago?**
+Revisa la sección de **Papelera (Trash)** en el menú lateral. Allí podrás recuperar elementos borrados accidentalmente.
+
+**¿Dónde veo qué hay de nuevo en la aplicación?**
+Haz clic en el número de versión (ej: **v12.10.5**) situado en la parte superior. Se abrirá una ventana con todas las últimas mejoras y correcciones.
+
+---
+*UniTask Controller: Organizamos tu día para que tú te enfoques en lo importante.*
