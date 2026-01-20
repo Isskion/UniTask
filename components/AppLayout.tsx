@@ -19,7 +19,8 @@ import {
     ClipboardList,
     Shield,
     Building,
-    ListTodo
+    ListTodo,
+    FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -28,11 +29,15 @@ import { ThemeSelector } from "@/components/ThemeSelector";
 import { NotificationBell } from "@/components/NotificationBell";
 import { VersionBadge } from "@/components/VersionBadge";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
+import { AIHelpPanel } from "@/components/AIHelpPanel";
+import { Sparkles as GeminiIcon } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'; // Added reports
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -49,6 +54,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const { toggleCommandMenu } = useUI(); // Use Context hook
     const { showToast } = useToast();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const { t } = useLanguage();
 
 
     // Check if user can manage permissions (with legacy role fallback)
@@ -206,7 +213,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain theme-logo" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
+                                {onOpenChangelog && <VersionBadge onClick={onOpenChangelog} />}
+                            </div>
                             <p className="text-[10px] text-muted-foreground truncate">Consultant Workspace</p>
                         </div>
                     </div>
@@ -216,39 +226,42 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                         {/* Primary */}
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Workspace</p>
-                            <NavItem mode="dashboard" icon={Inbox} label="Inbox / Dashboard" />
-                            <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
-                            <NavItem mode="projects" icon={FolderGit2} label="Projects & Bitácora" />
-                            <NavItem mode="task-manager" icon={ClipboardList} label="Task Manager (ABM)" />
-                            <NavItem mode="tasks" icon={Layout} label="All Tasks (Board)" />
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
+                            <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                            <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                            <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
+                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.taskManager')} />
+                            <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                         </div>
 
                         {/* Secondary */}
                         {/* ADMINISTRATION */}
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Administración</p>
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
 
                             {/* Consolidated Task Master Data (Global PM+) */}
                             {getRoleLevel(userRole) >= RoleLevel.PM && (
-                                <NavItem mode="admin-task-master" icon={Layout} label="Gestión de Tareas" />
+                                <NavItem mode="admin-task-master" icon={Layout} label={t('nav.taskMaster')} />
                             )}
 
                             {canManagePermissions && (
-                                <NavItem mode="users" icon={Users} label="Personas" />
+                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
                             )}
                             {canManagePermissions && (
-                                <NavItem mode="user-roles" icon={Shield} label="Roles y Permisos" />
+                                <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
                             )}
                             {userRole === 'superadmin' && (
-                                <NavItem mode="tenant-management" icon={Building} label="Tenants" />
+                                <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
+                            )}
+                            {userRole === 'superadmin' && (
+                                <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants')} />
                             )}
                         </div>
 
                         {/* System */}
                         <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">System</p>
-                            <NavItem mode="trash" icon={Trash2} label="Trash" />
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.system')}</p>
+                            <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
                         </div>
                     </div>
 
@@ -289,16 +302,11 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             </button>
 
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span className="text-muted-foreground hidden sm:inline">Workspace</span>
+                                <span className="text-muted-foreground hidden sm:inline">{t('nav.workspace')}</span>
                                 <span className="text-muted-foreground/50 hidden sm:inline">/</span>
                                 <span className="text-foreground font-medium capitalize">
                                     {viewMode === 'editor' ? 'Follow-Up' : viewMode}
                                 </span>
-                                {/* DEBUG BADGE */}
-                                <span className="text-[10px] bg-red-900/50 px-2 py-0.5 rounded text-white font-mono border border-red-500/20">
-                                    {userRole || 'No Role'}
-                                </span>
-                                {onOpenChangelog && <VersionBadge onClick={onOpenChangelog} />}
                             </div>
                         </div>
 
@@ -309,7 +317,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary/50 border border-border/50 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border transition-all w-64"
                         >
                             <Search className="w-3.5 h-3.5" />
-                            <span>Buscar tareas (Alt+S)...</span>
+                            <span>{t('common.search')} (Alt+S)...</span>
                             <div className="ml-auto flex items-center gap-1">
                                 <kbd className="bg-muted px-1.5 py-0.5 rounded text-[10px] font-sans text-muted-foreground">Alt</kbd>
                                 <kbd className="bg-muted px-1.5 py-0.5 rounded text-[10px] font-sans text-muted-foreground">S</kbd>
@@ -318,8 +326,20 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setIsHelpOpen(true)}
+                                className="p-2 rounded-full hover:bg-purple-500/10 text-muted-foreground hover:text-purple-500 transition-colors relative group"
+                                title={t('ai_help.title')}
+                            >
+                                <GeminiIcon className="w-5 h-5" />
+                                <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                                </span>
+                            </button>
                             <ThemeSelector />
                             <NotificationBell />
+                            <LanguageSelector />
                         </div>
                     </header>
 
@@ -340,16 +360,17 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 </button>
                             </div>
                             <div className="space-y-1">
-                                <NavItem mode="dashboard" icon={Inbox} label="Inbox" />
-                                <NavItem mode="editor" icon={Briefcase} label="Follow-Up" />
-                                <NavItem mode="projects" icon={FolderGit2} label="Projects" />
-                                <NavItem mode="users" icon={Users} label="People" />
+                                <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                                <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                                <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
+                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
                             </div>
                         </div>
                         <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
                     </div>
                 )}
             </div>
+            <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
         </div>
     );
 }

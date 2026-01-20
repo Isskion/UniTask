@@ -11,7 +11,8 @@ import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListT
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS, de, fr, ca, pt } from "date-fns/locale";
+import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/context/ToastContext";
 import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
@@ -26,6 +27,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { showToast } = useToast();
+    const { t, language } = useLanguage();
+    const dateLocale = { en: enUS, es, de, fr, ca, pt }[language] || enUS;
     const { isAdmin: checkIsAdmin, can, permissions } = usePermissions();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
@@ -248,8 +251,14 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             // Regular user constraints
             if (!t.projectId) return false;
             // Check if project is assigned to user
+
             // Note: visibleProjects is already filtered by assignment for non-admins
-            if (!visibleProjects.some(vp => vp.id === t.projectId)) return false;
+            const isVisible = visibleProjects.some(vp => vp.id === t.projectId);
+            if (!isVisible && tasks.indexOf(t) < 5) {
+                // Debug first few hidden tasks
+                console.log(`[TaskFilter] Hiding task ${t.friendlyId} (Project ${t.projectId}). Visible Projects:`, visibleProjects.map(p => p.id));
+            }
+            if (!isVisible) return false;
         }
 
         // Apply Sidebar Filters
@@ -289,8 +298,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (isDirty()) {
             setConfirmModal({
                 open: true,
-                title: "Cambios sin guardar",
-                message: "Tienes cambios sin guardar. ¿Deseas descartarlos y cambiar de tarea?",
+                title: t('task_manager.unsaved_changes'),
+                message: t('task_manager.discard_and_switch'),
                 onConfirm: proceed
             });
             return;
@@ -308,7 +317,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 projectId: "", // User must select
                 // startDate: REMOVED - Uses createdAt
                 acceptanceCriteria: [
-                    { id: '1', text: 'Criterio de aceptación 1', completed: false }
+                    { id: '1', text: t('task_manager.criteria_placeholder'), completed: false }
                 ],
                 progress: 0,
                 raci: { responsible: [], accountable: [], consulted: [], informed: [] },
@@ -324,8 +333,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (isDirty()) {
             setConfirmModal({
                 open: true,
-                title: "Cambios sin guardar",
-                message: "Tienes cambios sin guardar. ¿Deseas descartarlos y crear nueva tarea?",
+                title: t('task_manager.unsaved_changes'),
+                message: t('task_manager.discard_and_create'),
                 onConfirm: proceed
             });
             return;
@@ -334,13 +343,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     };
 
     const handleSave = async () => {
-        if (!formData.title) return showToast("UniTaskController", "El título es obligatorio", "error");
-        if (!formData.projectId) return showToast("UniTaskController", "Debes asignar un proyecto a la tarea", "error");
+        if (!formData.title) return showToast("UniTaskController", t('task_manager.title_required'), "error");
+        if (!formData.projectId) return showToast("UniTaskController", t('task_manager.project_required'), "error");
 
         // Security Check: Ensure project is allowed
         if (!isAdmin) {
             const isAllowed = visibleProjects.some(p => p.id === formData.projectId);
-            if (!isAllowed) return showToast("UniTaskController", "No tienes permisos para crear tareas en este proyecto.", "error");
+            if (!isAllowed) return showToast("UniTaskController", t('task_manager.no_project_permission'), "error");
         }
 
 
@@ -533,12 +542,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     setSelectedTask({ ...selectedTask, ...data } as Task);
 
                     setIsNew(false);
-                    showToast("UniTaskController", "Guardado", "success");
+                    showToast("UniTaskController", t('task_manager.saved'), "success");
                 }
             }
         } catch (e) {
             console.error(e);
-            showToast("UniTaskController", "Error al guardar", "error");
+            showToast("UniTaskController", t('task_manager.save_error'), "error");
         } finally {
             setSaving(false);
         }
@@ -546,24 +555,24 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     const handleDelete = async () => {
         // Double Check UI shouldn't allow this, but safe guard
-        if (!can('delete', 'tasks')) return showToast("UniTaskController", "No tienes permisos para eliminar tareas.", "error");
+        if (!can('delete', 'tasks')) return showToast("UniTaskController", t('task_manager.no_project_permission'), "error");
 
         if (!selectedTask?.id || isNew) return;
 
         setConfirmModal({
             open: true,
-            title: "Eliminar Tarea",
-            message: "¿Borrar esta tarea permanentemente? Esta acción es irreversible.",
+            title: t('task_manager.delete_confirm_title'),
+            message: t('task_manager.delete_confirm_message'),
             destructive: true,
             onConfirm: async () => {
                 try {
                     await deleteDoc(doc(db, "tasks", selectedTask.id));
                     setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
                     setSelectedTask(null);
-                    showToast("UniTaskController", "Tarea eliminada", "success");
+                    showToast("UniTaskController", t('task_manager.deleted'), "success");
                 } catch (e) {
                     console.error(e);
-                    showToast("UniTaskController", "Error eliminando tarea", "error");
+                    showToast("UniTaskController", t('task_manager.delete_error'), "error");
                 }
                 setConfirmModal(null);
             }
@@ -655,10 +664,10 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     const getStatusLabel = (s?: string) => {
         switch (s) {
-            case 'completed': return 'Aprobación Final';
-            case 'in_progress': return 'En Curso';
-            case 'review': return 'Revisión';
-            default: return 'Pendiente';
+            case 'completed': return t('task_manager.status_completed');
+            case 'in_progress': return t('task_manager.status_in_progress');
+            case 'review': return t('task_manager.status_review');
+            default: return t('task_manager.status_pending');
         }
     };
 
@@ -699,7 +708,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             sidebarFilter === f ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white hover:bg-white/5"
                                         )}
                                     >
-                                        {f === 'all' ? 'Todas' : f === 'active' ? 'Activas' : 'Completas'}
+                                        {f === 'all' ? t('task_manager.filter_all') : f === 'active' ? t('task_manager.filter_active') : t('task_manager.filter_completed')}
                                     </button>
                                 ))}
                             </div>
@@ -745,7 +754,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 {!selectedTask ? (
                     <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-white")}>
                         <LayoutTemplate className="w-12 h-12 mb-3 opacity-80" />
-                        <p className={cn("text-sm font-medium", isLight ? "text-zinc-500" : "text-white")}>Selecciona una tarea para gestionar</p>
+                        <p className={cn("text-sm font-medium", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.select_task')}</p>
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar relative">
@@ -841,11 +850,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     {/* Dates & Timeline (Simplified) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>Cronograma</h3>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.schedule')}</h3>
                                         <div className="flex items-start gap-4">
                                             {/* Start Date */}
                                             <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Inicio</label>
+                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.start_date')}</label>
                                                 <div className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-black/20 border-white/5")}>
                                                     <CalendarIcon className="w-4 h-4 text-zinc-500" />
                                                     <span className="text-xs text-zinc-500 font-mono">
@@ -859,7 +868,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* End Date */}
                                             <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-red-600" : "text-red-400")}>Fin (Deadline)</label>
+                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-red-600" : "text-red-400")}>{t('task_manager.end_date')}</label>
                                                 <div
                                                     className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:border-indigo-500/50 transition-colors",
                                                         isLight ? "bg-white border-zinc-200" : "bg-black/20 border-white/5"
@@ -888,7 +897,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 <UserIcon className="w-5 h-5" />
                                             </div>
                                             <div className="flex-1">
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Responsable de la Tarea</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.task_owner')}</label>
                                                 <select
                                                     className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
                                                         isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
@@ -896,7 +905,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     value={formData.assignedTo || ""}
                                                     onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
                                                 >
-                                                    <option value="">Seleccionar Responsable...</option>
+                                                    <option value="">{t('task_manager.select_owner')}</option>
                                                     {users.map(u => (
                                                         <option key={u.uid} value={u.uid}>
                                                             {u.displayName} ({u.role?.replace('_', ' ')})
@@ -904,7 +913,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     ))}
                                                 </select>
                                                 <div className="text-[10px] text-zinc-500 mt-1 italic">
-                                                    * Al asignar, el usuario recibirá una notificación inmediata.
+                                                    {t('task_manager.assignment_notification')}
                                                 </div>
                                             </div>
                                         </div>
@@ -912,7 +921,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     {/* Tech Desc (Renamed) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Descripción</h3>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.description')}</h3>
                                         <textarea
                                             className={cn("w-full min-h-[80px] border rounded-lg p-3 text-xs focus:outline-none resize-none font-mono",
                                                 isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
@@ -925,7 +934,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     {/* Execution (Existente) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Ejecución</h3>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.execution')}</h3>
                                         <div className={cn("space-y-2 pl-4 border-l", isLight ? "border-zinc-200" : "border-white/5")}>
                                             {formData.acceptanceCriteria?.map((ac, idx) => (
                                                 <div key={ac.id} className="flex items-center gap-2 group/item">
@@ -941,13 +950,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     />
                                                 </div>
                                             ))}
-                                            <button onClick={() => setFormData({ ...formData, acceptanceCriteria: [...(formData.acceptanceCriteria || []), { id: Date.now().toString(), text: "Nuevo Criterio", completed: false }] })} className="text-[10px] text-indigo-400 font-bold mt-2 flex items-center gap-1.5"><Plus className="w-3 h-3" /> Añadir Criterio</button>
+                                            <button onClick={() => setFormData({ ...formData, acceptanceCriteria: [...(formData.acceptanceCriteria || []), { id: Date.now().toString(), text: t('task_manager.new_criteria'), completed: false }] })} className="text-[10px] text-indigo-400 font-bold mt-2 flex items-center gap-1.5"><Plus className="w-3 h-3" /> {t('task_manager.add_criteria')}</button>
                                         </div>
                                     </div>
 
                                     {/* Dependencies (Movido de derecha) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Dependencias</h3>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.dependencies')}</h3>
 
                                         {/* List Existing */}
                                         <div className="space-y-2 mb-3">
@@ -965,7 +974,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                         >
                                                             <AlertTriangle className="w-4 h-4 shrink-0" />
                                                             <div>
-                                                                <span className="font-bold block text-[9px] uppercase opacity-70">Blocked By</span>
+                                                                <span className="font-bold block text-[9px] uppercase opacity-70">{t('task_manager.blocked_by')}</span>
                                                                 <div className="font-medium text-zinc-300 hover:text-red-300 underline underline-offset-2 decoration-red-500/30 transition-all">
                                                                     {depTask.friendlyId || 'Unknown'} - {depTask.title}
                                                                 </div>
@@ -1039,12 +1048,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                     {/* Project Selector - Added context block (Movido de izquierda) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Clasificación & Proyecto</h3>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.classification_project')}</h3>
 
                                         <div className="space-y-4">
                                             {/* 1. Project Selector */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Proyecto Asignado</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.assigned_project')}</label>
                                                 <div className="flex items-center gap-2">
                                                     <FolderGit2 className="w-4 h-4 text-indigo-500" />
                                                     <select
@@ -1055,20 +1064,20 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                         onChange={e => setFormData({ ...formData, projectId: e.target.value })}
                                                         disabled={!isNew}
                                                     >
-                                                        <option value="" disabled>Seleccionar Proyecto...</option>
+                                                        <option value="" disabled>{t('task_manager.select_project')}</option>
                                                         {visibleProjects.map(p => (
                                                             <option key={p.id} value={p.id}>{p.name}</option>
                                                         ))}
                                                     </select>
                                                 </div>
-                                                {!isNew && <div className="text-[9px] text-zinc-600 dark:text-zinc-500 mt-1">El proyecto no se puede cambiar editar.</div>}
+                                                {!isNew && <div className="text-[9px] text-zinc-600 dark:text-zinc-500 mt-1">{t('task_manager.project_locked')}</div>}
                                             </div>
 
                                             {/* Stacked Layout for Classification */}
 
                                             {/* Priority */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.priority')}</label>
                                                 <PowerSelect
                                                     value={formData.priority || ""}
                                                     onChange={(val) => setFormData({ ...formData, priority: val as any })}
@@ -1086,7 +1095,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Area */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Área *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.area')} *</label>
                                                 <PowerSelect
                                                     value={formData.area || ""}
                                                     onChange={(val) => setFormData({ ...formData, area: val })}
@@ -1097,7 +1106,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Scope */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.scope')}</label>
                                                 <PowerSelect
                                                     value={formData.scope || ""}
                                                     onChange={(val) => setFormData({ ...formData, scope: val })}
@@ -1108,7 +1117,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Module */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.module')} *</label>
                                                 <PowerSelect
                                                     value={formData.module || ""}
                                                     onChange={(val) => setFormData({ ...formData, module: val })}
@@ -1146,9 +1155,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     {/* Actions (Existente) */}
                                     <div className="pt-2 border-t border-white/5 flex flex-col gap-3">
                                         <button onClick={handleSave} disabled={saving} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg shadow-indigo-900/30 transition-all flex justify-center items-center gap-2 text-xs uppercase tracking-wide">
-                                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar Cambios
+                                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('task_manager.save_changes')}
                                         </button>
-                                        {!isNew && can('delete', 'tasks') && <button onClick={handleDelete} className="w-full py-3 bg-transparent border border-white/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 font-bold rounded-lg transition-all text-xs uppercase tracking-wide">Eliminar Tarea</button>}
+                                        {!isNew && can('delete', 'tasks') && <button onClick={handleDelete} className="w-full py-3 bg-transparent border border-white/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 font-bold rounded-lg transition-all text-xs uppercase tracking-wide">{t('task_manager.delete_task')}</button>}
                                     </div>
                                 </div>
                             </div>
@@ -1169,7 +1178,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                         onClick={() => setConfirmModal(null)}
                                         className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
                                     >
-                                        Cancelar
+                                        {t('task_manager.cancel')}
                                     </button>
                                     <button
                                         onClick={confirmModal.onConfirm}
@@ -1180,7 +1189,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 : "bg-primary hover:bg-primary/90 shadow-primary/20"
                                         )}
                                     >
-                                        Confirmar
+                                        {t('task_manager.confirm')}
                                     </button>
                                 </div>
                             </div>

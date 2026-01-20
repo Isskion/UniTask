@@ -3,8 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = 'http://localhost:3000';
-// Use the session specific path
-const OUTPUT_DIR = String.raw`C:\Users\daniel.delamo\.gemini\antigravity\brain\c3985009-85a6-4852-b6be-eea25b4ee3c0\screenshots`;
+const OUTPUT_DIR = path.join(__dirname, '../manual_images');
 
 // Create subdirectories
 const SUBDIRS = [
@@ -22,12 +21,55 @@ SUBDIRS.forEach(subdir => {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 (async () => {
-    console.log("🚀 Starting Comprehensive Manual Screenshot Generation (Fixed)...");
+    console.log("🚀 Starting Comprehensive Manual Screenshot Generation (Real Auth)...");
     const browser = await puppeteer.launch({
         headless: "new",
         defaultViewport: { width: 1440, height: 900 },
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
+
+    // 1. GLOBAL LOGIN
+    {
+        const page = await browser.newPage();
+        try {
+            console.log("🔑 Logging in as cursoiadaniel@gmail.com...");
+            await page.goto(BASE_URL + '/login', { waitUntil: 'domcontentloaded' });
+
+            await sleep(2000);
+
+            // Check if login form exists
+            const emailSelector = 'input[type="email"]';
+            const passSelector = 'input[type="password"]';
+
+            if (await page.$(emailSelector)) {
+                await page.type(emailSelector, 'cursoiadaniel@gmail.com');
+                // USE ENV VAR OR PLACEHOLDER
+                const password = process.env.SCREENSHOT_PASSWORD || 'PASSWORD_PLACEHOLDER';
+                await page.type(passSelector, password, { delay: 50 }); // Type slower
+
+                console.log("Submit login...");
+                // Click the "Entrar" button specifically
+                const submitBtn = await page.$('button[type="submit"]');
+                if (submitBtn) await submitBtn.click();
+                else await page.keyboard.press('Enter');
+
+                // Wait for Dashboard (Look for Logo or Sidebar)
+                try {
+                    await page.waitForSelector('.theme-logo', { timeout: 15000 });
+                    console.log("✅ Login successful (Dashboard detected).");
+                } catch (e) {
+                    console.error("❌ Login transition failed. Still on login page?");
+                    // Capture debug screenshot
+                    await page.screenshot({ path: path.join(OUTPUT_DIR, '00_login_fail_debug.png') });
+                }
+            } else {
+                console.log("ℹ️ Login form not found (already logged in?)");
+            }
+        } catch (e) {
+            console.error("Login failed:", e);
+        }
+        await page.close();
+    }
 
     const capture = async (folder, filename, viewMode, actions = async () => { }, noAuth = false) => {
         const page = await browser.newPage();
@@ -49,16 +91,25 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
             };
 
             if (!noAuth) {
-                await page.evaluateOnNewDocument((vm) => {
-                    // Inject DEV-ONLY bypass trigger
-                    localStorage.setItem('TEST_MODE', 'true');
-                    if (vm) localStorage.setItem('daily_view_mode', vm);
-                    localStorage.setItem('theme', 'light');
-                }, viewMode);
+                // Perform Real Login if not already logged in?
+                // Shared browser context? 
+                // Puppeteer launches fresh browser. We must login ONCE.
             }
+            // Logic moved below
 
             await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+            // Wait for auth state to hydrate
             await sleep(3000);
+
+            if (viewMode === 'projects') await page.goto(BASE_URL + '/projects');
+            if (viewMode === 'users') await page.goto(BASE_URL + '/admin/users');
+            if (viewMode === 'dashboard') await page.goto(BASE_URL + '/dashboard');
+            if (viewMode === 'daily-followup') await page.goto(BASE_URL + '/daily-followup');
+            if (viewMode === 'tasks') await page.goto(BASE_URL + '/tasks');
+            if (viewMode === 'user-roles') await page.goto(BASE_URL + '/admin/user-roles');
+            if (viewMode === 'admin-task-master') await page.goto(BASE_URL + '/admin/task-master');
+
+            await sleep(2000);
 
             // Pass the custom $x helper to the action
             await actions(page, $x);

@@ -21,6 +21,7 @@ import { parseNotes } from "@/lib/smartParser";
 import { useTheme } from "@/hooks/useTheme";
 import { getActiveProjects } from "@/lib/projects";
 import { useToast } from "@/context/ToastContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 const ROLES = [
     { value: 'superadmin', label: 'Super Admin', color: 'text-indigo-500' },
@@ -36,6 +37,7 @@ export default function UserManagement() {
     const { updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const { showToast } = useToast();
+    const { t } = useLanguage();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
     const [users, setUsers] = useState<UserData[]>([]);
@@ -786,11 +788,11 @@ export default function UserManagement() {
                     <div className="flex flex-col gap-3 p-2">
                         {/* Header Row */}
                         <div className="grid grid-cols-12 gap-4 px-4 py-2 text-[10px] font-bold text-foreground/70 uppercase tracking-wider">
-                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-4" : "col-span-5"}>Usuario / Perfil</div>
-                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-2" : "col-span-3"}>Email</div>
-                            {getRoleLevel(userRole) >= 100 && <div className="col-span-2">Tenant</div>}
-                            <div className="col-span-2">Rol / Permisos</div>
-                            <div className="col-span-2 text-right">Estado</div>
+                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-4" : "col-span-5"}>{t('user_management.user_profile')}</div>
+                            <div className={getRoleLevel(userRole) >= 100 ? "col-span-2" : "col-span-3"}>{t('user_management.email')}</div>
+                            {getRoleLevel(userRole) >= 100 && <div className="col-span-2">{t('user_management.tenant')}</div>}
+                            <div className="col-span-2">{t('user_management.role_permissions')}</div>
+                            <div className="col-span-2 text-right">{t('user_management.status')}</div>
                         </div>
 
                         {/* List Items */}

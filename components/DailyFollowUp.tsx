@@ -11,12 +11,12 @@ import { Project, JournalEntry, Task, NoteBlock } from "@/types";
 import { NotificationBell } from "./NotificationBell"; // Re-applied Import Fix
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
-import { es } from "date-fns/locale";
 import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalEntriesForDate, getAllJournalEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Sparkles, Activity, Loader2, ListTodo, AlertTriangle, PlayCircle, PauseCircle, Timer, Save, Calendar, PenSquare, CalendarPlus, Trash2, X, UserCircle2, Eye, EyeOff, ArrowRight, Search, Layout } from "lucide-react";
+import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search } from 'lucide-react';
+import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
@@ -33,11 +33,26 @@ import { useTheme } from "@/hooks/useTheme";
 import ChangelogModal from "./ChangelogModal";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 import TaskMasterDataManagement from "./TaskMasterDataManagement"; // Master Data Manager // Added import
+import ReportManagement from "./reports/ReportManagement"; // Added Import
+import { useLanguage } from "@/context/LanguageContext";
+import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
+
+// Helper to map language string to date-fns locale
+const localeMap: Record<string, any> = {
+    en: enUS,
+    es: es,
+    de: de,
+    fr: fr,
+    ca: ca,
+    pt: pt
+};
 
 
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
+    const { t, language } = useLanguage();
+    const currentLocale = localeMap[language] || enUS;
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
@@ -70,6 +85,45 @@ export default function DailyFollowUp() {
             showToast("Error", "No se pudo cambiar el estado de bloqueo", "error");
         }
     };
+
+    const handlePrint = async () => {
+        if (!user || !tenantId) {
+            showToast("Error", "Usuario no autenticado o tenant no disponible.", "error");
+            return;
+        }
+        setIsGeneratingPDF(true);
+        try {
+            const formattedDate = format(currentDate, 'yyyy-MM-dd');
+            const result = await generateDailyReportPDF(formattedDate, tenantId);
+
+            if (result.success && result.pdf) {
+                const byteCharacters = atob(result.pdf);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Minuta_${formattedDate}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast("Éxito", "Reporte PDF descargado.", "success");
+            } else {
+                showToast("Error", "No se recibió el PDF generado.", "error");
+            }
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            showToast("Error", "No se pudo generar el reporte PDF.", "error");
+        } finally {
+            setIsGeneratingPDF(false);
+        }
+    };
+
     const [profileLoading, setProfileLoading] = useState(true);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
 
@@ -78,6 +132,7 @@ export default function DailyFollowUp() {
     // --- STATE: DATE & NAVIGATION ---
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const [isHydrated, setIsHydrated] = useState(false);
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     // Hydration-safe initial load
     useEffect(() => {
@@ -109,7 +164,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -1295,13 +1350,13 @@ export default function DailyFollowUp() {
                                                                 ? "text-primary-foreground font-bold"
                                                                 : (isLight ? "text-zinc-700 group-hover:text-zinc-900" : "text-zinc-100 group-hover:text-white")
                                                         )}>
-                                                            {format(dateObj, 'MMMM', { locale: es })}
+                                                            {format(dateObj, 'MMMM', { locale: currentLocale })}
                                                         </span>
                                                         <span className={cn("text-[9px]",
                                                             isSelected
                                                                 ? "text-primary-foreground/80"
                                                                 : (isLight ? "text-zinc-500" : "text-white")
-                                                        )}>{format(dateObj, 'EEE', { locale: es })}</span>
+                                                        )}>{format(dateObj, 'EEE', { locale: currentLocale })}</span>
                                                     </div>
 
                                                     {/* Dots / Indicators */}
@@ -1345,7 +1400,7 @@ export default function DailyFollowUp() {
                                 <div className="flex items-center gap-4">
                                     <h2 className={cn("text-lg font-medium flex items-center gap-3", isLight ? "text-zinc-900" : "text-white")}>
                                         <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
-                                        <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}</span>
+                                        <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: currentLocale })}</span>
                                     </h2>
 
                                     {/* SEARCH BAR REMOVED */}
@@ -1385,10 +1440,10 @@ export default function DailyFollowUp() {
                                                         : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100")
                                                     : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
                                             )}
-                                            title={isTasksPanelVisible ? "Ocultar panel de tareas" : "Ver tareas"}
+                                            title={isTasksPanelVisible ? t('follow_up.hide_tasks') : t('follow_up.view_tasks')}
                                         >
                                             <ListTodo className="w-3 h-3" />
-                                            {isTasksPanelVisible ? "Ocultar" : "Tareas"}
+                                            {isTasksPanelVisible ? t('common.hide') : t('follow_up.tasks')}
                                         </button>
 
                                         {/* 2. SCAN PDF */}
@@ -1458,13 +1513,15 @@ export default function DailyFollowUp() {
                                                             }
                                                             setSaving(false);
                                                         };
+
+
                                                         reader.readAsDataURL(file);
                                                     } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
                                                     e.target.value = "";
                                                 }}
                                             />
-                                            <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title="Escanear PDF">
-                                                <Sparkles className="w-3 h-3" /> Escanear
+                                            <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title={t('follow_up.scan_pdf')}>
+                                                <Sparkles className="w-3 h-3" /> {t('follow_up.scan')}
                                             </label>
                                         </div>
 
@@ -1477,10 +1534,10 @@ export default function DailyFollowUp() {
                                                         ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
                                                         : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
                                                 )}
-                                                title="Mover notas"
+                                                title={t('follow_up.move_notes')}
                                             >
                                                 <ArrowRight className="w-3 h-3" />
-                                                Mover
+                                                {t('follow_up.move')}
                                             </button>
                                         )}
 
@@ -1497,7 +1554,7 @@ export default function DailyFollowUp() {
                                             )}
                                         >
                                             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                            Guardar
+                                            {t('common.save')}
                                         </button>
 
                                         {isDirty && (
@@ -1547,6 +1604,24 @@ export default function DailyFollowUp() {
                                 })}
 
                                 <div className="relative ml-2 z-50">
+                                    {userRole === 'superadmin' && (
+                                        <button
+                                            onClick={handlePrint}
+                                            disabled={isGeneratingPDF}
+                                            className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all mr-2",
+                                                isLight
+                                                    ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900"
+                                                    : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
+                                            )}>
+                                            {isGeneratingPDF ? (
+                                                <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Printer className="w-3.5 h-3.5" />
+                                            )}
+                                            {isGeneratingPDF ? t('follow_up.generating') : t('follow_up.print')}
+                                        </button>
+                                    )}
+
                                     <button
                                         onClick={() => setIsAddProjectOpen(!isAddProjectOpen)}
                                         className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
@@ -1554,7 +1629,7 @@ export default function DailyFollowUp() {
                                                 ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
                                                 : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
                                         )}>
-                                        <Plus className="w-3.5 h-3.5" /> Añadir Proyecto
+                                        <Plus className="w-3.5 h-3.5" /> {t('follow_up.add_project')}
                                     </button>
 
                                     {isAddProjectOpen && (
@@ -1596,8 +1671,8 @@ export default function DailyFollowUp() {
                                                 <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
                                                     <PenSquare className="w-3 h-3" />
                                                     {activeTab === 'General'
-                                                        ? 'Notas Generales'
-                                                        : `Minuta: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
+                                                        ? t('follow_up.general_notes')
+                                                        : `${t('follow_up.minute')}: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
                                                     }
                                                 </label>
                                             </div>
@@ -1614,7 +1689,7 @@ export default function DailyFollowUp() {
                                                         ? "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                                                         : "bg-white/5 border-white/10 text-zinc-200 placeholder:text-zinc-500"
                                                 )}
-                                                placeholder="¿Resumen del día? ¿Anuncios importantes?"
+                                                placeholder={t('follow_up.today_summary')}
                                             />
                                         ) : (
                                             <div className="flex flex-col gap-4">
@@ -1629,7 +1704,7 @@ export default function DailyFollowUp() {
                                                                 className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
                                                                 value={block.title || `Bloque ${idx + 1}`}
                                                                 onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
-                                                                placeholder="Título del bloque (ej. Reunión Equipo)"
+                                                                placeholder={t('follow_up.block_title_placeholder')}
                                                             />
                                                             <button
                                                                 onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
@@ -1654,7 +1729,7 @@ export default function DailyFollowUp() {
                                                             className={cn("w-full bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]",
                                                                 isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
                                                             )}
-                                                            placeholder="Escribe aquí las conclusiones..."
+                                                            placeholder={t('follow_up.block_content_placeholder')}
                                                         />
                                                     </div>
                                                 ))}
@@ -1667,7 +1742,7 @@ export default function DailyFollowUp() {
                                                             : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
                                                     )}
                                                 >
-                                                    <Plus className="w-4 h-4" /> Añadir otro bloque de notas
+                                                    <Plus className="w-4 h-4" /> {t('follow_up.add_note_block')}
                                                 </button>
                                             </div>
                                         )}
@@ -1679,7 +1754,7 @@ export default function DailyFollowUp() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                                                     <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
-                                                    {activeTab === 'General' ? 'Todas las Tareas Activas' : `Tareas Activas: ${activeTab}`}
+                                                    {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
                                                 </label>
                                                 <button
                                                     onClick={() => handleAI()}
@@ -1688,7 +1763,7 @@ export default function DailyFollowUp() {
                                                     title="Analizar notas y extraer tareas"
                                                 >
                                                     {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                    Extraer tareas
+                                                    {t('follow_up.extract_tasks')}
                                                 </button>
                                             </div>
 
@@ -1705,7 +1780,7 @@ export default function DailyFollowUp() {
                                                         value={newTaskText}
                                                         onChange={(e) => setNewTaskText(e.target.value)}
                                                         onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
-                                                        placeholder="Nueva tarea manual..."
+                                                        placeholder={t('follow_up.new_manual_task')}
                                                         className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
                                                     />
                                                     <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
@@ -1725,7 +1800,7 @@ export default function DailyFollowUp() {
                                                         {aiSummary && (
                                                             <div className="mb-2">
                                                                 <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
-                                                                    <Activity className="w-3 h-3" /> Resumen / Contexto
+                                                                    <Activity className="w-3 h-3" /> {t('follow_up.summary_context')}
                                                                 </h4>
                                                                 <p className="text-xs text-primary/80 leading-relaxed italic">
                                                                     "{aiSummary}"
@@ -1736,7 +1811,7 @@ export default function DailyFollowUp() {
                                                         {/* Suggestions List */}
                                                         {aiSuggestions.length > 0 && (
                                                             <div>
-                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-2">Sugerencias ({aiSuggestions.length})</h4>
+                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
                                                                 <div className="space-y-1">
                                                                     {aiSuggestions.map((sugg, idx) => (
                                                                         <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
@@ -1745,21 +1820,21 @@ export default function DailyFollowUp() {
                                                                                 <button
                                                                                     onClick={() => handleAcceptSuggestion(sugg, false)}
                                                                                     className="p-1 hover:bg-green-500/20 text-green-500 rounded"
-                                                                                    title="Crear Tarea"
+                                                                                    title={t('follow_up.create_task')}
                                                                                 >
                                                                                     <Plus className="w-3 h-3" />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => handleAcceptSuggestion(sugg, true)}
                                                                                     className="p-1 hover:bg-red-500/20 text-red-500 rounded"
-                                                                                    title="Crear como BLOQUEANTE"
+                                                                                    title={t('follow_up.create_blocker')}
                                                                                 >
                                                                                     <AlertTriangle className="w-3 h-3" />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={() => handleDismissSuggestion(sugg)}
                                                                                     className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
-                                                                                    title="Descartar"
+                                                                                    title={t('follow_up.dismiss')}
                                                                                 >
                                                                                     <Activity className="w-3 h-3 rotate-45" />
                                                                                 </button>
@@ -1774,14 +1849,14 @@ export default function DailyFollowUp() {
                                                             onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
                                                             className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
                                                         >
-                                                            Cerrar sugerencias
+                                                            {t('follow_up.close_suggestions')}
                                                         </button>
                                                     </div>
                                                 )}
 
                                                 {visibleTasks.length === 0 ? (
                                                     <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
-                                                        No hay tareas activas para los proyectos de hoy
+                                                        {t('follow_up.no_tasks_active')}
                                                     </div>
                                                 ) : (
                                                     visibleTasks.filter(t => t.status !== 'completed').map(task => (
@@ -1804,7 +1879,7 @@ export default function DailyFollowUp() {
                                                                         </span>
                                                                         {task.isBlocking && (
                                                                             <span className="text-[9px] font-bold text-red-500 bg-red-950/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                                                                <AlertTriangle className="w-2.5 h-2.5" /> BLOQUEANTE
+                                                                                <AlertTriangle className="w-2.5 h-2.5" /> {t('follow_up.blocker')}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -1822,7 +1897,7 @@ export default function DailyFollowUp() {
                                                                 <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                     <button
                                                                         onClick={() => handleToggleBlock(task)}
-                                                                        title={task.isBlocking ? "Desbloquear" : "Bloquear"}
+                                                                        title={task.isBlocking ? t('follow_up.unblock') : t('follow_up.block_task')}
                                                                         className={cn(
                                                                             "p-1.5 rounded hover:bg-white/10 transition-colors",
                                                                             task.isBlocking ? "text-red-400" : "text-zinc-500 hover:text-red-400"
@@ -1870,8 +1945,10 @@ export default function DailyFollowUp() {
                         />
                     ) : viewMode === 'admin-task-master' ? (
                         <TaskMasterDataManagement />
+                    ) : viewMode === 'reports' ? (
+                        <ReportManagement />
                     ) : (
-                        <div className="p-10 text-center text-zinc-500">Módulo en construcción: {viewMode}</div>
+                        <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                     )}
                 </div>
 
@@ -1889,9 +1966,9 @@ export default function DailyFollowUp() {
                 isMoveModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                         <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
-                            <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>Mover Entrada</h3>
+                            <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('follow_up.move_entry')}</h3>
                             <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                                Mover las notas de <strong>{activeTab}</strong> al día:
+                                {t('follow_up.move_notes_from')} <strong>{activeTab}</strong> {t('follow_up.to_date')}
                             </p>
 
                             <input
@@ -1910,7 +1987,7 @@ export default function DailyFollowUp() {
                                     onClick={() => setIsMoveModalOpen(false)}
                                     className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
                                 >
-                                    Cancelar
+                                    {t('common.cancel')}
                                 </button>
                                 <button
                                     onClick={handleMoveProject}
@@ -1918,7 +1995,7 @@ export default function DailyFollowUp() {
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
                                 >
                                     {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-                                    Confirmar Mover
+                                    {t('follow_up.confirm_move')}
                                 </button>
                             </div>
                         </div>

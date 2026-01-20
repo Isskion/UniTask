@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
+import { useLanguage } from '@/context/LanguageContext';
 
 
 
@@ -29,6 +30,7 @@ interface TaskDashboardProps {
 export default function TaskDashboard({ projects, userProfile, permissionLoading }: TaskDashboardProps) {
     const { user, tenantId } = useAuth();
     const { permissions, isAdmin, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
+    const { t } = useLanguage();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -247,10 +249,10 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                         <button
                             onClick={() => setFilters({ ...initialFilters, search: filters.search })}
                             className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all border border-red-500/30 text-red-500 hover:bg-red-500/10"
-                            title="Limpiar filtros activos"
+                            title={t('task_board.clear_filters')}
                         >
                             <X className="w-3.5 h-3.5" />
-                            Limpiar ({activeFilterCount})
+                            {t('task_board.clear')} ({activeFilterCount})
                         </button>
                     )}
 

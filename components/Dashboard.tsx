@@ -7,8 +7,19 @@ import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid, eachWeekOfInterval, getWeek, endOfDay, addWeeks, subWeeks, addMonths, subMonths, addYears, subYears } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
+
+// Helper to map language string to date-fns locale
+const localeMap: Record<string, any> = {
+    en: enUS,
+    es: es,
+    de: de,
+    fr: fr,
+    ca: ca,
+    pt: pt
+};
 
 interface DashboardProps {
     entry: JournalEntry;
@@ -22,6 +33,8 @@ type TimeScope = 'day' | 'week' | 'month' | 'year';
 export default function Dashboard({ entry, globalProjects = [], userProfile: propProfile, userRole: propRole }: DashboardProps) {
     // [FIX] Use AuthContext as Source of Truth for Role/Profile to ensure freshness (e.g. after role change)
     const { user, tenantId, userRole, userProfile: authProfile } = useAuth();
+    const { t, language } = useLanguage();
+    const currentLocale = localeMap[language] || enUS;
 
     // Fallback to props if Context not ready (though Context is usually faster/fresher)
     const finalProfile = authProfile || propProfile;
@@ -33,6 +46,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
     const [timeScope, setTimeScope] = useState<TimeScope>('week');
 
+    // ... (Navigation State and Effect remain same) ...
     // [NEW] Historical Navigation State
     const [currentDate, setCurrentDate] = useState<Date>(() => {
         if (entry && entry.date) {
@@ -50,7 +64,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         }
     }, [entry]);
 
-    // Navigation Handlers
+    // Navigation Handlers (Keep existing logic)
     const handlePrev = () => {
         setCurrentDate(prev => {
             switch (timeScope) {
@@ -76,6 +90,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     const handleToday = () => {
         setCurrentDate(new Date());
     };
+
+    // ... (Subscription and Safe Parsing remain same) ...
 
     // Subscribe to ALL tasks
     useEffect(() => {
@@ -115,11 +131,13 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         }
     };
 
+
     // Calculate Allowed Projects
     const allowedProjectIds = useMemo(() => {
         const currentLevel = getRoleLevel(finalRole);
         if (currentLevel >= RoleLevel.PM) return null; // All projects allowed for PM/Admin
 
+        console.log("[Dashboard] Allowed Projects:", finalProfile?.assignedProjectIds);
         return finalProfile?.assignedProjectIds || [];
     }, [finalRole, finalProfile]);
 
@@ -147,6 +165,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             return tasks.filter(task => {
                 // Permission Filter
                 if (allowedProjectIds && (!task.projectId || !allowedProjectIds.includes(task.projectId))) {
+                    // console.log(`[Dashboard] Hiding task ${task.friendlyId} - Project ${task.projectId} not in allowed:`, allowedProjectIds);
                     return false;
                 }
 
@@ -265,7 +284,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                 const end = endOfYear(entryDate);
                 const months = eachMonthOfInterval({ start, end });
                 buckets = months.map(m => ({
-                    label: format(m, 'MMM', { locale: es }).toUpperCase(), // ENE, FEB...
+                    label: format(m, 'MMM', { locale: currentLocale }).toUpperCase(), // ENE, FEB...
                     dateKey: format(m, 'yyyy-MM'),
                     bucketEnd: endOfMonth(m),
                     active: 0, completed: 0
@@ -278,7 +297,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
                 buckets = weeks.map(w => {
                     const weekNum = getWeek(w, { weekStartsOn: 1 });
-                    const monthName = format(w, 'MMM', { locale: es }).toUpperCase();
+                    const monthName = format(w, 'MMM', { locale: currentLocale }).toUpperCase();
                     return {
                         label: `SEM ${weekNum} (${monthName})`,
                         dateKey: format(w, 'yyyy-Iw'), // Year-Week
@@ -291,7 +310,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                 const end = endOfWeek(entryDate, { weekStartsOn: 1 });
                 const days = eachDayOfInterval({ start, end });
                 buckets = days.map(d => ({
-                    label: format(d, 'EEE', { locale: es }).toUpperCase(), // LUN, MAR...
+                    label: format(d, 'EEE', { locale: currentLocale }).toUpperCase(), // LUN, MAR...
                     dateKey: format(d, 'yyyy-MM-dd'),
                     bucketEnd: endOfDay(d),
                     active: 0, completed: 0
@@ -399,7 +418,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             console.error("Chart generation error", e);
             return [];
         }
-    }, [tasks, timeScope, currentDate, selectedProjectIds, uniqueProjects, allowedProjectIds]);
+    }, [tasks, timeScope, currentDate, selectedProjectIds, uniqueProjects, allowedProjectIds, currentLocale]); // Added currentLocale dep
 
     if (error) {
         return <div className="p-8 text-destructive text-center border border-destructive/20 rounded-xl bg-destructive/10">Error: {error}</div>;
@@ -446,9 +465,9 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     const getDateContext = () => {
         const d = currentDate;
 
-        if (timeScope === 'week') return `Semana del ${format(startOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })} al ${format(endOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: es })}`;
-        if (timeScope === 'month') return `Mes de ${format(d, 'MMMM yyyy', { locale: es }).toUpperCase()}`;
-        if (timeScope === 'year') return `Año ${format(d, 'yyyy')}`;
+        if (timeScope === 'week') return `${t('dashboard.week_of')} ${format(startOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: currentLocale })} ${t('dashboard.to')} ${format(endOfWeek(d, { weekStartsOn: 1 }), 'd MMM', { locale: currentLocale })}`;
+        if (timeScope === 'month') return `${t('dashboard.month_of')} ${format(d, 'MMMM yyyy', { locale: currentLocale }).toUpperCase()}`;
+        if (timeScope === 'year') return `${t('dashboard.year_label')} ${format(d, 'yyyy')}`;
         return 'Periodo Personalizado';
     };
 
@@ -471,7 +490,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                                 )}
                             >
-                                {scope === 'week' ? 'Semana' : scope === 'month' ? 'Mes' : 'Año'}
+                                {t(`dashboard.${scope}`)}
                             </button>
                         ))}
                     </div>
@@ -482,7 +501,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                             <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button onClick={handleToday} className="px-3 py-1.5 text-xs font-bold font-mono text-muted-foreground hover:text-foreground transition-colors">
-                            HOY
+                            {t('dashboard.today')}
                         </button>
                         <button onClick={handleNext} className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                             <ChevronRight className="w-4 h-4" />
@@ -496,13 +515,13 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                         onClick={() => setSelectedProjectIds(new Set(uniqueProjects.map(p => p.projectId)))}
                         className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        Todos
+                        {t('dashboard.all')}
                     </button>
                     <button
                         onClick={() => setSelectedProjectIds(new Set())}
                         className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-muted text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
                     >
-                        Ninguno
+                        {t('dashboard.none')}
                     </button>
                 </div>
             </div>
@@ -517,8 +536,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                         <h2 className="text-2xl font-bold text-card-foreground flex items-center gap-2">
                             <BarChart3 className="w-6 h-6 text-[#6366f1]" />
                             {selectedProjectIds.size > 0
-                                ? "Datos de Tareas"
-                                : 'Selecciona Proyectos'
+                                ? t('dashboard.task_data')
+                                : t('dashboard.select_projects')
                             }
                         </h2>
                         <p className="text-muted-foreground text-sm capitalize">
@@ -603,11 +622,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             <div className="flex justify-end gap-3 mb-6">
                 <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-foreground animate-pulse" />
-                    ACTIVAS (TOTAL): <span className="text-foreground font-bold">{loading ? "..." : totalBacklogCount}</span>
+                    {t('dashboard.active_total')}: <span className="text-foreground font-bold">{loading ? "..." : totalBacklogCount}</span>
                 </div>
                 <div className="px-4 py-2 bg-card rounded-full border border-border text-xs font-mono text-muted-foreground shadow-sm flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-                    BLOQUEANTES: <span className="text-destructive font-bold">{blockersCount}</span>
+                    {t('dashboard.blocking')}: <span className="text-destructive font-bold">{blockersCount}</span>
                 </div>
             </div>
 
@@ -646,22 +665,25 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                         color = 'text-destructive';
                         ring = 'border-destructive shadow-[0_0_15px_rgba(239,68,68,0.3)]';
                         Icon = Ban;
-                        label = 'Critical Blocker';
+                        label = t('dashboard.critical_blocker');
                         reason = `¡Atención! Hay ${blocked} tareas bloqueantes que impiden el avance.`;
                         barColor = 'bg-destructive';
                     } else if (percentage < 50 && total > 0) {
                         color = 'text-yellow-500';
                         ring = 'border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]';
                         Icon = AlertTriangle;
-                        label = 'At Risk';
+                        label = t('dashboard.at_risk');
                         reason = `Riesgo: El progreso (${percentage}%) es bajo. Se recomienda acelerar.`;
                         barColor = 'bg-yellow-500';
                     } else if (total === 0) {
                         color = 'text-muted-foreground';
                         ring = 'border-border'; // Neutral ring
-                        label = 'No Tasks';
+                        label = t('dashboard.no_tasks');
                         reason = 'No hay tareas registradas.';
                         barColor = 'bg-muted';
+                    } else {
+                        // Default healthy
+                        label = t('dashboard.healthy');
                     }
 
                     return (
@@ -707,11 +729,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                             <div className="flex items-end justify-between mb-2 relative z-10 mt-2">
                                 <div className="flex flex-col">
                                     <span className="text-4xl font-extrabold text-foreground tracking-tighter">{percentage}%</span>
-                                    <span className="text-muted-foreground text-[10px] font-mono uppercase">Progreso</span>
+                                    <span className="text-muted-foreground text-[10px] font-mono uppercase">{t('dashboard.progress')}</span>
                                 </div>
                                 <div className="text-right">
                                     <span className="text-foreground font-bold font-mono">{completed}/{total}</span>
-                                    <span className="text-muted-foreground text-[10px] block">Tareas Hechas</span>
+                                    <span className="text-muted-foreground text-[10px] block">{t('dashboard.tasks_done')}</span>
                                 </div>
                             </div>
                             <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-6 border border-border">
@@ -728,7 +750,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                             {myTasks.length > 0 ? (
                                 <div className="flex-1 min-h-[120px] space-y-2 overflow-y-auto custom-scrollbar pr-1 max-h-[300px]">
                                     <h4 className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-2 flex items-center gap-2 animate-pulse">
-                                        <Ban className="w-3 h-3" /> Bloqueos Activos
+                                        <Ban className="w-3 h-3" /> {t('dashboard.active_blockers')}
                                     </h4>
                                     {myTasks.map(task => (
                                         <div key={task.id} className="group/task flex items-start gap-3 p-2 rounded-lg transition-all text-xs border bg-destructive/10 border-destructive/20 hover:bg-destructive/20">
@@ -755,7 +777,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             {uniqueProjects.length === 0 && (
                 <div className="col-span-full text-center p-12 border border-dashed border-border rounded-3xl text-muted-foreground flex flex-col items-center gap-4 bg-card/50">
                     <TrendingUp className="w-12 h-12 opacity-20" />
-                    <p>No hay proyectos activos.</p>
+                    <p>{t('dashboard.no_active_projects')}</p>
                 </div>
             )}
 

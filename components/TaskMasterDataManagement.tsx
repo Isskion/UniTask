@@ -9,6 +9,7 @@ import { useSafeFirestore } from '@/hooks/useSafeFirestore';
 import { collection, query, where, getDocs, orderBy, deleteDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { AttributeDefinition } from '@/types';
+import { useLanguage } from '@/context/LanguageContext';
 
 const getIconForField = (field: string) => {
     switch (field) {
@@ -29,17 +30,11 @@ interface MasterDataItem {
     isActive: boolean;
 }
 
-const SYSTEM_SECTIONS = [
-    { id: 'priority', label: 'Prioridades', icon: ListTodo, color: '#f59e0b', description: 'Urgencia' },
-    { id: 'area', label: 'Áreas', icon: FolderGit2, color: '#3b82f6', description: 'Departamentos' },
-    { id: 'scope', label: 'Alcance', icon: Briefcase, color: '#8b5cf6', description: 'Tipos de trabajo' },
-    { id: 'module', label: 'Módulos', icon: Layout, color: '#10b981', description: 'Módulos del sistema' },
-];
-
 export default function TaskMasterDataManagement() {
     const { theme } = useTheme();
     const { user, tenantId } = useAuth();
     const { addDoc, deleteDoc: safeDeleteDoc, updateDoc: safeUpdateDoc } = useSafeFirestore();
+    const { t } = useLanguage();
     const isLight = theme === 'light';
 
     // State
@@ -71,7 +66,14 @@ export default function TaskMasterDataManagement() {
         return () => unsubscribe();
     }, [tenantId]);
 
-    // Bootstrap Defaults removed - System sections are hardcoded now
+    // System Sections defined inside component to access `t`
+    const SYSTEM_SECTIONS = useMemo(() => [
+        { id: 'priority', label: t('master_data.system_sections.priority'), icon: ListTodo, color: '#f59e0b', description: t('master_data.system_sections.priority_desc') },
+        { id: 'area', label: t('master_data.system_sections.area'), icon: FolderGit2, color: '#3b82f6', description: t('master_data.system_sections.area_desc') },
+        { id: 'scope', label: t('master_data.system_sections.scope'), icon: Briefcase, color: '#8b5cf6', description: t('master_data.system_sections.scope_desc') },
+        { id: 'module', label: t('master_data.system_sections.module'), icon: Layout, color: '#10b981', description: t('master_data.system_sections.module_desc') },
+    ], [t]);
+
 
     // Load All Master Data for Dashboard Preview
     useEffect(() => {
@@ -125,11 +127,11 @@ export default function TaskMasterDataManagement() {
                 label: attr.name,
                 icon: Box,
                 color: attr.color,
-                description: 'Personalizado',
+                description: t('master_data.labels.custom'),
                 isCustom: true
             }))
         ];
-    }, [customAttributes]);
+    }, [customAttributes, SYSTEM_SECTIONS, t]);
 
     // Load Options for Active Section
     useEffect(() => {
@@ -251,13 +253,13 @@ export default function TaskMasterDataManagement() {
     };
 
     const handleDeleteItem = async (id: string) => {
-        if (!confirm("¿Eliminar opción?")) return;
+        if (!confirm(t('master_data.alerts.delete_option'))) return;
         await safeDeleteDoc(doc(db, 'master_data', id));
         loadItems(activeSection);
     };
 
     const handleDeleteBlock = async (id: string) => {
-        if (!confirm("¿Eliminar este bloque y todas sus opciones? Esta acción no se puede deshacer.")) return;
+        if (!confirm(t('master_data.alerts.delete_block'))) return;
         // 1. Delete Definition
         await safeDeleteDoc(doc(db, 'attribute_definitions', id));
         // 2. Delete Options (Best effort client side, ideally backend function)
@@ -267,7 +269,7 @@ export default function TaskMasterDataManagement() {
     };
 
     const handleRecoverData = async () => {
-        if (!confirm("Esta acción escaneará todas las tareas existentes y recreará las opciones de Área, Alcance y Módulo que se hayan borrado accidentalmente. ¿Continuar?")) return;
+        if (!confirm(t('master_data.alerts.recover_confirm'))) return;
 
         setLoading(true);
         try {
@@ -317,12 +319,12 @@ export default function TaskMasterDataManagement() {
             await processType('scope', recoveredOptions.scope);
             await processType('module', recoveredOptions.module);
 
-            alert(`Proceso finalizado. Se han restaurado ${restoredCount} opciones.`);
+            alert(t('master_data.alerts.recover_done').replace('{count}', restoredCount.toString()));
             window.location.reload(); // Refresh to see changes
 
         } catch (error) {
             console.error("Recovery failed:", error);
-            alert("Error al recuperar datos. Revisa la consola.");
+            alert(t('master_data.alerts.recover_error'));
         } finally {
             setLoading(false);
         }
@@ -330,15 +332,23 @@ export default function TaskMasterDataManagement() {
 
     const activeSectionData = sections.find(s => s.id === activeSection);
 
+    // Helper for labels
+    const getSystemLabel = (key: string) => {
+        // This is a bit tricky since custom overrides might change the label.
+        // But "Admin" and "Maestros..." are static.
+        if (key === 'dashboard') return t('master_data.breadcrumbs.master');
+        return activeSectionData?.label;
+    };
+
     return (
         <div className={cn("flex-1 p-6 overflow-y-auto h-full transition-colors duration-300",
             isLight ? "bg-zinc-50/50" : (theme === 'red' ? "bg-[#D32F2F]/10" : "bg-[#09090b]")
         )}>
             {/* Breadcrumb */}
             <div className={cn("flex items-center gap-2 mb-6 text-xs font-medium", theme === 'red' ? "text-red-200/60" : "text-zinc-500")}>
-                <span className={cn("cursor-pointer hover:underline", theme === 'red' ? "hover:text-white" : "hover:text-foreground")} onClick={() => setActiveSection('dashboard')}>Admin</span>
+                <span className={cn("cursor-pointer hover:underline", theme === 'red' ? "hover:text-white" : "hover:text-foreground")} onClick={() => setActiveSection('dashboard')}>{t('master_data.breadcrumbs.admin')}</span>
                 <ChevronRight className="w-3 h-3" />
-                <span className={cn(theme === 'red' ? "text-white" : "text-foreground")}>{activeSection === 'dashboard' ? 'Maestros y Atributos' : activeSectionData?.label}</span>
+                <span className={cn(theme === 'red' ? "text-white" : "text-foreground")}>{activeSection === 'dashboard' ? t('master_data.breadcrumbs.master') : activeSectionData?.label}</span>
             </div>
 
             <div className="max-w-6xl mx-auto">
@@ -354,8 +364,8 @@ export default function TaskMasterDataManagement() {
                                     : "bg-card border-border")
                         )}>
                             <div>
-                                <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-white" : "text-foreground")}>Gestión de Tareas</h1>
-                                <p className={cn("text-sm", theme === 'red' ? "text-white/70" : "text-muted-foreground")}>Define las opciones de clasificación y añade nuevos criterios dinámicos.</p>
+                                <h1 className={cn("text-2xl font-bold tracking-tight mb-1", theme === 'red' ? "text-white" : "text-foreground")}>{t('master_data.title')}</h1>
+                                <p className={cn("text-sm", theme === 'red' ? "text-white/70" : "text-muted-foreground")}>{t('master_data.subtitle')}</p>
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -364,15 +374,15 @@ export default function TaskMasterDataManagement() {
                                         "flex items-center gap-2 px-3 py-2 border border-dashed rounded-lg text-xs font-medium transition-all",
                                         theme === 'red' ? "border-[#D32F2F]/30 text-white hover:bg-[#D32F2F]/20" : "border-zinc-400 text-zinc-500 hover:bg-muted"
                                     )}
-                                    title="Escanear tareas y restaurar opciones perdidas"
+                                    title={t('master_data.actions.recover_tooltip')}
                                 >
-                                    <Save className="w-3.5 h-3.5" /> Recuperar Datos
+                                    <Save className="w-3.5 h-3.5" /> {t('master_data.actions.recover')}
                                 </button>
                                 <button
                                     onClick={() => setIsCreatingBlock(true)}
                                     className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all"
                                 >
-                                    <Plus className="w-4 h-4" /> Nuevo Bloque
+                                    <Plus className="w-4 h-4" /> {t('master_data.actions.new_block')}
                                 </button>
                             </div>
                         </div>
@@ -392,7 +402,7 @@ export default function TaskMasterDataManagement() {
                                 )}>
                                     <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                                         <Plus className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
-                                        Definir Nuevo Criterio
+                                        {t('master_data.actions.define_criteria')}
                                     </h3>
                                 </div>
 
@@ -400,7 +410,7 @@ export default function TaskMasterDataManagement() {
                                 <div className="p-4 space-y-4">
                                     <div className="flex gap-4">
                                         <div className="flex-1">
-                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Nombre (ej. País, Versión)</label>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>{t('master_data.labels.name_placeholder')}</label>
                                             <input
                                                 value={blockFormName}
                                                 onChange={e => setBlockFormName(e.target.value)}
@@ -412,12 +422,12 @@ export default function TaskMasterDataManagement() {
                                                             ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
                                                             : "bg-zinc-900 border-zinc-700 text-white")
                                                 )}
-                                                placeholder="Ej: Departamento"
+                                                placeholder={t('master_data.labels.example')}
                                                 autoFocus
                                             />
                                         </div>
                                         <div>
-                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Color</label>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>{t('common.color')}</label>
                                             <div className="h-[38px] flex items-center">
                                                 <input
                                                     type="color"
@@ -442,7 +452,7 @@ export default function TaskMasterDataManagement() {
                                             isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
                                         )}
                                     >
-                                        Cancelar
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         onClick={handleCreateBlock}
@@ -455,7 +465,7 @@ export default function TaskMasterDataManagement() {
                                         )}
                                     >
                                         <Save className="w-4 h-4" />
-                                        Crear Bloque
+                                        {t('master_data.actions.create_block')}
                                     </button>
                                 </div>
                             </div>
@@ -493,7 +503,7 @@ export default function TaskMasterDataManagement() {
                                                         {blockOptions.length}
                                                     </span>
                                                     {(section as any).isCustom && (
-                                                        <span className="text-[8px] uppercase tracking-wider text-muted-foreground opacity-50">Custom</span>
+                                                        <span className="text-[8px] uppercase tracking-wider text-muted-foreground opacity-50">{t('master_data.labels.custom')}</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -510,11 +520,11 @@ export default function TaskMasterDataManagement() {
                                                     </div>
                                                 ))
                                             ) : (
-                                                <div className="text-[10px] text-muted-foreground/50 italic pl-1">Sin opciones...</div>
+                                                <div className="text-[10px] text-muted-foreground/50 italic pl-1">{t('master_data.actions.no_options')}</div>
                                             )}
                                             {blockOptions.length > 3 && (
                                                 <div className="text-[9px] text-muted-foreground/50 pl-3.5">
-                                                    +{blockOptions.length - 3} más...
+                                                    +{blockOptions.length - 3} {t('master_data.actions.more')}
                                                 </div>
                                             )}
                                         </div>
@@ -535,7 +545,7 @@ export default function TaskMasterDataManagement() {
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-bold">{activeSectionData?.label}</h1>
-                                    <p className="text-xs text-muted-foreground">Gestionando opciones para {activeSectionData?.label}</p>
+                                    <p className="text-xs text-muted-foreground">{t('master_data.actions.manage_options')} {activeSectionData?.label}</p>
                                 </div>
                             </div>
                             <div className="flex gap-2">
@@ -548,19 +558,19 @@ export default function TaskMasterDataManagement() {
                                         }}
                                         className="px-3 py-1.5 border rounded-lg text-xs font-medium hover:bg-muted flex items-center gap-2"
                                     >
-                                        <Edit2 className="w-3.5 h-3.5" /> Editar
+                                        <Edit2 className="w-3.5 h-3.5" /> {t('common.edit')}
                                     </button>
                                     {(activeSectionData as any)?.isCustom && (
                                         <button
                                             onClick={() => {
-                                                if (confirm("¿Estás seguro de que quieres eliminar este bloque? Esta acción borrará el bloque y todas sus opciones asociadas. No se puede deshacer.")) {
+                                                if (confirm(t('master_data.alerts.delete_block'))) {
                                                     handleDeleteBlock(activeSection);
                                                     setActiveSection('dashboard');
                                                 }
                                             }}
                                             className="px-3 py-1.5 border border-destructive/30 text-destructive bg-destructive/5 hover:bg-destructive/10 rounded-lg text-xs font-medium transition-colors flex items-center gap-2"
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" /> Borrar
+                                            <Trash2 className="w-3.5 h-3.5" /> {t('common.delete')}
                                         </button>
                                     )}
                                     <button onClick={() => setActiveSection('dashboard')} className="px-3 py-1.5 border rounded-lg text-xs font-medium hover:bg-muted">
@@ -585,7 +595,7 @@ export default function TaskMasterDataManagement() {
                                 )}>
                                     <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                                         <Edit2 className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
-                                        Editar Bloque
+                                        {t('master_data.actions.edit_block')}
                                     </h3>
                                 </div>
 
@@ -593,7 +603,7 @@ export default function TaskMasterDataManagement() {
                                 <div className="p-4 space-y-4">
                                     <div className="flex gap-4">
                                         <div className="flex-1">
-                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Nombre</label>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>{t('common.name')}</label>
                                             <input
                                                 value={blockFormName}
                                                 onChange={e => setBlockFormName(e.target.value)}
@@ -609,7 +619,7 @@ export default function TaskMasterDataManagement() {
                                             />
                                         </div>
                                         <div>
-                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Color</label>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>{t('common.color')}</label>
                                             <div className="h-[38px] flex items-center">
                                                 <input
                                                     type="color"
@@ -634,7 +644,7 @@ export default function TaskMasterDataManagement() {
                                             isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
                                         )}
                                     >
-                                        Cancelar
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         onClick={handleUpdateBlock}
@@ -647,7 +657,7 @@ export default function TaskMasterDataManagement() {
                                         )}
                                     >
                                         <Save className="w-4 h-4" />
-                                        Guardar
+                                        {t('common.save')}
                                     </button>
                                 </div>
                             </div>
@@ -659,7 +669,7 @@ export default function TaskMasterDataManagement() {
                                 value={newItemName}
                                 onChange={e => setNewItemName(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleAddOption()}
-                                placeholder="Nueva opción..."
+                                placeholder={t('master_data.actions.new_option')}
                                 className={cn(
                                     "flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
                                     isLight
@@ -687,7 +697,7 @@ export default function TaskMasterDataManagement() {
                                 )}
                             >
                                 {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                Añadir
+                                {t('common.add')}
                             </button>
                         </div>
 
@@ -713,7 +723,7 @@ export default function TaskMasterDataManagement() {
                             ))}
                             {items.length === 0 && !loading && (
                                 <div className="col-span-full py-12 text-center text-muted-foreground text-sm italic border border-dashed rounded-xl">
-                                    No hay opciones definidas.
+                                    {t('master_data.actions.no_options')}
                                 </div>
                             )}
                         </div>

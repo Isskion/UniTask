@@ -22,8 +22,7 @@ import { UIProvider } from "@/context/UIContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NoTenantBlocker } from "@/components/NoTenantBlocker";
-
-// ... previous code ...
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export default function RootLayout({
   children,
@@ -35,16 +34,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <UIProvider>
-            <ToastProvider>
-              <NoTenantBlocker>
-                {children}
-                <CommandMenu />
-              </NoTenantBlocker>
-            </ToastProvider>
-          </UIProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <UIProvider>
+              <ToastProvider>
+                <NoTenantBlocker>
+                  {children}
+                  <CommandMenu />
+                </NoTenantBlocker>
+              </ToastProvider>
+            </UIProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

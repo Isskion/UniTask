@@ -10,6 +10,8 @@ import { Shield, Plus, Edit2, Copy, Trash2, X, Save, FolderGit2, ListTodo, BarCh
 import { seedPermissionGroups } from '@/lib/permissionGroups';
 import { migrateToMultiTenant } from '@/lib/migration';
 import { cn } from "@/lib/utils";
+import { useTheme } from '@/hooks/useTheme';
+import { useLanguage } from '@/context/LanguageContext';
 
 const DEFAULT_GROUP: Partial<PermissionGroup> = {
     name: '',
@@ -22,12 +24,11 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
     specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
 };
 
-import { useTheme } from '@/hooks/useTheme';
-
 export default function UserRoleManagement() {
     const { user, userRole, tenantId } = useAuth();
     const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
+    const { t } = useLanguage();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
     const [groups, setGroups] = useState<PermissionGroup[]>([]);
@@ -41,8 +42,6 @@ export default function UserRoleManagement() {
     useEffect(() => {
         loadGroups();
     }, []);
-
-    // ... (loadGroups and other handlers remain the same, I will target the Return statement mostly)
 
     const loadGroups = async () => {
         try {
@@ -78,7 +77,7 @@ export default function UserRoleManagement() {
         setEditingGroup(null);
         setFormData({
             ...group,
-            name: `${group.name} (Copia)`,
+            name: `${group.name} (${t('common.copy') || 'Copy'})`,
             id: undefined
         });
         setActiveTab('general');
@@ -86,20 +85,20 @@ export default function UserRoleManagement() {
     };
 
     const handleDelete = async (groupId: string) => {
-        if (!confirm('¿Estás seguro de eliminar este grupo de permisos? Los usuarios asignados perderán estos permisos.')) return;
+        if (!confirm(t('roles_page.delete_confirm'))) return;
 
         try {
             await deleteDoc(doc(db, 'permission_groups', groupId));
             await loadGroups();
         } catch (error) {
             console.error('Error deleting group:', error);
-            alert('Error al eliminar el grupo');
+            alert(t('roles_page.delete_error'));
         }
     };
 
     const handleSave = async () => {
         if (!formData.name || !formData.description) {
-            alert('Por favor completa el nombre y descripción');
+            alert(t('roles_page.validation_error'));
             return;
         }
 
@@ -123,7 +122,7 @@ export default function UserRoleManagement() {
             await loadGroups();
         } catch (error) {
             console.error('Error saving group:', error);
-            alert('Error al guardar el grupo');
+            alert(t('roles_page.save_error'));
         }
     };
 
@@ -142,10 +141,10 @@ export default function UserRoleManagement() {
             setLoading(true);
             await seedPermissionGroups(user?.uid || 'system');
             await loadGroups();
-            alert('✅ Grupos predefinidos creados exitosamente!');
+            alert(t('roles_page.init_success'));
         } catch (error) {
             console.error('Error initializing groups:', error);
-            alert('Error al inicializar grupos');
+            alert(t('roles_page.init_error'));
         } finally {
             setLoading(false);
         }
@@ -154,7 +153,7 @@ export default function UserRoleManagement() {
     if (loading) {
         return (
             <div className={cn("h-full flex items-center justify-center", isLight ? "bg-white" : "bg-[#09090b]")}>
-                <div className={cn("text-zinc-500", isLight && "text-zinc-400")}>Cargando grupos de permisos...</div>
+                <div className={cn("text-zinc-500", isLight && "text-zinc-400")}>{t('roles_page.loading')}</div>
             </div>
         );
     }
@@ -175,10 +174,10 @@ export default function UserRoleManagement() {
                 <div>
                     <h1 className={cn("text-2xl font-bold flex items-center gap-2", isLight ? "text-zinc-950" : "text-white")}>
                         <Shield className={cn("w-6 h-6", isLight ? "text-red-700" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
-                        Gestión de Roles y Permisos
+                        {t('roles_page.title')}
                     </h1>
                     <p className={cn("mt-1 font-medium", isLight ? "text-zinc-700" : "text-zinc-400")}>
-                        Define grupos de acceso y asigna capacidades específicas a los usuarios.
+                        {t('roles_page.subtitle')}
                     </p>
                 </div>
                 <button
@@ -196,7 +195,7 @@ export default function UserRoleManagement() {
                     )}
                 >
                     <Plus className="w-5 h-5" />
-                    Crear Grupo
+                    {t('roles_page.create_group')}
                 </button>
             </div>
 
@@ -221,7 +220,7 @@ export default function UserRoleManagement() {
                                         Super Admin
                                     </h3>
                                     <p className={cn("text-sm mt-1 font-medium", isLight ? "text-indigo-700" : "text-indigo-200/70")}>
-                                        System God Mode. Acceso total a todos los tenants y configuraciones.
+                                        {t('roles_page.super_admin_desc')}
                                     </p>
                                 </div>
                             </div>
@@ -229,7 +228,7 @@ export default function UserRoleManagement() {
                                 <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
                                     isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200" : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
                                 )}>
-                                    <Sparkles className="w-3 h-3" /> All Access
+                                    <Sparkles className="w-3 h-3" /> {t('roles_page.all_access')}
                                 </span>
                             </div>
                         </div>
@@ -255,7 +254,7 @@ export default function UserRoleManagement() {
                                         {group.name}
                                     </h3>
                                     <p className={cn("text-sm mt-1 font-medium", isLight ? "text-zinc-700" : (isRed ? "text-white/70" : "text-zinc-400"))}>
-                                        {group.description || "Sin descripción"}
+                                        {group.description || t('common.none')}
                                     </p>
                                 </div>
                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -266,7 +265,7 @@ export default function UserRoleManagement() {
                                                 ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
                                                 : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
                                         )}
-                                        title="Editar"
+                                        title={t('common.edit')}
                                     >
                                         <Edit2 className="w-4 h-4" />
                                     </button>
@@ -277,7 +276,7 @@ export default function UserRoleManagement() {
                                                 ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
                                                 : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
                                         )}
-                                        title="Duplicar"
+                                        title={t('common.copy')}
                                     >
                                         <Copy className="w-4 h-4" />
                                     </button>
@@ -288,7 +287,7 @@ export default function UserRoleManagement() {
                                                 ? "bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-900"
                                                 : (isRed ? "bg-[#D32F2F]/20 hover:bg-red-900/40 text-white hover:text-red-200" : "bg-white/5 hover:bg-red-900/20 text-white hover:text-red-400")
                                         )}
-                                        title="Eliminar"
+                                        title={t('common.delete')}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -303,7 +302,7 @@ export default function UserRoleManagement() {
                                             ? "bg-blue-50 text-blue-600 border-blue-200"
                                             : (isRed ? "bg-blue-500/10 text-blue-200 border-blue-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20")
                                     )}>
-                                        <Users className="w-3 h-3" /> Ver Usuarios
+                                        <Users className="w-3 h-3" /> {t('roles_page.permissions.special.viewAllUserProfiles.label')}
                                     </span>
                                 )}
                                 {group.projectAccess?.viewAll && (
@@ -312,7 +311,7 @@ export default function UserRoleManagement() {
                                             ? "bg-green-50 text-green-600 border-green-200"
                                             : (isRed ? "bg-green-500/10 text-green-200 border-green-500/20" : "bg-green-500/10 text-green-400 border-green-500/20")
                                     )}>
-                                        <FolderGit2 className="w-3 h-3" /> Proyectos
+                                        <FolderGit2 className="w-3 h-3" /> {t('roles_page.tabs.projects')}
                                     </span>
                                 )}
                                 {group.taskAccess?.create && (
@@ -321,7 +320,7 @@ export default function UserRoleManagement() {
                                             ? "bg-purple-50 text-purple-600 border-purple-200"
                                             : (isRed ? "bg-purple-500/10 text-purple-200 border-purple-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20")
                                     )}>
-                                        <ListTodo className="w-3 h-3" /> Tareas
+                                        <ListTodo className="w-3 h-3" /> {t('roles_page.tabs.tasks')}
                                     </span>
                                 )}
                                 {group.viewAccess?.dashboard && (
@@ -330,7 +329,7 @@ export default function UserRoleManagement() {
                                             ? "bg-yellow-50 text-yellow-600 border-yellow-200"
                                             : (isRed ? "bg-yellow-500/10 text-yellow-200 border-yellow-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20")
                                     )}>
-                                        <BarChart3 className="w-3 h-3" /> Dashboard
+                                        <BarChart3 className="w-3 h-3" /> {t('roles_page.permissions.views.dashboard.label')}
                                     </span>
                                 )}
                                 {group.specialPermissions?.managePermissions && (
@@ -350,9 +349,9 @@ export default function UserRoleManagement() {
                     {groups.length === 0 && !loading && (
                         <div className="col-span-full flex flex-col items-center justify-center p-12 text-center opacity-50">
                             <Shield className={cn("w-16 h-16 mb-4", isLight ? "text-zinc-300" : (isRed ? "text-white/20" : "text-zinc-600"))} />
-                            <h3 className={cn("text-xl font-bold", isLight ? "text-zinc-900" : "text-white")}>No hay grupos definidos</h3>
+                            <h3 className={cn("text-xl font-bold", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.no_groups')}</h3>
                             <p className={cn("max-w-md mx-auto mt-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                Comienza creando un grupo de permisos para asignar capacidades a tus usuarios.
+                                {t('roles_page.no_groups_desc')}
                             </p>
                             <div className="flex gap-4">
                                 <button
@@ -363,23 +362,23 @@ export default function UserRoleManagement() {
                                             : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 text-white" : "bg-white/5 hover:bg-white/10 text-white")
                                     )}
                                 >
-                                    Inicializar Grupos por Defecto
+                                    {t('roles_page.init_defaults')}
                                 </button>
                                 {
                                     // [FIX] Show "Import Roles" button only if tenant is empty and != '1'
                                     tenantId !== '1' && (
                                         <button
                                             onClick={async () => {
-                                                if (!confirm("¿Importar roles del sistema y alinear usuarios? Esto creará los grupos por defecto.")) return;
+                                                if (!confirm(t('roles_page.import_confirm'))) return;
                                                 setMigrating(true);
                                                 try {
                                                     const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
                                                     console.log(resLog);
-                                                    alert("✅ Roles importados y usuarios alineados:\n" + resLog);
+                                                    alert(t('roles_page.import_success') + "\n" + resLog);
                                                     await loadGroups(); // Refresh UI
                                                 } catch (e: any) {
                                                     console.error(e);
-                                                    alert("Error al importar: " + e.message);
+                                                    alert(t('common.error') + ": " + e.message);
                                                 } finally {
                                                     setMigrating(false);
                                                 }
@@ -392,7 +391,7 @@ export default function UserRoleManagement() {
                                             )}
                                         >
                                             <Sparkles className={cn("w-4 h-4 inline mr-2", migrating && "animate-spin")} />
-                                            {migrating ? "Importando..." : "Importar Roles del Sistema"}
+                                            {migrating ? t('roles_page.importing') : t('roles_page.import_roles')}
                                         </button>
                                     )
                                 }
@@ -418,7 +417,7 @@ export default function UserRoleManagement() {
                         )}>
                             <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                                 <Edit2 className={cn("w-4 h-4", isLight ? "text-zinc-700" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
-                                {formData.id ? 'Editar Grupo' : 'Nuevo Grupo de Permisos'}
+                                {formData.id ? t('roles_page.edit_group') : t('roles_page.new_group')}
                             </h3>
                             <button onClick={() => setShowModal(false)} className={cn("hover:text-white transition-colors", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400")}>
                                 <X className="w-5 h-5" />
@@ -428,11 +427,11 @@ export default function UserRoleManagement() {
                         {/* Tabs */}
                         <div className={cn("flex gap-1 px-6 pt-4 border-b", isLight ? "border-zinc-100" : "border-white/5")}>
                             {[
-                                { id: 'general', label: 'General' },
-                                { id: 'projects', label: 'Proyectos' },
-                                { id: 'tasks', label: 'Tareas' },
-                                { id: 'views', label: 'Vistas' },
-                                { id: 'special', label: 'Especiales' }
+                                { id: 'general', label: t('roles_page.tabs.general') },
+                                { id: 'projects', label: t('roles_page.tabs.projects') },
+                                { id: 'tasks', label: t('roles_page.tabs.tasks') },
+                                { id: 'views', label: t('roles_page.tabs.views') },
+                                { id: 'special', label: t('roles_page.tabs.special') }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
@@ -454,7 +453,7 @@ export default function UserRoleManagement() {
                             {activeTab === 'general' && (
                                 <>
                                     <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>Nombre del Grupo</label>
+                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.name')}</label>
                                         <input
                                             type="text"
                                             value={formData.name || ''}
@@ -467,11 +466,11 @@ export default function UserRoleManagement() {
                                                         ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
                                                         : "bg-zinc-900 border-zinc-700 text-white focus:border-zinc-500")
                                             )}
-                                            placeholder="Ej: Equipo Técnico"
+                                            placeholder={t('roles_page.form.name_placeholder')}
                                         />
                                     </div>
                                     <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>Descripción</label>
+                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.description')}</label>
                                         <textarea
                                             value={formData.description || ''}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -483,11 +482,11 @@ export default function UserRoleManagement() {
                                                         ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
                                                         : "bg-zinc-900 border-zinc-700 text-white focus:border-white")
                                             )}
-                                            placeholder="Describe los permisos y responsabilidades de este grupo"
+                                            placeholder={t('roles_page.form.desc_placeholder')}
                                         />
                                     </div>
                                     <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>Color Identificador</label>
+                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.color')}</label>
                                         <input
                                             type="color"
                                             value={formData.color || '#6366f1'}
@@ -503,19 +502,15 @@ export default function UserRoleManagement() {
 
                             {activeTab === 'projects' && (
                                 <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>Acceso a Proyectos</h4>
+                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.projects')}</h4>
                                     {[
-                                        { key: 'viewAll', label: 'Ver todos los proyectos', desc: 'Permite ver la lista completa de proyectos en la organización' },
-                                        { key: 'assignedOnly', label: 'Solo proyectos asignados', desc: 'Solo muestra proyectos donde el usuario es miembro directo' },
-                                        { key: 'create', label: 'Crear proyectos', desc: 'Habilita la capacidad de iniciar nuevos proyectos' },
-                                        { key: 'edit', label: 'Editar proyectos', desc: 'Permite modificar detalles, fechas y miembros de proyectos existentes' },
-                                        { key: 'archive', label: 'Archivar proyectos', desc: 'Permite mover proyectos a un estado de solo lectura o eliminarlos' }
-                                    ].map(perm => (
-                                        <label key={perm.key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                        'viewAll', 'assignedOnly', 'create', 'edit', 'archive'
+                                    ].map(key => (
+                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
                                             <input
                                                 type="checkbox"
-                                                checked={formData.projectAccess?.[perm.key as keyof typeof formData.projectAccess] || false}
-                                                onChange={(e) => updateFormField('projectAccess', perm.key, e.target.checked)}
+                                                checked={formData.projectAccess?.[key as keyof typeof formData.projectAccess] || false}
+                                                onChange={(e) => updateFormField('projectAccess', key, e.target.checked)}
                                                 className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
                                                     isLight
                                                         ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
@@ -523,8 +518,12 @@ export default function UserRoleManagement() {
                                                 )}
                                             />
                                             <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>{perm.label}</div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>{perm.desc}</div>
+                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                    {t(`roles_page.permissions.projects.${key}.label`)}
+                                                </div>
+                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                    {t(`roles_page.permissions.projects.${key}.desc`)}
+                                                </div>
                                             </div>
                                         </label>
                                     ))}
@@ -533,19 +532,15 @@ export default function UserRoleManagement() {
 
                             {activeTab === 'tasks' && (
                                 <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>Acceso a Tareas</h4>
+                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.tasks')}</h4>
                                     {[
-                                        { key: 'viewAll', label: 'Ver todas las tareas', desc: 'Permite ver tareas de todos los proyectos' },
-                                        { key: 'assignedProjectsOnly', label: 'Solo tareas de proyectos asignados', desc: 'Limita la visibilidad a tareas de proyectos donde es miembro' },
-                                        { key: 'create', label: 'Crear tareas', desc: 'Habilita la creación de nuevas tareas' },
-                                        { key: 'edit', label: 'Editar tareas', desc: 'Permite modificar tareas existentes' },
-                                        { key: 'delete', label: 'Eliminar tareas', desc: 'Permite eliminar tareas permanentemente' }
-                                    ].map(perm => (
-                                        <label key={perm.key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                        'viewAll', 'assignedProjectsOnly', 'create', 'edit', 'delete'
+                                    ].map(key => (
+                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
                                             <input
                                                 type="checkbox"
-                                                checked={formData.taskAccess?.[perm.key as keyof typeof formData.taskAccess] || false}
-                                                onChange={(e) => updateFormField('taskAccess', perm.key, e.target.checked)}
+                                                checked={formData.taskAccess?.[key as keyof typeof formData.taskAccess] || false}
+                                                onChange={(e) => updateFormField('taskAccess', key, e.target.checked)}
                                                 className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
                                                     isLight
                                                         ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
@@ -553,8 +548,12 @@ export default function UserRoleManagement() {
                                                 )}
                                             />
                                             <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>{perm.label}</div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>{perm.desc}</div>
+                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                    {t(`roles_page.permissions.tasks.${key}.label`)}
+                                                </div>
+                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                    {t(`roles_page.permissions.tasks.${key}.desc`)}
+                                                </div>
                                             </div>
                                         </label>
                                     ))}
@@ -563,21 +562,15 @@ export default function UserRoleManagement() {
 
                             {activeTab === 'views' && (
                                 <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>Acceso a Vistas</h4>
+                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.views')}</h4>
                                     {[
-                                        { key: 'dashboard', label: 'Dashboard', desc: 'Vista de métricas y gráficos' },
-                                        { key: 'taskManager', label: 'Gestor de Tareas', desc: 'Vista detallada de gestión de tareas' },
-                                        { key: 'taskDashboard', label: 'Todas las Tareas', desc: 'Vista global de exportación de tareas' },
-                                        { key: 'projectManagement', label: 'Gestión de Proyectos', desc: 'Vista de administración de proyectos' },
-                                        { key: 'userManagement', label: 'Gestión de Usuarios', desc: 'Vista de administración de usuarios' },
-                                        { key: 'weeklyEditor', label: 'Editor Semanal', desc: 'Vista de planificación semanal' },
-                                        { key: 'dailyFollowUp', label: 'Seguimiento Diario', desc: 'Vista de bitácora diaria' }
-                                    ].map(perm => (
-                                        <label key={perm.key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                        'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp'
+                                    ].map(key => (
+                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
                                             <input
                                                 type="checkbox"
-                                                checked={formData.viewAccess?.[perm.key as keyof typeof formData.viewAccess] || false}
-                                                onChange={(e) => updateFormField('viewAccess', perm.key, e.target.checked)}
+                                                checked={formData.viewAccess?.[key as keyof typeof formData.viewAccess] || false}
+                                                onChange={(e) => updateFormField('viewAccess', key, e.target.checked)}
                                                 className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
                                                     isLight
                                                         ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
@@ -585,8 +578,12 @@ export default function UserRoleManagement() {
                                                 )}
                                             />
                                             <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>{perm.label}</div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>{perm.desc}</div>
+                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                    {t(`roles_page.permissions.views.${key}.label`)}
+                                                </div>
+                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                    {t(`roles_page.permissions.views.${key}.desc`)}
+                                                </div>
                                             </div>
                                         </label>
                                     ))}
@@ -595,23 +592,24 @@ export default function UserRoleManagement() {
 
                             {activeTab === 'special' && (
                                 <div className="space-y-3">
-                                    <h4 className="text-white font-semibold mb-4">Permisos Especiales</h4>
+                                    <h4 className="text-white font-semibold mb-4">{t('roles_page.sections.special')}</h4>
                                     {[
-                                        { key: 'viewAllUserProfiles', label: 'Ver todos los perfiles de usuario', desc: 'Acceso a información de todos los usuarios' },
-                                        { key: 'managePermissions', label: 'Gestionar permisos', desc: 'Permite crear y editar grupos de permisos (Admin)' },
-                                        { key: 'accessTrash', label: 'Acceder a papelera', desc: 'Ver y restaurar elementos eliminados' },
-                                        { key: 'useCommandMenu', label: 'Usar menú de comandos', desc: 'Acceso al menú rápido de navegación' }
-                                    ].map(perm => (
-                                        <label key={perm.key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
+                                        'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu'
+                                    ].map(key => (
+                                        <label key={key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
                                             <input
                                                 type="checkbox"
-                                                checked={formData.specialPermissions?.[perm.key as keyof typeof formData.specialPermissions] || false}
-                                                onChange={(e) => updateFormField('specialPermissions', perm.key, e.target.checked)}
+                                                checked={formData.specialPermissions?.[key as keyof typeof formData.specialPermissions] || false}
+                                                onChange={(e) => updateFormField('specialPermissions', key, e.target.checked)}
                                                 className="mt-1 w-4 h-4 rounded border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
                                             />
                                             <div className="flex-1">
-                                                <div className="text-white font-medium">{perm.label}</div>
-                                                <div className="text-zinc-500 text-sm">{perm.desc}</div>
+                                                <div className="text-white font-medium">
+                                                    {t(`roles_page.permissions.special.${key}.label`)}
+                                                </div>
+                                                <div className="text-zinc-500 text-sm">
+                                                    {t(`roles_page.permissions.special.${key}.desc`)}
+                                                </div>
                                             </div>
                                         </label>
                                     ))}
@@ -625,7 +623,7 @@ export default function UserRoleManagement() {
                                 onClick={() => setShowModal(false)}
                                 className={cn("px-4 py-2 rounded font-bold transition-colors", isLight ? "text-zinc-500 hover:text-zinc-800" : (isRed ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white"))}
                             >
-                                Cancelar
+                                {t('roles_page.form.cancel')}
                             </button>
                             <button
                                 onClick={handleSave}
@@ -636,7 +634,7 @@ export default function UserRoleManagement() {
                                 )}
                             >
                                 <Save className="w-4 h-4" />
-                                Guardar Grupo
+                                {t('roles_page.form.save')}
                             </button>
                         </div>
                     </div>
