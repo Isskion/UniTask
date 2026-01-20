@@ -6,8 +6,9 @@ import ProjectManagement from "./ProjectManagement";
 import Dashboard from "./Dashboard";
 import TaskDashboard from "./TaskDashboard";
 import TaskList from "./TaskList";
-import TaskManagement from "./TaskManagement"; // Added
+import TaskManagement from "./TaskManagement";
 import UserRoleManagement from "./UserRoleManagement";
+import ReportManagement from "./reports/ReportManagement"; // Added ReportManagement
 import { AppLayout } from "./AppLayout";
 import ChangelogModal from "./ChangelogModal"; // Added import
 import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
@@ -71,7 +72,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -83,7 +84,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master') {
+            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master' || view === 'reports') {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -91,7 +92,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master') {
+            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master' || saved === 'reports') {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -326,7 +327,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -1188,6 +1189,13 @@ export default function WeeklyEditor() {
                     {viewMode === 'user-roles' && (
                         <div className="h-full p-6 overflow-hidden">
                             <UserRoleManagement />
+                        </div>
+                    )}
+
+                    {/* View: Reports */}
+                    {viewMode === 'reports' && (
+                        <div className="h-full p-6 overflow-hidden">
+                            <ReportManagement />
                         </div>
                     )}
 
