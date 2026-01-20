@@ -322,10 +322,11 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 {/* Support Button next to title */}
                                 <button
                                     onClick={() => setIsSupportOpen(true)}
-                                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all group"
+                                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all group flex items-center gap-2"
                                     title={t('support.title')}
                                 >
                                     <LifeBuoy className="w-4 h-4" />
+                                    <span className="text-[9px] opacity-30 font-mono hidden md:inline">v12.11.0 | {userRole}</span>
                                 </button>
                             </div>
                         </div>
