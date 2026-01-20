@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.9.1';
+export const APP_VERSION = '12.10.3';
 
 export interface ChangeLogItem {
     version: string;
@@ -9,13 +9,24 @@ export interface ChangeLogItem {
 
 export const CHANGELOG: ChangeLogItem[] = [
     {
-        version: "12.9.1",
-        date: "2026-01-19",
-        title: "Navegación Histórica y Correcciones",
+        version: "12.10.3",
+        date: "2026-01-20",
+        title: "Estabilidad y Soporte de Vistas",
         features: [
-            "Navegación Temporal: Nuevos controles (< HOY >) en el Dashboard para explorar datos históricos.",
-            "Corrección Calendario: Ajuste en la alineación de días y cambio a inicio en Lunes en el selector de fechas.",
-            "Estabilidad Dashboard: Mejoras en la carga y visualización de datos por periodos."
+            "Hotfix Build: Resolución de errores de tipos en **VisualTemplateDesigner** (items mapping).",
+            "Hotfix WeeklyEditor: Corrección de tipos para soportar la navegación a la vista de Reportes.",
+            "Optimización de Diccionarios: Limpieza de claves duplicadas para asegurar el despliegue en Vercel."
+        ]
+    },
+    {
+        version: "12.10.0",
+        date: "2026-01-20",
+        title: "Soporte Multi-idioma Global (i18n)",
+        features: [
+            "**Internacionalización Completa**: Soporte nativo para 6 idiomas (Español, Inglés, Alemán, Francés, Catalán y Portugués).",
+            "**Traducción de Módulos**: Task Management, AI Help, Reports y User Management ahora 100% traducidos.",
+            "**Fechas Dinámicas**: Integración de locales de date-fns para visualización de fechas según el idioma seleccionado.",
+            "**Diccionarios Expandidos**: Más de 150 nuevas claves añadidas para cubrir toda la interfaz de usuario."
         ]
     },
     {
