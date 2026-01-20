@@ -49,16 +49,7 @@ export const de: Dictionary = {
         system: "System",
         trash: "Papierkorb",
     },
-    ai_help: {
-        title: "UniHelp Assistent",
-        subtitle: "Unterstützt von Gemini AI",
-        placeholder: "Geben Sie Ihre Frage ein...",
-        suggestions: {
-            project: "Wie erstelle ich ein neues Projekt?",
-            roles: "Wie weise ich Benutzern Rollen zu?"
-        },
-        disclaimer: "KI kann Fehler machen. Überprüfen Sie wichtige Infos."
-    },
+
     theme: {
         title: "Oberflächendesign",
         light: "Hell",
@@ -344,16 +335,16 @@ export const de: Dictionary = {
         criteria_placeholder: "Acceptance criteria 1"
     },
     ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
-        welcome: "How can I help you today?",
-        welcome_desc: "Ask me about using the app, managing tasks, or general help.",
-        thinking: "Thinking...",
-        placeholder: "Write your question...",
-        disclaimer: "AI may make mistakes. Verify important information.",
-        error_message: "Sorry, I encountered an error. Please try again.",
-        suggestion_project: "How do I create a new project?",
-        suggestion_roles: "How do I assign roles to users?"
+        title: "UniHelp Assistent",
+        subtitle: "Unterstützt von Gemini AI",
+        welcome: "Wie kann ich Ihnen heute helfen?",
+        welcome_desc: "Fragen Sie mich nach der Nutzung der App, Aufgabenverwaltung oder allgemeiner Hilfe.",
+        thinking: "Denken...",
+        placeholder: "Geben Sie Ihre Frage ein...",
+        disclaimer: "KI kann Fehler machen. Überprüfen Sie wichtige Infos.",
+        error_message: "Entschuldigung, ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+        suggestion_project: "Wie erstelle ich ein neues Projekt?",
+        suggestion_roles: "Wie weise ich Benutzern Rollen zu?"
     },
     reports: {
         title: "Reports and Templates Management",

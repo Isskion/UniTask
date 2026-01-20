@@ -47,16 +47,7 @@ export const en = {
         system: "System",
         trash: "Trash",
     },
-    ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
-        placeholder: "Type your question...",
-        suggestions: {
-            project: "How do I create a new project?",
-            roles: "How do I assign roles to users?"
-        },
-        disclaimer: "AI can make mistakes. Verify important info."
-    },
+
     theme: {
         title: "Interface Theme",
         light: "Light",

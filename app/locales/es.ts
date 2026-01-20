@@ -49,16 +49,7 @@ export const es: Dictionary = {
         system: "Sistema",
         trash: "Papelera",
     },
-    ai_help: {
-        title: "Asistente UniHelp",
-        subtitle: "Potenciado por Gemini AI",
-        placeholder: "Escribe tu pregunta...",
-        suggestions: {
-            project: "¿Cómo creo un nuevo proyecto?",
-            roles: "¿Cómo asigno roles a usuarios?"
-        },
-        disclaimer: "La IA puede cometer errores. Verifica la info importante."
-    },
+
     theme: {
         title: "Tema de la Interfaz",
         light: "Claro",
@@ -344,13 +335,13 @@ export const es: Dictionary = {
         criteria_placeholder: "Criterio de aceptación 1"
     },
     ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
+        title: "Asistente UniHelp",
+        subtitle: "Potenciado por Gemini AI",
         welcome: "¿En qué puedo ayudarte hoy?",
         welcome_desc: "Pregúntame sobre cómo usar la aplicación, gestionar tareas o ayuda general.",
         thinking: "Pensando...",
         placeholder: "Escribe tu pregunta...",
-        disclaimer: "La IA puede cometer errores. Verifica la información importante.",
+        disclaimer: "La IA puede cometer errores. Verifica la info importante.",
         error_message: "Lo siento, encontré un error. Inténtalo de nuevo.",
         suggestion_project: "¿Cómo creo un nuevo proyecto?",
         suggestion_roles: "¿Cómo asigno roles a usuarios?"

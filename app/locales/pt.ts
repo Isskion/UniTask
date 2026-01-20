@@ -47,16 +47,7 @@ export const pt = {
         system: "Sistema",
         trash: "Lixeira",
     },
-    ai_help: {
-        title: "UniHelp Assistente",
-        subtitle: "Desenvolvido por Gemini AI",
-        placeholder: "Digite sua pergunta...",
-        suggestions: {
-            project: "Como crio um novo projeto?",
-            roles: "Como atribuo funções aos usuários?"
-        },
-        disclaimer: "A IA pode cometer erros. Verifique informações importantes."
-    },
+
     theme: {
         title: "Tema da Interface",
         light: "Claro",
@@ -342,16 +333,16 @@ export const pt = {
         criteria_placeholder: "Acceptance criteria 1"
     },
     ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
-        welcome: "How can I help you today?",
-        welcome_desc: "Ask me about using the app, managing tasks, or general help.",
-        thinking: "Thinking...",
-        placeholder: "Write your question...",
-        disclaimer: "AI may make mistakes. Verify important information.",
-        error_message: "Sorry, I encountered an error. Please try again.",
-        suggestion_project: "How do I create a new project?",
-        suggestion_roles: "How do I assign roles to users?"
+        title: "UniHelp Assistente",
+        subtitle: "Desenvolvido por Gemini AI",
+        welcome: "Como posso ajudar você hoje?",
+        welcome_desc: "Pergunte-me sobre como usar o aplicativo, gerenciar tarefas ou ajuda geral.",
+        thinking: "Pensando...",
+        placeholder: "Digite sua pergunta...",
+        disclaimer: "A IA pode cometer erros. Verifique informações importantes.",
+        error_message: "Desculpe, encontrei um erro. Por favor, tente novamente.",
+        suggestion_project: "Como crio um novo projeto?",
+        suggestion_roles: "Como atribuo funções aos usuários?"
     },
     reports: {
         title: "Reports and Templates Management",

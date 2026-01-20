@@ -49,16 +49,7 @@ export const fr: Dictionary = {
         system: "Système",
         trash: "Corbeille",
     },
-    ai_help: {
-        title: "Assistant UniHelp",
-        subtitle: "Propulsé par Gemini AI",
-        placeholder: "Posez votre question...",
-        suggestions: {
-            project: "Comment créer un nouveau projet ?",
-            roles: "Comment attribuer des rôles aux utilisateurs ?"
-        },
-        disclaimer: "L'IA peut faire des erreurs. Vérifiez les infos importantes."
-    },
+
     theme: {
         title: "Thème de l'interface",
         light: "Clair",
@@ -344,16 +335,16 @@ export const fr: Dictionary = {
         criteria_placeholder: "Acceptance criteria 1"
     },
     ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
-        welcome: "How can I help you today?",
-        welcome_desc: "Ask me about using the app, managing tasks, or general help.",
-        thinking: "Thinking...",
-        placeholder: "Write your question...",
-        disclaimer: "AI may make mistakes. Verify important information.",
-        error_message: "Sorry, I encountered an error. Please try again.",
-        suggestion_project: "How do I create a new project?",
-        suggestion_roles: "How do I assign roles to users?"
+        title: "Assistant UniHelp",
+        subtitle: "Propulsé par Gemini AI",
+        welcome: "Comment puis-je vous aider aujourd'hui ?",
+        welcome_desc: "Posez-moi des questions sur l'utilisation de l'application, la gestion des tâches ou de l'aide générale.",
+        thinking: "Réflexion...",
+        placeholder: "Posez votre question...",
+        disclaimer: "L'IA peut faire des erreurs. Vérifiez les infos importantes.",
+        error_message: "Désolé, j'ai rencontré une erreur. Veuillez réessayer.",
+        suggestion_project: "Comment créer un nouveau projet ?",
+        suggestion_roles: "Comment attribuer des rôles aux utilisateurs ?"
     },
     reports: {
         title: "Reports and Templates Management",

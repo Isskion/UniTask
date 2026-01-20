@@ -49,16 +49,7 @@ export const ca: Dictionary = {
         system: "Sistema",
         trash: "Paperera",
     },
-    ai_help: {
-        title: "Assistent UniHelp",
-        subtitle: "Impulsat per Gemini AI",
-        placeholder: "Escriu la teva pregunta...",
-        suggestions: {
-            project: "Com creo un projecte nou?",
-            roles: "Com assigno rols als usuaris?"
-        },
-        disclaimer: "La IA pot cometre errors. Verifica la info important."
-    },
+
     theme: {
         title: "Tema de la interfície",
         light: "Clar",
@@ -344,16 +335,16 @@ export const ca: Dictionary = {
         criteria_placeholder: "Acceptance criteria 1"
     },
     ai_help: {
-        title: "UniHelp Assistant",
-        subtitle: "Powered by Gemini AI",
-        welcome: "How can I help you today?",
-        welcome_desc: "Ask me about using the app, managing tasks, or general help.",
-        thinking: "Thinking...",
-        placeholder: "Write your question...",
-        disclaimer: "AI may make mistakes. Verify important information.",
-        error_message: "Sorry, I encountered an error. Please try again.",
-        suggestion_project: "How do I create a new project?",
-        suggestion_roles: "How do I assign roles to users?"
+        title: "Assistent UniHelp",
+        subtitle: "Impulsat per Gemini AI",
+        welcome: "Com et puc ajudar avui?",
+        welcome_desc: "Pregunta'm sobre com utilitzar l'aplicació, gestionar tasques o ajuda general.",
+        thinking: "Pensant...",
+        placeholder: "Escriu la teva pregunta...",
+        disclaimer: "La IA pot cometre errors. Verifica la info important.",
+        error_message: "Ho sento, he trobat un error. Torna-ho a provar.",
+        suggestion_project: "Com creo un projecte nou?",
+        suggestion_roles: "Com assigno rols als usuaris?"
     },
     reports: {
         title: "Reports and Templates Management",
