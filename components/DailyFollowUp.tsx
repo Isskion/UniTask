@@ -678,6 +678,28 @@ export default function DailyFollowUp() {
             };
             console.log("[DailyFollowUp] Creating Task Payload:", taskData);
 
+            // [FIX] Ensure Project Entry exists in the Journal Entry before saving
+            // This prevents "orphaned" tasks that don't belong to any project entry on that date
+            if (activeTab !== 'General') {
+                setEntry(prev => {
+                    const exists = prev.projects.some(p => p.name === activeTab);
+                    if (exists) return prev;
+
+                    const gp = globalProjects.find(g => g.name === activeTab);
+                    return {
+                        ...prev,
+                        projects: [...prev.projects, {
+                            name: activeTab,
+                            projectId: gp?.id || "",
+                            pmNotes: "",
+                            conclusions: "",
+                            nextSteps: "",
+                            status: 'active'
+                        }]
+                    };
+                });
+            }
+
             // Create the task
             await createTask(
                 taskData,
@@ -944,10 +966,28 @@ export default function DailyFollowUp() {
         if (activeTab === "General") {
             setEntry(prev => ({ ...prev, generalNotes: value }));
         } else {
-            setEntry(prev => ({
-                ...prev,
-                projects: prev.projects.map(p => p.name === activeTab ? { ...p, [field]: value } : p)
-            }));
+            setEntry(prev => {
+                const exists = prev.projects.some(p => p.name === activeTab);
+                if (exists) {
+                    return {
+                        ...prev,
+                        projects: prev.projects.map(p => p.name === activeTab ? { ...p, [field]: value } : p)
+                    };
+                } else {
+                    const gp = globalProjects.find(g => g.name === activeTab);
+                    return {
+                        ...prev,
+                        projects: [...prev.projects, {
+                            name: activeTab,
+                            projectId: gp?.id || "",
+                            pmNotes: field === 'pmNotes' ? value : "",
+                            conclusions: field === 'conclusions' ? value : "",
+                            nextSteps: field === 'nextSteps' ? value : "",
+                            status: 'active'
+                        }]
+                    };
+                }
+            });
         }
     };
 
@@ -970,28 +1010,46 @@ export default function DailyFollowUp() {
 
         setIsDirty(true); // [FIX] Mark as dirty
 
-        setEntry(prev => ({
-            ...prev,
-            projects: prev.projects.map(p => {
-                if (p.name !== projectName) return p;
+        setEntry(prev => {
+            const exists = prev.projects.some(p => p.name === projectName);
+            let targetProjects = [...prev.projects];
 
-                // 1. Get ready state
-                const currentBlocks = (p.blocks && p.blocks.length > 0)
-                    ? [...p.blocks]
-                    : [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
+            if (!exists) {
+                const gp = globalProjects.find(g => g.name === projectName);
+                targetProjects.push({
+                    name: projectName,
+                    projectId: gp?.id || "",
+                    pmNotes: "",
+                    conclusions: "",
+                    nextSteps: "",
+                    status: 'active',
+                    blocks: []
+                });
+            }
 
-                // 2. Update
-                const idx = currentBlocks.findIndex(b => b.id === blockId);
-                if (idx !== -1) {
-                    currentBlocks[idx] = { ...currentBlocks[idx], [field]: value };
-                }
+            return {
+                ...prev,
+                projects: targetProjects.map(p => {
+                    if (p.name !== projectName) return p;
 
-                // 3. Sync Legacy (First block -> pmNotes)
-                const legacySync = currentBlocks.length > 0 ? currentBlocks[0].content : "";
+                    // 1. Get ready state
+                    const currentBlocks = (p.blocks && p.blocks.length > 0)
+                        ? [...p.blocks]
+                        : [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
 
-                return { ...p, blocks: currentBlocks, pmNotes: legacySync };
-            })
-        }));
+                    // 2. Update
+                    const idx = currentBlocks.findIndex(b => b.id === blockId);
+                    if (idx !== -1) {
+                        currentBlocks[idx] = { ...currentBlocks[idx], [field]: value };
+                    }
+
+                    // 3. Sync Legacy (First block -> pmNotes)
+                    const legacySync = currentBlocks.length > 0 ? currentBlocks[0].content : "";
+
+                    return { ...p, blocks: currentBlocks, pmNotes: legacySync };
+                })
+            };
+        });
     };
 
     const handleAddBlock = (projectName: string) => {
@@ -1496,14 +1554,35 @@ export default function DailyFollowUp() {
                                                                         content: md,
                                                                         type: 'notes'
                                                                     };
-                                                                    setEntry(prev => ({
-                                                                        ...prev,
-                                                                        projects: prev.projects.map(p =>
-                                                                            p.name === activeTab
-                                                                                ? { ...p, blocks: [...(p.blocks || []), newBlock] }
-                                                                                : p
-                                                                        )
-                                                                    }));
+                                                                    setEntry(prev => {
+                                                                        const exists = prev.projects.some(p => p.name === activeTab);
+                                                                        if (exists) {
+                                                                            return {
+                                                                                ...prev,
+                                                                                projects: prev.projects.map(p =>
+                                                                                    p.name === activeTab
+                                                                                        ? { ...p, blocks: [...(p.blocks || []), newBlock] }
+                                                                                        : p
+                                                                                )
+                                                                            };
+                                                                        } else {
+                                                                            // Create new project entry if it doesn't exist for this day
+                                                                            const gp = globalProjects.find(g => g.name === activeTab);
+                                                                            return {
+                                                                                ...prev,
+                                                                                projects: [...prev.projects, {
+                                                                                    name: activeTab,
+                                                                                    projectId: gp?.id || "",
+                                                                                    pmNotes: "",
+                                                                                    conclusions: "",
+                                                                                    nextSteps: "",
+                                                                                    blocks: [newBlock],
+                                                                                    status: 'active'
+                                                                                }]
+                                                                            };
+                                                                        }
+                                                                    });
+                                                                    setIsDirty(true); // Mark state as dirty after scan results arrive
                                                                 }
                                                                 setAiSummary(description || "Sin resumen disponible");
                                                                 setAiSuggestions(action_items || []);

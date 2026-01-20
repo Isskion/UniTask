@@ -140,6 +140,13 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
 
                 if (projEntry) {
                     const entryDate = new Date(entry.date);
+
+                    // [FIX] Include content from NoteBlocks (where PDF extraction saves its results)
+                    const blocksContent = projEntry.blocks?.map(b => `${b.title ? `### ${b.title}\n` : ''}${b.content}`).join('\n\n') || "";
+                    const combinedNotes = [projEntry.pmNotes, projEntry.conclusions, blocksContent]
+                        .filter(text => text && text.trim().length > 0)
+                        .join('\n\n') || "Sin notas adicionales.";
+
                     results.push({
                         id: `journal-${d.id}-${projectId}`,
                         projectId,
@@ -148,7 +155,7 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
                         authorName: 'Resumen Diario',
                         type: 'weekly',
                         content: {
-                            notes: projEntry.pmNotes || projEntry.conclusions || "Sin notas adicionales.",
+                            notes: combinedNotes,
                             nextSteps: projEntry.nextSteps ? projEntry.nextSteps.split('\n').filter(s => s.trim().length > 0) : [],
                             blockers: ""
                         }
