@@ -59,7 +59,7 @@ export default function VisualTemplateDesigner({ fileUrl, initialZones, onSave, 
             });
 
             // Iterate and cluster
-            items.forEach((item: any) => {
+            for (const item of items) {
                 // PDF coords to normalized 0-1000
                 // transform[4] = x, transform[5] = y (from bottom)
                 // item.width, item.height
@@ -89,7 +89,7 @@ export default function VisualTemplateDesigner({ fileUrl, initialZones, onSave, 
                         currentBlock.xmax = Math.max(currentBlock.xmax, normX + normW);
                         currentBlock.ymax = Math.max(currentBlock.ymax, normY + normH);
                         currentBlock.items.push(item);
-                        return;
+                        continue;
                     }
                 }
 
@@ -115,7 +115,7 @@ export default function VisualTemplateDesigner({ fileUrl, initialZones, onSave, 
                     ymax: normY + normH,
                     items: [item]
                 };
-            });
+            }
 
             // Push last block
             if (currentBlock) {
