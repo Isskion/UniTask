@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.10.3';
+export const APP_VERSION = '12.10.5';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.10.5",
+        date: "2026-01-20",
+        title: "Manual de Usuario y Documentación",
+        features: [
+            "**Manual de Usuario Actualizado**: Integración del manual en formato Markdown accesible directamente desde la interfaz.",
+            "Visualización sin imágenes optimizada para carga rápida.",
+            "Cobertura completa hasta la versión 12.10.4."
+        ]
+    },
     {
         version: "12.10.3",
         date: "2026-01-20",
@@ -177,7 +187,7 @@ export const CHANGELOG: ChangeLogItem[] = [
 ];
 
 export const DOCUMENTATION_LINKS = [
-    { label: "Manual de Usuario", url: "#" },
+    { label: "Manual de Usuario", url: "/MANUAL_USUARIO.md" },
     { label: "API Reference", url: "#" },
     { label: "Soporte", url: "#" }
 ];
