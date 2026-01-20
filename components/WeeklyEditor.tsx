@@ -9,8 +9,12 @@ import TaskList from "./TaskList";
 import TaskManagement from "./TaskManagement";
 import UserRoleManagement from "./UserRoleManagement";
 import ReportManagement from "./reports/ReportManagement"; // Added ReportManagement
+import SupportManagement from "./SupportManagement";
+import TenantManagement from "./TenantManagement";
+import TaskMasterDataManagement from "./TaskMasterDataManagement";
 import { AppLayout } from "./AppLayout";
-import ChangelogModal from "./ChangelogModal"; // Added import
+import ChangelogModal from "./ChangelogModal";
+import ManualViewer from "./ManualViewer";
 import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
@@ -72,7 +76,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -84,7 +88,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master' || view === 'reports') {
+            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master' || view === 'reports' || view === 'support-management' || view === 'user-manual') {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -92,7 +96,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master' || saved === 'reports') {
+            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master' || saved === 'reports' || saved === 'support-management' || saved === 'user-manual') {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -141,14 +145,9 @@ export default function WeeklyEditor() {
         const loadInitData = async () => {
             // 1. Fetch Profile
             try {
-                const docRef = doc(db, "user", user.uid);
-                const snap = await getDoc(docRef);
-                console.log('[WeeklyEditor] Fetching user profile for UID:', user.uid);
-                console.log('[WeeklyEditor] Profile document exists:', snap.exists());
+                const snap = await getDoc(doc(db, "user_profiles", user.uid));
                 if (snap.exists()) {
                     const profileData = snap.data();
-                    console.log('[WeeklyEditor] Profile data:', profileData);
-                    console.log('[WeeklyEditor] assignedProjectIds:', profileData.assignedProjectIds);
                     setUserProfile(profileData);
                 } else {
                     console.warn('[WeeklyEditor] No profile document found for user:', user.uid);
@@ -217,23 +216,16 @@ export default function WeeklyEditor() {
 
     // ... (existing useEffects) ...
 
-    const loadData = useCallback(async (dateObj: Date) => {
+    const loadData = useCallback(async (id: string) => {
         setLoading(true);
         setCheckedTasks(new Set());
 
         // Ensure we are strictly on the Monday of that week
-        const monday = startOfWeek(dateObj, { weekStartsOn: 1 });
-        const dateId = formatDateId(monday);
+        const monday = startOfWeek(currentDate, { weekStartsOn: 1 });
         const weekNum = getWeekNumber(monday);
         const yearNum = getYearNumber(monday);
 
-        // [FIX] Namespace ID by Tenant to prevent collision
-        // Legacy (Tenant 1) keeps simple date ID "2025-01-06"
-        // Others get "4_2025-01-06"
         const currentTenant = tenantId || "1";
-        const id = currentTenant === "1" ? dateId : `${currentTenant}_${dateId}`;
-
-        console.log(`[LoadData] Loading for ID: ${id} (Week ${weekNum}, Tenant ${currentTenant})`);
 
         // Temporary reset to avoid ghosting while loading
         setEntry({
@@ -252,7 +244,6 @@ export default function WeeklyEditor() {
             const existing = await getWeeklyEntry(id);
 
             if (existing) {
-                console.log(`[LoadData] Found existing entry for ${id}`);
                 // Auto-repair 0 values from DB using the calculated date info
                 setEntry({
                     ...existing,
@@ -264,7 +255,6 @@ export default function WeeklyEditor() {
 
                 // Logic for Auto-Selecting Tab will move to Render or Effect to wait for userProfile
             } else {
-                console.log(`[LoadData] No existing entry for ${id}, creating new blank.`);
                 setEntry({
                     id,
                     weekNumber: weekNum,
@@ -290,7 +280,7 @@ export default function WeeklyEditor() {
             setLoading(false);
             // setViewMode('editor'); // Don't reset view mode on data load, allow user to stay on Dashboard
         }
-    }, []);
+    }, [currentDate, tenantId]);
 
     // Filter Visible Projects based on Role/Assignment
     const getVisibleProjects = () => {
@@ -301,8 +291,6 @@ export default function WeeklyEditor() {
         // Fallback to legacy getRoleLevel if viewContext is missing (e.g. initial load)
         const currentLevel = viewContext?.activeRole ?? getRoleLevel(userRole);
 
-        console.log(`[Review] Level: ${currentLevel}, ActiveProjects: ${activeOnly.length}`);
-
         // 2. logic: Admin (80) & Global PM (60) & Superadmin (100) see ALL
         if (currentLevel >= RoleLevel.PM) {
             return activeOnly;
@@ -310,7 +298,6 @@ export default function WeeklyEditor() {
 
         // 3. If no user profile loaded yet => Empty (safe secure default)
         if (!userProfile) {
-            console.log("[Review] Security: No user profile, hiding projects");
             return [];
         }
 
@@ -327,7 +314,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -341,11 +328,17 @@ export default function WeeklyEditor() {
     // When date changes implies a Monday shift, reload.
     // This effect MUST run whenever currentDate changes to keep UI in sync
     useEffect(() => {
-        console.log("[Effect] Date changed to:", currentDate);
         // Ensure we are viewing "General" or blank slate before loading new data
         setActiveTab("General");
-        loadData(currentDate);
-    }, [currentDate, loadData]);
+        // [FIX] Namespace ID by Tenant to prevent collision
+        // Legacy (Tenant 1) keeps simple date ID "2025-01-06"
+        // Others get "4_2025-01-06"
+        const monday = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const dateId = formatDateId(monday);
+        const currentTenant = tenantId || "1";
+        const id = currentTenant === "1" ? dateId : `${currentTenant}_${dateId}`;
+        loadData(id);
+    }, [currentDate, loadData, tenantId]);
 
     // Auto-select first project if we are on "General" (which is hidden) or an invalid tab
     useEffect(() => {
@@ -373,13 +366,8 @@ export default function WeeklyEditor() {
         // Let's interpret: If I switch days, I want to see *context*.
         // If I was on Project A, and Project A exists today, stay on Project A?
         // User said: "se quedan las tareas de la ultima fiche que haya abierto." -> "Last file open remains".
-        // Correct behavior requested: "foco en el primer proyeto abierto y, si no hay proyecto, se viera vacio."
-        // This implies: RESET to First Project (Index 0).
-
-        // So, on every load (signaled by loading -> false transition?), we might want to reset?
-        // But we don't want to annoy user if they just clicked a tab.
-        // We rely on the fact that `loadData` sets `loading=true` then `false`.
-        // We can track if we just loaded?
+        // This means the UI showed Project A's tasks from Yesterday even though Project A doesn't exist Today?
+        // That's a `currentIsValid` check failure.
 
         // Ideally:
         // If currentIsValid => Stay (e.g. Project A exists in both days).
@@ -482,8 +470,6 @@ export default function WeeklyEditor() {
         const handleSwitchProject = (e: CustomEvent) => {
             const p = e.detail;
             if (!p || !p.name) return;
-
-            console.log("[Command K] Switching to:", p.name);
 
             // Check if already in entry
             const exists = entry.projects.find(ep => ep.name === p.name);
@@ -682,20 +668,12 @@ export default function WeeklyEditor() {
             const recoveredId = formatDateId(monday);
 
             if (recoveredId) {
-                console.log("Recovered raw date ID:", recoveredId);
-
-                // [FIX] Apply namespacing to recovered ID
                 const currentTenant = tenantId || "1";
                 const finalId = currentTenant === "1" ? recoveredId : `${currentTenant}_${recoveredId}`;
 
-                console.log("Final Recovered ID:", finalId);
                 const updatedEntry = { ...entry, id: finalId };
-                // entry.id = finalId; // Avoid mutable ref if possible, use updatedEntry
                 setEntry(prev => ({ ...prev, id: finalId }));
 
-                // Use updatedEntry for the rest of the function? 
-                // Currently handleSave uses 'entry' state which might be stale if setEntry is async.
-                // RISK: 'entry' variable here is closure-captured. Mutating it is a hack but works for this scope.
                 entry.id = finalId;
             } else {
                 showToast("UniTaskController", "Error Crítico: No hay ID de semana. Refresca la página.", "error");
@@ -711,23 +689,13 @@ export default function WeeklyEditor() {
 
         setSaving(true);
         try {
-            console.log("Saving entry:", entry);
             await saveWeeklyEntry(entry);
-
-            // Phase 2: Shadow Writes (Fire & Forget or Await)
-            // We await it to ensure data consistency during this critical migration phase
-            try {
-                await syncShadowProjects(entry);
-                console.log("✅ Shadow Sync completed");
-            } catch (shadowError) {
-                console.error("⚠️ Shadow Sync failed (Non-blocking):", shadowError);
-            }
+            await syncShadowProjects(entry);
 
             fetchExistingIdsClient(tenantId || "1").then(ids => setExistingIds(new Set(ids)));
             showToast("UniTaskController", "Guardado correctamente ✨", "success");
         } catch (error: any) {
             console.error("Save error:", error);
-            // Show explicit firebase permission error
             if (error.code === 'permission-denied') {
                 showToast("UniTaskController", "⛔ Permiso denegado. Revisa tus permisos.", "error");
             } else {
@@ -1196,6 +1164,34 @@ export default function WeeklyEditor() {
                     {viewMode === 'reports' && (
                         <div className="h-full p-6 overflow-hidden">
                             <ReportManagement />
+                        </div>
+                    )}
+
+                    {/* View: Support Management */}
+                    {viewMode === 'support-management' && (
+                        <div className="h-full overflow-hidden">
+                            <SupportManagement />
+                        </div>
+                    )}
+
+                    {/* View: Tenant Management */}
+                    {viewMode === 'tenant-management' && (
+                        <div className="h-full overflow-hidden">
+                            <TenantManagement />
+                        </div>
+                    )}
+
+                    {/* View: Admin Task Master */}
+                    {viewMode === 'admin-task-master' && (
+                        <div className="h-full overflow-hidden">
+                            <TaskMasterDataManagement />
+                        </div>
+                    )}
+
+                    {/* View: User Manual */}
+                    {viewMode === 'user-manual' && (
+                        <div className="h-full overflow-hidden">
+                            <ManualViewer />
                         </div>
                     )}
 

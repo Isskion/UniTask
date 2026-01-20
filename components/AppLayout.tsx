@@ -20,7 +20,9 @@ import {
     Shield,
     Building,
     ListTodo,
-    FileText
+    FileText,
+    LifeBuoy,
+    BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -30,20 +32,21 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { VersionBadge } from "@/components/VersionBadge";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 import { AIHelpPanel } from "@/components/AIHelpPanel";
+import SupportModal from "@/components/SupportModal";
 import { Sparkles as GeminiIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'; // Added reports
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'; // Added support-management and user-manual
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
 import { useUI } from "@/context/UIContext"; // Import Context
 import { useToast } from "@/context/ToastContext";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 
@@ -55,6 +58,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const { showToast } = useToast();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [isSupportOpen, setIsSupportOpen] = useState(false);
     const { t } = useLanguage();
 
 
@@ -119,19 +123,20 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                 try {
                     // [DEBUG] Log context to catch mismatches
-                    console.log(`[Deadline Check] Running for ${user.email} (UID: ${user.uid}) in Tenant ${tenantId}`);
                     // console.log(`[Deadline Check] Claims:`, (user as any).reloadUserInfo?.customAttributes); // Optional deep debug
 
                     // 1. Get ACTIVE tasks assigned to CURRENT USER
                     let overdueTasks: any[] = [];
                     try {
-                        console.log(`[Deadline Check] 1. Fetching Tasks for Tenant ${tenantId}...`);
                         const qT = query(
                             collection(db, "tasks"),
                             where("tenantId", "==", tenantId),
-                            where("assignedTo", "==", user.uid)
+                            where("assignedTo", "==", user.uid),
+                            limit(50)
                         );
+                        console.log(`[DeadlineCheck] Querying tasks for user ${user.uid} in tenant ${tenantId}`);
                         const snapT = await getDocs(qT);
+                        console.log(`[DeadlineCheck] Got ${snapT.docs.length} tasks`);
 
                         const now = new Date();
                         overdueTasks = snapT.docs
@@ -141,7 +146,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 ['pending', 'in_progress', 'review'].includes(t.status) &&
                                 t.endDate && new Date(t.endDate) < now
                             );
-                        console.log(`[Deadline Check] Found ${overdueTasks.length} overdue tasks.`);
                     } catch (e: any) {
                         console.error("[Deadline Check] ❌ Error fetching tasks (Step 1):", e.code, e.message);
                         return; // Stop if we can't get tasks
@@ -155,9 +159,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         const qN = query(
                             collection(db, "notifications"),
                             where("userId", "==", user.uid),
-                            where("tenantId", "==", tenantId)
+                            where("tenantId", "==", tenantId),
+                            limit(50)
                         );
+                        console.log(`[DeadlineCheck] Querying notifications for user ${user.uid} in tenant ${tenantId}`);
                         const snapN = await getDocs(qN);
+                        console.log(`[DeadlineCheck] Got ${snapN.docs.length} notifications`);
 
                         // In-memory filter for type
                         const notifiedTaskIds = new Set(
@@ -171,7 +178,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             if (notifiedTaskIds.has(task.id)) continue;
 
                             try {
-                                console.log(`[Deadline Check] Notifying current user for task ${task.friendlyId}`);
                                 await addDoc(collection(db, "notifications"), {
                                     userId: user.uid,
                                     tenantId: tenantId, // CRITICAL: Attribute to current tenant
@@ -230,7 +236,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
                             <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.taskManager')} />
+                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                         </div>
 
@@ -245,22 +251,27 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             )}
 
                             {canManagePermissions && (
-                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                <>
+                                    <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                    <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
+                                </>
                             )}
-                            {canManagePermissions && (
-                                <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                            )}
+
                             {userRole === 'superadmin' && (
-                                <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
-                            )}
-                            {userRole === 'superadmin' && (
-                                <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants')} />
+                                <>
+                                    <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
+                                    <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants')} />
+                                </>
                             )}
                         </div>
 
                         {/* System */}
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.system')}</p>
+                            <NavItem mode="user-manual" icon={BookOpen} label={t('nav.manual') || "Manual"} />
+                            {userRole === 'superadmin' && (
+                                <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
+                            )}
                             <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
                         </div>
                     </div>
@@ -305,8 +316,17 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <span className="text-muted-foreground hidden sm:inline">{t('nav.workspace')}</span>
                                 <span className="text-muted-foreground/50 hidden sm:inline">/</span>
                                 <span className="text-foreground font-medium capitalize">
-                                    {viewMode === 'editor' ? 'Follow-Up' : viewMode}
+                                    {viewMode === 'editor' ? t('nav.followUp') : (t(`nav.${viewMode as any}`) || viewMode)}
                                 </span>
+
+                                {/* Support Button next to title */}
+                                <button
+                                    onClick={() => setIsSupportOpen(true)}
+                                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all group"
+                                    title={t('support.title')}
+                                >
+                                    <LifeBuoy className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
 
@@ -354,16 +374,42 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     <div className="fixed inset-0 z-50 lg:hidden flex">
                         <div className="w-64 bg-[#0c0c0e] h-full p-4 flex flex-col border-r border-white/10">
                             <div className="flex justify-between items-center mb-6">
-                                <span className="font-bold text-white">Menu</span>
+                                <span className="font-bold text-white">{t('common.menu')}</span>
                                 <button onClick={() => setIsMobileMenuOpen(false)}>
                                     <X className="w-5 h-5 text-zinc-400" />
                                 </button>
                             </div>
                             <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
                                 <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
+                                <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
+                            </div>
+
+                            <div className="mt-4 space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
+                                {canManagePermissions && (
+                                    <>
+                                        <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                        <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
+                                    </>
+                                )}
+                                {userRole === 'superadmin' && (
+                                    <>
+                                        <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants')} />
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="mt-4 space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.system')}</p>
+                                <NavItem mode="user-manual" icon={BookOpen} label={t('nav.manual') || "Manual"} />
+                                {userRole === 'superadmin' && (
+                                    <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
+                                )}
+                                <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
                             </div>
                         </div>
                         <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
@@ -371,6 +417,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                 )}
             </div>
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+            <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
         </div>
     );
 }

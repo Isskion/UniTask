@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, serverTimestamp, where, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, orderBy, serverTimestamp, where, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -170,7 +170,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         try {
             // Force use of the ACTIVE context tenantId (masqueraded or real)
             const targetTenantId = tenantId || "1";
-            console.log("[TaskManagement] Loading data for Tenant:", targetTenantId);
 
             // Load Projects (filtered by tenant)
             const qp = query(collection(db, "projects"), where("tenantId", "==", targetTenantId), orderBy("name"));
@@ -193,7 +192,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             snapT.forEach(doc => loadedTasks.push({ id: doc.id, ...doc.data() } as Task));
             setTasks(loadedTasks);
         } catch (error) {
-            console.error("Error loading TaskManagement data", error);
+            // console.error("Error loading TaskManagement data", error);
             showToast("Error", "No se pudieron cargar los datos", "error");
         } finally {
             setLoading(false);
@@ -202,23 +201,48 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     // Initial Selection from Prop
     useEffect(() => {
-        if (!loading && initialTaskId) {
-            const target = tasks.find(t => t.id === initialTaskId);
-            if (target) {
-                console.log("[TaskManagement] Selecting initial task:", target.friendlyId);
-                setSelectedTask(target);
-            } else {
-                if (!retriedIds.current.has(initialTaskId)) {
-                    console.warn("[TaskManagement] Task not found, attempting reload for:", initialTaskId);
-                    retriedIds.current.add(initialTaskId);
-                    loadData();
+        const checkInitialTask = async () => {
+            if (!loading && initialTaskId) {
+                // IMPORTANT: If already selected, do nothing more!
+                if (selectedTask?.id === initialTaskId) return;
+
+                const target = tasks.find(t => t.id === initialTaskId);
+                if (target) {
+                    setSelectedTask(target);
                 } else {
-                    console.error("[TaskManagement] Task ID not found even after reload:", initialTaskId);
-                    showToast("Error", "La tarea solicitada no existe o no tienes acceso.", "error");
+                    if (!retriedIds.current.has(initialTaskId)) {
+                        retriedIds.current.add(initialTaskId);
+
+                        try {
+                            const taskDoc = await getDoc(doc(db, "tasks", initialTaskId));
+                            if (taskDoc.exists()) {
+                                const foundTask = { id: taskDoc.id, ...taskDoc.data() } as Task;
+                                // Add to list and select
+                                setTasks(prev => [foundTask, ...prev]);
+                                setSelectedTask(foundTask);
+                            } else {
+                                showToast("Error", "La tarea solicitada ya no existe.", "error");
+                            }
+                        } catch (e: any) {
+                            // [FIX] Detect Permission Denied
+                            if (e.code === 'permission-denied') {
+                                console.error("[TaskManagement] Permission denied for task:", initialTaskId, "User:", user?.email, "Role:", userRole);
+                                showToast("Error de Acceso", "No tienes permisos para ver esta tarea o pertenece a otra organización.", "error");
+                            } else {
+                                console.error("[TaskManagement] Error fetching individual task:", e);
+                                loadData();
+                            }
+                        }
+                    } else if (selectedTask?.id !== initialTaskId) {
+                        // Silent fail if we already retried and didn't find/access it
+                        // This prevents the error log loop while keeping the UI stable
+                    }
                 }
             }
-        }
-    }, [initialTaskId, loading, tasks, loadData]);
+        };
+
+        checkInitialTask();
+    }, [initialTaskId, loading, tasks, loadData, showToast, selectedTask, user, userRole]);
 
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
@@ -256,7 +280,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             const isVisible = visibleProjects.some(vp => vp.id === t.projectId);
             if (!isVisible && tasks.indexOf(t) < 5) {
                 // Debug first few hidden tasks
-                console.log(`[TaskFilter] Hiding task ${t.friendlyId} (Project ${t.projectId}). Visible Projects:`, visibleProjects.map(p => p.id));
+                // Filter projects
             }
             if (!isVisible) return false;
         }

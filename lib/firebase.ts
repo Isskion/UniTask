@@ -23,9 +23,23 @@ console.log("🔥 Firebase Config Loaded:", {
 // Initialize Firebase (Singleton pattern to avoid re-initialization errors in Next.js hot reload)
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+// Initialize Firestore (Singleton pattern)
 const db = initializeFirestore(app, {
     experimentalForceLongPolling: true,
 });
+
+// Enable persistence for better offline resilience (Optional but helpful for "offline" errors)
+if (typeof window !== 'undefined') {
+    import('firebase/firestore').then(({ enableIndexedDbPersistence }) => {
+        enableIndexedDbPersistence(db).catch((err) => {
+            if (err.code === 'failed-precondition') {
+                console.warn('Firestore persistence failed: Multiple tabs open');
+            } else if (err.code === 'unimplemented') {
+                console.warn('Firestore persistence is not supported in this browser');
+            }
+        });
+    });
+}
 const storage = getStorage(app);
 const auth = getAuth(app);
 

@@ -309,3 +309,16 @@ export interface MasterDataItem {
     tenantId?: string;
     isActive?: boolean;
 }
+
+export interface SupportTicket {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    tenantId: string;
+    message: string;
+    context: string; // The list/view from which support was requested
+    status: 'open' | 'in_progress' | 'resolved' | 'closed';
+    createdAt: any;
+    updatedAt: any;
+}

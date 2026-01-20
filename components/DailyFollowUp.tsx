@@ -34,6 +34,8 @@ import ChangelogModal from "./ChangelogModal";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 import TaskMasterDataManagement from "./TaskMasterDataManagement"; // Master Data Manager // Added import
 import ReportManagement from "./reports/ReportManagement"; // Added Import
+import SupportManagement from "./SupportManagement";
+import ManualViewer from "./ManualViewer";
 import { useLanguage } from "@/context/LanguageContext";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
@@ -164,7 +166,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -1947,6 +1949,10 @@ export default function DailyFollowUp() {
                         <TaskMasterDataManagement />
                     ) : viewMode === 'reports' ? (
                         <ReportManagement />
+                    ) : viewMode === 'support-management' ? (
+                        <SupportManagement />
+                    ) : viewMode === 'user-manual' ? (
+                        <ManualViewer />
                     ) : (
                         <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                     )}

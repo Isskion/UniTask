@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.10.5';
+export const APP_VERSION = '12.10.6';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.10.6",
+        date: "2026-01-20",
+        title: "Estabilidad de Plataforma y Seguridad",
+        features: [
+            "**Transición Completa a WeeklyEditor**: Activación global del nuevo editor como punto de entrada principal del sistema.",
+            "**Seguridad Reforzada (Firestore)**: Implementación de reglas granulares para colecciones maestras y de bitácora (journal/weekly), garantizando aislamiento multi-tenancy.",
+            "**Gestión de Errores Silenciosa**: Mejor manejo de IDs de tareas no encontrados para evitar interrupciones al navegar por enlaces antiguos.",
+            "**Restauración de Vistas Admin**: Recuperación de las vistas de Inquilinos y Datos Maestros dentro del entorno del nuevo editor."
+        ]
+    },
     {
         version: "12.10.5",
         date: "2026-01-20",
@@ -187,7 +198,7 @@ export const CHANGELOG: ChangeLogItem[] = [
 ];
 
 export const DOCUMENTATION_LINKS = [
-    { label: "Manual de Usuario", url: "/MANUAL_USUARIO.md" },
+    { label: "Manual de Usuario", url: "/?view=user-manual" },
     { label: "API Reference", url: "#" },
     { label: "Soporte", url: "#" }
 ];
