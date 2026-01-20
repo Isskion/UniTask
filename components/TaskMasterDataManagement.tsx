@@ -568,154 +568,154 @@ export default function TaskMasterDataManagement() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Edit Block Form - Matching UserRoleManagement Modal Structure */}
-                            {isEditingBlock && (
-                                <div className={cn("mb-6 rounded-xl border overflow-hidden animate-in slide-in-from-top-2 shadow-xl",
+                        {/* Edit Block Form - Matching UserRoleManagement Modal Structure */}
+                        {isEditingBlock && (
+                            <div className={cn("mb-6 rounded-xl border overflow-hidden animate-in slide-in-from-top-2 shadow-xl",
+                                isLight
+                                    ? "bg-white border-zinc-200 shadow-zinc-200"
+                                    : (theme === 'red'
+                                        ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20"
+                                        : "bg-[#09090b] border-white/10 shadow-black")
+                            )}>
+                                {/* Form Header */}
+                                <div className={cn("p-4 border-b flex items-center justify-between",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                )}>
+                                    <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                        <Edit2 className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
+                                        Editar Bloque
+                                    </h3>
+                                </div>
+
+                                {/* Form Body */}
+                                <div className="p-4 space-y-4">
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Nombre</label>
+                                            <input
+                                                value={blockFormName}
+                                                onChange={e => setBlockFormName(e.target.value)}
+                                                className={cn(
+                                                    "w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                        : (theme === 'red'
+                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
+                                                            : "bg-zinc-900 border-zinc-700 text-white")
+                                                )}
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Color</label>
+                                            <div className="h-[38px] flex items-center">
+                                                <input
+                                                    type="color"
+                                                    value={blockFormColor}
+                                                    onChange={e => setBlockFormColor(e.target.value)}
+                                                    className={cn("w-10 h-full rounded-lg cursor-pointer border transition-colors p-0",
+                                                        isLight ? "border-zinc-200" : (theme === 'red' ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Form Footer */}
+                                <div className={cn("p-4 border-t flex justify-end gap-2",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                                )}>
+                                    <button
+                                        onClick={() => setIsEditingBlock(false)}
+                                        className={cn("px-4 py-2 rounded font-medium text-sm transition-colors",
+                                            isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
+                                        )}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleUpdateBlock}
+                                        disabled={!blockFormName.trim()}
+                                        className={cn(
+                                            "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all flex items-center gap-2",
+                                            theme === 'red'
+                                                ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                                : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                        )}
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Add Option */}
+                        <div className="flex gap-3 mb-6">
+                            <input
+                                value={newItemName}
+                                onChange={e => setNewItemName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddOption()}
+                                placeholder="Nueva opción..."
+                                className={cn(
+                                    "flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
+                                    isLight
+                                        ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
+                                        : (theme === 'red'
+                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
+                                            : "bg-zinc-900 border-zinc-700 text-white")
+                                )}
+                                autoFocus
+                            />
+                            <input
+                                type="color"
+                                value={newItemColor}
+                                onChange={e => setNewItemColor(e.target.value)}
+                                className="w-10 h-10 rounded-lg cursor-pointer border p-0"
+                            />
+                            <button
+                                onClick={handleAddOption}
+                                disabled={!newItemName.trim() || isAdding}
+                                className={cn(
+                                    "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all",
+                                    theme === 'red'
+                                        ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
+                                        : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                )}
+                            >
+                                {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                Añadir
+                            </button>
+                        </div>
+
+                        {/* Options List */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {items.map(item => (
+                                <div key={item.id} className={cn(
+                                    "flex items-center justify-between p-4 rounded-xl border transition-all group shadow-sm",
                                     isLight
                                         ? "bg-white border-zinc-200 shadow-zinc-200"
                                         : (theme === 'red'
-                                            ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20"
-                                            : "bg-[#09090b] border-white/10 shadow-black")
+                                            ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/10 hover:border-[#D32F2F]/50 hover:shadow-[#D32F2F]/20"
+                                            : "bg-card hover:border-primary/50")
                                 )}>
-                                    {/* Form Header */}
-                                    <div className={cn("p-4 border-b flex items-center justify-between",
-                                        isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
-                                    )}>
-                                        <h3 className={cn("font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                            <Edit2 className={cn("w-4 h-4", theme === 'red' ? "text-[#D32F2F]" : "text-white")} />
-                                            Editar Bloque
-                                        </h3>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                                        <span className="text-sm font-medium">{item.name}</span>
                                     </div>
-
-                                    {/* Form Body */}
-                                    <div className="p-4 space-y-4">
-                                        <div className="flex gap-4">
-                                            <div className="flex-1">
-                                                <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Nombre</label>
-                                                <input
-                                                    value={blockFormName}
-                                                    onChange={e => setBlockFormName(e.target.value)}
-                                                    className={cn(
-                                                        "w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
-                                                        isLight
-                                                            ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
-                                                            : (theme === 'red'
-                                                                ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
-                                                                : "bg-zinc-900 border-zinc-700 text-white")
-                                                    )}
-                                                    autoFocus
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className={cn("block text-sm font-medium mb-2", isLight ? "text-muted-foreground" : "text-zinc-300")}>Color</label>
-                                                <div className="h-[38px] flex items-center">
-                                                    <input
-                                                        type="color"
-                                                        value={blockFormColor}
-                                                        onChange={e => setBlockFormColor(e.target.value)}
-                                                        className={cn("w-10 h-full rounded-lg cursor-pointer border transition-colors p-0",
-                                                            isLight ? "border-zinc-200" : (theme === 'red' ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
-                                                        )}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Form Footer */}
-                                    <div className={cn("p-4 border-t flex justify-end gap-2",
-                                        isLight ? "bg-zinc-50 border-zinc-200" : (theme === 'red' ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
-                                    )}>
-                                        <button
-                                            onClick={() => setIsEditingBlock(false)}
-                                            className={cn("px-4 py-2 rounded font-medium text-sm transition-colors",
-                                                isLight ? "text-zinc-500 hover:text-zinc-900" : (theme === 'red' ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white")
-                                            )}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            onClick={handleUpdateBlock}
-                                            disabled={!blockFormName.trim()}
-                                            className={cn(
-                                                "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 shadow-sm transition-all flex items-center gap-2",
-                                                theme === 'red'
-                                                    ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
-                                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                            )}
-                                        >
-                                            <Save className="w-4 h-4" />
-                                            Guardar
-                                        </button>
-                                    </div>
+                                    <button onClick={() => handleDeleteItem(item.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ))}
+                            {items.length === 0 && !loading && (
+                                <div className="col-span-full py-12 text-center text-muted-foreground text-sm italic border border-dashed rounded-xl">
+                                    No hay opciones definidas.
                                 </div>
                             )}
-
-                            {/* Add Option */}
-                            <div className="flex gap-3 mb-6">
-                                <input
-                                    value={newItemName}
-                                    onChange={e => setNewItemName(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleAddOption()}
-                                    placeholder="Nueva opción..."
-                                    className={cn(
-                                        "flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors",
-                                        isLight
-                                            ? "bg-white border-zinc-200 text-zinc-900 focus:ring-primary/20"
-                                            : (theme === 'red'
-                                                ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F] focus:ring-[#D32F2F]/20"
-                                                : "bg-zinc-900 border-zinc-700 text-white")
-                                    )}
-                                    autoFocus
-                                />
-                                <input
-                                    type="color"
-                                    value={newItemColor}
-                                    onChange={e => setNewItemColor(e.target.value)}
-                                    className="w-10 h-10 rounded-lg cursor-pointer border p-0"
-                                />
-                                <button
-                                    onClick={handleAddOption}
-                                    disabled={!newItemName.trim() || isAdding}
-                                    className={cn(
-                                        "px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all",
-                                        theme === 'red'
-                                            ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20"
-                                            : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                    )}
-                                >
-                                    {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                    Añadir
-                                </button>
-                            </div>
-
-                            {/* Options List */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                {items.map(item => (
-                                    <div key={item.id} className={cn(
-                                        "flex items-center justify-between p-4 rounded-xl border transition-all group shadow-sm",
-                                        isLight
-                                            ? "bg-white border-zinc-200 shadow-zinc-200"
-                                            : (theme === 'red'
-                                                ? "bg-[#1a0505] border-[#D32F2F]/30 shadow-[#D32F2F]/10 hover:border-[#D32F2F]/50 hover:shadow-[#D32F2F]/20"
-                                                : "bg-card hover:border-primary/50")
-                                    )}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                                            <span className="text-sm font-medium">{item.name}</span>
-                                        </div>
-                                        <button onClick={() => handleDeleteItem(item.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                                {items.length === 0 && !loading && (
-                                    <div className="col-span-full py-12 text-center text-muted-foreground text-sm italic border border-dashed rounded-xl">
-                                        No hay opciones definidas.
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
                 )}
