@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 
 interface ProjectActivityFeedProps {
     projectId: string;
+    projectTenantId?: string; // New: Specific tenant of the project
     projectName?: string;
     searchQuery?: string;
 }
@@ -22,7 +23,7 @@ export interface ProjectActivityFeedHandle {
     copyResults: () => void;
 }
 
-const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectName = "Proyecto", searchQuery = "" }, ref) => {
+const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectTenantId, projectName = "Proyecto", searchQuery = "" }, ref) => {
     const { theme } = useTheme();
     const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
@@ -55,7 +56,9 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
         const limitCount = loadFull ? -1 : 50;
 
         try {
-            const data = await getProjectUpdates(projectId, tenantId || "1", limitCount);
+            // [FIX] Use projectTenantId if provided, fallback to current session tenantId
+            const targetTenantId = projectTenantId || tenantId || "1";
+            const data = await getProjectUpdates(projectId, targetTenantId, limitCount, projectName);
 
             // Only update if we have data or if it's the initial load
             // If historical fetch fails (e.g. index error), we might get partial data. 

@@ -426,6 +426,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         ref={feedRef}
                                         key={selectedProject.id + (showCompose ? '_fresh' : '')}
                                         projectId={selectedProject.id}
+                                        projectTenantId={selectedProject.tenantId}
                                         projectName={selectedProject.name}
                                         searchQuery={searchQuery}
                                     />

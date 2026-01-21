@@ -44,7 +44,7 @@ export async function createUpdate(projectId: string, tenantId: string, data: Om
  * Merges: Manual Updates + Tasks + Journal Entries
  */
 // [UPDATED] Scoped Project Updates
-export async function getProjectUpdates(projectId: string, tenantId: string, limitCount = 50): Promise<ProjectUpdate[]> {
+export async function getProjectUpdates(projectId: string, tenantId: string, limitCount = 50, projectName?: string): Promise<ProjectUpdate[]> {
     try {
         const results: ProjectUpdate[] = [];
 
@@ -136,7 +136,13 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
 
             snapJournal.forEach(d => {
                 const entry = d.data() as JournalEntry;
-                const projEntry = entry.projects?.find(p => p.projectId === projectId);
+                // [FIX] Robust matching: match by projectId OR case-insensitive name
+                // This covers cases where projects were added to journal before their ID was linked correctly
+                const targetName = projectName?.trim().toLowerCase();
+                const projEntry = entry.projects?.find(p =>
+                    p.projectId === projectId ||
+                    (targetName && p.name?.trim().toLowerCase() === targetName)
+                );
 
                 if (projEntry) {
                     const entryDate = new Date(entry.date);
