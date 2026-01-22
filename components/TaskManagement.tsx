@@ -344,7 +344,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 ],
                 progress: 0,
                 raci: { responsible: [], accountable: [], consulted: [], informed: [] },
-                dependencies: []
+                dependencies: [],
+                tenantId: tenantId || "1"
             };
             const ghost = { id: 'new', friendlyId: 'NEW', ...newTemplate } as Task;
             setSelectedTask(ghost);
@@ -393,6 +394,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 const docRef = await addDoc(collection(db, "tasks"), {
                     ...formData,
                     friendlyId,
+                    tenantId: tenantId || "1",
+                    createdBy: user?.uid || "unknown",
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });

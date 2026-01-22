@@ -1538,7 +1538,7 @@ export default function DailyFollowUp() {
                                             title={isTasksPanelVisible ? t('follow_up.hide_tasks') : t('follow_up.view_tasks')}
                                         >
                                             <ListTodo className="w-3 h-3" />
-                                            {isTasksPanelVisible ? t('common.hide') : t('follow_up.tasks')}
+                                            {isTasksPanelVisible ? t('follow_up.hide') : t('follow_up.tasks')}
                                         </button>
 
                                         {/* 2. SCAN PDF */}

@@ -21,7 +21,7 @@ service cloud.firestore {
                  (getUserData().get('role', '') == 'superadmin' ? 100 :
                   (getUserData().get('role', '') == 'app_admin' ? 80 :
                    (getUserData().get('role', '') == 'global_pm' ? 60 :
-                    (getUserData().get('role', '') == 'consultant' ? 40 :
+                    (getUserData().get('role', '') == 'consultant' || getUserData().get('role', '') == 'consultor' ? 40 :
                      (getUserData().get('role', '') == 'team_member' ? 20 :
                       (getUserData().get('role', '') == 'client' ? 10 : 0)))))))
              : 0;
