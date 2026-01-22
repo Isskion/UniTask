@@ -1,0 +1,5295 @@
+# COPIA DE SEGURIDAD - Base de Datos Minuta
+# Fecha: 21/1/2026, 15:07:23
+# Proyecto: minuta-f75a4
+
+
+--- COLECCIÓN: USERS (15 documentos) ---
+
+ID: 3avBlnAV7pOc2V0Lmrwew6PLUT72
+{
+  "uid": "3avBlnAV7pOc2V0Lmrwew6PLUT72",
+  "email": "unitaskcontroller.noreply@gmail.com",
+  "displayName": "prueba tenant",
+  "photoURL": "",
+  "role": "app_admin",
+  "roleLevel": 80,
+  "tenantId": "5",
+  "assignedProjectIds": [
+    "TMWjHHQmnkyey8MxWnRr"
+  ],
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768556485,
+    "_nanoseconds": 61000000
+  },
+  "lastLogin": {
+    "_seconds": 1768556485,
+    "_nanoseconds": 61000000
+  },
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: 6C9ZN0mfngNb5gIAWw1EMSaQcRR2
+{
+  "lastLogin": {
+    "_seconds": 1767800455,
+    "_nanoseconds": 804000000
+  },
+  "address": "abcabc",
+  "displayName": "Unigis",
+  "jobTitle": "",
+  "language": "es",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767800455,
+    "_nanoseconds": 804000000
+  },
+  "photoURL": null,
+  "phone": "+34605997132",
+  "company": "Unigis",
+  "email": "daniel.delamo@unigis.com",
+  "role": "app_admin",
+  "assignedProjectIds": [
+    "ncGXgeNYLO0Zx9x0Az4x",
+    "3Mb6nctLYF4ni6cS0jMu"
+  ],
+  "tenantId": "3",
+  "roleLevel": 80,
+  "updatedAt": "2026-01-15T20:49:37.472Z",
+  "permissionGroupId": "CzxVf8b4QEA0dAfE9qIH",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: 7gCY8q3xoVghU9T2eU5vjPUMiRF2
+{
+  "lastLogin": {
+    "_seconds": 1767885486,
+    "_nanoseconds": 919000000
+  },
+  "address": "",
+  "displayName": "Diego Senra Lamberti",
+  "jobTitle": "",
+  "language": "es",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767885486,
+    "_nanoseconds": 919000000
+  },
+  "photoURL": null,
+  "phone": "",
+  "company": "",
+  "email": "diego.senra@unigis.com",
+  "tenantId": "3",
+  "assignedProjectIds": [
+    "0G3rqiehGrimYU2e3oSG",
+    "UjhKp53R6wtXISAosT8j",
+    "kMyRiubivYL735UYTGRu",
+    "ncGXgeNYLO0Zx9x0Az4x",
+    "Au1xfXgivgl6VYj2zscs",
+    "Gq2CQfMRws3BMBTtWR1t",
+    "c0HRtaCkKXxeiQf897sY",
+    "9iqygviz3AGJnbJOLc8E",
+    "WcF8wTccm1LkaFBfWvug",
+    "aAb2HIajQVhXnLAzmVo8"
+  ],
+  "role": "global_pm",
+  "roleLevel": 60,
+  "permissionGroupId": "K3o2Hvs9LwH0GoiHO4RG",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: HKItfVWxI1MVy4djivVGZV9amqt2
+{
+  "lastLogin": {
+    "_seconds": 1767480514,
+    "_nanoseconds": 918000000
+  },
+  "address": "",
+  "displayName": "Daniel del amo",
+  "jobTitle": "",
+  "language": "es",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767480514,
+    "_nanoseconds": 918000000
+  },
+  "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJVbnmMYs9LyDZjdQ4Pl8GQr6kTuN8ofYLuIUEua5Bh-I6Tjw8=s96-c",
+  "phone": "",
+  "company": "",
+  "email": "danieldelamo2@gmail.com",
+  "tenantId": "2",
+  "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+  "role": "superadmin",
+  "assignedProjectIds": [
+    "Gq2CQfMRws3BMBTtWR1t",
+    "c0HRtaCkKXxeiQf897sY",
+    "aAb2HIajQVhXnLAzmVo8",
+    "1ijg4hrN81IwMrD4df7g",
+    "WcF8wTccm1LkaFBfWvug",
+    "3Mb6nctLYF4ni6cS0jMu",
+    "9iqygviz3AGJnbJOLc8E",
+    "Au1xfXgivgl6VYj2zscs"
+  ],
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: IvNer3nXjnOoGOrCajkAsL57GH52
+{
+  "uid": "IvNer3nXjnOoGOrCajkAsL57GH52",
+  "email": "anabella.brusciano@unigis.com",
+  "displayName": "Anabella Brusciano",
+  "photoURL": "",
+  "role": "app_admin",
+  "roleLevel": 80,
+  "tenantId": "6",
+  "assignedProjectIds": [
+    "9XwXd8sxvtrGffGa7CKd"
+  ],
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768557794,
+    "_nanoseconds": 265000000
+  },
+  "lastLogin": {
+    "_seconds": 1768557794,
+    "_nanoseconds": 265000000
+  },
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: P2ouXNOxWDeJ5YdliRVE0p5cAp42
+{
+  "uid": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+  "email": "jesusmanuel.marquez89@gmail.com",
+  "displayName": "Jesus Marquez",
+  "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocL68pTVltdF3V7IznsZz_udMBgaW7LWZhaHbyb6D1AQnhjmdoph=s96-c",
+  "roleLevel": 40,
+  "tenantId": "3",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768216141,
+    "_nanoseconds": 190000000
+  },
+  "lastLogin": {
+    "_seconds": 1768216141,
+    "_nanoseconds": 190000000
+  },
+  "address": "",
+  "phone": "",
+  "jobTitle": "",
+  "company": "",
+  "language": "es",
+  "permissionGroupId": "EzwcMQ72J3gCSuRYt9XJ",
+  "role": "consultor",
+  "assignedProjectIds": [
+    "Au1xfXgivgl6VYj2zscs",
+    "Gq2CQfMRws3BMBTtWR1t",
+    "WcF8wTccm1LkaFBfWvug",
+    "OH4sjML9byhLuzMXSTss"
+  ],
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: RbJjKxo4F7PSUWsneYHNy5vpu7i1
+{
+  "lastLogin": {
+    "_seconds": 1767862944,
+    "_nanoseconds": 588000000
+  },
+  "address": "",
+  "displayName": "Cristina Blanca ",
+  "jobTitle": "",
+  "language": "es",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767862944,
+    "_nanoseconds": 588000000
+  },
+  "photoURL": null,
+  "phone": "",
+  "assignedProjectIds": [
+    "zwFfQTeNcnd2gftR2Ou5",
+    "12cYGamvmQ2f1s263juy"
+  ],
+  "company": "",
+  "email": "cristina-blanca@hotmail.es",
+  "role": "global_pm",
+  "tenantId": "4",
+  "permissionGroupId": "FJUMXCfI4VnMMj8b8mOT",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: UsuqceJ4ylTflrGmgHQfhOLnCy13
+{
+  "uid": "UsuqceJ4ylTflrGmgHQfhOLnCy13",
+  "email": "maria.isasa@unigis.com",
+  "displayName": "Maria Isasa",
+  "photoURL": "",
+  "role": "consultor",
+  "roleLevel": 40,
+  "tenantId": "6",
+  "assignedProjectIds": [
+    "9XwXd8sxvtrGffGa7CKd"
+  ],
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768558574,
+    "_nanoseconds": 701000000
+  },
+  "lastLogin": {
+    "_seconds": 1768558574,
+    "_nanoseconds": 701000000
+  },
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: bw9Qc9zqH4OfOC4HLawEexZFJ6D3
+{
+  "uid": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "email": "eric.walther@unigis.com",
+  "displayName": "Eric Walther",
+  "photoURL": "",
+  "role": "consultor",
+  "roleLevel": 40,
+  "tenantId": "3",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768229055,
+    "_nanoseconds": 97000000
+  },
+  "lastLogin": {
+    "_seconds": 1768229055,
+    "_nanoseconds": 97000000
+  },
+  "address": "",
+  "phone": "",
+  "jobTitle": "",
+  "company": "",
+  "language": "es",
+  "assignedProjectIds": [
+    "WcF8wTccm1LkaFBfWvug",
+    "aAb2HIajQVhXnLAzmVo8",
+    "9iqygviz3AGJnbJOLc8E",
+    "IL23eIjvSIdwLgqwz0pY"
+  ],
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: idTSjTprwnM1GkgUSIiSzcxyi932
+{
+  "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+  "lastLogin": {
+    "_seconds": 1767483946,
+    "_nanoseconds": 582000000
+  },
+  "address": "",
+  "displayName": "David del amo",
+  "jobTitle": "",
+  "language": "es",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767483946,
+    "_nanoseconds": 582000000
+  },
+  "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIV7TsufmTIc-ktRpmL_PIYXxVRLDx-3QaIYdLDq-dNlkJcC6I-=s96-c",
+  "phone": "",
+  "assignedProjectIds": [
+    "zwFfQTeNcnd2gftR2Ou5",
+    "12cYGamvmQ2f1s263juy"
+  ],
+  "company": "",
+  "email": "david.delamo@gmail.com",
+  "role": "superadmin",
+  "tenantId": "1",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: lE4z434rFRUSaGo4uQw2Guspo1j2
+{
+  "uid": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "email": "inaki.iraburu@unigis.com",
+  "displayName": "Iñaki iraburu",
+  "photoURL": "",
+  "role": "consultor",
+  "roleLevel": 40,
+  "tenantId": "3",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768214268,
+    "_nanoseconds": 204000000
+  },
+  "lastLogin": {
+    "_seconds": 1768214268,
+    "_nanoseconds": 204000000
+  },
+  "address": "",
+  "phone": "",
+  "jobTitle": "",
+  "company": "",
+  "language": "es",
+  "assignedProjectIds": [
+    "9iqygviz3AGJnbJOLc8E",
+    "aAb2HIajQVhXnLAzmVo8",
+    "c0HRtaCkKXxeiQf897sY",
+    "11K4kv5QI3SVkhVwuFfo"
+  ],
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: oKy3FUOaKtO2jCDJ75UBmFI0U2I3
+{
+  "email": "argoss01@gmail.com",
+  "displayName": "Daniel Del Amo",
+  "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLowV1lQRxeWkEOXc1rTQOIlkGQxTZonugpT5yFIiDmjpufvq3mJg=s96-c",
+  "isActive": true,
+  "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+  "lastLogin": {
+    "_seconds": 1767476441,
+    "_nanoseconds": 781000000
+  },
+  "createdAt": {
+    "_seconds": 1767476441,
+    "_nanoseconds": 781000000
+  },
+  "address": "Pino Resinero, 46",
+  "phone": "+34605997132",
+  "jobTitle": "Arquitecto de Solución",
+  "assignedProjectIds": [],
+  "language": "es",
+  "company": "Unigis España",
+  "updatedAt": {
+    "_seconds": 1768208279,
+    "_nanoseconds": 563000000
+  },
+  "role": "superadmin",
+  "tenantId": "1",
+  "roleLevel": 100,
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: pt24Ktl3JQfYQgmIn2QuG7Tt3yC3
+{
+  "lastLogin": {
+    "_seconds": 1767959038,
+    "_nanoseconds": 726000000
+  },
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1767959038,
+    "_nanoseconds": 726000000
+  },
+  "photoURL": null,
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 415000000
+  },
+  "displayName": "Sisco Jiménez ",
+  "email": "siscojimenez@hotmail.com",
+  "address": "",
+  "role": "consultor",
+  "phone": "",
+  "jobTitle": "",
+  "tenantId": "4",
+  "company": "",
+  "language": "es",
+  "assignedProjectIds": [
+    "1ijg4hrN81IwMrD4df7g"
+  ],
+  "permissionGroupId": "muROjYMdZZr5wxYCt4m7",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: spXyzUi0NUZXRlqUOrMep8bv0gf2
+{
+  "uid": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+  "email": "jorge.martinez@unigis.com",
+  "displayName": "Jorge Martinez",
+  "photoURL": "",
+  "tenantId": "3",
+  "assignedProjectIds": [
+    "9iqygviz3AGJnbJOLc8E",
+    "aAb2HIajQVhXnLAzmVo8",
+    "c0HRtaCkKXxeiQf897sY",
+    "Au1xfXgivgl6VYj2zscs"
+  ],
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768222698,
+    "_nanoseconds": 47000000
+  },
+  "lastLogin": {
+    "_seconds": 1768222698,
+    "_nanoseconds": 47000000
+  },
+  "address": "",
+  "role": "global_pm",
+  "phone": "",
+  "jobTitle": "",
+  "company": "",
+  "language": "es",
+  "roleLevel": 60,
+  "permissionGroupId": "K3o2Hvs9LwH0GoiHO4RG",
+  "organizationId": "1"
+}
+----------------------------------------
+
+ID: uw3iVoNRc9MRkaXsjiU0ugSLoDL2
+{
+  "uid": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "email": "cursoiadaniel@gmail.com",
+  "displayName": "Consultor Unigis",
+  "photoURL": "",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768549150,
+    "_nanoseconds": 862000000
+  },
+  "lastLogin": {
+    "_seconds": 1768549150,
+    "_nanoseconds": 862000000
+  },
+  "address": "",
+  "phone": "",
+  "jobTitle": "",
+  "company": "",
+  "language": "es",
+  "tenantId": "2",
+  "permissionGroupId": "0K6YeKPij3FLS38gyiTG",
+  "assignedProjectIds": [
+    "1ijg4hrN81IwMrD4df7g",
+    "gCqxaXvEWYGdqBmKzwPg",
+    "3Mb6nctLYF4ni6cS0jMu"
+  ],
+  "organizationId": "1",
+  "roleLevel": 40,
+  "role": "Consultor"
+}
+----------------------------------------
+
+--- COLECCIÓN: TENANTS (5 documentos) ---
+
+ID: 2
+{
+  "name": "UniTaskController",
+  "code": "unitaskcontroller",
+  "isActive": true,
+  "id": "2",
+  "createdAt": "2026-01-09T14:32:20.274Z"
+}
+----------------------------------------
+
+ID: 3
+{
+  "name": "Unigis",
+  "code": "unigis",
+  "isActive": true,
+  "id": "3",
+  "createdAt": "2026-01-09T14:32:26.949Z"
+}
+----------------------------------------
+
+ID: 4
+{
+  "name": "Fliping",
+  "code": "fliping",
+  "isActive": true,
+  "id": "4",
+  "createdAt": "2026-01-09T14:32:35.352Z"
+}
+----------------------------------------
+
+ID: 5
+{
+  "name": "prueba",
+  "code": "prueba",
+  "isActive": true,
+  "id": "5",
+  "createdAt": "2026-01-16T09:37:44.614Z"
+}
+----------------------------------------
+
+ID: 6
+{
+  "name": "Anabella´s Corner",
+  "code": "anabella´s-corner",
+  "isActive": true,
+  "id": "6",
+  "createdAt": "2026-01-16T09:57:59.907Z"
+}
+----------------------------------------
+
+--- COLECCIÓN: PROJECTS (15 documentos) ---
+
+ID: 11K4kv5QI3SVkhVwuFfo
+{
+  "code": "FRR",
+  "color": "#84cc16",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768817065,
+    "_nanoseconds": 714000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768817065,
+    "_nanoseconds": 714000000
+  },
+  "name": "FRIT RAVICH",
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: 1ijg4hrN81IwMrD4df7g
+{
+  "name": "FLIPING",
+  "code": "FLP",
+  "color": "#ec4899",
+  "isActive": true,
+  "email": "argoss01@gmail.com",
+  "phone": "605997132",
+  "tenantId": "4",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1767970155,
+    "_nanoseconds": 911000000
+  },
+  "lastUpdate": {
+    "_seconds": 1767970155,
+    "_nanoseconds": 911000000
+  },
+  "organizationId": "4"
+}
+----------------------------------------
+
+ID: 3Mb6nctLYF4ni6cS0jMu
+{
+  "name": "UniTaskController",
+  "code": "UNT",
+  "color": "#84cc16",
+  "isActive": true,
+  "email": "argoss01@gmail.com",
+  "phone": "",
+  "tenantId": "2",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768084804,
+    "_nanoseconds": 166000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768084804,
+    "_nanoseconds": 166000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: 9XwXd8sxvtrGffGa7CKd
+{
+  "name": "Anabella´s Corner",
+  "code": "ANA-001",
+  "clientName": "Anabella´s Corner",
+  "status": "active",
+  "health": "healthy",
+  "isActive": true,
+  "tenantId": "6",
+  "teamIds": [],
+  "createdAt": {
+    "_seconds": 1768557479,
+    "_nanoseconds": 830000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768557479,
+    "_nanoseconds": 830000000
+  },
+  "organizationId": "6"
+}
+----------------------------------------
+
+ID: 9iqygviz3AGJnbJOLc8E
+{
+  "name": "EUROPASTRY",
+  "code": "EUP",
+  "color": "#ef4444",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1767970194,
+    "_nanoseconds": 979000000
+  },
+  "lastUpdate": {
+    "_seconds": 1767970194,
+    "_nanoseconds": 979000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: Au1xfXgivgl6VYj2zscs
+{
+  "name": "DELGADO",
+  "code": "DLG",
+  "color": "#a855f7",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1767970238,
+    "_nanoseconds": 863000000
+  },
+  "lastUpdate": {
+    "_seconds": 1767970238,
+    "_nanoseconds": 863000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: Gq2CQfMRws3BMBTtWR1t
+{
+  "name": "FACTOR V",
+  "code": "FAV",
+  "color": "#f59e0b",
+  "isActive": true,
+  "email": "argoss01@gmail.com",
+  "phone": "605997132",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768215181,
+    "_nanoseconds": 779000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768215181,
+    "_nanoseconds": 779000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: IL23eIjvSIdwLgqwz0pY
+{
+  "name": "HAVI",
+  "code": "HAV",
+  "color": "#71717a",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768817411,
+    "_nanoseconds": 679000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768817411,
+    "_nanoseconds": 679000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: OH4sjML9byhLuzMXSTss
+{
+  "name": "LUIS SIMOES",
+  "code": "LSM",
+  "color": "#71717a",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768897234,
+    "_nanoseconds": 555000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768897234,
+    "_nanoseconds": 555000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: TMWjHHQmnkyey8MxWnRr
+{
+  "name": "prueba",
+  "code": "PRU-001",
+  "clientName": "prueba",
+  "status": "active",
+  "health": "healthy",
+  "isActive": true,
+  "tenantId": "5",
+  "teamIds": [],
+  "createdAt": {
+    "_seconds": 1768556264,
+    "_nanoseconds": 478000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768556264,
+    "_nanoseconds": 478000000
+  },
+  "organizationId": "5"
+}
+----------------------------------------
+
+ID: WcF8wTccm1LkaFBfWvug
+{
+  "name": "SPAR",
+  "code": "SPR",
+  "color": "#f59e0b",
+  "isActive": true,
+  "email": "argoss01@gmail.com",
+  "phone": "605997132",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768215133,
+    "_nanoseconds": 603000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768215133,
+    "_nanoseconds": 603000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: aAb2HIajQVhXnLAzmVo8
+{
+  "name": "TRANSPAIS",
+  "code": "TSP",
+  "color": "#3b82f6",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1767970176,
+    "_nanoseconds": 651000000
+  },
+  "lastUpdate": {
+    "_seconds": 1767970176,
+    "_nanoseconds": 651000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: c0HRtaCkKXxeiQf897sY
+{
+  "name": "SMSA",
+  "code": "SMSA",
+  "color": "#f97316",
+  "isActive": true,
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1767970217,
+    "_nanoseconds": 613000000
+  },
+  "lastUpdate": {
+    "_seconds": 1767970217,
+    "_nanoseconds": 613000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: gCqxaXvEWYGdqBmKzwPg
+{
+  "name": "Mock Project",
+  "code": "MOCK",
+  "clientName": "Mock Client",
+  "status": "active",
+  "health": "healthy",
+  "teamIds": [],
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768826860,
+    "_nanoseconds": 36000000
+  },
+  "tenantId": "2",
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: sZDav2CndgdmhfYc8BTt
+{
+  "code": "DHE",
+  "color": "#06b6d4",
+  "email": "",
+  "phone": "",
+  "tenantId": "3",
+  "status": "active",
+  "health": "healthy",
+  "clientName": "",
+  "teamIds": [],
+  "address": "",
+  "createdAt": {
+    "_seconds": 1768467846,
+    "_nanoseconds": 412000000
+  },
+  "lastUpdate": {
+    "_seconds": 1768467846,
+    "_nanoseconds": 412000000
+  },
+  "isActive": true,
+  "name": "DE HEUS",
+  "organizationId": "3"
+}
+----------------------------------------
+
+--- COLECCIÓN: TASKS (53 documentos) ---
+
+ID: 0ecjlhd3ZTFJLpRyG3Ij
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "3_2026-01-14_1768404699543",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Jorge: ObtenerGuia",
+  "description": "Jorge: ObtenerGuia",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "TRA-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768404732,
+    "_nanoseconds": 729000000
+  },
+  "endDate": "2026-01-14T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "updatedAt": {
+    "_seconds": 1768598997,
+    "_nanoseconds": 178000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: 21LimCGtOWzx9An5FVuC
+{
+  "projectId": "Au1xfXgivgl6VYj2zscs",
+  "tenantId": "3",
+  "title": "Equipo de Delgado debe analizar y definir los KPIs necesarios a reportar.",
+  "description": "Equipo de Delgado debe analizar y definir los KPIs necesarios a reportar.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "DEL-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768408723,
+    "_nanoseconds": 123000000
+  },
+  "weekId": "2025-12-18",
+  "relatedJournalEntryId": "3_2025-12-18",
+  "updatedAt": {
+    "_seconds": 1768504933,
+    "_nanoseconds": 567000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: 2qkm0AlEM7zOc6KazVGz
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20_1768899942287",
+  "projectId": "WcF8wTccm1LkaFBfWvug",
+  "tenantId": "3",
+  "title": "El equipo de Spar-GC | Censocu revisará el listado de datos maestros de Vehículos y Tipos de Vehículo.",
+  "description": "El equipo de Spar-GC | Censocu revisará el listado de datos maestros de Vehículos y Tipos de Vehículo.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "assignedTo": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "friendlyId": "SPA-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768900077,
+    "_nanoseconds": 511000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: 4UlqqVkkYpcHkyGDHM5e
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Agregar un campo Pedidodyn para indicar que el pedido ya está preparado.",
+  "description": "Agregar un campo Pedidodyn para indicar que el pedido ya está preparado.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768917413,
+    "_nanoseconds": 369000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: 5RCMwAH7KxyGgFeHbGIt
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21_1768999502934",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[DECISIÓN PENDIENTE LS] Política de pago: menor valor entre km planificado (UNIGIS) y km real, o aplicación de tablas origen-destino fijas para evitar disputas.",
+  "description": "[DECISIÓN PENDIENTE LS] Política de pago: menor valor entre km planificado (UNIGIS) y km real, o aplicación de tablas origen-destino fijas para evitar disputas.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-8",
+  "taskNumber": 8,
+  "createdAt": {
+    "_seconds": 1768999549,
+    "_nanoseconds": 43000000
+  }
+}
+----------------------------------------
+
+ID: C7CLMtPSwN6jev0NSpgl
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Validar bien los permisos y visibilidades en el sistema. Sigue habiendo problemas con las mayusculas y minusculas.",
+  "description": "Validar bien los permisos y visibilidades en el sistema. Sigue habiendo problemas con las mayusculas y minusculas.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-10",
+  "taskNumber": 10,
+  "createdAt": {
+    "_seconds": 1768402199,
+    "_nanoseconds": 460000000
+  },
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900807,
+    "_nanoseconds": 560000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: CS3wYPdt8iN40hTONkH2
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "3_2026-01-14_1768404699543",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "description": "Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "TRA-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768404715,
+    "_nanoseconds": 222000000
+  },
+  "startDate": "2026-01-13T23:00:00.000Z",
+  "area": "Documentación",
+  "acceptanceCriteria": [
+    {
+      "id": "1768736491650",
+      "text": "Que funcione :)",
+      "completed": false
+    }
+  ],
+  "techDescription": "prueba de registro en bitacora",
+  "endDate": "2026-01-18T23:00:00.000Z",
+  "module": "PM",
+  "scope": "Requerimiento de producto",
+  "priority": "Media",
+  "assignedTo": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "dependencies": [
+    "0ecjlhd3ZTFJLpRyG3Ij"
+  ],
+  "updatedAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 21000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: Ewv2oTpA0INs91mx9TA3
+{
+  "weekId": "2026-01-16",
+  "relatedJournalEntryId": "3_2026-01-16_1768582522309",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Unigis a enviar documentación de los ws",
+  "description": "Unigis a enviar documentación de los ws",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "TRA-6",
+  "taskNumber": 6,
+  "createdAt": {
+    "_seconds": 1768582584,
+    "_nanoseconds": 193000000
+  },
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "area": "Interfaces",
+  "module": "TMS",
+  "scope": "Requisito de proyecto",
+  "priority": "Baja",
+  "attributes": {
+    "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+  },
+  "techDescription": "prueba",
+  "endDate": "2026-01-22T23:00:00.000Z",
+  "dependencies": [
+    "O2WpP5mcuIPlm9FljF5Z",
+    "zfMWzbzmYjMUINBSnzSf",
+    "0ecjlhd3ZTFJLpRyG3Ij"
+  ],
+  "updatedAt": {
+    "_seconds": 1768811792,
+    "_nanoseconds": 127000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: FadkHMx5exsclzebDpRf
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21_1768999502934",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Propuesta de Facturación Dividida: [DECISIÓN PENDIENTE LS] Estrategia para emitir una factura por el viaje (ya validado) y otra separada para adicionales, evitando demoras en el pago del servicio principal.",
+  "description": "Propuesta de Facturación Dividida: [DECISIÓN PENDIENTE LS] Estrategia para emitir una factura por el viaje (ya validado) y otra separada para adicionales, evitando demoras en el pago del servicio principal.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-7",
+  "taskNumber": 7,
+  "createdAt": {
+    "_seconds": 1768999548,
+    "_nanoseconds": 354000000
+  }
+}
+----------------------------------------
+
+ID: GnEW12JC4JWwhkOYsljN
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "4_2026-01-19_1768819481533",
+  "projectId": "1ijg4hrN81IwMrD4df7g",
+  "tenantId": "4",
+  "title": "Contacta a tu administrador",
+  "description": "Contacta a tu administrador",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "friendlyId": "FLI-3",
+  "taskNumber": 3,
+  "createdAt": {
+    "_seconds": 1768819540,
+    "_nanoseconds": 667000000
+  },
+  "organizationId": "4"
+}
+----------------------------------------
+
+ID: Gtvmqzk8lrmg67BkEeBT
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[GAP UNI] El sistema debe permitir el split de carga manteniendo la integridad legal del documento. Este escenario puede bloquear la salida del pedido si no se define una regla clara de partición.",
+  "description": "[GAP UNI] El sistema debe permitir el split de carga manteniendo la integridad legal del documento. Este escenario puede bloquear la salida del pedido si no se define una regla clara de partición.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-14",
+  "taskNumber": 14,
+  "createdAt": {
+    "_seconds": 1769000699,
+    "_nanoseconds": 457000000
+  }
+}
+----------------------------------------
+
+ID: HIYwEG8KbRCCSXp04gpu
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21_1768999502934",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[DECISIÓN PENDIENTE LS] Definición de responsables para la creación de \"Checkpoints\" de peajes.",
+  "description": "[DECISIÓN PENDIENTE LS] Definición de responsables para la creación de \"Checkpoints\" de peajes.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-10",
+  "taskNumber": 10,
+  "createdAt": {
+    "_seconds": 1768999550,
+    "_nanoseconds": 694000000
+  }
+}
+----------------------------------------
+
+ID: J3gQIO4XxFHy1sI7fpgi
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "4_2026-01-19_1768819481533",
+  "projectId": "1ijg4hrN81IwMrD4df7g",
+  "tenantId": "4",
+  "title": "Revisar requisitos del módulo de pagos",
+  "description": "Revisar requisitos del módulo de pagos",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "friendlyId": "FLI-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768819538,
+    "_nanoseconds": 821000000
+  },
+  "organizationId": "4"
+}
+----------------------------------------
+
+ID: JLgnxIMO4CjvhAEcNyBe
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21_1768999502934",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[DECISIÓN PENDIENTE LS] Confirmación de la lógica del campo Pedido_Dyn para la trazabilidad de stock en crossdock.",
+  "description": "[DECISIÓN PENDIENTE LS] Confirmación de la lógica del campo Pedido_Dyn para la trazabilidad de stock en crossdock.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-11",
+  "taskNumber": 11,
+  "createdAt": {
+    "_seconds": 1768999551,
+    "_nanoseconds": 577000000
+  }
+}
+----------------------------------------
+
+ID: JuCjcJ1C1PsORWhcwKn7
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "2_2026-01-20",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": " Proyecto de creación de plantillas de impresión.",
+  "description": " Proyecto de creación de plantillas de impresión.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "friendlyId": "UNI-11",
+  "taskNumber": 11,
+  "createdAt": {
+    "_seconds": 1768911142,
+    "_nanoseconds": 223000000
+  },
+  "endDate": "2026-02-09T23:00:00.000Z",
+  "updatedAt": {
+    "_seconds": 1768918271,
+    "_nanoseconds": 314000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: L7slMMD4KnCjn7zxyHid
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14_1768380022440",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Definir campos clave y obligatorios para el ABM de tareas.",
+  "description": "Definir campos clave y obligatorios para el ABM de tareas.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768380398,
+    "_nanoseconds": 235000000
+  },
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900814,
+    "_nanoseconds": 188000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: Mm4chEEDNxPfNyIx5chp
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Queda pendiente decidir si el match se realiza definitivamente por IdViaje o por Referencia Externa.",
+  "description": "Queda pendiente decidir si el match se realiza definitivamente por IdViaje o por Referencia Externa.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-3",
+  "taskNumber": 3,
+  "createdAt": {
+    "_seconds": 1768980682,
+    "_nanoseconds": 838000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: O2WpP5mcuIPlm9FljF5Z
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "3_2026-01-14",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "UNIGIS. Compartir la documentación de las APIs que se van a utilizar.",
+  "description": "UNIGIS. Compartir la documentación de las APIs que se van a utilizar.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "friendlyId": "TRA-5",
+  "taskNumber": 5,
+  "createdAt": {
+    "_seconds": 1768410561,
+    "_nanoseconds": 555000000
+  },
+  "techDescription": "prueba caducidad",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "endDate": "2026-01-17T23:00:00.000Z",
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768731697,
+    "_nanoseconds": 855000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: OkzlQ2ChmteexLzqT8cs
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2026-01-14",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "1",
+  "title": "Validar bien los permisos y visibilidades en el sistema. Sigue habiendo problemas con las mayusculas y minusculas.",
+  "description": "Validar bien los permisos y visibilidades en el sistema. Sigue habiendo problemas con las mayusculas y minusculas.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "UNI-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768402166,
+    "_nanoseconds": 895000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: RSr2XRZQroJ4a5Aqa7xc
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14_1768380022440",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Determinar la lógica de asignación de usuarios a tareas (quién puede asignar y qué ocurre al hacerlo).",
+  "description": "Determinar la lógica de asignación de usuarios a tareas (quién puede asignar y qué ocurre al hacerlo).",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768380400,
+    "_nanoseconds": 524000000
+  },
+  "endDate": "2026-01-22T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "updatedAt": {
+    "_seconds": 1768918303,
+    "_nanoseconds": 337000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: SMSsyNSZhvNKpLKdjgbo
+{
+  "projectId": "Au1xfXgivgl6VYj2zscs",
+  "tenantId": "3",
+  "title": "Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.",
+  "description": "Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "DEL-3",
+  "taskNumber": 3,
+  "createdAt": {
+    "_seconds": 1768408719,
+    "_nanoseconds": 980000000
+  },
+  "weekId": "2025-12-18",
+  "relatedJournalEntryId": "3_2025-12-18",
+  "endDate": "2026-01-18T23:00:00.000Z",
+  "updatedAt": {
+    "_seconds": 1768733326,
+    "_nanoseconds": 905000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: SQAxCQcF9TAhqRMXIDoX
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Definir tipos de Incidencias que puede cargar el conductor en su app",
+  "description": "Definir tipos de Incidencias que puede cargar el conductor en su app",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-8",
+  "taskNumber": 8,
+  "createdAt": {
+    "_seconds": 1768980706,
+    "_nanoseconds": 668000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: T2aZ8eZFXUeKBxO4qlav
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Definir el manejo, administración y envio a clientes de albaranes y facturas",
+  "description": "Definir el manejo, administración y envio a clientes de albaranes y facturas",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-7",
+  "taskNumber": 7,
+  "createdAt": {
+    "_seconds": 1768980704,
+    "_nanoseconds": 191000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: T7Qk3ZoY69IKhhdv0iqW
+{
+  "weekId": "2026-01-15",
+  "relatedJournalEntryId": "3_2026-01-15",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Información del método para crear pedidos que tiene que consumir GENERIX",
+  "description": "Información del método para crear pedidos que tiene que consumir GENERIX",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "TRA-8",
+  "taskNumber": 8,
+  "createdAt": {
+    "_seconds": 1768823011,
+    "_nanoseconds": 670000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: USnW0jIFbaHf2ILmY0jJ
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14_1768380022440",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Especificar qué debe anunciar la campana de notificaciones y cómo debe hacerlo.",
+  "description": "Especificar qué debe anunciar la campana de notificaciones y cómo debe hacerlo.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-5",
+  "taskNumber": 5,
+  "createdAt": {
+    "_seconds": 1768380403,
+    "_nanoseconds": 588000000
+  },
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900775,
+    "_nanoseconds": 592000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: V7CqaLLwp5eMB0M9FqN4
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Revisar prermisos sobre boton DIAGNOSTICAR CONEXIÓN  en producción y test.",
+  "description": "Revisar prermisos sobre boton DIAGNOSTICAR CONEXIÓN  en producción y test.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-9",
+  "taskNumber": 9,
+  "createdAt": {
+    "_seconds": 1768394209,
+    "_nanoseconds": 682000000
+  },
+  "techDescription": "Resuelto en producción, con caracter urgente. ",
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900730,
+    "_nanoseconds": 947000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: V9hAr9yLeTcAtm18NNEY
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Europastry debe conversar respecto al envío de correo electrónico con el albarán (PDF generado por ERP) cuando las entregas sean parciales puesto que no es un tema que se haya definido en el alcance del proyecto",
+  "description": "Europastry debe conversar respecto al envío de correo electrónico con el albarán (PDF generado por ERP) cuando las entregas sean parciales puesto que no es un tema que se haya definido en el alcance del proyecto",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768980691,
+    "_nanoseconds": 413000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: VqEqQlkD8FuZXpCxiE93
+{
+  "weekId": "2026-01-15",
+  "relatedJournalEntryId": "3_2026-01-15",
+  "projectId": "sZDav2CndgdmhfYc8BTt",
+  "tenantId": "3",
+  "title": "Presentación de Demo Estratégica Primagas al cliente.",
+  "description": "Presentación de Demo Estratégica Primagas al cliente.",
+  "status": "pending",
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "DEX-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768596311,
+    "_nanoseconds": 625000000
+  },
+  "acceptanceCriteria": [
+    {
+      "id": "1768677119723",
+      "text": "Hablar con equipo",
+      "completed": false
+    }
+  ],
+  "endDate": "2026-01-17T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "area": "Mobilidad",
+  "module": "Mobile",
+  "scope": "Requisito de proyecto",
+  "priority": "Baja",
+  "isBlocking": true,
+  "updatedAt": {
+    "_seconds": 1768764786,
+    "_nanoseconds": 667000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: XOA0SB5Fc4Nlc3sZuTIs
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14_1768380022440",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Implementar la creación de Tenant por usuario en el Wizard de creación de usuarios.",
+  "description": "Implementar la creación de Tenant por usuario en el Wizard de creación de usuarios.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-6",
+  "taskNumber": 6,
+  "createdAt": {
+    "_seconds": 1768380406,
+    "_nanoseconds": 728000000
+  },
+  "techDescription": "La idea es poder habilitar que un usuario se cree con su propio tnenat para no tener que crearle el entorno.\n",
+  "endDate": "2026-01-19T23:00:00.000Z",
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900544,
+    "_nanoseconds": 461000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: Y3rthOThwile74jnJSOx
+{
+  "projectId": "Au1xfXgivgl6VYj2zscs",
+  "tenantId": "3",
+  "title": "Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.",
+  "description": "Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "DEL-2",
+  "taskNumber": 2,
+  "createdAt": {
+    "_seconds": 1768408713,
+    "_nanoseconds": 315000000
+  },
+  "weekId": "2025-12-18",
+  "relatedJournalEntryId": "3_2025-12-18",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "area": "Mobilidad",
+  "endDate": "2026-01-18T23:00:00.000Z",
+  "module": "Mobile",
+  "scope": "Requerimiento de cliente",
+  "priority": "Alta",
+  "updatedAt": {
+    "_seconds": 1768698896,
+    "_nanoseconds": 18000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: ZU4IjyrXzursPv7vx09d
+{
+  "weekId": "2026-01-12",
+  "relatedJournalEntryId": "3_2026-01-12",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "description": "Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "EUR-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768510645,
+    "_nanoseconds": 100000000
+  },
+  "startDate": "2026-01-10T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "endDate": "2026-01-18T23:00:00.000Z",
+  "updatedAt": {
+    "_seconds": 1768733037,
+    "_nanoseconds": 470000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: ZyrwsETCzrcyst3SRpAT
+{
+  "weekId": "2026-01-15",
+  "relatedJournalEntryId": "3_2026-01-15",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Flujo explicativo de la operativa de recogidas que quedan en el almacén para posterior distribución.",
+  "description": "Flujo explicativo de la operativa de recogidas que quedan en el almacén para posterior distribución.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "TRA-9",
+  "taskNumber": 9,
+  "createdAt": {
+    "_seconds": 1768823013,
+    "_nanoseconds": 268000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: a4raWDgry2i9CreApBoe
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Revisara LS como gestionar la informacion de diferencia entre planificado y real en la carga??",
+  "description": "Revisara LS como gestionar la informacion de diferencia entre planificado y real en la carga??",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768917442,
+    "_nanoseconds": 315000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: bmZqQjd8AlXtkwE9b0Od
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "3_2026-01-14_1768404699543",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Iñaki: Documentar API CrearTransporte",
+  "description": "Iñaki: Documentar API CrearTransporte",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "TRA-2",
+  "taskNumber": 2,
+  "createdAt": {
+    "_seconds": 1768404715,
+    "_nanoseconds": 904000000
+  },
+  "assignedTo": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "updatedAt": {
+    "_seconds": 1768566267,
+    "_nanoseconds": 555000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: cXpcwvym6IYCrVvuz4eV
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Revisar como se asegura de que el transporte ha leido las condiciones del contrato -> Necesita firma?",
+  "description": "Revisar como se asegura de que el transporte ha leido las condiciones del contrato -> Necesita firma?",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-5",
+  "taskNumber": 5,
+  "createdAt": {
+    "_seconds": 1768917453,
+    "_nanoseconds": 823000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: eDwFAzue5CSB96TVtcwy
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "3_2026-01-14_1768404699543",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Daniel: Documentar API CrearVehiculos",
+  "description": "Daniel: Documentar API CrearVehiculos",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "TRA-3",
+  "taskNumber": 3,
+  "createdAt": {
+    "_seconds": 1768404720,
+    "_nanoseconds": 198000000
+  },
+  "endDate": "2026-01-14T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "status": "in_progress",
+  "updatedAt": {
+    "_seconds": 1768599816,
+    "_nanoseconds": 343000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: f2TRnfkenBQsFudHpsTn
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Se debe analizar con mayor profundidad el tema de la comisión de cobro.",
+  "description": "Se debe analizar con mayor profundidad el tema de la comisión de cobro.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-5",
+  "taskNumber": 5,
+  "createdAt": {
+    "_seconds": 1768980698,
+    "_nanoseconds": 997000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: f86YJPtt7SCafHRgwGAf
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Encuesta al asignar viaje por parte del transportista",
+  "description": "Encuesta al asignar viaje por parte del transportista",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-6",
+  "taskNumber": 6,
+  "createdAt": {
+    "_seconds": 1768917456,
+    "_nanoseconds": 827000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: fwGjhx5hOyGuj57Akipr
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Ventanas Horarias Avanzadas: [GAP UNI][RIESGO] Necesidad de 4 campos horarios nativos (Inicio/Fin 1 y 2) y gestión paramétrica de minutos de tolerancia (antes/después) por domicilio.",
+  "description": "Ventanas Horarias Avanzadas: [GAP UNI][RIESGO] Necesidad de 4 campos horarios nativos (Inicio/Fin 1 y 2) y gestión paramétrica de minutos de tolerancia (antes/después) por domicilio.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-13",
+  "taskNumber": 13,
+  "createdAt": {
+    "_seconds": 1769000644,
+    "_nanoseconds": 121000000
+  }
+}
+----------------------------------------
+
+ID: iFOehEcxhAQM1X40LHUn
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Analizar la posibilidad de adjuntar documentación, enlaces o imágenes a las tareas.",
+  "description": "Analizar la posibilidad de adjuntar documentación, enlaces o imágenes a las tareas.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-8",
+  "taskNumber": 8,
+  "createdAt": {
+    "_seconds": 1768388721,
+    "_nanoseconds": 725000000
+  },
+  "endDate": "2026-01-29T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "updatedAt": {
+    "_seconds": 1768918293,
+    "_nanoseconds": 565000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: kuuaW4RG0Ut8JWxBciGz
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "3_2026-01-19",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Definir la lógica de pedidos de cobro.",
+  "description": "Definir la lógica de pedidos de cobro.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "EUR-6",
+  "taskNumber": 6,
+  "createdAt": {
+    "_seconds": 1768980701,
+    "_nanoseconds": 493000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: lhtgb8f4CT94yG1TNHWu
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Añadir campos al pedido con preparacion, recoleccion, entrega y crossdocks?",
+  "description": "Añadir campos al pedido con preparacion, recoleccion, entrega y crossdocks?",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-2",
+  "taskNumber": 2,
+  "createdAt": {
+    "_seconds": 1768917426,
+    "_nanoseconds": 879000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: lmY0tfzjuhoTOWIJnECo
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "2_2026-01-14",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "tenantId": "2",
+  "title": "Analizar la posibilidad de adjuntar documentación, enlaces o imágenes a las notas.",
+  "description": "Analizar la posibilidad de adjuntar documentación, enlaces o imágenes a las notas.",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "UNI-7",
+  "taskNumber": 7,
+  "createdAt": {
+    "_seconds": 1768388719,
+    "_nanoseconds": 202000000
+  },
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768900740,
+    "_nanoseconds": 424000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: lo1MEgaQts7SBMRjTzwk
+{
+  "weekId": "2026-01-14",
+  "relatedJournalEntryId": "4_2026-01-14",
+  "projectId": "1ijg4hrN81IwMrD4df7g",
+  "tenantId": "4",
+  "title": "Revisar visibilidades de los roles de usuario",
+  "description": "Revisar visibilidades de los roles de usuario",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "FLI-5",
+  "taskNumber": 5,
+  "createdAt": {
+    "_seconds": 1768824452,
+    "_nanoseconds": 65000000
+  },
+  "organizationId": "4"
+}
+----------------------------------------
+
+ID: p8to8qNCqK0LJZBMV3QS
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Gestión HORECA: [RIESGO] Control de tipos de pallet (Bases) y recursos. Requisito de trazabilidad: preguntar al conductor cuántos pallets carga y cuántos entrega/recoge físicamente en cada parada.",
+  "description": "Gestión HORECA: [RIESGO] Control de tipos de pallet (Bases) y recursos. Requisito de trazabilidad: preguntar al conductor cuántos pallets carga y cuántos entrega/recoge físicamente en cada parada.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-12",
+  "taskNumber": 12,
+  "createdAt": {
+    "_seconds": 1769000525,
+    "_nanoseconds": 36000000
+  }
+}
+----------------------------------------
+
+ID: sdI058khBL0w6PGfJbg6
+{
+  "title": "dinamic layout",
+  "status": "pending",
+  "projectId": "3Mb6nctLYF4ni6cS0jMu",
+  "acceptanceCriteria": [
+    {
+      "id": "1",
+      "text": "Criterio de aceptación 1",
+      "completed": false
+    }
+  ],
+  "progress": 0,
+  "raci": {
+    "responsible": [],
+    "accountable": [],
+    "consulted": [],
+    "informed": []
+  },
+  "dependencies": [],
+  "techDescription": "Hacer que los objetos sean dinamic layout",
+  "endDate": "2026-01-22T23:00:00.000Z",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "priority": "medium",
+  "friendlyId": "TSK-3486",
+  "createdAt": {
+    "_seconds": 1768900411,
+    "_nanoseconds": 62000000
+  },
+  "updatedAt": {
+    "_seconds": 1768900411,
+    "_nanoseconds": 62000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: syqZs4ShLaCNGx9A64Oj
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[RIESGO ALTO] Mercancía rechazada que físicamente queda en un almacén de tránsito pero se factura/liquida como si retornara al origen. Riesgo de inconsistencia entre el coste pagado y la ubicación real del stock.",
+  "description": "[RIESGO ALTO] Mercancía rechazada que físicamente queda en un almacén de tránsito pero se factura/liquida como si retornara al origen. Riesgo de inconsistencia entre el coste pagado y la ubicación real del stock.",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-15",
+  "taskNumber": 15,
+  "createdAt": {
+    "_seconds": 1769000805,
+    "_nanoseconds": 137000000
+  }
+}
+----------------------------------------
+
+ID: tlgO1WD1HxTkd6CpEprA
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "2_2026-01-20_1768893411350",
+  "projectId": "gCqxaXvEWYGdqBmKzwPg",
+  "tenantId": "2",
+  "title": "prueba de idioma en tareas",
+  "description": "prueba de idioma en tareas",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "friendlyId": "MOC-1",
+  "taskNumber": 1,
+  "createdAt": {
+    "_seconds": 1768893427,
+    "_nanoseconds": 426000000
+  },
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768911168,
+    "_nanoseconds": 760000000
+  },
+  "organizationId": "2"
+}
+----------------------------------------
+
+ID: uNluUu5tg0mrUBIV5SzJ
+{
+  "weekId": "2026-01-19",
+  "relatedJournalEntryId": "4_2026-01-19_1768819481533",
+  "projectId": "1ijg4hrN81IwMrD4df7g",
+  "tenantId": "4",
+  "title": "Solicita que te asignen al proyecto",
+  "description": "Solicita que te asignen al proyecto",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "friendlyId": "FLI-4",
+  "taskNumber": 4,
+  "createdAt": {
+    "_seconds": 1768819541,
+    "_nanoseconds": 460000000
+  },
+  "organizationId": "4"
+}
+----------------------------------------
+
+ID: vkEgx8WD1xyXyHcq2gxt
+{
+  "weekId": "2026-01-21",
+  "relatedJournalEntryId": "3_2026-01-21_1768999502934",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "[DECISIÓN PENDIENTE LS] Aprobación del modelo de facturación dividida (Viaje vs. Extras).",
+  "description": "[DECISIÓN PENDIENTE LS] Aprobación del modelo de facturación dividida (Viaje vs. Extras).",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "LUI-9",
+  "taskNumber": 9,
+  "createdAt": {
+    "_seconds": 1768999550,
+    "_nanoseconds": 19000000
+  }
+}
+----------------------------------------
+
+ID: x95pNpaDkhDUL8DwPsYk
+{
+  "weekId": "2026-01-12",
+  "relatedJournalEntryId": "3_2026-01-12",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "tenantId": "3",
+  "title": "Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "description": "Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "EUR-2",
+  "taskNumber": 2,
+  "createdAt": {
+    "_seconds": 1768510648,
+    "_nanoseconds": 867000000
+  },
+  "startDate": "2026-02-02T23:00:00.000Z",
+  "acceptanceCriteria": [
+    {
+      "id": "1768561768341",
+      "text": "dame el ok si lo ves",
+      "completed": false
+    }
+  ],
+  "techDescription": "prueba de asignación",
+  "assignedTo": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "endDate": "2026-01-22T23:00:00.000Z",
+  "updatedAt": {
+    "_seconds": 1768734023,
+    "_nanoseconds": 412000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: ya2UbcIyxRnhvBlseKU4
+{
+  "weekId": "2026-01-20",
+  "relatedJournalEntryId": "3_2026-01-20",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "tenantId": "3",
+  "title": "Definir por parte de LS las soluciones y responsabilidades de las incidencias por el equipo de SAC dependiendo de los distintos casos (accion o solo informativo??).",
+  "description": "Definir por parte de LS las soluciones y responsabilidades de las incidencias por el equipo de SAC dependiendo de los distintos casos (accion o solo informativo??).",
+  "status": "pending",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "assignedTo": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "friendlyId": "LUI-3",
+  "taskNumber": 3,
+  "createdAt": {
+    "_seconds": 1768917436,
+    "_nanoseconds": 920000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+ID: zfMWzbzmYjMUINBSnzSf
+{
+  "weekId": "2026-01-16",
+  "relatedJournalEntryId": "3_2026-01-16_1768582522309",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "tenantId": "3",
+  "title": "Compartir documentación y detalles del flujo completo + etiquetado con Generix",
+  "description": "Compartir documentación y detalles del flujo completo + etiquetado con Generix",
+  "isBlocking": false,
+  "isActive": true,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "friendlyId": "TRA-7",
+  "taskNumber": 7,
+  "createdAt": {
+    "_seconds": 1768582589,
+    "_nanoseconds": 487000000
+  },
+  "assignedTo": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "endDate": "2026-01-17T23:00:00.000Z",
+  "status": "completed",
+  "updatedAt": {
+    "_seconds": 1768731741,
+    "_nanoseconds": 891000000
+  },
+  "organizationId": "3"
+}
+----------------------------------------
+
+--- COLECCIÓN: DAILY_STATUS (0 documentos) ---
+
+--- COLECCIÓN: TASK_ACTIVITIES (29 documentos) ---
+
+ID: 2tKlv8PJ9Ql3JUzIna41
+{
+  "taskId": "SMSsyNSZhvNKpLKdjgbo",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de Sin fecha a 19/01/26",
+  "createdAt": {
+    "_seconds": 1768733326,
+    "_nanoseconds": 998000000
+  }
+}
+----------------------------------------
+
+ID: 4odhybwvWK4XitVLLe0X
+{
+  "taskId": "RSr2XRZQroJ4a5Aqa7xc",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de Sin fecha a 23/01/26",
+  "createdAt": {
+    "_seconds": 1768918303,
+    "_nanoseconds": 414000000
+  }
+}
+----------------------------------------
+
+ID: 6Pcgk2CUBBUy4XZq660k
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "classification_change",
+  "details": "Area cambiado de \"-\" a \"Documentación\"",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 294000000
+  }
+}
+----------------------------------------
+
+ID: ArTERGAZTGufwNS3U41D
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "assignment_change",
+  "details": "Responsable cambiado de cursoiadaniel@gmail.com a inaki.iraburu@unigis.com",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 206000000
+  }
+}
+----------------------------------------
+
+ID: Bzi3kDisMVqjiIySNthC
+{
+  "taskId": "XOA0SB5Fc4Nlc3sZuTIs",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de Sin fecha a 20/01/26",
+  "createdAt": {
+    "_seconds": 1768900544,
+    "_nanoseconds": 534000000
+  }
+}
+----------------------------------------
+
+ID: CgASu2NBp1NVCJq40BZK
+{
+  "taskId": "USnW0jIFbaHf2ILmY0jJ",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900745,
+    "_nanoseconds": 193000000
+  }
+}
+----------------------------------------
+
+ID: FQkNKrupRO1Dw5RO1h5r
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "userEmail": "inaki.iraburu@unigis.com",
+  "userName": "Iñaki iraburu",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de 22/01/26 a 23/01/26",
+  "createdAt": {
+    "_seconds": 1768811792,
+    "_nanoseconds": 676000000
+  }
+}
+----------------------------------------
+
+ID: I29eoQEut5gkPVzT71aD
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "userEmail": "inaki.iraburu@unigis.com",
+  "userName": "Iñaki iraburu",
+  "type": "dependency_added",
+  "details": "Añadida dependencia: Jorge: ObtenerGuia",
+  "createdAt": {
+    "_seconds": 1768811792,
+    "_nanoseconds": 722000000
+  }
+}
+----------------------------------------
+
+ID: Kpkc6RMzgZ433jsrkGxm
+{
+  "taskId": "JuCjcJ1C1PsORWhcwKn7",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de Sin fecha a 10/02/26",
+  "createdAt": {
+    "_seconds": 1768918271,
+    "_nanoseconds": 402000000
+  }
+}
+----------------------------------------
+
+ID: PCwYQgw5Ily4WDUWrc6I
+{
+  "taskId": "RSr2XRZQroJ4a5Aqa7xc",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "assignment_change",
+  "details": "Responsable cambiado de Sin asignar a cursoiadaniel@gmail.com",
+  "createdAt": {
+    "_seconds": 1768918303,
+    "_nanoseconds": 457000000
+  }
+}
+----------------------------------------
+
+ID: PUi8hU5zd9WQD1Dxg3FN
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "classification_change",
+  "details": "Module cambiado de \"-\" a \"PM\"",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 352000000
+  }
+}
+----------------------------------------
+
+ID: PzuJsobunNqcn2mW3Mud
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "classification_change",
+  "details": "Scope cambiado de \"-\" a \"Requisito de proyecto\"",
+  "createdAt": {
+    "_seconds": 1768734398,
+    "_nanoseconds": 963000000
+  }
+}
+----------------------------------------
+
+ID: STXZoTe2TJI04bbrC7ix
+{
+  "taskId": "tlgO1WD1HxTkd6CpEprA",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768911168,
+    "_nanoseconds": 853000000
+  }
+}
+----------------------------------------
+
+ID: WKWIoh4ghmRKAiJQSPLg
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de 18/01/26 a 22/01/26",
+  "createdAt": {
+    "_seconds": 1768734398,
+    "_nanoseconds": 830000000
+  }
+}
+----------------------------------------
+
+ID: ZE5ASmICrSlvV410i2c1
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "classification_change",
+  "details": "Area cambiado de \"-\" a \"Interfaces\"",
+  "createdAt": {
+    "_seconds": 1768734398,
+    "_nanoseconds": 921000000
+  }
+}
+----------------------------------------
+
+ID: aA7nM3az57rr5tfjVf0d
+{
+  "taskId": "XOA0SB5Fc4Nlc3sZuTIs",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900544,
+    "_nanoseconds": 568000000
+  }
+}
+----------------------------------------
+
+ID: c0V3l2Ofcai2Ni0Z71bD
+{
+  "taskId": "lmY0tfzjuhoTOWIJnECo",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900740,
+    "_nanoseconds": 499000000
+  }
+}
+----------------------------------------
+
+ID: doWe50EECMn0uvjfsiY7
+{
+  "taskId": "L7slMMD4KnCjn7zxyHid",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900814,
+    "_nanoseconds": 254000000
+  }
+}
+----------------------------------------
+
+ID: fEK9X1xphJkPfg0eAvxg
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de 15/01/26 a 19/01/26",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 109000000
+  }
+}
+----------------------------------------
+
+ID: gRjmGOW5KBcY2NQfDumi
+{
+  "taskId": "V7CqaLLwp5eMB0M9FqN4",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de En Curso a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900731,
+    "_nanoseconds": 18000000
+  }
+}
+----------------------------------------
+
+ID: kvuIgQo6eefDVX4ND4PD
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "classification_change",
+  "details": "Module cambiado de \"-\" a \"TMS\"",
+  "createdAt": {
+    "_seconds": 1768734399,
+    "_nanoseconds": 8000000
+  }
+}
+----------------------------------------
+
+ID: mb6jWtsMYvA8l0NmG4fD
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "dependency_added",
+  "details": "Añadida dependencia: Jorge: ObtenerGuia",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 387000000
+  }
+}
+----------------------------------------
+
+ID: psLEVfDjSnFm62KUiW1D
+{
+  "taskId": "iFOehEcxhAQM1X40LHUn",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "assignment_change",
+  "details": "Responsable cambiado de Sin asignar a cursoiadaniel@gmail.com",
+  "createdAt": {
+    "_seconds": 1768918293,
+    "_nanoseconds": 678000000
+  }
+}
+----------------------------------------
+
+ID: qo6kyu4pm3Q3EOVpq6Wh
+{
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "classification_change",
+  "details": "Priority cambiado de \"-\" a \"Baja\"",
+  "createdAt": {
+    "_seconds": 1768734398,
+    "_nanoseconds": 871000000
+  }
+}
+----------------------------------------
+
+ID: uRqdGw8PFzVtaVatILgV
+{
+  "taskId": "iFOehEcxhAQM1X40LHUn",
+  "tenantId": "2",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de Sin fecha a 30/01/26",
+  "createdAt": {
+    "_seconds": 1768918293,
+    "_nanoseconds": 636000000
+  }
+}
+----------------------------------------
+
+ID: vWRd8r2s1UiHG9i9xDtu
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "classification_change",
+  "details": "Priority cambiado de \"-\" a \"Media\"",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 242000000
+  }
+}
+----------------------------------------
+
+ID: wl5xkgHxTtlFUuE558CC
+{
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "tenantId": "3",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "classification_change",
+  "details": "Scope cambiado de \"-\" a \"Requerimiento de producto\"",
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 334000000
+  }
+}
+----------------------------------------
+
+ID: xEg8sUDoDxckIMpEMQ8T
+{
+  "taskId": "C7CLMtPSwN6jev0NSpgl",
+  "tenantId": "2",
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "userEmail": "argoss01@gmail.com",
+  "userName": "Daniel Del Amo",
+  "type": "status_change",
+  "details": "Estado cambiado de Pendiente a Aprobación Final",
+  "createdAt": {
+    "_seconds": 1768900807,
+    "_nanoseconds": 626000000
+  }
+}
+----------------------------------------
+
+ID: yum41jM6gJ7CtKOPDqsy
+{
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "tenantId": "3",
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "userEmail": "cursoiadaniel@gmail.com",
+  "userName": "Consultor Unigis",
+  "type": "deadline_change",
+  "details": "Deadline cambiado de 31/01/26 a 23/01/26",
+  "createdAt": {
+    "_seconds": 1768734023,
+    "_nanoseconds": 521000000
+  }
+}
+----------------------------------------
+
+--- COLECCIÓN: NOTIFICATIONS (59 documentos) ---
+
+ID: 0EFMjWASa351gj5Ei3yG
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-3 - \"Daniel: Documentar API CrearVehiculos\" ha alcanzado su fecha límite.",
+  "taskId": "eDwFAzue5CSB96TVtcwy",
+  "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+  "createdAt": {
+    "_seconds": 1768599548,
+    "_nanoseconds": 651000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 0dsPt5OjmyAwHe8Z6opb
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-3 - \"Daniel: Documentar API CrearVehiculos\" ha alcanzado su fecha límite.",
+  "taskId": "eDwFAzue5CSB96TVtcwy",
+  "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+  "createdAt": {
+    "_seconds": 1768694068,
+    "_nanoseconds": 154000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 1OHvDIDGQCfjOOdicAby
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+  "createdAt": {
+    "_seconds": 1768598171,
+    "_nanoseconds": 566000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 1VCt8DTVhcXMYubng1V7
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-5 - \"UNIGIS. Compartir la documentación de las APIs que se van a utilizar.\" ha alcanzado su fecha límite.",
+  "taskId": "O2WpP5mcuIPlm9FljF5Z",
+  "link": "/?view=task-manager&taskId=O2WpP5mcuIPlm9FljF5Z",
+  "createdAt": {
+    "_seconds": 1768694067,
+    "_nanoseconds": 919000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 2iA6GKvlyWoWuG16Nzao
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+  "createdAt": {
+    "_seconds": 1768598267,
+    "_nanoseconds": 521000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 2iJcVS5jVrPP3XeUCK57
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565640,
+    "_nanoseconds": 327000000
+  }
+}
+----------------------------------------
+
+ID: 3incUb8fxE0I49Kf0sj6
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+  "createdAt": {
+    "_seconds": 1768694068,
+    "_nanoseconds": 74000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 472iKi6Lj5qUOuglGKzI
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-4 - \"Jorge: ObtenerGuia\" ha alcanzado su fecha límite.",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "link": "/?view=task-manager&taskId=0ecjlhd3ZTFJLpRyG3Ij",
+  "createdAt": {
+    "_seconds": 1768599346,
+    "_nanoseconds": 168000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 58HfCOT0MHn9RorZFfMl
+{
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768736517,
+    "_nanoseconds": 407000000
+  }
+}
+----------------------------------------
+
+ID: 5ELcAygwb1ylSw36otFM
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+  "createdAt": {
+    "_seconds": 1768598267,
+    "_nanoseconds": 587000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 5TEjVcY7m3UMw5ey5g9p
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+  "createdAt": {
+    "_seconds": 1768694067,
+    "_nanoseconds": 832000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 5kBWCBbE3tX5ugjZI46a
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+  "createdAt": {
+    "_seconds": 1768694067,
+    "_nanoseconds": 753000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 6EywlHMnkCvdNpqVvNFb
+{
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "createdAt": {
+    "_seconds": 1768561778,
+    "_nanoseconds": 728000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 6KaehlTpM6zgGBO4kdlb
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768567250,
+    "_nanoseconds": 967000000
+  }
+}
+----------------------------------------
+
+ID: 8j5JtpPodg31g7rnoMLN
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+  "taskId": "Ewv2oTpA0INs91mx9TA3",
+  "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+  "createdAt": {
+    "_seconds": 1768598171,
+    "_nanoseconds": 513000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: 8xqJuPuHkbOp2UONl4RR
+{
+  "userId": "idTSjTprwnM1GkgUSIiSzcxyi932",
+  "tenantId": "1",
+  "type": "system",
+  "title": "Nuevo Ticket de Soporte",
+  "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+  "taskId": "2YRMJjQbD3EXX2lFFtis",
+  "read": false,
+  "link": "/?view=support-management",
+  "createdAt": {
+    "_seconds": 1768904192,
+    "_nanoseconds": 217000000
+  }
+}
+----------------------------------------
+
+ID: 90Q8SfkFRqQrcbDffZCA
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768572085,
+    "_nanoseconds": 156000000
+  }
+}
+----------------------------------------
+
+ID: BUgBUcKTgdhdYlkFvt9o
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: DEL-2 - Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.",
+  "taskId": "Y3rthOThwile74jnJSOx",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768564302,
+    "_nanoseconds": 307000000
+  }
+}
+----------------------------------------
+
+ID: C30r548cApaz5PUuIJYA
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565275,
+    "_nanoseconds": 756000000
+  }
+}
+----------------------------------------
+
+ID: DimApPkcztEQKw81cceb
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768566917,
+    "_nanoseconds": 728000000
+  }
+}
+----------------------------------------
+
+ID: G3kHZdgZ6YrzdIhGWg5t
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565140,
+    "_nanoseconds": 693000000
+  }
+}
+----------------------------------------
+
+ID: MjMBbOvzrgCl6jHKlG4l
+{
+  "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768572076,
+    "_nanoseconds": 15000000
+  }
+}
+----------------------------------------
+
+ID: O4AAW6roPu5aImAkqtl4
+{
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "1",
+  "type": "system",
+  "title": "Nuevo Ticket de Soporte",
+  "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+  "taskId": "2YRMJjQbD3EXX2lFFtis",
+  "link": "/?view=support-management",
+  "createdAt": {
+    "_seconds": 1768904192,
+    "_nanoseconds": 312000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: PQvpJZPlNlUnXNFn4cI2
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-2 - Iñaki: Documentar API CrearTransporte",
+  "taskId": "bmZqQjd8AlXtkwE9b0Od",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768566267,
+    "_nanoseconds": 952000000
+  }
+}
+----------------------------------------
+
+ID: Qcr3P3A6ngA5LRN4HcO4
+{
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "read": false,
+  "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+  "createdAt": {
+    "_seconds": 1768811699,
+    "_nanoseconds": 249000000
+  }
+}
+----------------------------------------
+
+ID: QrvSz5OkIHhLTPFgc09I
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+  "taskId": "VqEqQlkD8FuZXpCxiE93",
+  "link": "/tasks?id=VqEqQlkD8FuZXpCxiE93",
+  "createdAt": {
+    "_seconds": 1768597577,
+    "_nanoseconds": 830000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: UEZFXzXmIIhCwF8fPeOk
+{
+  "userId": "7gCY8q3xoVghU9T2eU5vjPUMiRF2",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565269,
+    "_nanoseconds": 562000000
+  }
+}
+----------------------------------------
+
+ID: XhWyGJavQklyCsmBG5mI
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565906,
+    "_nanoseconds": 395000000
+  }
+}
+----------------------------------------
+
+ID: Y5owrlmJ7Vnkz11Kxe1S
+{
+  "userId": "HKItfVWxI1MVy4djivVGZV9amqt2",
+  "tenantId": "1",
+  "type": "system",
+  "title": "Nuevo Ticket de Soporte",
+  "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+  "taskId": "2YRMJjQbD3EXX2lFFtis",
+  "read": false,
+  "link": "/?view=support-management",
+  "createdAt": {
+    "_seconds": 1768904192,
+    "_nanoseconds": 105000000
+  }
+}
+----------------------------------------
+
+ID: YRJe8cHPQRb0246IFnap
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768575248,
+    "_nanoseconds": 923000000
+  }
+}
+----------------------------------------
+
+ID: aQweohPvOnT94f7vhLCO
+{
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "1",
+  "type": "system",
+  "title": "Nuevo Ticket de Soporte",
+  "message": "El usuario Consultor Unigis (cursoiadaniel@gmail.com) ha enviado una solicitud de soporte desde editor.",
+  "link": "/?view=support-management",
+  "createdAt": {
+    "_seconds": 1768919643,
+    "_nanoseconds": 975000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: aWkcOtbif0kdQe60Vmwj
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-7 - \"Compartir documentación y detalles del flujo completo + etiquetado con Generix\" ha alcanzado su fecha límite.",
+  "taskId": "zfMWzbzmYjMUINBSnzSf",
+  "link": "/?view=task-manager&taskId=zfMWzbzmYjMUINBSnzSf",
+  "createdAt": {
+    "_seconds": 1768599347,
+    "_nanoseconds": 187000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: dJ9BGCkwhdqXnZJkKlBJ
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565867,
+    "_nanoseconds": 205000000
+  }
+}
+----------------------------------------
+
+ID: dt895LBNcWNzhvYynGKY
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565266,
+    "_nanoseconds": 651000000
+  }
+}
+----------------------------------------
+
+ID: etGbM6Lws9S7RcAs1i1F
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-4 - \"Jorge: ObtenerGuia\" ha alcanzado su fecha límite.",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "link": "/?view=task-manager&taskId=0ecjlhd3ZTFJLpRyG3Ij",
+  "createdAt": {
+    "_seconds": 1768694067,
+    "_nanoseconds": 672000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: eyCZgbgI0QcrPSzJlaTk
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-7 - \"Compartir documentación y detalles del flujo completo + etiquetado con Generix\" ha alcanzado su fecha límite.",
+  "taskId": "zfMWzbzmYjMUINBSnzSf",
+  "link": "/?view=task-manager&taskId=zfMWzbzmYjMUINBSnzSf",
+  "createdAt": {
+    "_seconds": 1768694068,
+    "_nanoseconds": 217000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: frV6Scxqb8t9HU8wIEwH
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768566123,
+    "_nanoseconds": 393000000
+  }
+}
+----------------------------------------
+
+ID: hDhu7lP3xg9XNPT5hgyM
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768562150,
+    "_nanoseconds": 189000000
+  }
+}
+----------------------------------------
+
+ID: jZSIFVxZIk73ude5PgJJ
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+  "createdAt": {
+    "_seconds": 1768599346,
+    "_nanoseconds": 310000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: kYBKwUDeYQwAS6tJawzq
+{
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "organizationId": "3",
+  "type": "deadline_expired",
+  "title": "Overdue Task",
+  "message": "Your task DEL-3 - \"Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.\" has reached its deadline.",
+  "taskId": "SMSsyNSZhvNKpLKdjgbo",
+  "read": false,
+  "link": "/?view=task-manager&taskId=SMSsyNSZhvNKpLKdjgbo",
+  "createdAt": {
+    "_seconds": 1768995816,
+    "_nanoseconds": 586000000
+  }
+}
+----------------------------------------
+
+ID: kq0RvEiWLaxxHA6GHaVd
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-3 - Daniel: Documentar API CrearVehiculos",
+  "taskId": "eDwFAzue5CSB96TVtcwy",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768567336,
+    "_nanoseconds": 306000000
+  }
+}
+----------------------------------------
+
+ID: kqH1VlxRQF9VNINpmyxz
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+  "taskId": "VqEqQlkD8FuZXpCxiE93",
+  "link": "/tasks?id=VqEqQlkD8FuZXpCxiE93",
+  "createdAt": {
+    "_seconds": 1768597577,
+    "_nanoseconds": 867000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: mMRSWoNcPi59mVYEXPoN
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768566884,
+    "_nanoseconds": 706000000
+  }
+}
+----------------------------------------
+
+ID: mjCIBfE256uW1Mg25q7A
+{
+  "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEL-2 - \"Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.\" ha alcanzado su fecha límite.",
+  "taskId": "Y3rthOThwile74jnJSOx",
+  "link": "/?view=task-manager&taskId=Y3rthOThwile74jnJSOx",
+  "createdAt": {
+    "_seconds": 1768698866,
+    "_nanoseconds": 489000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: mk0DSWqKtA54dWFRGKJD
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565666,
+    "_nanoseconds": 651000000
+  }
+}
+----------------------------------------
+
+ID: oSPF3Mvp2PS7tNHMRhin
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+  "taskId": "CS3wYPdt8iN40hTONkH2",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768568175,
+    "_nanoseconds": 844000000
+  }
+}
+----------------------------------------
+
+ID: p96ndtiqSjBL20NXhm69
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "createdAt": {
+    "_seconds": 1768572857,
+    "_nanoseconds": 55000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: pedtSKLKIDYctpZTAwH7
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "assignment",
+  "title": "Nueva Tarea Asignada",
+  "message": "Te han asignado la nueva tarea: TSK-3486 - dinamic layout",
+  "taskId": "sdI058khBL0w6PGfJbg6",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768900411,
+    "_nanoseconds": 249000000
+  }
+}
+----------------------------------------
+
+ID: qPMBCijLpqXU3JiVIqtg
+{
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "1",
+  "type": "system",
+  "title": "Nuevo Ticket de Soporte",
+  "message": "El usuario Consultor Unigis (cursoiadaniel@gmail.com) ha enviado una solicitud de soporte desde editor.",
+  "link": "/?view=support-management",
+  "createdAt": {
+    "_seconds": 1768922940,
+    "_nanoseconds": 884000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: qp8DxnhtUTVkZPAXFzZu
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768566111,
+    "_nanoseconds": 934000000
+  }
+}
+----------------------------------------
+
+ID: rFIUbe9lVMMPq9dCCKE5
+{
+  "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+  "taskId": "ZU4IjyrXzursPv7vx09d",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768567242,
+    "_nanoseconds": 565000000
+  }
+}
+----------------------------------------
+
+ID: rPxnHwGzGAHmKnwXuB5g
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+  "taskId": "VqEqQlkD8FuZXpCxiE93",
+  "link": "/?view=task-manager&taskId=VqEqQlkD8FuZXpCxiE93",
+  "createdAt": {
+    "_seconds": 1768694067,
+    "_nanoseconds": 998000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: rThYu7EYAjOQ5lgu6yLU
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-5 - UNIGIS. Compartir la documentación de las APIs que se van a utilizar.",
+  "taskId": "O2WpP5mcuIPlm9FljF5Z",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768563003,
+    "_nanoseconds": 609000000
+  }
+}
+----------------------------------------
+
+ID: rdZ0TwFZ1Bt5rmRzehZS
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+  "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768565273,
+    "_nanoseconds": 335000000
+  }
+}
+----------------------------------------
+
+ID: tSRzwtnu4ZsvolCHYmE7
+{
+  "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "3",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEL-3 - \"Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.\" ha alcanzado su fecha límite.",
+  "taskId": "SMSsyNSZhvNKpLKdjgbo",
+  "link": "/?view=task-manager&taskId=SMSsyNSZhvNKpLKdjgbo",
+  "createdAt": {
+    "_seconds": 1768807135,
+    "_nanoseconds": 535000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: v7qxbuTajz3L5BBL8uHT
+{
+  "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea TRA-5 - \"UNIGIS. Compartir la documentación de las APIs que se van a utilizar.\" ha alcanzado su fecha límite.",
+  "taskId": "O2WpP5mcuIPlm9FljF5Z",
+  "link": "/?view=task-manager&taskId=O2WpP5mcuIPlm9FljF5Z",
+  "createdAt": {
+    "_seconds": 1768599346,
+    "_nanoseconds": 728000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: wGWtmIGbFrPnslueLkBD
+{
+  "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "type": "deadline_expired",
+  "title": "Tarea Vencida",
+  "message": "Tu tarea DEL-2 - \"Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.\" ha alcanzado su fecha límite.",
+  "taskId": "Y3rthOThwile74jnJSOx",
+  "link": "/?view=task-manager&taskId=Y3rthOThwile74jnJSOx",
+  "createdAt": {
+    "_seconds": 1768599734,
+    "_nanoseconds": 629000000
+  },
+  "read": true
+}
+----------------------------------------
+
+ID: yjsonykRn08HtnhZptP6
+{
+  "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768575241,
+    "_nanoseconds": 511000000
+  }
+}
+----------------------------------------
+
+ID: ykyk4dHBPw2TO9eO0TB4
+{
+  "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+  "type": "assignment",
+  "title": "Tarea Asignada",
+  "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+  "taskId": "x95pNpaDkhDUL8DwPsYk",
+  "read": false,
+  "createdAt": {
+    "_seconds": 1768561829,
+    "_nanoseconds": 557000000
+  }
+}
+----------------------------------------
+
+--- COLECCIÓN: INVITES (3 documentos) ---
+
+ID: 3BU8LJXC
+{
+  "code": "3BU8LJXC",
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "isUsed": false,
+  "tenantId": "3",
+  "role": "consultor",
+  "assignedProjectIds": [
+    "sZDav2CndgdmhfYc8BTt",
+    "Au1xfXgivgl6VYj2zscs",
+    "9iqygviz3AGJnbJOLc8E",
+    "Gq2CQfMRws3BMBTtWR1t",
+    "c0HRtaCkKXxeiQf897sY",
+    "WcF8wTccm1LkaFBfWvug",
+    "aAb2HIajQVhXnLAzmVo8"
+  ],
+  "createdAt": {
+    "_seconds": 1768813252,
+    "_nanoseconds": 537000000
+  }
+}
+----------------------------------------
+
+ID: 8RJCU7ZX
+{
+  "code": "8RJCU7ZX",
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "isUsed": false,
+  "tenantId": "3",
+  "role": "consultor",
+  "assignedProjectIds": [
+    "sZDav2CndgdmhfYc8BTt",
+    "Au1xfXgivgl6VYj2zscs",
+    "9iqygviz3AGJnbJOLc8E",
+    "Gq2CQfMRws3BMBTtWR1t",
+    "c0HRtaCkKXxeiQf897sY",
+    "WcF8wTccm1LkaFBfWvug",
+    "aAb2HIajQVhXnLAzmVo8"
+  ],
+  "createdAt": {
+    "_seconds": 1768582652,
+    "_nanoseconds": 264000000
+  }
+}
+----------------------------------------
+
+ID: VR9G4QHQ
+{
+  "code": "VR9G4QHQ",
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "isUsed": false,
+  "tenantId": "3",
+  "role": "consultor",
+  "assignedProjectIds": [
+    "sZDav2CndgdmhfYc8BTt",
+    "Au1xfXgivgl6VYj2zscs",
+    "9iqygviz3AGJnbJOLc8E",
+    "Gq2CQfMRws3BMBTtWR1t",
+    "c0HRtaCkKXxeiQf897sY",
+    "WcF8wTccm1LkaFBfWvug",
+    "aAb2HIajQVhXnLAzmVo8"
+  ],
+  "createdAt": {
+    "_seconds": 1768813155,
+    "_nanoseconds": 912000000
+  }
+}
+----------------------------------------
+
+--- COLECCIÓN: MASTER_DATA (21 documentos) ---
+
+ID: 0yr5utAM5cu9eXXv0ND3
+{
+  "name": "Alta",
+  "color": "#6366f1",
+  "type": "priority",
+  "tenantId": "1",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768808737,
+    "_nanoseconds": 296000000
+  }
+}
+----------------------------------------
+
+ID: 5XmNjoKeOKk00kclJsNQ
+{
+  "name": "Requisito de proyecto",
+  "color": "#94a3b8",
+  "type": "scope",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 622000000
+  }
+}
+----------------------------------------
+
+ID: 81QxWlh8JP5oiEF8HQSU
+{
+  "name": "PM",
+  "color": "#242828",
+  "type": "ui5PprcLLUROTO3PDYuy",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768747368,
+    "_nanoseconds": 774000000
+  }
+}
+----------------------------------------
+
+ID: 8nUNZSU00fSZ7KorEBol
+{
+  "name": "Servicios",
+  "color": "#5fc6ce",
+  "type": "ui5PprcLLUROTO3PDYuy",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768747361,
+    "_nanoseconds": 642000000
+  }
+}
+----------------------------------------
+
+ID: HMhm89olKaCCE4p5xvqP
+{
+  "name": "Media",
+  "color": "#4db37e",
+  "type": "priority",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768749981,
+    "_nanoseconds": 774000000
+  }
+}
+----------------------------------------
+
+ID: NHNQ2109xnYxXZ9qDvOS
+{
+  "name": "Interfaces",
+  "color": "#94a3b8",
+  "type": "area",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 252000000
+  }
+}
+----------------------------------------
+
+ID: V50rxorZvGAmvZo2xJCd
+{
+  "name": "Requerimiento de producto",
+  "color": "#94a3b8",
+  "type": "scope",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 438000000
+  }
+}
+----------------------------------------
+
+ID: YGLoyeC4jvrhjVpFkAVL
+{
+  "name": "Escalado INI",
+  "color": "#e60000",
+  "type": "ui5PprcLLUROTO3PDYuy",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768747380,
+    "_nanoseconds": 685000000
+  }
+}
+----------------------------------------
+
+ID: ZzFY6NUUiRPaTQV6XKgN
+{
+  "name": "Media",
+  "color": "#f2da64",
+  "type": "priority",
+  "tenantId": "1",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768808748,
+    "_nanoseconds": 293000000
+  }
+}
+----------------------------------------
+
+ID: aG6y9wyr0ZuepWcXooKk
+{
+  "name": "Producto",
+  "color": "#247f36",
+  "type": "ui5PprcLLUROTO3PDYuy",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768747353,
+    "_nanoseconds": 751000000
+  }
+}
+----------------------------------------
+
+ID: fqkjBwRajudfwJweO96E
+{
+  "name": "Requerimiento de cliente",
+  "color": "#94a3b8",
+  "type": "scope",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 712000000
+  }
+}
+----------------------------------------
+
+ID: ftUYDOBBCvbQDyE9H7A8
+{
+  "name": "baja",
+  "color": "#03e23b",
+  "type": "priority",
+  "tenantId": "1",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768808757,
+    "_nanoseconds": 363000000
+  }
+}
+----------------------------------------
+
+ID: gRQ0i1OdLgpi1Hj4ZMRv
+{
+  "name": "PM",
+  "color": "#94a3b8",
+  "type": "module",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 806000000
+  }
+}
+----------------------------------------
+
+ID: jpUMoRo8rvhpMZTfb4kz
+{
+  "name": "Documentación",
+  "color": "#94a3b8",
+  "type": "area",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 157000000
+  }
+}
+----------------------------------------
+
+ID: kEUXe0lu3VfJLOyBxwAw
+{
+  "name": "Comercial",
+  "color": "#6366f1",
+  "type": "ui5PprcLLUROTO3PDYuy",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768747320,
+    "_nanoseconds": 828000000
+  }
+}
+----------------------------------------
+
+ID: mU8JRr14dRSX2x2Q7yuA
+{
+  "name": "Mobile",
+  "color": "#94a3b8",
+  "type": "module",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 986000000
+  }
+}
+----------------------------------------
+
+ID: q6XHZ2txGPJEKnmhptGF
+{
+  "name": "Baja",
+  "color": "#b5b734",
+  "type": "priority",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768749990,
+    "_nanoseconds": 256000000
+  }
+}
+----------------------------------------
+
+ID: tZU2ohE5VkBZyBARbF4M
+{
+  "name": "Mobilidad",
+  "color": "#94a3b8",
+  "type": "area",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 346000000
+  }
+}
+----------------------------------------
+
+ID: z8zZpAz1kfakjRO6JFF4
+{
+  "name": "TMS",
+  "color": "#94a3b8",
+  "type": "module",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "recovery_script",
+  "createdAt": {
+    "_seconds": 1768749680,
+    "_nanoseconds": 899000000
+  }
+}
+----------------------------------------
+
+ID: zcukmwiiq3fztw8LexU1
+{
+  "name": "Alta",
+  "color": "#6366f1",
+  "type": "priority",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768749975,
+    "_nanoseconds": 762000000
+  }
+}
+----------------------------------------
+
+ID: zf4kBe6tCgwCHWWRgbTV
+{
+  "name": "prueba de nuevo criterio",
+  "color": "#e76240",
+  "type": "reception_block",
+  "tenantId": "3",
+  "isActive": true,
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1768743963,
+    "_nanoseconds": 329000000
+  }
+}
+----------------------------------------
+
+--- COLECCIÓN: ATTRIBUTE_DEFINITIONS (6 documentos) ---
+
+ID: 5mDm9fwOeahf0iQSRf6v
+{
+  "name": "Alcance",
+  "color": "#8b5cf6",
+  "tenantId": "3",
+  "isActive": true,
+  "mappedField": "scope",
+  "createdAt": {
+    "_seconds": 1768748548,
+    "_nanoseconds": 687000000
+  }
+}
+----------------------------------------
+
+ID: BCQyrgYyOgz3P3puI0Ll
+{
+  "color": "#3b82f6",
+  "tenantId": "3",
+  "isActive": true,
+  "mappedField": "area",
+  "createdAt": {
+    "_seconds": 1768748548,
+    "_nanoseconds": 463000000
+  },
+  "name": "Area"
+}
+----------------------------------------
+
+ID: PfQlSB0A9ZsC4Lt7eFEo
+{
+  "name": "Prioridades",
+  "color": "#f59e0b",
+  "tenantId": "3",
+  "isActive": true,
+  "mappedField": "priority",
+  "createdAt": {
+    "_seconds": 1768748548,
+    "_nanoseconds": 319000000
+  }
+}
+----------------------------------------
+
+ID: QbJZv2kePsc0YqoYexw3
+{
+  "name": "Áreas",
+  "color": "#3b82f6",
+  "tenantId": "3",
+  "isActive": true,
+  "mappedField": "area",
+  "createdAt": {
+    "_seconds": 1768748548,
+    "_nanoseconds": 365000000
+  }
+}
+----------------------------------------
+
+ID: cc3JjWu50R6dYYVKVpPl
+{
+  "name": "Módulos",
+  "color": "#10b981",
+  "tenantId": "3",
+  "isActive": true,
+  "mappedField": "module",
+  "createdAt": {
+    "_seconds": 1768748710,
+    "_nanoseconds": 828000000
+  }
+}
+----------------------------------------
+
+ID: ui5PprcLLUROTO3PDYuy
+{
+  "name": "Equipo responsable",
+  "color": "#ec4899",
+  "tenantId": "3",
+  "isActive": true,
+  "createdAt": {
+    "_seconds": 1768747300,
+    "_nanoseconds": 568000000
+  }
+}
+----------------------------------------
+
+--- COLECCIÓN: PERMISSION_GROUPS (20 documentos) ---
+
+ID: 0K6YeKPij3FLS38gyiTG
+{
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "name": "Consultor",
+  "viewAccess": {
+    "userManagement": false,
+    "dailyFollowUp": true,
+    "dashboard": true,
+    "taskManager": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "taskDashboard": true
+  },
+  "taskAccess": {
+    "delete": true,
+    "assignedProjectsOnly": true,
+    "viewAll": false,
+    "edit": true,
+    "create": true
+  },
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "managePermissions": false,
+    "useCommandMenu": true,
+    "accessTrash": false
+  },
+  "exportAccess": {
+    "reports": false,
+    "projects": false,
+    "tasks": true
+  },
+  "projectAccess": {
+    "assignedOnly": true,
+    "edit": false,
+    "create": false,
+    "viewAll": false,
+    "archive": false
+  },
+  "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "2",
+  "color": "#6366f1",
+  "createdAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 477000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 477000000
+  }
+}
+----------------------------------------
+
+ID: 1kfSX4c2nTxygGuKvHS5
+{
+  "name": "Project Managers",
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+  "exportAccess": {
+    "tasks": true,
+    "projects": true,
+    "reports": true
+  },
+  "projectAccess": {
+    "assignedOnly": false,
+    "archive": false,
+    "create": true,
+    "edit": true,
+    "viewAll": true
+  },
+  "taskAccess": {
+    "assignedProjectsOnly": false,
+    "delete": true,
+    "edit": true,
+    "viewAll": true,
+    "create": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "2",
+  "specialPermissions": {
+    "accessTrash": true,
+    "viewAllUserProfiles": true,
+    "managePermissions": false,
+    "useCommandMenu": true
+  },
+  "color": "#3b82f6",
+  "viewAccess": {
+    "taskManager": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "userManagement": true,
+    "taskDashboard": true,
+    "dashboard": true,
+    "dailyFollowUp": true
+  },
+  "createdAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 762000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 762000000
+  }
+}
+----------------------------------------
+
+ID: CzxVf8b4QEA0dAfE9qIH
+{
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "name": "Administradores",
+  "exportAccess": {
+    "projects": true,
+    "reports": true,
+    "tasks": true
+  },
+  "projectAccess": {
+    "archive": true,
+    "viewAll": true,
+    "assignedOnly": false,
+    "create": true,
+    "edit": true
+  },
+  "tenantId": "3",
+  "taskAccess": {
+    "create": true,
+    "edit": true,
+    "viewAll": true,
+    "delete": true,
+    "assignedProjectsOnly": false
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "color": "#ef4444",
+  "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+  "specialPermissions": {
+    "useCommandMenu": true,
+    "managePermissions": true,
+    "accessTrash": true,
+    "viewAllUserProfiles": true
+  },
+  "viewAccess": {
+    "taskDashboard": true,
+    "dashboard": true,
+    "userManagement": true,
+    "projectManagement": true,
+    "taskManager": true,
+    "weeklyEditor": true,
+    "dailyFollowUp": true
+  },
+  "createdAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 700000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 700000000
+  }
+}
+----------------------------------------
+
+ID: DcPRzezxS9ashGKd1c2S
+{
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "name": "Externo",
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "color": "#6366f1",
+  "taskAccess": {
+    "create": false,
+    "delete": false,
+    "viewAll": false,
+    "edit": false,
+    "assignedProjectsOnly": true
+  },
+  "tenantId": "4",
+  "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+  "viewAccess": {
+    "userManagement": false,
+    "weeklyEditor": false,
+    "taskManager": false,
+    "projectManagement": false,
+    "dailyFollowUp": true,
+    "taskDashboard": true,
+    "dashboard": true
+  },
+  "projectAccess": {
+    "archive": false,
+    "viewAll": false,
+    "edit": false,
+    "create": false,
+    "assignedOnly": true
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": false,
+    "reports": false
+  },
+  "specialPermissions": {
+    "managePermissions": false,
+    "accessTrash": false,
+    "viewAllUserProfiles": false,
+    "useCommandMenu": true
+  },
+  "createdAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 727000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 727000000
+  }
+}
+----------------------------------------
+
+ID: EInljWJi4tBI3XaQ5X2p
+{
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "taskAccess": {
+    "delete": false,
+    "edit": true,
+    "viewAll": false,
+    "assignedProjectsOnly": true,
+    "create": true
+  },
+  "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+  "name": "Equipo",
+  "exportAccess": {
+    "projects": false,
+    "tasks": true,
+    "reports": false
+  },
+  "specialPermissions": {
+    "managePermissions": false,
+    "useCommandMenu": true,
+    "viewAllUserProfiles": false,
+    "accessTrash": false
+  },
+  "tenantId": "4",
+  "projectAccess": {
+    "create": false,
+    "assignedOnly": true,
+    "viewAll": false,
+    "edit": false,
+    "archive": false
+  },
+  "color": "#10b981",
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "viewAccess": {
+    "dashboard": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "taskDashboard": true,
+    "dailyFollowUp": true,
+    "taskManager": true,
+    "userManagement": false
+  },
+  "createdAt": {
+    "_seconds": 1768087665,
+    "_nanoseconds": 259000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087665,
+    "_nanoseconds": 259000000
+  }
+}
+----------------------------------------
+
+ID: EzwcMQ72J3gCSuRYt9XJ
+{
+  "name": "Consultor",
+  "color": "#6366f1",
+  "projectAccess": {
+    "viewAll": false,
+    "assignedOnly": true,
+    "create": false,
+    "edit": false,
+    "archive": false
+  },
+  "taskAccess": {
+    "viewAll": false,
+    "assignedProjectsOnly": true,
+    "create": true,
+    "edit": true,
+    "delete": true
+  },
+  "viewAccess": {
+    "dashboard": true,
+    "taskManager": true,
+    "taskDashboard": true,
+    "projectManagement": true,
+    "userManagement": false,
+    "weeklyEditor": true,
+    "dailyFollowUp": true
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": false,
+    "reports": false
+  },
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "managePermissions": false,
+    "accessTrash": false,
+    "useCommandMenu": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1767820266,
+    "_nanoseconds": 870000000
+  },
+  "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+  "id": "EzwcMQ72J3gCSuRYt9XJ",
+  "updatedAt": {
+    "_seconds": 1767820297,
+    "_nanoseconds": 243000000
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "tenantId": "1"
+}
+----------------------------------------
+
+ID: FJUMXCfI4VnMMj8b8mOT
+{
+  "viewAccess": {
+    "weeklyEditor": true,
+    "dashboard": true,
+    "userManagement": true,
+    "taskDashboard": true,
+    "projectManagement": true,
+    "taskManager": true,
+    "dailyFollowUp": true
+  },
+  "name": "Project Managers",
+  "exportAccess": {
+    "projects": true,
+    "tasks": true,
+    "reports": true
+  },
+  "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+  "color": "#3b82f6",
+  "specialPermissions": {
+    "viewAllUserProfiles": true,
+    "managePermissions": false,
+    "accessTrash": true,
+    "useCommandMenu": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "projectAccess": {
+    "viewAll": true,
+    "archive": false,
+    "assignedOnly": false,
+    "edit": true,
+    "create": true
+  },
+  "taskAccess": {
+    "assignedProjectsOnly": false,
+    "viewAll": true,
+    "create": true,
+    "edit": true,
+    "delete": true
+  },
+  "tenantId": "4",
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 917000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 917000000
+  }
+}
+----------------------------------------
+
+ID: K3o2Hvs9LwH0GoiHO4RG
+{
+  "specialPermissions": {
+    "viewAllUserProfiles": true,
+    "accessTrash": true,
+    "useCommandMenu": true,
+    "managePermissions": false
+  },
+  "viewAccess": {
+    "dailyFollowUp": true,
+    "taskManager": true,
+    "dashboard": true,
+    "userManagement": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "taskDashboard": true
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "projectAccess": {
+    "viewAll": true,
+    "create": true,
+    "archive": false,
+    "edit": true,
+    "assignedOnly": false
+  },
+  "name": "Project Managers",
+  "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+  "exportAccess": {
+    "tasks": true,
+    "projects": true,
+    "reports": true
+  },
+  "color": "#3b82f6",
+  "taskAccess": {
+    "assignedProjectsOnly": false,
+    "delete": true,
+    "edit": true,
+    "create": true,
+    "viewAll": true
+  },
+  "tenantId": "3",
+  "createdAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 567000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 567000000
+  }
+}
+----------------------------------------
+
+ID: Ql4anNhobE7QH2ZsbeRA
+{
+  "viewAccess": {
+    "weeklyEditor": false,
+    "taskManager": false,
+    "dashboard": true,
+    "projectManagement": false,
+    "dailyFollowUp": true,
+    "userManagement": false,
+    "taskDashboard": true
+  },
+  "projectAccess": {
+    "create": false,
+    "assignedOnly": true,
+    "edit": false,
+    "archive": false,
+    "viewAll": false
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "tenantId": "2",
+  "color": "#6366f1",
+  "exportAccess": {
+    "reports": false,
+    "tasks": true,
+    "projects": false
+  },
+  "taskAccess": {
+    "assignedProjectsOnly": true,
+    "create": false,
+    "delete": false,
+    "edit": false,
+    "viewAll": false
+  },
+  "specialPermissions": {
+    "useCommandMenu": true,
+    "viewAllUserProfiles": false,
+    "accessTrash": false,
+    "managePermissions": false
+  },
+  "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+  "name": "Externo",
+  "createdAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 629000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 629000000
+  }
+}
+----------------------------------------
+
+ID: Tmu6u7CuMvwFguXiwDFh
+{
+  "name": "Externo",
+  "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+  "color": "#6366f1",
+  "projectAccess": {
+    "viewAll": false,
+    "assignedOnly": true,
+    "create": false,
+    "edit": false,
+    "archive": false
+  },
+  "taskAccess": {
+    "viewAll": false,
+    "assignedProjectsOnly": true,
+    "create": false,
+    "edit": false,
+    "delete": false
+  },
+  "viewAccess": {
+    "dashboard": true,
+    "taskManager": false,
+    "taskDashboard": true,
+    "projectManagement": false,
+    "userManagement": false,
+    "weeklyEditor": false,
+    "dailyFollowUp": true
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": false,
+    "reports": false
+  },
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "managePermissions": false,
+    "accessTrash": false,
+    "useCommandMenu": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1767820360,
+    "_nanoseconds": 375000000
+  },
+  "updatedAt": {
+    "_seconds": 1767820360,
+    "_nanoseconds": 375000000
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "tenantId": "1"
+}
+----------------------------------------
+
+ID: VzPJO1DvbycTRxWDRvLx
+{
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "name": "Equipo",
+  "tenantId": "2",
+  "projectAccess": {
+    "edit": false,
+    "create": false,
+    "viewAll": false,
+    "archive": false,
+    "assignedOnly": true
+  },
+  "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+  "taskAccess": {
+    "delete": false,
+    "assignedProjectsOnly": true,
+    "create": true,
+    "edit": true,
+    "viewAll": false
+  },
+  "viewAccess": {
+    "taskDashboard": true,
+    "dashboard": true,
+    "userManagement": false,
+    "projectManagement": true,
+    "taskManager": true,
+    "weeklyEditor": true,
+    "dailyFollowUp": true
+  },
+  "color": "#10b981",
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "exportAccess": {
+    "reports": false,
+    "projects": false,
+    "tasks": true
+  },
+  "specialPermissions": {
+    "accessTrash": false,
+    "viewAllUserProfiles": false,
+    "managePermissions": false,
+    "useCommandMenu": true
+  },
+  "createdAt": {
+    "_seconds": 1768087849,
+    "_nanoseconds": 47000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087849,
+    "_nanoseconds": 47000000
+  }
+}
+----------------------------------------
+
+ID: XTfDFnJLpUaVLDvXZg9T
+{
+  "taskAccess": {
+    "edit": false,
+    "viewAll": false,
+    "create": false,
+    "delete": false,
+    "assignedProjectsOnly": true
+  },
+  "projectAccess": {
+    "assignedOnly": true,
+    "create": false,
+    "archive": false,
+    "viewAll": false,
+    "edit": false
+  },
+  "specialPermissions": {
+    "accessTrash": false,
+    "managePermissions": false,
+    "viewAllUserProfiles": false,
+    "useCommandMenu": true
+  },
+  "name": "Externo",
+  "tenantId": "3",
+  "exportAccess": {
+    "reports": false,
+    "tasks": true,
+    "projects": false
+  },
+  "viewAccess": {
+    "userManagement": false,
+    "taskManager": false,
+    "dailyFollowUp": true,
+    "taskDashboard": true,
+    "dashboard": true,
+    "projectManagement": false,
+    "weeklyEditor": false
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+  "color": "#6366f1",
+  "createdAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 357000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 357000000
+  }
+}
+----------------------------------------
+
+ID: XdO0dma2Ie6E8T1Xc6Ig
+{
+  "name": "Project Managers",
+  "color": "#3b82f6",
+  "projectAccess": {
+    "viewAll": true,
+    "assignedOnly": false,
+    "create": true,
+    "edit": true,
+    "archive": false
+  },
+  "taskAccess": {
+    "viewAll": true,
+    "assignedProjectsOnly": false,
+    "create": true,
+    "edit": true,
+    "delete": true
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": true,
+    "reports": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1767814925,
+    "_nanoseconds": 583000000
+  },
+  "specialPermissions": {
+    "managePermissions": false,
+    "accessTrash": true,
+    "viewAllUserProfiles": true,
+    "useCommandMenu": true
+  },
+  "id": "XdO0dma2Ie6E8T1Xc6Ig",
+  "viewAccess": {
+    "dashboard": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "dailyFollowUp": true,
+    "taskManager": true,
+    "userManagement": true,
+    "taskDashboard": true
+  },
+  "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+  "updatedAt": {
+    "_seconds": 1767863147,
+    "_nanoseconds": 461000000
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "tenantId": "1"
+}
+----------------------------------------
+
+ID: ZCtaBcx6DD62NC8Ka7W8
+{
+  "specialPermissions": {
+    "viewAllUserProfiles": true,
+    "managePermissions": true,
+    "useCommandMenu": true,
+    "accessTrash": true
+  },
+  "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "taskAccess": {
+    "viewAll": true,
+    "create": true,
+    "edit": true,
+    "delete": true,
+    "assignedProjectsOnly": false
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "name": "Administradores",
+  "tenantId": "2",
+  "exportAccess": {
+    "reports": true,
+    "tasks": true,
+    "projects": true
+  },
+  "color": "#ef4444",
+  "projectAccess": {
+    "edit": true,
+    "viewAll": true,
+    "assignedOnly": false,
+    "archive": true,
+    "create": true
+  },
+  "viewAccess": {
+    "dailyFollowUp": true,
+    "taskDashboard": true,
+    "taskManager": true,
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "userManagement": true,
+    "dashboard": true
+  },
+  "createdAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 894000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087848,
+    "_nanoseconds": 894000000
+  }
+}
+----------------------------------------
+
+ID: dUAB0orOPWa1CHZVyJCk
+{
+  "name": "Administradores",
+  "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+  "color": "#ef4444",
+  "projectAccess": {
+    "viewAll": true,
+    "assignedOnly": false,
+    "create": true,
+    "edit": true,
+    "archive": true
+  },
+  "taskAccess": {
+    "viewAll": true,
+    "assignedProjectsOnly": false,
+    "create": true,
+    "edit": true,
+    "delete": true
+  },
+  "viewAccess": {
+    "dashboard": true,
+    "taskManager": true,
+    "taskDashboard": true,
+    "projectManagement": true,
+    "userManagement": true,
+    "weeklyEditor": true,
+    "dailyFollowUp": true
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": true,
+    "reports": true
+  },
+  "specialPermissions": {
+    "viewAllUserProfiles": true,
+    "managePermissions": true,
+    "accessTrash": true,
+    "useCommandMenu": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1767814925,
+    "_nanoseconds": 417000000
+  },
+  "updatedAt": {
+    "_seconds": 1767814925,
+    "_nanoseconds": 417000000
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "tenantId": "1"
+}
+----------------------------------------
+
+ID: hFIA31ETvC2NRPdBh4TC
+{
+  "tenantId": "4",
+  "exportAccess": {
+    "projects": true,
+    "reports": true,
+    "tasks": true
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+  "name": "Administradores",
+  "projectAccess": {
+    "assignedOnly": false,
+    "viewAll": true,
+    "edit": true,
+    "create": true,
+    "archive": true
+  },
+  "taskAccess": {
+    "viewAll": true,
+    "create": true,
+    "delete": true,
+    "assignedProjectsOnly": false,
+    "edit": true
+  },
+  "specialPermissions": {
+    "accessTrash": true,
+    "managePermissions": true,
+    "viewAllUserProfiles": true,
+    "useCommandMenu": true
+  },
+  "viewAccess": {
+    "projectManagement": true,
+    "taskManager": true,
+    "taskDashboard": true,
+    "userManagement": true,
+    "dailyFollowUp": true,
+    "dashboard": true,
+    "weeklyEditor": true
+  },
+  "color": "#ef4444",
+  "createdAt": {
+    "_seconds": 1768087665,
+    "_nanoseconds": 48000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087665,
+    "_nanoseconds": 48000000
+  }
+}
+----------------------------------------
+
+ID: iz22hYtHaPkXhANRSLQr
+{
+  "name": "Equipo",
+  "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+  "color": "#10b981",
+  "projectAccess": {
+    "viewAll": false,
+    "assignedOnly": true,
+    "create": false,
+    "edit": false,
+    "archive": false
+  },
+  "taskAccess": {
+    "viewAll": false,
+    "assignedProjectsOnly": true,
+    "create": true,
+    "edit": true,
+    "delete": false
+  },
+  "exportAccess": {
+    "tasks": true,
+    "projects": false,
+    "reports": false
+  },
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "managePermissions": false,
+    "accessTrash": false,
+    "useCommandMenu": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "createdAt": {
+    "_seconds": 1767814925,
+    "_nanoseconds": 742000000
+  },
+  "id": "iz22hYtHaPkXhANRSLQr",
+  "viewAccess": {
+    "weeklyEditor": true,
+    "taskDashboard": true,
+    "projectManagement": true,
+    "userManagement": false,
+    "taskManager": true,
+    "dashboard": true,
+    "dailyFollowUp": true
+  },
+  "updatedAt": {
+    "_seconds": 1767820000,
+    "_nanoseconds": 685000000
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "tenantId": "1"
+}
+----------------------------------------
+
+ID: lXL2stBtlFrxNfUJQKFc
+{
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "accessTrash": false,
+    "useCommandMenu": true,
+    "managePermissions": false
+  },
+  "viewAccess": {
+    "taskDashboard": true,
+    "weeklyEditor": true,
+    "dailyFollowUp": true,
+    "dashboard": true,
+    "userManagement": false,
+    "projectManagement": true,
+    "taskManager": true
+  },
+  "exportAccess": {
+    "reports": false,
+    "tasks": true,
+    "projects": false
+  },
+  "name": "Consultor",
+  "color": "#6366f1",
+  "projectAccess": {
+    "archive": false,
+    "edit": false,
+    "assignedOnly": true,
+    "viewAll": false,
+    "create": false
+  },
+  "tenantId": "3",
+  "taskAccess": {
+    "assignedProjectsOnly": true,
+    "create": true,
+    "delete": true,
+    "edit": true,
+    "viewAll": false
+  },
+  "createdAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 203000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 203000000
+  }
+}
+----------------------------------------
+
+ID: muROjYMdZZr5wxYCt4m7
+{
+  "tenantId": "4",
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "viewAccess": {
+    "taskDashboard": true,
+    "dashboard": true,
+    "projectManagement": true,
+    "weeklyEditor": true,
+    "taskManager": true,
+    "dailyFollowUp": true,
+    "userManagement": false
+  },
+  "taskAccess": {
+    "delete": true,
+    "assignedProjectsOnly": true,
+    "edit": true,
+    "create": true,
+    "viewAll": false
+  },
+  "specialPermissions": {
+    "useCommandMenu": true,
+    "accessTrash": false,
+    "viewAllUserProfiles": false,
+    "managePermissions": false
+  },
+  "projectAccess": {
+    "assignedOnly": true,
+    "edit": false,
+    "viewAll": false,
+    "archive": false,
+    "create": false
+  },
+  "name": "Consultor",
+  "exportAccess": {
+    "projects": false,
+    "tasks": true,
+    "reports": false
+  },
+  "color": "#6366f1",
+  "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+  "createdAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 582000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087664,
+    "_nanoseconds": 582000000
+  }
+}
+----------------------------------------
+
+ID: uZkrxbxOcb9qvkfAsogN
+{
+  "taskAccess": {
+    "delete": false,
+    "viewAll": false,
+    "assignedProjectsOnly": true,
+    "create": true,
+    "edit": true
+  },
+  "name": "Equipo",
+  "specialPermissions": {
+    "viewAllUserProfiles": false,
+    "useCommandMenu": true,
+    "accessTrash": false,
+    "managePermissions": false
+  },
+  "_migratedAt": {
+    "_seconds": 1767969003,
+    "_nanoseconds": 953000000
+  },
+  "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+  "tenantId": "3",
+  "exportAccess": {
+    "projects": false,
+    "reports": false,
+    "tasks": true
+  },
+  "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+  "color": "#10b981",
+  "viewAccess": {
+    "weeklyEditor": true,
+    "projectManagement": true,
+    "taskDashboard": true,
+    "taskManager": true,
+    "dailyFollowUp": true,
+    "userManagement": false,
+    "dashboard": true
+  },
+  "projectAccess": {
+    "viewAll": false,
+    "archive": false,
+    "create": false,
+    "assignedOnly": true,
+    "edit": false
+  },
+  "createdAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 842000000
+  },
+  "updatedAt": {
+    "_seconds": 1768087867,
+    "_nanoseconds": 842000000
+  }
+}
+----------------------------------------

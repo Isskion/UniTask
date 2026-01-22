@@ -3,10 +3,11 @@ import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'fire
 import { PermissionGroup } from '@/types';
 
 // Default Permission Groups
+// Default Permission Groups
 const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | 'createdBy'>[] = [
     {
-        name: 'Administradores',
-        description: 'Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.',
+        name: 'Administrators',
+        description: 'Full system access. Can manage users, projects, tasks, and permissions.',
         color: '#ef4444', // red
         tenantId: "1",
         projectAccess: {
@@ -46,7 +47,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
     },
     {
         name: 'Project Managers',
-        description: 'Gestores de proyecto. Pueden crear y administrar proyectos y tareas, pero no gestionar usuarios ni permisos.',
+        description: 'Project managers. Can create and manage projects and tasks, but not manage users or permissions.',
         color: '#3b82f6', // blue
         tenantId: "1",
         projectAccess: {
@@ -85,8 +86,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         }
     },
     {
-        name: 'Equipo',
-        description: 'Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.',
+        name: 'Team Member',
+        description: 'Team members. Can only see and work on assigned projects. Cannot delete tasks or manage projects.',
         color: '#10b981', // green
         tenantId: "1",
         projectAccess: {
@@ -125,8 +126,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         }
     },
     {
-        name: 'Consultor',
-        description: 'Consultores externos. Pueden ver y trabajar en proyectos asignados con permisos de edición limitados.',
+        name: 'Consultant',
+        description: 'External consultants. Can see and work on assigned projects with limited editing permissions.',
         color: '#f59e0b', // amber
         tenantId: "1",
         projectAccess: {
@@ -165,8 +166,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
         }
     },
     {
-        name: 'Usuario Externo',
-        description: 'Usuarios externos con acceso muy limitado. Solo pueden ver información de proyectos específicos asignados.',
+        name: 'External User',
+        description: 'External users with very limited access. Only can view information for specific assigned projects.',
         color: '#6b7280', // gray
         tenantId: "1",
         projectAccess: {
@@ -273,25 +274,25 @@ export async function initializePermissionGroups(): Promise<boolean> {
 }
 
 /**
- * [NEW] Populate Tenant with Template Groups & Link Users
- * 1. Clones groups from Tenant "1" (Template) to targetTenantId
- * 2. Links existing users in targetTenantId to these new groups based on legacy role
+ * [NEW] Populate Organization with Template Groups & Link Users
+ * 1. Clones groups from Organization "1" (Template) to targetOrganizationId
+ * 2. Links existing users in targetOrganizationId to these new groups based on legacy role
  */
 import { writeBatch } from 'firebase/firestore'; // Import batch
 
-export async function startTenantPopulation(targetTenantId: string, createdBy: string = 'system'): Promise<string> {
-    console.log(`[Population] Starting for Tenant: ${targetTenantId}`);
+export async function startOrganizationPopulation(targetOrganizationId: string, createdBy: string = 'system'): Promise<string> {
+    console.log(`[Population] Starting for Organization: ${targetOrganizationId}`);
     const logs: string[] = [];
 
     try {
-        // 1. Fetch Template Groups (Tenant 1)
+        // 1. Fetch Template Groups (Organization 1)
         const qTemplate = query(collection(db, 'permission_groups'), where('tenantId', '==', '1'));
         const templateSnap = await getDocs(qTemplate);
 
         let groupsToClone: any[] = [];
 
         if (templateSnap.empty) {
-            logs.push("⚠️ No template groups in Tenant 1. Using Hardcoded Defaults.");
+            logs.push("⚠️ No template groups in Organization 1. Using Hardcoded Defaults.");
             groupsToClone = DEFAULT_GROUPS;
         } else {
             groupsToClone = templateSnap.docs.map(d => {
@@ -302,14 +303,14 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
             });
         }
 
-        // 2. Create Groups in Target Tenant
+        // 2. Create Groups in Target Organization
         const createdGroupsMap: Record<string, string> = {}; // Name -> NewID (for user linking)
 
         for (const group of groupsToClone) {
             // Check existence to avoid dupes
             const qExists = query(
                 collection(db, 'permission_groups'),
-                where('tenantId', '==', targetTenantId),
+                where('tenantId', '==', targetOrganizationId),
                 where('name', '==', group.name)
             );
             const existsSnap = await getDocs(qExists);
@@ -318,7 +319,7 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
             if (existsSnap.empty) {
                 const newGroup = {
                     ...group,
-                    tenantId: targetTenantId,
+                    tenantId: targetOrganizationId,
                     createdBy,
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
@@ -334,7 +335,7 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
         }
 
         // 3. Link Existing Users (Auto-Correction)
-        const qUsers = query(collection(db, 'users'), where('tenantId', '==', targetTenantId));
+        const qUsers = query(collection(db, 'users'), where('tenantId', '==', targetOrganizationId));
         const usersSnap = await getDocs(qUsers);
 
         if (!usersSnap.empty) {
@@ -344,12 +345,12 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
             // Map Legacy Roles to Group Names
             // Ensure these match DEFAULT_GROUPS names exactly
             const ROLE_TO_GROUP_NAME: Record<string, string> = {
-                'superadmin': 'Administradores',
-                'app_admin': 'Administradores',
+                'superadmin': 'Administrators',
+                'app_admin': 'Administrators',
                 'global_pm': 'Project Managers',
-                'usuario_base': 'Equipo',
-                'consultor': 'Consultor',
-                'usuario_externo': 'Usuario Externo'
+                'usuario_base': 'Team Member',
+                'consultor': 'Consultant',
+                'usuario_externo': 'External User'
             };
 
             usersSnap.docs.forEach(userDoc => {
@@ -378,7 +379,7 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
                 logs.push("No users needed linking.");
             }
         } else {
-            logs.push("No users found in this tenant.");
+            logs.push("No users found in this organization.");
         }
 
         return logs.join('\n');

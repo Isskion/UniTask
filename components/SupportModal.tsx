@@ -40,7 +40,7 @@ export default function SupportModal({ isOpen, onClose, viewContext }: SupportMo
 
             const result = await submitSupportAction({
                 userId: user?.uid || "anonymous",
-                userName: user?.displayName || "Usuario",
+                userName: user?.displayName || "User",
                 userEmail: user?.email || "N/A",
                 tenantId: tenantId || "1",
                 message: message.trim(),
@@ -48,7 +48,7 @@ export default function SupportModal({ isOpen, onClose, viewContext }: SupportMo
             });
 
             if (result.success) {
-                showToast("Éxito", "Tu mensaje ha sido enviado correctamente. Nos pondremos en contacto pronto.", "success");
+                showToast("Success", "Your message has been sent successfully. We will contact you soon.", "success");
                 setMessage("");
                 onClose();
             } else {

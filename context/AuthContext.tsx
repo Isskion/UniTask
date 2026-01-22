@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (isNaN(parsedRole)) {
                         parsedRole = getRoleLevel(claims.role as string);
                     }
-                    const realRole = parsedRole || RoleLevel.EXTERNO;
+                    const realRole = parsedRole || RoleLevel.CLIENT;
                     realTenantId = realTenantId || "unknown"; // Final fallback
 
                     const newIdentity: UserIdentity = {
@@ -168,12 +168,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const fallbackIdentity = {
                     uid: currentUser?.uid || "unknown",
                     email: currentUser?.email || null,
-                    realRole: RoleLevel.EXTERNO, // Assume worst case
+                    realRole: RoleLevel.CLIENT, // Assume worst case
                     realTenantId: "1" // Default to tenant 1 to avoid "Orphan" block, rules will handle security
                 };
                 setIdentity(fallbackIdentity);
                 setViewContext({
-                    activeRole: RoleLevel.EXTERNO,
+                    activeRole: RoleLevel.CLIENT,
                     activeTenantId: "1",
                     isMasquerading: false
                 });
@@ -385,9 +385,9 @@ function getRoleString(level: RoleLevel): string {
         case RoleLevel.SUPERADMIN: return 'superadmin';
         case RoleLevel.ADMIN: return 'app_admin';
         case RoleLevel.PM: return 'global_pm';
-        case RoleLevel.CONSULTOR: return 'consultor';
-        case RoleLevel.EQUIPO: return 'usuario_base';
-        case RoleLevel.EXTERNO: return 'usuario_externo';
+        case RoleLevel.CONSULTANT: return 'consultor';
+        case RoleLevel.TEAM_MEMBER: return 'usuario_base';
+        case RoleLevel.CLIENT: return 'usuario_externo';
         default: return 'usuario_externo';
     }
 }

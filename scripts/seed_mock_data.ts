@@ -92,7 +92,7 @@ async function seed() {
 
             await db.collection('tasks').add({
                 friendlyId: `MOCK-${format(day, 'dd')}-${i}`,
-                tenantId: TENANT_ID,
+                organizationId: TENANT_ID,
                 projectId: projectId,
                 title: `[MOCK] Tarea simulada ${i + 1} del ${dateStr}`,
                 description: `Descripción detallada de la tarea simulada ${i + 1}. Generada automáticamente para pruebas de UI.`,

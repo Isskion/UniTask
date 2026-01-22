@@ -48,13 +48,21 @@ export async function migrateToMultiTenant(
             for (const docSnapshot of snapshot.docs) {
                 const data = docSnapshot.data();
 
-                // Idempotency Check
-                if (!data.tenantId) {
+                // Idempotency Check: migrate if neither organizationId nor tenantId is present
+                if (!data.organizationId && !data.tenantId) {
                     batch.update(docSnapshot.ref, {
-                        tenantId: targetTenantId,
+                        organizationId: targetTenantId,
                         _migratedAt: serverTimestamp()
                     });
 
+                    batchCount++;
+                    result.updated++;
+                } else if (data.tenantId && !data.organizationId) {
+                    // Transition: move tenantId to organizationId
+                    batch.update(docSnapshot.ref, {
+                        organizationId: data.tenantId,
+                        _migratedAt: serverTimestamp()
+                    });
                     batchCount++;
                     result.updated++;
                 }

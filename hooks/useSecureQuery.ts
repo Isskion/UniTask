@@ -11,7 +11,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 
 /**
- * Returns a Firestore query with automatic tenantId filtering based on user claims.
+ * Returns a Firestore query with automatic organizationId filtering based on user claims.
  * 
  * @param collectionName - Name of the Firestore collection
  * @param additionalConstraints - Additional query constraints (where, orderBy, etc.)
@@ -21,21 +21,21 @@ export function useSecureQuery(
     collectionName: string,
     additionalConstraints: QueryConstraint[] = []
 ) {
-    const { user, userRole, tenantId } = useAuth();
+    const { user, userRole, organizationId } = useAuth();
 
     return useMemo(() => {
         if (!user) return null;
 
         const baseConstraints: QueryConstraint[] = [];
 
-        // Always add tenantId filter unless Superadmin is in "ALL" mode (which we don't really support yet in queries easily)
-        // Even Superadmins should see data scoped to their current "View As" tenant.
-        // If they want to see "ALL", they would need a specific "ALL" tenant selector or we skip.
+        // Always add organizationId filter unless Superadmin is in "ALL" mode (which we don't really support yet in queries easily)
+        // Even Superadmins should see data scoped to their current "View As" organization.
+        // If they want to see "ALL", they would need a specific "ALL" organization selector or we skip.
 
-        // Fix: Trust the AuthContext tenantId (which handles masquerading).
-        // Only skip if tenantId is missing (shouldn't happen) or if we explicitly want global view.
-        if (tenantId) {
-            baseConstraints.push(where('tenantId', '==', tenantId));
+        // Fix: Trust the AuthContext organizationId (which handles masquerading).
+        // Only skip if organizationId is missing (shouldn't happen) or if we explicitly want global view.
+        if (organizationId) {
+            baseConstraints.push(where('organizationId', '==', organizationId));
         }
 
         return query(
@@ -43,14 +43,14 @@ export function useSecureQuery(
             ...baseConstraints,
             ...additionalConstraints
         );
-    }, [user, userRole, tenantId, collectionName, additionalConstraints]);
+    }, [user, userRole, organizationId, collectionName, additionalConstraints]);
 }
 
 /**
- * Returns the current user's tenant ID from Context.
+ * Returns the current user's organization ID from Context.
  */
-export function useTenantId(): string {
-    const { tenantId } = useAuth();
-    return tenantId || '1';
+export function useOrganizationId(): string {
+    const { organizationId } = useAuth();
+    return organizationId || '1';
 }
 

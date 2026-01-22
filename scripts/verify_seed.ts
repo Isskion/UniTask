@@ -8,7 +8,7 @@ const db = admin.firestore();
 async function count() {
     console.log("Counting tasks for Tenant 1...");
     const snap = await db.collection('tasks')
-        .where('tenantId', '==', '1')
+        .where('organizationId', '==', '1')
         .where('title', '>=', '[MOCK]')
         .where('title', '<=', '[MOCK]\uf8ff')
         .get();

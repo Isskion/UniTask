@@ -7,15 +7,15 @@ import ProjectManagement from "./ProjectManagement";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
 import { AppLayout } from "./AppLayout";
-import { Project, JournalEntry, Task, NoteBlock } from "@/types";
+import { Project, DailyStatus, Task, ContentBlock } from "@/types";
 import { NotificationBell } from "./NotificationBell"; // Re-applied Import Fix
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
-import { saveJournalEntry, getJournalEntry, getRecentJournalEntries, getJournalEntriesForDate, getAllJournalEntries } from "@/lib/storage";
+import { saveDailyStatus, getDailyStatus, getRecentDailyStatusEntries, getDailyStatusLogsForDate, getAllDailyStatusEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search } from 'lucide-react';
+import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search } from 'lucide-react';
 import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
@@ -61,7 +61,7 @@ export default function DailyFollowUp() {
 
     // --- SEARCH STATE ---
     const [searchQuery, setSearchQuery] = useState("");
-    const [fullHistory, setFullHistory] = useState<JournalEntry[] | null>(null);
+    const [fullHistory, setFullHistory] = useState<DailyStatus[] | null>(null);
     const [isSearchingHistory, setIsSearchingHistory] = useState(false);
 
     const {
@@ -90,7 +90,7 @@ export default function DailyFollowUp() {
 
     const handlePrint = async () => {
         if (!user || !tenantId) {
-            showToast("Error", "Usuario no autenticado o tenant no disponible.", "error");
+            showToast("Error", "User not authenticated or organization not available.", "error");
             return;
         }
         setIsGeneratingPDF(true);
@@ -166,7 +166,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -181,7 +181,7 @@ export default function DailyFollowUp() {
     const [saving, setSaving] = useState(false);
 
     // Entry State
-    const [entry, setEntry] = useState<JournalEntry>({
+    const [entry, setEntry] = useState<DailyStatus>({
         id: format(new Date(), 'yyyy-MM-dd'),
         date: format(new Date(), 'yyyy-MM-dd'),
         tenantId: tenantId || "1",
@@ -192,7 +192,7 @@ export default function DailyFollowUp() {
 
     const [activeTab, setActiveTab] = useState<string>("General");
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-    const [availableTenants, setAvailableTenants] = useState<any[]>([]);
+    const [availableOrganizations, setAvailableOrganizations] = useState<any[]>([]);
 
     // --- STATE: UI ---
     const [isTasksPanelVisible, setIsTasksPanelVisible] = useState(false);
@@ -201,7 +201,7 @@ export default function DailyFollowUp() {
     const [projectTasks, setProjectTasks] = useState<Task[]>([]);
 
     // --- STATE: HISTORY ---
-    const [recentEntries, setRecentEntries] = useState<JournalEntry[]>([]);
+    const [recentEntries, setRecentEntries] = useState<DailyStatus[]>([]);
 
     // --- STATE: AI ---
     const [isAILoading, setIsAILoading] = useState(false);
@@ -351,30 +351,30 @@ export default function DailyFollowUp() {
         };
     }, []);
 
-    // Initial Load & React to Tenant Change
+    // Initial Load & React to Organization Change
     useEffect(() => {
         if (!user?.uid) return;
 
         const loadInit = async () => {
-            // Fetch Available Tenants (SuperAdmin Only)
+            // Fetch Available Organizations (SuperAdmin Only)
             if (userRole === 'superadmin') {
                 try {
                     const tSnap = await getDocs(collection(db, "tenants"));
                     const tList = tSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setAvailableTenants(tList);
-                } catch (e) { console.log("Tenants fetch skipped", e); }
+                    setAvailableOrganizations(tList);
+                } catch (e) { console.log("Organizations fetch skipped", e); }
             }
 
             // Load Projects for current context
             try {
-                const targetTenant = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
-                const projs = await getActiveProjects(targetTenant);
+                const targetOrg = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
+                const projs = await getActiveProjects(targetOrg);
                 setGlobalProjects(projs);
             } catch (e) { console.error("Projects Load Error", e); }
 
             // Recent History
             try {
-                const recents = await getRecentJournalEntries(tenantId || "1", 60);
+                const recents = await getRecentDailyStatusEntries(tenantId || "1", 60);
                 setRecentEntries(recents);
             } catch (e) { console.error("History Load Error", e); }
         };
@@ -396,29 +396,29 @@ export default function DailyFollowUp() {
 
         setLoading(true);
         const dateId = format(dateObj, 'yyyy-MM-dd');
-        const currentTenantId = tenantId || "1";
+        const currentOrgId = tenantId || "1";
 
-        // Default Empty State with UNIQUE ID (Format: Tenant_Date_Timestamp)
-        const defaultEntry: JournalEntry = {
-            id: `${currentTenantId}_${dateId}_${Date.now()}`,
+        // Default Empty State with UNIQUE ID (Format: Org_Date_Timestamp)
+        const defaultEntry: DailyStatus = {
+            id: `${currentOrgId}_${dateId}_${Date.now()}`,
             date: dateId,
-            tenantId: currentTenantId,
+            tenantId: currentOrgId,
             projects: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
         try {
-            // SuperAdmin Global View Check (Only if Tenant 1 and Role Superadmin)
+            // SuperAdmin Global View Check (Only if Organization 1 and Role Superadmin)
             const isMasquerading = tenantId && tenantId !== "1";
 
             if (userRole === 'superadmin' && !isMasquerading) {
-                console.log(`[LoadData] Multi-tenant view loading...`);
+                console.log(`[LoadData] Multi-organization view loading...`);
                 const allEntries: any[] = [];
-                const tenantsToCheck = availableTenants.length > 0 ? availableTenants.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
+                const orgsToCheck = availableOrganizations.length > 0 ? availableOrganizations.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
 
-                for (const tid of tenantsToCheck) {
-                    const existing = await getJournalEntry(tid, dateId);
+                for (const tid of orgsToCheck) {
+                    const existing = await getDailyStatus(tid, dateId);
                     if (existing) allEntries.push(existing);
                 }
 
@@ -438,9 +438,9 @@ export default function DailyFollowUp() {
                     setEntry(defaultEntry);
                 }
             } else {
-                // Regular Load (Targeting Specific Tenant)
-                console.log(`[DailyFollowUp] Loading Entries for: Tenant=${currentTenantId}, Date=${dateId}`);
-                const entries = await getJournalEntriesForDate(currentTenantId, dateId);
+                // Regular Load (Targeting Specific Organization)
+                console.log(`[DailyFollowUp] Loading Entries for: Organization=${currentOrgId}, Date=${dateId}`);
+                const entries = await getDailyStatusLogsForDate(currentOrgId, dateId);
 
                 if (lastLoadRef.current !== requestId) return;
 
@@ -462,7 +462,7 @@ export default function DailyFollowUp() {
         } finally {
             if (lastLoadRef.current === requestId) setLoading(false);
         }
-    }, [tenantId, userRole, availableTenants]);
+    }, [tenantId, userRole, availableOrganizations]);
 
     useEffect(() => {
         if (loading) return;
@@ -518,40 +518,40 @@ export default function DailyFollowUp() {
         try {
             const activeProjects = entry.projects.filter(p => p.status !== 'trash');
 
-            // Group projects by tenant
-            const projectsByTenant = new Map<string, any[]>();
+            // Group projects by organization
+            const projectsByOrg = new Map<string, any[]>();
 
             for (const project of activeProjects) {
                 const projectInfo = globalProjects.find(gp => gp.name === project.name);
                 // FIX: Use context tenantId as fallback. If masquerading as T4, we save as T4.
-                const projectTenant = projectInfo?.tenantId || tenantId || "1";
+                const projectOrg = projectInfo?.tenantId || tenantId || "1";
 
-                if (!projectsByTenant.has(projectTenant)) {
-                    projectsByTenant.set(projectTenant, []);
+                if (!projectsByOrg.has(projectOrg)) {
+                    projectsByOrg.set(projectOrg, []);
                 }
-                projectsByTenant.get(projectTenant)!.push(project);
+                projectsByOrg.get(projectOrg)!.push(project);
             }
 
-            // If no projects, save to user's tenant (active context)
-            if (projectsByTenant.size === 0) {
-                projectsByTenant.set(tenantId || "1", []);
+            // If no projects, save to user's organization (active context)
+            if (projectsByOrg.size === 0) {
+                projectsByOrg.set(tenantId || "1", []);
             }
 
-            console.log(`[Save] Saving to ${projectsByTenant.size} tenant(s):`);
+            console.log(`[Save] Saving to ${projectsByOrg.size} organization(s):`);
 
-            // Save each tenant's portion
-            for (const [targetTenantId, projects] of projectsByTenant.entries()) {
+            // Save each organization's portion
+            for (const [targetOrgId, projects] of projectsByOrg.entries()) {
                 const toSave = {
                     id: entry.date,
                     date: entry.date,
-                    tenantId: targetTenantId,
+                    tenantId: targetOrgId,
                     projects: projects,
                     generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
                     createdAt: entry.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
-                console.log(`  → Tenant ${targetTenantId}: ${projects.length} project(s)`);
-                await saveJournalEntry(toSave);
+                console.log(`  → Organization ${targetOrgId}: ${projects.length} project(s)`);
+                await saveDailyStatus(toSave);
             }
 
             // Update UI state with merged view (for SuperAdmin)
@@ -566,7 +566,7 @@ export default function DailyFollowUp() {
                 return [{ ...entry, updatedAt: new Date().toISOString() }, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
             });
 
-            showToast("UniTaskController", `Guardado distribuido en ${projectsByTenant.size} tenant(s)`, "success");
+            showToast("UniTaskController", `Distributed save across ${projectsByOrg.size} organization(s)`, "success");
             setIsDirty(false); // [FIX] Only clear dirty flag if save succeeded
         } catch (e) {
             console.error(e);
@@ -649,25 +649,25 @@ export default function DailyFollowUp() {
             // Determine Project ID and Name
             let projectId: string | undefined;
             let projectName: string | undefined;
-            let taskTenantId: string = tenantId || "1"; // Default fallback
+            let taskOrgId: string = tenantId || "1"; // Default fallback
 
             if (activeTab !== 'General') {
                 const project = globalProjects.find(p => p.name === activeTab);
                 if (project) {
                     projectId = project.id;
                     projectName = project.name;
-                    // FIX: Always use the User's TenantID for creating tasks, even if project is shared/global.
-                    // Strict Multi-Tenancy: I can only create data that belongs to ME/MY TENANT.
-                    taskTenantId = tenantId || "1";
+                    // FIX: Always use the User's Organization ID for creating tasks, even if project is shared/global.
+                    // Strict Multi-Tenancy: I can only create data that belongs to ME/MY ORGANIZATION.
+                    taskOrgId = tenantId || "1";
                 }
             }
 
             // Verify payload before sending
             const taskData: any = {
                 weekId: entry.date, // Keep Date for legacy weekId
-                relatedJournalEntryId: entry.id, // [FIX] Link to specific entry instance
+                relatedDailyStatusId: entry.id, // [FIX] Link to specific entry instance
                 projectId: projectId,
-                tenantId: taskTenantId,
+                tenantId: taskOrgId,
                 title: taskDesc,
                 description: taskDesc,
                 status: 'pending',
@@ -827,7 +827,7 @@ export default function DailyFollowUp() {
             if (!sourceProj) return;
 
             // 2. Fetch Target Entry
-            const targetEntry = await getJournalEntry(tenantId, targetDate) || {
+            const targetEntry = await getDailyStatus(tenantId, targetDate) || {
                 id: targetDate,
                 date: targetDate,
                 tenantId: tenantId,
@@ -853,9 +853,9 @@ export default function DailyFollowUp() {
                 // Merge blocks? For simplicity, we append to pmNotes or Main Block. 
                 // Let's append to pmNotes to be safe, or add a new block.
                 // Better: Add a new Block "Entrada Movida"
-                const movedBlock: NoteBlock = {
+                const movedBlock: ContentBlock = {
                     id: `moved-${Date.now()}`,
-                    title: `Movido de ${sourceDate}`,
+                    title: `Moved from ${sourceDate}`,
                     content: contentToMove
                 };
 
@@ -893,8 +893,8 @@ export default function DailyFollowUp() {
             const updatedSourceEntry = { ...entry, projects: updatedSourceProjects, updatedAt: new Date().toISOString() };
 
             // 6. Save BOTH
-            await saveJournalEntry(targetEntry); // Save target first
-            await saveJournalEntry(updatedSourceEntry); // Save source
+            await saveDailyStatus(targetEntry); // Save target first
+            await saveDailyStatus(updatedSourceEntry); // Save source
 
             // 7. Refresh
             setEntry(updatedSourceEntry);
@@ -994,15 +994,33 @@ export default function DailyFollowUp() {
 
 
     // --- BLOCK LOGIC ---
-    const getProjectBlocks = (projectName: string): NoteBlock[] => {
+    const getProjectBlocks = (projectName: string): ContentBlock[] => {
         if (projectName === "General") return []; // General only supports flat notes for now
         const target = projectName.trim().toLowerCase();
         const p = entry.projects.find(p => (p.name || "").trim().toLowerCase() === target);
         if (!p) return [];
 
-        // Return existing blocks OR migrate legacy pmNotes to a default block
-        if (p.blocks && p.blocks.length > 0) return p.blocks;
-        return [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
+        const currentBlocks = (p.blocks && p.blocks.length > 0) ? p.blocks : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
+        return currentBlocks;
+    };
+
+    const handleToggleBlockCollapse = (projectName: string, blockId: string) => {
+        if (projectName === "General") return;
+        setEntry(prev => ({
+            ...prev,
+            projects: prev.projects.map(p => {
+                if (p.name !== projectName) return p;
+                const currentBlocks = (p.blocks && p.blocks.length > 0)
+                    ? [...p.blocks]
+                    : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
+
+                const idx = currentBlocks.findIndex(b => b.id === blockId);
+                if (idx !== -1) {
+                    currentBlocks[idx] = { ...currentBlocks[idx], isCollapsed: !currentBlocks[idx].isCollapsed };
+                }
+                return { ...p, blocks: currentBlocks };
+            })
+        }));
     };
 
     const handleBlockUpdate = (projectName: string, blockId: string, field: 'title' | 'content', value: string) => {
@@ -1035,7 +1053,7 @@ export default function DailyFollowUp() {
                     // 1. Get ready state
                     const currentBlocks = (p.blocks && p.blocks.length > 0)
                         ? [...p.blocks]
-                        : [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
+                        : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
 
                     // 2. Update
                     const idx = currentBlocks.findIndex(b => b.id === blockId);
@@ -1062,15 +1080,22 @@ export default function DailyFollowUp() {
                 // Initialize if needed
                 const currentBlocks = (p.blocks && p.blocks.length > 0)
                     ? [...p.blocks]
-                    : [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
+                    : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
 
-                const newBlock: NoteBlock = {
+                // Collapse existing blocks to make room for the new one
+                const collapsedBlocks = currentBlocks.map(b => ({ ...b, isCollapsed: true }));
+
+                const newBlock: ContentBlock = {
                     id: Date.now().toString(),
-                    title: 'Nuevo Bloque',
-                    content: ''
+                    title: '',
+                    content: '',
+                    isCollapsed: false
                 };
 
-                return { ...p, blocks: [...currentBlocks, newBlock] };
+                const updatedBlocks = [...collapsedBlocks, newBlock];
+                const legacySync = updatedBlocks[0]?.content || "";
+
+                return { ...p, blocks: updatedBlocks, pmNotes: legacySync };
             })
         }));
     };
@@ -1084,7 +1109,7 @@ export default function DailyFollowUp() {
 
                 let currentBlocks = (p.blocks && p.blocks.length > 0)
                     ? [...p.blocks]
-                    : [{ id: 'default', title: 'Notas', content: p.pmNotes || "" }];
+                    : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
 
                 currentBlocks = currentBlocks.filter(b => b.id !== blockId);
 
@@ -1268,18 +1293,18 @@ export default function DailyFollowUp() {
             onViewChange={setViewMode}
             onOpenChangelog={() => setShowChangelog(true)}
         >
-            {/* Tenant Missing Warning Banner */}
+            {/* Organization Missing Warning Banner */}
             {user && !tenantId && (
                 <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
                     <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-sm font-bold text-amber-400">⚠️ Sin Organización Asignada</p>
+                        <p className="text-sm font-bold text-amber-400">⚠️ No Organization Assigned</p>
                         <p className="text-xs text-amber-300/80">
-                            Tu cuenta no tiene un <strong>Tenant</strong> asignado. Esto causa errores de permisos.
-                            Contacta a un administrador para que te asigne a una organización.
+                            Your account does not have an <strong>Organization</strong> assigned. This may cause permission errors.
+                            Contact an administrator to be assigned to an organization.
                         </p>
                         <p className="text-[10px] text-amber-500/60 mt-1 font-mono">
-                            UID: {user.uid} | Role: {userRole || 'unknown'} | TenantId: {tenantId || 'null'}
+                            UID: {user.uid} | Role: {userRole || 'unknown'} | OrgId: {tenantId || 'null'}
                         </p>
                     </div>
                 </div>
@@ -1291,7 +1316,7 @@ export default function DailyFollowUp() {
                     <div className="w-72 flex flex-col gap-3 shrink-0">
                         <div className="bg-card rounded-xl border border-border p-3 flex flex-col gap-2 h-full">
                             <div className="flex items-center justify-between px-1 mb-2">
-                                <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Bitácora</h3>
+                                <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Timeline</h3>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => setCurrentDate(new Date())} className={cn("text-[10px] font-bold hover:underline", isLight ? "text-red-600" : "text-white")}>HOY</button>
                                     <div className="relative">
@@ -1472,9 +1497,9 @@ export default function DailyFollowUp() {
                                                     const tid = tenantId || "1";
                                                     const did = format(currentDate, 'yyyy-MM-dd');
                                                     const target = `${tid}_${did}`;
-                                                    alert(`Intentando leer: ${target}`);
+                                                    alert(`Attempting read: ${target}`);
                                                     const snap = await getDoc(doc(db, "journal_entries", target));
-                                                    alert(`Resultado: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
+                                                    alert(`Result: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
                                                 } catch (e: any) {
                                                     alert(`Error Lectura: ${e.message} code=${e.code}`);
                                                 }
@@ -1526,7 +1551,7 @@ export default function DailyFollowUp() {
                                                             // [FIX] Add Auth Token
                                                             const token = await user?.getIdToken();
                                                             if (!token) {
-                                                                showToast("Error", "No estás autenticado", "error");
+                                                                showToast("Error", "Not authenticated", "error");
                                                                 setSaving(false);
                                                                 return;
                                                             }
@@ -1543,14 +1568,14 @@ export default function DailyFollowUp() {
 
                                                             if (json.success && json.data) {
                                                                 const { title, description, action_items, endDate, full_content } = json.data;
-                                                                const md = `\n\n### 📄 ${title || 'Documento Escaneado'}\n\n${full_content || '(No se pudo extraer texto)'}\n`;
+                                                                const md = `\n\n### 📄 ${title || 'Scanned Document'}\n\n${full_content || '(No text could be extracted)'}\n`;
 
                                                                 if (activeTab === 'General') {
                                                                     setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
                                                                 } else {
-                                                                    const newBlock: NoteBlock = {
+                                                                    const newBlock: ContentBlock = {
                                                                         id: crypto.randomUUID(),
-                                                                        title: title || "Resumen PDF",
+                                                                        title: title || "PDF Summary",
                                                                         content: md,
                                                                         type: 'notes'
                                                                     };
@@ -1773,51 +1798,64 @@ export default function DailyFollowUp() {
                                                 placeholder={t('follow_up.today_summary')}
                                             />
                                         ) : (
-                                            <div className="flex flex-col gap-4">
-                                                {getProjectBlocks(activeTab).map((block, idx) => (
-                                                    <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-colors",
-                                                        isLight
-                                                            ? "bg-white border-zinc-200 hover:border-zinc-300"
-                                                            : "bg-white/5 border-white/10 hover:border-white/20"
-                                                    )}>
-                                                        <div className="flex items-center gap-2">
-                                                            <input
-                                                                className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
-                                                                value={block.title || `Bloque ${idx + 1}`}
-                                                                onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
-                                                                placeholder={t('follow_up.block_title_placeholder')}
-                                                            />
-                                                            <button
-                                                                onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
-                                                                className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
-                                                                title="Analizar solo este bloque"
-                                                            >
-                                                                <Sparkles className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            {getProjectBlocks(activeTab).length > 1 && (
+                                            <div className="flex-1 flex flex-col gap-4 min-h-0">
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
+                                                    {getProjectBlocks(activeTab).map((block, idx) => (
+                                                        <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-all duration-300",
+                                                            isLight
+                                                                ? "bg-white border-zinc-200 hover:border-zinc-300"
+                                                                : "bg-white/5 border-white/10 hover:border-white/20",
+                                                            block.isCollapsed && "bg-zinc-500/5"
+                                                        )}>
+                                                            <div className="flex items-center gap-2">
                                                                 <button
-                                                                    onClick={() => handleRemoveBlock(activeTab, block.id)}
-                                                                    className="text-zinc-400 hover:text-red-400 transition-opacity"
-                                                                    title="Eliminar bloque"
+                                                                    onClick={() => handleToggleBlockCollapse(activeTab, block.id)}
+                                                                    className={cn("p-1 rounded-md transition-transform duration-200", isLight ? "hover:bg-zinc-100" : "hover:bg-white/10", block.isCollapsed ? "-rotate-90" : "rotate-0")}
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                    <ChevronDown className="w-4 h-4 text-zinc-400" />
                                                                 </button>
+                                                                <input
+                                                                    className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
+                                                                    value={block.title || `Bloque ${idx + 1}`}
+                                                                    onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
+                                                                    placeholder={t('follow_up.block_title_placeholder')}
+                                                                />
+                                                                {!block.isCollapsed && (
+                                                                    <button
+                                                                        onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
+                                                                        className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
+                                                                        title="Analizar solo este bloque"
+                                                                    >
+                                                                        <Sparkles className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                )}
+                                                                {getProjectBlocks(activeTab).length > 1 && (
+                                                                    <button
+                                                                        onClick={() => handleRemoveBlock(activeTab, block.id)}
+                                                                        className="text-zinc-400 hover:text-red-400 transition-opacity"
+                                                                        title="Eliminar bloque"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            {!block.isCollapsed && (
+                                                                <textarea
+                                                                    value={block.content}
+                                                                    onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
+                                                                    className={cn("w-full bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]",
+                                                                        isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                                    )}
+                                                                    placeholder={t('follow_up.block_content_placeholder')}
+                                                                />
                                                             )}
                                                         </div>
-                                                        <textarea
-                                                            value={block.content}
-                                                            onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
-                                                            className={cn("w-full bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]",
-                                                                isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
-                                                            )}
-                                                            placeholder={t('follow_up.block_content_placeholder')}
-                                                        />
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
 
                                                 <button
                                                     onClick={() => handleAddBlock(activeTab)}
-                                                    className={cn("flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold",
+                                                    className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
                                                         isLight
                                                             ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
                                                             : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
@@ -2015,7 +2053,7 @@ export default function DailyFollowUp() {
                         <UserManagement />
                     ) : viewMode === 'user-roles' ? (
                         <UserRoleManagement />
-                    ) : viewMode === 'tenant-management' ? (
+                    ) : viewMode === 'organization-management' ? (
                         <TenantManagement />
                     ) : viewMode === 'dashboard' ? (
                         <Dashboard

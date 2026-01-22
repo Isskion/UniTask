@@ -41,11 +41,16 @@ export default function UserRoleManagement() {
 
     useEffect(() => {
         loadGroups();
-    }, []);
+    }, [tenantId]); // Add tenantId to dependencies to reload groups if it changes
 
     const loadGroups = async () => {
+        if (!tenantId) {
+            console.warn("No tenantId available, skipping loading permission groups.");
+            setLoading(false);
+            return;
+        }
         try {
-            const q = query(collection(db, 'permission_groups'), where('tenantId', '==', tenantId || '1'));
+            const q = query(collection(db, 'permission_groups'), where('tenantId', '==', tenantId));
             const snapshot = await getDocs(q);
             const loadedGroups = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -365,14 +370,14 @@ export default function UserRoleManagement() {
                                     {t('roles_page.init_defaults')}
                                 </button>
                                 {
-                                    // [FIX] Show "Import Roles" button only if tenant is empty and != '1'
+                                    // [FIX] Show "Import Roles" button only if organization is empty and != '1'
                                     tenantId !== '1' && (
                                         <button
                                             onClick={async () => {
                                                 if (!confirm(t('roles_page.import_confirm'))) return;
                                                 setMigrating(true);
                                                 try {
-                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
+                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startOrganizationPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
                                                     console.log(resLog);
                                                     alert(t('roles_page.import_success') + "\n" + resLog);
                                                     await loadGroups(); // Refresh UI
@@ -402,244 +407,246 @@ export default function UserRoleManagement() {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className={cn(
-                        "rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transition-colors",
-                        isLight
-                            ? "bg-white border border-zinc-200 shadow-zinc-200"
-                            : (isRed
-                                ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20"
-                                : "bg-[#09090b] border border-white/10 shadow-black")
-                    )}>
-                        <div className={cn("p-4 border-b flex justify-between items-center shrink-0",
-                            isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+            {
+                showModal && (
+                    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+                        <div className={cn(
+                            "rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transition-colors",
+                            isLight
+                                ? "bg-white border border-zinc-200 shadow-zinc-200"
+                                : (isRed
+                                    ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20"
+                                    : "bg-[#09090b] border border-white/10 shadow-black")
                         )}>
-                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                <Edit2 className={cn("w-4 h-4", isLight ? "text-zinc-700" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
-                                {formData.id ? t('roles_page.edit_group') : t('roles_page.new_group')}
-                            </h3>
-                            <button onClick={() => setShowModal(false)} className={cn("hover:text-white transition-colors", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400")}>
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                            <div className={cn("p-4 border-b flex justify-between items-center shrink-0",
+                                isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                            )}>
+                                <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                    <Edit2 className={cn("w-4 h-4", isLight ? "text-zinc-700" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
+                                    {formData.id ? t('roles_page.edit_group') : t('roles_page.new_group')}
+                                </h3>
+                                <button onClick={() => setShowModal(false)} className={cn("hover:text-white transition-colors", isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400")}>
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
 
-                        {/* Tabs */}
-                        <div className={cn("flex gap-1 px-6 pt-4 border-b", isLight ? "border-zinc-100" : "border-white/5")}>
-                            {[
-                                { id: 'general', label: t('roles_page.tabs.general') },
-                                { id: 'projects', label: t('roles_page.tabs.projects') },
-                                { id: 'tasks', label: t('roles_page.tabs.tasks') },
-                                { id: 'views', label: t('roles_page.tabs.views') },
-                                { id: 'special', label: t('roles_page.tabs.special') }
-                            ].map(tab => (
+                            {/* Tabs */}
+                            <div className={cn("flex gap-1 px-6 pt-4 border-b", isLight ? "border-zinc-100" : "border-white/5")}>
+                                {[
+                                    { id: 'general', label: t('roles_page.tabs.general') },
+                                    { id: 'projects', label: t('roles_page.tabs.projects') },
+                                    { id: 'tasks', label: t('roles_page.tabs.tasks') },
+                                    { id: 'views', label: t('roles_page.tabs.views') },
+                                    { id: 'special', label: t('roles_page.tabs.special') }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={cn(
+                                            "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                                            activeTab === tab.id
+                                                ? (isLight ? "bg-red-600 text-white" : "bg-[#D32F2F] text-white")
+                                                : (isLight ? "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100" : "text-zinc-400 hover:text-white hover:bg-white/5")
+                                        )}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Tab Content */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                {activeTab === 'general' && (
+                                    <>
+                                        <div>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.name')}</label>
+                                            <input
+                                                type="text"
+                                                value={formData.name || ''}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className={cn(
+                                                    "w-full border rounded-lg px-4 py-2 focus:outline-none",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                        : (isRed
+                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
+                                                            : "bg-zinc-900 border-zinc-700 text-white focus:border-zinc-500")
+                                                )}
+                                                placeholder={t('roles_page.form.name_placeholder')}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.description')}</label>
+                                            <textarea
+                                                value={formData.description || ''}
+                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                className={cn(
+                                                    "w-full border rounded-lg px-4 py-2 focus:outline-none h-24 transition-colors",
+                                                    isLight
+                                                        ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                        : (isRed
+                                                            ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
+                                                            : "bg-zinc-900 border-zinc-700 text-white focus:border-white")
+                                                )}
+                                                placeholder={t('roles_page.form.desc_placeholder')}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.color')}</label>
+                                            <input
+                                                type="color"
+                                                value={formData.color || '#6366f1'}
+                                                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                                                className={cn("w-20 h-10 border rounded-lg cursor-pointer transition-colors",
+                                                    isLight ? "bg-white border-zinc-200" : (isRed ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
+                                                )}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+
+                                {activeTab === 'projects' && (
+                                    <div className="space-y-3">
+                                        <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.projects')}</h4>
+                                        {[
+                                            'viewAll', 'assignedOnly', 'create', 'edit', 'archive'
+                                        ].map(key => (
+                                            <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.projectAccess?.[key as keyof typeof formData.projectAccess] || false}
+                                                    onChange={(e) => updateFormField('projectAccess', key, e.target.checked)}
+                                                    className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
+                                                        isLight
+                                                            ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
+                                                            : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
+                                                    )}
+                                                />
+                                                <div className="flex-1">
+                                                    <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                        {t(`roles_page.permissions.projects.${key}.label`)}
+                                                    </div>
+                                                    <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                        {t(`roles_page.permissions.projects.${key}.desc`)}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'tasks' && (
+                                    <div className="space-y-3">
+                                        <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.tasks')}</h4>
+                                        {[
+                                            'viewAll', 'assignedProjectsOnly', 'create', 'edit', 'delete'
+                                        ].map(key => (
+                                            <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.taskAccess?.[key as keyof typeof formData.taskAccess] || false}
+                                                    onChange={(e) => updateFormField('taskAccess', key, e.target.checked)}
+                                                    className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
+                                                        isLight
+                                                            ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
+                                                            : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
+                                                    )}
+                                                />
+                                                <div className="flex-1">
+                                                    <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                        {t(`roles_page.permissions.tasks.${key}.label`)}
+                                                    </div>
+                                                    <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                        {t(`roles_page.permissions.tasks.${key}.desc`)}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'views' && (
+                                    <div className="space-y-3">
+                                        <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.views')}</h4>
+                                        {[
+                                            'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp'
+                                        ].map(key => (
+                                            <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.viewAccess?.[key as keyof typeof formData.viewAccess] || false}
+                                                    onChange={(e) => updateFormField('viewAccess', key, e.target.checked)}
+                                                    className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
+                                                        isLight
+                                                            ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
+                                                            : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
+                                                    )}
+                                                />
+                                                <div className="flex-1">
+                                                    <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
+                                                        {t(`roles_page.permissions.views.${key}.label`)}
+                                                    </div>
+                                                    <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
+                                                        {t(`roles_page.permissions.views.${key}.desc`)}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'special' && (
+                                    <div className="space-y-3">
+                                        <h4 className="text-white font-semibold mb-4">{t('roles_page.sections.special')}</h4>
+                                        {[
+                                            'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu'
+                                        ].map(key => (
+                                            <label key={key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.specialPermissions?.[key as keyof typeof formData.specialPermissions] || false}
+                                                    onChange={(e) => updateFormField('specialPermissions', key, e.target.checked)}
+                                                    className="mt-1 w-4 h-4 rounded border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="text-white font-medium">
+                                                        {t(`roles_page.permissions.special.${key}.label`)}
+                                                    </div>
+                                                    <div className="text-zinc-500 text-sm">
+                                                        {t(`roles_page.permissions.special.${key}.desc`)}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className={cn("p-4 border-t flex justify-end gap-3 shrink-0", isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10"))}>
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id as any)}
-                                    className={cn(
-                                        "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
-                                        activeTab === tab.id
-                                            ? (isLight ? "bg-red-600 text-white" : "bg-[#D32F2F] text-white")
-                                            : (isLight ? "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100" : "text-zinc-400 hover:text-white hover:bg-white/5")
+                                    onClick={() => setShowModal(false)}
+                                    className={cn("px-4 py-2 rounded font-bold transition-colors", isLight ? "text-zinc-500 hover:text-zinc-800" : (isRed ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white"))}
+                                >
+                                    {t('roles_page.form.cancel')}
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    className={cn("px-6 py-2 rounded shadow-lg font-bold flex items-center gap-2 transition-all",
+                                        isLight
+                                            ? "bg-red-600 hover:bg-red-700 text-white shadow-red-200"
+                                            : (isRed ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20" : "bg-white hover:bg-zinc-200 text-black shadow-black/20")
                                     )}
                                 >
-                                    {tab.label}
+                                    <Save className="w-4 h-4" />
+                                    {t('roles_page.form.save')}
                                 </button>
-                            ))}
-                        </div>
-
-                        {/* Tab Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                            {activeTab === 'general' && (
-                                <>
-                                    <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.name')}</label>
-                                        <input
-                                            type="text"
-                                            value={formData.name || ''}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className={cn(
-                                                "w-full border rounded-lg px-4 py-2 focus:outline-none",
-                                                isLight
-                                                    ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
-                                                    : (isRed
-                                                        ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
-                                                        : "bg-zinc-900 border-zinc-700 text-white focus:border-zinc-500")
-                                            )}
-                                            placeholder={t('roles_page.form.name_placeholder')}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.description')}</label>
-                                        <textarea
-                                            value={formData.description || ''}
-                                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                            className={cn(
-                                                "w-full border rounded-lg px-4 py-2 focus:outline-none h-24 transition-colors",
-                                                isLight
-                                                    ? "bg-white border-zinc-200 text-zinc-900 focus:border-red-500"
-                                                    : (isRed
-                                                        ? "bg-black/20 border-white/10 text-white focus:border-[#D32F2F]"
-                                                        : "bg-zinc-900 border-zinc-700 text-white focus:border-white")
-                                            )}
-                                            placeholder={t('roles_page.form.desc_placeholder')}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className={cn("block text-sm font-medium mb-2", isLight ? "text-zinc-700" : "text-zinc-300")}>{t('roles_page.form.color')}</label>
-                                        <input
-                                            type="color"
-                                            value={formData.color || '#6366f1'}
-                                            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                                            className={cn("w-20 h-10 border rounded-lg cursor-pointer transition-colors",
-                                                isLight ? "bg-white border-zinc-200" : (isRed ? "bg-black/20 border-white/10" : "bg-zinc-900 border-zinc-700")
-                                            )}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-
-                            {activeTab === 'projects' && (
-                                <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.projects')}</h4>
-                                    {[
-                                        'viewAll', 'assignedOnly', 'create', 'edit', 'archive'
-                                    ].map(key => (
-                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.projectAccess?.[key as keyof typeof formData.projectAccess] || false}
-                                                onChange={(e) => updateFormField('projectAccess', key, e.target.checked)}
-                                                className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
-                                                    isLight
-                                                        ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
-                                                        : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
-                                                )}
-                                            />
-                                            <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
-                                                    {t(`roles_page.permissions.projects.${key}.label`)}
-                                                </div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
-                                                    {t(`roles_page.permissions.projects.${key}.desc`)}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {activeTab === 'tasks' && (
-                                <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.tasks')}</h4>
-                                    {[
-                                        'viewAll', 'assignedProjectsOnly', 'create', 'edit', 'delete'
-                                    ].map(key => (
-                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.taskAccess?.[key as keyof typeof formData.taskAccess] || false}
-                                                onChange={(e) => updateFormField('taskAccess', key, e.target.checked)}
-                                                className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
-                                                    isLight
-                                                        ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
-                                                        : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
-                                                )}
-                                            />
-                                            <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
-                                                    {t(`roles_page.permissions.tasks.${key}.label`)}
-                                                </div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
-                                                    {t(`roles_page.permissions.tasks.${key}.desc`)}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {activeTab === 'views' && (
-                                <div className="space-y-3">
-                                    <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.views')}</h4>
-                                    {[
-                                        'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp'
-                                    ].map(key => (
-                                        <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.viewAccess?.[key as keyof typeof formData.viewAccess] || false}
-                                                onChange={(e) => updateFormField('viewAccess', key, e.target.checked)}
-                                                className={cn("mt-1 w-4 h-4 rounded focus:ring-2",
-                                                    isLight
-                                                        ? "border-zinc-300 text-red-600 focus:ring-red-500 bg-white"
-                                                        : "border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
-                                                )}
-                                            />
-                                            <div className="flex-1">
-                                                <div className={cn("font-medium", isLight ? "text-zinc-900" : "text-white")}>
-                                                    {t(`roles_page.permissions.views.${key}.label`)}
-                                                </div>
-                                                <div className={cn("text-sm", isLight ? "text-zinc-500" : "text-zinc-500")}>
-                                                    {t(`roles_page.permissions.views.${key}.desc`)}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-
-                            {activeTab === 'special' && (
-                                <div className="space-y-3">
-                                    <h4 className="text-white font-semibold mb-4">{t('roles_page.sections.special')}</h4>
-                                    {[
-                                        'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu'
-                                    ].map(key => (
-                                        <label key={key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.specialPermissions?.[key as keyof typeof formData.specialPermissions] || false}
-                                                onChange={(e) => updateFormField('specialPermissions', key, e.target.checked)}
-                                                className="mt-1 w-4 h-4 rounded border-white/20 bg-black/20 text-[#D32F2F] focus:ring-[#D32F2F]"
-                                            />
-                                            <div className="flex-1">
-                                                <div className="text-white font-medium">
-                                                    {t(`roles_page.permissions.special.${key}.label`)}
-                                                </div>
-                                                <div className="text-zinc-500 text-sm">
-                                                    {t(`roles_page.permissions.special.${key}.desc`)}
-                                                </div>
-                                            </div>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className={cn("p-4 border-t flex justify-end gap-3 shrink-0", isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10"))}>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className={cn("px-4 py-2 rounded font-bold transition-colors", isLight ? "text-zinc-500 hover:text-zinc-800" : (isRed ? "text-red-200 hover:text-white" : "text-zinc-400 hover:text-white"))}
-                            >
-                                {t('roles_page.form.cancel')}
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className={cn("px-6 py-2 rounded shadow-lg font-bold flex items-center gap-2 transition-all",
-                                    isLight
-                                        ? "bg-red-600 hover:bg-red-700 text-white shadow-red-200"
-                                        : (isRed ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-red-900/20" : "bg-white hover:bg-zinc-200 text-black shadow-black/20")
-                                )}
-                            >
-                                <Save className="w-4 h-4" />
-                                {t('roles_page.form.save')}
-                            </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

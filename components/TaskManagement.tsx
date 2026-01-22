@@ -17,6 +17,7 @@ import { useToast } from "@/context/ToastContext";
 import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
 import { ActivityAuditModal } from "./ActivityAuditModal";
+import HighlightText from "./ui/HighlightText";
 
 // Local MasterDataItem definition removed in favor of types.ts
 
@@ -119,7 +120,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (!selectedTask) return false;
 
         // Compare key fields (Added isBlocking and new classification fields)
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedJournalEntryId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -171,21 +172,19 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             // Force use of the ACTIVE context tenantId (masqueraded or real)
             const targetTenantId = tenantId || "1";
 
-            // Load Projects (filtered by tenant)
+            // Load Projects (filtered by organization)
             const qp = query(collection(db, "projects"), where("tenantId", "==", targetTenantId), orderBy("name"));
             const snapP = await getDocs(qp);
             const loadedProjects: Project[] = [];
             snapP.forEach(doc => loadedProjects.push({ id: doc.id, ...doc.data() } as Project));
             setProjects(loadedProjects);
 
-            // Load Users (filtered by tenant)
             const qu = query(collection(db, "users"), where("tenantId", "==", targetTenantId));
             const snapU = await getDocs(qu);
             const loadedUsers: UserProfile[] = [];
             snapU.forEach(doc => loadedUsers.push({ uid: doc.id, ...doc.data() } as UserProfile));
             setUsers(loadedUsers);
 
-            // Load Tasks (filtered by tenant)
             const qt = query(collection(db, "tasks"), where("tenantId", "==", targetTenantId), orderBy("createdAt", "desc"));
             const snapT = await getDocs(qt);
             const loadedTasks: Task[] = [];
@@ -753,7 +752,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 selectedTask?.id === t.id
                                                     ? (isLight ? "text-white" : "text-white")
                                                     : (isLight ? "text-zinc-500" : "text-zinc-400")
-                                            )}>{t.friendlyId || 'No ID'}</span>
+                                            )} >
+                                                <HighlightText text={t.friendlyId || 'No ID'} highlight={sidebarSearch} />
+                                            </span>
                                             {t.isBlocking && <AlertTriangle className="w-3 h-3 text-red-500" />}
                                         </div>
                                         <div className={cn("w-1.5 h-1.5 rounded-full", t.status === 'completed' ? 'bg-blue-500' : t.status === 'in_progress' ? 'bg-emerald-500' : 'bg-zinc-700')} />
@@ -796,12 +797,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             {/* Dynamic Attributes (User Defined Blocks) */}
                                             {/* Dynamic Attributes Removed from Header per User Request */}
 
-                                            {/* Related Journal Entry ID (Legacy/Specific) */}
-                                            <span className="text-zinc-400 flex items-center gap-1">| ENTRY ID:
+                                            {/* Related Daily Status ID (Specific) */}
+                                            <span className="text-zinc-400 flex items-center gap-1">| DAILY ID:
                                                 <input
                                                     className={cn("bg-transparent outline-none w-16 border-b border-transparent hover:border-zinc-500 focus:border-indigo-500 transition-colors text-center p-0 h-4 font-mono", isLight ? "text-zinc-600" : "text-zinc-300")}
-                                                    value={formData.relatedJournalEntryId || ""}
-                                                    onChange={e => setFormData({ ...formData, relatedJournalEntryId: e.target.value })}
+                                                    value={formData.relatedDailyStatusId || ""}
+                                                    onChange={e => setFormData({ ...formData, relatedDailyStatusId: e.target.value })}
                                                     placeholder="-"
                                                 />
                                             </span>
@@ -1225,7 +1226,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 {selectedTask && showAuditLog && (
                     <ActivityAuditModal
                         taskId={selectedTask.id}
-                        tenantId={tenantId}
                         onClose={() => setShowAuditLog(false)}
                         isLight={isLight}
                         theme={theme}

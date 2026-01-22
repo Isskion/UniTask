@@ -52,7 +52,7 @@ export async function updateProject(projectId: string, data: Partial<Project>) {
 }
 
 /**
- * Fetches all active projects (optionally filtered by teamId in the future).
+ * Fetches all active projects (optionally filtered by tenantId in the future).
  */
 export async function getActiveProjects(tenantId: string = "1"): Promise<Project[]> {
     try {
@@ -106,6 +106,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 export async function ensureProjectExists(legacyProject: {
     projectId?: string;
     name: string;
+    tenantId?: string;
     // minimal fields available in weekly_entry
 }) {
     if (!legacyProject.name) return null;
@@ -139,6 +140,7 @@ export async function ensureProjectExists(legacyProject: {
         status: 'active',
         health: 'healthy', // Default
         isActive: true,
+        tenantId: legacyProject.tenantId || "1",
         teamIds: [], // Public for now until Phase 3
     } as any);
 

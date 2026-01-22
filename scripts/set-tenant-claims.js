@@ -6,7 +6,7 @@
 const admin = require('firebase-admin');
 
 // Initialize Firebase Admin
-const serviceAccount = require('../serviceAccountKey.json.json');
+const serviceAccount = require('../serviceAccountKey.json');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
@@ -50,24 +50,29 @@ async function setTenantClaims() {
 
                 // Map string role to number
                 const ROLE_MAP = {
-                    'usuario_externo': 10,
-                    'usuario_base': 20,
-                    'consultor': 40,
+                    'client': 10,
+                    'team_member': 20,
+                    'consultant': 40,
                     'global_pm': 60,
                     'app_admin': 80,
-                    'superadmin': 100
+                    'superadmin': 100,
+                    // Legacy fallbacks
+                    'usuario_externo': 10,
+                    'usuario_base': 20,
+                    'consultor': 40
                 };
-                const stringRole = userData.role || 'usuario_base';
-                const numericRole = ROLE_MAP[stringRole] || 10; // Default to Externo if unknown
+                const stringRole = userData.role || 'client';
+                const numericRole = ROLE_MAP[stringRole] || 10; // Default to client if unknown
 
                 // Set custom claim
                 await auth.setCustomUserClaims(userId, {
                     ...currentClaims,
                     tenantId: tenantId,
-                    role: numericRole
+                    roleLevel: numericRole,
+                    role: stringRole
                 });
 
-                console.log(`   ✅ Custom claim set: tenantId=${tenantId}`);
+                console.log(`   ✅ Custom claims set: tenantId=${tenantId}, roleLevel=${numericRole}`);
                 updatedCount++;
 
             } catch (error) {

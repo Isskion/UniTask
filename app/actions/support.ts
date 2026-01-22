@@ -46,8 +46,8 @@ export async function submitSupportAction(data: SupportSubmission) {
                 userId: adminDoc.id,
                 tenantId: data.tenantId, // Use the same tenantId as the ticket
                 type: 'system',
-                title: 'Nuevo Ticket de Soporte',
-                message: `El usuario ${data.userName} (${data.userEmail}) ha enviado una solicitud de soporte desde ${data.context}.`,
+                title: 'New Support Ticket',
+                message: `User ${data.userName} (${data.userEmail}) has sent a support request from ${data.context}.`,
                 read: false,
                 createdAt: FieldValue.serverTimestamp(),
                 link: `/?view=support-management`

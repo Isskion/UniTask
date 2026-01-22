@@ -10,7 +10,7 @@ export interface InviteCode {
     usedBy?: string; // User UID who used it
     isUsed: boolean;
     expiresAt?: any; // Optional expiration
-    tenantId: string; // Target Tenant for the new user
+    tenantId: string; // Target Organization for the new user
     role: string;    // [NEW] Target Role
     assignedProjectIds: string[]; // [NEW] Target Projects
 }
@@ -44,9 +44,9 @@ function getRoleLevelNum(role: string | number): number {
         case 'superadmin': return 100;
         case 'app_admin': return 80;
         case 'global_pm': return 60;
-        case 'consultor': return 20;
-        case 'usuario_base': return 10;
-        case 'usuario_externo': return 5;
+        case 'consultant': return 40;
+        case 'team_member': return 20;
+        case 'client': return 10;
         default: return 0;
     }
 }
@@ -61,7 +61,7 @@ function getRoleLevelNum(role: string | number): number {
 export async function createInvite(
     adminUid: string,
     tenantId: string = "1",
-    role: string = "usuario_externo",
+    role: string = "client",
     assignedProjectIds: string[] = [],
     creatorRole: string // Pass creator role to validate permissions
 ): Promise<string> {
@@ -71,7 +71,7 @@ export async function createInvite(
 
     // 1. Block unauthorized roles
     if (creatorLevel < 80) {
-        throw new Error("Permisos insuficientes: Solo Administradores pueden crear invitaciones.");
+        throw new Error("Insufficient Permissions: Only Administrators can create invitations.");
     }
 
     // 2. Logic for App Admin (Level 80)
@@ -79,22 +79,8 @@ export async function createInvite(
         // A. Prevent Role Escalation (Cannot invite other Admins or multiple levels above)
         // Strictly, Admin (80) cannot create another Admin (80). Only lower levels.
         if (targetLevel >= 80) {
-            throw new Error("Seguridad: No puedes crear invitaciones para un rol igual o superior al tuyo.");
+            throw new Error("Security Violation: You cannot create invitations for a role equal or higher than yours.");
         }
-
-        // [REMOVED] Enforce Limit of 5 Active Invites
-        /*
-        const q = query(
-            collection(db, INVITES_COLLECTION),
-            where("createdBy", "==", adminUid),
-            where("isUsed", "==", false)
-        );
-        const snapshot = await getDocs(q);
-
-        if (snapshot.size >= 5) {
-            throw new Error("Límite alcanzado: Tienes 5 invitaciones activas. Elimina o espera a que se usen.");
-        }
-        */
     }
 
     // ... Proceed with creation ...
@@ -132,13 +118,13 @@ export async function checkInvite(code: string): Promise<{ valid: boolean; reaso
     const snapshot = await getDoc(inviteRef);
 
     if (!snapshot.exists()) {
-        return { valid: false, reason: "Código no encontrado" };
+        return { valid: false, reason: "Code not found" };
     }
 
     const data = snapshot.data() as InviteCode;
 
     if (data.isUsed) {
-        return { valid: false, reason: "Código ya utilizado" };
+        return { valid: false, reason: "Code already used" };
     }
 
     return { valid: true, tenantId: data.tenantId || "1" };

@@ -210,14 +210,7 @@ export default function TaskMasterDataManagement() {
             setIsAdding(true);
             const { doc, setDoc } = await import("firebase/firestore");
 
-            // Logic:
-            // If it's a pure custom block (activeSection is an ID), we update it.
-            // If it's a SYSTEM block (activeSection is 'priority'), we check if an override exists.
-            // If override exists (ID matches or mappedField matches), update it.
-            // If not, CREATE a new attribute_definition with mappedField = activeSection to act as override.
-
-            // Check if we have an existing definition for this ID
-            // We can look at `customAttributes`
+            // ... (rest of logic) ...
             const existingDef = customAttributes.find(attr => attr.id === activeSection || attr.mappedField === activeSection);
 
             if (existingDef) {

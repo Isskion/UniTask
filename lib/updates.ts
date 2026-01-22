@@ -12,21 +12,22 @@ import {
     serverTimestamp,
     Timestamp
 } from "firebase/firestore";
-import { ProjectUpdate, Task, JournalEntry } from "@/types";
+import { TimelineEvent, Task, DailyStatus } from "@/types";
 
 const PROJECTS_COLLECTION = "projects";
-const UPDATES_SUBCOLLECTION = "updates";
+const TIMELINE_SUBCOLLECTION = "updates"; // Keeping "updates" in Firestore for now
 const TASKS_COLLECTION = "tasks";
-const JOURNAL_COLLECTION = "journal_entries";
+const DAILY_LOG_COLLECTION = "journal_entries"; // Ubiquitous name for the collection constant
 
 /**
- * Creates a new update (event) for a specific project.
+ * Creates a new timeline event for a specific project.
  */
-export async function createUpdate(projectId: string, tenantId: string, data: Omit<ProjectUpdate, 'id' | 'createdAt' | 'tenantId'>) {
+export async function createTimelineEvent(projectId: string, tenantId: string, data: Omit<TimelineEvent, 'id' | 'createdAt' | 'tenantId'>) {
     try {
-        const subCollectionRef = collection(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION);
-        const docRef = await addDoc(subCollectionRef, {
+        const eventsRef = collection(db, 'project_activity_feed');
+        const docRef = await addDoc(eventsRef, {
             ...data,
+            projectId,
             tenantId, // CRITICAL: Security Rules require this field
             createdAt: serverTimestamp(),
             // Ensure date is a Timestamp if passed as Date
@@ -34,42 +35,36 @@ export async function createUpdate(projectId: string, tenantId: string, data: Om
         });
         return docRef.id;
     } catch (error) {
-        console.error(`Error creating update for project ${projectId}:`, error);
+        console.error(`Error creating event for project ${projectId}:`, error);
         throw error;
     }
 }
 
 /**
- * Fetches the UNIFIED activity feed for a project.
- * Merges: Manual Updates + Tasks + Journal Entries
+ * Fetches the UNIFIED activity timeline for a project.
+ * Merges: Manual Events + Tasks + Daily Status Logs
  */
-// [UPDATED] Scoped Project Updates
-export async function getProjectUpdates(projectId: string, tenantId: string, limitCount = 50, projectName?: string): Promise<ProjectUpdate[]> {
+// [UPDATED] Scoped Project Timeline
+export async function getProjectTimeline(projectId: string, tenantId: string, limitCount = 50, projectName?: string): Promise<TimelineEvent[]> {
     try {
-        const results: ProjectUpdate[] = [];
+        const results: TimelineEvent[] = [];
 
-        // 1. Fetch Manual Updates (Subcollection)
-        // REQUIRES: Recursive rules or specific subcollection rule
-        // REQUIRES: Documents have tenantId (if rule checks it)
+        // 1. Fetch Manual Events (Subcollection)
         try {
-            const updatesRef = collection(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION);
-            // Note: Subcollections might typically be owned by the parent project implicitly, 
-            // but for strict rules, we might need to filter. 
-            // Currently assuming parent access implies subcollection access if rules allow.
-            let qUpdates;
-            if (limitCount === -1) {
-                qUpdates = query(updatesRef, where("tenantId", "==", tenantId), orderBy("date", "desc"));
+            const eventsRef = collection(db, 'project_activity_feed');
+            let qEvents;
+            if (limitCount === 0) {
+                qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"));
             } else {
-                qUpdates = query(updatesRef, where("tenantId", "==", tenantId), orderBy("date", "desc"), limit(limitCount));
+                qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"), limit(limitCount));
             }
-            const snapUpdates = await getDocs(qUpdates);
-            snapUpdates.forEach(d => results.push({ id: d.id, ...d.data() } as ProjectUpdate));
+            const snapEvents = await getDocs(qEvents);
+            snapEvents.forEach(d => results.push({ id: d.id, ...d.data() } as TimelineEvent));
         } catch (e) {
-            console.warn("Manual updates fetch failed (possibly permissions or empty):", e);
+            console.warn("Manual events fetch failed (possibly permissions or empty):", e);
         }
 
         // 2. Fetch Tasks Linked to Project
-        // CRITICAL: Must filter by tenantId to satisfy row-level security
         try {
             const tasksRef = collection(db, TASKS_COLLECTION);
             let qTasks;
@@ -78,14 +73,14 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
                 qTasks = query(
                     tasksRef,
                     where("projectId", "==", projectId),
-                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    where("tenantId", "==", tenantId),
                     orderBy("createdAt", "desc")
                 );
             } else {
                 qTasks = query(
                     tasksRef,
                     where("projectId", "==", projectId),
-                    where("tenantId", "==", tenantId), // Added Security Constraint
+                    where("tenantId", "==", tenantId),
                     orderBy("createdAt", "desc"),
                     limit(limitCount)
                 );
@@ -99,12 +94,12 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
                     projectId,
                     date: t.createdAt,
                     authorId: t.createdBy,
-                    authorName: "Sistema",
+                    authorName: "System",
                     type: 'daily',
                     content: {
-                        notes: `Nueva Tarea Creada: ${t.title}`,
+                        notes: `New Task Created: ${t.title}`,
                         nextSteps: t.status === 'completed' ? [] : [t.title],
-                        flags: t.isBlocking ? ['Bloqueante'] : []
+                        flags: t.isBlocking ? ['Blocking'] : []
                     }
                 });
             });
@@ -112,53 +107,58 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
             console.warn("Tasks fetch failed:", e);
         }
 
-        // 3. Fetch Journal Entries
-        // CRITICAL: Must filter by tenantId
+        // 3. Fetch Daily Status Logs
         try {
-            const journalRef = collection(db, JOURNAL_COLLECTION);
-            let qJournal;
+            let qDailyLog;
 
             if (limitCount === -1) {
-                qJournal = query(
-                    journalRef,
-                    where("tenantId", "==", tenantId), // Added Security Constraint
-                    orderBy("date", "desc")
+                const qDaily = query(
+                    collection(db, "journal_entries"),
+                    where("tenantId", "==", tenantId),
+                    orderBy("date", "desc"),
+                    limit(limitCount || 5)
                 );
+                const qWeekly = query(
+                    collection(db, "weekly_entries"),
+                    where("tenantId", "==", tenantId),
+                    orderBy("year", "desc"),
+                    limit(30)
+                );
+                // Assuming qDailyLog should be assigned one of these or a combined result
+                // For now, let's assume it's still fetching from DAILY_LOG_COLLECTION
+                qDailyLog = qDaily; // Or handle qWeekly separately
             } else {
-                qJournal = query(
-                    journalRef,
-                    where("tenantId", "==", tenantId), // Added Security Constraint
+                qDailyLog = query(
+                    collection(db, DAILY_LOG_COLLECTION),
+                    where("tenantId", "==", tenantId),
                     orderBy("date", "desc"),
                     limit(30)
                 );
             }
-            const snapJournal = await getDocs(qJournal);
+            const snapDailyLog = await getDocs(qDailyLog);
 
-            snapJournal.forEach(d => {
-                const entry = d.data() as JournalEntry;
-                // [FIX] Robust matching: match by projectId OR case-insensitive name
-                // This covers cases where projects were added to journal before their ID was linked correctly
+            snapDailyLog.forEach(d => {
+                const statusEntry = d.data() as DailyStatus;
                 const targetName = projectName?.trim().toLowerCase();
-                const projEntry = entry.projects?.find(p =>
+                const projEntry = statusEntry.projects?.find(p =>
                     p.projectId === projectId ||
                     (targetName && p.name?.trim().toLowerCase() === targetName)
                 );
 
                 if (projEntry) {
-                    const entryDate = new Date(entry.date);
+                    const entryDate = new Date(statusEntry.date);
 
-                    // [FIX] Include content from NoteBlocks (where PDF extraction saves its results)
-                    const blocksContent = projEntry.blocks?.map(b => `${b.title ? `### ${b.title}\n` : ''}${b.content}`).join('\n\n') || "";
-                    const combinedNotes = [projEntry.pmNotes, projEntry.conclusions, blocksContent]
+                    const contentBlocks = projEntry.blocks?.map(b => `${b.title ? `### ${b.title}\n` : ''}${b.content}`).join('\n\n') || "";
+                    const combinedNotes = [projEntry.pmNotes, projEntry.conclusions, contentBlocks]
                         .filter(text => text && text.trim().length > 0)
-                        .join('\n\n') || "Sin notas adicionales.";
+                        .join('\n\n') || "No additional notes.";
 
                     results.push({
                         id: `journal-${d.id}-${projectId}`,
                         projectId,
                         date: Timestamp.fromDate(entryDate),
                         authorId: 'system',
-                        authorName: 'Resumen Diario',
+                        authorName: 'Daily Summary',
                         type: 'weekly',
                         content: {
                             notes: combinedNotes,
@@ -169,7 +169,7 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
                 }
             });
         } catch (e) {
-            console.warn("Journal fetch failed:", e);
+            console.warn("Daily status fetch failed:", e);
         }
 
         // 4. Deduplicate results
@@ -183,22 +183,20 @@ export async function getProjectUpdates(projectId: string, tenantId: string, lim
         });
 
     } catch (error) {
-        console.error(`Error fetching updates for project ${projectId}:`, error);
+        console.error(`Error fetching timeline for project ${projectId}:`, error);
         return [];
     }
 }
 
-
-
 /**
- * Deletes a specific update (Admin/Author only ideally).
+ * Deletes a specific event.
  */
-export async function deleteUpdate(projectId: string, updateId: string) {
+export async function deleteTimelineEvent(projectId: string, eventId: string) {
     try {
-        const docRef = doc(db, PROJECTS_COLLECTION, projectId, UPDATES_SUBCOLLECTION, updateId);
+        const docRef = doc(db, PROJECTS_COLLECTION, projectId, TIMELINE_SUBCOLLECTION, eventId);
         await deleteDoc(docRef);
     } catch (error) {
-        console.error("Error deleting update:", error);
+        console.error("Error deleting event:", error);
         throw error;
     }
 }

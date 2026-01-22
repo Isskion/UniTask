@@ -1,23 +1,21 @@
-import { WeeklyEntry, JournalEntry } from "@/types";
+import { WeeklyEntry, DailyStatus } from "@/types";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, orderBy, query, limit, where } from "firebase/firestore";
 
-// --- JOURNAL ENTRIES (DAILY) ---
-// --- JOURNAL ENTRIES (DAILY) ---
+// --- DAILY STATUS LOGS (Formerly Journal Entries) ---
 // [UPDATED] Supports Multiple Entries per Date
-export async function getJournalEntriesForDate(tenantId: string, date: string): Promise<JournalEntry[]> {
+export async function getDailyStatusLogsForDate(tenantId: string, date: string): Promise<DailyStatus[]> {
     try {
         const q = query(
             collection(db, "journal_entries"),
             where("tenantId", "==", tenantId),
             where("date", "==", date)
-            // orderBy("createdAt", "desc") // [REMOVED] To avoid complex index error. Sorting in JS.
         );
 
         const snapshot = await getDocs(q);
 
         if (!snapshot.empty) {
-            const entries = snapshot.docs.map(doc => doc.data() as JournalEntry);
+            const entries = snapshot.docs.map(doc => doc.data() as DailyStatus);
             // Sort in memory (newest first)
             return entries.sort((a, b) => {
                 const dateA = new Date(a.createdAt || 0).getTime();
@@ -28,33 +26,27 @@ export async function getJournalEntriesForDate(tenantId: string, date: string): 
 
         return [];
     } catch (e) {
-        console.error("Error getting journal entries", e);
+        console.error("Error getting status logs", e);
         return [];
     }
 }
 
 // Backward compatibility wrapper
-export async function getJournalEntry(tenantId: string, date: string): Promise<JournalEntry | null> {
-    const entries = await getJournalEntriesForDate(tenantId, date);
+export async function getDailyStatus(tenantId: string, date: string): Promise<DailyStatus | null> {
+    const entries = await getDailyStatusLogsForDate(tenantId, date);
     return entries.length > 0 ? entries[0] : null;
 }
 
-export async function saveJournalEntry(entry: JournalEntry): Promise<void> {
+export async function saveDailyStatus(entry: DailyStatus): Promise<void> {
     try {
-        // [CHANGE] TRUST the Entry ID. Do not force composite if the ID is already unique.
-        // Legacy IDs were "Tenant_Date". New IDs might be "Tenant_Date_Timestamp".
-        // Use entry.id strictly.
-
-        // Fallback for safety: if entry.id looks like just a date "YYYY-MM-DD", preserve legacy behavior (single doc)
-        // If it's a new unique ID, it will be saved as such.
         let docId = entry.id;
 
-        // Ensure ID is namespaced if it assumes legacy format but lacks tenant (Edge case safety)
+        // Ensure ID is namespaced if it assumes legacy format but lacks organization prefix
         if (docId === entry.date) {
             docId = `${entry.tenantId}_${entry.date}`;
         }
 
-        console.log(`[Storage] SAVING Entry: ${docId}, Tenant: ${entry.tenantId}`);
+        console.log(`[Storage] SAVING Daily Status: ${docId}, Organization: ${entry.tenantId}`);
         const docRef = doc(db, "journal_entries", docId);
 
         // Ensure ID in body matches document ID
@@ -62,12 +54,12 @@ export async function saveJournalEntry(entry: JournalEntry): Promise<void> {
 
         await setDoc(docRef, payload);
     } catch (e) {
-        console.error("Error saving journal entry", e);
+        console.error("Error saving daily status", e);
         throw e;
     }
 }
 
-export async function getRecentJournalEntries(tenantId: string, limitCount: number = 30): Promise<JournalEntry[]> {
+export async function getRecentDailyStatusEntries(tenantId: string, limitCount: number = 30): Promise<DailyStatus[]> {
     try {
         const q = query(
             collection(db, "journal_entries"),
@@ -76,14 +68,14 @@ export async function getRecentJournalEntries(tenantId: string, limitCount: numb
             limit(limitCount)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => doc.data() as JournalEntry);
+        return snapshot.docs.map(doc => doc.data() as DailyStatus);
     } catch (e) {
-        console.error("Error fetching recent entries", e);
+        console.error("Error fetching recent status entries", e);
         return [];
     }
 }
 
-export async function getAllJournalEntries(tenantId: string): Promise<JournalEntry[]> {
+export async function getAllDailyStatusEntries(tenantId: string): Promise<DailyStatus[]> {
     try {
         const q = query(
             collection(db, "journal_entries"),
@@ -91,9 +83,9 @@ export async function getAllJournalEntries(tenantId: string): Promise<JournalEnt
             orderBy("date", "desc")
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => doc.data() as JournalEntry);
+        return snapshot.docs.map(doc => doc.data() as DailyStatus);
     } catch (e) {
-        console.error("Error fetching all entries", e);
+        console.error("Error fetching all status entries", e);
         return [];
     }
 }
@@ -105,9 +97,9 @@ export async function saveWeeklyEntry(entry: WeeklyEntry): Promise<void> {
     try {
         const docRef = doc(db, COLLECTION_NAME, entry.id);
         await setDoc(docRef, entry);
-        console.log(`[Firestore] Saved entry ${entry.id}`);
+        console.log(`[Firestore] Saved weekly entry ${entry.id}`);
     } catch (error) {
-        console.error(`[Firestore] Error saving entry ${entry.id}:`, error);
+        console.error(`[Firestore] Error saving weekly entry ${entry.id}:`, error);
         throw error;
     }
 }
@@ -121,11 +113,11 @@ export async function getWeeklyEntry(id: string): Promise<WeeklyEntry | null> {
             const data = docSnap.data();
             return { ...data, id: docSnap.id } as WeeklyEntry;
         } else {
-            console.log(`[Firestore] No entry found for ${id}`);
+            console.log(`[Firestore] No weekly entry found for ${id}`);
             return null;
         }
     } catch (error) {
-        console.error(`[Firestore] Error fetching entry ${id}:`, error);
+        console.error(`[Firestore] Error fetching weekly entry ${id}:`, error);
         return null;
     }
 }
@@ -143,7 +135,7 @@ export async function getAllEntries(tenantId: string): Promise<WeeklyEntry[]> {
         });
         return entries.sort((a, b) => b.id.localeCompare(a.id));
     } catch (error) {
-        console.error("[Firestore] Error fetching all entries:", error);
+        console.error("[Firestore] Error fetching all weekly entries:", error);
         return [];
     }
 }

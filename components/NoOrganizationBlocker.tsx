@@ -5,43 +5,39 @@ import { useAuth } from '@/context/AuthContext';
 import { ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { RoleLevel } from '@/types';
-import { GlobalHeader } from './GlobalHeader';
 
-export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
-    const { user, tenantId, loading, identity } = useAuth();
+export function NoOrganizationBlocker({ children }: { children: React.ReactNode }) {
+    const { user, tenantId: organizationId, loading, identity } = useAuth();
     const ADMIN_EMAIL = 'argoss01@gmail.com';
 
     useEffect(() => {
-        if (!loading && user && !tenantId) {
-            // Robust Role Check
-            const currentRole = identity?.realRole ? Number(identity.realRole) : 0;
+        // Wait for both auth AND identity to fully load
+        if (loading || !user) return;
 
-            // Superadmin Bypass: Just log warning, don't scream
-            if (currentRole >= RoleLevel.SUPERADMIN || user.email === ADMIN_EMAIL) {
-                console.warn("[NoTenantBlocker] Superadmin has no active Tenant ID. Allowing access for debugging.");
-                return;
-            }
+        // Robust Role Check - must happen FIRST
+        const currentRole = identity?.realRole ? Number(identity.realRole) : 0;
+        const isSuperAdmin = currentRole >= RoleLevel.SUPERADMIN || user.email === ADMIN_EMAIL;
 
-            // Trigger Notification Logic for regular users
+        // Only trigger orphan check if user has no org AND is NOT a superadmin
+        if (!organizationId && !isSuperAdmin) {
             const notificationData = {
                 userEmail: user.email,
                 userId: user.uid,
                 userName: user.displayName,
                 timestamp: new Date().toISOString(),
-                reason: "Login attempt without Tenant ID",
+                reason: "Login attempt without Organization ID",
                 debug: {
                     role: currentRole,
                     identityExists: !!identity,
                     rawRole: identity?.realRole
                 }
             };
-
             console.error(`[SECURITY ALERT] Orphan User Detected! Notification sent to ${ADMIN_EMAIL}`, notificationData);
         }
-    }, [user, tenantId, loading, identity]);
+    }, [user, organizationId, loading, identity]);
 
     if (loading) {
-        return <div className="h-screen w-screen flex items-center justify-center bg-zinc-950 text-zinc-500">Cargando...</div>;
+        return <div className="h-screen w-screen flex items-center justify-center bg-zinc-950 text-zinc-500">Loading...</div>;
     }
 
     // Bypass for Superadmin to prevent lockout
@@ -49,7 +45,6 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     if (safeRole >= RoleLevel.SUPERADMIN) {
         return (
             <div className="min-h-screen flex flex-col">
-                {/* GlobalHeader Removed per user request */}
                 <div className="flex-1 flex flex-col min-h-0">
                     {children}
                 </div>
@@ -57,15 +52,15 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
         );
     }
 
-    if (user && !tenantId) {
+    if (user && !organizationId) {
         return (
             <div className="h-screen w-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-6 text-center">
                 <ShieldAlert className="w-16 h-16 text-red-600 mb-6 animate-pulse" />
-                <h1 className="text-2xl font-bold mb-2 text-red-500 uppercase tracking-widest">Acceso Denegado</h1>
+                <h1 className="text-2xl font-bold mb-2 text-red-500 uppercase tracking-widest">Access Denied</h1>
                 <p className="text-zinc-400 max-w-md mb-8">
-                    Tu cuenta no está asociada a ninguna organización (Tenant).
+                    Your account is not associated with any organization.
                     <br /><br />
-                    <strong>Se ha enviado una notificación automática al administrador ({ADMIN_EMAIL})</strong> con los detalles de tu intento de acceso.
+                    <strong>An automatic notification has been sent to the administrator ({ADMIN_EMAIL})</strong> with the details of your access attempt.
                 </p>
                 <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-lg text-xs text-left font-mono text-zinc-500 w-full max-w-md">
                     <p>User: {user.email}</p>
@@ -77,7 +72,7 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
                     onClick={() => window.location.reload()}
                     className="mt-8 px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-full text-sm font-medium transition-colors"
                 >
-                    Reintentar Login
+                    Retry Login
                 </button>
             </div>
         );
@@ -85,7 +80,6 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen flex flex-col">
-            {/* GlobalHeader Removed per user request */}
             <div className="flex-1 flex flex-col min-h-0">
                 {children}
             </div>

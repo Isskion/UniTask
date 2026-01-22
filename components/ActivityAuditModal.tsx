@@ -7,33 +7,19 @@ import { Loader2, X, Search, History, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import HighlightText from "./ui/HighlightText";
+import { useAuth } from "@/context/AuthContext";
 
-// Helper for highlighting text
-const HighlightText = ({ text, highlight }: { text: string, highlight?: string }) => {
-    if (!highlight || !text) return <>{text}</>;
-
-    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
-    return (
-        <>
-            {parts.map((part, i) =>
-                part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="text-indigo-500 font-bold bg-indigo-500/10 rounded-sm px-0.5 -mx-0.5">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </>
-    );
-};
-
-export function ActivityAuditModal({ taskId, tenantId, onClose, isLight, theme }: { taskId: string, tenantId: string | null, onClose: () => void, isLight: boolean, theme?: string }) {
+export function ActivityAuditModal({ taskId, onClose, isLight, theme }: { taskId: string, onClose: () => void, isLight: boolean, theme?: string }) {
+    const { tenantId } = useAuth();
     const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const isRed = theme === 'red';
 
     useEffect(() => {
-        if (!tenantId) return;
+        if (!taskId || !tenantId) return;
+
         const q = query(
             collection(db, "task_activities"),
             where("taskId", "==", taskId),
@@ -41,121 +27,109 @@ export function ActivityAuditModal({ taskId, tenantId, onClose, isLight, theme }
             orderBy("createdAt", "desc")
         );
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setActivities(data);
+            const list = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setActivities(list);
+            setLoading(false);
+        }, (err) => {
+            console.error("Error loading activities:", err);
             setLoading(false);
         });
+
         return () => unsubscribe();
     }, [taskId, tenantId]);
 
-    // Filter activities based on search
-    const filteredActivities = activities.filter(act => {
-        if (!searchQuery) return true;
-        const lowerQ = searchQuery.toLowerCase();
-        return (
-            (act.details?.toLowerCase().includes(lowerQ)) ||
-            (act.userName?.toLowerCase().includes(lowerQ)) ||
-            (act.type?.toLowerCase().includes(lowerQ)) ||
-            (act.type === 'deadline_change' && 'cambio de fecha límite'.includes(lowerQ)) ||
-            (act.type === 'status_change' && 'cambio de estado'.includes(lowerQ)) ||
-            (act.type === 'assignment_change' && 'reasignación'.includes(lowerQ)) ||
-            (act.type === 'dependency_released' && 'dependencia liberada'.includes(lowerQ)) ||
-            (act.type === 'classification_change' && 'cambio de clasificación'.includes(lowerQ)) ||
-            (act.type === 'dependency_added' && 'dependencia añadida'.includes(lowerQ)) ||
-            (act.type === 'dependency_removed' && 'dependencia eliminada'.includes(lowerQ))
-        );
-    });
+    const filtered = activities.filter(a =>
+        a.note?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.type?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
-            <div className={cn("rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4 scale-100 animate-in zoom-in-95 duration-200 max-h-[80vh] flex flex-col",
-                isLight ? "bg-white" : (isRed ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20" : "bg-[#18181b] border border-white/10")
-            )} onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center",
-                            isLight ? "bg-indigo-500/10 text-indigo-500" : (isRed ? "bg-[#D32F2F]/10 text-[#D32F2F]" : "bg-indigo-500/10 text-indigo-500")
-                        )}>
-                            <History className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h3 className={cn("text-lg font-bold", isLight ? "text-zinc-900" : "text-white")}>Bitácora de Actividad</h3>
-                            <p className="text-xs text-zinc-500">Historial de cambios importantes</p>
-                        </div>
+        <div className="fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className={cn(
+                "rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl transition-colors overflow-hidden",
+                isLight ? "bg-white border-zinc-200" : (isRed ? "bg-[#1a0505] border-[#D32F2F]/30" : "bg-[#09090b] border-white/10")
+            )}>
+                {/* Header */}
+                <div className={cn("p-4 border-b flex justify-between items-center shrink-0",
+                    isLight ? "bg-zinc-50 border-zinc-200 text-zinc-900" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 text-white" : "bg-white/5 border-white/10 text-white")
+                )}>
+                    <div className="flex items-center gap-2">
+                        <History className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
+                        <h3 className="font-bold">Historial de Actividad</h3>
                     </div>
-                    <button onClick={onClose}><X className="w-5 h-5 text-zinc-500 hover:text-red-500 transition-colors" /></button>
+                    <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative mb-4">
-                    <Search className={cn("absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4", isLight ? "text-zinc-400" : "text-zinc-500")} />
-                    <input
-                        type="text"
-                        placeholder="Buscar en la bitácora..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className={cn(
-                            "w-full pl-9 pr-4 py-2 text-sm rounded-lg border focus:ring-2 outline-none transition-all",
-                            isLight
-                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:ring-indigo-500/20"
-                                : (isRed
-                                    ? "bg-[#D32F2F]/5 border-[#D32F2F]/20 text-white placeholder:text-zinc-500 focus:bg-black/40 focus:ring-[#D32F2F]/20 focus:border-[#D32F2F]/50"
-                                    : "bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:bg-black/40 focus:ring-indigo-500/20")
-                        )}
-                    />
+                {/* Filters */}
+                <div className="p-4 border-b border-white/5 flex gap-2 shrink-0">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <input
+                            type="text"
+                            placeholder="Buscar en el historial..."
+                            className={cn(
+                                "w-full pl-9 pr-4 py-2 text-sm rounded-lg border outline-none transition-all",
+                                isLight
+                                    ? "bg-zinc-100 border-zinc-300 text-zinc-900 focus:border-red-500"
+                                    : "bg-black/40 border-white/10 text-white focus:border-[#D32F2F]"
+                            )}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
                     {loading ? (
-                        <div className="flex justify-center py-10"><Loader2 className={cn("w-6 h-6 animate-spin", isRed ? "text-[#D32F2F]" : "text-zinc-500")} /></div>
-                    ) : filteredActivities.length === 0 ? (
-                        <div className="text-center py-10 text-zinc-500 italic text-sm">
-                            {searchQuery ? "No se encontraron resultados." : "No hay actividad registrada aún."}
+                        <div className="flex flex-col items-center justify-center py-12 text-zinc-500 gap-3">
+                            <Loader2 className="w-8 h-8 animate-spin text-[#D32F2F]" />
+                            <p className="text-sm font-medium">Cargando historial...</p>
                         </div>
-                    ) : (
-                        filteredActivities.map((act) => (
-                            <div key={act.id} className={cn("flex gap-3 p-3 rounded-xl border relative",
-                                isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/5 border-[#D32F2F]/10" : "bg-white/5 border-white/5")
+                    ) : filtered.length > 0 ? (
+                        filtered.map((activity, idx) => (
+                            <div key={activity.id} className={cn(
+                                "p-4 rounded-xl border relative group transition-all",
+                                isLight ? "bg-zinc-50 border-zinc-200" : "bg-white/5 border-white/5 hover:bg-white/10"
                             )}>
-                                {/* Timeline Line */}
-                                <div className="absolute left-[19px] top-10 bottom-[-10px] w-0.5 bg-zinc-700/20 last:hidden" />
-
-                                <div className="flex-shrink-0 mt-1">
-                                    <div className={cn("w-2 h-2 rounded-full ring-4", isRed ? "bg-[#D32F2F] ring-[#D32F2F]/20" : "bg-indigo-500 ring-indigo-500/20")} />
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-[#D32F2F]/10 border border-[#D32F2F]/20 flex items-center justify-center text-[#D32F2F] font-bold text-xs uppercase">
+                                            {activity.userName?.substring(0, 2) || "AI"}
+                                        </div>
+                                        <div>
+                                            <div className={cn("text-sm font-bold", isLight ? "text-zinc-950" : "text-white")}>{activity.userName || "Procesador AI"}</div>
+                                            <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                                                <Clock className="w-3 h-3" />
+                                                {activity.createdAt?.seconds ? format(new Date(activity.createdAt.seconds * 1000), "dd MMM yyyy HH:mm", { locale: es }) : "Recién ahora"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase px-2 py-0.5 rounded border tracking-wider",
+                                        activity.type === 'update' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                                            activity.type === 'status_change' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                                                "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    )}>
+                                        {activity.type === 'status_change' ? 'Cambio de Estado' : (activity.type === 'comment' ? 'Comentario' : 'Actualización')}
+                                    </span>
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-start">
-                                        <span className={cn("text-xs font-bold", isLight ? "text-zinc-700" : "text-zinc-300")}>
-                                            <HighlightText text={
-                                                act.type === 'deadline_change' ? 'Cambio de Fecha Límite' :
-                                                    act.type === 'status_change' ? 'Cambio de Estado' :
-                                                        act.type === 'assignment_change' ? 'Reasignación' :
-                                                            act.type === 'classification_change' ? 'Cambio de Clasificación' :
-                                                                act.type === 'dependency_released' ? 'Dependencia Liberada' :
-                                                                    act.type === 'dependency_added' ? 'Dependencia Añadida' :
-                                                                        act.type === 'dependency_removed' ? 'Dependencia Eliminada' :
-                                                                            'Actualización'
-                                            } highlight={searchQuery} />
-                                        </span>
-                                        <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-                                            <Clock className="w-3 h-3" />
-                                            {act.createdAt ? format(act.createdAt.toDate ? act.createdAt.toDate() : new Date(act.createdAt), "dd/MM/yy HH:mm", { locale: es }) : "-"}
-                                        </div>
-                                    </div>
-                                    <p className={cn("text-xs mt-1 leading-relaxed", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                                        <HighlightText text={act.details} highlight={searchQuery} />
-                                    </p>
-                                    <div className="mt-2 flex items-center gap-2">
-                                        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[8px] font-bold text-white uppercase">
-                                            {act.userName?.[0] || "U"}
-                                        </div>
-                                        <span className="text-[10px] text-zinc-500">
-                                            <HighlightText text={act.userName || act.userEmail} highlight={searchQuery} />
-                                        </span>
-                                    </div>
+                                <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mt-2 p-2 rounded-lg", isLight ? "bg-white/50" : "bg-black/20")}>
+                                    <HighlightText text={activity.note || ""} theme={theme} />
                                 </div>
                             </div>
                         ))
+                    ) : (
+                        <div className="text-center py-12 opacity-50 flex flex-col items-center gap-3">
+                            <History className="w-12 h-12 text-zinc-600" />
+                            <p className="text-sm">No se encontraron actividades registradas.</p>
+                        </div>
                     )}
                 </div>
             </div>

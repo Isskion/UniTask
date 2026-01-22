@@ -9,7 +9,7 @@ import { Notification } from "@/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 
 export function NotificationBell() {
     const { user, tenantId } = useAuth(); // Correctly get tenantId from Context
@@ -26,10 +26,9 @@ export function NotificationBell() {
         const q = query(
             collection(db, "notifications"),
             where("userId", "==", user.uid),
-            // where("tenantId", "==", "3"), // Hardcoded debug (Removed)
-            // If tenantId is missing (legacy), this might filter them out, 
-            // but it's necessary for security rules compliance.
-            where("tenantId", "==", tenantId)
+            where("tenantId", "==", tenantId),
+            orderBy('createdAt', 'desc'),
+            limit(10)
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -59,7 +58,7 @@ export function NotificationBell() {
         });
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user, tenantId]);
 
     const markAsRead = async (notification: Notification) => {
         if (notification.read) return;
@@ -95,7 +94,7 @@ export function NotificationBell() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-2 rounded-full hover:bg-accent relative transition-colors"
-                title="Notificaciones"
+                title="Notifications"
             >
                 <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-foreground" : "text-muted-foreground")} />
                 {unreadCount > 0 && (
@@ -110,10 +109,10 @@ export function NotificationBell() {
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
                     <div className="absolute right-0 top-full mt-2 w-80 bg-[#18181b] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-3 border-b border-white/5 flex justify-between items-center bg-white/5">
-                            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Notificaciones</h3>
+                            <h3 className="text-xs font-bold text-white uppercase tracking-wider">Notifications</h3>
                             {unreadCount > 0 && (
                                 <button onClick={markAllAsRead} className="text-[10px] text-indigo-400 hover:text-indigo-300 font-medium">
-                                    Marcar todas leídas
+                                    Mark all as read
                                 </button>
                             )}
                         </div>
@@ -121,7 +120,7 @@ export function NotificationBell() {
                             {notifications.length === 0 ? (
                                 <div className="p-8 text-center text-zinc-500 text-xs">
                                     <Bell className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                    No tienes notificaciones
+                                    No notifications
                                 </div>
                             ) : (
                                 notifications.map(n => (
@@ -139,7 +138,7 @@ export function NotificationBell() {
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="text-xs font-bold text-white line-clamp-1">{n.title}</span>
                                             <span className="text-[9px] text-zinc-500 whitespace-nowrap ml-2">
-                                                {n.createdAt?.seconds ? formatDistanceToNow(new Date(n.createdAt.seconds * 1000), { addSuffix: true, locale: es }) : 'Justo ahora'}
+                                                {n.createdAt?.seconds ? formatDistanceToNow(new Date(n.createdAt.seconds * 1000), { addSuffix: true, locale: enUS }) : 'Just now'}
                                             </span>
                                         </div>
                                         <p className="text-[11px] text-zinc-400 leading-tight mb-1">{n.message}</p>

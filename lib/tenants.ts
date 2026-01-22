@@ -20,7 +20,9 @@ export const getNextTenantId = async (): Promise<string> => {
                 nextId = 2;
                 transaction.set(counterRef, { tenants: nextId });
             } else {
-                const current = counterDoc.data().tenants || 1;
+                const data = counterDoc.data();
+                // Prefer 'tenants' counter, fallback to 'organizations' for legacy
+                const current = data.tenants || data.organizations || 1;
                 nextId = current + 1;
                 transaction.update(counterRef, { tenants: nextId });
             }

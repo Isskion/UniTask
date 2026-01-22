@@ -32,8 +32,8 @@ export interface Tenant {
     updatedAt?: any;
 }
 
-// New: Project Update (Event Stream)
-export interface ProjectUpdate {
+// New: Timeline Event (Event Stream)
+export interface TimelineEvent {
     id?: string; // Optional on local creation
     projectId: string; // Parent Project
     tenantId?: string; // New: Denormalized for security rules
@@ -62,7 +62,7 @@ export interface UserProfile {
     email: string;
     displayName: string;
     photoURL?: string;
-    role: 'superadmin' | 'app_admin' | 'global_pm' | 'consultor' | 'usuario_base' | 'usuario_externo';
+    role: 'superadmin' | 'app_admin' | 'global_pm' | 'consultant' | 'team_member' | 'client';
     tenantId: string; // Multi-tenant: Required for all users
     isActive: boolean;
     roleLevel?: number; // Added for caching/performance
@@ -137,11 +137,12 @@ export interface PermissionGroup {
     createdBy: string;
 }
 
-export interface NoteBlock {
+export interface ContentBlock {
     id: string; // "block-1"
     title?: string;
     content: string;
     type?: 'notes' | 'task';
+    isCollapsed?: boolean;
 }
 
 export interface ProjectEntry {
@@ -149,13 +150,13 @@ export interface ProjectEntry {
     name: string; // Fallback or snapshotted name
     pmNotes: string;
     conclusions: string;
-    blocks?: NoteBlock[]; // New: Supports multiple note blocks
+    blocks?: ContentBlock[]; // New: Supports multiple note blocks
     nextSteps: string;
     status?: 'active' | 'trash';
 }
 
-// [NEW] Daily Journal Entry (Replaces WeeklyEntry)
-export interface JournalEntry {
+// [NEW] Daily Log (Daily Status Entry)
+export interface DailyStatus {
     id: string; // Format: YYYY-MM-DD
     date: string; // ISO Date String "2025-01-06"
     tenantId: string; // Multi-tenant isolation
@@ -170,19 +171,14 @@ export interface JournalEntry {
 
 // Legacy support (to be deprecated or migrated)
 export interface WeeklyEntry {
-    id: string; // YYYYMMDD
+    id: string; // "YYYY-WW" or "tenant_YYYY-WW"
     weekNumber: number;
     year: number;
-    tenantId: string; // Multi-tenant isolation
-
-    // General / Global notes
-    pmNotes: string;
-    conclusions: string;
-    nextSteps: string;
-
-    // Specific Projects
+    tenantId: string; // [FIX] Required for Multi-tenancy
+    pmNotes: string; // General PM comments for the week
+    conclusions: string; // Aggregated findings
+    nextSteps: string; // Global pending items (Legacy)
     projects: ProjectEntry[];
-
     createdAt: string;
 }
 
@@ -204,7 +200,7 @@ export interface Task {
 
     // Core Links
     weekId: string;        // Legacy link (Date string)
-    relatedJournalEntryId?: string; // [NEW] Link to specific Journal Entry Document
+    relatedDailyStatusId?: string; // [NEW] Link to specific Daily Status Document
     projectId?: string;    // Parent Project
     tenantId: string;      // Multi-tenant isolation
 
@@ -266,21 +262,25 @@ export interface Task {
 
 // Role Weight System
 export enum RoleLevel {
-    EXTERNO = 10,
-    EQUIPO = 20,
-    CONSULTOR = 40,
+    CLIENT = 10,
+    TEAM_MEMBER = 20,
+    CONSULTANT = 40,
     PM = 60,
     ADMIN = 80,
     SUPERADMIN = 100
 }
 
 export const ROLE_LEVEL_MAP: Record<string, number> = {
-    'usuario_externo': RoleLevel.EXTERNO,
-    'usuario_base': RoleLevel.EQUIPO,
-    'consultor': RoleLevel.CONSULTOR,
+    'client': RoleLevel.CLIENT,
+    'team_member': RoleLevel.TEAM_MEMBER,
+    'consultant': RoleLevel.CONSULTANT,
     'global_pm': RoleLevel.PM,
     'app_admin': RoleLevel.ADMIN,
-    'superadmin': RoleLevel.SUPERADMIN
+    'superadmin': RoleLevel.SUPERADMIN,
+    // Legacy fallbacks (to be removed after migration)
+    'usuario_externo': RoleLevel.CLIENT,
+    'usuario_base': RoleLevel.TEAM_MEMBER,
+    'consultor': RoleLevel.CONSULTANT
 };
 
 export function getRoleLevel(role: string | number | null | undefined): number {

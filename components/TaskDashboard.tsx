@@ -13,6 +13,7 @@ import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase
 import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
+import HighlightText from './ui/HighlightText';
 
 
 
@@ -47,18 +48,17 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
     // 1. Load Tasks (Real-time)
     useEffect(() => {
-        if (!user) {
+        if (!tenantId) {
             setLoading(false);
             return;
         }
         setLoading(true);
-        // Optimized: Only subscribe once
-        const unsubscribe = subscribeToAllTasks(tenantId || "1", (data) => {
+        const unsubscribe = subscribeToAllTasks(tenantId, (data) => {
             setTasks(data);
             setLoading(false);
         });
         return () => unsubscribe();
-    }, [user, tenantId]);
+    }, [tenantId]);
 
     // 2. Load MasterData & Users (One-time fetch for filters)
     useEffect(() => {
@@ -75,7 +75,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         fetchUsers();
 
         // Attribute Definitions
-        const qAttr = query(collection(db, "attribute_definitions"), where("tenantId", "==", tenantId));
+        const qAttr = query(collection(db, "attribute_definitions"), where("tenantId", "==", tenantId), where("isActive", "==", true));
         const unsubAttr = onSnapshot(qAttr, (snap) => {
             const list: AttributeDefinition[] = [];
             snap.forEach(d => list.push({ id: d.id, ...d.data() } as AttributeDefinition));
@@ -83,8 +83,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         });
 
         // Master Data (Real-time for consistency)
-        const qmd = query(collection(db, "master_data"), where("tenantId", "==", tenantId));
-        const unsubMD = onSnapshot(qmd, (snap) => {
+        const qMaster = query(collection(db, "master_data"), where("tenantId", "==", tenantId), where("isActive", "==", true));
+        const unsubMD = onSnapshot(qMaster, (snap) => {
             const data: Record<string, MasterDataItem[]> = { priority: [], area: [], scope: [], module: [] };
             snap.forEach(doc => {
                 const dataRaw = doc.data();
@@ -348,7 +348,9 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 py-0.5 rounded border border-border">{task.friendlyId || '###'}</span>
+                                                        <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 py-0.5 rounded border border-border">
+                                                            <HighlightText text={task.friendlyId || '###'} highlight={filters.search} />
+                                                        </span>
 
                                                         {task.priority && (
                                                             <span className={cn("text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border",
@@ -422,7 +424,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                     </div>
 
                                                     <h4 className={cn("text-sm font-medium leading-snug", task.status === 'completed' ? "text-muted-foreground line-through" : "text-foreground")}>
-                                                        {task.title || task.description || "Sin Título"}
+                                                        <HighlightText text={task.title || task.description || "Sin Título"} highlight={filters.search} />
                                                     </h4>
 
 

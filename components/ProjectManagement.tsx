@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project, Tenant, getRoleLevel, RoleLevel } from "@/types";
+import { Project, Organization, getRoleLevel, RoleLevel } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -25,7 +25,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     const { showToast } = useToast();
     const { can } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
-    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null); // For assignedProjectIds
 
@@ -66,17 +66,17 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                 });
         }
         if (userRole === 'superadmin') {
-            loadTenants();
+            loadOrganizations();
         }
         loadProjects();
     }, [user, userRole]);
 
-    const loadTenants = async () => {
+    const loadOrganizations = async () => {
         try {
             const snap = await getDocs(query(collection(db, "tenants"), orderBy("name")));
-            setTenants(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tenant)));
+            setOrganizations(snap.docs.map(d => ({ id: d.id, ...d.data() } as Organization)));
         } catch (e) {
-            console.error("Error loading tenants", e);
+            console.error("Error loading organizations", e);
         }
     };
 
@@ -84,8 +84,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         setLoading(true);
         try {
             // Use centralized loader (handles ALL for superadmin)
-            const targetTenant = (userRole === 'superadmin') ? "ALL" : (tenantId || "1");
-            const projs = await getActiveProjects(targetTenant);
+            const targetOrganization = (userRole === 'superadmin') ? "ALL" : (tenantId || "1");
+            const projs = await getActiveProjects(targetOrganization);
             setProjects(projs);
         } catch (error) {
             console.error("Error loading projects:", error);
@@ -152,10 +152,10 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         setSaving(true);
         try {
             if (isNew) {
-                // Create using centralized function with proper tenant assignment
+                // Create using centralized function with proper organization assignment
                 const docId = await createProject({
                     ...formData,
-                    tenantId: formData.tenantId || tenantId || "1", // Use selected tenant if available (SuperAdmin)
+                    tenantId: formData.tenantId || tenantId || "1", // Use selected organization if available (SuperAdmin)
                     isActive: true, // Legacy
                     status: "active", // New Standard
                     health: "healthy", // Required
@@ -270,7 +270,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                 <div className="text-[10px] text-zinc-400 font-mono">{p.code}</div>
                                 {userRole === 'superadmin' && p.tenantId && (
                                     <div className="text-[9px] text-indigo-400 font-mono mt-0.5">
-                                        🏢 {tenants.find(t => t.id === p.tenantId)?.name || p.tenantId}
+                                        🏢 {organizations.find(org => org.id === p.tenantId)?.name || p.tenantId}
                                     </div>
                                 )}
                             </div>
@@ -454,11 +454,11 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             )}
                                         </div>
 
-                                        {/* Tenant Selector (SuperAdmin Only) */}
+                                        {/* Organization Selector (SuperAdmin Only) */}
                                         {userRole === 'superadmin' && (
                                             <div className={cn("p-4 rounded-lg border", isLight ? "bg-slate-50 border-slate-200" : "bg-white/5 border-white/10")}>
                                                 <label className={cn("text-[10px] uppercase font-bold mb-2 block", isLight ? "text-zinc-700" : "text-foreground")}>
-                                                    {t('projects.tenant')}
+                                                    {t('projects.organization') || 'Organization'}
                                                 </label>
                                                 <select
                                                     value={formData.tenantId || ""}
@@ -468,14 +468,14 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                     )}
                                                 >
                                                     <option value="">{t('projects.unassigned')}</option>
-                                                    {tenants.map(t => (
-                                                        <option key={t.id} value={t.id}>
-                                                            🏢 {t.name} ({t.id})
+                                                    {organizations.map(org => (
+                                                        <option key={org.id} value={org.id}>
+                                                            🏢 {org.name} ({org.id})
                                                         </option>
                                                     ))}
                                                 </select>
                                                 <p className="text-[10px] text-muted-foreground mt-1">
-                                                    {t('projects.tenant_warning')}
+                                                    {t('projects.organization_warning') || 'Warning: Moving a project to another organization may affect access.'}
                                                 </p>
                                             </div>
                                         )}

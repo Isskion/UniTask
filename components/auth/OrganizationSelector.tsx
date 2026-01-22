@@ -1,13 +1,13 @@
 /**
- * TenantSelector Component
+ * OrganizationSelector Component
  * 
- * Superadmin-only component for switching tenant context.
+ * Superadmin-only component for switching organization context.
  * This is a UX feature - security is enforced by backend rules.
  * 
- * The selected tenant context affects:
+ * The selected organization context affects:
  * - Which data is displayed in the Dashboard
  * - The context for any write operations
- * - Audit logs (which tenant the admin is "acting as")
+ * - Audit logs (which organization the admin is "acting as")
  */
 
 'use client';
@@ -19,67 +19,67 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { Shield, Building2, Globe } from 'lucide-react';
 
-import { Tenant } from '@/types';
+import { Organization } from '@/types';
 
-interface TenantSelectorProps {
-    onTenantChange?: (tenantId: string) => void;
+interface OrganizationSelectorProps {
+    onOrganizationChange?: (organizationId: string) => void;
     className?: string;
 }
 
-export const TenantSelector: React.FC<TenantSelectorProps> = ({
-    onTenantChange,
+export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
+    onOrganizationChange,
     className
 }) => {
     const { userRole } = useAuth();
-    const [tenants, setTenants] = useState<Tenant[]>([]);
-    const [selectedTenant, setSelectedTenant] = useState<string>('SYSTEM');
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
+    const [selectedOrganization, setSelectedOrganization] = useState<string>('SYSTEM');
     const [loading, setLoading] = useState(true);
 
-    // Only fetch tenants if user is superadmin
+    // Only fetch organizations if user is superadmin
     useEffect(() => {
         if (userRole !== 'superadmin') {
             setLoading(false);
             return;
         }
 
-        const fetchTenants = async () => {
+        const fetchOrganizations = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tenants'));
-                const tenantList = querySnapshot.docs.map(doc => ({
+                const orgList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                })) as Tenant[];
+                })) as Organization[];
 
-                setTenants(tenantList);
+                setOrganizations(orgList);
             } catch (error) {
-                console.error('Error fetching tenants:', error);
+                console.error('Error fetching organizations:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTenants();
+        fetchOrganizations();
     }, [userRole]);
 
-    // Handle tenant change
-    const handleChange = (tenantId: string) => {
-        setSelectedTenant(tenantId);
+    // Handle organization change
+    const handleChange = (organizationId: string) => {
+        setSelectedOrganization(organizationId);
 
         // Store in sessionStorage for persistence across page reloads
-        sessionStorage.setItem('adminTenantContext', tenantId);
+        sessionStorage.setItem('adminOrganizationContext', organizationId);
 
         // Callback for parent components
-        onTenantChange?.(tenantId);
+        onOrganizationChange?.(organizationId);
 
-        // Log for audit purposes (this will be captured by Cloud Functions)
-        console.log(`[ADMIN_CONTEXT] Superadmin switched context to: ${tenantId}`);
+        // Log for audit purposes
+        console.log(`[ADMIN_CONTEXT] Superadmin switched context to: ${organizationId}`);
     };
 
     // Load saved context on mount
     useEffect(() => {
-        const savedContext = sessionStorage.getItem('adminTenantContext');
+        const savedContext = sessionStorage.getItem('adminOrganizationContext');
         if (savedContext) {
-            setSelectedTenant(savedContext);
+            setSelectedOrganization(savedContext);
         }
     }, []);
 
@@ -103,7 +103,7 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
             <div className="flex items-center gap-2 text-amber-800">
                 <Shield className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">
-                    Modo Superadmin
+                    Superadmin Mode
                 </span>
             </div>
 
@@ -112,12 +112,12 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
             {/* Context Label */}
             <label className="text-xs text-amber-700 font-medium flex items-center gap-1">
                 <Building2 className="w-3 h-3" />
-                Contexto:
+                Context:
             </label>
 
-            {/* Tenant Selector */}
+            {/* Organization Selector */}
             <select
-                value={selectedTenant}
+                value={selectedOrganization}
                 onChange={(e) => handleChange(e.target.value)}
                 className={cn(
                     "rounded-md border border-amber-300 bg-white px-3 py-1 text-sm font-medium",
@@ -126,27 +126,27 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
                 )}
             >
                 <option value="SYSTEM" className="font-bold">
-                    🌐 Vista Global (Todos los Tenants)
+                    🌐 Global View (All Organizations)
                 </option>
-                {tenants.map(tenant => (
-                    <option key={tenant.id} value={tenant.id}>
-                        🏢 {tenant.name}
+                {organizations.map(org => (
+                    <option key={org.id} value={org.id}>
+                        🏢 {org.name}
                     </option>
                 ))}
             </select>
 
             {/* Current Context Indicator */}
-            {selectedTenant !== 'SYSTEM' && (
+            {selectedOrganization !== 'SYSTEM' && (
                 <div className="ml-auto flex items-center gap-1 text-xs text-amber-700 bg-amber-200/50 px-2 py-1 rounded">
                     <Globe className="w-3 h-3" />
-                    Actuando como: <strong>{tenants.find(t => t.id === selectedTenant)?.name || selectedTenant}</strong>
+                    Acting as: <strong>{organizations.find(o => o.id === selectedOrganization)?.name || selectedOrganization}</strong>
                 </div>
             )}
 
             {/* Warning for Global Mode */}
-            {selectedTenant === 'SYSTEM' && (
+            {selectedOrganization === 'SYSTEM' && (
                 <div className="ml-auto text-[10px] text-amber-600 italic">
-                    ⚠️ Cambios afectan a todo el sistema
+                    ⚠️ Changes affect the entire system
                 </div>
             )}
         </div>
@@ -154,20 +154,20 @@ export const TenantSelector: React.FC<TenantSelectorProps> = ({
 };
 
 /**
- * Hook to get the current admin tenant context
+ * Hook to get the current admin organization context
  */
-export function useAdminTenantContext(): string {
+export function useAdminOrganizationContext(): string {
     const [context, setContext] = useState<string>('SYSTEM');
 
     useEffect(() => {
-        const saved = sessionStorage.getItem('adminTenantContext');
+        const saved = sessionStorage.getItem('adminOrganizationContext');
         if (saved) {
             setContext(saved);
         }
 
         // Listen for changes
         const handleStorage = (e: StorageEvent) => {
-            if (e.key === 'adminTenantContext' && e.newValue) {
+            if (e.key === 'adminOrganizationContext' && e.newValue) {
                 setContext(e.newValue);
             }
         };

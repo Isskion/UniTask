@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { JournalEntry, Task, UserProfile, getRoleLevel, RoleLevel, Project } from '@/types';
+import { DailyStatus, Task, UserProfile, getRoleLevel, RoleLevel, Project } from '@/types';
 import { Bug, Activity, TrendingUp, Circle, Ban, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, Calendar as CalendarIcon, ArrowUpRight, Filter, AlertTriangle, FileText, BarChart3, PieChart } from "lucide-react";
 import { subscribeToAllTasks, sortTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
@@ -22,7 +22,7 @@ const localeMap: Record<string, any> = {
 };
 
 interface DashboardProps {
-    entry: JournalEntry;
+    entry: DailyStatus;
     globalProjects?: Project[];
     userProfile?: UserProfile | null;
     userRole?: string | null;
@@ -32,7 +32,7 @@ type TimeScope = 'day' | 'week' | 'month' | 'year';
 
 export default function Dashboard({ entry, globalProjects = [], userProfile: propProfile, userRole: propRole }: DashboardProps) {
     // [FIX] Use AuthContext as Source of Truth for Role/Profile to ensure freshness (e.g. after role change)
-    const { user, tenantId, userRole, userProfile: authProfile } = useAuth();
+    const { user, tenantId: organizationId, userRole, userProfile: authProfile } = useAuth();
     const { t, language } = useLanguage();
     const currentLocale = localeMap[language] || enUS;
 
@@ -98,7 +98,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         if (!user) return;
         setLoading(true);
         try {
-            const unsubscribe = subscribeToAllTasks(tenantId || "1", (data) => {
+            const unsubscribe = subscribeToAllTasks(organizationId || "1", (data) => {
                 setTasks(data);
                 setLoading(false);
                 setError(null);
@@ -109,7 +109,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             setError("Error loading tasks");
             setLoading(false);
         }
-    }, [user, tenantId]);
+    }, [user, organizationId]);
 
     // Safe Date Parsing
     const getTaskDate = (task: Task): Date | null => {
@@ -610,7 +610,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                                     stroke="#000000"
                                     strokeWidth={2}
                                     dot={{ r: 2, strokeWidth: 1 }}
-                                    name="Total Activas"
+                                    name="Total Active"
                                 />
                             )}
                         </ComposedChart>
