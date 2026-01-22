@@ -53,7 +53,7 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
         try {
             const eventsRef = collection(db, 'project_activity_feed');
             let qEvents;
-            if (limitCount === 0) {
+            if (limitCount === -1 || limitCount === 0) {
                 qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"));
             } else {
                 qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"), limit(limitCount));
@@ -82,7 +82,7 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
                     where("projectId", "==", projectId),
                     where("tenantId", "==", tenantId),
                     orderBy("createdAt", "desc"),
-                    limit(limitCount)
+                    limit(limitCount || 50)
                 );
             }
 
@@ -112,27 +112,17 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
             let qDailyLog;
 
             if (limitCount === -1) {
-                const qDaily = query(
+                qDailyLog = query(
                     collection(db, "journal_entries"),
                     where("tenantId", "==", tenantId),
-                    orderBy("date", "desc"),
-                    limit(limitCount || 5)
+                    orderBy("date", "desc")
                 );
-                const qWeekly = query(
-                    collection(db, "weekly_entries"),
-                    where("tenantId", "==", tenantId),
-                    orderBy("year", "desc"),
-                    limit(30)
-                );
-                // Assuming qDailyLog should be assigned one of these or a combined result
-                // For now, let's assume it's still fetching from DAILY_LOG_COLLECTION
-                qDailyLog = qDaily; // Or handle qWeekly separately
             } else {
                 qDailyLog = query(
                     collection(db, DAILY_LOG_COLLECTION),
                     where("tenantId", "==", tenantId),
                     orderBy("date", "desc"),
-                    limit(30)
+                    limit(limitCount || 30)
                 );
             }
             const snapDailyLog = await getDocs(qDailyLog);
