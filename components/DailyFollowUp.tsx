@@ -993,15 +993,25 @@ export default function DailyFollowUp() {
 
 
 
-    // --- BLOCK LOGIC ---
     const getProjectBlocks = (projectName: string): ContentBlock[] => {
         if (projectName === "General") return []; // General only supports flat notes for now
         const target = projectName.trim().toLowerCase();
         const p = entry.projects.find(p => (p.name || "").trim().toLowerCase() === target);
         if (!p) return [];
 
-        const currentBlocks = (p.blocks && p.blocks.length > 0) ? p.blocks : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
-        return currentBlocks;
+        // If no blocks, create a default one merging PM Notes, Conclusions and Next Steps (for legacy data)
+        if (!p.blocks || p.blocks.length === 0) {
+            let combinedContent = p.pmNotes || "";
+            if (p.conclusions && p.conclusions.trim()) {
+                combinedContent += `\n\n### ${t('follow_up.conclusions') || 'Conclusiones'}\n${p.conclusions}`;
+            }
+            if (p.nextSteps && p.nextSteps.trim()) {
+                combinedContent += `\n\n### ${t('follow_up.next_steps') || 'Próximos Pasos'}\n${p.nextSteps}`;
+            }
+            return [{ id: 'default', title: 'Notas Principales', content: combinedContent, isCollapsed: false }];
+        }
+
+        return p.blocks;
     };
 
     const handleToggleBlockCollapse = (projectName: string, blockId: string) => {
@@ -1805,7 +1815,7 @@ export default function DailyFollowUp() {
                                                             isLight
                                                                 ? "bg-white border-zinc-200 hover:border-zinc-300"
                                                                 : "bg-white/5 border-white/10 hover:border-white/20",
-                                                            block.isCollapsed && "bg-zinc-500/5"
+                                                            block.isCollapsed ? "h-fit bg-zinc-500/5 opacity-60" : "flex-1 min-h-[250px] shadow-sm"
                                                         )}>
                                                             <div className="flex items-center gap-2">
                                                                 <button
@@ -1843,7 +1853,7 @@ export default function DailyFollowUp() {
                                                                 <textarea
                                                                     value={block.content}
                                                                     onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
-                                                                    className={cn("w-full bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar min-h-[150px]",
+                                                                    className={cn("w-full flex-1 bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar",
                                                                         isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
                                                                     )}
                                                                     placeholder={t('follow_up.block_content_placeholder')}

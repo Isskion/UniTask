@@ -22,7 +22,7 @@ import { enUS } from "date-fns/locale";
 import { saveWeeklyEntry, getWeeklyEntry, getAllEntries } from "@/lib/storage";
 import { auth, db } from "@/lib/firebase"; // Added db
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore"; // Added Firestore imports
-import { Loader2, Save, Calendar, History, CheckCircle2, Plus, X, Layout, Search, Menu, Trash2, Users, RotateCcw, Sparkles, FolderGit2, Wand2, XCircle, ArrowRight, ListTodo, BarChart3, ChevronLeft, ChevronDown, PenSquare } from "lucide-react";
+import { Loader2, Save, Calendar, History, CheckCircle2, Plus, X, Layout, Search, Menu, Trash2, Users, RotateCcw, Sparkles, FolderGit2, Wand2, XCircle, ArrowRight, ListTodo, BarChart3, ChevronLeft, ChevronDown, PenSquare, AlertTriangle } from "lucide-react";
 import { parseNotes } from "@/lib/smartParser";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from '@/hooks/useSafeFirestore'; // Safe Hook
@@ -1025,20 +1025,34 @@ export default function WeeklyEditor() {
                                     {activeTab === 'General' && (
                                         <>
                                             {/* GENERAL MEETING MINUTES (Was 'General Insights') */}
-                                            <div className="space-y-4">
+                                            <div className="flex-1 flex flex-col min-h-[300px] space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                                                         General Meeting Minutes
                                                     </label>
                                                 </div>
-                                                <div className="border border-zinc-800 rounded-xl overflow-hidden shadow-sm bg-[#0a0a0a] min-h-[300px]">
+                                                <div className="flex-1 border border-zinc-800 rounded-xl overflow-hidden shadow-sm bg-[#0a0a0a]">
                                                     <RichTextEditor
                                                         content={getCurrentData().pmNotes}
                                                         onChange={(html) => updateCurrentData("pmNotes", html)}
                                                         placeholder="General meeting notes..."
+                                                        className="h-full"
                                                     />
                                                 </div>
                                             </div>
+
+                                            {/* GENERAL CONCLUSIONS */}
+                                            {getCurrentData().conclusions && (
+                                                <div className="space-y-4">
+                                                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Conclusions</label>
+                                                    <textarea
+                                                        value={getCurrentData().conclusions}
+                                                        onChange={(e) => updateCurrentData("conclusions", e.target.value)}
+                                                        className="w-full h-32 bg-[#0a0a0a] border border-zinc-800 rounded-xl p-4 text-sm text-zinc-300 focus:outline-none focus:border-zinc-700 resize-none font-sans shadow-inner"
+                                                        placeholder="Legacy conclusions..."
+                                                    />
+                                                </div>
+                                            )}
 
                                             {/* GENERAL TASKS */}
                                             <div className="space-y-4">
@@ -1073,18 +1087,41 @@ export default function WeeklyEditor() {
                                             return (
                                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     {/* We render separate PM notes for the project as well */}
-                                                    <div className="space-y-4 mb-8">
+                                                    <div className="flex-1 flex flex-col min-h-[400px] space-y-4 mb-8">
                                                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                                                             Meeting Minutes: <span className="text-white">{activeTab}</span>
                                                         </label>
-                                                        <div className="border border-zinc-800 rounded-xl overflow-hidden shadow-sm bg-[#0a0a0a] min-h-[150px]">
+                                                        <div className="flex-1 border border-zinc-800 rounded-xl overflow-hidden shadow-sm bg-[#0a0a0a]">
                                                             <RichTextEditor
                                                                 content={getCurrentData().pmNotes}
                                                                 onChange={(html) => updateCurrentData("pmNotes", html)}
                                                                 placeholder={`Status update for ${activeTab}...`}
+                                                                className="h-full"
                                                             />
                                                         </div>
                                                     </div>
+
+                                                    {/* LEGACY DATA MIGRATION VIEW (Only if content exists) */}
+                                                    {(getCurrentData().conclusions || getCurrentData().nextSteps) && (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 p-4 bg-red-900/10 border border-red-900/30 rounded-xl">
+                                                            <div className="col-span-full flex items-center gap-2 mb-2">
+                                                                <AlertTriangle className="w-4 h-4 text-red-500" />
+                                                                <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">Legacy Records Detected</span>
+                                                            </div>
+                                                            {getCurrentData().conclusions && (
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Legacy Conclusions</label>
+                                                                    <div className="text-xs text-zinc-400 bg-black/40 p-3 rounded-lg border border-zinc-800 whitespace-pre-wrap">{getCurrentData().conclusions}</div>
+                                                                </div>
+                                                            )}
+                                                            {getCurrentData().nextSteps && (
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[10px] font-bold text-zinc-500 uppercase">Legacy Next Steps</label>
+                                                                    <div className="text-xs text-zinc-400 bg-black/40 p-3 rounded-lg border border-zinc-800 whitespace-pre-wrap">{getCurrentData().nextSteps}</div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
 
                                                     <TaskList projectId={prjId} projectName={activeTab} />
 
