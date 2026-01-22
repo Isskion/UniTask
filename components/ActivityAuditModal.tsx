@@ -104,7 +104,9 @@ export function ActivityAuditModal({ taskId, onClose, isLight, theme }: { taskId
                                             {activity.userName?.substring(0, 2) || "AI"}
                                         </div>
                                         <div>
-                                            <div className={cn("text-sm font-bold", isLight ? "text-zinc-950" : "text-white")}>{activity.userName || "Procesador AI"}</div>
+                                            <div className={cn("text-sm font-bold", isLight ? "text-zinc-950" : "text-white")}>
+                                                <HighlightText text={activity.userName || "Procesador AI"} highlight={searchQuery} />
+                                            </div>
                                             <div className="text-[10px] text-zinc-500 flex items-center gap-1">
                                                 <Clock className="w-3 h-3" />
                                                 {activity.createdAt?.seconds ? format(new Date(activity.createdAt.seconds * 1000), "dd MMM yyyy HH:mm", { locale: es }) : "Recién ahora"}
@@ -121,7 +123,7 @@ export function ActivityAuditModal({ taskId, onClose, isLight, theme }: { taskId
                                     </span>
                                 </div>
                                 <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mt-2 p-2 rounded-lg", isLight ? "bg-white/50" : "bg-black/20")}>
-                                    <HighlightText text={activity.note || ""} theme={theme} />
+                                    <HighlightText text={activity.note || ""} highlight={searchQuery} />
                                 </div>
                             </div>
                         ))
