@@ -32,6 +32,8 @@ export interface Tenant {
     updatedAt?: any;
 }
 
+export type Organization = Tenant;
+
 // New: Timeline Event (Event Stream)
 export interface TimelineEvent {
     id?: string; // Optional on local creation
