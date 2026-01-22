@@ -58,6 +58,7 @@ export const pt: Dictionary = {
         system: "Sistema",
         trash: "Lixeira",
         organizations: "Organizações",
+        tasks: "Tarefas",
     },
 
     theme: {

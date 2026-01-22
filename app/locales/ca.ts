@@ -58,6 +58,7 @@ export const ca: Dictionary = {
         system: "Sistema",
         trash: "Paperera",
         organizations: "Organitzacions",
+        tasks: "Tasques",
     },
 
     theme: {

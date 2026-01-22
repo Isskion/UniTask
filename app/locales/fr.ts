@@ -58,6 +58,7 @@ export const fr: Dictionary = {
         system: "Système",
         trash: "Corbeille",
         organizations: "Organisations",
+        tasks: "Tâches",
     },
 
     theme: {
