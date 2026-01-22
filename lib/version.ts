@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.10.6';
+export const APP_VERSION = '12.11.1';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.11.1",
+        date: "2026-01-22",
+        title: "Gestión de Perfiles y Espacio Dinámico",
+        features: [
+            "**Espacio Dinámico**: Optimización del área de notas con renderizado fluído y ajuste de altura automático para mejorar la experiencia de lectura.",
+            "**Restauración de Perfiles**: Recuperación completa del formulario ABM de usuarios con soporte para Inquilinos, Grupos de Permiso y Proyectos asignados.",
+            "**Detalle de Usuario Extendido**: Integración de campos de contacto (Empresa, Cargo, Teléfono, Dirección) vinculados al sistema multi-tenant."
+        ]
+    },
     {
         version: "12.10.6",
         date: "2026-01-20",
