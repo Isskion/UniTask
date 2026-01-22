@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.11.1';
+export const APP_VERSION = '12.11.2';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,16 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.11.2",
+        date: "2026-01-22",
+        title: "Estabilidad y Seguridad en Tareas",
+        features: [
+            "**Seguridad (Tareas)**: Resolución del error de permisos para el rol Consultor mediante la inyección automática de TenantId y mapeo de rol corregido.",
+            "**Buscador de Bitácora**: Corrección del error de filtrado histórico que causaba la desaparición de minutas al realizar búsquedas.",
+            "**Hotfix i18n**: Corrección de la clave de traducción para el botón de ocultar tareas en el seguimiento diario."
+        ]
+    },
     {
         version: "12.11.1",
         date: "2026-01-22",
