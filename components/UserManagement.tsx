@@ -6,7 +6,7 @@ import { collection, getDocs, doc, query, orderBy, where } from "firebase/firest
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
-import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy } from "lucide-react";
+import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2 } from "lucide-react";
 import { getAllInvites, InviteCode } from "@/lib/invites";
 import { createInviteAction } from "@/app/actions/invites";
 import InviteWizard from "./InviteWizard";
@@ -195,11 +195,11 @@ export default function UserManagement() {
             jobTitle: user.jobTitle || "",
             address: user.address || "",
             phone: user.phone || "",
-            language: user.language || "en",
+            language: user.language || "es",
             role: user.role || 'team_member',
-            tenantId: user.tenantId,
+            tenantId: user.tenantId || "",
             assignedProjectIds: user.assignedProjectIds || [],
-            permissionGroupId: user.permissionGroupId
+            permissionGroupId: user.permissionGroupId || ""
         });
     };
 
@@ -304,30 +304,218 @@ export default function UserManagement() {
 
             {/* Edit User Modal */}
             {editingUser && (
-                <div className="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4">
-                    <div className="bg-[#1a0505] border border-white/10 rounded-xl w-full max-w-lg p-6 shadow-2xl">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold">Edit User</h3>
-                            <button onClick={() => setEditingUser(null)}><XCircle className="w-5 h-5" /></button>
+                <div className="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className={cn(
+                        "rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl transition-colors flex flex-col max-h-[90vh]",
+                        isLight
+                            ? "bg-white border border-zinc-200 shadow-zinc-200"
+                            : (isRed
+                                ? "bg-[#1a0505] border border-[#D32F2F]/30 shadow-[#D32F2F]/20"
+                                : "bg-black border border-white/10 shadow-black")
+                    )}>
+                        <div className={cn("p-4 border-b flex justify-between items-center transition-colors shrink-0",
+                            isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                        )}>
+                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                <Edit2 className={cn("w-4 h-4", isLight ? "text-red-600" : (isRed ? "text-[#D32F2F]" : "text-white"))} />
+                                Edit User
+                            </h3>
+                            <button onClick={() => setEditingUser(null)} className="text-zinc-400 hover:text-white transition-colors">
+                                <XCircle className="w-5 h-5" />
+                            </button>
                         </div>
-                        <div className="space-y-4">
-                            <input
-                                className="w-full bg-black/40 border border-white/10 rounded px-4 py-2 outline-none focus:border-[#D32F2F]"
-                                value={formData.displayName || ""}
-                                onChange={e => setFormData({ ...formData, displayName: e.target.value })}
-                                placeholder="Name"
-                            />
-                            <select
-                                className="w-full bg-black/40 border border-white/10 rounded px-4 py-2 outline-none focus:border-[#D32F2F] appearance-none"
-                                value={formData.role || ""}
-                                onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+
+                        <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                                    {editingUser.photoURL ? (
+                                        <img src={editingUser.photoURL} alt={editingUser.displayName} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <span className="font-bold text-xl text-zinc-400">{editingUser.displayName?.substring(0, 2).toUpperCase()}</span>
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="text-xs text-zinc-500 font-mono mb-1">{editingUser.email}</div>
+                                    <input
+                                        type="text"
+                                        value={formData.displayName || ""}
+                                        onChange={e => setFormData({ ...formData, displayName: e.target.value })}
+                                        className={cn(
+                                            "bg-transparent border-b text-xl font-bold w-full outline-none transition-colors",
+                                            isLight
+                                                ? "border-zinc-300 text-zinc-900 focus:border-red-500 placeholder-zinc-400"
+                                                : (isRed
+                                                    ? "border-white/10 text-white focus:border-[#D32F2F] placeholder-zinc-700"
+                                                    : "border-zinc-700 text-white focus:border-white/20 placeholder-zinc-600")
+                                        )}
+                                        placeholder="Display Name"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Shield className="w-3 h-3" /> Role
+                                    </label>
+                                    <select
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                        value={formData.role || ""}
+                                        onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+                                    >
+                                        {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                    </select>
+                                </div>
+
+                                {getRoleLevel(userRole) >= 100 && (
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                            <Building className="w-3 h-3" /> Tenant
+                                        </label>
+                                        <select
+                                            className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                            value={formData.tenantId || ""}
+                                            onChange={e => setFormData({ ...formData, tenantId: e.target.value })}
+                                        >
+                                            <option value="">Select Tenant</option>
+                                            {availableTenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Building className="w-3 h-3" /> Company
+                                    </label>
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        value={formData.company || ""}
+                                        onChange={e => setFormData({ ...formData, company: e.target.value })}
+                                        placeholder="Company name"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Briefcase className="w-3 h-3" /> Job Title
+                                    </label>
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        value={formData.jobTitle || ""}
+                                        onChange={e => setFormData({ ...formData, jobTitle: e.target.value })}
+                                        placeholder="Project Manager"
+                                    />
+                                </div>
+                                <div className="space-y-1 col-span-2">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" /> Address
+                                    </label>
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        value={formData.address || ""}
+                                        onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                        placeholder="Street, City, Country"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Phone className="w-3 h-3" /> Phone
+                                    </label>
+                                    <input
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        value={formData.phone || ""}
+                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                        placeholder="+1 234..."
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Globe className="w-3 h-3" /> Language
+                                    </label>
+                                    <select
+                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                        value={formData.language || "es"}
+                                        onChange={e => setFormData({ ...formData, language: e.target.value })}
+                                    >
+                                        <option value="es">Español</option>
+                                        <option value="en">English</option>
+                                        <option value="fr">Français</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                    <ShieldCheck className="w-3 h-3" /> Permission Group
+                                </label>
+                                <select
+                                    className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                    value={formData.permissionGroupId || ""}
+                                    onChange={e => setFormData({ ...formData, permissionGroupId: e.target.value || "" })}
+                                >
+                                    <option value="">No group assigned (Legacy Role)</option>
+                                    {availableGroups.map(group => (
+                                        <option key={group.id} value={group.id}>
+                                            {group.name} - {group.description}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                    <FolderGit2 className="w-3 h-3" /> Assigned Projects
+                                </label>
+                                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scrollbar bg-black/20 p-2 rounded border border-white/5">
+                                    {availableProjects.map(p => {
+                                        const isSelected = formData.assignedProjectIds?.includes(p.id);
+                                        return (
+                                            <div
+                                                key={p.id}
+                                                onClick={() => {
+                                                    const current = formData.assignedProjectIds || [];
+                                                    const newIds = isSelected
+                                                        ? current.filter(id => id !== p.id)
+                                                        : [...current, p.id];
+                                                    setFormData({ ...formData, assignedProjectIds: newIds });
+                                                }}
+                                                className={cn(
+                                                    "cursor-pointer text-xs px-2 py-1.5 rounded border transition-all flex items-center gap-2",
+                                                    isSelected
+                                                        ? "bg-red-950/40 border-red-900/50 text-white"
+                                                        : "bg-white/5 border-transparent text-zinc-400 hover:text-white hover:bg-white/10"
+                                                )}
+                                            >
+                                                <div className={cn("w-3 h-3 rounded-full border flex items-center justify-center", isSelected ? "border-[#D32F2F] bg-[#D32F2F]" : "border-zinc-600")}>
+                                                    {isSelected && <Check className="w-2 h-2 text-white" />}
+                                                </div>
+                                                <span className="truncate">{p.code} - {p.name}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={cn("p-4 border-t flex justify-end gap-3 items-center shrink-0",
+                            isLight ? "bg-zinc-50 border-zinc-200" : (isRed ? "bg-[#D32F2F]/10 border-[#D32F2F]/20" : "bg-white/5 border-white/10")
+                        )}>
+                            {user?.email?.toLowerCase() === 'argoss01@gmail.com' && (
+                                <button
+                                    onClick={handleDeleteUser}
+                                    className="mr-auto text-red-500/60 hover:text-red-500 hover:bg-red-500/10 px-3 py-1.5 rounded transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-2"
+                                >
+                                    <Trash2 className="w-3 h-3" /> Delete User
+                                </button>
+                            )}
+                            <button onClick={() => setEditingUser(null)} className="px-4 py-2 font-bold text-zinc-400 hover:text-white transition-colors">Cancel</button>
+                            <button
+                                onClick={saveUserChanges}
+                                disabled={updating === editingUser.uid}
+                                className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-6 py-2 rounded font-bold shadow-lg shadow-red-900/20 flex items-center gap-2 min-w-[100px] justify-center transition-all active:scale-95"
                             >
-                                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex justify-end gap-3 mt-8">
-                            <button onClick={() => setEditingUser(null)} className="px-4 py-2 font-bold text-zinc-400">Cancel</button>
-                            <button onClick={saveUserChanges} className="bg-[#D32F2F] text-white px-6 py-2 rounded font-bold shadow-lg shadow-red-900/20">Save</button>
+                                {updating === editingUser.uid ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Save
+                            </button>
                         </div>
                     </div>
                 </div>
