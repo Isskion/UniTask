@@ -15,7 +15,7 @@ import HighlightText from "./ui/HighlightText";
 
 interface ProjectActivityFeedProps {
     projectId: string;
-    projectOrganizationId?: string; // Specific organization of the project
+    projectTenantId?: string; // Specific tenant of the project
     projectName?: string;
     searchQuery?: string;
 }
@@ -24,9 +24,9 @@ export interface ProjectActivityFeedHandle {
     copyResults: () => void;
 }
 
-const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectOrganizationId, projectName = "Project", searchQuery = "" }, ref) => {
+const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectTenantId, projectName = "Project", searchQuery = "" }, ref) => {
     const { theme } = useTheme();
-    const { tenantId: organizationId } = useAuth(); // Get Organization Context
+    const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
     const { showToast } = useToast();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
@@ -36,7 +36,7 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
 
     useEffect(() => {
         loadTimeline(false);
-    }, [projectId, organizationId]);
+    }, [projectId, tenantId]);
 
     // Trigger Full History Load when searching
     useEffect(() => {
@@ -55,8 +55,8 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
         const limitCount = loadFull ? -1 : 50;
 
         try {
-            const targetOrgId = projectOrganizationId || organizationId || "1";
-            const data = await getProjectTimeline(projectId, targetOrgId, limitCount, projectName);
+            const targetTenantId = projectTenantId || tenantId || "1";
+            const data = await getProjectTimeline(projectId, targetTenantId, limitCount, projectName);
 
             setEvents(data);
 

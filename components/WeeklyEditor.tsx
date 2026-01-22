@@ -37,7 +37,7 @@ import RichTextEditor from "@/components/RichTextEditor"; // Phase 4: Tiptap
 import { useSearchParams } from "next/navigation";
 
 // Helper for previous entry logic (moved from actions to here or storage)
-// Note: organizationId should be passed from the component, defaulting to "1" for now
+// Note: tenantId should be passed from the component, defaulting to "1" for now
 async function fetchPreviousEntryClient(currentId: string, tenantId: string = "1") {
     const all = await getAllEntries(tenantId);
     return all.find(e => e.id < currentId) || null;
@@ -76,7 +76,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -88,7 +88,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'organization-management' || view === 'admin-task-master' || view === 'reports' || view === 'support-management' || view === 'user-manual') {
+            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master' || view === 'reports' || view === 'support-management' || view === 'user-manual') {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -96,7 +96,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'organization-management' || saved === 'admin-task-master' || saved === 'reports' || saved === 'support-management' || saved === 'user-manual') {
+            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master' || saved === 'reports' || saved === 'support-management' || saved === 'user-manual') {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -315,7 +315,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {
@@ -1169,8 +1169,8 @@ export default function WeeklyEditor() {
                         </div>
                     )}
 
-                    {/* View: Organization Management */}
-                    {viewMode === 'organization-management' && (
+                    {/* View: Tenant Management */}
+                    {viewMode === 'tenant-management' && (
                         <div className="h-full overflow-hidden">
                             <TenantManagement />
                         </div>

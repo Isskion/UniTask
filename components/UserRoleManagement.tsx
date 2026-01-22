@@ -377,7 +377,7 @@ export default function UserRoleManagement() {
                                                 if (!confirm(t('roles_page.import_confirm'))) return;
                                                 setMigrating(true);
                                                 try {
-                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startOrganizationPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
+                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
                                                     console.log(resLog);
                                                     alert(t('roles_page.import_success') + "\n" + resLog);
                                                     await loadGroups(); // Refresh UI

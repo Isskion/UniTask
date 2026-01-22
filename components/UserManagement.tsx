@@ -56,7 +56,7 @@ export default function UserManagement() {
 
     const [availableProjects, setAvailableProjects] = useState<{ id: string, name: string, code: string }[]>([]);
     const [availableGroups, setAvailableGroups] = useState<PermissionGroup[]>([]);
-    const [availableOrganizations, setAvailableOrganizations] = useState<Tenant[]>([]);
+    const [availableTenants, setAvailableTenants] = useState<Tenant[]>([]);
 
     useEffect(() => {
         if (getRoleLevel(userRole) < 70) {
@@ -68,21 +68,21 @@ export default function UserManagement() {
         loadProjectsForSelect();
         loadPermissionGroups();
         if (getRoleLevel(userRole) >= 100) {
-            loadOrganizations();
+            loadTenants();
         }
     }, [activeTab, userRole, tenantId]);
 
-    const loadOrganizations = async () => {
+    const loadTenants = async () => {
         try {
             const q = query(collection(db, "tenants"), orderBy("name"));
             const snapshot = await getDocs(q);
-            const organizations = snapshot.docs.map(doc => ({
+            const tenants = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as Tenant[];
-            setAvailableOrganizations(organizations);
+            setAvailableTenants(tenants);
         } catch (error) {
-            console.error('Error loading organizations:', error);
+            console.error('Error loading tenants:', error);
         }
     };
 

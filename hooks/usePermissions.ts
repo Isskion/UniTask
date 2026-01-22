@@ -44,7 +44,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
 const DEFAULT_PERMISSIONS: PermissionGroup = {
     id: 'default',
     name: 'Default',
-    organizationId: '1',
+    tenantId: '1',
     color: '#000000',
     description: 'Default restricted access',
     projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },

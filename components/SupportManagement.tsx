@@ -264,7 +264,7 @@ export default function SupportManagement() {
                                             </h3>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                                                 <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {ticket.userEmail}</span>
-                                                <span className="flex items-center gap-1"><Building className="w-3 h-3" /> {ticket.organizationId}</span>
+                                                <span className="flex items-center gap-1"><Building className="w-3 h-3" /> {ticket.tenantId}</span>
                                                 <span className="flex items-center gap-1"><Layout className="w-3 h-3" /> {ticket.context}</span>
                                             </div>
                                         </div>

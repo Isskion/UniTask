@@ -32,7 +32,7 @@ type TimeScope = 'day' | 'week' | 'month' | 'year';
 
 export default function Dashboard({ entry, globalProjects = [], userProfile: propProfile, userRole: propRole }: DashboardProps) {
     // [FIX] Use AuthContext as Source of Truth for Role/Profile to ensure freshness (e.g. after role change)
-    const { user, tenantId: organizationId, userRole, userProfile: authProfile } = useAuth();
+    const { user, tenantId, userRole, userProfile: authProfile } = useAuth();
     const { t, language } = useLanguage();
     const currentLocale = localeMap[language] || enUS;
 
@@ -98,7 +98,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         if (!user) return;
         setLoading(true);
         try {
-            const unsubscribe = subscribeToAllTasks(organizationId || "1", (data) => {
+            const unsubscribe = subscribeToAllTasks(tenantId || "1", (data) => {
                 setTasks(data);
                 setLoading(false);
                 setError(null);
@@ -109,7 +109,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             setError("Error loading tasks");
             setLoading(false);
         }
-    }, [user, organizationId]);
+    }, [user, tenantId]);
 
     // Safe Date Parsing
     const getTaskDate = (task: Task): Date | null => {

@@ -14,7 +14,7 @@ import { doc, getDoc } from "firebase/firestore"; // Standard import
 import { db } from "@/lib/firebase"; // Standard import
 
 export function CommandMenu() {
-    const { userRole, user, tenantId: organizationId } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
     // Use Context for open state
     const { toggleCommandMenu, isCommandMenuOpen } = useUI();
 
@@ -69,12 +69,12 @@ export function CommandMenu() {
                     }
 
                     // Projects
-                    const allProjects = await getActiveProjects(organizationId || "1");
+                    const allProjects = await getActiveProjects(tenantId || "1");
                     console.log("CommandMenu: Raw Projects:", allProjects); // Log raw data
                     setProjects(allProjects);
 
                     // Tasks
-                    const allTasks = await getAllOpenTasks(organizationId || "1");
+                    const allTasks = await getAllOpenTasks(tenantId || "1");
                     console.log("CommandMenu: Raw Tasks:", allTasks); // Log raw data
                     setActiveTasks(allTasks);
 
@@ -88,7 +88,7 @@ export function CommandMenu() {
         } else if (isCommandMenuOpen && !user) {
             console.warn("CommandMenu: No user found, skipping fetch.");
         }
-    }, [isCommandMenuOpen, user, userRole, organizationId]);
+    }, [isCommandMenuOpen, user, userRole, tenantId]);
 
     // Permissions Filter
     const canSeeProject = (p: Project) => {
@@ -203,12 +203,12 @@ export function CommandMenu() {
                                     )}
                                     {userRole === 'superadmin' && (
                                         <Command.Item
-                                            value="Administrar Organizaciones Manage Organizations"
-                                            onSelect={() => runCommand(() => window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'organization-management' } })))}
+                                            value="Administrar Tenants Manage Tenants"
+                                            onSelect={() => runCommand(() => window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'tenant-management' } })))}
                                             className="group relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-zinc-200 outline-none aria-selected:bg-indigo-600 aria-selected:text-white transition-all transform aria-selected:scale-[1.01]"
                                         >
                                             <Shield className="mr-3 h-4 w-4 text-indigo-400 group-aria-selected:text-white" />
-                                            <span>Administrar Organizaciones</span>
+                                            <span>Administrar Tenants</span>
                                         </Command.Item>
                                     )}
                                     <Command.Item

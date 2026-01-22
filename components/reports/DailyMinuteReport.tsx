@@ -9,10 +9,10 @@ interface DailyMinuteReportProps {
     dailyStatus: DailyStatus;
     tasks: Task[];
     projects: Project[];
-    organizationName: string;
+    tenantName: string;
 }
 
-export function DailyMinuteReport({ date, dailyStatus, tasks, projects, organizationName }: DailyMinuteReportProps) {
+export function DailyMinuteReport({ date, dailyStatus, tasks, projects, tenantName }: DailyMinuteReportProps) {
     // Process tasks by project
     const tasksByProject: Record<string, Task[]> = {};
     tasks.forEach(t => {
@@ -32,7 +32,7 @@ export function DailyMinuteReport({ date, dailyStatus, tasks, projects, organiza
             <div className="border-b-2 border-slate-900 pb-6 mb-8 flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-bold uppercase tracking-tight text-slate-900 mb-2">Daily Minute</h1>
-                    <div className="text-sm font-medium text-slate-500 uppercase tracking-widest">{organizationName}</div>
+                    <div className="text-sm font-medium text-slate-500 uppercase tracking-widest">{tenantName}</div>
                 </div>
                 <div className="text-right">
                     <div className="text-4xl font-light text-slate-900">{format(date, 'dd')}</div>

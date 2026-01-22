@@ -10,23 +10,23 @@ import { cn } from '@/lib/utils';
 
 export const SuperadminGodBar: React.FC = () => {
     const { identity, viewContext, resetSimulation, updateSimulation } = useAuth();
-    const [organizations, setOrganizations] = useState<{ id: string; name: string }[]>([]);
-    const [loadingOrganizations, setLoadingOrganizations] = useState(false);
+    const [tenants, setTenants] = useState<{ id: string; name: string }[]>([]);
+    const [loadingTenants, setLoadingTenants] = useState(false);
 
     // Solo se renderiza si la identidad REAL en el token es Superadmin
     if (!identity || Number(identity.realRole) < RoleLevel.SUPERADMIN) return null;
 
-    const FALLBACK_ORGANIZATIONS = [
+    const FALLBACK_TENANTS = [
         { id: "1", name: "System (Global)" },
-        { id: "2", name: "Demo Organization" },
+        { id: "2", name: "Demo Tenant" },
         { id: "3", name: "Unigis" },
         { id: "4", name: "Test Corp" },
         { id: "5", name: "Dev Team" }
     ];
 
     useEffect(() => {
-        const loadOrganizations = async () => {
-            setLoadingOrganizations(true);
+        const loadTenants = async () => {
+            setLoadingTenants(true);
             try {
                 // Collections are still named 'tenants' in Firestore for data safety
                 const q = query(collection(db, "tenants"), orderBy("name"));
@@ -34,19 +34,19 @@ export const SuperadminGodBar: React.FC = () => {
                 const list = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
 
                 if (list.length > 0) {
-                    setOrganizations(list);
+                    setTenants(list);
                 } else {
                     // If fetch returns empty (e.g. permission error), use fallback
-                    setOrganizations(FALLBACK_ORGANIZATIONS);
+                    setTenants(FALLBACK_TENANTS);
                 }
             } catch (e) {
-                console.error("SuperadminBar: Failed to load organizations, using fallback", e);
-                setOrganizations(FALLBACK_ORGANIZATIONS);
+                console.error("SuperadminBar: Failed to load tenants, using fallback", e);
+                setTenants(FALLBACK_TENANTS);
             } finally {
-                setLoadingOrganizations(false);
+                setLoadingTenants(false);
             }
         };
-        loadOrganizations();
+        loadTenants();
     }, []);
 
     const isSimulating = viewContext?.isMasquerading;
@@ -77,7 +77,7 @@ export const SuperadminGodBar: React.FC = () => {
                         <div className="flex items-center gap-1.5 text-amber-200">
                             <Building2 className="w-3 h-3" />
                             <span className="font-bold">
-                                {organizations.find(t => t.id === viewContext?.activeTenantId)?.name || viewContext?.activeTenantId || 'Unknown'}
+                                {tenants.find(t => t.id === viewContext?.activeTenantId)?.name || viewContext?.activeTenantId || 'Unknown'}
                             </span>
                         </div>
                     </div>
@@ -115,12 +115,12 @@ export const SuperadminGodBar: React.FC = () => {
                                 value={viewContext?.activeTenantId}
                                 onChange={(e) => updateSimulation({ activeTenantId: e.target.value })}
                                 className="w-full appearance-none bg-zinc-900 border border-zinc-800 text-zinc-200 rounded pl-3 pr-8 py-1 hover:border-amber-500/50 hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer truncated"
-                                disabled={loadingOrganizations}
+                                disabled={loadingTenants}
                             >
-                                {loadingOrganizations ? (
+                                {loadingTenants ? (
                                     <option>Loading...</option>
                                 ) : (
-                                    organizations.map(t => (
+                                    tenants.map(t => (
                                         <option key={t.id} value={t.id}>
                                             {t.name}
                                         </option>

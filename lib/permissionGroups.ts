@@ -274,14 +274,14 @@ export async function initializePermissionGroups(): Promise<boolean> {
 }
 
 /**
- * [NEW] Populate Organization with Template Groups & Link Users
- * 1. Clones groups from Organization "1" (Template) to targetOrganizationId
- * 2. Links existing users in targetOrganizationId to these new groups based on legacy role
+ * [NEW] Populate Tenant with Template Groups & Link Users
+ * 1. Clones groups from Tenant "1" (Template) to targetTenantId
+ * 2. Links existing users in targetTenantId to these new groups based on legacy role
  */
 import { writeBatch } from 'firebase/firestore'; // Import batch
 
-export async function startOrganizationPopulation(targetOrganizationId: string, createdBy: string = 'system'): Promise<string> {
-    console.log(`[Population] Starting for Organization: ${targetOrganizationId}`);
+export async function startTenantPopulation(targetTenantId: string, createdBy: string = 'system'): Promise<string> {
+    console.log(`[Population] Starting for Tenant: ${targetTenantId}`);
     const logs: string[] = [];
 
     try {
@@ -292,7 +292,7 @@ export async function startOrganizationPopulation(targetOrganizationId: string, 
         let groupsToClone: any[] = [];
 
         if (templateSnap.empty) {
-            logs.push("⚠️ No template groups in Organization 1. Using Hardcoded Defaults.");
+            logs.push("⚠️ No template groups in Tenant 1. Using Hardcoded Defaults.");
             groupsToClone = DEFAULT_GROUPS;
         } else {
             groupsToClone = templateSnap.docs.map(d => {
@@ -303,14 +303,14 @@ export async function startOrganizationPopulation(targetOrganizationId: string, 
             });
         }
 
-        // 2. Create Groups in Target Organization
+        // 2. Create Groups in Target Tenant
         const createdGroupsMap: Record<string, string> = {}; // Name -> NewID (for user linking)
 
         for (const group of groupsToClone) {
             // Check existence to avoid dupes
             const qExists = query(
                 collection(db, 'permission_groups'),
-                where('tenantId', '==', targetOrganizationId),
+                where('tenantId', '==', targetTenantId),
                 where('name', '==', group.name)
             );
             const existsSnap = await getDocs(qExists);
@@ -319,7 +319,7 @@ export async function startOrganizationPopulation(targetOrganizationId: string, 
             if (existsSnap.empty) {
                 const newGroup = {
                     ...group,
-                    tenantId: targetOrganizationId,
+                    tenantId: targetTenantId,
                     createdBy,
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
@@ -335,7 +335,7 @@ export async function startOrganizationPopulation(targetOrganizationId: string, 
         }
 
         // 3. Link Existing Users (Auto-Correction)
-        const qUsers = query(collection(db, 'users'), where('tenantId', '==', targetOrganizationId));
+        const qUsers = query(collection(db, 'users'), where('tenantId', '==', targetTenantId));
         const usersSnap = await getDocs(qUsers);
 
         if (!usersSnap.empty) {
@@ -379,7 +379,7 @@ export async function startOrganizationPopulation(targetOrganizationId: string, 
                 logs.push("No users needed linking.");
             }
         } else {
-            logs.push("No users found in this organization.");
+            logs.push("No users found in this tenant.");
         }
 
         return logs.join('\n');

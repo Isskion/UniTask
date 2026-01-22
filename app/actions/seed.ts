@@ -29,11 +29,11 @@ function serialize(data: any): any {
     return data;
 }
 
-export async function getProjectsAction(organizationId: string) {
+export async function getProjectsAction(tenantId: string) {
     try {
-        console.log(`[Server] Fetching projects for Organization ${organizationId}`);
+        console.log(`[Server] Fetching projects for Tenant ${tenantId}`);
         const snap = await adminDb.collection('projects')
-            .where('organizationId', '==', organizationId)
+            .where('tenantId', '==', tenantId)
             .get();
         console.log(`[Server] Found ${snap.size} projects.`);
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -44,9 +44,9 @@ export async function getProjectsAction(organizationId: string) {
     }
 }
 
-export async function seedDataAction(organizationId: string, projectId: string) {
+export async function seedDataAction(tenantId: string, projectId: string) {
     try {
-        console.log(`[Server] Seeding Organization ${organizationId} Project ${projectId}`);
+        console.log(`[Server] Seeding Tenant ${tenantId} Project ${projectId}`);
         const start = new Date(2026, 0, 1); // Jan 1 2026
         const end = new Date(2026, 0, 31);
         const days = eachDayOfInterval({ start, end });
@@ -66,7 +66,7 @@ export async function seedDataAction(organizationId: string, projectId: string) 
             const entryRef = adminDb.collection('journal_entries').doc();
             batch.set(entryRef, {
                 date: dateStr,
-                organizationId: organizationId,
+                tenantId: tenantId,
                 generalNotes: `[MOCK] Notas ${dateStr}`,
                 projects: [{
                     projectId: projectId,
@@ -93,7 +93,7 @@ export async function seedDataAction(organizationId: string, projectId: string) 
                 const taskRef = adminDb.collection('tasks').doc();
                 batch.set(taskRef, {
                     friendlyId: `M-${format(day, 'dd')}-${i}`,
-                    organizationId: organizationId,
+                    tenantId: tenantId,
                     projectId: projectId,
                     title: `[MOCK] Tarea ${i + 1} (${dateStr})`,
                     description: 'Generada auto.',
@@ -128,13 +128,13 @@ export async function seedDataAction(organizationId: string, projectId: string) 
     }
 }
 
-export async function cleanupMockDataAction(organizationId: string) {
+export async function cleanupMockDataAction(tenantId: string) {
     try {
-        console.log(`[Server] Cleaning Organization ${organizationId}`);
+        console.log(`[Server] Cleaning Tenant ${tenantId}`);
 
         // 1. Delete Mock Tasks
         const tasksSnap = await adminDb.collection('tasks')
-            .where('organizationId', '==', organizationId)
+            .where('tenantId', '==', tenantId)
             .where('attributes.mock', '==', 'true')
             .get();
 
@@ -142,7 +142,7 @@ export async function cleanupMockDataAction(organizationId: string) {
         // Strategy: Filter significantly to avoid memory issues if DB is large
         // We look for entries created by the seeder which puts [MOCK] in notes
         const entriesSnap = await adminDb.collection('journal_entries')
-            .where('organizationId', '==', organizationId)
+            .where('tenantId', '==', tenantId)
             .get();
 
         const mockEntries = entriesSnap.docs.filter(d => {
@@ -154,7 +154,7 @@ export async function cleanupMockDataAction(organizationId: string) {
         // 3. Delete Mock Projects (Optional but requested)
         // We delete projects that explicitly have [MOCK] in the name to be safe
         const projectsSnap = await adminDb.collection('projects')
-            .where('organizationId', '==', organizationId)
+            .where('tenantId', '==', tenantId)
             .get();
 
         const mockProjects = projectsSnap.docs.filter(d => {

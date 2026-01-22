@@ -1,13 +1,13 @@
 /**
- * OrganizationSelector Component
+ * TenantSelector Component
  * 
- * Superadmin-only component for switching organization context.
+ * Superadmin-only component for switching tenant context.
  * This is a UX feature - security is enforced by backend rules.
  * 
- * The selected organization context affects:
+ * The selected tenant context affects:
  * - Which data is displayed in the Dashboard
  * - The context for any write operations
- * - Audit logs (which organization the admin is "acting as")
+ * - Audit logs (which tenant the admin is "acting as")
  */
 
 'use client';
@@ -19,67 +19,67 @@ import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { Shield, Building2, Globe } from 'lucide-react';
 
-import { Organization } from '@/types';
+import { Tenant } from '@/types';
 
-interface OrganizationSelectorProps {
-    onOrganizationChange?: (organizationId: string) => void;
+interface TenantSelectorProps {
+    onTenantChange?: (tenantId: string) => void;
     className?: string;
 }
 
-export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
-    onOrganizationChange,
+export const TenantSelector: React.FC<TenantSelectorProps> = ({
+    onTenantChange,
     className
 }) => {
     const { userRole } = useAuth();
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [selectedOrganization, setSelectedOrganization] = useState<string>('SYSTEM');
+    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [selectedTenant, setSelectedTenant] = useState<string>('SYSTEM');
     const [loading, setLoading] = useState(true);
 
-    // Only fetch organizations if user is superadmin
+    // Only fetch tenants if user is superadmin
     useEffect(() => {
         if (userRole !== 'superadmin') {
             setLoading(false);
             return;
         }
 
-        const fetchOrganizations = async () => {
+        const fetchTenants = async () => {
             try {
                 const querySnapshot = await getDocs(collection(db, 'tenants'));
-                const orgList = querySnapshot.docs.map(doc => ({
+                const tenantList = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                })) as Organization[];
+                })) as Tenant[];
 
-                setOrganizations(orgList);
+                setTenants(tenantList);
             } catch (error) {
-                console.error('Error fetching organizations:', error);
+                console.error('Error fetching tenants:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchOrganizations();
+        fetchTenants();
     }, [userRole]);
 
-    // Handle organization change
-    const handleChange = (organizationId: string) => {
-        setSelectedOrganization(organizationId);
+    // Handle tenant change
+    const handleChange = (tenantId: string) => {
+        setSelectedTenant(tenantId);
 
         // Store in sessionStorage for persistence across page reloads
-        sessionStorage.setItem('adminOrganizationContext', organizationId);
+        sessionStorage.setItem('adminTenantContext', tenantId);
 
         // Callback for parent components
-        onOrganizationChange?.(organizationId);
+        onTenantChange?.(tenantId);
 
         // Log for audit purposes
-        console.log(`[ADMIN_CONTEXT] Superadmin switched context to: ${organizationId}`);
+        console.log(`[ADMIN_CONTEXT] Superadmin switched context to: ${tenantId}`);
     };
 
     // Load saved context on mount
     useEffect(() => {
-        const savedContext = sessionStorage.getItem('adminOrganizationContext');
+        const savedContext = sessionStorage.getItem('adminTenantContext');
         if (savedContext) {
-            setSelectedOrganization(savedContext);
+            setSelectedTenant(savedContext);
         }
     }, []);
 
@@ -115,9 +115,9 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
                 Context:
             </label>
 
-            {/* Organization Selector */}
+            {/* Tenant Selector */}
             <select
-                value={selectedOrganization}
+                value={selectedTenant}
                 onChange={(e) => handleChange(e.target.value)}
                 className={cn(
                     "rounded-md border border-amber-300 bg-white px-3 py-1 text-sm font-medium",
@@ -126,25 +126,25 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
                 )}
             >
                 <option value="SYSTEM" className="font-bold">
-                    🌐 Global View (All Organizations)
+                    🌐 Global View (All Tenants)
                 </option>
-                {organizations.map(org => (
-                    <option key={org.id} value={org.id}>
-                        🏢 {org.name}
+                {tenants.map(tenant => (
+                    <option key={tenant.id} value={tenant.id}>
+                        🏢 {tenant.name}
                     </option>
                 ))}
             </select>
 
             {/* Current Context Indicator */}
-            {selectedOrganization !== 'SYSTEM' && (
+            {selectedTenant !== 'SYSTEM' && (
                 <div className="ml-auto flex items-center gap-1 text-xs text-amber-700 bg-amber-200/50 px-2 py-1 rounded">
                     <Globe className="w-3 h-3" />
-                    Acting as: <strong>{organizations.find(o => o.id === selectedOrganization)?.name || selectedOrganization}</strong>
+                    Acting as: <strong>{tenants.find(t => t.id === selectedTenant)?.name || selectedTenant}</strong>
                 </div>
             )}
 
             {/* Warning for Global Mode */}
-            {selectedOrganization === 'SYSTEM' && (
+            {selectedTenant === 'SYSTEM' && (
                 <div className="ml-auto text-[10px] text-amber-600 italic">
                     ⚠️ Changes affect the entire system
                 </div>
@@ -154,20 +154,20 @@ export const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
 };
 
 /**
- * Hook to get the current admin organization context
+ * Hook to get the current admin tenant context
  */
-export function useAdminOrganizationContext(): string {
+export function useAdminTenantContext(): string {
     const [context, setContext] = useState<string>('SYSTEM');
 
     useEffect(() => {
-        const saved = sessionStorage.getItem('adminOrganizationContext');
+        const saved = sessionStorage.getItem('adminTenantContext');
         if (saved) {
             setContext(saved);
         }
 
         // Listen for changes
         const handleStorage = (e: StorageEvent) => {
-            if (e.key === 'adminOrganizationContext' && e.newValue) {
+            if (e.key === 'adminTenantContext' && e.newValue) {
                 setContext(e.newValue);
             }
         };

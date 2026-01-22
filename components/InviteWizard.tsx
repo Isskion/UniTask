@@ -5,10 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { createInvite } from "@/lib/invites";
 import { createInviteAction } from "@/app/actions/invites"; // Secure Server Action
-import { createOrganization } from "@/lib/organizations";
+import { createTenant } from "@/lib/tenants";
 import { createProject } from "@/lib/projects"; // Added import
 import { getActiveProjects } from "@/lib/projects";
-import { Organization, RoleLevel, getRoleLevel } from "@/types";
+import { Tenant, RoleLevel, getRoleLevel } from "@/types";
 import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Check, Clipboard, Loader2, X, Building, Shield, Crown, Briefcase, ExternalLink, ArrowRight, ArrowLeft, Info } from "lucide-react";
@@ -25,11 +25,11 @@ const ROLES = [
     { value: 'team_member', label: 'Team Member', icon: Briefcase, desc: 'Basic task execution' },
     { value: 'consultant', label: 'Consultant', icon: Shield, desc: 'Full operational management' },
     { value: 'global_pm', label: 'Global PM', icon: Crown, desc: 'Multi-project management' },
-    { value: 'app_admin', label: 'App Admin', icon: Crown, desc: 'Organization Administrator' },
+    { value: 'app_admin', label: 'App Admin', icon: Crown, desc: 'Tenant Administrator' },
 ];
 
 export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizardProps) {
-    const { user, userRole, tenantId: organizationId } = useAuth();
+    const { user, userRole, tenantId } = useAuth();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
@@ -40,17 +40,17 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
     const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
     // Data
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
+    const [tenants, setTenants] = useState<Tenant[]>([]);
     const [projects, setProjects] = useState<{ id: string, name: string, code: string }[]>([]);
 
     // Selection
-    const [selectedOrganization, setSelectedOrganization] = useState<string>(organizationId || "1");
+    const [selectedTenant, setSelectedTenant] = useState<string>(tenantId || "1");
     const [selectedRole, setSelectedRole] = useState<string>("client");
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
-    // New Organization State
-    const [isNewOrganization, setIsNewOrganization] = useState(false);
-    const [newOrganizationName, setNewOrganizationName] = useState("");
+    // New Tenant State
+    const [isNewTenant, setIsNewTenant] = useState(false);
+    const [newTenantName, setNewTenantName] = useState("");
 
     // --- LOAD DATA ---
     useEffect(() => {
@@ -58,39 +58,39 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
         setStep(1);
         setGeneratedCode(null);
         setSelectedProjects([]);
-        setIsNewOrganization(false);
-        setNewOrganizationName("");
+        setIsNewTenant(false);
+        setNewTenantName("");
 
         // Initial setup based on current user
         if (getRoleLevel(userRole) < 100) {
-            // Standard users start at Role selection (Step 1 now), but have fixed organization
-            setSelectedOrganization(organizationId || "1");
+            // Standard users start at Role selection (Step 1 now), but have fixed tenant
+            setSelectedTenant(tenantId || "1");
         } else {
-            loadOrganizations();
+            loadTenants();
         }
     }, [isOpen]);
 
-    // Load projects whenever Organization changes (AND we are not creating a new one)
+    // Load projects whenever Tenant changes (AND we are not creating a new one)
     useEffect(() => {
-        if (selectedOrganization && !isNewOrganization && step === 3) {
+        if (selectedTenant && !isNewTenant && step === 3) {
             loadProjects();
         }
-    }, [selectedOrganization, step, isNewOrganization]);
+    }, [selectedTenant, step, isNewTenant]);
 
-    const loadOrganizations = async () => {
+    const loadTenants = async () => {
         try {
             const q = query(collection(db, "tenants"), orderBy("name"));
             const snapshot = await getDocs(q);
-            setOrganizations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Organization)));
+            setTenants(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tenant)));
         } catch (e) {
-            console.error("Error loading organizations", e);
+            console.error("Error loading tenants", e);
         }
     };
 
     const loadProjects = async () => {
         setLoading(true);
         try {
-            const rawProjects = await getActiveProjects(selectedOrganization);
+            const rawProjects = await getActiveProjects(selectedTenant);
             setProjects(rawProjects.map(p => ({ id: p.id, name: p.name, code: p.code })));
         } finally {
             setLoading(false);
@@ -103,29 +103,29 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
         if (!user) return;
         setLoading(true);
         try {
-            let targetOrganizationId = selectedOrganization;
+            let targetTenantId = selectedTenant;
             let finalSelectedProjects = selectedProjects;
 
-            // 1. Create Organization if needed
-            if (isNewOrganization && newOrganizationName) {
-                // A. Create Organization
-                const newOrganizationId = await createOrganization({
-                    name: newOrganizationName,
-                    code: newOrganizationName.toLowerCase().replace(/\s+/g, '-'),
+            // 1. Create Tenant if needed
+            if (isNewTenant && newTenantName) {
+                // A. Create Tenant
+                const newTenantId = await createTenant({
+                    name: newTenantName,
+                    code: newTenantName.toLowerCase().replace(/\s+/g, '-'),
                     isActive: true
                 });
-                targetOrganizationId = newOrganizationId;
+                targetTenantId = newTenantId;
 
                 // B. Auto-Create Project (Same Name)
-                const newProjectCode = newOrganizationName.toUpperCase().substring(0, 3) + "-001";
+                const newProjectCode = newTenantName.toUpperCase().substring(0, 3) + "-001";
                 const newProjectId = await createProject({
-                    name: newOrganizationName, // Project name same as organization
+                    name: newTenantName, // Project name same as tenant
                     code: newProjectCode,
-                    clientName: newOrganizationName,
+                    clientName: newTenantName,
                     status: 'active',
                     health: 'healthy',
                     isActive: true,
-                    organizationId: newOrganizationId, // Explicitly link to new organization
+                    tenantId: newTenantId, // Correctly link to new tenant
                     teamIds: [], // Empty initially
                 });
 
@@ -137,7 +137,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             const token = await user.getIdToken();
             const result = await createInviteAction(
                 token,
-                targetOrganizationId,
+                targetTenantId,
                 selectedRole,
                 finalSelectedProjects
             );
@@ -197,7 +197,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
 
                             {[
                                 { num: 1, label: "Role" }, // Swapped
-                                { num: 2, label: "Organization" }, // Swapped
+                                { num: 2, label: "Tenant" }, // Swapped
                                 { num: 3, label: "Access" },
                                 { num: 4, label: "Confirm" }
                             ].map((s) => (
@@ -247,10 +247,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                                 key={role.value}
                                                 onClick={() => {
                                                     setSelectedRole(role.value);
-                                                    // Reset new organization state if they switch away from admin, 
-                                                    // but better to keep it sticky or reset on next step?
-                                                    // Let's reset isNewOrganization if they pick a non-admin role later?
-                                                    // For now, keep simple.
+                                                    // Reset new tenant state if they switch away from admin
                                                 }}
                                                 className={cn(
                                                     "p-6 rounded-lg border text-left flex flex-col gap-4 transition-all hover:scale-[1.02]",
@@ -276,75 +273,75 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                             </div>
                         )}
 
-                        {/* STEP 2: ORGANIZATION SELECT (MOVED FROM 1) */}
+                        {/* STEP 2: TENANT SELECT (MOVED FROM 1) */}
                         {step === 2 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                                <h3 className={cn("text-2xl font-bold", textBase)}>Select Organization</h3>
-                                <p className={textMuted}>Define which organization this new user will belong to.</p>
+                                <h3 className={cn("text-2xl font-bold", textBase)}>Select Tenant</h3>
+                                <p className={textMuted}>Define which tenant this new user will belong to.</p>
 
-                                {/* New Organization Toggle Logic - Only if Admin role selected in Step 1 */}
+                                {/* New Tenant Toggle Logic - Only if Admin role selected in Step 1 */}
                                 {((selectedRole === 'app_admin' || selectedRole === 'global_pm') && getRoleLevel(userRole) >= 100) && (
                                     <div className="mb-6 p-4 border border-blue-500/20 bg-blue-500/5 rounded-xl flex items-center justify-between">
                                         <div>
-                                            <h4 className="font-bold text-blue-400">Create New Organization?</h4>
-                                            <p className="text-xs text-zinc-400">This user will be the administrator of a new organization.</p>
+                                            <h4 className="font-bold text-blue-400">Create New Tenant?</h4>
+                                            <p className="text-xs text-zinc-400">This user will be the administrator of a new tenant.</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={cn("text-xs font-bold", !isNewOrganization ? "text-zinc-500" : "text-zinc-600")}>No</span>
+                                            <span className={cn("text-xs font-bold", !isNewTenant ? "text-zinc-500" : "text-zinc-600")}>No</span>
                                             <button
-                                                onClick={() => setIsNewOrganization(!isNewOrganization)}
-                                                className={cn("w-12 h-6 rounded-full p-1 transition-colors relative", isNewOrganization ? "bg-blue-500" : "bg-zinc-700")}
+                                                onClick={() => setIsNewTenant(!isNewTenant)}
+                                                className={cn("w-12 h-6 rounded-full p-1 transition-colors relative", isNewTenant ? "bg-blue-500" : "bg-zinc-700")}
                                             >
-                                                <div className={cn("w-4 h-4 rounded-full bg-white transition-transform", isNewOrganization ? "translate-x-6" : "translate-x-0")} />
+                                                <div className={cn("w-4 h-4 rounded-full bg-white transition-transform", isNewTenant ? "translate-x-6" : "translate-x-0")} />
                                             </button>
-                                            <span className={cn("text-xs font-bold", isNewOrganization ? "text-blue-400" : "text-zinc-600")}>Yes</span>
+                                            <span className={cn("text-xs font-bold", isNewTenant ? "text-blue-400" : "text-zinc-600")}>Yes</span>
                                         </div>
                                     </div>
                                 )}
 
-                                {isNewOrganization ? (
+                                {isNewTenant ? (
                                     <div className="bg-blue-500/10 border border-blue-500/30 p-6 rounded-xl space-y-4 animate-in slide-in-from-top-2">
                                         <div className="flex items-center gap-3 text-blue-400">
                                             <Building className="w-6 h-6" />
-                                            <h4 className="font-bold text-lg">New Organization</h4>
+                                            <h4 className="font-bold text-lg">New Tenant</h4>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs uppercase font-bold text-zinc-500">Organization Name</label>
+                                            <label className="text-xs uppercase font-bold text-zinc-500">Tenant Name</label>
                                             <input
                                                 autoFocus
-                                                value={newOrganizationName}
-                                                onChange={e => setNewOrganizationName(e.target.value)}
-                                                placeholder="e.g. Acme Corp, StartUp Inc..."
+                                                value={newTenantName}
+                                                onChange={e => setNewTenantName(e.target.value)}
+                                                placeholder="e.g. Acme Corp..."
                                                 className="w-full bg-black/40 border border-white/10 rounded-lg p-3 outline-none focus:border-blue-500 text-white placeholder-zinc-600"
                                             />
                                         </div>
                                         <div className="p-3 bg-blue-500/10 rounded border border-blue-500/20 text-xs text-blue-300 flex gap-2">
                                             <Info className="w-4 h-4 flex-shrink-0" />
                                             <p>
-                                                When creating the organization, an initial project named <strong>{newOrganizationName || "..."}</strong> will be automatically generated.
+                                                When creating the tenant, an initial project named <strong>{newTenantName || "..."}</strong> will be automatically generated.
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
-                                    organizations.length > 0 ? (
+                                    tenants.length > 0 ? (
                                         <div className="grid grid-cols-1 gap-4 max-h-[300px] overflow-y-auto pr-2">
-                                            {organizations.map((org: Organization) => (
+                                            {tenants.map((t: Tenant) => (
                                                 <button
-                                                    key={org.id}
-                                                    onClick={() => setSelectedOrganization(org.id)}
+                                                    key={t.id}
+                                                    onClick={() => setSelectedTenant(t.id)}
                                                     className={cn(
                                                         "flex items-center gap-4 p-4 rounded-lg border text-left transition-all",
-                                                        selectedOrganization === org.id
+                                                        selectedTenant === t.id
                                                             ? (isRed ? "bg-red-900/20 border-[#D32F2F]" : "bg-zinc-800 border-white")
                                                             : (isLight ? "bg-white hover:bg-zinc-50 border-zinc-200" : "bg-black/20 hover:bg-white/5 border-white/10")
                                                     )}
                                                 >
                                                     <div className="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center text-xl">🏢</div>
                                                     <div>
-                                                        <div className={cn("font-bold", textBase)}>{org.name}</div>
-                                                        <div className="text-xs text-zinc-500">{org.code}</div>
+                                                        <div className={cn("font-bold", textBase)}>{t.name}</div>
+                                                        <div className="text-xs text-zinc-500">{t.code}</div>
                                                     </div>
-                                                    {selectedOrganization === org.id && (
+                                                    {selectedTenant === t.id && (
                                                         <div className="ml-auto text-green-500"><Check /></div>
                                                     )}
                                                 </button>
@@ -353,16 +350,16 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                     ) : (
                                         <div className="p-6 rounded-xl border border-dashed border-zinc-700 bg-white/5 text-center">
                                             <Building className="w-8 h-8 mx-auto mb-2 text-zinc-500" />
-                                            <p className="text-zinc-400 font-medium">Assigned to your current Organization</p>
-                                            <div className="text-xs text-zinc-600 mt-1 font-mono">{organizationId}</div>
+                                            <p className="text-zinc-400 font-medium">Assigned to your current Tenant</p>
+                                            <div className="text-xs text-zinc-600 mt-1 font-mono">{tenantId}</div>
 
                                             {/* Debug Option for SuperAdmins who see empty list */}
                                             {getRoleLevel(userRole) >= 100 && (
                                                 <button
-                                                    onClick={loadOrganizations}
+                                                    onClick={loadTenants}
                                                     className="mt-4 text-xs text-blue-400 hover:text-blue-300 underline"
                                                 >
-                                                    Are you a SuperAdmin? Retry loading organizations
+                                                    Are you a SuperAdmin? Retry loading tenants
                                                 </button>
                                             )}
                                         </div>
@@ -371,11 +368,11 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                             </div>
                         )}
 
-                        {/* STEP 3: PROJECT SELECT (Skipped if New Organization) */}
+                        {/* STEP 3: PROJECT SELECT (Skipped if New Tenant) */}
                         {step === 3 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <h3 className={cn("text-2xl font-bold", textBase)}>Assign Projects</h3>
-                                <p className={textMuted}>Select the projects visible for this user.</p>
+                                <p className={textMuted}>Select the projects visible for this user in this tenant.</p>
 
                                 {loading && (
                                     <div className="flex items-center gap-2 text-zinc-500 py-4">
@@ -386,7 +383,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
                                     {projects.length === 0 && !loading && (
                                         <div className="col-span-2 text-center py-10 text-zinc-500 border border-dashed border-zinc-700 rounded-lg">
-                                            No active projects in this organization.
+                                            No active projects in this tenant.
                                         </div>
                                     )}
                                     {projects.map(p => {
@@ -449,10 +446,10 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                     The link has been generated with all security and access settings applied.
                                 </p>
 
-                                {/* New Organization Feedback */}
-                                {isNewOrganization && (
+                                {/* New Tenant Feedback */}
+                                {isNewTenant && (
                                     <div className="bg-blue-900/20 text-blue-200 p-3 rounded-lg text-sm border border-blue-500/20 max-w-md">
-                                        Organization <strong>{newOrganizationName}</strong> and its initial project were created.
+                                        Tenant <strong>{newTenantName}</strong> and its initial project were created.
                                     </div>
                                 )}
 
@@ -507,13 +504,13 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                     // Step 3: Projects -> handleGenerate().
 
                                     if (step === 3) {
-                                        // Finalize (Existing Organization Flow)
+                                        // Finalize (Existing Tenant Flow)
                                         handleGenerate();
                                     } else if (step === 2) {
-                                        // Organization Step
-                                        if (isNewOrganization) {
-                                            if (!newOrganizationName.trim()) {
-                                                alert("Enter a name for the organization.");
+                                        // Tenant Step
+                                        if (isNewTenant) {
+                                            if (!newTenantName.trim()) {
+                                                alert("Enter a name for the tenant.");
                                                 return;
                                             }
                                             // SKIP STEP 3 -> AUTO GENERATE
@@ -535,8 +532,8 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                 )}
                             >
                                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {(step === 3 || (step === 2 && isNewOrganization)) ? "Generate Invitation" : "Next"}
-                                {step !== 3 && !(step === 2 && isNewOrganization) && <ArrowRight className="w-4 h-4" />}
+                                {(step === 3 || (step === 2 && isNewTenant)) ? "Generate Invitation" : "Next"}
+                                {step !== 3 && !(step === 2 && isNewTenant) && <ArrowRight className="w-4 h-4" />}
                             </button>
                         </div>
                     )}

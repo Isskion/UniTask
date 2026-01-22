@@ -6,8 +6,8 @@ import { ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { RoleLevel } from '@/types';
 
-export function NoOrganizationBlocker({ children }: { children: React.ReactNode }) {
-    const { user, tenantId: organizationId, loading, identity } = useAuth();
+export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
+    const { user, tenantId, loading, identity } = useAuth();
     const ADMIN_EMAIL = 'argoss01@gmail.com';
 
     useEffect(() => {
@@ -19,13 +19,13 @@ export function NoOrganizationBlocker({ children }: { children: React.ReactNode 
         const isSuperAdmin = currentRole >= RoleLevel.SUPERADMIN || user.email === ADMIN_EMAIL;
 
         // Only trigger orphan check if user has no org AND is NOT a superadmin
-        if (!organizationId && !isSuperAdmin) {
+        if (!tenantId && !isSuperAdmin) {
             const notificationData = {
                 userEmail: user.email,
                 userId: user.uid,
                 userName: user.displayName,
                 timestamp: new Date().toISOString(),
-                reason: "Login attempt without Organization ID",
+                reason: "Login attempt without Tenant ID",
                 debug: {
                     role: currentRole,
                     identityExists: !!identity,
@@ -34,7 +34,7 @@ export function NoOrganizationBlocker({ children }: { children: React.ReactNode 
             };
             console.error(`[SECURITY ALERT] Orphan User Detected! Notification sent to ${ADMIN_EMAIL}`, notificationData);
         }
-    }, [user, organizationId, loading, identity]);
+    }, [user, tenantId, loading, identity]);
 
     if (loading) {
         return <div className="h-screen w-screen flex items-center justify-center bg-zinc-950 text-zinc-500">Loading...</div>;
@@ -52,13 +52,13 @@ export function NoOrganizationBlocker({ children }: { children: React.ReactNode 
         );
     }
 
-    if (user && !organizationId) {
+    if (user && !tenantId) {
         return (
             <div className="h-screen w-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-6 text-center">
                 <ShieldAlert className="w-16 h-16 text-red-600 mb-6 animate-pulse" />
                 <h1 className="text-2xl font-bold mb-2 text-red-500 uppercase tracking-widest">Access Denied</h1>
                 <p className="text-zinc-400 max-w-md mb-8">
-                    Your account is not associated with any organization.
+                    Your account is not associated with any tenant.
                     <br /><br />
                     <strong>An automatic notification has been sent to the administrator ({ADMIN_EMAIL})</strong> with the details of your access attempt.
                 </p>

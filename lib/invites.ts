@@ -10,7 +10,7 @@ export interface InviteCode {
     usedBy?: string; // User UID who used it
     isUsed: boolean;
     expiresAt?: any; // Optional expiration
-    tenantId: string; // Target Organization for the new user
+    tenantId: string; // Target Tenant for the new user
     role: string;    // [NEW] Target Role
     assignedProjectIds: string[]; // [NEW] Target Projects
 }

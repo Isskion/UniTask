@@ -39,8 +39,8 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'; // Added support-management and user-manual
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'; // Added support-management and user-manual
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -223,7 +223,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             {userRole === 'superadmin' && (
                                 <>
                                     <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
-                                    <NavItem mode="organization-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
+                                    <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                 </>
                             )}
                         </div>
@@ -362,7 +362,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 )}
                                 {userRole === 'superadmin' && (
                                     <>
-                                        <NavItem mode="organization-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
+                                        <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                     </>
                                 )}
                             </div>

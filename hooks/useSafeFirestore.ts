@@ -14,7 +14,7 @@ import {
 import { RoleLevel } from '../types';
 
 // SECURITY HOOK: "TRIPWIRE"
-// Intercepts all write operations to ensure organization integrity.
+// Intercepts all write operations to ensure tenant integrity.
 export const useSafeFirestore = () => {
     const { identity } = useAuth();
 
@@ -30,7 +30,7 @@ export const useSafeFirestore = () => {
         }
 
         // FAIL-SAFE LOGIC FOR REGULAR USERS / ADMINS
-        const targetTenantId = data.tenantId || data.organizationId;
+        const targetTenantId = data.tenantId;
         const realTenantId = identity.realTenantId;
 
         if (targetTenantId && targetTenantId !== realTenantId) {
@@ -41,10 +41,10 @@ export const useSafeFirestore = () => {
             throw new Error(`SECURITY VIOLATION: Cross-tenant write attempted. You belong to ${realTenantId}, tried writing to ${targetTenantId}.`);
         }
 
-        // Force correct organizationId if missing? 
+        // Force correct tenantId if missing? 
         // Better to explicitly require it or inject it safely.
-        // For this implementation, we allow data to pass if it doesn't have organizationId (might be updating non-organization fields),
-        // but if it HAS organizationId, it MUST match.
+        // For this implementation, we allow data to pass if it doesn't have tenantId (might be updating non-tenant fields),
+        // but if it HAS tenantId, it MUST match.
 
         return data;
     };
@@ -53,9 +53,9 @@ export const useSafeFirestore = () => {
 
     const safeAddDoc = async (collectionRef: CollectionReference, data: DocumentData) => {
         validateWrite(data);
-        // FORCE organizationId injection for safety?
+        // FORCE tenantId injection for safety?
         // Ideally yes, but let's conform to the passed data + validation check.
-        // If the developer forgot organizationId, backend rules might reject it.
+        // If the developer forgot tenantId, backend rules might reject it.
         return addDoc(collectionRef, data);
     };
 

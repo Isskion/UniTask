@@ -90,7 +90,7 @@ export default function DailyFollowUp() {
 
     const handlePrint = async () => {
         if (!user || !tenantId) {
-            showToast("Error", "User not authenticated or organization not available.", "error");
+            showToast("Error", "User not authenticated or tenant not available.", "error");
             return;
         }
         setIsGeneratingPDF(true);
@@ -166,7 +166,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'organization-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
 
     // Persist View Mode
     useEffect(() => {
@@ -192,7 +192,7 @@ export default function DailyFollowUp() {
 
     const [activeTab, setActiveTab] = useState<string>("General");
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
-    const [availableOrganizations, setAvailableOrganizations] = useState<any[]>([]);
+    const [availableTenants, setAvailableTenants] = useState<any[]>([]);
 
     // --- STATE: UI ---
     const [isTasksPanelVisible, setIsTasksPanelVisible] = useState(false);
@@ -351,24 +351,24 @@ export default function DailyFollowUp() {
         };
     }, []);
 
-    // Initial Load & React to Organization Change
+    // Initial Load & React to Tenant Change
     useEffect(() => {
         if (!user?.uid) return;
 
         const loadInit = async () => {
-            // Fetch Available Organizations (SuperAdmin Only)
+            // Fetch Available Tenants (SuperAdmin Only)
             if (userRole === 'superadmin') {
                 try {
                     const tSnap = await getDocs(collection(db, "tenants"));
                     const tList = tSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setAvailableOrganizations(tList);
-                } catch (e) { console.log("Organizations fetch skipped", e); }
+                    setAvailableTenants(tList);
+                } catch (e) { console.log("Tenants fetch skipped", e); }
             }
 
             // Load Projects for current context
             try {
-                const targetOrg = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
-                const projs = await getActiveProjects(targetOrg);
+                const targetTenant = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
+                const projs = await getActiveProjects(targetTenant);
                 setGlobalProjects(projs);
             } catch (e) { console.error("Projects Load Error", e); }
 
@@ -396,28 +396,28 @@ export default function DailyFollowUp() {
 
         setLoading(true);
         const dateId = format(dateObj, 'yyyy-MM-dd');
-        const currentOrgId = tenantId || "1";
+        const currentTenantId = tenantId || "1";
 
         // Default Empty State with UNIQUE ID (Format: Org_Date_Timestamp)
         const defaultEntry: DailyStatus = {
-            id: `${currentOrgId}_${dateId}_${Date.now()}`,
+            id: `${currentTenantId}_${dateId}_${Date.now()}`,
             date: dateId,
-            tenantId: currentOrgId,
+            tenantId: currentTenantId,
             projects: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
         try {
-            // SuperAdmin Global View Check (Only if Organization 1 and Role Superadmin)
+            // SuperAdmin Global View Check (Only if Tenant 1 and Role Superadmin)
             const isMasquerading = tenantId && tenantId !== "1";
 
             if (userRole === 'superadmin' && !isMasquerading) {
-                console.log(`[LoadData] Multi-organization view loading...`);
+                console.log(`[LoadData] Multi-tenant view loading...`);
                 const allEntries: any[] = [];
-                const orgsToCheck = availableOrganizations.length > 0 ? availableOrganizations.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
+                const tenantsToCheck = availableTenants.length > 0 ? availableTenants.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
 
-                for (const tid of orgsToCheck) {
+                for (const tid of tenantsToCheck) {
                     const existing = await getDailyStatus(tid, dateId);
                     if (existing) allEntries.push(existing);
                 }
@@ -438,9 +438,9 @@ export default function DailyFollowUp() {
                     setEntry(defaultEntry);
                 }
             } else {
-                // Regular Load (Targeting Specific Organization)
-                console.log(`[DailyFollowUp] Loading Entries for: Organization=${currentOrgId}, Date=${dateId}`);
-                const entries = await getDailyStatusLogsForDate(currentOrgId, dateId);
+                // Regular Load (Targeting Specific Tenant)
+                console.log(`[DailyFollowUp] Loading Entries for: Tenant=${currentTenantId}, Date=${dateId}`);
+                const entries = await getDailyStatusLogsForDate(currentTenantId, dateId);
 
                 if (lastLoadRef.current !== requestId) return;
 
@@ -462,7 +462,7 @@ export default function DailyFollowUp() {
         } finally {
             if (lastLoadRef.current === requestId) setLoading(false);
         }
-    }, [tenantId, userRole, availableOrganizations]);
+    }, [tenantId, userRole, availableTenants]);
 
     useEffect(() => {
         if (loading) return;
@@ -518,39 +518,39 @@ export default function DailyFollowUp() {
         try {
             const activeProjects = entry.projects.filter(p => p.status !== 'trash');
 
-            // Group projects by organization
-            const projectsByOrg = new Map<string, any[]>();
+            // Group projects by tenant
+            const projectsByTenant = new Map<string, any[]>();
 
             for (const project of activeProjects) {
                 const projectInfo = globalProjects.find(gp => gp.name === project.name);
                 // FIX: Use context tenantId as fallback. If masquerading as T4, we save as T4.
-                const projectOrg = projectInfo?.tenantId || tenantId || "1";
+                const projectTenant = projectInfo?.tenantId || tenantId || "1";
 
-                if (!projectsByOrg.has(projectOrg)) {
-                    projectsByOrg.set(projectOrg, []);
+                if (!projectsByTenant.has(projectTenant)) {
+                    projectsByTenant.set(projectTenant, []);
                 }
-                projectsByOrg.get(projectOrg)!.push(project);
+                projectsByTenant.get(projectTenant)!.push(project);
             }
 
-            // If no projects, save to user's organization (active context)
-            if (projectsByOrg.size === 0) {
-                projectsByOrg.set(tenantId || "1", []);
+            // If no projects, save to user's tenant (active context)
+            if (projectsByTenant.size === 0) {
+                projectsByTenant.set(tenantId || "1", []);
             }
 
-            console.log(`[Save] Saving to ${projectsByOrg.size} organization(s):`);
+            console.log(`[Save] Saving to ${projectsByTenant.size} tenant(s):`);
 
-            // Save each organization's portion
-            for (const [targetOrgId, projects] of projectsByOrg.entries()) {
+            // Save each tenant's portion
+            for (const [targetTenantId, projects] of projectsByTenant.entries()) {
                 const toSave = {
                     id: entry.date,
                     date: entry.date,
-                    tenantId: targetOrgId,
+                    tenantId: targetTenantId,
                     projects: projects,
                     generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
                     createdAt: entry.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
-                console.log(`  → Organization ${targetOrgId}: ${projects.length} project(s)`);
+                console.log(`  → Tenant ${targetTenantId}: ${projects.length} project(s)`);
                 await saveDailyStatus(toSave);
             }
 
@@ -566,7 +566,7 @@ export default function DailyFollowUp() {
                 return [{ ...entry, updatedAt: new Date().toISOString() }, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
             });
 
-            showToast("UniTaskController", `Distributed save across ${projectsByOrg.size} organization(s)`, "success");
+            showToast("UniTaskController", `Distributed save across ${projectsByTenant.size} tenant(s)`, "success");
             setIsDirty(false); // [FIX] Only clear dirty flag if save succeeded
         } catch (e) {
             console.error(e);
@@ -649,16 +649,16 @@ export default function DailyFollowUp() {
             // Determine Project ID and Name
             let projectId: string | undefined;
             let projectName: string | undefined;
-            let taskOrgId: string = tenantId || "1"; // Default fallback
+            let taskTenantId: string = tenantId || "1"; // Default fallback
 
             if (activeTab !== 'General') {
                 const project = globalProjects.find(p => p.name === activeTab);
                 if (project) {
                     projectId = project.id;
                     projectName = project.name;
-                    // FIX: Always use the User's Organization ID for creating tasks, even if project is shared/global.
-                    // Strict Multi-Tenancy: I can only create data that belongs to ME/MY ORGANIZATION.
-                    taskOrgId = tenantId || "1";
+                    // FIX: Always use the User's Tenant ID for creating tasks, even if project is shared/global.
+                    // Strict Multi-Tenancy: I can only create data that belongs to ME/MY TENANT.
+                    taskTenantId = tenantId || "1";
                 }
             }
 
@@ -667,7 +667,7 @@ export default function DailyFollowUp() {
                 weekId: entry.date, // Keep Date for legacy weekId
                 relatedDailyStatusId: entry.id, // [FIX] Link to specific entry instance
                 projectId: projectId,
-                tenantId: taskOrgId,
+                tenantId: taskTenantId,
                 title: taskDesc,
                 description: taskDesc,
                 status: 'pending',
@@ -1293,18 +1293,18 @@ export default function DailyFollowUp() {
             onViewChange={setViewMode}
             onOpenChangelog={() => setShowChangelog(true)}
         >
-            {/* Organization Missing Warning Banner */}
+            {/* Tenant Missing Warning Banner */}
             {user && !tenantId && (
                 <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
                     <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
                     <div className="flex-1">
-                        <p className="text-sm font-bold text-amber-400">⚠️ No Organization Assigned</p>
+                        <p className="text-sm font-bold text-amber-400">⚠️ No Tenant Assigned</p>
                         <p className="text-xs text-amber-300/80">
-                            Your account does not have an <strong>Organization</strong> assigned. This may cause permission errors.
-                            Contact an administrator to be assigned to an organization.
+                            Your account does not have a <strong>Tenant</strong> assigned. This may cause permission errors.
+                            Contact an administrator to be assigned to a tenant.
                         </p>
                         <p className="text-[10px] text-amber-500/60 mt-1 font-mono">
-                            UID: {user.uid} | Role: {userRole || 'unknown'} | OrgId: {tenantId || 'null'}
+                            UID: {user.uid} | Role: {userRole || 'unknown'} | TenantId: {tenantId || 'null'}
                         </p>
                     </div>
                 </div>
@@ -2053,7 +2053,7 @@ export default function DailyFollowUp() {
                         <UserManagement />
                     ) : viewMode === 'user-roles' ? (
                         <UserRoleManagement />
-                    ) : viewMode === 'organization-management' ? (
+                    ) : viewMode === 'tenant-management' ? (
                         <TenantManagement />
                     ) : viewMode === 'dashboard' ? (
                         <Dashboard

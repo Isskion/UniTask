@@ -42,10 +42,10 @@ export default async function DailyReportRenderPage({ params, searchParams }: { 
     const snapTasks = await getDocs(qTasks);
     const tasks = snapTasks.docs.map(d => ({ id: d.id, ...d.data() } as Task));
 
-    // Get Organization Name
+    // Get Tenant Name
     const qOrg = query(collection(db, 'tenants'), where('id', '==', tenantId));
     // Assuming custom collection structure -> Fallback
-    const organizationName = tenantId === '1' ? 'UniTask Demo' : (tenantId || 'Organization');
+    const tenantName = tenantId === '1' ? 'UniTask Demo' : (tenantId || 'Tenant');
 
 
     return (
@@ -54,7 +54,7 @@ export default async function DailyReportRenderPage({ params, searchParams }: { 
             dailyStatus={entryData}
             projects={projects}
             tasks={tasks}
-            organizationName={organizationName}
+            tenantName={tenantName}
         />
     );
 }
