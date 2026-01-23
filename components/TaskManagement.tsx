@@ -1042,7 +1042,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                             // Check for @ mentions
                                                             const lastAt = e.target.value.lastIndexOf('@');
                                                             if (lastAt !== -1 && lastAt === e.target.value.length - 1 ||
-                                                                (lastAt !== -1 && e.target.value.substring(lastAt + 1).match(/^\w*$/))) {
+                                                                (lastAt !== -1 && e.target.value.substring(lastAt + 1).match(/^[a-zA-Z0-9_ñÑáéíóúÁÉÍÓÚüÜ.-]*$/))) {
                                                                 setShowMentionSuggestions(true);
                                                                 setMentionSearch(e.target.value.substring(lastAt + 1));
                                                             } else {
@@ -1059,7 +1059,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                             isLight ? "bg-white border-zinc-200" : "bg-popover border-border"
                                                         )}>
                                                             {users
-                                                                .filter(u => u.displayName?.toLowerCase().includes(mentionSearch.toLowerCase()))
+                                                                .filter(u => {
+                                                                    const searchNorm = mentionSearch.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                                                    const nameNorm = (u.displayName || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                                                    return nameNorm.includes(searchNorm);
+                                                                })
                                                                 .slice(0, 5)
                                                                 .map(u => (
                                                                     <button
