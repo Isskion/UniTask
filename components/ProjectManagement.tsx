@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project, Tenant, getRoleLevel, RoleLevel } from "@/types";
+import { Project, Tenant, getRoleLevel, RoleLevel, UserProfile } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -26,6 +26,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     const { can } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
     const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [allUsers, setAllUsers] = useState<UserProfile[]>([]); // NEW: For team avatars
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null); // For assignedProjectIds
 
@@ -69,6 +70,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             loadTenants();
         }
         loadProjects();
+        loadUsers(); // NEW: Load users for team avatars
     }, [user, userRole]);
 
     const loadTenants = async () => {
@@ -77,6 +79,25 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             setTenants(snap.docs.map(d => ({ id: d.id, ...d.data() } as Tenant)));
         } catch (e) {
             console.error("Error loading tenants", e);
+        }
+    };
+
+    // NEW: Load users for displaying team members on project cards
+    const loadUsers = async () => {
+        try {
+            let q;
+            if (userRole === 'superadmin') {
+                q = query(collection(db, "users"));
+            } else if (tenantId) {
+                q = query(collection(db, "users"), where("tenantId", "==", tenantId));
+            } else {
+                return;
+            }
+            const snap = await getDocs(q);
+            const users = snap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile));
+            setAllUsers(users);
+        } catch (e) {
+            console.error("Error loading users for avatars", e);
         }
     };
 
@@ -246,47 +267,91 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                 )}
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                {visibleProjects.map(p => (
-                    <div
-                        key={p.id}
-                        onClick={() => handleSelectProject(p)}
-                        className={cn(
-                            "group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border",
-                            selectedProject?.id === p.id
-                                ? (isLight ? "bg-zinc-200 border-zinc-300 shadow-sm" : "bg-primary/10 border-primary/50")
-                                : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-primary/5 hover:border-primary/10")
-                        )}
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full ring-2 ring-white/10" style={{ backgroundColor: p.color || '#555' }} />
-                            <div>
-                                <div className={cn("text-sm font-bold",
-                                    selectedProject?.id === p.id
-                                        ? (isLight ? "text-foreground" : "text-foreground")
-                                        : (isLight ? "text-zinc-900" : "text-zinc-200 group-hover:text-foreground")
-                                )}>
-                                    {p.name}
-                                </div>
-                                <div className="text-[10px] text-zinc-400 font-mono">{p.code}</div>
-                                {userRole === 'superadmin' && p.tenantId && (
-                                    <div className="text-[9px] text-indigo-400 font-mono mt-0.5">
-                                        🏢 {tenants.find(t => t.id === p.tenantId)?.name || p.tenantId}
+                {visibleProjects.map(p => {
+                    // Get users assigned to this project
+                    const projectTeam = allUsers.filter(u => u.assignedProjectIds?.includes(p.id));
+                    const visibleAvatars = projectTeam.slice(0, 4);
+                    const extraCount = projectTeam.length - 4;
+
+                    return (
+                        <div
+                            key={p.id}
+                            onClick={() => handleSelectProject(p)}
+                            className={cn(
+                                "group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all border",
+                                selectedProject?.id === p.id
+                                    ? (isLight ? "bg-zinc-200 border-zinc-300 shadow-sm" : "bg-primary/10 border-primary/50")
+                                    : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-primary/5 hover:border-primary/10")
+                            )}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full ring-2 ring-white/10" style={{ backgroundColor: p.color || '#555' }} />
+                                <div>
+                                    <div className={cn("text-sm font-bold",
+                                        selectedProject?.id === p.id
+                                            ? (isLight ? "text-foreground" : "text-foreground")
+                                            : (isLight ? "text-zinc-900" : "text-zinc-200 group-hover:text-foreground")
+                                    )}>
+                                        {p.name}
                                     </div>
+                                    <div className="text-[10px] text-zinc-400 font-mono">{p.code}</div>
+                                    {userRole === 'superadmin' && p.tenantId && (
+                                        <div className="text-[9px] text-indigo-400 font-mono mt-0.5">
+                                            🏢 {tenants.find(t => t.id === p.tenantId)?.name || p.tenantId}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* NEW: Stacked Team Avatars */}
+                            <div className="flex items-center gap-2">
+                                {projectTeam.length > 0 && (
+                                    <div className="relative flex items-center group/avatars" title={projectTeam.map(u => u.displayName).join(', ')}>
+                                        {visibleAvatars.map((u, idx) => (
+                                            <div
+                                                key={u.uid}
+                                                className={cn(
+                                                    "w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2 transition-transform hover:scale-110 hover:z-10",
+                                                    isLight
+                                                        ? "bg-zinc-100 text-zinc-600 border-white"
+                                                        : "bg-zinc-800 text-zinc-300 border-zinc-900"
+                                                )}
+                                                style={{ marginLeft: idx > 0 ? '-8px' : '0' }}
+                                                title={u.displayName}
+                                            >
+                                                {u.displayName?.substring(0, 2).toUpperCase() || '??'}
+                                            </div>
+                                        ))}
+                                        {extraCount > 0 && (
+                                            <div
+                                                className={cn(
+                                                    "w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border-2",
+                                                    isLight
+                                                        ? "bg-primary/10 text-primary border-white"
+                                                        : "bg-primary/20 text-primary border-zinc-900"
+                                                )}
+                                                style={{ marginLeft: '-8px' }}
+                                            >
+                                                +{extraCount}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Edit Button: Goes to Settings Tab */}
+                                {canEdit && (
+                                    <button
+                                        onClick={(e) => handleEditClick(p, e)}
+                                        className={cn("opacity-0 group-hover:opacity-100 p-2 rounded-full transition-all", isLight ? "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900" : "hover:bg-white/10 text-zinc-300 hover:text-foreground")}
+                                        title={t('common.edit')}
+                                    >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 )}
                             </div>
                         </div>
-                        {/* Edit Button: Goes to Settings Tab */}
-                        {canEdit && (
-                            <button
-                                onClick={(e) => handleEditClick(p, e)}
-                                className={cn("opacity-0 group-hover:opacity-100 p-2 rounded-full transition-all", isLight ? "text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900" : "hover:bg-white/10 text-zinc-300 hover:text-foreground")}
-                                title={t('common.edit')}
-                            >
-                                <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                        )}
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
