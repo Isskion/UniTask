@@ -1,4 +1,5 @@
-rules_version = '2';
+const fs = require('fs');
+const rules = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
@@ -184,3 +185,6 @@ service cloud.firestore {
     }
   }
 }
+\`;
+fs.writeFileSync('firestore.rules', rules, { encoding: 'utf8' });
+console.log('Successfully written firestore.rules without BOM');

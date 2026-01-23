@@ -19,7 +19,7 @@ export default function FirebaseDiagnostic() {
         setStatus('running');
         setLogs([]);
         setErrorDetails(null);
-        addLog("Iniciando diagnóstico CLIENTE...");
+        addLog("Iniciando diagnóstico MANUAL...");
 
         try {
             // 0. Network Check
@@ -47,7 +47,7 @@ export default function FirebaseDiagnostic() {
                     lastCheck: serverTimestamp(),
                     user: user.email,
                     agent: navigator.userAgent
-                });
+                }, { merge: true });
                 addLog("✅ Escritura EXITOSA.");
 
                 // 3. Test Read
@@ -63,7 +63,7 @@ export default function FirebaseDiagnostic() {
             }
 
             setStatus('success');
-            addLog("🎉 DIAGNÓSTICO CLIENTE FINALIZADO.");
+            addLog("🎉 DIAGNÓSTICO FINALIZADO.");
 
         } catch (err: any) {
             console.error(err);
@@ -72,12 +72,10 @@ export default function FirebaseDiagnostic() {
             setErrorDetails({
                 code: err.code,
                 name: err.name,
-                message: err.message,
-                stack: err.stack
+                message: err.message
             });
         }
     };
-
     const runServerDiagnostic = async () => {
         setServerStatus('running');
         addLog("--- Iniciando diagnóstico SERVIDOR ---");
@@ -237,10 +235,10 @@ export default function FirebaseDiagnostic() {
         <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 items-end">
             {status === 'idle' && (
                 <button
-                    onClick={runDiagnostic}
-                    className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold transition-transform hover:scale-105"
+                    onClick={() => setStatus('running')}
+                    className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg text-sm font-bold transition-transform hover:scale-105 border border-white/10"
                 >
-                    <Activity className="w-4 h-4" /> Diagnosticar Conexión
+                    <Activity className="w-4 h-4" /> Panel de Control Auth
                 </button>
             )}
 
@@ -251,11 +249,37 @@ export default function FirebaseDiagnostic() {
                             {status === 'running' && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
                             {status === 'success' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
                             {status === 'error' && <XCircle className="w-4 h-4 text-red-500" />}
-                            Diagnóstico Firebase
+                            Control de Seguridad
                         </h3>
-                        <div className="flex gap-2">
-                            <button onClick={() => setStatus('idle')} className="text-zinc-500 hover:text-white"><XCircle className="w-5 h-5" /></button>
-                        </div>
+                        <button onClick={() => setStatus('idle')} className="text-zinc-500 hover:text-white"><XCircle className="w-5 h-5" /></button>
+                    </div>
+
+                    {/* TOP ACTION BAR: Always Visible when open */}
+                    <div className="mb-4 space-y-2">
+                        <button
+                            onClick={async () => {
+                                if (!auth.currentUser) return alert("Húmedo! No hay usuario.");
+                                addLog("Forzando refresco de Token...");
+                                try {
+                                    await auth.currentUser.getIdToken(true);
+                                    addLog("✅ Token refrescado. Recargando...");
+                                    alert("✅ Token de Seguridad ACTUALIZADO.\n\nEl navegador ya tiene tus nuevos permisos.\n\nPulsa ACEPTAR para recargar la página.");
+                                    window.location.reload();
+                                } catch (e: any) {
+                                    addLog("❌ Error refrescando: " + e.message);
+                                }
+                            }}
+                            className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-3 rounded-xl text-sm font-bold w-full justify-center shadow-lg animate-pulse"
+                        >
+                            <RefreshCw className="w-4 h-4" /> 1. FORZAR REFRESCO PERMISOS
+                        </button>
+
+                        <button
+                            onClick={runDiagnostic}
+                            className="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-xs font-bold w-full justify-center border border-white/10"
+                        >
+                            <Activity className="w-3.5 h-3.5" /> 2. Ejecutar Tests de Conexión
+                        </button>
                     </div>
 
                     <div className="flex gap-2 mb-4 justify-center border-b border-white/10 pb-4 flex-wrap">

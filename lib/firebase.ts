@@ -43,4 +43,4 @@ if (typeof window !== 'undefined') {
 const storage = getStorage(app);
 const auth = getAuth(app);
 
-export { db, auth, storage };
+export { app, db, auth, storage };

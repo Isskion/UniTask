@@ -49,7 +49,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -139,23 +139,32 @@ export default function DailyFollowUp() {
     // Hydration-safe initial load
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // Load Date
+            console.log("[DailyFollowUp] Starting Hydration...");
+            // 1. Load Date
             const savedDate = localStorage.getItem('daily_current_date');
             if (savedDate) setCurrentDate(new Date(savedDate));
 
-            // Load View Mode
-            const savedView = localStorage.getItem('daily_view_mode');
-            if (savedView === 'dashboard' || savedView === 'projects' || savedView === 'users' || savedView === 'trash' || savedView === 'tasks' || savedView === 'task-manager' || savedView === 'user-roles') {
+            // 2. Load View Mode (Priority: URL > LocalStorage > Default)
+            const urlMode = searchParams.get('mode') as ViewMode;
+            const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor'];
+
+            if (urlMode && allowedViews.includes(urlMode)) {
+                setViewMode(urlMode);
+            } else if (savedView && allowedViews.includes(savedView)) {
                 setViewMode(savedView);
+            } else {
+                setViewMode('editor');
             }
 
-            // Load Active Tab
+            // 3. Load Active Tab
             const savedTab = localStorage.getItem('daily_active_tab');
             if (savedTab && savedTab !== "General") {
                 setActiveTab(savedTab);
             }
 
             setIsHydrated(true);
+            console.log("[DailyFollowUp] Hydration Complete.");
         }
     }, []);
 
@@ -166,11 +175,12 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | null>(null);
 
     // Persist View Mode
     useEffect(() => {
-        if (isHydrated && typeof window !== 'undefined') {
+        if (isHydrated && typeof window !== 'undefined' && viewMode) {
+            console.log("[Persistence] Saving ViewMode to LocalStorage:", viewMode);
             localStorage.setItem('daily_view_mode', viewMode);
         }
     }, [viewMode, isHydrated]);
@@ -418,8 +428,12 @@ export default function DailyFollowUp() {
                 const tenantsToCheck = availableTenants.length > 0 ? availableTenants.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
 
                 for (const tid of tenantsToCheck) {
-                    const existing = await getDailyStatus(tid, dateId);
-                    if (existing) allEntries.push(existing);
+                    try {
+                        const existing = await getDailyStatus(tid, dateId);
+                        if (existing) allEntries.push(existing);
+                    } catch (err: any) {
+                        console.warn(`[LoadData] Skip tenant ${tid} due to permissions/error:`, err.message);
+                    }
                 }
 
                 if (lastLoadRef.current !== requestId) return;
@@ -1143,20 +1157,14 @@ export default function DailyFollowUp() {
         return final;
     };
 
-    // 6. Render
     // --- RENDER BLOCKER ---
-    if (!isHydrated) {
+    if (!isHydrated || authLoading || !viewMode) {
         return (
-            <div className="h-screen bg-[#09090b] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
-            </div>
-        );
-    }
-
-    if (authLoading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-black text-white">
+            <div className="flex h-screen w-full items-center justify-center bg-black text-white flex-col gap-4">
                 <Loader2 className="w-10 h-10 animate-spin text-[#D32F2F]" />
+                <div className="text-[10px] font-mono uppercase tracking-widest animate-pulse opacity-50">
+                    {!isHydrated ? "Sincronizando Interfaz..." : "Verificando Credenciales..."}
+                </div>
             </div>
         );
     }
@@ -1292,849 +1300,848 @@ export default function DailyFollowUp() {
                         Contacta con soporte si no tienes acceso.
                     </p>
                 </div >
-                <FirebaseDiagnostic />
+                {userRole === 'superadmin' && <FirebaseDiagnostic />}
             </div >
         );
     }
 
     return (
-        <AppLayout
-            viewMode={viewMode}
-            onViewChange={setViewMode}
-            onOpenChangelog={() => setShowChangelog(true)}
-        >
-            {/* Tenant Missing Warning Banner */}
-            {user && !tenantId && (
-                <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                    <div className="flex-1">
-                        <p className="text-sm font-bold text-amber-400">⚠️ No Tenant Assigned</p>
-                        <p className="text-xs text-amber-300/80">
-                            Your account does not have a <strong>Tenant</strong> assigned. This may cause permission errors.
-                            Contact an administrator to be assigned to a tenant.
-                        </p>
-                        <p className="text-[10px] text-amber-500/60 mt-1 font-mono">
-                            UID: {user.uid} | Role: {userRole || 'unknown'} | TenantId: {tenantId || 'null'}
-                        </p>
-                    </div>
-                </div>
-            )}
-            <div className="flex h-full gap-6 p-4 pt-2">
-
-                {/* LEFT SIDEBAR: Timeline (Vertical List) */}
-                {viewMode === 'editor' && (
-                    <div className="w-72 flex flex-col gap-3 shrink-0">
-                        <div className="bg-card rounded-xl border border-border p-3 flex flex-col gap-2 h-full">
-                            <div className="flex items-center justify-between px-1 mb-2">
-                                <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Timeline</h3>
-                                <div className="flex items-center gap-2">
-                                    <button onClick={() => setCurrentDate(new Date())} className={cn("text-[10px] font-bold hover:underline", isLight ? "text-red-600" : "text-white")}>HOY</button>
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => (document.getElementById('timeline-date-picker') as HTMLInputElement)?.showPicker()}
-                                            className={cn("transition-colors", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-white hover:text-zinc-300")}
-                                            title="Buscar fecha anterior"
-                                        >
-                                            <CalendarPlus className="w-4 h-4" />
-                                        </button>
-                                        <input
-                                            id="timeline-date-picker"
-                                            type="date"
-                                            className="absolute top-0 right-0 opacity-0 w-0 h-0"
-                                            value={format(currentDate, 'yyyy-MM-dd')}
-                                            onChange={(e) => {
-                                                if (e.target.value) {
-                                                    const [y, m, d] = e.target.value.split('-').map(Number);
-                                                    setCurrentDate(new Date(y, m - 1, d));
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Scrollable Day List */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
-                                {(() => {
-                                    // 1. Collect all relevant dates
-                                    const todayStr = format(new Date(), 'yyyy-MM-dd');
-                                    const currentStr = format(currentDate, 'yyyy-MM-dd');
-
-                                    // Start with days that have data (active + permitted)
-                                    const rawDates = recentEntries
-                                        .filter(e => {
-                                            // 1. Basic Filter
-                                            const hasActiveProjects = e.projects.some(p =>
-                                                p.status !== 'trash' &&
-                                                (!allowedProjectNames || allowedProjectNames.has(p.name))
-                                            );
-                                            if (!hasActiveProjects) return false;
-
-                                            // 2. Search Filter
-                                            if (searchQuery) {
-                                                const lowerQ = searchQuery.toLowerCase();
-                                                if (activeTab === 'General') {
-                                                    return e.generalNotes?.toLowerCase().includes(lowerQ);
-                                                } else {
-                                                    const proj = e.projects.find(p => p.name === activeTab);
-                                                    if (!proj) return false;
-                                                    return proj.blocks?.some(b =>
-                                                        (b.title?.toLowerCase().includes(lowerQ)) ||
-                                                        (b.content?.toLowerCase().includes(lowerQ))
-                                                    ) || false;
-                                                }
-                                            }
-                                            return true;
-                                        })
-                                        .map(e => e.date);
-
-                                    // Add Today and Selected (Active) Day
-                                    rawDates.push(todayStr);
-                                    rawDates.push(currentStr);
-
-                                    // Deduplicate and Sort Descending
-                                    const uniqueDates = Array.from(new Set(rawDates))
-                                        .sort((a, b) => b.localeCompare(a));
-
-                                    return uniqueDates.map(dateStr => {
-                                        // Safe date parsing to avoid timezone issues with 'YYYY-MM-DD'
-                                        const [y, m, d] = dateStr.split('-').map(Number);
-                                        const dateObj = new Date(y, m - 1, d); // Local time construction
-
-                                        const isSelected = dateStr === currentStr;
-                                        const isToday = dateStr === todayStr;
-                                        const dayEntry = recentEntries.find(e => e.date === dateStr);
-                                        const hasData = !!dayEntry && dayEntry.projects.some(p =>
-                                            p.status !== 'trash' &&
-                                            (!allowedProjectNames || allowedProjectNames.has(p.name))
-                                        );
-
-                                        const recordedProjects = (dayEntry?.projects || []).filter(p =>
-                                            p.status !== 'trash' &&
-                                            (!allowedProjectNames || allowedProjectNames.has(p.name))
-                                        );
-
-                                        return (
-                                            <button
-                                                key={dateStr}
-                                                onClick={() => setCurrentDate(dateObj)}
-                                                className={cn(
-                                                    "w-full flex items-center gap-3 p-2.5 rounded-lg transition-all border text-left group relative",
-                                                    isSelected
-                                                        ? "bg-primary/10 text-primary-foreground shadow-sm border-primary/50 ring-1 ring-primary/20"
-                                                        : hasData
-                                                            ? "bg-muted/50 border-transparent hover:bg-muted text-foreground"
-                                                            : "bg-transparent border-transparent hover:bg-muted/30 text-muted-foreground opacity-70 hover:opacity-100"
-                                                )}
-                                            >
-                                                {/* Day Number */}
-                                                <div className={cn(
-                                                    "flex flex-col items-center justify-center w-9 h-9 rounded-md font-mono leading-none shrink-0 transition-colors",
-                                                    isSelected ? "bg-indigo-600 text-white font-bold" :
-                                                        isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" :
-                                                            (isLight ? "bg-zinc-200 text-zinc-900 font-bold" : "bg-white/10 text-white font-bold")
-                                                )}>
-                                                    <span className="text-sm">{format(dateObj, 'd')}</span>
-                                                </div>
-
-                                                {/* Date Info */}
-                                                <div className="flex-1 min-w-0 flex flex-col justify-center h-full">
-                                                    <div className="flex justify-between items-baseline">
-                                                        <span className={cn("text-xs font-medium uppercase tracking-wide",
-                                                            isSelected
-                                                                ? "text-primary-foreground font-bold"
-                                                                : (isLight ? "text-zinc-700 group-hover:text-zinc-900" : "text-zinc-100 group-hover:text-white")
-                                                        )}>
-                                                            {format(dateObj, 'MMMM', { locale: currentLocale })}
-                                                        </span>
-                                                        <span className={cn("text-[9px]",
-                                                            isSelected
-                                                                ? "text-primary-foreground/80"
-                                                                : (isLight ? "text-zinc-500" : "text-white")
-                                                        )}>{format(dateObj, 'EEE', { locale: currentLocale })}</span>
-                                                    </div>
-
-                                                    {/* Dots / Indicators */}
-                                                    {hasData && (
-                                                        <div className="flex items-center gap-1 mt-1.5 overflow-hidden h-2">
-                                                            {recordedProjects.length > 0 ? (
-                                                                <div className="flex gap-1">
-                                                                    {recordedProjects.slice(0, 5).map((p, idx) => {
-                                                                        const color = globalProjects.find(gp => gp.name === p.name)?.color || '#10b981';
-                                                                        return (
-                                                                            <div key={idx} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} title={p.name} />
-                                                                        );
-                                                                    })}
-                                                                    {recordedProjects.length > 5 && <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-zinc-600/50" title="Solo notas generales" />
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    });
-                                })()}
-                            </div>
+        <>
+            <AppLayout
+                viewMode={viewMode}
+                onViewChange={setViewMode}
+                onOpenChangelog={() => setShowChangelog(true)}
+            >
+                {/* Tenant Missing Warning Banner */}
+                {user && !tenantId && (
+                    <div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 px-4 py-3 mx-4 mt-2 rounded-lg flex items-center gap-3 animate-in fade-in">
+                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-amber-400">⚠️ No Tenant Assigned</p>
+                            <p className="text-xs text-amber-300/80">
+                                Your account does not have a <strong>Tenant</strong> assigned. This may cause permission errors.
+                                Contact an administrator to be assigned to a tenant.
+                            </p>
+                            <p className="text-[10px] text-amber-500/60 mt-1 font-mono">
+                                UID: {user.uid} | Role: {userRole || 'unknown'} | TenantId: {tenantId || 'null'}
+                            </p>
                         </div>
                     </div>
                 )}
+                <div className="flex h-full gap-6 p-4 pt-2">
 
-                {/* MAIN EDITOR */}
-                <div className="flex-1 flex flex-col min-w-0 h-full relative bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-                    {viewMode === 'editor' ? (
-                        <div className="h-full flex flex-col">
-                            {/* Header */}
-                            <div className={cn("h-14 border-b flex items-center justify-between px-6 transition-colors",
-                                isLight
-                                    ? "bg-zinc-50 border-zinc-200"
-                                    : "bg-white/5 border-white/5"
-                            )}>
-                                <div className="flex items-center gap-4">
-                                    <h2 className={cn("text-lg font-medium flex items-center gap-3", isLight ? "text-zinc-900" : "text-white")}>
-                                        <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
-                                        <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: currentLocale })}</span>
-                                    </h2>
-
-                                    {/* SEARCH BAR REMOVED */}
-
-                                    {userRole === 'superadmin' && (
-                                        <button
-                                            onClick={async () => {
-                                                try {
-                                                    const tid = tenantId || "1";
-                                                    const did = format(currentDate, 'yyyy-MM-dd');
-                                                    const target = `${tid}_${did}`;
-                                                    alert(`Attempting read: ${target}`);
-                                                    const snap = await getDoc(doc(db, "journal_entries", target));
-                                                    alert(`Result: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
-                                                } catch (e: any) {
-                                                    alert(`Error Lectura: ${e.message} code=${e.code}`);
-                                                }
-                                            }}
-                                            className="ml-4 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded"
-                                        >
-                                            TEST READ
-                                        </button>
-                                    )}
-                                    {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
-                                </div>
-                                <div className="flex items-center gap-2">
+                    {/* LEFT SIDEBAR: Timeline (Vertical List) */}
+                    {viewMode === 'editor' && (
+                        <div className="w-72 flex flex-col gap-3 shrink-0">
+                            <div className="bg-card rounded-xl border border-border p-3 flex flex-col gap-2 h-full">
+                                <div className="flex items-center justify-between px-1 mb-2">
+                                    <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Timeline</h3>
                                     <div className="flex items-center gap-2">
-                                        {/* --- HEADER ACTIONS --- */}
-
-                                        {/* 1. TASKS TOGGLE */}
-                                        <button
-                                            onClick={() => setIsTasksPanelVisible(!isTasksPanelVisible)}
-                                            className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
-                                                isLight
-                                                    ? (isTasksPanelVisible
-                                                        ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200"
-                                                        : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100")
-                                                    : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
-                                            )}
-                                            title={isTasksPanelVisible ? t('follow_up.hide_tasks') : t('follow_up.view_tasks')}
-                                        >
-                                            <ListTodo className="w-3 h-3" />
-                                            {isTasksPanelVisible ? t('follow_up.hide') : t('follow_up.tasks')}
-                                        </button>
-
-                                        {/* 2. SCAN PDF */}
-                                        <div>
+                                        <button onClick={() => setCurrentDate(new Date())} className={cn("text-[10px] font-bold hover:underline", isLight ? "text-red-600" : "text-white")}>HOY</button>
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => (document.getElementById('timeline-date-picker') as HTMLInputElement)?.showPicker()}
+                                                className={cn("transition-colors", isLight ? "text-zinc-600 hover:text-zinc-900" : "text-white hover:text-zinc-300")}
+                                                title="Buscar fecha anterior"
+                                            >
+                                                <CalendarPlus className="w-4 h-4" />
+                                            </button>
                                             <input
-                                                type="file"
-                                                accept="application/pdf"
-                                                className="hidden"
-                                                id="daily-pdf-scan-header"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
-                                                    setSaving(true);
-                                                    showToast("UniTask AI", "Leyendo documento...", "info");
-                                                    try {
-                                                        const reader = new FileReader();
-                                                        reader.onload = async () => {
-                                                            const base64String = (reader.result as string).split(',')[1];
-
-                                                            // [FIX] Add Auth Token
-                                                            const token = await user?.getIdToken();
-                                                            if (!token) {
-                                                                showToast("Error", "Not authenticated", "error");
-                                                                setSaving(false);
-                                                                return;
-                                                            }
-
-                                                            const res = await fetch('/api/analyze-pdf', {
-                                                                method: 'POST',
-                                                                headers: {
-                                                                    'Content-Type': 'application/json',
-                                                                    'Authorization': `Bearer ${token}`
-                                                                },
-                                                                body: JSON.stringify({ base64Data: base64String })
-                                                            });
-                                                            const json = await res.json();
-
-                                                            if (json.success && json.data) {
-                                                                const { title, description, action_items, endDate, full_content } = json.data;
-                                                                const md = `\n\n### 📄 ${title || 'Scanned Document'}\n\n${full_content || '(No text could be extracted)'}\n`;
-
-                                                                if (activeTab === 'General') {
-                                                                    setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
-                                                                } else {
-                                                                    const newBlock: ContentBlock = {
-                                                                        id: crypto.randomUUID(),
-                                                                        title: title || "PDF Summary",
-                                                                        content: md,
-                                                                        type: 'notes'
-                                                                    };
-                                                                    setEntry(prev => {
-                                                                        const exists = prev.projects.some(p => p.name === activeTab);
-                                                                        if (exists) {
-                                                                            return {
-                                                                                ...prev,
-                                                                                projects: prev.projects.map(p =>
-                                                                                    p.name === activeTab
-                                                                                        ? { ...p, blocks: [...(p.blocks || []), newBlock] }
-                                                                                        : p
-                                                                                )
-                                                                            };
-                                                                        } else {
-                                                                            // Create new project entry if it doesn't exist for this day
-                                                                            const gp = globalProjects.find(g => g.name === activeTab);
-                                                                            return {
-                                                                                ...prev,
-                                                                                projects: [...prev.projects, {
-                                                                                    name: activeTab,
-                                                                                    projectId: gp?.id || "",
-                                                                                    pmNotes: "",
-                                                                                    conclusions: "",
-                                                                                    nextSteps: "",
-                                                                                    blocks: [newBlock],
-                                                                                    status: 'active'
-                                                                                }]
-                                                                            };
-                                                                        }
-                                                                    });
-                                                                    setIsDirty(true); // Mark state as dirty after scan results arrive
-                                                                }
-                                                                setAiSummary(description || "Sin resumen disponible");
-                                                                setAiSuggestions(action_items || []);
-                                                                setIsTasksPanelVisible(true); // Auto-open panel
-                                                                showToast("UniTask AI", "Documento leído.", "success");
-                                                            } else {
-                                                                console.error(json);
-                                                                showToast("Error", `Fallo al procesar: ${json.error}`, "error");
-                                                            }
-                                                            setSaving(false);
-                                                        };
-
-
-                                                        reader.readAsDataURL(file);
-                                                    } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
-                                                    e.target.value = "";
+                                                id="timeline-date-picker"
+                                                type="date"
+                                                className="absolute top-0 right-0 opacity-0 w-0 h-0"
+                                                value={format(currentDate, 'yyyy-MM-dd')}
+                                                onChange={(e) => {
+                                                    if (e.target.value) {
+                                                        const [y, m, d] = e.target.value.split('-').map(Number);
+                                                        setCurrentDate(new Date(y, m - 1, d));
+                                                    }
                                                 }}
                                             />
-                                            <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title={t('follow_up.scan_pdf')}>
-                                                <Sparkles className="w-3 h-3" /> {t('follow_up.scan')}
-                                            </label>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {/* 3. MOVE (PM+ only) */}
-                                        {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
+                                {/* Scrollable Day List */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-1">
+                                    {(() => {
+                                        // 1. Collect all relevant dates
+                                        const todayStr = format(new Date(), 'yyyy-MM-dd');
+                                        const currentStr = format(currentDate, 'yyyy-MM-dd');
+
+                                        // Start with days that have data (active + permitted)
+                                        const rawDates = recentEntries
+                                            .filter(e => {
+                                                // 1. Basic Filter
+                                                const hasActiveProjects = e.projects.some(p =>
+                                                    p.status !== 'trash' &&
+                                                    (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                                );
+                                                if (!hasActiveProjects) return false;
+
+                                                // 2. Search Filter
+                                                if (searchQuery) {
+                                                    const lowerQ = searchQuery.toLowerCase();
+                                                    if (activeTab === 'General') {
+                                                        return e.generalNotes?.toLowerCase().includes(lowerQ);
+                                                    } else {
+                                                        const proj = e.projects.find(p => p.name === activeTab);
+                                                        if (!proj) return false;
+                                                        return proj.blocks?.some(b =>
+                                                            (b.title?.toLowerCase().includes(lowerQ)) ||
+                                                            (b.content?.toLowerCase().includes(lowerQ))
+                                                        ) || false;
+                                                    }
+                                                }
+                                                return true;
+                                            })
+                                            .map(e => e.date);
+
+                                        // Add Today and Selected (Active) Day
+                                        rawDates.push(todayStr);
+                                        rawDates.push(currentStr);
+
+                                        // Deduplicate and Sort Descending
+                                        const uniqueDates = Array.from(new Set(rawDates))
+                                            .sort((a, b) => b.localeCompare(a));
+
+                                        return uniqueDates.map(dateStr => {
+                                            // Safe date parsing to avoid timezone issues with 'YYYY-MM-DD'
+                                            const [y, m, d] = dateStr.split('-').map(Number);
+                                            const dateObj = new Date(y, m - 1, d); // Local time construction
+
+                                            const isSelected = dateStr === currentStr;
+                                            const isToday = dateStr === todayStr;
+                                            const dayEntry = recentEntries.find(e => e.date === dateStr);
+                                            const hasData = !!dayEntry && dayEntry.projects.some(p =>
+                                                p.status !== 'trash' &&
+                                                (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                            );
+
+                                            const recordedProjects = (dayEntry?.projects || []).filter(p =>
+                                                p.status !== 'trash' &&
+                                                (!allowedProjectNames || allowedProjectNames.has(p.name))
+                                            );
+
+                                            return (
+                                                <button
+                                                    key={dateStr}
+                                                    onClick={() => setCurrentDate(dateObj)}
+                                                    className={cn(
+                                                        "w-full flex items-center gap-3 p-2.5 rounded-lg transition-all border text-left group relative",
+                                                        isSelected
+                                                            ? "bg-primary/10 text-primary-foreground shadow-sm border-primary/50 ring-1 ring-primary/20"
+                                                            : hasData
+                                                                ? "bg-muted/50 border-transparent hover:bg-muted text-foreground"
+                                                                : "bg-transparent border-transparent hover:bg-muted/30 text-muted-foreground opacity-70 hover:opacity-100"
+                                                    )}
+                                                >
+                                                    {/* Day Number */}
+                                                    <div className={cn(
+                                                        "flex flex-col items-center justify-center w-9 h-9 rounded-md font-mono leading-none shrink-0 transition-colors",
+                                                        isSelected ? "bg-indigo-600 text-white font-bold" :
+                                                            isToday ? "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20" :
+                                                                (isLight ? "bg-zinc-200 text-zinc-900 font-bold" : "bg-white/10 text-white font-bold")
+                                                    )}>
+                                                        <span className="text-sm">{format(dateObj, 'd')}</span>
+                                                    </div>
+
+                                                    {/* Date Info */}
+                                                    <div className="flex-1 min-w-0 flex flex-col justify-center h-full">
+                                                        <div className="flex justify-between items-baseline">
+                                                            <span className={cn("text-xs font-medium uppercase tracking-wide",
+                                                                isSelected
+                                                                    ? "text-primary-foreground font-bold"
+                                                                    : (isLight ? "text-zinc-700 group-hover:text-zinc-900" : "text-zinc-100 group-hover:text-white")
+                                                            )}>
+                                                                {format(dateObj, 'MMMM', { locale: currentLocale })}
+                                                            </span>
+                                                            <span className={cn("text-[9px]",
+                                                                isSelected
+                                                                    ? "text-primary-foreground/80"
+                                                                    : (isLight ? "text-zinc-500" : "text-white")
+                                                            )}>{format(dateObj, 'EEE', { locale: currentLocale })}</span>
+                                                        </div>
+
+                                                        {/* Dots / Indicators */}
+                                                        {hasData && (
+                                                            <div className="flex items-center gap-1 mt-1.5 overflow-hidden h-2">
+                                                                {recordedProjects.length > 0 ? (
+                                                                    <div className="flex gap-1">
+                                                                        {recordedProjects.slice(0, 5).map((p, idx) => {
+                                                                            const color = globalProjects.find(gp => gp.name === p.name)?.color || '#10b981';
+                                                                            return (
+                                                                                <div key={idx} className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} title={p.name} />
+                                                                            );
+                                                                        })}
+                                                                        {recordedProjects.length > 5 && <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-600/50" title="Solo notas generales" />
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MAIN EDITOR */}
+                    <div className="flex-1 flex flex-col min-w-0 h-full relative bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+                        {viewMode === 'editor' ? (
+                            <div className="h-full flex flex-col">
+                                {/* Header */}
+                                <div className={cn("h-14 border-b flex items-center justify-between px-6 transition-colors",
+                                    isLight
+                                        ? "bg-zinc-50 border-zinc-200"
+                                        : "bg-white/5 border-white/5"
+                                )}>
+                                    <div className="flex items-center gap-4">
+                                        <h2 className={cn("text-lg font-medium flex items-center gap-3", isLight ? "text-zinc-900" : "text-white")}>
+                                            <Calendar className={cn("w-5 h-5", isLight ? "text-red-600" : "text-white")} />
+                                            <span className="capitalize">{format(currentDate, "EEEE, d 'de' MMMM", { locale: currentLocale })}</span>
+                                        </h2>
+
+                                        {/* SEARCH BAR REMOVED */}
+
+                                        {userRole === 'superadmin' && (
                                             <button
-                                                onClick={handleInitMove}
+                                                onClick={async () => {
+                                                    try {
+                                                        const tid = tenantId || "1";
+                                                        const did = format(currentDate, 'yyyy-MM-dd');
+                                                        const target = `${tid}_${did}`;
+                                                        alert(`Attempting read: ${target}`);
+                                                        const snap = await getDoc(doc(db, "journal_entries", target));
+                                                        alert(`Result: Exists=${snap.exists()}, Data=${JSON.stringify(snap.data())}`);
+                                                    } catch (e: any) {
+                                                        alert(`Error Lectura: ${e.message} code=${e.code}`);
+                                                    }
+                                                }}
+                                                className="ml-4 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded"
+                                            >
+                                                TEST READ
+                                            </button>
+                                        )}
+                                        {loading && <Loader2 className={cn("w-4 h-4 animate-spin", isLight ? "text-zinc-400" : "text-zinc-500")} />}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            {/* --- HEADER ACTIONS --- */}
+
+                                            {/* 1. TASKS TOGGLE */}
+                                            <button
+                                                onClick={() => setIsTasksPanelVisible(!isTasksPanelVisible)}
                                                 className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
                                                     isLight
-                                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
-                                                        : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                                        ? (isTasksPanelVisible
+                                                            ? "bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-200"
+                                                            : "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100")
+                                                        : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
                                                 )}
-                                                title={t('follow_up.move_notes')}
+                                                title={isTasksPanelVisible ? t('follow_up.hide_tasks') : t('follow_up.view_tasks')}
                                             >
-                                                <ArrowRight className="w-3 h-3" />
-                                                {t('follow_up.move')}
+                                                <ListTodo className="w-3 h-3" />
+                                                {isTasksPanelVisible ? t('follow_up.hide') : t('follow_up.tasks')}
+                                            </button>
+
+                                            {/* 2. SCAN PDF */}
+                                            <div>
+                                                <input
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    className="hidden"
+                                                    id="daily-pdf-scan-header"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setSaving(true);
+                                                        showToast("UniTask AI", "Leyendo documento...", "info");
+                                                        try {
+                                                            const reader = new FileReader();
+                                                            reader.onload = async () => {
+                                                                const base64String = (reader.result as string).split(',')[1];
+
+                                                                // [FIX] Add Auth Token
+                                                                const token = await user?.getIdToken();
+                                                                if (!token) {
+                                                                    showToast("Error", "Not authenticated", "error");
+                                                                    setSaving(false);
+                                                                    return;
+                                                                }
+
+                                                                const res = await fetch('/api/analyze-pdf', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'Authorization': `Bearer ${token}`
+                                                                    },
+                                                                    body: JSON.stringify({ base64Data: base64String })
+                                                                });
+                                                                const json = await res.json();
+
+                                                                if (json.success && json.data) {
+                                                                    const { title, description, action_items, endDate, full_content } = json.data;
+                                                                    const md = `\n\n### 📄 ${title || 'Scanned Document'}\n\n${full_content || '(No text could be extracted)'}\n`;
+
+                                                                    if (activeTab === 'General') {
+                                                                        setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
+                                                                    } else {
+                                                                        const newBlock: ContentBlock = {
+                                                                            id: crypto.randomUUID(),
+                                                                            title: title || "PDF Summary",
+                                                                            content: md,
+                                                                            type: 'notes'
+                                                                        };
+                                                                        setEntry(prev => {
+                                                                            const exists = prev.projects.some(p => p.name === activeTab);
+                                                                            if (exists) {
+                                                                                return {
+                                                                                    ...prev,
+                                                                                    projects: prev.projects.map(p =>
+                                                                                        p.name === activeTab
+                                                                                            ? { ...p, blocks: [...(p.blocks || []), newBlock] }
+                                                                                            : p
+                                                                                    )
+                                                                                };
+                                                                            } else {
+                                                                                // Create new project entry if it doesn't exist for this day
+                                                                                const gp = globalProjects.find(g => g.name === activeTab);
+                                                                                return {
+                                                                                    ...prev,
+                                                                                    projects: [...prev.projects, {
+                                                                                        name: activeTab,
+                                                                                        projectId: gp?.id || "",
+                                                                                        pmNotes: "",
+                                                                                        conclusions: "",
+                                                                                        nextSteps: "",
+                                                                                        blocks: [newBlock],
+                                                                                        status: 'active'
+                                                                                    }]
+                                                                                };
+                                                                            }
+                                                                        });
+                                                                        setIsDirty(true); // Mark state as dirty after scan results arrive
+                                                                    }
+                                                                    setAiSummary(description || "Sin resumen disponible");
+                                                                    setAiSuggestions(action_items || []);
+                                                                    setIsTasksPanelVisible(true); // Auto-open panel
+                                                                    showToast("UniTask AI", "Documento leído.", "success");
+                                                                } else {
+                                                                    console.error(json);
+                                                                    showToast("Error", `Fallo al procesar: ${json.error}`, "error");
+                                                                }
+                                                                setSaving(false);
+                                                            };
+
+
+                                                            reader.readAsDataURL(file);
+                                                        } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
+                                                        e.target.value = "";
+                                                    }}
+                                                />
+                                                <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title={t('follow_up.scan_pdf')}>
+                                                    <Sparkles className="w-3 h-3" /> {t('follow_up.scan')}
+                                                </label>
+                                            </div>
+
+                                            {/* 3. MOVE (PM+ only) */}
+                                            {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
+                                                <button
+                                                    onClick={handleInitMove}
+                                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                        isLight
+                                                            ? "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100"
+                                                            : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20"
+                                                    )}
+                                                    title={t('follow_up.move_notes')}
+                                                >
+                                                    <ArrowRight className="w-3 h-3" />
+                                                    {t('follow_up.move')}
+                                                </button>
+                                            )}
+
+                                            <div className="w-px h-6 bg-border mx-1" />
+
+                                            {/* 4. SAVE (Unified Style) */}
+                                            <button
+                                                onClick={handleSave}
+                                                disabled={saving}
+                                                className={cn("flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                    isLight
+                                                        ? "bg-zinc-900 text-white border-zinc-900 hover:bg-black hover:scale-105 active:scale-95"
+                                                        : "bg-white text-black border-white hover:bg-zinc-200 hover:scale-105 active:scale-95"
+                                                )}
+                                            >
+                                                {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                                {t('common.save')}
+                                            </button>
+
+                                            {isDirty && (
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ml-1" title="Cambios sin guardar" />
+                                            )}
+
+                                            <button
+                                                onClick={() => {
+                                                    window.onbeforeunload = null;
+                                                    showToast("Debug", "Warning Disabled", "info");
+                                                }}
+                                                className="w-1.5 h-1.5 rounded-full bg-red-900/10 hover:bg-red-500 transition-colors ml-1"
+                                                title="Debug: Kill Warning"
+                                            />
+
+                                            {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
+                                            {/* Add Project Button State */}
+                                            {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Tabs */}
+                                <div className={cn("flex items-center gap-1 p-2 border-b overflow-visible relative z-40 transition-colors",
+                                    isLight ? "bg-white border-zinc-200" : "bg-muted/20 border-border"
+                                )}>
+                                    {getVisibleProjects().map(p => {
+                                        const gp = globalProjects.find(g => g.name === p.name);
+                                        return (
+                                            <button
+                                                key={p.name}
+                                                onClick={() => setActiveTab(p.name)}
+                                                className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
+                                                    activeTab === p.name
+                                                        ? (isLight
+                                                            ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
+                                                            : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
+                                                        : (isLight
+                                                            ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                                                            : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
+                                                )}
+                                            >
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
+                                                {p.name || "Sin Nombre"}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <div className="relative ml-2 z-50">
+                                        {userRole === 'superadmin' && (
+                                            <button
+                                                onClick={handlePrint}
+                                                disabled={isGeneratingPDF}
+                                                className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all mr-2",
+                                                    isLight
+                                                        ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900"
+                                                        : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
+                                                )}>
+                                                {isGeneratingPDF ? (
+                                                    <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                    <Printer className="w-3.5 h-3.5" />
+                                                )}
+                                                {isGeneratingPDF ? t('follow_up.generating') : t('follow_up.print')}
                                             </button>
                                         )}
 
-                                        <div className="w-px h-6 bg-border mx-1" />
-
-                                        {/* 4. SAVE (Unified Style) */}
                                         <button
-                                            onClick={handleSave}
-                                            disabled={saving}
-                                            className={cn("flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                            onClick={() => setIsAddProjectOpen(!isAddProjectOpen)}
+                                            className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
                                                 isLight
-                                                    ? "bg-zinc-900 text-white border-zinc-900 hover:bg-black hover:scale-105 active:scale-95"
-                                                    : "bg-white text-black border-white hover:bg-zinc-200 hover:scale-105 active:scale-95"
-                                            )}
-                                        >
-                                            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                            {t('common.save')}
-                                        </button>
-
-                                        {isDirty && (
-                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ml-1" title="Cambios sin guardar" />
-                                        )}
-
-                                        <button
-                                            onClick={() => {
-                                                window.onbeforeunload = null;
-                                                showToast("Debug", "Warning Disabled", "info");
-                                            }}
-                                            className="w-1.5 h-1.5 rounded-full bg-red-900/10 hover:bg-red-500 transition-colors ml-1"
-                                            title="Debug: Kill Warning"
-                                        />
-
-                                        {/* DIAGNOSTIC BUTTON REMOVED */}{" "}
-                                        {/* Add Project Button State */}
-                                        {/* We need a local state for the dropdown, but we are in a map... wait, this is the header, outside map */}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tabs */}
-                            <div className={cn("flex items-center gap-1 p-2 border-b overflow-visible relative z-40 transition-colors",
-                                isLight ? "bg-white border-zinc-200" : "bg-muted/20 border-border"
-                            )}>
-                                {getVisibleProjects().map(p => {
-                                    const gp = globalProjects.find(g => g.name === p.name);
-                                    return (
-                                        <button
-                                            key={p.name}
-                                            onClick={() => setActiveTab(p.name)}
-                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
-                                                activeTab === p.name
-                                                    ? (isLight
-                                                        ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
-                                                        : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
-                                                    : (isLight
-                                                        ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                                                        : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
-                                            )}
-                                        >
-                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
-                                            {p.name || "Sin Nombre"}
-                                        </button>
-                                    );
-                                })}
-
-                                <div className="relative ml-2 z-50">
-                                    {userRole === 'superadmin' && (
-                                        <button
-                                            onClick={handlePrint}
-                                            disabled={isGeneratingPDF}
-                                            className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all mr-2",
-                                                isLight
-                                                    ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900"
+                                                    ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
                                                     : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
                                             )}>
-                                            {isGeneratingPDF ? (
-                                                <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <Printer className="w-3.5 h-3.5" />
-                                            )}
-                                            {isGeneratingPDF ? t('follow_up.generating') : t('follow_up.print')}
+                                            <Plus className="w-3.5 h-3.5" /> {t('follow_up.add_project')}
                                         </button>
-                                    )}
 
-                                    <button
-                                        onClick={() => setIsAddProjectOpen(!isAddProjectOpen)}
-                                        className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all",
-                                            isLight
-                                                ? "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 hover:border-zinc-300"
-                                                : "bg-zinc-800 text-zinc-300 border-zinc-700/50 hover:bg-zinc-700 hover:text-white"
-                                        )}>
-                                        <Plus className="w-3.5 h-3.5" /> {t('follow_up.add_project')}
-                                    </button>
-
-                                    {isAddProjectOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-40" onClick={() => setIsAddProjectOpen(false)} />
-                                            <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-zinc-800 rounded-xl shadow-2xl p-2 max-h-64 overflow-y-auto custom-scrollbar z-50 ring-1 ring-white/10">
-                                                <div className="text-[10px] font-bold text-muted-foreground px-2 py-1 uppercase">Disponibles ({getAvailableProjectsToAdd().length})</div>
-                                                {getAvailableProjectsToAdd().map(gp => (
-                                                    <button
-                                                        key={gp.id}
-                                                        onClick={() => {
-                                                            addProject(gp);
-                                                            setIsAddProjectOpen(false);
-                                                        }}
-                                                        className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors"
-                                                    >
-                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp.color || '#71717a' }} />
-                                                        {gp.name}
-                                                    </button>
-                                                ))}
-                                                {getAvailableProjectsToAdd().length === 0 && (
-                                                    <div className="text-xs text-zinc-500 px-2 py-2 italic text-center">No hay más proyectos disponibles</div>
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
+                                        {isAddProjectOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => setIsAddProjectOpen(false)} />
+                                                <div className="absolute top-full left-0 mt-1 w-64 bg-[#18181b] border border-zinc-800 rounded-xl shadow-2xl p-2 max-h-64 overflow-y-auto custom-scrollbar z-50 ring-1 ring-white/10">
+                                                    <div className="text-[10px] font-bold text-muted-foreground px-2 py-1 uppercase">Disponibles ({getAvailableProjectsToAdd().length})</div>
+                                                    {getAvailableProjectsToAdd().map(gp => (
+                                                        <button
+                                                            key={gp.id}
+                                                            onClick={() => {
+                                                                addProject(gp);
+                                                                setIsAddProjectOpen(false);
+                                                            }}
+                                                            className="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/10 rounded-lg flex items-center gap-2 transition-colors"
+                                                        >
+                                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp.color || '#71717a' }} />
+                                                            {gp.name}
+                                                        </button>
+                                                    ))}
+                                                    {getAvailableProjectsToAdd().length === 0 && (
+                                                        <div className="text-xs text-zinc-500 px-2 py-2 italic text-center">No hay más proyectos disponibles</div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Content Editor */}
-                            <div className="flex-1 p-6 overflow-y-auto mb-10 relative z-0">
-                                <div className={cn("grid gap-6 h-full transition-all duration-300",
-                                    isTasksPanelVisible ? "grid-cols-1 lg:grid-cols-[1.5fr_1fr]" : "grid-cols-1"
-                                )}>
-                                    {/* Left: PM Notes (Blocks) */}
-                                    <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
-                                        <div className="flex justify-between items-center w-full mb-2">
-                                            <div className="flex items-center gap-3">
-                                                <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
-                                                    <PenSquare className="w-3 h-3" />
-                                                    {activeTab === 'General'
-                                                        ? t('follow_up.general_notes')
-                                                        : `${t('follow_up.minute')}: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
-                                                    }
-                                                </label>
+                                {/* Content Editor */}
+                                <div className="flex-1 p-6 overflow-y-auto mb-10 relative z-0">
+                                    <div className={cn("grid gap-6 h-full transition-all duration-300",
+                                        isTasksPanelVisible ? "grid-cols-1 lg:grid-cols-[1.5fr_1fr]" : "grid-cols-1"
+                                    )}>
+                                        {/* Left: PM Notes (Blocks) */}
+                                        <div className="flex flex-col gap-4 h-full pr-2 overflow-y-auto custom-scrollbar">
+                                            <div className="flex justify-between items-center w-full mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <label className={cn("text-xs font-bold uppercase flex items-center gap-2 shrink-0", isLight ? "text-zinc-900" : "text-white")}>
+                                                        <PenSquare className="w-3 h-3" />
+                                                        {activeTab === 'General'
+                                                            ? t('follow_up.general_notes')
+                                                            : `${t('follow_up.minute')}: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
+                                                        }
+                                                    </label>
+                                                </div>
                                             </div>
-                                        </div>
 
 
 
-                                        {activeTab === 'General' ? (
-                                            <textarea
-                                                value={getCurrentData().pmNotes}
-                                                onChange={(e) => updateCurrentData("generalNotes", e.target.value)}
-                                                className={cn("flex-1 border rounded-xl p-4 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 resize-none leading-relaxed custom-scrollbar min-h-[300px]",
-                                                    isLight
-                                                        ? "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
-                                                        : "bg-white/5 border-white/10 text-zinc-200 placeholder:text-zinc-500"
-                                                )}
-                                                placeholder={t('follow_up.today_summary')}
-                                            />
-                                        ) : (
-                                            <div className="flex-1 flex flex-col gap-4 min-h-0">
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
-                                                    {getProjectBlocks(activeTab).map((block, idx) => (
-                                                        <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-all duration-300",
-                                                            isLight
-                                                                ? "bg-white border-zinc-200 hover:border-zinc-300"
-                                                                : "bg-white/5 border-white/10 hover:border-white/20",
-                                                            block.isCollapsed ? "h-fit bg-zinc-500/5 opacity-60" : "flex-1 min-h-[250px] shadow-sm"
-                                                        )}>
-                                                            <div className="flex items-center gap-2">
-                                                                <button
-                                                                    onClick={() => handleToggleBlockCollapse(activeTab, block.id)}
-                                                                    className={cn("p-1 rounded-md transition-transform duration-200", isLight ? "hover:bg-zinc-100" : "hover:bg-white/10", block.isCollapsed ? "-rotate-90" : "rotate-0")}
-                                                                >
-                                                                    <ChevronDown className="w-4 h-4 text-zinc-400" />
-                                                                </button>
-                                                                <input
-                                                                    className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
-                                                                    value={block.title || `Bloque ${idx + 1}`}
-                                                                    onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
-                                                                    placeholder={t('follow_up.block_title_placeholder')}
-                                                                />
+                                            {activeTab === 'General' ? (
+                                                <textarea
+                                                    value={getCurrentData().pmNotes}
+                                                    onChange={(e) => updateCurrentData("generalNotes", e.target.value)}
+                                                    className={cn("flex-1 border rounded-xl p-4 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/50 resize-none leading-relaxed custom-scrollbar min-h-[300px]",
+                                                        isLight
+                                                            ? "bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
+                                                            : "bg-white/5 border-white/10 text-zinc-200 placeholder:text-zinc-500"
+                                                    )}
+                                                    placeholder={t('follow_up.today_summary')}
+                                                />
+                                            ) : (
+                                                <div className="flex-1 flex flex-col gap-4 min-h-0">
+                                                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
+                                                        {getProjectBlocks(activeTab).map((block, idx) => (
+                                                            <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-all duration-300",
+                                                                isLight
+                                                                    ? "bg-white border-zinc-200 hover:border-zinc-300"
+                                                                    : "bg-white/5 border-white/10 hover:border-white/20",
+                                                                block.isCollapsed ? "h-fit bg-zinc-500/5 opacity-60" : "flex-1 min-h-[250px] shadow-sm"
+                                                            )}>
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => handleToggleBlockCollapse(activeTab, block.id)}
+                                                                        className={cn("p-1 rounded-md transition-transform duration-200", isLight ? "hover:bg-zinc-100" : "hover:bg-white/10", block.isCollapsed ? "-rotate-90" : "rotate-0")}
+                                                                    >
+                                                                        <ChevronDown className="w-4 h-4 text-zinc-400" />
+                                                                    </button>
+                                                                    <input
+                                                                        className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
+                                                                        value={block.title || `Bloque ${idx + 1}`}
+                                                                        onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
+                                                                        placeholder={t('follow_up.block_title_placeholder')}
+                                                                    />
+                                                                    {!block.isCollapsed && (
+                                                                        <button
+                                                                            onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
+                                                                            className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
+                                                                            title="Analizar solo este bloque"
+                                                                        >
+                                                                            <Sparkles className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                    {getProjectBlocks(activeTab).length > 1 && (
+                                                                        <button
+                                                                            onClick={() => handleRemoveBlock(activeTab, block.id)}
+                                                                            className="text-zinc-400 hover:text-red-400 transition-opacity"
+                                                                            title="Eliminar bloque"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                                 {!block.isCollapsed && (
-                                                                    <button
-                                                                        onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
-                                                                        className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
-                                                                        title="Analizar solo este bloque"
-                                                                    >
-                                                                        <Sparkles className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                )}
-                                                                {getProjectBlocks(activeTab).length > 1 && (
-                                                                    <button
-                                                                        onClick={() => handleRemoveBlock(activeTab, block.id)}
-                                                                        className="text-zinc-400 hover:text-red-400 transition-opacity"
-                                                                        title="Eliminar bloque"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                    </button>
+                                                                    <textarea
+                                                                        value={block.content}
+                                                                        onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
+                                                                        className={cn("w-full flex-1 bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar",
+                                                                            isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                                        )}
+                                                                        placeholder={t('follow_up.block_content_placeholder')}
+                                                                    />
                                                                 )}
                                                             </div>
-                                                            {!block.isCollapsed && (
-                                                                <textarea
-                                                                    value={block.content}
-                                                                    onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
-                                                                    className={cn("w-full flex-1 bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar",
-                                                                        isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
-                                                                    )}
-                                                                    placeholder={t('follow_up.block_content_placeholder')}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => handleAddBlock(activeTab)}
+                                                        className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
+                                                            isLight
+                                                                ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
+                                                                : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
+                                                        )}
+                                                    >
+                                                        <Plus className="w-4 h-4" /> {t('follow_up.add_note_block')}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Right: Active Tasks & AI */}
+                                        {isTasksPanelVisible && (
+                                            <div className="flex flex-col gap-2 h-full border-l border-border pl-6">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                        <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
+                                                        {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
+                                                    </label>
+                                                    <button
+                                                        onClick={() => handleAI()}
+                                                        disabled={isAILoading}
+                                                        className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
+                                                        title="Analizar notas y extraer tareas"
+                                                    >
+                                                        {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                        {t('follow_up.extract_tasks')}
+                                                    </button>
                                                 </div>
 
-                                                <button
-                                                    onClick={() => handleAddBlock(activeTab)}
-                                                    className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+
+                                                    {/* MANUAL ENTRY */}
+                                                    <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
                                                         isLight
-                                                            ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
-                                                            : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
+                                                            ? "bg-white border-zinc-200 focus-within:border-zinc-400"
+                                                            : "bg-muted/40 border-border focus-within:border-primary/50"
+                                                    )}>
+                                                        <input
+                                                            type="text"
+                                                            value={newTaskText}
+                                                            onChange={(e) => setNewTaskText(e.target.value)}
+                                                            onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
+                                                            placeholder={t('follow_up.new_manual_task')}
+                                                            className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
+                                                        />
+                                                        <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
+                                                            <Plus className="w-4 h-4" />
+                                                        </button>
+                                                        <button onClick={() => handleManualAddTask(true)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-red-400 disabled:opacity-30">
+                                                            <AlertTriangle className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* AI RESULTS AREA */}
+                                                    {(aiSummary || aiSuggestions.length > 0) && (
+                                                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
+                                                            <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
+
+                                                            {/* Summary */}
+                                                            {aiSummary && (
+                                                                <div className="mb-2">
+                                                                    <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
+                                                                        <Activity className="w-3 h-3" /> {t('follow_up.summary_context')}
+                                                                    </h4>
+                                                                    <p className="text-xs text-primary/80 leading-relaxed italic">
+                                                                        "{aiSummary}"
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Suggestions List */}
+                                                            {aiSuggestions.length > 0 && (
+                                                                <div>
+                                                                    <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
+                                                                    <div className="space-y-1">
+                                                                        {aiSuggestions.map((sugg, idx) => (
+                                                                            <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
+                                                                                <p className="text-xs text-foreground flex-1">{sugg}</p>
+                                                                                <div className="flex flex-col gap-1">
+                                                                                    <button
+                                                                                        onClick={() => handleAcceptSuggestion(sugg, false)}
+                                                                                        className="p-1 hover:bg-green-500/20 text-green-500 rounded"
+                                                                                        title={t('follow_up.create_task')}
+                                                                                    >
+                                                                                        <Plus className="w-3 h-3" />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleAcceptSuggestion(sugg, true)}
+                                                                                        className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                                                                                        title={t('follow_up.create_blocker')}
+                                                                                    >
+                                                                                        <AlertTriangle className="w-3 h-3" />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        onClick={() => handleDismissSuggestion(sugg)}
+                                                                                        className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
+                                                                                        title={t('follow_up.dismiss')}
+                                                                                    >
+                                                                                        <Activity className="w-3 h-3 rotate-45" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            <button
+                                                                onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
+                                                                className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
+                                                            >
+                                                                {t('follow_up.close_suggestions')}
+                                                            </button>
+                                                        </div>
                                                     )}
-                                                >
-                                                    <Plus className="w-4 h-4" /> {t('follow_up.add_note_block')}
-                                                </button>
+
+                                                    {visibleTasks.length === 0 ? (
+                                                        <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
+                                                            {t('follow_up.no_tasks_active')}
+                                                        </div>
+                                                    ) : (
+                                                        visibleTasks.filter(t => t.status !== 'completed').map(task => (
+                                                            <div
+                                                                key={task.id}
+                                                                className={cn(
+                                                                    "group p-3 rounded-lg border transition-all relative",
+                                                                    task.isBlocking
+                                                                        ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/10"
+                                                                        : (isLight
+                                                                            ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-sm"
+                                                                            : "bg-card border-border hover:border-primary/20 hover:bg-muted/50")
+                                                                )}
+                                                            >
+                                                                <div className="flex justify-between items-start gap-3">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <span className="font-mono text-[9px] text-zinc-300/80 bg-white/10 px-1.5 py-0.5 rounded">
+                                                                                {task.friendlyId || 'TSK'}
+                                                                            </span>
+                                                                            {task.isBlocking && (
+                                                                                <span className="text-[9px] font-bold text-red-500 bg-red-950/30 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                                                    <AlertTriangle className="w-2.5 h-2.5" /> {t('follow_up.blocker')}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <p className={cn(
+                                                                            "text-xs leading-relaxed line-clamp-3",
+                                                                            task.isBlocking
+                                                                                ? "text-red-200"
+                                                                                : (isLight ? "text-zinc-900" : "text-zinc-200")
+                                                                        )}>
+                                                                            {task.description}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {/* Actions */}
+                                                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <button
+                                                                            onClick={() => handleToggleBlock(task)}
+                                                                            title={task.isBlocking ? t('follow_up.unblock') : t('follow_up.block_task')}
+                                                                            className={cn(
+                                                                                "p-1.5 rounded hover:bg-white/10 transition-colors",
+                                                                                task.isBlocking ? "text-red-400" : "text-zinc-500 hover:text-red-400"
+                                                                            )}
+                                                                        >
+                                                                            <AlertTriangle className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        ) : viewMode === 'projects' ? (
+                            <ProjectManagement autoFocusCreate={shouldCreateProject} />
+                        ) : viewMode === 'tasks' ? (
+                            <TaskDashboard
+                                projects={
+                                    (userRole === 'app_admin' || userRole === 'global_pm')
+                                        ? globalProjects
+                                        : globalProjects.filter(p => userProfile?.assignedProjectIds?.includes(p.id))
+                                }
+                                userProfile={userProfile}
+                                permissionLoading={profileLoading}
+                            />
+                        ) : viewMode === 'task-manager' ? (
+                            <TaskManagement initialTaskId={pendingTaskId || searchParams.get('taskId')} />
+                        ) : viewMode === 'users' ? (
+                            <UserManagement />
+                        ) : viewMode === 'user-roles' ? (
+                            <UserRoleManagement />
+                        ) : viewMode === 'tenant-management' ? (
+                            <TenantManagement />
+                        ) : viewMode === 'dashboard' ? (
+                            <Dashboard
+                                entry={entry}
+                                globalProjects={globalProjects}
+                                userProfile={userProfile}
+                                userRole={userRole}
+                            />
+                        ) : viewMode === 'admin-task-master' ? (
+                            <TaskMasterDataManagement />
+                        ) : viewMode === 'reports' ? (
+                            <ReportManagement />
+                        ) : viewMode === 'support-management' ? (
+                            <SupportManagement />
+                        ) : viewMode === 'user-manual' ? (
+                            <ManualViewer />
+                        ) : (
+                            <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
+                        )}
+                    </div>
+                </div>
 
-                                    {/* Right: Active Tasks & AI */}
-                                    {isTasksPanelVisible && (
-                                        <div className="flex flex-col gap-2 h-full border-l border-border pl-6">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                                    <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
-                                                    {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
-                                                </label>
-                                                <button
-                                                    onClick={() => handleAI()}
-                                                    disabled={isAILoading}
-                                                    className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
-                                                    title="Analizar notas y extraer tareas"
-                                                >
-                                                    {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                    {t('follow_up.extract_tasks')}
-                                                </button>
-                                            </div>
+                <ChangelogModal
+                    isOpen={showChangelog}
+                    onClose={() => setShowChangelog(false)}
+                />
 
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                {/* MOVE MODAL */}
+                {
+                    isMoveModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
+                                <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('follow_up.move_entry')}</h3>
+                                <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                                    {t('follow_up.move_notes_from')} <strong>{activeTab}</strong> {t('follow_up.to_date')}
+                                </p>
 
-                                                {/* MANUAL ENTRY */}
-                                                <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
-                                                    isLight
-                                                        ? "bg-white border-zinc-200 focus-within:border-zinc-400"
-                                                        : "bg-muted/40 border-border focus-within:border-primary/50"
-                                                )}>
-                                                    <input
-                                                        type="text"
-                                                        value={newTaskText}
-                                                        onChange={(e) => setNewTaskText(e.target.value)}
-                                                        onKeyDown={(e) => e.key === 'Enter' && handleManualAddTask(false)}
-                                                        placeholder={t('follow_up.new_manual_task')}
-                                                        className={cn("flex-1 bg-transparent text-xs focus:outline-none", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-400")}
-                                                    />
-                                                    <button onClick={() => handleManualAddTask(false)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-indigo-400 disabled:opacity-30">
-                                                        <Plus className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleManualAddTask(true)} disabled={!newTaskText.trim()} className="text-zinc-500 hover:text-red-400 disabled:opacity-30">
-                                                        <AlertTriangle className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-
-                                                {/* AI RESULTS AREA */}
-                                                {(aiSummary || aiSuggestions.length > 0) && (
-                                                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
-                                                        <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
-
-                                                        {/* Summary */}
-                                                        {aiSummary && (
-                                                            <div className="mb-2">
-                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
-                                                                    <Activity className="w-3 h-3" /> {t('follow_up.summary_context')}
-                                                                </h4>
-                                                                <p className="text-xs text-primary/80 leading-relaxed italic">
-                                                                    "{aiSummary}"
-                                                                </p>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Suggestions List */}
-                                                        {aiSuggestions.length > 0 && (
-                                                            <div>
-                                                                <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
-                                                                <div className="space-y-1">
-                                                                    {aiSuggestions.map((sugg, idx) => (
-                                                                        <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
-                                                                            <p className="text-xs text-foreground flex-1">{sugg}</p>
-                                                                            <div className="flex flex-col gap-1">
-                                                                                <button
-                                                                                    onClick={() => handleAcceptSuggestion(sugg, false)}
-                                                                                    className="p-1 hover:bg-green-500/20 text-green-500 rounded"
-                                                                                    title={t('follow_up.create_task')}
-                                                                                >
-                                                                                    <Plus className="w-3 h-3" />
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => handleAcceptSuggestion(sugg, true)}
-                                                                                    className="p-1 hover:bg-red-500/20 text-red-500 rounded"
-                                                                                    title={t('follow_up.create_blocker')}
-                                                                                >
-                                                                                    <AlertTriangle className="w-3 h-3" />
-                                                                                </button>
-                                                                                <button
-                                                                                    onClick={() => handleDismissSuggestion(sugg)}
-                                                                                    className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
-                                                                                    title={t('follow_up.dismiss')}
-                                                                                >
-                                                                                    <Activity className="w-3 h-3 rotate-45" />
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-
-                                                        <button
-                                                            onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
-                                                            className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"
-                                                        >
-                                                            {t('follow_up.close_suggestions')}
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {visibleTasks.length === 0 ? (
-                                                    <div className="text-center py-10 text-muted-foreground italic border border-dashed border-border rounded-lg">
-                                                        {t('follow_up.no_tasks_active')}
-                                                    </div>
-                                                ) : (
-                                                    visibleTasks.filter(t => t.status !== 'completed').map(task => (
-                                                        <div
-                                                            key={task.id}
-                                                            className={cn(
-                                                                "group p-3 rounded-lg border transition-all relative",
-                                                                task.isBlocking
-                                                                    ? "bg-destructive/10 border-destructive/20 hover:bg-destructive/10"
-                                                                    : (isLight
-                                                                        ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-sm"
-                                                                        : "bg-card border-border hover:border-primary/20 hover:bg-muted/50")
-                                                            )}
-                                                        >
-                                                            <div className="flex justify-between items-start gap-3">
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-center gap-2 mb-1">
-                                                                        <span className="font-mono text-[9px] text-zinc-300/80 bg-white/10 px-1.5 py-0.5 rounded">
-                                                                            {task.friendlyId || 'TSK'}
-                                                                        </span>
-                                                                        {task.isBlocking && (
-                                                                            <span className="text-[9px] font-bold text-red-500 bg-red-950/30 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                                                                <AlertTriangle className="w-2.5 h-2.5" /> {t('follow_up.blocker')}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <p className={cn(
-                                                                        "text-xs leading-relaxed line-clamp-3",
-                                                                        task.isBlocking
-                                                                            ? "text-red-200"
-                                                                            : (isLight ? "text-zinc-900" : "text-zinc-200")
-                                                                    )}>
-                                                                        {task.description}
-                                                                    </p>
-                                                                </div>
-
-                                                                {/* Actions */}
-                                                                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    <button
-                                                                        onClick={() => handleToggleBlock(task)}
-                                                                        title={task.isBlocking ? t('follow_up.unblock') : t('follow_up.block_task')}
-                                                                        className={cn(
-                                                                            "p-1.5 rounded hover:bg-white/10 transition-colors",
-                                                                            task.isBlocking ? "text-red-400" : "text-zinc-500 hover:text-red-400"
-                                                                        )}
-                                                                    >
-                                                                        <AlertTriangle className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </div>
+                                <input
+                                    type="date"
+                                    value={moveTargetDate}
+                                    onChange={(e) => setMoveTargetDate(e.target.value)}
+                                    className={cn("w-full p-2 rounded-lg border mb-4 text-sm",
+                                        isLight
+                                            ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-zinc-500"
+                                            : "bg-black/20 border-zinc-700 text-white focus:ring-primary"
                                     )}
+                                />
+
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => setIsMoveModalOpen(false)}
+                                        className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
+                                    >
+                                        {t('common.cancel')}
+                                    </button>
+                                    <button
+                                        onClick={handleMoveProject}
+                                        disabled={loading || !moveTargetDate}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
+                                    >
+                                        {loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                                        {t('follow_up.confirm_move')}
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    ) : viewMode === 'projects' ? (
-                        <ProjectManagement autoFocusCreate={shouldCreateProject} />
-                    ) : viewMode === 'tasks' ? (
-                        <TaskDashboard
-                            projects={
-                                (userRole === 'app_admin' || userRole === 'global_pm')
-                                    ? globalProjects
-                                    : globalProjects.filter(p => userProfile?.assignedProjectIds?.includes(p.id))
-                            }
-                            userProfile={userProfile}
-                            permissionLoading={profileLoading}
-                        />
-                    ) : viewMode === 'task-manager' ? (
-                        <TaskManagement initialTaskId={pendingTaskId || searchParams.get('taskId')} />
-                    ) : viewMode === 'users' ? (
-                        <UserManagement />
-                    ) : viewMode === 'user-roles' ? (
-                        <UserRoleManagement />
-                    ) : viewMode === 'tenant-management' ? (
-                        <TenantManagement />
-                    ) : viewMode === 'dashboard' ? (
-                        <Dashboard
-                            entry={entry}
-                            globalProjects={globalProjects}
-                            userProfile={userProfile}
-                            userRole={userRole}
-                        />
-                    ) : viewMode === 'admin-task-master' ? (
-                        <TaskMasterDataManagement />
-                    ) : viewMode === 'reports' ? (
-                        <ReportManagement />
-                    ) : viewMode === 'support-management' ? (
-                        <SupportManagement />
-                    ) : viewMode === 'user-manual' ? (
-                        <ManualViewer />
-                    ) : (
-                        <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
-                    )}
-                </div>
-
-                {/* ADMIN DIAGNOSTIC PANEL */}
-                {userRole === 'superadmin' && <FirebaseDiagnostic />}
-            </div>
-
-            <ChangelogModal
-                isOpen={showChangelog}
-                onClose={() => setShowChangelog(false)}
-            />
-
-            {/* MOVE MODAL */}
-            {
-                isMoveModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                        <div className={cn("w-full max-w-sm p-6 rounded-xl shadow-2xl border", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-zinc-700")}>
-                            <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('follow_up.move_entry')}</h3>
-                            <p className={cn("text-sm mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                                {t('follow_up.move_notes_from')} <strong>{activeTab}</strong> {t('follow_up.to_date')}
-                            </p>
-
-                            <input
-                                type="date"
-                                value={moveTargetDate}
-                                onChange={(e) => setMoveTargetDate(e.target.value)}
-                                className={cn("w-full p-2 rounded-lg border mb-4 text-sm",
-                                    isLight
-                                        ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:ring-zinc-500"
-                                        : "bg-black/20 border-zinc-700 text-white focus:ring-primary"
-                                )}
-                            />
-
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={() => setIsMoveModalOpen(false)}
-                                    className={cn("px-4 py-2 rounded-lg text-xs font-medium", isLight ? "hover:bg-zinc-100 text-zinc-600" : "hover:bg-white/10 text-zinc-400")}
-                                >
-                                    {t('common.cancel')}
-                                </button>
-                                <button
-                                    onClick={handleMoveProject}
-                                    disabled={loading || !moveTargetDate}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2"
-                                >
-                                    {loading && <Loader2 className="w-3 h-3 animate-spin" />}
-                                    {t('follow_up.confirm_move')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-        </AppLayout >
+                    )
+                }
+            </AppLayout >
+        </>
     );
 }

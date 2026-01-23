@@ -10,6 +10,7 @@ import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Chec
 import { getAllInvites, InviteCode } from "@/lib/invites";
 import { createInviteAction } from "@/app/actions/invites";
 import InviteWizard from "./InviteWizard";
+import { updateUserClaimsFunction } from "@/lib/functions";
 
 import { UserProfile as UserData, getRoleLevel } from "@/types";
 import { cn } from "@/lib/utils";
@@ -170,6 +171,12 @@ export default function UserManagement() {
             }
             await updateDoc(doc(db, "users", uid), updates);
             setUsers(prev => prev.map(u => u.uid === uid ? { ...u, ...updates } : u));
+
+            // Trigger claims update for quick role change
+            console.log("[UserManagement] Quick Role Change: Triggering claims for", uid);
+            updateUserClaimsFunction({ targetUserId: uid, newRole, newTenantId: updates.tenantId || null })
+                .then(() => console.log("[UserManagement] Quick Claims Update Success"))
+                .catch(e => console.error("[UserManagement] Quick Claims Update Failed", e));
         } catch (error) {
             console.error(error);
         }
@@ -212,8 +219,34 @@ export default function UserManagement() {
                 payload.roleLevel = getRoleLevel(payload.role);
             }
             await updateDoc(doc(db, "users", editingUser.uid), payload);
+
+            // [CRITICAL] Trigger Custom Claims Update in Background
+            // This ensures the JWT token is refreshed with the new role/tenant
+            if (payload.role || payload.tenantId) {
+                console.log("[UserManagement] Triggering claims update for:", editingUser.uid);
+                const claimsParams = {
+                    targetUserId: editingUser.uid,
+                    newRole: payload.role || editingUser.role,
+                    newTenantId: payload.tenantId || editingUser.tenantId
+                };
+
+                // Primary Regional Call (EU)
+                updateUserClaimsFunction(claimsParams)
+                    .then((res) => {
+                        console.log("[UserManagement] Claims updated successfully:", res);
+                        showToast("Success", "Permisos actualizados en el sistema (EU)", "success");
+                        alert("✅ PERMISOS SINCRONIZADOS (Cloud Function EU)\n\nIMPORTANTE: Ahora debes hacer LOGOUT y volver a entrar para que tu navegador reconozca el nuevo rol.");
+                    })
+                    .catch(e => {
+                        console.error("[UserManagement] Region call failed:", e);
+                        showToast("Error", "Fallo al sincronizar permisos: " + e.message, "error");
+                        alert("❌ FALLO EN CLOUD FUNCTION (Región Europa):\n" + e.message + "\n\nVerifica que la función esté desplegada en europe-west1.");
+                    });
+            }
+
             setUsers(prev => prev.map(u => u.uid === editingUser.uid ? { ...u, ...payload } : u));
             setEditingUser(null);
+            showToast("Éxito", "Usuario actualizado correctamente", "success");
         } catch (error) {
             console.error(error);
             alert("Error saving: " + (error as any).message);
@@ -265,14 +298,34 @@ export default function UserManagement() {
         <div className="flex-1 overflow-hidden flex flex-col gap-4 max-w-5xl mx-auto w-full h-full relative p-4">
             {/* Modal & UI Logic... (Simplified for this pass to ensure build passes) */}
             {/* Standard UI implementation continues below */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2">
+            <div className={cn("flex justify-between items-center border-b pb-4", isLight ? "border-zinc-200" : "border-white/10")}>
+                <h2 className={cn("text-xl font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                     <User className="w-5 h-5 text-[#D32F2F]" />
                     {t('user_management.title')}
                 </h2>
-                <div className="flex gap-2">
-                    <button onClick={() => setActiveTab('users')} className={cn("px-4 py-1 rounded-full text-xs font-bold transition-all", activeTab === 'users' ? "bg-[#D32F2F] text-white" : "bg-white/5 text-zinc-400")}>Users</button>
-                    <button onClick={() => setActiveTab('invites')} className={cn("px-4 py-1 rounded-full text-xs font-bold transition-all", activeTab === 'invites' ? "bg-[#D32F2F] text-white" : "bg-white/5 text-zinc-400")}>Invites</button>
+                <div className={cn("flex gap-2 p-1 rounded-full", isLight ? "bg-zinc-100" : "bg-white/5")}>
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={cn(
+                            "px-4 py-1 rounded-full text-xs font-bold transition-all",
+                            activeTab === 'users'
+                                ? "bg-[#D32F2F] text-white shadow-md shadow-red-900/20"
+                                : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                        )}
+                    >
+                        Users
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('invites')}
+                        className={cn(
+                            "px-4 py-1 rounded-full text-xs font-bold transition-all",
+                            activeTab === 'invites'
+                                ? "bg-[#D32F2F] text-white shadow-md shadow-red-900/20"
+                                : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                        )}
+                    >
+                        Invites
+                    </button>
                 </div>
             </div>
 
@@ -280,19 +333,40 @@ export default function UserManagement() {
                 {activeTab === 'users' ? (
                     <div className="space-y-2">
                         {users.map(u => (
-                            <div key={u.uid} className="bg-white/5 border border-white/5 p-4 rounded-xl flex justify-between items-center group">
+                            <div key={u.uid} className={cn(
+                                "border p-4 rounded-xl flex justify-between items-center group transition-all",
+                                isLight
+                                    ? "bg-white border-zinc-200 hover:border-red-500/30 hover:shadow-md shadow-zinc-100"
+                                    : "bg-white/5 border-white/5 hover:border-white/20"
+                            )}>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center font-bold text-zinc-400">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center font-bold",
+                                        isLight ? "bg-zinc-100 text-zinc-600" : "bg-white/5 text-zinc-400"
+                                    )}>
                                         {u.displayName?.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div>
-                                        <div className="font-bold text-sm text-white">{u.displayName}</div>
-                                        <div className="text-xs text-zinc-500 font-mono">{u.email}</div>
+                                        <div className={cn("font-bold text-sm", isLight ? "text-zinc-900" : "text-white")}>{u.displayName}</div>
+                                        <div className={cn("text-xs font-mono", isLight ? "text-zinc-500" : "text-zinc-500")}>{u.email}</div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-400 uppercase tracking-widest">{u.role}</span>
-                                    <button onClick={() => startEditing(u)} className="p-2 opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 className="w-4 h-4" /></button>
+                                    <span className={cn(
+                                        "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
+                                        isLight ? "bg-zinc-100 text-zinc-600 border border-zinc-200" : "bg-zinc-800 text-zinc-400"
+                                    )}>
+                                        {u.role}
+                                    </span>
+                                    <button
+                                        onClick={() => startEditing(u)}
+                                        className={cn(
+                                            "p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full",
+                                            isLight ? "text-zinc-400 hover:text-red-600 hover:bg-red-50" : "text-zinc-500 hover:text-white"
+                                        )}
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -359,11 +433,16 @@ export default function UserManagement() {
                                         <Shield className="w-3 h-3" /> Role
                                     </label>
                                     <select
-                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                        className={cn(
+                                            "w-full border rounded px-3 py-2 text-sm outline-none appearance-none transition-colors",
+                                            isLight
+                                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                        )}
                                         value={formData.role || ""}
                                         onChange={e => setFormData({ ...formData, role: e.target.value as any })}
                                     >
-                                        {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                        {ROLES.map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
                                     </select>
                                 </div>
 
@@ -373,7 +452,12 @@ export default function UserManagement() {
                                             <Building className="w-3 h-3" /> Tenant
                                         </label>
                                         <select
-                                            className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                            className={cn(
+                                                "w-full border rounded px-3 py-2 text-sm outline-none appearance-none transition-colors",
+                                                isLight
+                                                    ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500"
+                                                    : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                            )}
                                             value={formData.tenantId || ""}
                                             onChange={e => setFormData({ ...formData, tenantId: e.target.value })}
                                         >
@@ -388,7 +472,12 @@ export default function UserManagement() {
                                         <Building className="w-3 h-3" /> Company
                                     </label>
                                     <input
-                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        className={cn(
+                                            "w-full border rounded px-3 py-2 text-sm outline-none transition-colors",
+                                            isLight
+                                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500 placeholder-zinc-400"
+                                                : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                        )}
                                         value={formData.company || ""}
                                         onChange={e => setFormData({ ...formData, company: e.target.value })}
                                         placeholder="Company name"
@@ -399,7 +488,12 @@ export default function UserManagement() {
                                         <Briefcase className="w-3 h-3" /> Job Title
                                     </label>
                                     <input
-                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        className={cn(
+                                            "w-full border rounded px-3 py-2 text-sm outline-none transition-colors",
+                                            isLight
+                                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500 placeholder-zinc-400"
+                                                : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                        )}
                                         value={formData.jobTitle || ""}
                                         onChange={e => setFormData({ ...formData, jobTitle: e.target.value })}
                                         placeholder="Project Manager"
@@ -410,7 +504,12 @@ export default function UserManagement() {
                                         <MapPin className="w-3 h-3" /> Address
                                     </label>
                                     <input
-                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        className={cn(
+                                            "w-full border rounded px-3 py-2 text-sm outline-none transition-colors",
+                                            isLight
+                                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500 placeholder-zinc-400"
+                                                : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                        )}
                                         value={formData.address || ""}
                                         onChange={e => setFormData({ ...formData, address: e.target.value })}
                                         placeholder="Street, City, Country"
@@ -421,7 +520,12 @@ export default function UserManagement() {
                                         <Phone className="w-3 h-3" /> Phone
                                     </label>
                                     <input
-                                        className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F]"
+                                        className={cn(
+                                            "w-full border rounded px-3 py-2 text-sm outline-none transition-colors",
+                                            isLight
+                                                ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500 placeholder-zinc-400"
+                                                : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                        )}
                                         value={formData.phone || ""}
                                         onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                         placeholder="+1 234..."
@@ -448,7 +552,12 @@ export default function UserManagement() {
                                     <ShieldCheck className="w-3 h-3" /> Permission Group
                                 </label>
                                 <select
-                                    className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-zinc-200 outline-none focus:border-[#D32F2F] appearance-none"
+                                    className={cn(
+                                        "w-full border rounded px-3 py-2 text-sm outline-none appearance-none transition-colors",
+                                        isLight
+                                            ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500"
+                                            : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
+                                    )}
                                     value={formData.permissionGroupId || ""}
                                     onChange={e => setFormData({ ...formData, permissionGroupId: e.target.value || "" })}
                                 >

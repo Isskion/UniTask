@@ -36,6 +36,9 @@ import SupportModal from "@/components/SupportModal";
 import { Sparkles as GeminiIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
+import { RefreshCw } from "lucide-react";
+import { auth } from "@/lib/firebase";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -324,6 +327,26 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <ThemeSelector />
                             <NotificationBell />
                             <LanguageSelector />
+
+                            {/* EMERGENCY REFRESH ACTION */}
+                            {userRole === 'superadmin' && (
+                                <button
+                                    onClick={async () => {
+                                        if (!auth.currentUser) return alert("Húmedo! No hay usuario.");
+                                        try {
+                                            await auth.currentUser.getIdToken(true);
+                                            alert("✅ Token de Seguridad ACTUALIZADO (desde Header).\n\nPulsa ACEPTAR para recargar.");
+                                            window.location.reload();
+                                        } catch (e: any) {
+                                            alert("❌ Error refrescando: " + e.message);
+                                        }
+                                    }}
+                                    className="p-2 rounded-full hover:bg-green-500/10 text-green-500 transition-colors"
+                                    title="1-Click Permission Refresh"
+                                >
+                                    <RefreshCw className="w-5 h-5" />
+                                </button>
+                            )}
                         </div>
                     </header>
 
@@ -382,6 +405,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             </div>
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
+
+            {/* GLOBAL RECOVERY PANEL */}
+            {userRole === 'superadmin' && <FirebaseDiagnostic />}
         </div>
     );
 }

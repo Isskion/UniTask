@@ -3,13 +3,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
-import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2, Box, Layers } from 'lucide-react';
+import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2, Box, Layers, Shield, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeFirestore } from '@/hooks/useSafeFirestore';
 import { collection, query, where, getDocs, orderBy, deleteDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { AttributeDefinition } from '@/types';
+import { AttributeDefinition, getRoleLevel } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
+import { useToast } from '@/context/ToastContext';
 
 const getIconForField = (field: string) => {
     switch (field) {
@@ -32,9 +33,11 @@ interface MasterDataItem {
 
 export default function TaskMasterDataManagement() {
     const { theme } = useTheme();
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, identity, userRole } = useAuth();
+    const [isRefreshingToken, setIsRefreshingToken] = useState(false);
     const { addDoc, deleteDoc: safeDeleteDoc, updateDoc: safeUpdateDoc } = useSafeFirestore();
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const isLight = theme === 'light';
 
     // State
@@ -163,22 +166,31 @@ export default function TaskMasterDataManagement() {
     };
 
     const handleAddOption = async () => {
-        if (!newItemName.trim() || !tenantId) return;
+        if (!newItemName.trim()) return;
+        if (!tenantId) {
+            showToast("Error", "No tenant context found. Please wait or refresh.", "error");
+            return;
+        }
+
         try {
             setIsAdding(true);
+
             await addDoc(collection(db, 'master_data'), {
                 name: newItemName.trim(),
                 color: newItemColor,
                 type: activeSection, // Links to System Section OR Attribute Definition ID
-                tenantId: tenantId,
+                tenantId: String(tenantId),
                 isActive: true,
                 createdAt: serverTimestamp(),
                 createdBy: user?.uid || 'system'
             });
+
             setNewItemName("");
+            showToast("Success", "Option added successfully", "success");
             await loadItems(activeSection);
         } catch (error) {
-            console.error("Error adding item:", error);
+            console.error("[MasterData] Error adding item:", error);
+            showToast("Error", "Failed to add option: " + (error as any).message, "error");
         } finally {
             setIsAdding(false);
         }
@@ -191,14 +203,16 @@ export default function TaskMasterDataManagement() {
             await addDoc(collection(db, 'attribute_definitions'), {
                 name: blockFormName.trim(),
                 color: blockFormColor,
-                tenantId,
+                tenantId: String(tenantId),
                 isActive: true,
                 createdAt: serverTimestamp()
             });
             setBlockFormName("");
             setIsCreatingBlock(false);
+            showToast("Success", "Block created successfully", "success");
         } catch (error) {
-            console.error("Error creating block:", error);
+            console.error("[MasterData] Error creating block:", error);
+            showToast("Error", "Failed to create block: " + (error as any).message, "error");
         } finally {
             setIsAdding(false);
         }
@@ -227,7 +241,7 @@ export default function TaskMasterDataManagement() {
                     await setDoc(doc(db, 'attribute_definitions', activeSection), {
                         name: blockFormName.trim(),
                         color: blockFormColor,
-                        tenantId,
+                        tenantId: String(tenantId),
                         isActive: true,
                         mappedField: activeSection, // Link to system
                         createdAt: serverTimestamp()
@@ -723,6 +737,48 @@ export default function TaskMasterDataManagement() {
                     </div>
                 )}
             </div>
+
+            {/* AUTH DEBUG PANEL (Superadmin Only) */}
+            {getRoleLevel(userRole) >= 100 && (
+                <div className="mt-12 p-4 border border-dashed border-zinc-500/30 rounded-lg bg-zinc-500/5 text-[10px] font-mono text-zinc-500 max-w-4xl mx-auto">
+                    <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider text-zinc-400">
+                        <Shield className="w-3 h-3" /> Auth Diagnostic (Prod)
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div><span className="text-zinc-600">Context UserRole:</span> {userRole}</div>
+                        <div><span className="text-zinc-600">Context TenantId:</span> {tenantId} <span className="opacity-40 italic">({typeof tenantId})</span></div>
+                        <div><span className="text-zinc-600">Token RoleLevel:</span> {identity?.realRole || 'N/A'}</div>
+                        <div><span className="text-zinc-600">Token TenantId:</span> {identity?.realTenantId || 'N/A'} <span className="opacity-40 italic">({typeof identity?.realTenantId})</span></div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                            disabled={isRefreshingToken}
+                            onClick={async () => {
+                                if (!user) return;
+                                setIsRefreshingToken(true);
+                                try {
+                                    await user.getIdToken(true);
+                                    alert("✅ Token de Seguridad Refrescado. La página se recargará.");
+                                    window.location.reload();
+                                } catch (e: any) {
+                                    alert("❌ Error al refrescar: " + e.message);
+                                } finally {
+                                    setIsRefreshingToken(false);
+                                }
+                            }}
+                            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-zinc-700"
+                        >
+                            {isRefreshingToken ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                            Forzar Refresco de Permisos (Token)
+                        </button>
+                    </div>
+
+                    <div className="mt-2 text-[9px] opacity-50 italic">
+                        * Si Token RoleLevel &lt; 70, Firestore denegará el guardado en maestros.
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

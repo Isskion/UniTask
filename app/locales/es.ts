@@ -48,6 +48,7 @@ export const es: Dictionary = {
         allTasks: "Todas las Tareas (Tablero)",
         admin: "Administración",
         taskMaster: "Gestión de Tareas",
+        "admin-task-master": "Gestión de Tareas",
         people: "Personas",
         roles: "Roles y Permisos",
         reports: "Reportes y Plantillas",

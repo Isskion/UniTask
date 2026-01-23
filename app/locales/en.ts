@@ -46,6 +46,7 @@ export const en = {
         allTasks: "All Tasks (Board)",
         admin: "Administration",
         taskMaster: "Task Management",
+        "admin-task-master": "Task Management",
         people: "People",
         roles: "Roles & Permissions",
         reports: "Reports & Templates",
