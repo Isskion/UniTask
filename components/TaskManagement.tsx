@@ -18,6 +18,8 @@ import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
 import { ActivityAuditModal } from "./ActivityAuditModal";
 import HighlightText from "./ui/HighlightText";
+import { addComment, subscribeToComments, parseMentions, formatRelativeTime, TaskComment } from "@/lib/comments";
+import { MessageSquare } from "lucide-react";
 
 // Local MasterDataItem definition removed in favor of types.ts
 
@@ -36,6 +38,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
+
+    // Comments State
+    const [comments, setComments] = useState<TaskComment[]>([]);
+    const [newComment, setNewComment] = useState("");
+    const [commentsExpanded, setCommentsExpanded] = useState(false);
+    const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+    const [mentionSearch, setMentionSearch] = useState("");
 
     // Master Data State
     const [attributeDefinitions, setAttributeDefinitions] = useState<AttributeDefinition[]>([]);
@@ -95,12 +104,31 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
     }, [initialTaskId]);
 
+
     // Sidebar Filters
     const [sidebarSearch, setSidebarSearch] = useState("");
     const [sidebarFilter, setSidebarFilter] = useState<'all' | 'active' | 'completed'>('active');
 
     // Selection state
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+    // Subscribe to comments when task is selected
+    useEffect(() => {
+        if (!selectedTask?.id || !tenantId) {
+            setComments([]);
+            return;
+        }
+
+        const unsubscribe = subscribeToComments(selectedTask.id, tenantId, (newComments) => {
+            setComments(newComments);
+        });
+
+        // Reset comment form state
+        setNewComment("");
+        setCommentsExpanded(false);
+
+        return () => unsubscribe();
+    }, [selectedTask?.id, tenantId]);
 
     // Form state
     const [formData, setFormData] = useState<Partial<Task>>({});
@@ -960,26 +988,152 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                         />
                                     </div>
 
-                                    {/* Execution (Existente) */}
+                                    {/* Comments Section */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.execution')}</h3>
-                                        <div className={cn("space-y-2 pl-4 border-l", isLight ? "border-zinc-200" : "border-white/5")}>
-                                            {formData.acceptanceCriteria?.map((ac, idx) => (
-                                                <div key={ac.id} className="flex items-center gap-2 group/item">
-                                                    <input type="checkbox" checked={ac.completed} onChange={(e) => { const newAC = [...(formData.acceptanceCriteria || [])]; newAC[idx].completed = e.target.checked; setFormData({ ...formData, acceptanceCriteria: newAC }); }} className="w-3.5 h-3.5 rounded border-zinc-600 bg-zinc-800 text-indigo-500 cursor-pointer" />
-                                                    <input
-                                                        className={cn("bg-transparent outline-none flex-1 text-xs",
-                                                            ac.completed
-                                                                ? "line-through text-zinc-500"
-                                                                : (isLight ? "text-zinc-900" : "text-zinc-400")
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>
+                                                    {t('comments.title')}
+                                                </h3>
+                                                {comments.length > 0 && (
+                                                    <button
+                                                        onClick={() => setCommentsExpanded(!commentsExpanded)}
+                                                        className={cn(
+                                                            "flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold transition-all",
+                                                            isLight
+                                                                ? "bg-indigo-100 text-indigo-600 hover:bg-indigo-200"
+                                                                : "bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30"
                                                         )}
-                                                        value={ac.text}
-                                                        onChange={e => { const newAC = [...(formData.acceptanceCriteria || [])]; newAC[idx].text = e.target.value; setFormData({ ...formData, acceptanceCriteria: newAC }); }}
-                                                    />
-                                                </div>
-                                            ))}
-                                            <button onClick={() => setFormData({ ...formData, acceptanceCriteria: [...(formData.acceptanceCriteria || []), { id: Date.now().toString(), text: t('task_manager.new_criteria'), completed: false }] })} className="text-[10px] text-indigo-400 font-bold mt-2 flex items-center gap-1.5"><Plus className="w-3 h-3" /> {t('task_manager.add_criteria')}</button>
+                                                        title={`${comments.length} comentarios`}
+                                                    >
+                                                        {comments.length}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => setCommentsExpanded(!commentsExpanded)}
+                                                className={cn(
+                                                    "p-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-bold",
+                                                    isLight
+                                                        ? "text-indigo-600 hover:bg-indigo-50"
+                                                        : "text-indigo-400 hover:bg-indigo-500/10"
+                                                )}
+                                            >
+                                                <Plus className="w-3 h-3" />
+                                                {t('comments.add')}
+                                            </button>
                                         </div>
+
+                                        {/* Expanded Comments Panel */}
+                                        {commentsExpanded && (
+                                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                {/* New Comment Input */}
+                                                <div className="relative">
+                                                    <textarea
+                                                        className={cn(
+                                                            "w-full min-h-[60px] border rounded-lg p-3 text-xs focus:outline-none resize-none",
+                                                            isLight
+                                                                ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-indigo-400 placeholder:text-zinc-400"
+                                                                : "bg-black/20 border-white/10 text-zinc-300 focus:border-indigo-500/50 placeholder:text-zinc-600"
+                                                        )}
+                                                        value={newComment}
+                                                        onChange={(e) => {
+                                                            setNewComment(e.target.value);
+                                                            // Check for @ mentions
+                                                            const lastAt = e.target.value.lastIndexOf('@');
+                                                            if (lastAt !== -1 && lastAt === e.target.value.length - 1 ||
+                                                                (lastAt !== -1 && e.target.value.substring(lastAt + 1).match(/^\w*$/))) {
+                                                                setShowMentionSuggestions(true);
+                                                                setMentionSearch(e.target.value.substring(lastAt + 1));
+                                                            } else {
+                                                                setShowMentionSuggestions(false);
+                                                            }
+                                                        }}
+                                                        placeholder={t('comments.placeholder')}
+                                                    />
+
+                                                    {/* Mention Suggestions */}
+                                                    {showMentionSuggestions && (
+                                                        <div className={cn(
+                                                            "absolute bottom-full left-0 right-0 mb-1 border rounded-lg shadow-xl max-h-32 overflow-y-auto z-50",
+                                                            isLight ? "bg-white border-zinc-200" : "bg-popover border-border"
+                                                        )}>
+                                                            {users
+                                                                .filter(u => u.displayName?.toLowerCase().includes(mentionSearch.toLowerCase()))
+                                                                .slice(0, 5)
+                                                                .map(u => (
+                                                                    <button
+                                                                        key={u.uid}
+                                                                        onClick={() => {
+                                                                            const lastAt = newComment.lastIndexOf('@');
+                                                                            setNewComment(newComment.substring(0, lastAt) + `@${u.displayName} `);
+                                                                            setShowMentionSuggestions(false);
+                                                                        }}
+                                                                        className={cn(
+                                                                            "w-full text-left px-3 py-2 text-xs flex items-center gap-2 border-b last:border-0",
+                                                                            isLight
+                                                                                ? "hover:bg-zinc-50 border-zinc-100 text-zinc-700"
+                                                                                : "hover:bg-white/5 border-white/5 text-zinc-300"
+                                                                        )}
+                                                                    >
+                                                                        <div className={cn(
+                                                                            "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold",
+                                                                            isLight ? "bg-indigo-100 text-indigo-600" : "bg-indigo-500/20 text-indigo-400"
+                                                                        )}>
+                                                                            {u.displayName?.substring(0, 2).toUpperCase()}
+                                                                        </div>
+                                                                        {u.displayName}
+                                                                    </button>
+                                                                ))}
+                                                        </div>
+                                                    )}
+
+                                                    {newComment.trim() && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!selectedTask?.id || !user || !tenantId) return;
+                                                                const mentions = parseMentions(newComment, users);
+                                                                await addComment(
+                                                                    selectedTask.id,
+                                                                    tenantId,
+                                                                    user.uid,
+                                                                    user.displayName || 'Usuario',
+                                                                    user.photoURL || undefined,
+                                                                    newComment,
+                                                                    mentions
+                                                                );
+                                                                setNewComment("");
+                                                            }}
+                                                            className="absolute bottom-2 right-2 p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all"
+                                                        >
+                                                            <MessageSquare className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Comments List (Newest First) */}
+                                                {comments.length === 0 ? (
+                                                    <div className={cn("text-center py-4 text-xs", isLight ? "text-zinc-400" : "text-zinc-500")}>
+                                                        {t('comments.empty')}
+                                                    </div>
+                                                ) : (
+                                                    <div className={cn("space-y-2 max-h-60 overflow-y-auto custom-scrollbar pl-3 border-l", isLight ? "border-zinc-200" : "border-white/10")}>
+                                                        {comments.map(comment => (
+                                                            <div key={comment.id} className={cn("p-3 rounded-lg", isLight ? "bg-zinc-50" : "bg-black/20")}>
+                                                                <p className={cn("text-xs mb-2 whitespace-pre-wrap", isLight ? "text-zinc-700" : "text-zinc-300")}>
+                                                                    {comment.content}
+                                                                </p>
+                                                                <div className={cn("flex items-center gap-2 text-[10px]", isLight ? "text-zinc-400" : "text-zinc-500")}>
+                                                                    <span className="font-medium">{comment.authorName}</span>
+                                                                    <span>•</span>
+                                                                    <span>{formatRelativeTime(comment.createdAt, t)}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Dependencies (Movido de derecha) */}

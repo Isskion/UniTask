@@ -447,5 +447,16 @@ export const de: Dictionary = {
         status_closed: "Geschlossen",
         created_at: "Erstellt am",
         delete_confirm: "Sind Sie sicher, dass Sie dieses Ticket löschen möchten?"
+    },
+    comments: {
+        title: "Kommentare",
+        add: "Kommentar hinzufügen",
+        placeholder: "Schreiben Sie einen Kommentar... verwenden Sie @ zum Erwähnen",
+        empty: "Keine Kommentare",
+        just_now: "gerade eben",
+        minutes_ago: "Min.",
+        hours_ago: "Std.",
+        days_ago: "T.",
+        mentioned_you: "hat Sie in einer Aufgabe erwähnt"
     }
 };

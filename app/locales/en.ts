@@ -445,6 +445,17 @@ export const en = {
         status_closed: "Closed",
         created_at: "Created at",
         delete_confirm: "Are you sure you want to delete this ticket?"
+    },
+    comments: {
+        title: "Comments",
+        add: "Add comment",
+        placeholder: "Write a comment... use @ to mention",
+        empty: "No comments yet",
+        just_now: "just now",
+        minutes_ago: "min ago",
+        hours_ago: "h ago",
+        days_ago: "d ago",
+        mentioned_you: "mentioned you in a task"
     }
 };
 

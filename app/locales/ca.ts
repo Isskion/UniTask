@@ -447,5 +447,16 @@ export const ca: Dictionary = {
         status_closed: "Tancat",
         created_at: "Creat el",
         delete_confirm: "Segur que vols eliminar aquest ticket?"
+    },
+    comments: {
+        title: "Comentaris",
+        add: "Afegir comentari",
+        placeholder: "Escriu un comentari... fes servir @ per mencionar",
+        empty: "Sense comentaris",
+        just_now: "ara mateix",
+        minutes_ago: "min",
+        hours_ago: "h",
+        days_ago: "d",
+        mentioned_you: "t'ha mencionat en una tasca"
     }
 };

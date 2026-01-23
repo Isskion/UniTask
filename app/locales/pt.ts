@@ -447,5 +447,16 @@ export const pt: Dictionary = {
         status_closed: "Fechado",
         created_at: "Criado em",
         delete_confirm: "Tem certeza que deseja excluir este ticket?"
+    },
+    comments: {
+        title: "Comentários",
+        add: "Adicionar comentário",
+        placeholder: "Escreva um comentário... use @ para mencionar",
+        empty: "Sem comentários",
+        just_now: "agora mesmo",
+        minutes_ago: "min",
+        hours_ago: "h",
+        days_ago: "d",
+        mentioned_you: "mencionou você em uma tarefa"
     }
 };
