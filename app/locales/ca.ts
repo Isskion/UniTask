@@ -48,6 +48,7 @@ export const ca: Dictionary = {
         allTasks: "Totes les tasques (Tauler)",
         admin: "Administració",
         taskMaster: "Gestió de tasques",
+        "admin-task-master": "Gestió de tasques",
         people: "Persones",
         roles: "Rols i permisos",
         reports: "Informes i plantilles",
