@@ -29,7 +29,9 @@ export interface TaskComment {
  * Format: @uid or @displayName (we use UIDs for reliability)
  */
 export function parseMentions(content: string, users: { uid: string; displayName: string }[]): string[] {
-    const mentionPattern = /@(\w+)/g;
+    // Regex to match @ followed by alphanumeric, accents, dots, underscores or dashes
+    // We capture until a space or end of string
+    const mentionPattern = /@([a-zA-Z0-9_ñÑáéíóúÁÉÍÓÚüÜ.-]+)/g;
     const matches = content.match(mentionPattern) || [];
     const mentionedUids: string[] = [];
 
