@@ -100,7 +100,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             // Ensure arrays are at least empty arrays, not undefined
                             dependencies: taskData.dependencies || [],
                             acceptanceCriteria: taskData.acceptanceCriteria || [],
-                            attributes: taskData.attributes || [],
+                            attributes: taskData.attributes || {},
                             raci: taskData.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
                         };
 
