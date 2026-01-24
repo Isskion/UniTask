@@ -364,7 +364,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 // Ensure arrays are at least empty arrays, not undefined
                 dependencies: task.dependencies || [],
                 acceptanceCriteria: task.acceptanceCriteria || [],
-                attributes: task.attributes || [],
+                attributes: task.attributes || {},
                 raci: task.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
             };
 
@@ -653,7 +653,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         title: updatedTask.title || updatedTask.description || "",
                         dependencies: updatedTask.dependencies || [],
                         acceptanceCriteria: updatedTask.acceptanceCriteria || [],
-                        attributes: updatedTask.attributes || [],
+                        attributes: updatedTask.attributes || {},
                         raci: updatedTask.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
                     };
 
