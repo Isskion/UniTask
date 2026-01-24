@@ -161,8 +161,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (!selectedTask) return false;
 
         // Compare key fields (Added isBlocking and new classification fields)
-        // [V3] Removed 'progress' from here as it is now an object
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -182,12 +181,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
         if (JSON.stringify(formData.acceptanceCriteria) !== JSON.stringify(selectedTask.acceptanceCriteria)) return true;
         if (JSON.stringify(formData.attributes) !== JSON.stringify(selectedTask.attributes)) return true;
-
-        // [V3] Progress Check
-        // Handle legacy (number) vs V3 (object) comparison if needed
-        const oldProgress = typeof selectedTask.progress === 'number' ? selectedTask.progress : (selectedTask.progress?.actual || 0);
-        const newProgress = formData.progress?.actual || 0;
-        if (oldProgress !== newProgress) return true;
 
         return false;
     };
@@ -409,13 +402,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 acceptanceCriteria: [
                     { id: '1', text: t('task_manager.criteria_placeholder'), completed: false }
                 ],
-                // [V3] Initialize new fields
-                type: 'task',
-                order: Date.now() / 1000, // Simple float order based on timestamp for now
-                ancestorIds: [],
-                progress: {
-                    actual: 0
-                },
+                progress: 0,
                 raci: { responsible: [], accountable: [], consulted: [], informed: [] },
                 dependencies: [],
                 tenantId: tenantId || "1"
@@ -517,16 +504,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     const assignee = formData.assignedTo;
 
                     const { id, ...data } = formData;
-
-                    // [V3] Deep merge progress to preserve 'planned' or handle legacy migration
-                    if (data.progress) {
-                        const oldProgress = typeof selectedTask.progress === 'number'
-                            ? { actual: selectedTask.progress }
-                            : (selectedTask.progress || { actual: 0 });
-
-                        data.progress = { ...oldProgress, ...data.progress };
-                    }
-
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
                         updatedAt: serverTimestamp()

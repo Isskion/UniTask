@@ -193,36 +193,6 @@ export interface AttributeDefinition {
     mappedField?: string; // If set, maps to a root property (e.g. 'priority') instead of attributes[]
 }
 
-// [V3] Project Plan (Master Schedule)
-export interface ProjectPlan {
-    id: string; // Typically matches projectId 1:1
-    tenantId: string;
-    projectId: string; // Explicit link
-
-    // Structure Configuration
-    structureType: 'bucket-epic' | 'tag-based' | 'flat';
-    settings: {
-        autoArchiveMissingTasks: boolean;
-        allowManualTasksInsidePlan: boolean;
-        syncChecklistsAsSubtasks: boolean;
-    };
-
-    // Metadata
-    source: {
-        system: 'ms_planner' | 'jira' | 'manual';
-        lastImportedAt: string;
-        resourceId?: string; // Planner ID
-    };
-
-    version: number; // Incremented on import
-    isActive: boolean;
-    createdAt: any;
-    updatedAt: any;
-}
-
-// [V3] Task Types
-export type TaskType = 'root_epic' | 'epic' | 'task' | 'subtask' | 'milestone';
-
 export interface Task {
     id: string;
     friendlyId?: string; // e.g. "EUP-1"
@@ -230,44 +200,15 @@ export interface Task {
 
     // Core Links
     weekId: string;        // Legacy link (Date string)
-    relatedDailyStatusId?: string; // Link to specific Daily Status Document
+    relatedDailyStatusId?: string; // [NEW] Link to specific Daily Status Document
     projectId?: string;    // Parent Project
     tenantId: string;      // Multi-tenant isolation
-
-    // [V3] Hierarchy & Navigation
-    type: TaskType;
-    parentId?: string;     // Direct parent
-    ancestorIds: string[]; // Ordered list of parents [Root, Epic, Task] EXCLUDING self
-    planId?: string;       // Context of the Master Plan
-
-    // [V3] Visual Order
-    order: number;         // Float for drag & drop normalization
-
-    // [V3] Operational Link (Semantic)
-    // ID of the structural task this operational task contributes to
-    contributesToTaskId?: string;
 
     // Header Info
     title: string;         // Main "Headline" of the task
     description?: string;  // Detailed description (Optional now if title is main)
     status: 'pending' | 'in_progress' | 'review' | 'completed';
     isBlocking?: boolean; // New: Condition flag
-
-    // [V3] Dual Progress (Source of Truth)
-    progress: {
-        planned?: number;    // READ-ONLY in Execution Mode. From Plan/Import.
-        actual: number;      // Calculated from execution (checklists, subtasks)
-        aggregated?: number; // Cache. Weighted average of children.
-    };
-
-    // [V3] Audit & Import Control
-    planVersion?: number;    // Version of the plan import that touched this
-    planStatus?: 'linked' | 'detached' | 'overridden' | 'archived';
-    externalSource?: {
-        system: 'ms_planner' | 'jira';
-        id: string;          // Immutable Source ID
-        etag?: string;       // Change detection hash
-    };
 
     // Section 1: Classification [NEW]
     priority?: 'high' | 'medium' | 'low';
@@ -295,7 +236,7 @@ export interface Task {
     // Section 4: Execution & Timeline
     startDate?: any;
     endDate?: any;
-    // progress?: number; // [DEPRECATED in V3] Use progress.actual
+    progress?: number; // 0-100
     acceptanceCriteria?: {
         id: string;
         text: string;
