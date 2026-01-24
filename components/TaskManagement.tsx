@@ -82,7 +82,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     // AUTO-SELECT TASK FROM ID (Fix for Notifications)
     useEffect(() => {
-        if (initialTaskId) {
+        if (initialTaskId && processedInitialRef.current !== initialTaskId) {
             const loadDeepLinkedTask = async () => {
                 try {
                     const { doc, getDoc } = await import("firebase/firestore");
@@ -92,9 +92,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         const taskData = { id: snap.id, ...snap.data() } as Task;
                         // Determine status of this task to set sidebar filter?
                         // For now just set selectedTask.
-                        setSelectedTask(taskData);
-                        setFormData(taskData); // Sync Form Data
+
+                        // [FIX] Normalization for Deep Link
+                        const normalizedTask = {
+                            ...taskData,
+                            title: taskData.title || taskData.description || "",
+                            // Ensure arrays are at least empty arrays, not undefined
+                            dependencies: taskData.dependencies || [],
+                            acceptanceCriteria: taskData.acceptanceCriteria || [],
+                            attributes: taskData.attributes || [],
+                            raci: taskData.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
+                        };
+
+                        setSelectedTask(normalizedTask);
+                        setFormData(normalizedTask); // Sync Form Data
                         setSidebarFilter('all'); // Ensure visibility
+                        processedInitialRef.current = initialTaskId; // Mark as processed
                     }
                 } catch (e) {
                     console.error("Error loading deep linked task:", e);
@@ -152,12 +165,20 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
-            if (val1 != val2) return true; // Loose equality for null/undefined/""
+            // Loose equality for null/undefined/"" and trimming strings
+            const v1Str = String(val1).trim();
+            const v2Str = String(val2).trim();
+            if (v1Str !== v2Str) return true;
         }
 
         // Complex objects
         if (JSON.stringify(formData.raci) !== JSON.stringify(selectedTask.raci)) return true;
-        if (JSON.stringify(formData.dependencies) !== JSON.stringify(selectedTask.dependencies)) return true;
+
+        // Deep compare dependencies (arrays)
+        const deps1 = (formData.dependencies || []).sort().join(',');
+        const deps2 = (selectedTask.dependencies || []).sort().join(',');
+        if (deps1 !== deps2) return true;
+
         if (JSON.stringify(formData.acceptanceCriteria) !== JSON.stringify(selectedTask.acceptanceCriteria)) return true;
         if (JSON.stringify(formData.attributes) !== JSON.stringify(selectedTask.attributes)) return true;
 
@@ -192,6 +213,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [confirmModal, setConfirmModal] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void; destructive?: boolean } | null>(null);
     const [showAuditLog, setShowAuditLog] = useState(false);
     const retriedIds = useRef<Set<string>>(new Set());
+    const processedInitialRef = useRef<string | null>(null);
 
     // Data Loader
     const loadData = useCallback(async () => {
@@ -333,12 +355,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     const handleSelectTask = (task: Task) => {
         const proceed = () => {
-            setSelectedTask(task);
-            // Smart Migration: If title is missing but description exists, use description as title
-            setFormData({
+            // [FIX] Normalize Data on Selection
+            // This ensures selectedTask (baseline) and formData (draft) start IDENTICAL
+            // to prevent immediate "unsaved changes" flag.
+            const normalizedTask = {
                 ...task,
                 title: task.title || task.description || "",
-            });
+                // Ensure arrays are at least empty arrays, not undefined
+                dependencies: task.dependencies || [],
+                acceptanceCriteria: task.acceptanceCriteria || [],
+                attributes: task.attributes || [],
+                raci: task.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
+            };
+
+            setSelectedTask(normalizedTask);
+            setFormData(normalizedTask);
+
             setIsNew(false);
             setIsStatusOpen(false);
             setActiveRaciRole(null);
@@ -418,6 +450,26 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         setSaving(true);
         try {
             if (isNew) {
+                // --- DEDUPLICATION CHECK ---
+                const { findDuplicate } = await import("@/lib/deduplication");
+                const duplicate = findDuplicate(formData.title || "", tasks, 0.85); // High threshold
+
+                if (duplicate) {
+                    // Reuse confirm modal if possible, or just a custom confirm
+                    // Since specific confirmModal state is complex, I'll use window.confirm for MVP rapid check
+                    // OR reuse setConfirmModal if I can satisfy its interface
+                    const confirmCreate = window.confirm(
+                        `⚠️ POSIBLE DUPLICADO DETECTADO\n\n` +
+                        `Esta tarea es muy similar a:\n` +
+                        `[${duplicate.friendlyId}] ${duplicate.title}\n\n` +
+                        `¿Deseas crearla de todos modos?`
+                    );
+                    if (!confirmCreate) {
+                        setSaving(false);
+                        return;
+                    }
+                }
+
                 const friendlyId = `TSK-${Math.floor(1000 + Math.random() * 9000)}`;
                 const docRef = await addDoc(collection(db, "tasks"), {
                     ...formData,
@@ -592,8 +644,23 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     }
 
                     setTasks(prev => prev.map(t => t.id === selectedTask.id ? { ...t, ...data } as Task : t));
-                    // Update selectedTask reference to match the new saved state
-                    setSelectedTask({ ...selectedTask, ...data } as Task);
+
+                    // [FIX] Normalize Updated State
+                    // Ensure the new selectedTask is perfectly aligned with formData to clear dirty flag
+                    const updatedTask = { ...selectedTask, ...data } as Task;
+                    const normalizedUpdated = {
+                        ...updatedTask,
+                        title: updatedTask.title || updatedTask.description || "",
+                        dependencies: updatedTask.dependencies || [],
+                        acceptanceCriteria: updatedTask.acceptanceCriteria || [],
+                        attributes: updatedTask.attributes || [],
+                        raci: updatedTask.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
+                    };
+
+                    // Update selectedTask reference to match the new saved state exactly
+                    setSelectedTask(normalizedUpdated);
+                    // Also refresh formData to be safe, although it should match
+                    setFormData(normalizedUpdated);
 
                     setIsNew(false);
                     showToast("UniTaskController", t('task_manager.saved'), "success");

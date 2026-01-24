@@ -231,6 +231,69 @@ export default function FirebaseDiagnostic() {
         }
     };
 
+
+    const handleAuditDuplicates = async () => {
+        setStatus('running');
+        addLog("--- BUSCANDO DUPLICADOS EN TAREAS ---");
+        try {
+            // Dynamic import to avoid heavy load on initial render
+            const { findDuplicate } = await import("@/lib/deduplication");
+
+            addLog("1. Obteniendo TODAS las tareas activas...");
+            const q = query(collection(db, "tasks"), where("isActive", "==", true));
+            const snapshot = await getDocs(q);
+            const allTasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+            addLog(`   Total Tareas Activas: ${allTasks.length}`);
+
+            // Group by Tenant -> Project
+            const tasksByProject: Record<string, any[]> = {};
+
+            allTasks.forEach(t => {
+                const key = `${t.tenantId || 'unk'}_${t.projectId || 'global'}`;
+                if (!tasksByProject[key]) tasksByProject[key] = [];
+                tasksByProject[key].push(t);
+            });
+
+            addLog(`2. Analizando ${Object.keys(tasksByProject).length} Proyectos/Tenants...`);
+
+            let totalDuplicates = 0;
+
+            for (const [key, tasks] of Object.entries(tasksByProject)) {
+                if (tasks.length < 2) continue;
+
+                // O(N^2) comparison within project
+                for (let i = 0; i < tasks.length; i++) {
+                    const taskA = tasks[i];
+                    // Compare with subsequent tasks
+                    const others = tasks.slice(i + 1);
+
+                    const duplicate = findDuplicate(taskA.title, others, 0.85); // High threshold for existing
+
+                    if (duplicate) {
+                        totalDuplicates++;
+                        addLog(`⚠️ DUPLICADO DETECTADO (${tasks[0].tenantId}):`);
+                        addLog(`   A: [${taskA.friendlyId}] ${taskA.title}`);
+                        addLog(`   B: [${duplicate.friendlyId}] ${duplicate.title}`);
+                        addLog(`   Similitud: ${(duplicate.similarity * 100).toFixed(1)}%`);
+                    }
+                }
+            }
+
+            if (totalDuplicates === 0) {
+                addLog("✅ No se encontraron duplicados obvios.");
+            } else {
+                addLog(`🚨 Se encontraron ${totalDuplicates} posibles pares duplicados.`);
+            }
+
+            setStatus('success');
+
+        } catch (e: any) {
+            console.error(e);
+            setStatus('error');
+            addLog(`❌ Error: ${e.message}`);
+        }
+    };
+
     return (
         <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 items-end">
             {status === 'idle' && (
@@ -279,6 +342,13 @@ export default function FirebaseDiagnostic() {
                             className="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-lg text-xs font-bold w-full justify-center border border-white/10"
                         >
                             <Activity className="w-3.5 h-3.5" /> 2. Ejecutar Tests de Conexión
+                        </button>
+
+                        <button
+                            onClick={handleAuditDuplicates}
+                            className="flex items-center gap-1 bg-purple-900/50 hover:bg-purple-800 text-purple-200 px-3 py-2 rounded-lg text-xs font-bold w-full justify-center border border-purple-500/30"
+                        >
+                            <Sparkles className="w-3.5 h-3.5" /> 3. Audit: Detectar Duplicados Masivo
                         </button>
                     </div>
 

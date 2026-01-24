@@ -420,11 +420,18 @@ export default function DailyFollowUp() {
 
         try {
             // SuperAdmin Global View Check (Only if Tenant 1 and Role Superadmin)
+            // [FIX] Strict Masquerading Check:
+            // If tenantId is present and NOT "1", we are looking at a specific tenant (Masquerading).
+            // Even if tenantId IS "1", if the user explicitly requested "1" via context switching, we might want single view.
+            // BUT for now, we assume "1" = Global/Root context.
             const isMasquerading = tenantId && tenantId !== "1";
 
             if (userRole === 'superadmin' && !isMasquerading) {
                 console.log(`[LoadData] Multi-tenant view loading...`);
                 const allEntries: any[] = [];
+                // Only load if we are truly in "Global" mode.
+                // If the user picked a tenant, isMasquerading should be true.
+
                 const tenantsToCheck = availableTenants.length > 0 ? availableTenants.map(t => t.id) : ["1", "2", "3", "4", "5", "6"];
 
                 for (const tid of tenantsToCheck) {
@@ -453,8 +460,10 @@ export default function DailyFollowUp() {
                 }
             } else {
                 // Regular Load (Targeting Specific Tenant)
-                console.log(`[DailyFollowUp] Loading Entries for: Tenant=${currentTenantId}, Date=${dateId}`);
-                const entries = await getDailyStatusLogsForDate(currentTenantId, dateId);
+                // [FIX] Ensure we use the CURRENT tenantId, even if it is "1" (if masquerading logic failed above, we default here)
+                const targetTenant = tenantId || "1";
+                console.log(`[DailyFollowUp] Loading Entries for: Tenant=${targetTenant}, Date=${dateId}`);
+                const entries = await getDailyStatusLogsForDate(targetTenant, dateId);
 
                 if (lastLoadRef.current !== requestId) return;
 
@@ -468,7 +477,7 @@ export default function DailyFollowUp() {
                         // Optional: could allow selecting entry
                     }
                 } else {
-                    setEntry(defaultEntry);
+                    setEntry({ ...defaultEntry, tenantId: targetTenant }); // Ensure default entry has correct tenant
                 }
             }
         } catch (e) {
@@ -642,10 +651,50 @@ export default function DailyFollowUp() {
             setAiSummary(result.resumenEjecutivo);
 
             // Combine tasks and next steps into a single "Suggestions" list
-            const suggestions = [
+            let suggestions = [
                 ...result.tareasExtraidas,
                 ...result.proximosPasos
             ];
+
+            // --- DEDUPLICATION CHECK ---
+            // Check against currently loaded tasks (projectTasks)
+            const { findDuplicate } = await import("@/lib/deduplication");
+
+            let tasksToCheck = projectTasks;
+
+            // [FIX] Robustness: Fetch tasks on demand to ensure we have the latest and ALL tasks (including completed)
+            // This solves race conditions where projectTasks might be empty or filtered
+            if (activeTab !== 'General' && tenantId) {
+                const pId = globalProjects.find(p => p.name === activeTab)?.id;
+                if (pId) {
+                    try {
+                        const q = query(
+                            collection(db, "tasks"),
+                            where("tenantId", "==", tenantId),
+                            where("projectId", "==", pId),
+                            where("isActive", "==", true)
+                        );
+                        const snap = await getDocs(q);
+                        tasksToCheck = snap.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+                        console.log(`[Deduplication] Explicitly fetched ${tasksToCheck.length} tasks for project ${activeTab} to ensure coverage.`);
+                    } catch (e) {
+                        console.error("[Deduplication] Fetch failed, falling back to state:", e);
+                    }
+                }
+            }
+
+            // [DEBUG] Monitor Deduplication Context
+            console.log(`[Deduplication] Checking against ${tasksToCheck.length} loaded tasks.`);
+
+            suggestions = suggestions.map(suggestion => {
+                const duplicate = findDuplicate(suggestion, tasksToCheck, 0.75); // 75% threshold
+
+                if (duplicate) {
+                    return `POSIBLE TAREA EXISTENTE EN ${duplicate.friendlyId} (${duplicate.title}): ${suggestion}`;
+                }
+                return suggestion;
+            });
+
             setAiSuggestions(suggestions);
             setIsTasksPanelVisible(true); // Auto-open on success
 
@@ -737,6 +786,21 @@ export default function DailyFollowUp() {
 
     const handleManualAddTask = async (isBlocked: boolean = false) => {
         if (!newTaskText.trim()) return;
+
+        // --- DEDUPLICATION CHECK ---
+        const { findDuplicate } = await import("@/lib/deduplication");
+        const duplicate = findDuplicate(newTaskText, projectTasks, 0.8);
+
+        if (duplicate) {
+            const confirmCreate = window.confirm(
+                `⚠️ POSIBLE DUPLICADO\n\n` +
+                `Existe una tarea similar:\n` +
+                `[${duplicate.friendlyId}] ${duplicate.title}\n\n` +
+                `¿Crear de todas formas?`
+            );
+            if (!confirmCreate) return;
+        }
+
         await handleAcceptSuggestion(newTaskText, isBlocked); // Reuse logic
         setNewTaskText("");
     };
