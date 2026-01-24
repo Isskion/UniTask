@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.11.2';
+export const APP_VERSION = '12.12.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,18 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "12.12.0",
+        date: "2026-01-24",
+        title: "Experiencia de Usuario y Administración",
+        features: [
+            "✨ **Botón Copiar**: Nueva funcionalidad en 'Mis Proyectos' para exportar resultados al portapapeles rápidamente.",
+            "🛠️ **Gestión de Usuarios Completa**: Edición de perfiles extendida (Empresa, Cargo, Idioma, Contacto).",
+            "🎨 **Tema Rojo Corporativo**: Unificación de estilos en formularios ABM de tareas.",
+            "📚 **Manual de Usuario**: Contenido actualizado, simplificado y con mejor formato.",
+            "⚡ **Correcciones**: Ajustes en el escáner AI y mejoras de estabilidad."
+        ]
+    },
     {
         version: "12.11.2",
         date: "2026-01-22",
