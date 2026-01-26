@@ -313,7 +313,6 @@ export default function UserManagement() {
                     <h2 className={cn("text-2xl font-black tracking-tighter flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                         <User className="w-6 h-6 text-[#D32F2F]" />
                         {t('user_management.title')}
-                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full">V13.1 DEBUG</span>
                     </h2>
                     <p className="text-xs text-zinc-500 font-medium tracking-wide uppercase opacity-70">Control access & organization</p>
                 </div>
