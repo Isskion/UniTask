@@ -60,7 +60,6 @@ export const es: Dictionary = {
         trash: "Papelera",
         organizations: "Tenants",
         tasks: "Tareas",
-        users: "Usuarios",
     },
 
     theme: {

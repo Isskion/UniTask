@@ -472,16 +472,17 @@ function ImportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                 const result = await CsvUtils.parseCsv(f);
                 setCsvData(result.data); // Raw data
                 if (result.meta?.fields) {
-                    setCsvHeaders(result.meta.fields);
+                    const fields = result.meta.fields;
+                    setCsvHeaders(fields);
 
                     // Auto-Map
                     const initialMap: Record<string, string> = {};
                     SYSTEM_FIELDS.forEach(sf => {
                         // Try exact match first
-                        let match = result.meta.fields.find(h => h === sf.key);
+                        let match = fields.find(h => h === sf.key);
                         // Then fuzzy
                         if (!match) {
-                            match = result.meta.fields.find(h => CsvUtils.normalizeHeader(h) === sf.key.toLowerCase());
+                            match = fields.find(h => CsvUtils.normalizeHeader(h) === sf.key.toLowerCase());
                         }
                         if (match) {
                             initialMap[sf.key] = match;
