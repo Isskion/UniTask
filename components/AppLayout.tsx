@@ -25,6 +25,7 @@ import {
     BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APP_VERSION } from "@/lib/version";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -292,7 +293,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     title={t('support.title')}
                                 >
                                     <LifeBuoy className="w-4 h-4" />
-                                    <span className="text-[9px] opacity-30 font-mono hidden md:inline">v12.11.0 | {userRole}</span>
+
+                                    <span className="text-[9px] opacity-30 font-mono hidden md:inline">v{APP_VERSION} | {userRole}</span>
                                 </button>
                             </div>
                         </div>

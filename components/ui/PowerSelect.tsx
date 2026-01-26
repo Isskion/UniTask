@@ -66,7 +66,9 @@ export function PowerSelect({ value, onChange, options, placeholder = "Seleccion
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100 bg-popover text-popover-foreground">
+                <div className={cn("absolute top-full left-0 right-0 mt-1 rounded-lg border shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100",
+                    isLight ? "bg-white border-zinc-200" : "bg-card border-white/10"
+                )}>
                     <div className="max-h-60 overflow-y-auto p-1">
                         {options.map(option => (
                             <button

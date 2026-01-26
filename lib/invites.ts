@@ -156,11 +156,16 @@ export async function consumeInvite(code: string, userUid: string): Promise<bool
 }
 
 /**
- * Fetch all invites for admin view
+ * Fetch invites for admin view
  */
-export async function getAllInvites(): Promise<InviteCode[]> {
+export async function getAllInvites(tenantId?: string): Promise<InviteCode[]> {
     try {
-        const q = query(collection(db, INVITES_COLLECTION)); // You might want to sort by date in UI or here
+        let q;
+        if (tenantId) {
+            q = query(collection(db, INVITES_COLLECTION), where("tenantId", "==", tenantId));
+        } else {
+            q = query(collection(db, INVITES_COLLECTION));
+        }
         const snapshot = await getDocs(q);
         const invites: InviteCode[] = [];
         snapshot.forEach(doc => invites.push(doc.data() as InviteCode));

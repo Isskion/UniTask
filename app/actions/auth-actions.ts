@@ -7,16 +7,21 @@ export async function sendPasswordResetEmailAction(email: string) {
     if (!email) return { success: false, message: "Email requerido" };
 
     try {
-        console.log("🔐 Generating reset link for:", email);
+        console.log("🔐 Password Reset Request for:", email);
 
         // 1. Generate the link using Admin SDK
-        // This requires 'FIREBASE_CONFIG' or Service Account to be set up.
-        // If running on Vercel/Local without proper Service Account, this might throw 'credential' error.
-        const link = await adminAuth.generatePasswordResetLink(email);
-
-        console.log("🔗 Link Generated. Sending email...");
+        console.log("🔄 Generating reset link via Admin SDK...");
+        let link;
+        try {
+            link = await adminAuth.generatePasswordResetLink(email);
+            console.log("🔗 Link Generated successfully.");
+        } catch (authError: any) {
+            console.error("❌ Firebase Admin Auth Error:", authError.code, authError.message);
+            throw authError; // Re-throw to be caught by the outer catch
+        }
 
         // 2. Prepare Email Content
+        console.log("📝 Preparing email template...");
         const htmlContent = wrapHtmlTemplate(`
             <p>Hola,</p>
             <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en <strong>UniTask Controller</strong>.</p>
@@ -29,6 +34,7 @@ export async function sendPasswordResetEmailAction(email: string) {
         `, "Restablecimiento de Contraseña");
 
         // 3. Send Email via Nodemailer
+        console.log("📧 Attempting to send email to:", email);
         const emailSuccess = await sendEmail({
             to: email,
             subject: "Restablecer Contraseña - UniTask Controller",
@@ -36,9 +42,11 @@ export async function sendPasswordResetEmailAction(email: string) {
         });
 
         if (!emailSuccess) {
+            console.error("❌ SMTP Service failed to send the email.");
             throw new Error("Fallo al enviar el correo SMTP");
         }
 
+        console.log("✨ Password reset process completed successfully.");
         return { success: true };
 
     } catch (error: any) {

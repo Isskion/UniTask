@@ -1,4 +1,4 @@
-export const APP_VERSION = '12.12.0';
+export const APP_VERSION = '13.0.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,18 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "13.0.0",
+        date: "2026-01-24",
+        title: "V3: Planificación Jerárquica & Shadow Migration",
+        features: [
+            "🚀 **Estructura Jerárquica (V3)**: Soporte completo para Epics, Tasks y Subtasks con ordenamiento visual.",
+            "🌳 **Nueva Vista de Árbol**: Toggle 'Jerarquía' en el panel de tareas para visualizar la estructura del proyecto.",
+            "🛡️ **Shadow Migration**: Estrategia de doble escritura para garantizar compatibilidad total con V12 durante la transición.",
+            "🔄 **Gestión de Padres**: Nuevo selector de 'Padre' y 'Tipo' en el formulario de edición de tareas.",
+            "✨ **Interfaz Renovada**: Mejoras en la navegación y corrección de etiquetas de versión."
+        ]
+    },
     {
         version: "12.12.0",
         date: "2026-01-24",

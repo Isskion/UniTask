@@ -140,14 +140,24 @@ export default function UserManagement() {
                 loadedUsers.sort((a, b) => getRoleLevel(b.role) - getRoleLevel(a.role));
                 setUsers(loadedUsers);
             } else {
-                let loadedInvites = await getAllInvites();
-                if (getRoleLevel(userRole) < 100) {
-                    loadedInvites = loadedInvites.filter(inv => inv.createdBy === user?.uid);
-                }
+                // Fetch invites: Superadmin sees everything, others see their tenant
+                const userLevel = getRoleLevel(userRole);
+                const queryTenant = userLevel >= 100 ? undefined : (tenantId || "1");
+
+                let loadedInvites = await getAllInvites(queryTenant);
+
+                // Sort by date descending (handle missing/invalid dates)
+                loadedInvites.sort((a, b) => {
+                    const dateA = a.createdAt?.seconds || 0;
+                    const dateB = b.createdAt?.seconds || 0;
+                    return dateB - dateA;
+                });
+
                 setInvites(loadedInvites);
             }
         } catch (error: any) {
             console.error("Error loading data:", error);
+            showToast("Error", "Error al cargar datos: " + error.message, "error");
         } finally {
             setLoading(false);
         }
@@ -285,7 +295,7 @@ export default function UserManagement() {
     };
 
     const copyInviteLink = (code: string) => {
-        const url = `https://weekly-tracker-seven.vercel.app?invite=${code}`;
+        const url = `${window.location.origin}?invite=${code}`;
         navigator.clipboard.writeText(url);
         showToast("Copied", "Link copied to clipboard", "success");
     };
@@ -298,34 +308,52 @@ export default function UserManagement() {
         <div className="flex-1 overflow-hidden flex flex-col gap-4 max-w-5xl mx-auto w-full h-full relative p-4">
             {/* Modal & UI Logic... (Simplified for this pass to ensure build passes) */}
             {/* Standard UI implementation continues below */}
-            <div className={cn("flex justify-between items-center border-b pb-4", isLight ? "border-zinc-200" : "border-white/10")}>
-                <h2 className={cn("text-xl font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                    <User className="w-5 h-5 text-[#D32F2F]" />
-                    {t('user_management.title')}
-                </h2>
-                <div className={cn("flex gap-2 p-1 rounded-full", isLight ? "bg-zinc-100" : "bg-white/5")}>
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={cn(
-                            "px-4 py-1 rounded-full text-xs font-bold transition-all",
-                            activeTab === 'users'
-                                ? "bg-[#D32F2F] text-white shadow-md shadow-red-900/20"
-                                : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
-                        )}
-                    >
-                        Users
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('invites')}
-                        className={cn(
-                            "px-4 py-1 rounded-full text-xs font-bold transition-all",
-                            activeTab === 'invites'
-                                ? "bg-[#D32F2F] text-white shadow-md shadow-red-900/20"
-                                : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
-                        )}
-                    >
-                        Invites
-                    </button>
+            <div className={cn("flex justify-between items-center border-b pb-6", isLight ? "border-zinc-200" : "border-white/10")}>
+                <div className="flex flex-col gap-1">
+                    <h2 className={cn("text-2xl font-black tracking-tighter flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                        <User className="w-6 h-6 text-[#D32F2F]" />
+                        {t('user_management.title')}
+                    </h2>
+                    <p className="text-xs text-zinc-500 font-medium tracking-wide uppercase opacity-70">Control access & organization</p>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <div className={cn("flex gap-1 p-1 rounded-2xl", isLight ? "bg-zinc-100" : "bg-white/5")}>
+                        <button
+                            onClick={() => setActiveTab('users')}
+                            className={cn(
+                                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                                activeTab === 'users'
+                                    ? "bg-[#D32F2F] text-white shadow-lg shadow-red-900/30"
+                                    : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                            )}
+                        >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            Users
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('invites')}
+                            className={cn(
+                                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                                activeTab === 'invites'
+                                    ? "bg-[#D32F2F] text-white shadow-lg shadow-red-900/30"
+                                    : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                            )}
+                        >
+                            <Ticket className="w-3.5 h-3.5" />
+                            Invites
+                        </button>
+                    </div>
+
+                    {activeTab === 'invites' && (
+                        <button
+                            onClick={() => setShowInviteWizard(true)}
+                            className="flex items-center gap-2 bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-900/40 transition-all hover:scale-105 active:scale-95"
+                        >
+                            <Plus className="w-4 h-4" />
+                            New Invite
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -372,9 +400,122 @@ export default function UserManagement() {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-12 opacity-50">Invites functionality coming soon in this view.</div>
+                    <div className="space-y-2">
+                        {invites.length === 0 ? (
+                            <div className="text-center py-12 opacity-50">No invites found.</div>
+                        ) : (
+                            <div className="grid gap-3">
+                                {invites.map(inv => {
+                                    const roleInfo = ROLES.find(r => r.value === inv.role);
+                                    return (
+                                        <div key={inv.code} className={cn(
+                                            "border p-5 rounded-2xl flex justify-between items-center group transition-all duration-300",
+                                            isLight
+                                                ? "bg-white border-zinc-200 hover:border-red-500/30 hover:shadow-xl shadow-zinc-100"
+                                                : "bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/[0.07]"
+                                        )}>
+                                            <div className="flex items-center gap-6">
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-xl flex flex-col items-center justify-center font-mono text-center transition-all group-hover:scale-110",
+                                                    inv.isUsed
+                                                        ? (isLight ? "bg-zinc-100 text-zinc-400" : "bg-white/5 text-zinc-600")
+                                                        : "bg-[#D32F2F]/10 text-[#D32F2F] border border-[#D32F2F]/20 shadow-[0_0_15px_rgba(211,47,47,0.1)]"
+                                                )}>
+                                                    <span className="text-[10px] uppercase opacity-50 leading-none mb-1">Code</span>
+                                                    <span className="text-sm font-black tracking-tighter">{inv.code}</span>
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "font-black text-base tracking-tight",
+                                                            roleInfo ? roleInfo.color : (isLight ? "text-zinc-900" : "text-white")
+                                                        )}>
+                                                            {roleInfo?.label || inv.role}
+                                                        </span>
+                                                        {inv.isUsed ? (
+                                                            <span className="text-[9px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full uppercase font-black border border-green-500/10">Used</span>
+                                                        ) : (
+                                                            <span className="text-[9px] bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full uppercase font-black border border-amber-500/10 animate-pulse">Pending</span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 text-[11px] font-medium text-zinc-500">
+                                                        <div className="flex items-center gap-1.5 grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all">
+                                                            <Building className="w-3.5 h-3.5" />
+                                                            <span className="font-mono">{inv.tenantId}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 opacity-60">
+                                                            <RefreshCw className="w-3.5 h-3.5" />
+                                                            <span>{inv.createdAt?.seconds ? format(new Date(inv.createdAt.seconds * 1000), 'dd MMM yyyy') : 'No date'}</span>
+                                                        </div>
+                                                        {inv.assignedProjectIds && inv.assignedProjectIds.length > 0 && (
+                                                            <div className="flex items-center gap-1.5 text-[#D32F2F]/60 group-hover:text-[#D32F2F] transition-colors">
+                                                                <FolderGit2 className="w-3.5 h-3.5" />
+                                                                <span>{inv.assignedProjectIds.length} Projects</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                {!inv.isUsed && (
+                                                    <button
+                                                        onClick={() => copyInviteLink(inv.code)}
+                                                        className={cn(
+                                                            "p-2.5 rounded-xl transition-all flex items-center gap-2 text-xs font-bold",
+                                                            isLight
+                                                                ? "text-zinc-500 hover:text-red-600 hover:bg-red-50"
+                                                                : "bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 border border-white/5"
+                                                        )}
+                                                        title="Copy Link"
+                                                    >
+                                                        <Copy className="w-4 h-4" />
+                                                        <span className="hidden sm:inline">Copy Link</span>
+                                                    </button>
+                                                )}
+                                                {getRoleLevel(userRole) >= 100 && (
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!confirm("Delete this invite?")) return;
+                                                            setUpdating(inv.code);
+                                                            try {
+                                                                await deleteDoc(doc(db, "invites", inv.code));
+                                                                setInvites(prev => prev.filter(i => i.code !== inv.code));
+                                                                showToast("Success", "Invite deleted", "success");
+                                                            } catch (e: any) {
+                                                                showToast("Error", e.message, "error");
+                                                            } finally {
+                                                                setUpdating(null);
+                                                            }
+                                                        }}
+                                                        className={cn(
+                                                            "p-2.5 rounded-xl transition-all opacity-0 group-hover:opacity-100",
+                                                            isLight
+                                                                ? "text-zinc-400 hover:text-red-600 hover:bg-red-50"
+                                                                : "text-zinc-500 hover:text-white hover:bg-red-500/20 hover:text-red-500"
+                                                        )}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
+
+            {/* Invite Wizard Overlay */}
+            <InviteWizard
+                isOpen={showInviteWizard}
+                onClose={() => setShowInviteWizard(false)}
+                onSuccess={() => loadData()}
+            />
 
             {/* Edit User Modal */}
             {editingUser && (

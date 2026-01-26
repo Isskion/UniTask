@@ -51,7 +51,7 @@ export function ActivityAuditModal({ taskId, onClose, isLight, theme }: { taskId
         <div className="fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
             <div className={cn(
                 "rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl transition-colors overflow-hidden",
-                isLight ? "bg-white border-zinc-200" : (isRed ? "bg-[#1a0505] border-[#D32F2F]/30" : "bg-[#09090b] border-white/10")
+                isLight ? "bg-white border-zinc-200" : (isRed ? "bg-[#1a0505] border-[#D32F2F]/30" : "bg-zinc-950 border-white/10")
             )}>
                 {/* Header */}
                 <div className={cn("p-4 border-b flex justify-between items-center shrink-0",
@@ -117,13 +117,25 @@ export function ActivityAuditModal({ taskId, onClose, isLight, theme }: { taskId
                                         "text-[9px] font-black uppercase px-2 py-0.5 rounded border tracking-wider",
                                         activity.type === 'update' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
                                             activity.type === 'status_change' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
-                                                "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                                activity.type === 'hierarchy_change' || activity.type === 'hierarchy_move' ? "bg-purple-500/10 text-purple-400 border-purple-500/20" :
+                                                    activity.type === 'deadline_change' ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                                        "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                     )}>
-                                        {activity.type === 'status_change' ? 'Cambio de Estado' : (activity.type === 'comment' ? 'Comentario' : 'Actualización')}
+                                        {(() => {
+                                            switch (activity.type) {
+                                                case 'status_change': return 'Cambio de Estado';
+                                                case 'comment': return 'Comentario';
+                                                case 'hierarchy_change': return 'Jerarquía';
+                                                case 'hierarchy_move': return 'Movimiento';
+                                                case 'deadline_change': return 'Deadline';
+                                                case 'assignment_change': return 'Asignación';
+                                                default: return 'Actualización';
+                                            }
+                                        })()}
                                     </span>
                                 </div>
                                 <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mt-2 p-2 rounded-lg", isLight ? "bg-white/50" : "bg-black/20")}>
-                                    <HighlightText text={activity.note || ""} highlight={searchQuery} />
+                                    <HighlightText text={activity.note || activity.details || ""} highlight={searchQuery} />
                                 </div>
                             </div>
                         ))

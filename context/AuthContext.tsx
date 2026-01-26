@@ -185,6 +185,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return () => unsubscribe();
     }, []);
 
+    // [NEW] Auto-process invite if present in URL and user is logged in
+    useEffect(() => {
+        if (!loading && user) {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('invite')) {
+                console.log("[AuthContext] Auto-processing invite from URL for authenticated user...");
+                createUserProfile(user);
+            }
+        }
+    }, [loading, user]);
+
     // --- MÉTODOS DE SIMULACIÓN (CONTROLADOS) ---
 
     const updateSimulation = (updates: Partial<ViewContext>) => {
@@ -239,8 +250,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // --- CLIENT-SIDE FALLBACK FOR USER CREATION ---
     const createUserProfile = async (user: User, name?: string) => {
         try {
-            // Use static db
-            // Use dynamic import for Firestore functions only for code splitting if desired, but consistency is better
             const { doc, setDoc, serverTimestamp, getDoc, updateDoc } = await import('firebase/firestore');
 
             // 1. Check for Invite Code
@@ -252,36 +261,63 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 console.log(`[AuthContext] Found invite code: ${inviteCode}`);
                 const inviteRef = doc(db, "invites", inviteCode);
                 const inviteSnap = await getDoc(inviteRef);
-                if (inviteSnap.exists() && !inviteSnap.data().isUsed) {
-                    inviteData = inviteSnap.data();
+
+                if (inviteSnap.exists()) {
+                    const data = inviteSnap.data();
+                    if (!data.isUsed) {
+                        inviteData = data;
+                    } else {
+                        console.warn("[AuthContext] Invite already used.");
+                        alert("⚠️ Esta invitación ya ha sido utilizada por otro usuario.");
+                        return; // Stop processing
+                    }
+                } else {
+                    console.warn("[AuthContext] Invite code not found in DB.");
+                    alert("⚠️ El código de invitación no es válido.");
+                    return; // Stop processing
                 }
             }
 
             const userRef = doc(db, "users", user.uid);
             const snapshot = await getDoc(userRef);
+            const existingData = snapshot.data();
 
-            if (!snapshot.exists()) {
-                console.log("[AuthContext] Creating user profile on client (Fallback)...");
+            // Is the user an orphan? (Existing but no tenant or default guest tenant)
+            const isOrphan = snapshot.exists() && (
+                !existingData?.tenantId ||
+                existingData?.tenantId === "unknown" ||
+                (existingData?.tenantId === "1" && existingData?.role === "usuario_externo")
+            );
+
+            if (!snapshot.exists() || (isOrphan && inviteData)) {
+                console.log("[AuthContext] Creating or updating user profile...");
 
                 // 2. Determine Initial Data (Invite vs Default)
-                const finalRole = inviteData?.role || 'usuario_externo';
-                const finalTenantId = inviteData?.tenantId || "1";
-                const finalProjects = inviteData?.assignedProjectIds || [];
-                const autoActive = !!inviteData;
+                const finalRole = inviteData?.role || (existingData?.role || 'usuario_externo');
+                const finalTenantId = inviteData?.tenantId || (existingData?.tenantId || "1");
+                const finalProjects = inviteData?.assignedProjectIds || (existingData?.assignedProjectIds || []);
+                const autoActive = !!inviteData || (existingData?.isActive || false);
 
-                await setDoc(userRef, {
+                const profilePayload: any = {
                     uid: user.uid,
                     email: user.email,
-                    displayName: name || user.displayName || '',
-                    photoURL: user.photoURL || '',
+                    displayName: name || user.displayName || existingData?.displayName || '',
+                    photoURL: user.photoURL || existingData?.photoURL || '',
                     role: finalRole,
                     roleLevel: getRoleLevel(finalRole),
                     tenantId: finalTenantId,
                     assignedProjectIds: finalProjects,
                     isActive: autoActive,
-                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
                     lastLogin: serverTimestamp()
-                });
+                };
+
+                if (!snapshot.exists()) {
+                    profilePayload.createdAt = serverTimestamp();
+                    await setDoc(userRef, profilePayload);
+                } else {
+                    await updateDoc(userRef, profilePayload);
+                }
 
                 // 3. Consume Invite
                 if (inviteCode && inviteData) {
@@ -291,22 +327,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         usedAt: serverTimestamp(),
                         usedBy: user.uid
                     });
+                    alert("✅ INVITACIÓN ACEPTADA: Ahora tienes acceso a " + (inviteData.tenantId || "tu organización"));
+                } else if (!snapshot.exists()) {
+                    alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE");
                 }
 
-                alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE (Invitación Procesada)");
-
+                // 4. Cleanup URL and Refresh
                 if (inviteCode) {
-                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-                    window.history.replaceState({ path: newUrl }, "", newUrl);
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    window.location.href = baseUrl; // Hard reload without params
+                } else {
+                    window.location.reload();
                 }
-
-                window.location.reload(); // Refresh to load permissions
             } else {
-                console.log("[AuthContext] User profile already exists.");
+                console.log("[AuthContext] User profile already exists and is valid.");
             }
         } catch (e: any) {
-            console.error("[AuthContext] Error creating client-side profile:", e);
-            alert("❌ ERROR CREANDO PERFIL: " + e.message);
+            console.error("[AuthContext] Error in createUserProfile:", e);
+            alert("❌ ERROR AL PROCESAR PERFIL: " + e.message);
         }
     };
 
@@ -385,9 +423,9 @@ function getRoleString(level: RoleLevel): string {
         case RoleLevel.SUPERADMIN: return 'superadmin';
         case RoleLevel.ADMIN: return 'app_admin';
         case RoleLevel.PM: return 'global_pm';
-        case RoleLevel.CONSULTANT: return 'consultor';
-        case RoleLevel.TEAM_MEMBER: return 'usuario_base';
-        case RoleLevel.CLIENT: return 'usuario_externo';
-        default: return 'usuario_externo';
+        case RoleLevel.CONSULTANT: return 'consultant';
+        case RoleLevel.TEAM_MEMBER: return 'team_member';
+        case RoleLevel.CLIENT: return 'client';
+        default: return 'client';
     }
 }

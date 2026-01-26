@@ -434,42 +434,66 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
 
                         {/* STEP 4: SUCCESS */}
                         {step === 4 && (
-                            <div className="flex flex-col items-center justify-center h-full text-center space-y-6 animate-in zoom-in-95 duration-300">
-                                <div className={cn(
-                                    "w-20 h-20 rounded-full flex items-center justify-center text-4xl mb-4",
-                                    isRed ? "bg-[#D32F2F] text-white" : "bg-white text-black"
-                                )}>
-                                    🎉
+                            <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-in zoom-in-95 duration-500">
+                                <div className="relative">
+                                    <div className={cn(
+                                        "w-24 h-24 rounded-3xl flex items-center justify-center text-4xl shadow-2xl transition-all animate-bounce",
+                                        isRed ? "bg-[#D32F2F] text-white shadow-red-900/40" : "bg-white text-black shadow-white/10"
+                                    )}>
+                                        <Check className="w-12 h-12 stroke-[4px]" />
+                                    </div>
+                                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-4 border-[#1a0505]">
+                                        <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                                    </div>
                                 </div>
-                                <h3 className={cn("text-3xl font-bold", textBase)}>Invitation Ready!</h3>
-                                <p className="text-zinc-400 max-w-md">
-                                    The link has been generated with all security and access settings applied.
-                                </p>
+
+                                <div className="space-y-2">
+                                    <h3 className={cn("text-4xl font-black tracking-tighter", textBase)}>Invitation Ready!</h3>
+                                    <p className={cn("text-base max-w-sm mx-auto", textMuted)}>
+                                        The link has been generated with all security and access settings applied.
+                                    </p>
+                                </div>
 
                                 {/* New Tenant Feedback */}
                                 {isNewTenant && (
-                                    <div className="bg-blue-900/20 text-blue-200 p-3 rounded-lg text-sm border border-blue-500/20 max-w-md">
-                                        Tenant <strong>{newTenantName}</strong> and its initial project were created.
+                                    <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4 max-w-md animate-in slide-in-from-bottom-4 duration-700">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white shrink-0">
+                                            <Building className="w-5 h-5" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-xs font-black uppercase tracking-widest text-blue-400 leading-tight">New Organization</div>
+                                            <div className="text-sm font-bold text-white">{newTenantName} created successfully</div>
+                                        </div>
                                     </div>
                                 )}
 
-                                <div className="w-full max-w-md bg-black/50 border border-white/10 rounded-lg p-4 flex items-center gap-3">
-                                    <code className="flex-1 bg-transparent text-sm font-mono text-zinc-300 truncate">
+                                <div className={cn(
+                                    "w-full max-w-md p-1 rounded-2xl border flex items-center gap-2 pr-4 transition-all hover:scale-[1.02]",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : "bg-white/5 border-white/10"
+                                )}>
+                                    <div className={cn(
+                                        "px-4 py-3 rounded-xl font-mono text-sm truncate flex-1",
+                                        isLight ? "bg-white border border-zinc-200 text-zinc-600" : "bg-black/50 border border-white/5 text-zinc-300"
+                                    )}>
                                         {window.location.origin}?invite={generatedCode}
-                                    </code>
+                                    </div>
                                     <button
                                         onClick={copyLink}
-                                        className="p-2 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors"
+                                        className={cn(
+                                            "p-3 rounded-xl transition-all group flex items-center gap-2",
+                                            isRed ? "bg-[#D32F2F] hover:bg-[#B71C1C] text-white" : "bg-white text-black hover:bg-zinc-200"
+                                        )}
                                     >
-                                        <Clipboard className="w-4 h-4" />
+                                        <Clipboard className="w-5 h-5 group-active:scale-90 transition-transform" />
+                                        <span className="text-sm font-black uppercase">Copy</span>
                                     </button>
                                 </div>
 
                                 <button
                                     onClick={onClose}
                                     className={cn(
-                                        "px-8 py-3 rounded-full font-bold transition-transform hover:scale-105",
-                                        primaryBtn
+                                        "px-12 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl transition-all hover:scale-105 active:scale-95",
+                                        isLight ? "bg-zinc-900 text-white" : (isRed ? "bg-white text-[#D32F2F]" : "bg-white text-black")
                                     )}
                                 >
                                     Finish

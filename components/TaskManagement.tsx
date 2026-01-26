@@ -20,6 +20,11 @@ import { ActivityAuditModal } from "./ActivityAuditModal";
 import HighlightText from "./ui/HighlightText";
 import { addComment, subscribeToComments, parseMentions, formatRelativeTime, TaskComment } from "@/lib/comments";
 import { MessageSquare } from "lucide-react";
+import { getProgressSafe, ProgressV13 } from "@/lib/data-migration";
+import { recalculateAncestors } from "@/lib/hierarchy-governance";
+import { HierarchyTree } from "./HierarchyTree";
+import { ProjectMindMapModal } from "./ProjectMindMapModal";
+import { Network } from "lucide-react";
 
 // Local MasterDataItem definition removed in favor of types.ts
 
@@ -38,6 +43,59 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
+
+    // [V3] UI Flags
+    const [showTree, setShowTree] = useState(false); // List vs Hierarchy
+    const [showMindMap, setShowMindMap] = useState<string | null>(null); // Mind Map Project ID
+
+    // [V15] Unified View Persistence
+    const viewStateInitialized = useRef(false);
+
+    // 1. Hydrate from URL (Once)
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !viewStateInitialized.current) {
+            const params = new URLSearchParams(window.location.search);
+            const mapId = params.get('mindmap');
+            const viewMode = params.get('view');
+
+            if (mapId) setShowMindMap(mapId);
+            if (viewMode === 'hierarchy') setShowTree(true);
+
+            viewStateInitialized.current = true;
+        }
+    }, []);
+
+    // 2. Sync to URL (On Change)
+    useEffect(() => {
+        if (!viewStateInitialized.current) return;
+
+        const url = new URL(window.location.href);
+        let hasChanges = false;
+
+        // Mind Map State
+        const currentMap = url.searchParams.get('mindmap');
+        if (showMindMap && currentMap !== showMindMap) {
+            url.searchParams.set('mindmap', showMindMap);
+            hasChanges = true;
+        } else if (!showMindMap && currentMap) {
+            url.searchParams.delete('mindmap');
+            hasChanges = true;
+        }
+
+        // Tree/List View State
+        const currentView = url.searchParams.get('view');
+        if (showTree && currentView !== 'hierarchy') {
+            url.searchParams.set('view', 'hierarchy');
+            hasChanges = true;
+        } else if (!showTree && currentView === 'hierarchy') {
+            url.searchParams.delete('view');
+            hasChanges = true;
+        }
+
+        if (hasChanges) {
+            window.history.replaceState({}, '', url.toString());
+        }
+    }, [showMindMap, showTree]);
 
     // Comments State
     const [comments, setComments] = useState<TaskComment[]>([]);
@@ -161,7 +219,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         if (!selectedTask) return false;
 
         // Compare key fields (Added isBlocking and new classification fields)
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'progress', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
+        // [V3] Removed 'progress' from here as it is checked via getProgressSafe
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -181,6 +240,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
         if (JSON.stringify(formData.acceptanceCriteria) !== JSON.stringify(selectedTask.acceptanceCriteria)) return true;
         if (JSON.stringify(formData.attributes) !== JSON.stringify(selectedTask.attributes)) return true;
+
+        // [V3 Migration] Safe Progress Check
+        const oldP = getProgressSafe(selectedTask).actual;
+        const newP = getProgressSafe(formData).actual;
+        if (oldP !== newP) return true;
 
         return false;
     };
@@ -402,7 +466,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 acceptanceCriteria: [
                     { id: '1', text: t('task_manager.criteria_placeholder'), completed: false }
                 ],
-                progress: 0,
+                // [V3 Migration] Shadow Initialization
+                progress: 0, // Legacy fallback
+                progressV13: { actual: 0, planned: 0 },
+                type: 'task',
+                order: Date.now() / 1000,
+                ancestorIds: [],
+
                 raci: { responsible: [], accountable: [], consulted: [], informed: [] },
                 dependencies: [],
                 tenantId: tenantId || "1"
@@ -470,16 +540,30 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     }
                 }
 
+                // [V3] Hierarchy Governance (New Task)
+                let calculatedAncestors: string[] = [];
+                if (formData.parentId) {
+                    try {
+                        // Pass 'tasks' as the universe. Since it's new, no ID to check for cycles.
+                        calculatedAncestors = recalculateAncestors(formData.parentId, tasks);
+                    } catch (e: any) {
+                        showToast("Error de Jerarquía", e.message, "error");
+                        setSaving(false);
+                        return;
+                    }
+                }
+
                 const friendlyId = `TSK-${Math.floor(1000 + Math.random() * 9000)}`;
                 const docRef = await addDoc(collection(db, "tasks"), {
                     ...formData,
+                    ancestorIds: calculatedAncestors, // Save calculated path
                     friendlyId,
                     tenantId: tenantId || "1",
                     createdBy: user?.uid || "unknown",
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
-                const createdTask = { id: docRef.id, friendlyId, ...formData } as Task;
+                const createdTask = { id: docRef.id, friendlyId, ...formData, ancestorIds: calculatedAncestors } as Task;
                 setTasks(prev => [createdTask, ...prev]);
 
                 // NOTIFICATION (NEW TASK)
@@ -504,6 +588,34 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     const assignee = formData.assignedTo;
 
                     const { id, ...data } = formData;
+
+                    // [V3 Migration] Dual Write Strategy
+                    // We write to progressV13 (New Truth) and sync legacy progress (Backup/Compat)
+                    if (data.progress || data.progressV13) {
+                        const safeP = getProgressSafe(formData);
+
+                        // 1. Write Shadow Field
+                        data.progressV13 = safeP;
+
+                        // 2. Sync Legacy Field (Keep it as number for V12 compatibility)
+                        // @ts-ignore
+                        data.progress = safeP.actual;
+                    }
+
+                    // [V3] Hierarchy Governance (Move)
+                    if (selectedTask.parentId !== formData.parentId) {
+                        try {
+                            const newAncestors = recalculateAncestors(formData.parentId, tasks, selectedTask.id);
+                            data.ancestorIds = newAncestors;
+                            // Also update local state 'data' to reflect change immediately?
+                            // Yes, data is used for updateDoc below.
+                        } catch (e: any) {
+                            showToast("Error de Jerarquía", e.message, "error");
+                            setSaving(false);
+                            return;
+                        }
+                    }
+
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
                         updatedAt: serverTimestamp()
@@ -575,6 +687,39 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                 createdAt: serverTimestamp()
                             });
                         }
+
+                        // 3. Hierarchy Change [NEW V3]
+                        if (selectedTask.type !== formData.type) {
+                            addDoc(collection(db, "task_activities"), {
+                                taskId: selectedTask.id,
+                                tenantId: tenantId,
+                                userId: user.uid,
+                                userEmail: user.email,
+                                userName: user.displayName || 'Usuario',
+                                type: 'hierarchy_change',
+                                details: `Tipo de tarea cambiado de "${selectedTask.type}" a "${formData.type}"`,
+                                createdAt: serverTimestamp()
+                            }).catch(e => console.error(e));
+                        }
+
+                        if (selectedTask.parentId !== formData.parentId) {
+                            // Fetch parent titles if possible, or just log IDs for MVP
+                            // To be fancy, we'd need to lookup the parent names from 'tasks' array
+                            const oldParent = tasks.find(t => t.id === selectedTask.parentId)?.title || "Raíz";
+                            const newParent = tasks.find(t => t.id === formData.parentId)?.title || "Raíz";
+
+                            addDoc(collection(db, "task_activities"), {
+                                taskId: selectedTask.id,
+                                tenantId: tenantId,
+                                userId: user.uid,
+                                userEmail: user.email,
+                                userName: user.displayName || 'Usuario',
+                                type: 'hierarchy_move',
+                                details: `Movido de "${oldParent}" a "${newParent}"`,
+                                createdAt: serverTimestamp()
+                            }).catch(e => console.error(e));
+                        }
+
 
                         // 3. Classification (Generic Check for key fields)
                         ['priority', 'area', 'scope', 'module'].forEach((field) => {
@@ -808,67 +953,105 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                         {/* Search & Filter */}
                         <div className="space-y-2">
-                            <div className="relative">
-                                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
-                                <input
-                                    className={cn("w-full rounded pl-7 pr-2 py-1 text-[10px] focus:outline-none",
-                                        isLight ? "bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400" : "bg-black/20 border border-white/5 text-zinc-300 focus:border-indigo-500/30"
-                                    )}
-                                    placeholder="Buscar..."
-                                    value={sidebarSearch}
-                                    onChange={e => setSidebarSearch(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex bg-black/20 rounded p-0.5 border border-white/5">
-                                {(['all', 'active', 'completed'] as const).map(f => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setSidebarFilter(f)}
-                                        className={cn(
-                                            "flex-1 py-1 text-[9px] font-bold uppercase rounded transition-all",
-                                            sidebarFilter === f ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                            <div className="flex justify-between items-center gap-2 mb-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500" />
+                                    <input
+                                        className={cn("w-full rounded pl-7 pr-2 py-1 text-[10px] focus:outline-none",
+                                            isLight ? "bg-white border border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400" : "bg-black/20 border border-white/5 text-zinc-300 focus:border-indigo-500/30"
                                         )}
-                                    >
-                                        {f === 'all' ? t('task_manager.filter_all') : f === 'active' ? t('task_manager.filter_active') : t('task_manager.filter_completed')}
-                                    </button>
-                                ))}
+                                        placeholder="Buscar..."
+                                        value={sidebarSearch}
+                                        onChange={e => setSidebarSearch(e.target.value)}
+                                    />
+                                </div>
+                                <button
+                                    title={showTree ? "Ver Lista" : "Ver Jerarquía"}
+                                >
+                                    {showTree ? <List className="w-3.5 h-3.5" /> : <FolderGit2 className="w-3.5 h-3.5" />}
+                                </button>
+                                {/* Mind Map Sidebar Button (If filtering by project or general access) */}
+                                <button
+                                    onClick={() => {
+                                        // Try to find context project, or open for first available?
+                                        // For now, if we have a Task selected, use that.
+                                        // If not, maybe just warn?
+                                        // Actually, user wants access "from both places".
+                                        // If filtering by project (tasks.length > 0), maybe pick the first one?
+                                        if (projects.length > 0) {
+                                            // Prefer current filter context if we had one...
+                                            // But simplified: just open for the first project found if user has access
+                                            setShowMindMap(projects[0].id);
+                                        }
+                                    }}
+                                    className="p-1.5 rounded text-zinc-400 hover:text-indigo-400 hover:bg-white/5 transition-all"
+                                    title="Abrir Mapa Jerárquico Completo"
+                                >
+                                    <Network className="w-3.5 h-3.5" />
+                                </button>
                             </div>
+
+                            {!showTree && (
+                                <div className="flex bg-black/20 rounded p-0.5 border border-white/5">
+                                    {(['all', 'active', 'completed'] as const).map(f => (
+                                        <button
+                                            key={f}
+                                            onClick={() => setSidebarFilter(f)}
+                                            className={cn(
+                                                "flex-1 py-1 text-[9px] font-bold uppercase rounded transition-all",
+                                                sidebarFilter === f ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                            )}
+                                        >
+                                            {f === 'all' ? t('task_manager.filter_all') : f === 'active' ? t('task_manager.filter_active') : t('task_manager.filter_completed')}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                        {visibleTasks.map(t => {
-                            const project = projects.find(p => p.id === t.projectId);
-                            return (
-                                <div key={t.id} onClick={() => handleSelectTask(t)} className={cn("group flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border",
-                                    selectedTask?.id === t.id
-                                        ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/20 border-primary/50")
-                                        : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-white/5 hover:border-white/5")
-                                )}>
-                                    <div className="flex justify-between items-start mb-1">
-                                        <div className="flex items-center gap-1">
-                                            <span className={cn("font-bold font-mono text-[10px]",
-                                                selectedTask?.id === t.id
-                                                    ? (isLight ? "text-white" : "text-white")
-                                                    : (isLight ? "text-zinc-500" : "text-zinc-400")
-                                            )} >
-                                                <HighlightText text={t.friendlyId || 'No ID'} highlight={sidebarSearch} />
-                                            </span>
-                                            {t.isBlocking && <AlertTriangle className="w-3 h-3 text-red-500" />}
-                                        </div>
-                                        <div className={cn("w-1.5 h-1.5 rounded-full", t.status === 'completed' ? 'bg-blue-500' : t.status === 'in_progress' ? 'bg-emerald-500' : 'bg-zinc-700')} />
-                                    </div>
-                                    <div className={cn("text-[11px] line-clamp-2 mb-1.5 font-medium transition-colors",
+
+                    {showTree ? (
+                        <HierarchyTree
+                            tasks={tasks} // Pass all tasks, tree handles filtering by context if needed
+                            onSelectTask={handleSelectTask}
+                            selectedTaskId={selectedTask?.id}
+                        />
+                    ) : (
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                            {visibleTasks.map(t => {
+                                const project = projects.find(p => p.id === t.projectId);
+                                return (
+                                    <div key={t.id} onClick={() => handleSelectTask(t)} className={cn("group flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border",
                                         selectedTask?.id === t.id
-                                            ? (isLight ? "text-white" : "text-white")
-                                            : (isLight ? "text-zinc-900 group-hover:text-black" : "text-zinc-300 group-hover:text-white")
+                                            ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/20 border-primary/50")
+                                            : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-white/5 hover:border-white/5")
                                     )}>
-                                        {t.title || t.description || "Sin Título"}
+                                        <div className="flex justify-between items-start mb-1">
+                                            <div className="flex items-center gap-1">
+                                                <span className={cn("font-bold font-mono text-[10px]",
+                                                    selectedTask?.id === t.id
+                                                        ? (isLight ? "text-white" : "text-white")
+                                                        : (isLight ? "text-zinc-500" : "text-zinc-400")
+                                                )} >
+                                                    <HighlightText text={t.friendlyId || 'No ID'} highlight={sidebarSearch} />
+                                                </span>
+                                                {t.isBlocking && <AlertTriangle className="w-3 h-3 text-red-500" />}
+                                            </div>
+                                            <div className={cn("w-1.5 h-1.5 rounded-full", t.status === 'completed' ? 'bg-blue-500' : t.status === 'in_progress' ? 'bg-emerald-500' : 'bg-zinc-700')} />
+                                        </div>
+                                        <div className={cn("text-[11px] line-clamp-2 mb-1.5 font-medium transition-colors",
+                                            selectedTask?.id === t.id
+                                                ? (isLight ? "text-white" : "text-white")
+                                                : (isLight ? "text-zinc-900 group-hover:text-black" : "text-zinc-300 group-hover:text-white")
+                                        )}>
+                                            {t.title || t.description || "Sin Título"}
+                                        </div>
+                                        {project && <div className="text-[9px] text-zinc-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.color }} />{project.name}</div>}
                                     </div>
-                                    {project && <div className="text-[9px] text-zinc-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.color }} />{project.name}</div>}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -910,6 +1093,17 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     </div>
                                     <div className="relative">
                                         <div className="flex items-center gap-2">
+                                            {/* [V3] Mind Map Button */}
+                                            {selectedTask && (
+                                                <button
+                                                    onClick={() => setShowMindMap(formData.projectId || selectedTask.projectId || null)}
+                                                    className={cn("p-1.5 rounded transition-all mr-1", isLight ? "text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-indigo-400 hover:bg-white/5")}
+                                                    title="Ver en Mapa Jerárquico"
+                                                >
+                                                    <Network className="w-4 h-4" />
+                                                </button>
+                                            )}
+
                                             <button
                                                 onClick={() => setShowAuditLog(true)}
                                                 className={cn("p-1.5 rounded transition-all mr-2", isLight ? "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5")}
@@ -1405,6 +1599,61 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                         </div>
                                     </div>
 
+                                    {/* Hierarchy Controls [V3] */}
+                                    <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>Jerarquía (V3)</h3>
+                                        <div className="space-y-4">
+                                            {/* Type */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>Tipo de Elemento</label>
+                                                <select
+                                                    className={cn("w-full border rounded-lg px-3 py-2 text-xs font-bold focus:outline-none",
+                                                        isLight ? "bg-zinc-50 border-zinc-300" : "bg-zinc-950 border-white/10 text-zinc-300"
+                                                    )}
+                                                    value={formData.type || 'task'}
+                                                    onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                                                >
+                                                    <option value="epic">Epica / Fase</option>
+                                                    <option value="task">Tarea Estándar</option>
+                                                    <option value="subtask">Subtarea / Checklist</option>
+                                                    <option value="milestone">Hito (Milestone)</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Parent Selector */}
+                                            <div>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                                    Padre (Mover a...)
+                                                </label>
+                                                <select
+                                                    className={cn("w-full border rounded-lg px-3 py-2 text-xs font-mono focus:outline-none truncate",
+                                                        isLight ? "bg-zinc-50 border-zinc-300" : "bg-zinc-950 border-white/10 text-zinc-300"
+                                                    )}
+                                                    value={formData.parentId || ""}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        setFormData({ ...formData, parentId: val === "" ? undefined : val });
+                                                    }}
+                                                >
+                                                    <option value="">(Raíz / Sin Padre)</option>
+                                                    {tasks
+                                                        .filter(t => t.id !== formData.id && t.projectId === formData.projectId) // Valid parents (Same Project, Not Self)
+                                                        .map(t => (
+                                                            <option key={t.id} value={t.id}>
+                                                                {t.friendlyId ? `[${t.friendlyId}] ` : ''}{t.title.substring(0, 40)}
+                                                            </option>
+                                                        ))}
+                                                </select>
+                                                {/* Ancestor Debug Info */}
+                                                {formData.ancestorIds && formData.ancestorIds.length > 0 && (
+                                                    <div className="text-[9px] text-zinc-500 mt-1 font-mono">
+                                                        Path: {formData.ancestorIds.join(' > ')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {/* Actions (Existente) */}
                                     <div className="pt-2 border-t border-white/5 flex flex-col gap-3">
                                         <button onClick={handleSave} disabled={saving} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg shadow-indigo-900/30 transition-all flex justify-center items-center gap-2 text-xs uppercase tracking-wide">
@@ -1449,6 +1698,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         </div>
                     )
                 }
+
+                {/* Mind Map Modal */}
+                {showMindMap && projects.length > 0 && (
+                    <ProjectMindMapModal
+                        project={projects.find(p => p.id === showMindMap) || projects[0]} // Fallback or logic to handle 'not found'
+                        initialTaskId={selectedTask?.id}
+                        onClose={() => setShowMindMap(null)}
+                    />
+                )}
 
                 {/* Audit Log Modal */}
                 {selectedTask && showAuditLog && (

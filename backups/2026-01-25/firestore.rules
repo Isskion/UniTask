@@ -27,11 +27,11 @@ service cloud.firestore {
 
     // Get Real TenantId: Prefer Token Claim, Fallback to Firestore Profile (Always String)
     function getRealTenantId() {
-       return (request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId) != "unknown")
+       return (request.auth.token != null && 'tenantId' in request.auth.token)
          ? string(request.auth.token.tenantId)
          : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
-            ? string(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('tenantId', "1")) 
-            : "1");
+            ? string(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('tenantId', "unknown")) 
+            : "unknown");
     }
 
     function isSuperAdmin() {
@@ -40,7 +40,7 @@ service cloud.firestore {
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
     function docTenantMatches(docData) {
-      return string(docData.get('tenantId', '1')) == getRealTenantId();
+      return string(docData.get('tenantId', 'ERROR')) == getRealTenantId();
     }
 
     // --- RULES ---
@@ -75,12 +75,11 @@ service cloud.firestore {
     // --- [HARDENED] INVITES RULES ---
     match /invites/{code} {
       allow get: if isAuthenticated();
-      allow list: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 80);
-      allow create: if false; // Created via Server Action ONLY
+      allow list: if false; 
+      allow create: if false; 
       allow update: if isAuthenticated() && (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed', 'usedBy', 'usedAt'])
       );
-      allow delete: if isSuperAdmin();
     }
 
     // Notifications: User-specific

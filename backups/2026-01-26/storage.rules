@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Default: BLOCK ALL
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    // Profile Pictures: /users/{userId}/avatar.png
+    match /users/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Tenant Assets: /tenants/{tenantId}/...
+    match /tenants/{tenantId}/{allPaths=**} {
+      // Allow if tenantId claim matches tenantId (the path segment)
+      allow read, write: if isAuthenticated() && (
+        request.auth.token.get('tenantId', null) == tenantId
+      );
+    }
+    
+    // Explicit rule for task attachments (Nested under tenants for security)
+    // Path: /tenants/{tenantId}/tasks/{taskId}/attachments/{fileName}
+    // This is covered by the recursive rule above, but explicit is fine too if we deviate.
+  }
+}

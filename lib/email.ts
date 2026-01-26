@@ -1,20 +1,26 @@
 import nodemailer from 'nodemailer';
 
 // --- CONFIGURATION ---
-const SMTP_EMAIL = process.env.SMTP_EMAIL || 'UniTaskController.noreply@gmail.com';
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD; // App Password
+function getTransporter() {
+    const SMTP_EMAIL = process.env.SMTP_EMAIL || 'UniTaskController.noreply@gmail.com';
+    const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 
-if (!SMTP_PASSWORD) {
-    console.warn("⚠️ SMTP_PASSWORD is not set. Email sending will fail.");
+    console.log("📧 Email Service Call:");
+    console.log("   User:", SMTP_EMAIL);
+    console.log("   Pass Found:", !!SMTP_PASSWORD);
+
+    if (!SMTP_PASSWORD) {
+        throw new Error("SMTP_PASSWORD is not set in environment.");
+    }
+
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: SMTP_EMAIL,
+            pass: SMTP_PASSWORD,
+        },
+    });
 }
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: SMTP_EMAIL,
-        pass: SMTP_PASSWORD,
-    },
-});
 
 export interface EmailOptions {
     to: string;
@@ -27,7 +33,9 @@ export interface EmailOptions {
  * This must be called from a Server Component or Server Action.
  */
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
+    const SMTP_EMAIL = process.env.SMTP_EMAIL || 'UniTaskController.noreply@gmail.com';
     try {
+        const transporter = getTransporter();
         const info = await transporter.sendMail({
             from: `"UniTask Controller" <${SMTP_EMAIL}>`,
             to,

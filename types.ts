@@ -1,3 +1,14 @@
+export interface ExportTemplate {
+    id: string;
+    name: string;
+    tenantId: string;
+    entity: "task" | "project";
+    columns: string[]; // Ordered list of keys
+    version: number;
+    createdBy: string;
+    createdAt: any; // Firestore Timestamp
+}
+
 export interface Project {
     id: string; // Firestore ID
     code: string; // Business Code (e.g. "PRJ-001")
@@ -193,6 +204,9 @@ export interface AttributeDefinition {
     mappedField?: string; // If set, maps to a root property (e.g. 'priority') instead of attributes[]
 }
 
+// [V3] Task Types
+export type TaskType = 'root_epic' | 'epic' | 'task' | 'subtask' | 'milestone';
+
 export interface Task {
     id: string;
     friendlyId?: string; // e.g. "EUP-1"
@@ -200,15 +214,49 @@ export interface Task {
 
     // Core Links
     weekId: string;        // Legacy link (Date string)
-    relatedDailyStatusId?: string; // [NEW] Link to specific Daily Status Document
+    relatedDailyStatusId?: string; // Link to specific Daily Status Document
     projectId?: string;    // Parent Project
     tenantId: string;      // Multi-tenant isolation
+
+    // [V3] Hierarchy & Navigation (Shadow / Hybrid)
+    type?: TaskType;       // Optional during migration
+    parentId?: string;     // Direct parent
+    ancestorIds?: string[]; // Ordered list of parents [Root, Epic, Task] EXCLUDING self
+    planId?: string;       // Context of the Master Plan
+
+    // [V3] Visual Order
+    order?: number;         // Float for drag & drop normalization
+
+    // [V3] Operational Link (Semantic)
+    contributesToTaskId?: string;
 
     // Header Info
     title: string;         // Main "Headline" of the task
     description?: string;  // Detailed description (Optional now if title is main)
     status: 'pending' | 'in_progress' | 'review' | 'completed';
     isBlocking?: boolean; // New: Condition flag
+
+    // [V3] Dual Progress (Shadow Strategy)
+    // Legacy: number (0-100)
+    // V13: { actual, planned }
+    // During migration, we prioritize progressV13 if exists.
+    progress?: number | { actual: number; planned?: number; aggregated?: number };
+
+    // [V3] Shadow Field for Migration (Source of Truth for V13 logic)
+    progressV13?: {
+        actual: number;
+        planned: number;
+        aggregated?: number;
+    };
+
+    // [V3] Audit & Import Control
+    planVersion?: number;    // Version of the plan import that touched this
+    planStatus?: 'linked' | 'detached' | 'overridden' | 'archived';
+    externalSource?: {
+        system: 'ms_planner' | 'jira';
+        id: string;          // Immutable Source ID
+        etag?: string;       // Change detection hash
+    };
 
     // Section 1: Classification [NEW]
     priority?: 'high' | 'medium' | 'low';
@@ -236,7 +284,7 @@ export interface Task {
     // Section 4: Execution & Timeline
     startDate?: any;
     endDate?: any;
-    progress?: number; // 0-100
+    // progress?: number; // [Hybrid Definition Above]
     acceptanceCriteria?: {
         id: string;
         text: string;

@@ -7,11 +7,12 @@ import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy } from "lucide-react";
+import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy, Network } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, Tenant, getRoleLevel, RoleLevel, UserProfile } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { ProjectMindMapModal } from "./ProjectMindMapModal";
 
 // New Components
 import ProjectActivityFeed from "./ProjectActivityFeed";
@@ -42,6 +43,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     const [showCompose, setShowCompose] = useState(false);
     const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState(""); // Search State
+    const [showMindMap, setShowMindMap] = useState(false); // Mind Map State
 
     // Permissions Helper - now using usePermissions hook
     const canCreate = can('create', 'project');
@@ -407,6 +409,20 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {/* Header Actions */}
                             <div className="flex items-center gap-2">
 
+                                {/* MIND MAP BUTTON */}
+                                {userTab === 'feed' && !isNew && (
+                                    <button
+                                        onClick={() => setShowMindMap(true)}
+                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2",
+                                            isLight ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
+                                        )}
+                                        title="Abrir Mapa Jerárquico del Proyecto"
+                                    >
+                                        <Network className="w-4 h-4" />
+                                        <span className="text-xs font-bold hidden md:inline">Mapa Jerárquico</span>
+                                    </button>
+                                )}
+
                                 {/* COPY BUTTON (Only when searching) */}
                                 {userTab === 'feed' && !isNew && searchQuery && (
                                     <button
@@ -649,6 +665,13 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                         </div>
                     </div>
+                )}
+                {/* Mind Map Modal */}
+                {selectedProject && showMindMap && (
+                    <ProjectMindMapModal
+                        project={selectedProject}
+                        onClose={() => setShowMindMap(false)}
+                    />
                 )}
             </div>
         </div>
