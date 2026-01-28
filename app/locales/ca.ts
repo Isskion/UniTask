@@ -60,6 +60,7 @@ export const ca: Dictionary = {
         trash: "Paperera",
         organizations: "Tenants",
         tasks: "Tasques",
+        users: "Usuaris",
     },
 
     theme: {
