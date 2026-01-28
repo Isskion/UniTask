@@ -244,13 +244,12 @@ export default function UserManagement() {
                 updateUserClaimsFunction(claimsParams)
                     .then((res) => {
                         console.log("[UserManagement] Claims updated successfully:", res);
-                        showToast("Success", "Permisos actualizados en el sistema (EU)", "success");
-                        alert("✅ PERMISOS SINCRONIZADOS (Cloud Function EU)\n\nIMPORTANTE: Ahora debes hacer LOGOUT y volver a entrar para que tu navegador reconozca el nuevo rol.");
+                        showToast("Success", "Permisos actualizados (Sincronización en segundo plano)", "success");
+                        // alert removed for better UX
                     })
                     .catch(e => {
                         console.error("[UserManagement] Region call failed:", e);
                         showToast("Error", "Fallo al sincronizar permisos: " + e.message, "error");
-                        alert("❌ FALLO EN CLOUD FUNCTION (Región Europa):\n" + e.message + "\n\nVerifica que la función esté desplegada en europe-west1.");
                     });
             }
 
