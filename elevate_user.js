@@ -15,21 +15,50 @@ const db = admin.firestore();
 
 async function elevateUser() {
     const email = 'daniel.delamo@unigis.com';
-    const snap = await db.collection('users').where('email', '==', email).get();
-    if (snap.empty) {
-        console.log(`User ${email} not found.`);
-        return;
-    }
-    const batch = db.batch();
-    snap.forEach(doc => {
-        console.log(`Elevating User: ${email} (${doc.id})`);
-        batch.update(doc.ref, {
+
+    try {
+        // 1. Auth Claims (La clave del 403)
+        const userRecord = await admin.auth().getUserByEmail(email);
+        console.log(`Found Auth User: ${userRecord.uid}`);
+
+        await admin.auth().setCustomUserClaims(userRecord.uid, {
             role: 'superadmin',
-            roleLevel: 100
+            roleLevel: 100,
+            tenantId: 'SYSTEM',
+            isActive: true
         });
-    });
-    await batch.commit();
-    console.log("Elevation complete.");
+        console.log("✅ Custom Claims (Auth) updated successfully.");
+
+        // 2. Firestore Profile
+        const snap = await db.collection('users').where('email', '==', email).get();
+        if (snap.empty) {
+            console.log(`User doc for ${email} not found in Firestore. Creating...`);
+            await db.collection('users').doc(userRecord.uid).set({
+                email: email,
+                uid: userRecord.uid,
+                role: 'superadmin',
+                roleLevel: 100,
+                tenantId: 'SYSTEM',
+                isActive: true
+            }, { merge: true });
+        } else {
+            const batch = db.batch();
+            snap.forEach(doc => {
+                console.log(`Elevating Firestore Doc: ${doc.id}`);
+                batch.update(doc.ref, {
+                    role: 'superadmin',
+                    roleLevel: 100,
+                    tenantId: 'SYSTEM',
+                    isActive: true
+                });
+            });
+            await batch.commit();
+        }
+        console.log("✅ Firestore updated successfully.");
+
+    } catch (e) {
+        console.error("Error elevating user:", e);
+    }
 }
 
 elevateUser().catch(console.error);

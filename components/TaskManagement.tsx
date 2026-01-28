@@ -178,7 +178,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     // Sidebar Filters
     const [sidebarSearch, setSidebarSearch] = useState("");
-    const [sidebarFilter, setSidebarFilter] = useState<'all' | 'active' | 'completed'>('active');
+    const [sidebarFilter, setSidebarFilter] = useState<'all' | 'pending' | 'in_progress' | 'review' | 'completed'>('all');
 
     // Selection state
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -399,8 +399,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
 
         // Apply Sidebar Filters
-        if (sidebarFilter === 'active' && t.status === 'completed') return false;
-        if (sidebarFilter === 'completed' && t.status !== 'completed') return false;
+        if (sidebarFilter !== 'all' && t.status !== sidebarFilter) return false;
 
         if (sidebarSearch.trim()) {
             const q = sidebarSearch.toLowerCase();
@@ -992,17 +991,20 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             </div>
 
                             {!showTree && (
-                                <div className="flex bg-black/20 rounded p-0.5 border border-white/5">
-                                    {(['all', 'active', 'completed'] as const).map(f => (
+                                <div className="grid grid-cols-5 gap-0.5 bg-black/20 rounded p-0.5 border border-white/5">
+                                    {(['all', 'pending', 'in_progress', 'review', 'completed'] as const).map(f => (
                                         <button
                                             key={f}
                                             onClick={() => setSidebarFilter(f)}
                                             className={cn(
-                                                "flex-1 py-1 text-[9px] font-bold uppercase rounded transition-all",
-                                                sidebarFilter === f ? "bg-primary text-primary-foreground" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                                                "py-1 text-[8px] font-bold uppercase rounded transition-all flex items-center justify-center",
+                                                sidebarFilter === f
+                                                    ? "bg-indigo-600 text-white shadow-sm"
+                                                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                                             )}
+                                            title={f}
                                         >
-                                            {f === 'all' ? t('task_manager.filter_all') : f === 'active' ? t('task_manager.filter_active') : t('task_manager.filter_completed')}
+                                            {f === 'all' ? 'ALL' : f === 'in_progress' ? 'PROG' : f.substring(0, 4).toUpperCase()}
                                         </button>
                                     ))}
                                 </div>
@@ -1026,18 +1028,27 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             ? (isLight ? "bg-zinc-900 border-zinc-900 shadow-sm" : "bg-primary/20 border-primary/50")
                                             : (isLight ? "bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50" : "bg-card/50 border-transparent hover:bg-white/5 hover:border-white/5")
                                     )}>
-                                        <div className="flex justify-between items-start mb-1">
-                                            <div className="flex items-center gap-1">
-                                                <span className={cn("font-bold font-mono text-[10px]",
-                                                    selectedTask?.id === t.id
-                                                        ? (isLight ? "text-white" : "text-white")
-                                                        : (isLight ? "text-zinc-500" : "text-zinc-400")
+                                        <div className="flex justify-between items-center mb-1">
+                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                <span className={cn("font-mono text-[9px] opacity-70",
+                                                    selectedTask?.id === t.id ? "text-white" : "text-zinc-500"
                                                 )} >
                                                     <HighlightText text={t.friendlyId || 'No ID'} highlight={sidebarSearch} />
                                                 </span>
-                                                {t.isBlocking && <AlertTriangle className="w-3 h-3 text-red-500" />}
+                                                {/* STATUS LABEL (Highlighted) */}
+                                                <span className={cn(
+                                                    "text-[10px] uppercase px-1.5 py-0.5 rounded font-extrabold tracking-wider",
+                                                    t.status === 'completed' ? "bg-blue-500/20 text-blue-400" :
+                                                        t.status === 'in_progress' ? "bg-emerald-500/20 text-emerald-400" :
+                                                            t.status === 'review' ? "bg-amber-500/20 text-amber-400" :
+                                                                "bg-zinc-700/50 text-zinc-400"
+                                                )}>
+                                                    {t.status === 'in_progress' ? 'EN PROCESO' :
+                                                        t.status === 'review' ? 'REVISIÓN' :
+                                                            t.status === 'completed' ? 'HECHO' : 'PENDIENTE'}
+                                                </span>
                                             </div>
-                                            <div className={cn("w-1.5 h-1.5 rounded-full", t.status === 'completed' ? 'bg-blue-500' : t.status === 'in_progress' ? 'bg-emerald-500' : 'bg-zinc-700')} />
+                                            {t.isBlocking && <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />}
                                         </div>
                                         <div className={cn("text-[11px] line-clamp-2 mb-1.5 font-medium transition-colors",
                                             selectedTask?.id === t.id

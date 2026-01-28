@@ -1,4 +1,4 @@
-export const APP_VERSION = '13.0.0';
+export const APP_VERSION = '13.1.0';
 
 export interface ChangeLogItem {
     version: string;
@@ -8,6 +8,17 @@ export interface ChangeLogItem {
 }
 
 export const CHANGELOG: ChangeLogItem[] = [
+    {
+        version: "13.1.0",
+        date: "2026-01-28",
+        title: "Visibilidad de Estado y Analítica",
+        features: [
+            "👁️ **Estatus Visual**: Nuevas etiquetas de estado (PENDIENTE, PROCESO, HECHO) integradas directamente en la lista de tareas para rápida identificación.",
+            "📊 **Analítica Enriquecida**: El 'Task Dashboard' ahora muestra el estatus explícito en cada tarjeta, facilitando la lectura de reportes.",
+            "🔽 **Filtros Granulares**: Panel de filtrado lateral expandido con opciones directas para cada estado (Pendiente, En Progreso, Revisión, Completado).",
+            "⚡ **Backend Unitask**: Estabilización de Cloud Functions y corrección de permisos críticos (CORS / 403)."
+        ]
+    },
     {
         version: "13.0.0",
         date: "2026-01-24",

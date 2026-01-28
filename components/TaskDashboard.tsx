@@ -352,6 +352,19 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                             <HighlightText text={task.friendlyId || '###'} highlight={filters.search} />
                                                         </span>
 
+                                                        {/* Status Label (NEW) */}
+                                                        <span className={cn(
+                                                            "text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded border",
+                                                            task.status === 'completed' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                                                task.status === 'in_progress' ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" :
+                                                                    task.status === 'review' ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                                                                        "bg-secondary text-muted-foreground border-border"
+                                                        )}>
+                                                            {task.status === 'in_progress' ? 'EN PROCESO' :
+                                                                task.status === 'review' ? 'REVISIÓN' :
+                                                                    task.status === 'completed' ? 'HECHO' : 'PENDIENTE'}
+                                                        </span>
+
                                                         {task.priority && (
                                                             <span className={cn("text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border",
                                                                 masterData.priority.find(m => m.name === task.priority)?.color ? '' : "bg-secondary text-muted-foreground border-border"

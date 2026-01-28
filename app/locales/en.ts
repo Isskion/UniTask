@@ -58,6 +58,7 @@ export const en = {
         trash: "Trash",
         organizations: "Tenants",
         tasks: "Tasks",
+        users: "Users"
     },
 
     theme: {
