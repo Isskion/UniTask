@@ -83,8 +83,8 @@ export const fr: Dictionary = {
             area_desc: "Départements",
             scope: "Portée",
             scope_desc: "Types de travail",
-            module: "Modules",
-            module_desc: "Modules système"
+            module: "Circuits",
+            module_desc: "Circuits système"
         },
         actions: {
             recover: "Récupérer les données",
@@ -307,7 +307,7 @@ export const fr: Dictionary = {
         priority: "Priorité",
         area: "Zone",
         scope: "Portée",
-        module: "Module",
+        module: "Circuit",
         description: "Description",
         details_placeholder: "Détails...",
         execution: "Exécution",

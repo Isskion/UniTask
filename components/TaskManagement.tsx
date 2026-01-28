@@ -14,6 +14,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { es, enUS, de, fr, ca, pt } from "date-fns/locale";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/context/ToastContext";
+import { useMasterDataLabels } from "@/hooks/useMasterDataLabels";
 import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
 import { ActivityAuditModal } from "./ActivityAuditModal";
@@ -38,6 +39,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const { t, language } = useLanguage();
     const dateLocale = { en: enUS, es, de, fr, ca, pt }[language] || enUS;
     const { isAdmin: checkIsAdmin, can, permissions } = usePermissions();
+    const { getLabel } = useMasterDataLabels();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -1038,10 +1040,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 {/* STATUS LABEL (Highlighted) */}
                                                 <span className={cn(
                                                     "text-[10px] uppercase px-1.5 py-0.5 rounded font-extrabold tracking-wider",
-                                                    t.status === 'completed' ? "bg-blue-500/20 text-blue-400" :
-                                                        t.status === 'in_progress' ? "bg-emerald-500/20 text-emerald-400" :
-                                                            t.status === 'review' ? "bg-amber-500/20 text-amber-400" :
-                                                                "bg-zinc-700/50 text-zinc-400"
+                                                    // Light theme: vibrant solid colors with white text
+                                                    // Dark theme: translucent backgrounds with colored text
+                                                    t.status === 'completed'
+                                                        ? (isLight ? "bg-blue-600 text-white" : "bg-blue-500/20 text-blue-400")
+                                                        : t.status === 'in_progress'
+                                                            ? (isLight ? "bg-emerald-600 text-white" : "bg-emerald-500/20 text-emerald-400")
+                                                            : t.status === 'review'
+                                                                ? (isLight ? "bg-amber-600 text-white" : "bg-amber-500/20 text-amber-400")
+                                                                : (isLight ? "bg-zinc-500 text-white" : "bg-zinc-700/50 text-zinc-400")
                                                 )}>
                                                     {t.status === 'in_progress' ? 'EN PROCESO' :
                                                         t.status === 'review' ? 'REVISIÓN' :
@@ -1535,7 +1542,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Priority */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.priority')}</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('priority')}</label>
                                                 <PowerSelect
                                                     value={formData.priority || ""}
                                                     onChange={(val) => setFormData({ ...formData, priority: val as any })}
@@ -1553,7 +1560,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Area */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.area')} *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('area')} *</label>
                                                 <PowerSelect
                                                     value={formData.area || ""}
                                                     onChange={(val) => setFormData({ ...formData, area: val })}
@@ -1564,7 +1571,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Scope */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.scope')}</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('scope')}</label>
                                                 <PowerSelect
                                                     value={formData.scope || ""}
                                                     onChange={(val) => setFormData({ ...formData, scope: val })}
@@ -1575,7 +1582,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Module */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.module')} *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('module')} *</label>
                                                 <PowerSelect
                                                     value={formData.module || ""}
                                                     onChange={(val) => setFormData({ ...formData, module: val })}

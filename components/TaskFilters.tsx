@@ -5,6 +5,7 @@ import { TaskFiltersState } from "@/hooks/useTaskAdvancedFilters";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { AttributeDefinition, MasterDataItem } from "@/types";
+import { useMasterDataLabels } from "@/hooks/useMasterDataLabels";
 
 
 
@@ -22,6 +23,7 @@ interface TaskFiltersProps {
 export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, users, masterData, attributeDefinitions }: TaskFiltersProps) {
     const { theme } = useTheme();
     const isLight = theme === 'light';
+    const { getLabel } = useMasterDataLabels();
 
     // Helpers to convert to options
     const projectOptions = useMemo(() => projects.map(p => ({ value: p.id, label: p.name, color: p.color })), [projects]);
@@ -129,7 +131,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                         {/* Classification Group */}
                         <div className="space-y-5">
                             <div className="space-y-2">
-                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>Prioridad</label>
+                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('priority')}</label>
                                 <MultiPowerSelect
                                     values={filters.priority}
                                     onChange={(val) => setFilters({ ...filters, priority: val })}
@@ -146,7 +148,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                             </div>
 
                             <div className="space-y-2">
-                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>Área</label>
+                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('area')}</label>
                                 <MultiPowerSelect
                                     values={filters.area}
                                     onChange={(val) => setFilters({ ...filters, area: val })}
@@ -156,7 +158,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                             </div>
 
                             <div className="space-y-2">
-                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>Módulo</label>
+                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('module')}</label>
                                 <MultiPowerSelect
                                     values={filters.module}
                                     onChange={(val) => setFilters({ ...filters, module: val })}
@@ -166,7 +168,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                             </div>
 
                             <div className="space-y-2">
-                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>Alcance</label>
+                                <label className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('scope')}</label>
                                 <MultiPowerSelect
                                     values={filters.scope}
                                     onChange={(val) => setFilters({ ...filters, scope: val })}
