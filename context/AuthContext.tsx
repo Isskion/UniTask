@@ -266,8 +266,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const data = inviteSnap.data();
                     if (!data.isUsed) {
                         inviteData = data;
+                    } else if (data.usedBy === user.uid) {
+                        // Allow the same user who originally used this invite to re-authenticate
+                        console.log("[AuthContext] Invite already used by this same user, allowing re-entry.");
+                        inviteData = data;
                     } else {
-                        console.warn("[AuthContext] Invite already used.");
+                        console.warn("[AuthContext] Invite already used by a different user.");
                         alert("⚠️ Esta invitación ya ha sido utilizada por otro usuario.");
                         return; // Stop processing
                     }
@@ -319,8 +323,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     await updateDoc(userRef, profilePayload);
                 }
 
-                // 3. Consume Invite
-                if (inviteCode && inviteData) {
+                // 3. Consume Invite (only if not already consumed by this user)
+                if (inviteCode && inviteData && !inviteData.isUsed) {
                     const inviteRef = doc(db, "invites", inviteCode);
                     await updateDoc(inviteRef, {
                         isUsed: true,
@@ -328,6 +332,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         usedBy: user.uid
                     });
                     alert("✅ INVITACIÓN ACEPTADA: Ahora tienes acceso a " + (inviteData.tenantId || "tu organización"));
+                } else if (inviteCode && inviteData && inviteData.usedBy === user.uid) {
+                    // Invite already consumed by this user, just proceed silently
+                    console.log("[AuthContext] Invite already consumed by this user, skipping re-consumption.");
                 } else if (!snapshot.exists()) {
                     alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE");
                 }
