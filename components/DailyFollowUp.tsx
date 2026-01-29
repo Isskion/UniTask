@@ -20,7 +20,7 @@ import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
-import { summarizeNotesWithAI } from "@/app/ai-actions";
+import { summarizeNotesWithAI } from "@/app/actions/analyze-document";
 import UserManagement from "./UserManagement";
 import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
@@ -643,7 +643,7 @@ export default function DailyFollowUp() {
                 context += `\nContexto Adicional: ${specificContext}`;
             }
 
-            const result = await summarizeNotesWithAI(notesToAnalyze, user?.uid || "system", tenantId || "1", context, userRole || "user");
+            const result = await summarizeNotesWithAI(`CONTEXTO:\n${context}\n\nNOTAS:\n${notesToAnalyze}`);
 
             if (result.error) {
                 showToast("Error AI", result.error, "error");
@@ -1634,23 +1634,22 @@ export default function DailyFollowUp() {
                                                             reader.onload = async () => {
                                                                 const base64String = (reader.result as string).split(',')[1];
 
-                                                                // [FIX] Add Auth Token
-                                                                const token = await user?.getIdToken();
-                                                                if (!token) {
+                                                                // [FIX] Add Auth Token - Not needed explicitly for Callable, handled by SDK
+                                                                if (!user) {
                                                                     showToast("Error", "Not authenticated", "error");
                                                                     setSaving(false);
                                                                     return;
                                                                 }
 
-                                                                const res = await fetch('/api/analyze-pdf', {
-                                                                    method: 'POST',
-                                                                    headers: {
-                                                                        'Content-Type': 'application/json',
-                                                                        'Authorization': `Bearer ${token}`
-                                                                    },
-                                                                    body: JSON.stringify({ base64Data: base64String })
-                                                                });
-                                                                const json = await res.json();
+                                                                // Dynamic import to ensure browser compatibility
+                                                                const { httpsCallable } = await import("firebase/functions");
+                                                                const { functions } = await import("@/lib/firebase");
+
+                                                                const analyzePdfFn = httpsCallable(functions, 'analyzePdf');
+
+                                                                const res = await analyzePdfFn({ base64Data: base64String });
+                                                                const json = res.data as any;
+
 
                                                                 if (json.success && json.data) {
                                                                     const { title, description, action_items, endDate, full_content } = json.data;

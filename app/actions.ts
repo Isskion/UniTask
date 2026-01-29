@@ -1,12 +1,8 @@
-"use server";
-
 import { getWeeklyEntry, saveWeeklyEntry, getAllEntries } from "@/lib/storage";
 import { WeeklyEntry } from "@/types";
-import { revalidatePath } from "next/cache";
 
 export async function submitEntry(entry: WeeklyEntry) {
     await saveWeeklyEntry(entry);
-    revalidatePath("/");
     return { success: true };
 }
 

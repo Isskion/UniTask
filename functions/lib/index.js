@@ -15,13 +15,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const admin = require("firebase-admin");
-// Inicializar app si no se ha hecho (aunque processUserClaims lo hace, es buena práctica hacerlo aquí también)
-if (admin.apps.length === 0) {
+if (!admin.apps.length) {
     admin.initializeApp();
 }
+__exportStar(require("./analyze"), exports);
+__exportStar(require("./chat"), exports);
+__exportStar(require("./invites"), exports);
+__exportStar(require("./auth"), exports);
 __exportStar(require("./processUserClaims"), exports);
-__exportStar(require("./syncUserClaims"), exports);
-__exportStar(require("./backfill"), exports); // Temporary Migration Tool
-// Exportar otras funciones si es necesario
-// export * from './tenantPurge';
+__exportStar(require("./support"), exports);
+__exportStar(require("./pdf"), exports);
 //# sourceMappingURL=index.js.map

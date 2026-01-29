@@ -1,8 +1,7 @@
 import DailyFollowUp from '@/components/DailyFollowUp';
 import { Suspense } from 'react';
 
-// Force dynamic rendering to ensure searchParams work correctly in build
-export const dynamic = 'force-dynamic';
+
 
 export default function Home() {
   return (

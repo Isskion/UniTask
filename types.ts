@@ -207,6 +207,7 @@ export interface AttributeDefinition {
     tenantId: string;
     isActive: boolean;
     mappedField?: string; // If set, maps to a root property (e.g. 'priority') instead of attributes[]
+    type?: string; // Classification type for filtering (e.g. 'cycles', 'planning')
 }
 
 // [NEW] Sprint System

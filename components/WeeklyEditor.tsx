@@ -26,7 +26,7 @@ import { Loader2, Save, Calendar, History, CheckCircle2, Plus, X, Layout, Search
 import { parseNotes } from "@/lib/smartParser";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from '@/hooks/useSafeFirestore'; // Safe Hook
-import { summarizeNotesWithAI, AISummaryResult } from "@/app/ai-actions";
+import { summarizeNotesWithAI, AISummaryResult } from "@/app/actions/analyze-document";
 import { useToast } from "@/context/ToastContext";
 
 import ProjectActivityFeed from "./ProjectActivityFeed";
@@ -76,7 +76,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -88,7 +88,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view === 'dashboard' || view === 'projects' || view === 'users' || view === 'trash' || view === 'tasks' || view === 'task-manager' || view === 'user-roles' || view === 'tenant-management' || view === 'admin-task-master' || view === 'reports' || view === 'support-management' || view === 'user-manual') {
+            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management'].includes(view)) {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -96,7 +96,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved === 'dashboard' || saved === 'projects' || saved === 'users' || saved === 'trash' || saved === 'tasks' || saved === 'task-manager' || saved === 'user-roles' || saved === 'tenant-management' || saved === 'admin-task-master' || saved === 'reports' || saved === 'support-management' || saved === 'user-manual') {
+            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management'].includes(saved)) {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -775,7 +775,7 @@ export default function WeeklyEditor() {
     return (
         <AppLayout
             viewMode={viewMode}
-            onViewChange={handleViewSwitch}
+            onViewChange={(mode) => setViewMode(mode)}
             onOpenChangelog={() => setShowChangelog(true)} // Connected prop
         >
             <div className="flex h-full gap-6 p-4 pt-2">

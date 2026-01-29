@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem } from "@/types";
+import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem, getRoleLevel, RoleLevel } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay } from "date-fns";
 import { es, enUS, de, fr, ca, pt } from "date-fns/locale";
 import { useLanguage } from "@/context/LanguageContext";
@@ -1309,7 +1309,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     )}
                                                     value={formData.assignedTo || ""}
                                                     onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
-                                                    disabled={formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && !isAdmin && getRoleLevel(userRole) < 60}
+                                                    disabled={!!(formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && !isAdmin && getRoleLevel(userRole) < 60)}
                                                 >
                                                     <option value="">{t('task_manager.select_owner')}</option>
                                                     {users.map(u => (

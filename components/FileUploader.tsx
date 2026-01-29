@@ -31,49 +31,51 @@ export function FileUploader({ tenantId, taskId, onUploadComplete, className }: 
         if (!user) return;
 
         setUploading(true);
-        setProgress(10);
+        setProgress(0);
 
         try {
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("tenantId", tenantId);
-            formData.append("taskId", taskId || "temp");
+            // Import dynamically to ensure safe browser context
+            const { ref, uploadBytesResumable, getDownloadURL } = await import("firebase/storage");
+            const { storage } = await import("@/lib/firebase");
 
-            // Mock progress since fetch doesn't support it natively easily
-            const timer = setInterval(() => {
-                setProgress((prev) => (prev < 90 ? prev + 10 : prev));
-            }, 300);
+            const safeTaskId = taskId || "temp_uploads";
+            // Clean filename
+            const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "")}`;
+            const filePath = `tenants/${tenantId}/tasks/${safeTaskId}/attachments/${fileName}`;
 
-            const res = await fetch("/api/upload", {
-                method: "POST",
-                body: formData,
-            });
+            const storageRef = ref(storage, filePath);
+            const uploadTask = uploadBytesResumable(storageRef, file);
 
-            clearInterval(timer);
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const prog = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setProgress(prog);
+                },
+                (error) => {
+                    console.error("Upload error:", error);
+                    alert("Error al subir el archivo.");
+                    setUploading(false);
+                },
+                async () => {
+                    // Success
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
 
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || "Upload failed");
-            }
+                    onUploadComplete({
+                        name: file.name,
+                        url: url,
+                        type: file.type,
+                        size: file.size
+                    });
 
-            const data = await res.json();
-            setProgress(100);
-
-            onUploadComplete({
-                name: data.name,
-                url: data.url,
-                type: data.type,
-                size: data.size
-            });
-
-            setUploading(false);
-            setProgress(0);
+                    setUploading(false);
+                    setProgress(0);
+                }
+            );
 
         } catch (e) {
             console.error("Error initiating upload:", e);
-            alert("Error al subir el archivo (Proxy Mode).");
+            alert("Error al iniciar subida.");
             setUploading(false);
-            setProgress(0);
         }
     };
 

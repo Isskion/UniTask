@@ -4,12 +4,12 @@ import { useState } from "react";
 import { db, auth } from "@/lib/firebase";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, clearIndexedDbPersistence, terminate, disableNetwork, enableNetwork, collection, query, where, getDocs } from "firebase/firestore";
 import { Activity, AlertTriangle, CheckCircle2, Loader2, XCircle, RefreshCw, Wifi, WifiOff, Server, ShieldAlert, Trash2, Database, Sparkles } from "lucide-react";
-import { testServerConnection } from "@/app/diagnostic-actions";
+
 import { resetDatabase, migrateLegacyUsers } from "@/lib/maintenance";
 
 export default function FirebaseDiagnostic() {
     const [status, setStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
-    const [serverStatus, setServerStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
+
     const [logs, setLogs] = useState<string[]>([]);
     const [errorDetails, setErrorDetails] = useState<any>(null);
 
@@ -76,30 +76,7 @@ export default function FirebaseDiagnostic() {
             });
         }
     };
-    const runServerDiagnostic = async () => {
-        setServerStatus('running');
-        addLog("--- Iniciando diagnóstico SERVIDOR ---");
-        try {
-            const result = await testServerConnection();
-            if (result.logs) {
-                result.logs.forEach((l: string) => addLog(l));
-            }
 
-            if (result.success) {
-                setServerStatus('success');
-                addLog("🎉 SERVIDOR CONECTADO.");
-            } else {
-                setServerStatus('error');
-                addLog("❌ FALLO EN SERVIDOR.");
-                if (result.error) {
-                    addLog(`Error Server: ${result.error.message}`);
-                }
-            }
-        } catch (e: any) {
-            setServerStatus('error');
-            addLog(`❌ Error invocando Server Action: ${e.message}`);
-        }
-    };
 
     const handleClearCache = async () => {
         if (!confirm("Esto reiniciará la conexión a la base de datos y recargará la página. ¿Continuar?")) return;
@@ -365,14 +342,7 @@ export default function FirebaseDiagnostic() {
 
                         <div className="w-full h-px bg-white/10 my-1"></div>
 
-                        <button
-                            onClick={runServerDiagnostic}
-                            disabled={serverStatus === 'running'}
-                            className="flex items-center gap-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 px-2 py-1 rounded text-xs font-bold ring-1 ring-blue-500/50 w-full justify-center"
-                        >
-                            {serverStatus === 'running' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Server className="w-3 h-3" />}
-                            Probar Conexión Servidor
-                        </button>
+
 
                         <div className="w-full h-px bg-white/10 my-1"></div>
 

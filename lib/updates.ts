@@ -161,8 +161,7 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
                     (p.projectId === projectId ||
                         (targetName && p.name?.trim().toLowerCase() === targetName)) &&
                     // [FIX] Filter out soft-deleted entries
-                    p.status !== 'trash' &&
-                    !p.isTrashed
+                    p.status !== 'trash'
                 );
 
                 if (projEntry) {

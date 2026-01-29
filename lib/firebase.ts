@@ -31,5 +31,8 @@ const db = initializeFirestore(app, {
         : undefined
 });
 const auth = getAuth(app);
+const storage = getStorage(app);
+import { getFunctions } from "firebase/functions";
+const functions = getFunctions(app, "us-central1"); // Ensure region matches
 
-export { app, db, auth, storage };
+export { app, db, auth, storage, functions };

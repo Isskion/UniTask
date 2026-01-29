@@ -200,20 +200,7 @@ export default function SupportManagement() {
                     >
                         <RefreshCw className="w-4 h-4" />
                     </button>
-                    {isSuperAdmin && (
-                        <button
-                            onClick={async () => {
-                                if (!confirm("¿Seguro que quieres borrar TODOS los tickets y sus notificaciones?")) return;
-                                const { cleanupSupportDataAction } = await import("@/app/actions/cleanup-support");
-                                const res = await cleanupSupportDataAction();
-                                if (res.success) showToast("Limpieza Completa", res.message || "", "success");
-                                else showToast("Error", res.error || "", "error");
-                            }}
-                            className="bg-red-500/10 hover:bg-red-500/20 text-red-600 border border-red-500/20 rounded-lg px-3 py-1.5 text-xs font-bold transition-all"
-                        >
-                            Limpiar Todo
-                        </button>
-                    )}
+
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
