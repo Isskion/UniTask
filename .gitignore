@@ -53,6 +53,7 @@ serviceAccountKey.json.json
 minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 *.json
 !package.json
+!package-lock.json
 !tsconfig.json
 !next.config.js
 !vercel.json
