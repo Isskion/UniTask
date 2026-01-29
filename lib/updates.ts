@@ -9,6 +9,7 @@ import {
     limit,
     doc,
     deleteDoc,
+    updateDoc, // Added for soft delete
     serverTimestamp,
     Timestamp
 } from "firebase/firestore";
@@ -33,6 +34,7 @@ export async function createTimelineEvent(projectId: string, tenantId: string, d
             // Ensure date is a Timestamp if passed as Date
             date: data.date instanceof Date ? Timestamp.fromDate(data.date) : data.date
         });
+        console.log(`[Updates] Event created for project ${projectId} in collection project_activity_feed`);
         return docRef.id;
     } catch (error) {
         console.error(`Error creating event for project ${projectId}:`, error);
@@ -54,12 +56,36 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
             const eventsRef = collection(db, 'project_activity_feed');
             let qEvents;
             if (limitCount === -1 || limitCount === 0) {
-                qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"));
+                console.log(`[Updates] Querying: Project=${projectId}, Tenant=${tenantId}, Sort=Date DESC (Full)`);
+                qEvents = query(
+                    eventsRef,
+                    where("projectId", "==", projectId),
+                    where("tenantId", "==", tenantId),
+                    // where("isTrashed", "!=", true), // REMOVED: Hides legacy data
+                    // orderBy("isTrashed"),
+                    orderBy("date", "desc")
+                );
             } else {
-                qEvents = query(eventsRef, where("tenantId", "==", tenantId), orderBy("date", "desc"), limit(limitCount));
+                console.log(`[Updates] Querying: Project=${projectId}, Tenant=${tenantId}, Sort=Date DESC (Limit=${limitCount})`);
+                qEvents = query(
+                    eventsRef,
+                    where("projectId", "==", projectId),
+                    where("tenantId", "==", tenantId),
+                    // where("isTrashed", "!=", true),
+                    // orderBy("isTrashed"),
+                    orderBy("date", "desc"),
+                    limit(limitCount)
+                );
             }
             const snapEvents = await getDocs(qEvents);
-            snapEvents.forEach(d => results.push({ id: d.id, ...d.data() } as TimelineEvent));
+            console.log(`[Updates] Fetched ${snapEvents.size} manual events for project ${projectId}`);
+            snapEvents.forEach(d => {
+                const data = d.data();
+                // Client-side filtering to support mixed legacy data (isTrashed missing vs isTrashed=true)
+                if (data.isTrashed !== true) {
+                    results.push({ id: d.id, ...data } as TimelineEvent);
+                }
+            });
         } catch (e) {
             console.warn("Manual events fetch failed (possibly permissions or empty):", e);
         }
@@ -179,11 +205,29 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
 }
 
 /**
- * Deletes a specific event.
+ * Soft deletes (trashes) a specific event.
+ */
+export async function trashTimelineEvent(eventId: string, userId: string) {
+    try {
+        const docRef = doc(db, 'project_activity_feed', eventId);
+        await updateDoc(docRef, {
+            isTrashed: true,
+            deletedAt: serverTimestamp(),
+            deletedBy: userId
+        });
+        console.log(`[Updates] Event ${eventId} moved to trash by ${userId}`);
+    } catch (error) {
+        console.error("Error trashing event:", error);
+        throw error;
+    }
+}
+
+/**
+ * Permanently Deletes a specific event (Admin Only).
  */
 export async function deleteTimelineEvent(projectId: string, eventId: string) {
     try {
-        const docRef = doc(db, PROJECTS_COLLECTION, projectId, TIMELINE_SUBCOLLECTION, eventId);
+        const docRef = doc(db, 'project_activity_feed', eventId);
         await deleteDoc(docRef);
     } catch (error) {
         console.error("Error deleting event:", error);

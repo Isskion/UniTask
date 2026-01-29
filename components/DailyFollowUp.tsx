@@ -33,9 +33,12 @@ import { useTheme } from "@/hooks/useTheme";
 import ChangelogModal from "./ChangelogModal";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 import TaskMasterDataManagement from "./TaskMasterDataManagement"; // Master Data Manager // Added import
+import SprintManager from "./SprintManager";
+import { SprintPlanningBoard } from "./SprintPlanningBoard";
 import ReportManagement from "./reports/ReportManagement"; // Added Import
 import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
+import AppManagement from "./AppManagement";
 import { useLanguage } from "@/context/LanguageContext";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
@@ -49,7 +52,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -147,7 +150,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = searchParams.get('mode') as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -175,7 +178,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | null>(null);
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | null>(null);
 
     // Persist View Mode
     useEffect(() => {
@@ -640,7 +643,7 @@ export default function DailyFollowUp() {
                 context += `\nContexto Adicional: ${specificContext}`;
             }
 
-            const result = await summarizeNotesWithAI(notesToAnalyze, context);
+            const result = await summarizeNotesWithAI(notesToAnalyze, user?.uid || "system", tenantId || "1", context, userRole || "user");
 
             if (result.error) {
                 showToast("Error AI", result.error, "error");
@@ -2147,12 +2150,22 @@ export default function DailyFollowUp() {
                             />
                         ) : viewMode === 'admin-task-master' ? (
                             <TaskMasterDataManagement />
+                        ) : viewMode === 'sprint-cycles' ? (
+                            <div className="p-6 h-full overflow-y-auto">
+                                <SprintManager />
+                            </div>
+                        ) : viewMode === 'sprint-planning' ? (
+                            <div className="p-6 h-full overflow-y-auto">
+                                <SprintPlanningBoard />
+                            </div>
                         ) : viewMode === 'reports' ? (
                             <ReportManagement />
                         ) : viewMode === 'support-management' ? (
                             <SupportManagement />
                         ) : viewMode === 'user-manual' ? (
                             <ManualViewer />
+                        ) : viewMode === 'app-management' ? (
+                            <AppManagement />
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}

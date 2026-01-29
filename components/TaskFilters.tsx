@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { Filter, X, Trash2 } from "lucide-react";
+import { Filter, X, Trash2, Timer } from "lucide-react";
 import { MultiPowerSelect } from "./ui/MultiPowerSelect";
 import { TaskFiltersState } from "@/hooks/useTaskAdvancedFilters";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { AttributeDefinition, MasterDataItem } from "@/types";
 import { useMasterDataLabels } from "@/hooks/useMasterDataLabels";
+import { useSprints } from "@/hooks/useSprints";
 
 
 
@@ -24,10 +25,20 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { getLabel } = useMasterDataLabels();
+    const { sprints } = useSprints();
 
     // Helpers to convert to options
     const projectOptions = useMemo(() => projects.map(p => ({ value: p.id, label: p.name, color: p.color })), [projects]);
     const userOptions = useMemo(() => users.map(u => ({ value: u.uid, label: u.displayName })), [users]);
+    const sprintOptions = useMemo(() => [
+        { value: 'unassigned', label: 'Sin Sprint (Backlog)', color: '#71717a' },
+        ...sprints.map(s => ({
+            value: s.id,
+            label: `${s.name}`, // Removed status from label to keep it clean, color indicates status
+            color: s.status === 'active' ? '#10b981' : s.status === 'closed' ? '#71717a' : '#f59e0b'
+        }))
+    ], [sprints]);
+
     const statusOptions = [
         { value: 'pending', label: 'Pendiente', color: '#71717a' }, // zinc-500
         { value: 'in_progress', label: 'En Curso', color: '#10b981' }, // emarald-500
@@ -43,6 +54,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
         if (filters.area.length > 0) count++;
         if (filters.scope.length > 0) count++;
         if (filters.module.length > 0) count++;
+        if (filters.sprintIds.length > 0) count++;
         if (filters.assignedTo.length > 0) count++;
         if (filters.attributes) {
             Object.values(filters.attributes).forEach(vals => {
@@ -61,6 +73,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
             area: [],
             scope: [],
             module: [],
+            sprintIds: [],
             assignedTo: [],
             attributes: {}
         });
@@ -112,6 +125,19 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
                                 onChange={(val) => setFilters({ ...filters, status: val as any })}
                                 options={statusOptions}
                                 placeholder="Todos los estados"
+                            />
+                        </div>
+
+                        {/* Sprints [V13.2] */}
+                        <div className="space-y-2">
+                            <label className={cn("text-xs font-bold uppercase tracking-wider flex items-center gap-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                <Timer className="w-3.5 h-3.5" /> Ciclos / Sprints
+                            </label>
+                            <MultiPowerSelect
+                                values={filters.sprintIds}
+                                onChange={(val) => setFilters({ ...filters, sprintIds: val })}
+                                options={sprintOptions}
+                                placeholder="Filtrar por Sprint..."
                             />
                         </div>
 

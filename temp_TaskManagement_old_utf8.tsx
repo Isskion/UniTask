@@ -7,16 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer } from "lucide-react";
+import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay } from "date-fns";
 import { es, enUS, de, fr, ca, pt } from "date-fns/locale";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/context/ToastContext";
-import { useMasterDataLabels } from "@/hooks/useMasterDataLabels";
-import { useSprints } from "@/hooks/useSprints";
-import { tshirtToDays } from "@/lib/tshirtSizing";
 import { FileUploader } from "./FileUploader";
 import { PowerSelect } from "./ui/PowerSelect";
 import { ActivityAuditModal } from "./ActivityAuditModal";
@@ -41,8 +38,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const { t, language } = useLanguage();
     const dateLocale = { en: enUS, es, de, fr, ca, pt }[language] || enUS;
     const { isAdmin: checkIsAdmin, can, permissions } = usePermissions();
-    const { getLabel } = useMasterDataLabels();
-    const { sprints, activeSprint } = useSprints();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -225,7 +220,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
         // Compare key fields (Added isBlocking and new classification fields)
         // [V3] Removed 'progress' from here as it is checked via getProgressSafe
-        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module', 'sprintId', 'clientDeadline'];
+        const keys: (keyof Task)[] = ['title', 'description', 'status', 'isBlocking', 'techDescription', 'rtmId', 'relatedDailyStatusId', 'startDate', 'endDate', 'projectId', 'priority', 'scope', 'area', 'module'];
         for (const key of keys) {
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
@@ -275,7 +270,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [dependencySearch, setDependencySearch] = useState("");
 
     // Date Picker State
-    const [datePickerTarget, setDatePickerTarget] = useState<'startDate' | 'endDate' | 'clientDeadline' | null>(null);
+    const [datePickerTarget, setDatePickerTarget] = useState<'startDate' | 'endDate' | null>(null);
     const [currentMonth, setCurrentMonth] = useState(new Date());
 
     // Confirmation Modal State
@@ -510,10 +505,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             if (!isAllowed) return showToast("UniTaskController", t('task_manager.no_project_permission'), "error");
         }
 
-        // [V13.3] Effort Tracking Validation
-        if (formData.status === 'completed' && !formData.actualEffort) {
-            return showToast("UniTaskController", "⚠️ Esfuerzo real obligatorio: Debes registrar los días invertidos para cerrar la tarea", "error");
-        }
+
 
         // Dependency Check Logic
         if (formData.status === 'completed' && formData.dependencies && formData.dependencies.length > 0) {
@@ -729,7 +721,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
 
                         // 3. Classification (Generic Check for key fields)
-                        ['priority', 'area', 'scope', 'module', 'sprintId'].forEach((field) => {
+                        ['priority', 'area', 'scope', 'module'].forEach((field) => {
                             // @ts-ignore
                             if (selectedTask[field] !== formData[field]) {
                                 addDoc(collection(db, "task_activities"), {
@@ -854,7 +846,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     // --- CUSTOM DATE PICKER COMPONENT ---
     const CustomDatePicker = ({ target, value, onClose, onSelect }: { target: string, value: string | undefined, onClose: () => void, onSelect: (d: string) => void }) => {
-        const title = target === 'startDate' ? 'Fecha de Inicio' : target === 'clientDeadline' ? 'Deadline Cliente' : 'Fecha Fin';
+        const title = target === 'startDate' ? 'Fecha de Inicio' : 'Fecha Fin';
         const today = startOfToday();
 
         const days = eachDayOfInterval({
@@ -895,7 +887,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     {days.map(d => {
                         const isSelected = value && isSameDay(new Date(value), d);
                         // Prevent selection of past dates for Deadline (endDate), but allow if already selected
-                        const isPast = (target === 'endDate' || target === 'clientDeadline') && isBefore(d, today);
+                        const isPast = target === 'endDate' && isBefore(d, today);
                         const isDisabled = isPast && !isSelected;
 
                         return (
@@ -1046,15 +1038,10 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 {/* STATUS LABEL (Highlighted) */}
                                                 <span className={cn(
                                                     "text-[10px] uppercase px-1.5 py-0.5 rounded font-extrabold tracking-wider",
-                                                    // Light theme: vibrant solid colors with white text
-                                                    // Dark theme: translucent backgrounds with colored text
-                                                    t.status === 'completed'
-                                                        ? (isLight ? "bg-blue-600 text-white" : "bg-blue-500/20 text-blue-400")
-                                                        : t.status === 'in_progress'
-                                                            ? (isLight ? "bg-emerald-600 text-white" : "bg-emerald-500/20 text-emerald-400")
-                                                            : t.status === 'review'
-                                                                ? (isLight ? "bg-amber-600 text-white" : "bg-amber-500/20 text-amber-400")
-                                                                : (isLight ? "bg-zinc-500 text-white" : "bg-zinc-700/50 text-zinc-400")
+                                                    t.status === 'completed' ? "bg-blue-500/20 text-blue-400" :
+                                                        t.status === 'in_progress' ? "bg-emerald-500/20 text-emerald-400" :
+                                                            t.status === 'review' ? "bg-amber-500/20 text-amber-400" :
+                                                                "bg-zinc-700/50 text-zinc-400"
                                                 )}>
                                                     {t.status === 'in_progress' ? 'EN PROCESO' :
                                                         t.status === 'review' ? 'REVISIÓN' :
@@ -1071,12 +1058,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             {t.title || t.description || "Sin Título"}
                                         </div>
                                         {project && <div className="text-[9px] text-zinc-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: project.color }} />{project.name}</div>}
-                                        {t.sprintId && (
-                                            <div className="text-[9px] flex items-center gap-1 text-emerald-500 ml-auto bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                                                <Timer className="w-2.5 h-2.5" />
-                                                {sprints.find(s => s.id === t.sprintId)?.name || 'Sprint'}
-                                            </div>
-                                        )}
                                     </div>
                                 );
                             })}
@@ -1159,38 +1140,34 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             </>
                                         )}
 
-                                    </div>
-                                </div>
+                                    </div></div></div></div>
 
+                        <div className="space-y-4 pt-2">
 
-                                <div className="space-y-4 pt-2">
-
-                                    {/* TITLE */}
-                                    <div>
-                                        <button
-                                            onClick={() => setFormData({ ...formData, isBlocking: !formData.isBlocking })}
-                                            className={cn(
-                                                "px-3 py-1 ml-2 rounded text-xs font-bold border transition-all flex items-center gap-1.5",
-                                                formData.isBlocking
-                                                    ? "bg-red-500/20 text-red-500 border-red-500/30"
-                                                    : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-red-400"
-                                            )}
-                                            title={formData.isBlocking ? "Marcar como NO Bloqueante" : "Marcar como Bloqueante"}
-                                        >
-                                            <AlertTriangle className="w-3.5 h-3.5" />
-                                            {formData.isBlocking ? "Es Bloqueante" : "Bloqueante"}
-                                        </button>
-                                    </div>
-                                    <input
-                                        className={cn("text-xl md:text-2xl font-bold bg-transparent outline-none w-[calc(100%-1rem)] ml-2 leading-tight",
-                                            isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-600"
-                                        )}
-                                        value={formData.title || ""}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="Escribe el título de la tarea..."
-                                    />
-                                </div>
+                            {/* TITLE */}
+                            <div>
+                                <button
+                                    onClick={() => setFormData({ ...formData, isBlocking: !formData.isBlocking })}
+                                    className={cn(
+                                        "px-3 py-1 ml-2 rounded text-xs font-bold border transition-all flex items-center gap-1.5",
+                                        formData.isBlocking
+                                            ? "bg-red-500/20 text-red-500 border-red-500/30"
+                                            : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:text-red-400"
+                                    )}
+                                    title={formData.isBlocking ? "Marcar como NO Bloqueante" : "Marcar como Bloqueante"}
+                                >
+                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                    {formData.isBlocking ? "Es Bloqueante" : "Bloqueante"}
+                                </button>
                             </div>
+                            <input
+                                className={cn("text-xl md:text-2xl font-bold bg-transparent outline-none w-[calc(100%-1rem)] ml-2 leading-tight",
+                                    isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-600"
+                                )}
+                                value={formData.title || ""}
+                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Escribe el título de la tarea..."
+                            />
                         </div>
 
 
@@ -1199,63 +1176,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                 {/* Col 1 - Operativa (Ancho 8) */}
                                 <div className="md:col-span-8 space-y-6">
 
-                                    {/* [V13.2] Strategic Planning (Sprints & Client Deadlines) */}
-                                    {/* [V13.2] Strategic Planning (Sprints & Client Deadlines) */}
-                                    {/* Dates & Timeline (Schedule & Sprint) */}
+                                    {/* Dates & Timeline (Simplified) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                            {t('task_manager.schedule')}
-                                        </h3>
-
-                                        {/* Row 1: Sprint & Sprint End (New Integration) */}
-                                        <div className="flex items-start gap-4 mb-4 pb-4 border-b border-dashed border-zinc-200 dark:border-white/5">
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Sprint / Ciclo</label>
-                                                <select
-                                                    value={formData.sprintId || ""}
-                                                    onChange={e => setFormData({ ...formData, sprintId: e.target.value })}
-                                                    className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
-                                                        isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
-                                                    )}
-                                                >
-                                                    <option value="">Sin Asignar (Backlog)</option>
-                                                    {sprints.map(s => (
-                                                        <option key={s.id} value={s.id}>
-                                                            {s.name} ({s.status.toUpperCase()})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && (
-                                                    <div className="absolute right-2 top-8">
-                                                        <span className="relative flex h-2 w-2">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1 text-zinc-400")}>
-                                                    Final de Sprint
-                                                </label>
-                                                <div
-                                                    className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/50 cursor-not-allowed",
-                                                        isLight ? "border-zinc-200" : "border-white/5"
-                                                    )}
-                                                >
-                                                    <CalendarIcon className={cn("w-4 h-4 text-zinc-400")} />
-                                                    <span className={cn("text-xs font-mono text-muted-foreground")}>
-                                                        {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.endDate
-                                                            ? format(new Date(sprints.find(s => s.id === formData.sprintId)!.endDate.toDate ? sprints.find(s => s.id === formData.sprintId)!.endDate.toDate() : sprints.find(s => s.id === formData.sprintId)!.endDate), 'dd MMM yyyy', { locale: es })
-                                                            : '-'
-                                                        }
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Row 2: Standard Dates */}
-                                        {/* Row 2: Standard Dates */}
+                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.schedule')}</h3>
                                         <div className="flex items-start gap-4">
                                             {/* Start Date */}
                                             <div className="flex-1 relative group">
@@ -1309,7 +1232,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     )}
                                                     value={formData.assignedTo || ""}
                                                     onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
-                                                    disabled={formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && !isAdmin && getRoleLevel(userRole) < 60}
                                                 >
                                                     <option value="">{t('task_manager.select_owner')}</option>
                                                     {users.map(u => (
@@ -1613,7 +1535,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Priority */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('priority')}</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.priority')}</label>
                                                 <PowerSelect
                                                     value={formData.priority || ""}
                                                     onChange={(val) => setFormData({ ...formData, priority: val as any })}
@@ -1629,53 +1551,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 />
                                             </div>
 
-                                            {/* Estimation (New Integration in Metadata) */}
-                                            <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                                    Estimación
-                                                </label>
-                                                <select
-                                                    value={formData.estimatedEffortSize || ""}
-                                                    onChange={e => {
-                                                        const size = e.target.value as 'XS' | 'S' | 'M' | 'L' | 'XL' | '';
-                                                        const days = size ? tshirtToDays(size) : undefined;
-                                                        setFormData({ ...formData, estimatedEffortSize: size || undefined, estimatedEffort: days });
-                                                    }}
-                                                    className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold outline-none transition-all cursor-pointer",
-                                                        isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                    )}
-                                                >
-                                                    <option value="">Sin estimar</option>
-                                                    <option value="XS">XS (1h)</option>
-                                                    <option value="S">S (0.5d)</option>
-                                                    <option value="M">M (2d)</option>
-                                                    <option value="L">L (1w)</option>
-                                                    <option value="XL">XL (2w)</option>
-                                                </select>
-                                            </div>
-
-                                            {/* Actual Effort (Conditional) */}
-                                            {formData.status === 'completed' && (
-                                                <div>
-                                                    <label className={cn("text-[10px] font-bold uppercase mb-1 block flex items-center gap-1", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                                        Esfuerzo Real <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        step="0.125"
-                                                        min="0"
-                                                        value={formData.actualEffort || ""}
-                                                        onChange={e => setFormData({ ...formData, actualEffort: parseFloat(e.target.value) || undefined })}
-                                                        placeholder="Días reales"
-                                                        className={cn("w-full border rounded-lg px-3 py-2 text-xs font-bold outline-none transition-all",
-                                                            isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"
-                                                        )}
-                                                    />
-                                                </div>
-                                            )}
                                             {/* Area */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('area')} *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.area')} *</label>
                                                 <PowerSelect
                                                     value={formData.area || ""}
                                                     onChange={(val) => setFormData({ ...formData, area: val })}
@@ -1686,7 +1564,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Scope */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('scope')}</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.scope')}</label>
                                                 <PowerSelect
                                                     value={formData.scope || ""}
                                                     onChange={(val) => setFormData({ ...formData, scope: val })}
@@ -1697,7 +1575,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             {/* Module */}
                                             <div>
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{getLabel('module')} *</label>
+                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.module')} *</label>
                                                 <PowerSelect
                                                     value={formData.module || ""}
                                                     onChange={(val) => setFormData({ ...formData, module: val })}
@@ -1797,68 +1675,60 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                 </div>
                             </div>
                         </div>
-
-
-
-
-                        {/* Confirmation Modal */}
-                        {
-                            confirmModal && confirmModal.open && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                                    <div className="bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 scale-100 animate-in zoom-in-95 duration-200">
-                                        <h3 className="text-lg font-bold text-white mb-2">{confirmModal.title}</h3>
-                                        <p className="text-sm text-zinc-400 mb-6">{confirmModal.message}</p>
-                                        <div className="flex justify-end gap-3">
-                                            <button
-                                                onClick={() => setConfirmModal(null)}
-                                                className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-                                            >
-                                                {t('task_manager.cancel')}
-                                            </button>
-                                            <button
-                                                onClick={confirmModal.onConfirm}
-                                                className={cn(
-                                                    "px-4 py-2 text-sm font-bold rounded-lg shadow-lg active:scale-95 transition-all text-white",
-                                                    confirmModal.destructive
-                                                        ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
-                                                        : "bg-primary hover:bg-primary/90 shadow-primary/20"
-                                                )}
-                                            >
-                                                {t('task_manager.confirm')}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        }
-
-                        {/* Mind Map Modal */}
-                        {
-                            showMindMap && projects.length > 0 && (
-                                <ProjectMindMapModal
-                                    project={projects.find(p => p.id === showMindMap) || projects[0]} // Fallback or logic to handle 'not found'
-                                    initialTaskId={selectedTask?.id}
-                                    onClose={() => setShowMindMap(null)}
-                                />
-                            )
-                        }
-
-                        {/* Audit Log Modal */}
-                        {
-                            selectedTask && showAuditLog && (
-                                <ActivityAuditModal
-                                    taskId={selectedTask.id}
-                                    onClose={() => setShowAuditLog(false)}
-                                    isLight={isLight}
-                                    theme={theme}
-                                />
-                            )
-                        }
                     </div>
-                )
+                )}
+
+
+                {/* Confirmation Modal */}
+                {
+                    confirmModal && confirmModal.open && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                            <div className="bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl p-6 max-w-md w-full mx-4 scale-100 animate-in zoom-in-95 duration-200">
+                                <h3 className="text-lg font-bold text-white mb-2">{confirmModal.title}</h3>
+                                <p className="text-sm text-zinc-400 mb-6">{confirmModal.message}</p>
+                                <div className="flex justify-end gap-3">
+                                    <button
+                                        onClick={() => setConfirmModal(null)}
+                                        className="px-4 py-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+                                    >
+                                        {t('task_manager.cancel')}
+                                    </button>
+                                    <button
+                                        onClick={confirmModal.onConfirm}
+                                        className={cn(
+                                            "px-4 py-2 text-sm font-bold rounded-lg shadow-lg active:scale-95 transition-all text-white",
+                                            confirmModal.destructive
+                                                ? "bg-red-500 hover:bg-red-600 shadow-red-500/20"
+                                                : "bg-primary hover:bg-primary/90 shadow-primary/20"
+                                        )}
+                                    >
+                                        {t('task_manager.confirm')}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
                 }
+
+                {/* Mind Map Modal */}
+                {showMindMap && projects.length > 0 && (
+                    <ProjectMindMapModal
+                        project={projects.find(p => p.id === showMindMap) || projects[0]} // Fallback or logic to handle 'not found'
+                        initialTaskId={selectedTask?.id}
+                        onClose={() => setShowMindMap(null)}
+                    />
+                )}
+
+                {/* Audit Log Modal */}
+                {selectedTask && showAuditLog && (
+                    <ActivityAuditModal
+                        taskId={selectedTask.id}
+                        onClose={() => setShowAuditLog(false)}
+                        isLight={isLight}
+                        theme={theme}
+                    />
+                )}
             </div>
         </div>
     );
-};
-
+}

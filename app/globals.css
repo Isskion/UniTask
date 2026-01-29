@@ -64,38 +64,37 @@
 
 /* --- THEMES --- */
 
-/* LIGHT THEME (Professional White) */
+/* LIGHT THEME (Pure Pro) */
 :root[data-theme="light"] {
   --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
+  --foreground: hsl(0 0% 0%);
 
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 0%);
 
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
+  --popover-foreground: hsl(0 0% 0%);
 
-  --primary: hsl(240 5.9% 10%);
-  /* Black */
-  --primary-foreground: hsl(0 0% 98%);
-  /* White */
+  --primary: hsl(0 72.2% 50.6%);
+  /* Corporate Red */
+  --primary-foreground: hsl(0 0% 100%);
 
-  --secondary: hsl(240 4.8% 95.9%);
-  /* Light Gray */
-  --secondary-foreground: hsl(240 5.9% 10%);
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 0%);
 
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
+  --muted: hsl(0 0% 90%);
+  --muted-foreground: hsl(0 0% 40%);
 
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
+  --accent: hsl(0 72.2% 50.6% / 0.1);
+  --accent-foreground: hsl(0 72.2% 50.6%);
 
   --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
+  --destructive-foreground: hsl(0 0% 100%);
 
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 5.9% 10%);
+  --border: hsl(0 0% 0%);
+  /* Hard Black Outline per request */
+  --input: hsl(0 0% 0%);
+  --ring: hsl(0 72.2% 50.6%);
 }
 
 /* RED THEME (Adobe & Cloud Dancer) -> Updated foreground to WHITE (Uniformity Request) */

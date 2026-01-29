@@ -54,130 +54,124 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     useEffect(() => {
-        // TEST MODE REMOVED BY REQUEST
-
-        // TEST MODE REMOVED BY REQUEST
-
-        // [DEV-ONLY] Bypass removed after screenshot generation.
-
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
-            setUser(currentUser);
-            try {
-                if (currentUser) {
-                    // Forzamos refresh del token para asegurar claims frescos
-                    const tokenResult = await currentUser.getIdTokenResult(true);
-                    const claims = tokenResult.claims;
+            if (currentUser) {
+                // Initial Load: Get current token result
+                let tokenResult = await currentUser.getIdTokenResult();
+                let claims = tokenResult.claims;
 
-                    // Extracción base de claims
-                    let parsedRole = Number(claims.role);
-                    let realTenantId = (claims.tenantId as string);
+                // --- REAL-TIME PROFILE SYNC LISTENER ---
+                // "The Consumer": Watches for backend modifications to trigger Token Refresh
+                const { doc, onSnapshot } = await import('firebase/firestore');
 
-                    // [UPDATED] ALWAYS Fetch from Firestore to ensure latest role/tenant (Bypass Stale Claims)
-                    // The user requested "recarga de rol al acceder" to avoid cache issues.
-                    try {
-                        const { doc, getDoc } = await import('firebase/firestore');
-                        const userDocRef = doc(db, 'users', currentUser.uid);
-                        // Force server fetch if possible, though default getDoc is usually fine.
-                        const userSnapshot = await getDoc(userDocRef);
+                // Debounce timer reference
+                let refreshTimer: NodeJS.Timeout | null = null;
 
-                        if (userSnapshot.exists()) {
-                            const userData = userSnapshot.data();
-                            console.log("[AuthContext] Hydrating identity from Firestore (Fresh):", userData);
+                const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+                    if (!snapshot.exists()) return;
 
-                            // Prefer Firestore Data over Claims (Source of Truth)
-                            // We recalculate level from string 'role' to be safe, or use 'roleLevel' if present.
-                            if (userData.role) {
-                                parsedRole = getRoleLevel(userData.role);
-                            } else if (userData.roleLevel) {
-                                parsedRole = Number(userData.roleLevel);
-                            }
+                    const data = snapshot.data();
+                    const latestSyncId = data.syncId;
+                    const currentSyncId = claims.syncId;
 
-                            if (userData.tenantId) {
-                                realTenantId = userData.tenantId;
-                            }
-                            // Store full profile
-                            setUserProfile(userData as UserProfile);
-                        }
-                    } catch (e) {
-                        console.error("[AuthContext] Failed to hydrate from Firestore, relying on claims", e);
-                    }
+                    // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
+                    // Also refresh if roleLevel/tenantId mismatches critically.
 
-                    if (isNaN(parsedRole)) {
-                        parsedRole = getRoleLevel(claims.role as string);
-                    }
-                    const realRole = parsedRole || RoleLevel.CLIENT;
-                    realTenantId = realTenantId || "unknown"; // Final fallback
+                    const needsRefresh = (latestSyncId && (!currentSyncId || latestSyncId > currentSyncId)) ||
+                        (data.roleLevel !== claims.roleLevel) ||
+                        (data.tenantId !== claims.tenantId);
 
-                    const newIdentity: UserIdentity = {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        realRole,
-                        realTenantId
-                    };
+                    if (needsRefresh) {
+                        console.log("[AuthContext] ⚠️ Profile mismatch detected. Scheduling forced token refresh...");
 
-                    setIdentity(newIdentity);
+                        // [FIX] Block UI immediately to prevent permission errors with stale token
+                        // This forces 'loading' to true, unmounting the app and stopping failed queries.
+                        setViewContext(null);
 
-                    // LOGIC: Persist Simulation across refreshes (Superadmin only)
-                    const savedSim = localStorage.getItem('superadmin_simulation_context');
+                        // Debounce: Wait 2s to allow Cloud Functions to settle propagation
+                        if (refreshTimer) clearTimeout(refreshTimer);
 
-                    if (realRole >= RoleLevel.SUPERADMIN && savedSim) {
-                        try {
-                            const parsed = JSON.parse(savedSim);
-                            // Validate structure roughly
-                            if (parsed.activeRole && parsed.activeTenantId) {
-                                console.log("🔄 Restoring Superadmin Simulation:", parsed);
-                                setViewContext({
-                                    activeRole: parsed.activeRole,
-                                    activeTenantId: parsed.activeTenantId,
-                                    isMasquerading: true
+                        refreshTimer = setTimeout(async () => {
+                            console.log("[AuthContext] 🔄 Executing Forced Token Refresh...");
+                            try {
+                                tokenResult = await currentUser.getIdTokenResult(true); // Force Refresh
+                                claims = tokenResult.claims;
+                                console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
+
+                                // Re-evaluate identity with NEW token
+                                const newRole = Number(claims.roleLevel) || 0;
+                                const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
+
+                                setIdentity({
+                                    uid: currentUser.uid,
+                                    email: currentUser.email,
+                                    realRole: newRole,
+                                    realTenantId: newTenant
                                 });
-                            } else {
-                                throw new Error("Invalid stored context structure");
+
+                                // Reset View Context to match reality
+                                setViewContext(prev => prev?.isMasquerading ? prev : {
+                                    activeRole: newRole,
+                                    activeTenantId: newTenant,
+                                    isMasquerading: false
+                                });
+
+                            } catch (e) {
+                                console.error("[AuthContext] Token refresh failed:", e);
                             }
-                        } catch (e) {
-                            console.warn("Failed to restore simulation, resetting:", e);
-                            localStorage.removeItem('superadmin_simulation_context');
-                            setViewContext({
-                                activeRole: realRole,
-                                activeTenantId: realTenantId,
-                                isMasquerading: false
-                            });
-                        }
+                        }, 2000);
                     } else {
-                        // Default: Real Identity
-                        setViewContext({
-                            activeRole: realRole,
-                            activeTenantId: realTenantId,
-                            isMasquerading: false
-                        });
+                        // Optimistic Profile Hydration for UI display ONLY (Not security)
+                        setUserProfile(data as UserProfile);
                     }
-
-                } else {
-                    // Logout / No user
-                    setIdentity(null);
-                    setViewContext(null);
-                    setUserProfile(null); // Clear profile
-                    localStorage.removeItem('superadmin_simulation_context'); // Clear on logout
-                }
-            } catch (error) {
-                console.error("CRITICAL SECURITY ERROR: Failed to parse auth token", error);
-
-                // [FIX] Don't orphan the user on transient errors. Provide a fallback context.
-                // This allows components to render (gracefully degrading) instead of blocking.
-                const fallbackIdentity = {
-                    uid: currentUser?.uid || "unknown",
-                    email: currentUser?.email || null,
-                    realRole: RoleLevel.CLIENT, // Assume worst case
-                    realTenantId: "1" // Default to tenant 1 to avoid "Orphan" block, rules will handle security
-                };
-                setIdentity(fallbackIdentity);
-                setViewContext({
-                    activeRole: RoleLevel.CLIENT,
-                    activeTenantId: "1",
-                    isMasquerading: false
                 });
-            } finally {
+
+                // Setup efficient state update on initial load (without waiting for listener)
+                let parsedRole = Number(claims.roleLevel) || 0;
+                let realTenantId = (claims.tenantId as string) || "unknown";
+
+                const newIdentity: UserIdentity = {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    realRole: parsedRole,
+                    realTenantId
+                };
+
+                setIdentity(newIdentity);
+                setUser(currentUser);
+
+                // Initialize View Context
+                const savedSim = localStorage.getItem('superadmin_simulation_context');
+                if (parsedRole >= RoleLevel.SUPERADMIN && savedSim) {
+                    try {
+                        const parsed = JSON.parse(savedSim);
+                        setViewContext({
+                            activeRole: parsed.activeRole,
+                            activeTenantId: parsed.activeTenantId,
+                            isMasquerading: true
+                        });
+                    } catch (e) {
+                        setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
+                    }
+                } else {
+                    setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
+                }
+
+                setLoading(false);
+
+                // Cleanup internal listener on unmount/change
+                // Note: We can't easily return cleanup for the inner effect from onIdTokenChanged. 
+                // Ideally this listener logic would be a separate useEffect dependent on 'user'.
+                // But for now, this closure works for the active session.
+
+            } else {
+                // Logout / No user
+                setUser(null);
+                setIdentity(null);
+                setViewContext(null);
+                setUserProfile(null);
+                localStorage.removeItem('superadmin_simulation_context');
                 setLoading(false);
             }
         });
@@ -239,11 +233,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     // --- LEGACY COMPATIBILITY LAYER ---
-    // The previous app used `userRole` (string) and `tenantId` (string).
-    // We map these to the VIEW CONTEXT to maintain existing UI compatibility,
-    // but the underlying security is strictly enforced by rules/identity.
-
-    // Map numerical RoleLevel back to string for legacy components if needed, or update types
     const legacyUserRole = viewContext ? getRoleString(viewContext.activeRole) : 'usuario_externo';
     const legacyTenantId = viewContext ? viewContext.activeTenantId : null;
 

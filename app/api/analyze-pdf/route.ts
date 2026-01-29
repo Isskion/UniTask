@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { PromptGuard } from "@/lib/security/PromptGuard";
 import { adminAuth } from "@/lib/firebase-admin";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
@@ -14,33 +15,40 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify token using Admin SDK
+    let userId = "system";
+    let userRole = "user";
     try {
         const idToken = authHeader.split("Bearer ")[1];
-        await adminAuth.verifyIdToken(idToken);
+        const decoded = await adminAuth.verifyIdToken(idToken);
+        userId = decoded.uid;
+        userRole = decoded.role || "user"; // Assuming role is in custom claims
     } catch (e) {
         console.error("[AnalyzePDF] Auth Failed:", e);
         return NextResponse.json({ error: "Unauthorized: Invalid Token" }, { status: 401 });
     }
 
-    console.log(`[AnalyzePDF] Using API Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'UNDEFINED'}`);
-    console.log(`[AnalyzePDF] Model: gemini-2.0-flash`);
-
-    if (!apiKey) {
-        // ...
-        console.error("[AnalyzePDF] CRITICAL: No API Key found in environment variables.");
-        return NextResponse.json({ error: "Server Configuration Error: Missing API Key. Check log." }, { status: 500 });
-    }
+    console.log(`[AnalyzePDF] User: ${userId} (${userRole})`);
 
     try {
-        const contentLength = req.headers.get("content-length");
-        console.log(`[AnalyzePDF] Payload Info - Content-Length: ${contentLength}`);
+        const body = await req.json();
+        const tenantId = body.tenantId || "1";
 
-        let body;
-        try {
-            body = await req.json();
-        } catch (e: any) {
-            console.error("[AnalyzePDF] JSON Parsing Failed:", e);
-            return NextResponse.json({ error: "Invalid Request Body (Size limit?)", details: e.message }, { status: 400 });
+        // 2. Security Check: Is AI Enabled?
+        const status = await PromptGuard.isAiEnabled(tenantId);
+        if (!status.enabled) {
+            return NextResponse.json({
+                error: "AI Access Denied",
+                details: status.reason || "AI functions are disabled for this organization or globally."
+            }, { status: 403 });
+        }
+
+        // 2.1 Usage Limit Check (SaaS Quality Guard)
+        const limitStatus = await PromptGuard.checkUsageLimit(tenantId, userId, userRole, "analyze_pdf_api");
+        if (!limitStatus.allowed) {
+            return NextResponse.json({
+                error: "Limit Exceeded",
+                details: limitStatus.reason
+            }, { status: 403 });
         }
 
         let base64Data = body.base64Data;
@@ -58,46 +66,49 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No PDF data provided (url or base64)" }, { status: 400 });
         }
 
-        console.log(`[AnalyzePDF] Base64 Data Length: ${base64Data.length}`);
-
-        // 3. Initialize Gemini
-        const genAI = new GoogleGenerativeAI(apiKey);
-        // Updated to 2.0 Flash as 1.5 is no longer available in this environment (2026)
+        // ... (Gemini Init and Prompt)
+        const genAI = new GoogleGenerativeAI(apiKey!);
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-        // 4. Prompt
-        const prompt = `
+        const basePrompt = `
             You are an AI assistant that extracts structured data from project documents and meeting minutes.
             Please analyze the attached PDF and extract the following information in JSON format.
             
-            IMPORTANT: Detect the language of the document. The output fields (title, description, action_items) MUST be in the SAME LANGUAGE as the document content. If the document is in Spanish, the output must be in Spanish.
-
-            - title: A concise title for the task or meeting note (In document's language).
-            - full_content: The COMPLETE, VERBATIM text content of the document, formatted in clean markdown (headers, lists, bold). Do not summarize this part.
-            - description: A summary of the key points, decisions, or context (In document's language).
-            - endDate: If there is a deadline or next meeting date mentioned, extract it in ISO YYYY-MM-DD format. If not, return null.
-            - priority: Estimate priority (low, medium, high) based on the tone or explicit mentions.
-            - action_items: An array of strings, each representing a specific action item mentioned (In document's language).
-
-            Return ONLY the JSON object, no markdown formatting.
+            IMPORTANT: Detect the language of the document. The output fields (title, description, action_items) MUST be in the SAME LANGUAGE as the document content.
+            
+            - title: A concise title for the task (In document's language).
+            - full_content: The COMPLETE, VERBATIM text content, formatted in clean markdown.
+            - description: A summary of the key points (In document's language).
+            - endDate: ISO YYYY-MM-DD format or null.
+            - priority: low, medium, or high.
+            - action_items: Array of strings (In document's language).
+            
+            Return ONLY JSON.
         `;
 
-        // 5. Generate
-        console.log("[AnalyzePDF] Sending to Gemini...");
+        const securedPrompt = PromptGuard.wrap(basePrompt, "EXTRACTION_RULES") +
+            "\n\nAnalyza el archivo adjunto siguiendo estrictamente las <EXTRACTION_RULES>.";
+
         const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: "application/pdf",
-                },
-            },
+            securedPrompt,
+            { inlineData: { data: base64Data, mimeType: "application/pdf" } },
         ]);
 
         const text = result.response.text();
-        console.log("[AnalyzePDF] Gemini Response received.");
 
-        // Clean markdown code blocks if present
+        // 3. Log Usage (Secure Logging)
+        // [RULE] Exclude superadmins from logs to keep billing and metrics pure
+        if (userRole !== 'superadmin') {
+            await PromptGuard.logUsage({
+                userId,
+                tenantId,
+                action: "analyze_pdf_api",
+                charsIn: securedPrompt.length + base64Data.length,
+                charsOut: text.length,
+                model: "gemini-2.0-flash"
+            });
+        }
+
         const jsonStr = text.replace(/```json/g, "").replace(/```/g, "").trim();
         const data = JSON.parse(jsonStr);
 

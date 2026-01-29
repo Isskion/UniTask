@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
-import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2, Box, Layers, Shield, RefreshCw } from 'lucide-react';
+import { Layout, ListTodo, FolderGit2, Briefcase, ChevronRight, Plus, Edit2, Trash2, Save, X, Loader2, Box, Layers, Shield, RefreshCw, Timer } from 'lucide-react';
+import SprintManager from './SprintManager';
+import { SprintPlanningBoard } from './SprintPlanningBoard';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeFirestore } from '@/hooks/useSafeFirestore';
 import { collection, query, where, getDocs, orderBy, deleteDoc, doc, serverTimestamp, onSnapshot } from 'firebase/firestore';
@@ -121,7 +123,12 @@ export default function TaskMasterDataManagement() {
 
         // Filter out customs that were already used as overrides
         const systemIds = SYSTEM_SECTIONS.map(s => s.id);
-        const pureCustoms = customAttributes.filter(attr => !systemIds.includes(attr.id) && !systemIds.includes(attr.mappedField as any));
+        const pureCustoms = customAttributes.filter(attr =>
+            !systemIds.includes(attr.id) &&
+            !systemIds.includes(attr.mappedField as any) &&
+            attr.type !== 'cycles' && // Hard filter to prevent legacy duplicates
+            attr.type !== 'planning'
+        );
 
         return [
             ...mergedSections,
@@ -355,7 +362,11 @@ export default function TaskMasterDataManagement() {
             <div className={cn("flex items-center gap-2 mb-6 text-xs font-medium", theme === 'red' ? "text-red-200/60" : "text-zinc-500")}>
                 <span className={cn("cursor-pointer hover:underline", theme === 'red' ? "hover:text-white" : "hover:text-foreground")} onClick={() => setActiveSection('dashboard')}>{t('master_data.breadcrumbs.admin')}</span>
                 <ChevronRight className="w-3 h-3" />
-                <span className={cn(theme === 'red' ? "text-white" : "text-foreground")}>{activeSection === 'dashboard' ? t('master_data.breadcrumbs.master') : activeSectionData?.label}</span>
+                <span className={cn(theme === 'red' ? "text-white" : "text-foreground")}>
+                    {activeSection === 'dashboard' ? t('master_data.breadcrumbs.master') :
+                        activeSection === 'cycles' ? 'Ciclos de Ejecución (Sprints)' :
+                            activeSectionData?.label}
+                </span>
             </div>
 
             <div className="max-w-6xl mx-auto">
@@ -480,6 +491,8 @@ export default function TaskMasterDataManagement() {
 
                         {/* Grid - Compat Mode (50% Size Reduction requested) */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+
+
                             {sections.map(section => {
                                 // Custom Block Logic
                                 // Use raw ID as type
@@ -542,6 +555,23 @@ export default function TaskMasterDataManagement() {
                             })}
                         </div>
                     </>
+                ) : activeSection === 'cycles' ? (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="mb-6 flex items-center gap-2">
+                            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
+                                <Timer className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold">Ciclos de Ejecución</h1>
+                                <p className="text-xs opacity-70">Planificación táctica y Sprints</p>
+                            </div>
+                        </div>
+                        <SprintManager />
+                    </div>
+                ) : activeSection === 'planning' ? (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <SprintPlanningBoard />
+                    </div>
                 ) : (
                     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                         {/* Detail View Header */}
@@ -739,46 +769,48 @@ export default function TaskMasterDataManagement() {
             </div>
 
             {/* AUTH DEBUG PANEL (Superadmin Only) */}
-            {getRoleLevel(userRole) >= 100 && (
-                <div className="mt-12 p-4 border border-dashed border-zinc-500/30 rounded-lg bg-zinc-500/5 text-[10px] font-mono text-zinc-500 max-w-4xl mx-auto">
-                    <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider text-zinc-400">
-                        <Shield className="w-3 h-3" /> Auth Diagnostic (Prod)
-                    </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><span className="text-zinc-600">Context UserRole:</span> {userRole}</div>
-                        <div><span className="text-zinc-600">Context TenantId:</span> {tenantId} <span className="opacity-40 italic">({typeof tenantId})</span></div>
-                        <div><span className="text-zinc-600">Token RoleLevel:</span> {identity?.realRole || 'N/A'}</div>
-                        <div><span className="text-zinc-600">Token TenantId:</span> {identity?.realTenantId || 'N/A'} <span className="opacity-40 italic">({typeof identity?.realTenantId})</span></div>
-                    </div>
+            {
+                getRoleLevel(userRole) >= 100 && (
+                    <div className="mt-12 p-4 border border-dashed border-zinc-500/30 rounded-lg bg-zinc-500/5 text-[10px] font-mono text-zinc-500 max-w-4xl mx-auto">
+                        <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider text-zinc-400">
+                            <Shield className="w-3 h-3" /> Auth Diagnostic (Prod)
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div><span className="text-zinc-600">Context UserRole:</span> {userRole}</div>
+                            <div><span className="text-zinc-600">Context TenantId:</span> {tenantId} <span className="opacity-40 italic">({typeof tenantId})</span></div>
+                            <div><span className="text-zinc-600">Token RoleLevel:</span> {identity?.realRole || 'N/A'}</div>
+                            <div><span className="text-zinc-600">Token TenantId:</span> {identity?.realTenantId || 'N/A'} <span className="opacity-40 italic">({typeof identity?.realTenantId})</span></div>
+                        </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                            disabled={isRefreshingToken}
-                            onClick={async () => {
-                                if (!user) return;
-                                setIsRefreshingToken(true);
-                                try {
-                                    await user.getIdToken(true);
-                                    alert("✅ Token de Seguridad Refrescado. La página se recargará.");
-                                    window.location.reload();
-                                } catch (e: any) {
-                                    alert("❌ Error al refrescar: " + e.message);
-                                } finally {
-                                    setIsRefreshingToken(false);
-                                }
-                            }}
-                            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-zinc-700"
-                        >
-                            {isRefreshingToken ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                            Forzar Refresco de Permisos (Token)
-                        </button>
-                    </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                                disabled={isRefreshingToken}
+                                onClick={async () => {
+                                    if (!user) return;
+                                    setIsRefreshingToken(true);
+                                    try {
+                                        await user.getIdToken(true);
+                                        alert("✅ Token de Seguridad Refrescado. La página se recargará.");
+                                        window.location.reload();
+                                    } catch (e: any) {
+                                        alert("❌ Error al refrescar: " + e.message);
+                                    } finally {
+                                        setIsRefreshingToken(false);
+                                    }
+                                }}
+                                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-zinc-700"
+                            >
+                                {isRefreshingToken ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                Forzar Refresco de Permisos (Token)
+                            </button>
+                        </div>
 
-                    <div className="mt-2 text-[9px] opacity-50 italic">
-                        * Si Token RoleLevel &lt; 70, Firestore denegará el guardado en maestros.
+                        <div className="mt-2 text-[9px] opacity-50 italic">
+                            * Si Token RoleLevel &lt; 70, Firestore denegará el guardado en maestros.
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

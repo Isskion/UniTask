@@ -11,7 +11,7 @@
  * - CRITICAL: Destructive actions like data deletion (red)
  */
 
-import * as admin from 'firebase-admin';
+
 
 export type AuditSeverity = 'NOTICE' | 'WARNING' | 'CRITICAL';
 

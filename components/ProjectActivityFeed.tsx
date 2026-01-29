@@ -2,10 +2,10 @@
 
 import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { TimelineEvent } from "@/types";
-import { getProjectTimeline } from "@/lib/updates";
+import { getProjectTimeline, trashTimelineEvent } from "@/lib/updates";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight } from "lucide-react";
+import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight, Trash2 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
@@ -172,10 +172,14 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
         <div className={cn("border rounded-xl p-5 hover:bg-opacity-80 transition-colors shadow-sm relative overflow-hidden group",
             isLight ? "bg-white border-zinc-200 hover:bg-zinc-50" : "bg-card/30 border-white/5 hover:bg-card/50"
         )}>
-            {/* Type Badge */}
-            <div className="absolute top-0 right-0 p-3 opacity-50 group-hover:opacity-100 transition-opacity">
-                {event.type === 'weekly' && <span className="text-xs font-mono text-muted-foreground">SUMMARY</span>}
-                {event.type === 'daily' && <span className="text-xs font-mono text-primary">DAILY UPDATE</span>}
+            {/* Top Right Actions: Badge & Trash */}
+            <div className="absolute top-2 right-2 flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                {/* Trash Action (Soft Delete) */}
+                <TrashButton event={event} isLight={isLight} />
+
+                {/* Type Badge */}
+                {event.type === 'weekly' && <span className="text-xs font-mono text-muted-foreground bg-black/5 px-1.5 py-0.5 rounded">SUMMARY</span>}
+                {event.type === 'daily' && <span className="text-xs font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded">DAILY</span>}
             </div>
 
             {/* Header: Author */}
@@ -217,3 +221,49 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
         </div>
     );
 }
+
+function TrashButton({ event, isLight }: { event: TimelineEvent, isLight: boolean }) {
+    const { user, userRole } = useAuth();
+    const { showToast } = useToast();
+    const [deleting, setDeleting] = useState(false);
+    // Dynamic import removed, using top-level import
+    // const { trashTimelineEvent } = require("@/lib/updates");
+
+    const canTrash = user && (user.uid === event.authorId || ['superadmin', 'app_admin', 'global_pm'].includes(userRole || ''));
+
+    if (!canTrash) return null;
+
+    const handleTrash = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("Mover a la papelera?")) return;
+
+        setDeleting(true);
+        try {
+            await trashTimelineEvent(event.id!, user!.uid);
+            showToast("Papelera", "Elemento movido a la papelera", "success");
+            // Force clear cache or simple reload
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            showToast("Error", "No se pudo borrar", "error");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleTrash}
+            disabled={deleting}
+            className={cn("p-1.5 rounded-md transition-colors",
+                isLight ? "text-zinc-400 hover:text-red-500 hover:bg-red-50"
+                    : "text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+            )}
+            title="Mover a Papelera"
+        >
+            {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+        </button>
+    );
+}
+
+// Ensure Trash2 and Loader2 are imported (Loader2 is, Trash2 needs check)

@@ -1,6 +1,8 @@
 'use server';
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { PromptGuard } from "@/lib/security/PromptGuard";
+
 // Polyfill for PDF.js in Node environment
 if (typeof Promise.withResolvers === 'undefined') {
     if (typeof Promise.withResolvers === 'undefined') {
@@ -58,7 +60,24 @@ export interface AnalysisResult {
 export async function analyzeDocumentStructure(formData: FormData): Promise<AnalysisResult> {
     try {
         const file = formData.get('file') as File;
+        const userId = formData.get('userId') as string || "system";
+        const tenantId = formData.get('tenantId') as string || "1";
+
         if (!file) return { success: false, error: 'No file provided' };
+
+        const userRole = formData.get('userRole') as string || "user";
+
+        // 1. Security Check: Is AI Enabled?
+        const status = await PromptGuard.isAiEnabled(tenantId);
+        if (!status.enabled) {
+            return { success: false, error: status.reason || "AI is disabled." };
+        }
+
+        // 1.1 Usage Limit Check (SaaS Quality Guard)
+        const limitStatus = await PromptGuard.checkUsageLimit(tenantId, userId, userRole, "analyze_document_structure");
+        if (!limitStatus.allowed) {
+            return { success: false, error: limitStatus.reason };
+        }
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
@@ -82,6 +101,7 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
 
         // Limit text to avoid token limits (approx 15k chars is usually safe for summary)
         const truncatedText = text.slice(0, 15000);
+        const securedContent = PromptGuard.wrap(truncatedText, "DOCUMENT_CONTENT");
 
         // Analyze with Gemini
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -89,7 +109,9 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
             Act as a Visual Document Expert.
             Analyze the following document content to extract BOTH its logical structure AND its estimated visual layout zones.
             
-            1. Identify logical sections (Header, Body, Footer).
+            ${securedContent}
+
+            1. Identify logical sections (Header, Body, Footer) found within <DOCUMENT_CONTENT>.
             2. ESTIMATE the visual bounding boxes for key elements if possible based on text chunks, OR just return logical structure if coordinates are impossible from text-only.
             
             Return a valid JSON object with this EXACT structure:
@@ -117,7 +139,21 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const jsonText = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        const responseText = response.text();
+        const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+        // 2. Log Usage (Secure Logging)
+        // [RULE] Exclude superadmins from logs to keep billing and metrics pure
+        if (userRole !== 'superadmin') {
+            await PromptGuard.logUsage({
+                userId,
+                tenantId,
+                action: "analyze_document_structure",
+                charsIn: prompt.length,
+                charsOut: responseText.length,
+                model: "gemini-2.0-flash"
+            });
+        }
 
         const parsed = JSON.parse(jsonText);
 

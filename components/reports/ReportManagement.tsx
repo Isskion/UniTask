@@ -14,7 +14,7 @@ import VisualTemplateDesigner from './VisualTemplateDesigner';
 import { format } from 'date-fns';
 
 export default function ReportManagement() {
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, userRole } = useAuth();
     const { showToast } = useToast();
     const { t } = useLanguage();
     const [templates, setTemplates] = useState<ReportTemplate[]>([]);
@@ -52,6 +52,9 @@ export default function ReportManagement() {
 
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('userId', user?.uid || "system");
+        formData.append('tenantId', tenantId || "1");
+        formData.append('userRole', userRole || "user");
 
         try {
             const result = await analyzeDocumentStructure(formData);

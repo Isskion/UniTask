@@ -6,5 +6,7 @@ if (admin.apps.length === 0) {
 }
 
 export * from './processUserClaims';
+export * from './syncUserClaims';
+export * from './backfill'; // Temporary Migration Tool
 // Exportar otras funciones si es necesario
 // export * from './tenantPurge';

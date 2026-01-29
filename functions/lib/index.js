@@ -20,6 +20,8 @@ if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 __exportStar(require("./processUserClaims"), exports);
+__exportStar(require("./syncUserClaims"), exports);
+__exportStar(require("./backfill"), exports); // Temporary Migration Tool
 // Exportar otras funciones si es necesario
 // export * from './tenantPurge';
 //# sourceMappingURL=index.js.map

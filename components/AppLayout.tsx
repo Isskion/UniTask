@@ -22,7 +22,8 @@ import {
     ListTodo,
     FileText,
     LifeBuoy,
-    BookOpen
+    BookOpen,
+    Timer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -43,8 +44,8 @@ import { auth } from "@/lib/firebase";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual'; // Added support-management and user-manual
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -207,10 +208,24 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                         </div>
 
+                        {/* Sprint Management (NEW) - Permissions: PM+ */}
+                        {getRoleLevel(userRole) >= RoleLevel.PM && (
+                            <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('sprints.menu_title')}</p>
+                                <NavItem mode="sprint-cycles" icon={Timer} label={t('sprints.menu_cycles')} />
+                                <NavItem mode="sprint-planning" icon={Timer} label={t('sprints.menu_simulator')} />
+                            </div>
+                        )}
+
                         {/* Secondary */}
                         {/* ADMINISTRATION */}
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
+
+                            {/* UNITASK MANAGEMENT (SuperAdmin only) */}
+                            {userRole === 'superadmin' && (
+                                <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
+                            )}
 
                             {/* Consolidated Task Master Data (Global PM+) */}
                             {getRoleLevel(userRole) >= RoleLevel.PM && (
@@ -387,6 +402,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 )}
                                 {userRole === 'superadmin' && (
                                     <>
+                                        <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                                         <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                     </>
                                 )}

@@ -66,6 +66,11 @@ export interface TimelineEvent {
 
     tags?: string[];
     createdAt?: any;
+
+    // Trash / Soft Delete
+    isTrashed?: boolean;
+    deletedAt?: any;
+    deletedBy?: string;
 }
 
 export interface UserProfile {
@@ -204,6 +209,23 @@ export interface AttributeDefinition {
     mappedField?: string; // If set, maps to a root property (e.g. 'priority') instead of attributes[]
 }
 
+// [NEW] Sprint System
+export interface Sprint {
+    id: string;
+    name: string;        // e.g. "Sprint Week 42"
+    startDate: any;      // Firestore Timestamp
+    endDate: any;        // Firestore Timestamp
+    status: 'planning' | 'active' | 'closed';
+    tenantId: string;
+
+    // Metadata
+    goal?: string;
+    capacity?: number;
+
+    createdAt?: any;
+    updatedAt?: any;
+}
+
 // [V3] Task Types
 export type TaskType = 'root_epic' | 'epic' | 'task' | 'subtask' | 'milestone';
 
@@ -306,6 +328,16 @@ export interface Task {
     closedAt?: any;
     closedBy?: string;
     blockedBy?: string[];
+
+    // [V13.2] Sprint System & Strategic Planning
+    sprintId?: string;          // Link to execution period
+    clientDeadline?: any;       // Hard constraint from client (distinct from internal endDate/sprint end)
+    assignmentLocked?: boolean; // If true, requires PM/Admin to unassign
+
+    // [V13.3] Effort Tracking & T-Shirt Sizing
+    estimatedEffortSize?: 'XS' | 'S' | 'M' | 'L' | 'XL';  // T-Shirt sizing for estimation
+    estimatedEffort?: number;   // Days calculated from size (auto-populated)
+    actualEffort?: number;      // Real days invested (REQUIRED on close)
 }
 
 // Role Weight System

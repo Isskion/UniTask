@@ -10,6 +10,7 @@ export interface TaskFiltersState {
     scope: string[];
     module: string[];
     assignedTo: string[];
+    sprintIds: string[]; // [V13.2] Sprint Filter
     attributes?: Record<string, string[]>; // { attrId: ['opt1', 'opt2'] }
     search: string;
 }
@@ -22,6 +23,7 @@ export const initialFilters: TaskFiltersState = {
     scope: [],
     module: [],
     assignedTo: [],
+    sprintIds: [],
     attributes: {},
     search: ''
 };
@@ -90,6 +92,20 @@ export function useTaskAdvancedFilters(
             // Assigned To Filter
             if (filters.assignedTo.length > 0) {
                 if (!task.assignedTo || !filters.assignedTo.includes(task.assignedTo)) return false;
+            }
+
+            // Sprint Filter [V13.2]
+            if (filters.sprintIds.length > 0) {
+                const isUnassignedSelected = filters.sprintIds.includes('unassigned');
+                const taskSprint = task.sprintId;
+
+                if (isUnassignedSelected && !taskSprint) {
+                    // It's unassigned, and we want unassigned -> Keep
+                } else if (taskSprint && filters.sprintIds.includes(taskSprint)) {
+                    // It has a sprint, and it's selected -> Keep
+                } else {
+                    return false;
+                }
             }
 
             // Dynamic Attributes Filter

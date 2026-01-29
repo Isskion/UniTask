@@ -5,6 +5,7 @@ import { Send, X, Sparkles, User, Bot, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { sendChatMessage, ChatMessage } from '@/app/actions/chat-assistant';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface AIHelpPanelProps {
@@ -13,6 +14,7 @@ interface AIHelpPanelProps {
 }
 
 export function AIHelpPanel({ isOpen, onClose }: AIHelpPanelProps) {
+    const { user, tenantId, userRole } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +37,7 @@ export function AIHelpPanel({ isOpen, onClose }: AIHelpPanelProps) {
 
         try {
             const history = messages; // Send full history context
-            const response = await sendChatMessage(history, userMsg.text);
+            const response = await sendChatMessage(history, userMsg.text, user?.uid || "system", tenantId || "1", userRole || "user");
 
             if (response.success && response.text) {
                 const botMsg: ChatMessage = { role: 'model', text: response.text };
