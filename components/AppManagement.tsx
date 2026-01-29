@@ -68,6 +68,7 @@ interface TenantConfig {
     id: string;
     name: string;
     aiEnabled: boolean;
+    aiDailyLimit?: number;
     dailyFileLimit?: number;
     userCount?: number;
 }

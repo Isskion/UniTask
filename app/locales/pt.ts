@@ -61,6 +61,7 @@ export const pt: Dictionary = {
         organizations: "Tenants",
         tasks: "Tarefas",
         users: "Usuários",
+        appManagement: "Gestão Unitask"
     },
 
     theme: {

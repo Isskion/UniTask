@@ -61,6 +61,7 @@ export const fr: Dictionary = {
         organizations: "Tenants",
         tasks: "Tâches",
         users: "Utilisateurs",
+        appManagement: "Gestion Unitask"
     },
 
     theme: {
