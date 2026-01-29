@@ -8,6 +8,7 @@ import {
     where,
     limit,
     doc,
+    getDoc, // Added for complex updates
     deleteDoc,
     updateDoc, // Added for soft delete
     serverTimestamp,
@@ -157,8 +158,11 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
                 const statusEntry = d.data() as DailyStatus;
                 const targetName = projectName?.trim().toLowerCase();
                 const projEntry = statusEntry.projects?.find(p =>
-                    p.projectId === projectId ||
-                    (targetName && p.name?.trim().toLowerCase() === targetName)
+                    (p.projectId === projectId ||
+                        (targetName && p.name?.trim().toLowerCase() === targetName)) &&
+                    // [FIX] Filter out soft-deleted entries
+                    p.status !== 'trash' &&
+                    !p.isTrashed
                 );
 
                 if (projEntry) {
@@ -209,6 +213,36 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
  */
 export async function trashTimelineEvent(eventId: string, userId: string) {
     try {
+        // [FIX] Handle Journal Entry Soft Delete (Composite ID)
+        if (eventId.startsWith('journal-')) {
+            const parts = eventId.split('-');
+            const docId = parts[1];
+            // Reconstruct projectId (might contain hyphens)
+            const targetProjectId = parts.slice(2).join('-');
+
+            const docReference = doc(db, 'journal_entries', docId);
+            const docSnap = await getDoc(docReference);
+
+            if (!docSnap.exists()) {
+                throw new Error("Journal entry not found");
+            }
+
+            const data = docSnap.data() as DailyStatus;
+            const updatedProjects = data.projects.map(p => {
+                if (p.projectId === targetProjectId) {
+                    return { ...p, status: 'trash', isTrashed: true, deletedBy: userId, deletedAt: new Date().toISOString() };
+                }
+                return p;
+            });
+
+            await updateDoc(docReference, {
+                projects: updatedProjects
+            });
+            console.log(`[Updates] Journal Entry Block ${docId}/${targetProjectId} moved to trash by ${userId}`);
+            return;
+        }
+
+
         const docRef = doc(db, 'project_activity_feed', eventId);
         await updateDoc(docRef, {
             isTrashed: true,
