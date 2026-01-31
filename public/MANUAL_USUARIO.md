@@ -1,132 +1,83 @@
-# 📘 Manual de Usuario: UniTask Controller
+📘 Manual de Usuario: UniTask Controller (Guía Fácil)
+Versión 13.1.6
+¡Bienvenido a UniTask! Piensa en esta aplicación como tu asistente personal inteligente. Su trabajo es recordar las cosas por ti para que no tengas que memorizar todo lo que hiciste en el trabajo. Sirve para anotar tus tareas, organizar tus proyectos y avisar a tu equipo de tus avances.
 
-**Versión del Documento: 12.12.0**
-*Tu asistente inteligente para la gestión de proyectos y seguimiento diario.*
+--------------------------------------------------------------------------------
+1. 🚀 ¿Qué necesito para entrar?
+Antes de empezar, asegúrate de tener tres cosas muy simples:
+1. Una computadora con Internet (que no sea muy lenta).
+2. Un navegador: Es el programa que usas para entrar a Internet, como Google Chrome, Safari, Firefox o Edge.
+3. Tu llave de entrada: Un correo electrónico y una contraseña que te dio tu jefe o administrador.
+¿Cómo entro por primera vez?
+Sigue estos pasitos:
+1. Tu empresa te dará una dirección de internet (un enlace o link). Escríbela en tu navegador y presiona "Enter".
+2. Verás una pantalla que te pide tus datos. Escribe tu correo y tu contraseña.
+3. ¡Ojo! Si es la primera vez que entras, es posible que hayas recibido un correo de invitación. Búscalo en tu bandeja de entrada y dale clic al enlace para crear tu propia contraseña.
 
----
+--------------------------------------------------------------------------------
+2. 🧭 Tu Centro de Mando (El Menú)
+Cuando entres, verás una barra en el lado izquierdo de la pantalla. Ese es tu menú principal, como el índice de un libro. Aquí te explico qué hace cada botón:
+• 📊 Panel de Control (Dashboard): Es como el tablero de un coche. Te dice de un vistazo rápido cómo vas: cuántas tareas terminaste y cuántas te faltan.
+• 📝 Seguimiento Diario (Follow-Up): ¡Este es el más importante! Es tu diario de trabajo. Aquí escribirás lo que hiciste hoy.
+• 📁 Mis Proyectos: Una lista de todos los trabajos en los que estás participando.
+• ✅ Gestor de Tareas: Tu lista de pendientes detallada. Aquí anotas cosas específicas como "Llamar a Juan" o "Enviar el reporte".
+• ⚙️ Administración: (Probablemente no veas este botón, es solo para los jefes que configuran el sistema).
 
-## 1. ✨ Introducción
+--------------------------------------------------------------------------------
+3. � Cómo escribir tu reporte diario (El corazón de la App)
+La función principal de UniTask es que registres tu día a día. Se llama "Seguimiento Diario" o Follow-Up.
+Paso 1: Elige el día
+Al entrar en esta sección, verás la fecha de "hoy". Si quieres escribir lo que hiciste ayer, usa las flechitas o el calendario para cambiar de día.
+Paso 2: Busca tu tarjeta
+Verás unos recuadros (tarjetas), uno por cada proyecto que tienes asignado. Busca el proyecto sobre el que quieres escribir.
+Paso 3: Rellena los huecos
+Dentro de la tarjeta verás tres espacios para escribir. Imagina que te preguntan lo siguiente:
+1. Avances/Discusión: ¿Qué trabajo hiciste hoy en este proyecto? Escríbelo aquí.
+2. Conclusiones: ¿Se tomó alguna decisión importante?
+3. Siguientes Pasos: ¿Qué te falta por hacer mañana?
+Nota tranquila: No necesitas buscar un botón de "Guardar". UniTask guarda todo lo que escribes automáticamente para que no pierdas nada.
+✨ Truco de Magia: La Inteligencia Artificial
+Si tienes un documento PDF (como un acta de una reunión) y no quieres leerlo todo para resumirlo:
+1. Arrastra el archivo PDF a la pantalla.
+2. La herramienta (llamada Gemini) leerá el documento por ti y sacará los puntos clave automáticamente.
 
-Bienvenido a **UniTask Controller**. 
+--------------------------------------------------------------------------------
+4. ✅ Cómo organizar tus pendientes (Gestor de Tareas)
+A veces necesitas anotar cosas específicas para no olvidarlas. Para eso sirve el Gestor de Tareas.
+¿Cómo creo una tarea nueva?
+Busca el botón con el símbolo de suma (+) y púlsalo. Tendrás que rellenar:
+• Nombre de la tarea: Ponle un título corto.
+• Prioridad: ¿Qué tan urgente es?
+    ◦ Baja: Puede esperar.
+    ◦ Media: Normal.
+    ◦ Alta: Importante.
+    ◦ Crítica: ¡Fuego! Hay que hacerlo ya.
+• Estado: Aquí dices cómo va la tarea. Puedes cambiarlo de "Pendiente" (aún no empiezo) a "En Progreso" (estoy en ello) y finalmente a "Completada" (¡listo!).
 
-Esta herramienta ha sido diseñada para **simplificar tu día a día**, permitiéndote organizar tu trabajo, centralizar tus tareas y automatizar reportes utilizando el poder de la Inteligencia Artificial.
+--------------------------------------------------------------------------------
+5. 🏃 Planificando tu semana (Simulador de Sprint)
+Esta herramienta es como un juego de cartas para organizar tu semana. Te ayuda a decidir qué harás ahora y qué dejarás para después.
+El Tablero de Juego
+Verás la pantalla dividida en dos lados:
+• 👈 Izquierda (Backlog): Es el "cuarto de espera". Aquí están todas las tareas que tienes pendientes pero que no harás esta semana.
+• 👉 Derecha (Sprint Activo): Es tu "mesa de trabajo". Aquí pones solo lo que te comprometes a terminar esta semana.
+¿Cómo se juega?
+1. Arrastra y suelta: Haz clic en una tarjeta de la izquierda y, sin soltar el botón del ratón, arrástrala a la derecha. ¡Listo! Ya has dicho que trabajarás en eso esta semana.
+2. Revisa las caritas (Carga de Trabajo): Mira debajo de la barra. Verás las fotos de tu equipo. Si ves que alguien tiene muchos días asignados, ¡no le pases más tareas!.
+3. Busca lo verde: Si ves una tarjeta de color verde brillante, ¡felicidades! Significa que esa tarea ya se terminó.
 
-> **Objetivo:** Si eres consultor, gestor de proyectos o parte de un equipo técnico, UniTask te permitirá registrar tus avances, gestionar pendientes y mantener a todos informados con el mínimo esfuerzo.
+--------------------------------------------------------------------------------
+6. 🎨 Ponlo a tu gusto (Personalización)
+Puedes cambiar cómo se ve UniTask para que sea más cómodo para tus ojos:
+• Idioma: Si prefieres, puedes ponerlo en Inglés, Alemán, Francés, etc.
+• Colores (Temas):
+    ◦ ☀️ Claro: Fondo blanco, como un papel.
+    ◦ 🌙 Oscuro: Fondo negro, ideal si trabajas de noche o te molesta la luz.
+    ◦ 🔴 Rojo Corporativo: El diseño oficial de la marca.
 
----
-
-## 2. 🚀 Requisitos y Acceso
-
-### 2.1 Requisitos Mínimos
-UniTask es una aplicación web moderna, por lo que no necesitas instalar nada complicado. Solo asegúrate de tener:
-*   Un navegador actualizado (Google Chrome, Edge, Safari o Firefox).
-*   Conexión estable a Internet.
-*   Una cuenta activa proporcionada por tu administrador.
-
-### 2.2 ¿Cómo acceder?
-1.  **Ingresa a la URL** proporcionada por tu organización.
-2.  **Inicia sesión** con tu correo electrónico y contraseña.
-3.  **Primer acceso:** Si has recibido una invitación, haz clic en el enlace del correo para configurar tu perfil y contraseña.
-
----
-
-## 3. 🧭 Navegación Principal
-
-Una vez dentro, el **panel lateral izquierdo** será tu centro de mando:
-
-*   📊 **Panel de Control (Dashboard):** Tu resumen visual rápido de tareas, prioridades y métricas.
-*   📝 **Seguimiento Diario (Follow-Up):** Tu diario de trabajo. Aquí registrarás tus avances diarios.
-*   📁 **Mis Proyectos:** Lista completa de los proyectos en los que participas.
-*   ✅ **Gestor de Tareas:** Listado detallado y edición profunda de todos tus pendientes.
-*   ⚙️ **Administración:** (Visible solo para gestores) Gestión de usuarios, roles, permisos y etiquetas.
-
----
-
-## 4. 💡 Funcionalidades Principales
-
-### 4.1 📝 Seguimiento Diario (Follow-Up)
-*El corazón de UniTask. Aquí es donde registras tu actividad diaria.*
-
-1.  **Selección de Fecha:** Por defecto verás el "hoy". Usa el calendario o las flechas para navegar al pasado o futuro.
-2.  **Tarjetas de Proyecto:** Cada proyecto asignado tiene su propia tarjeta.
-    *   **Avances/Discusión:** ¿Qué hiciste hoy?
-    *   **Conclusiones:** Decisiones tomadas.
-    *   **Siguientes Pasos:** Acciones pendientes.
-3.  **Guardado Automático:** Escribe con tranquilidad, guardamos tus cambios automáticamente.
-4.  **⚡ Herramientas de IA:**
-    *   **Analizar Notas:** Detecta tareas automáticamente desde tu texto.
-    *   **Escanear PDF:** Arrastra un acta o minuta en PDF. La IA, impulsada por Gemini, extraerá los puntos clave por ti.
-
----
-
-### 4.2 ✅ Gestor de Tareas (Task Manager)
-*Control total sobre tus pendientes.*
-
-*   **Crear Tarea (`+`):** Añade nuevas tareas rápidamente.
-*   **Clasificación Inteligente:**
-    *   **Prioridad:** Baja, Media, Alta, Crítica.
-    *   **Área y Módulo:** Organiza por contexto técnico o funcional.
-*   **Dependencias:** Vincula tareas que bloquean a otras.
-*   **Estados:** Mueve tareas por su ciclo de vida: *Pendiente → En Progreso → En Revisión → Completada*.
-
-
-
----
-
-### 4.3 📊 Panel de Control (Dashboard)
-*Tu torre de control.*
-
-*   **Métricas en Tiempo Real:** Visualiza tareas vencidas versus completadas.
-*   **Filtros Avanzados:** Encuentra exactamente lo que buscas (ej: "Tareas críticas de esta semana").
-*   **Exportación:** Descarga tus listas en CSV o copia el reporte al portapapeles.
-
----
-
-### 4.4 📁 Mis Proyectos
-*Gestión centralizada de proyectos.*
-
-*   **Buscador:** Encuentra proyectos por nombre o código.
-*   **Botón Copiar:** Copia al portapapeles un resumen de los resultados actuales de tu búsqueda para informes rápidos o emails.
-*   **Detalles del Cliente:** Accede a información de contacto, dirección y estado del proyecto.
-
----
-
-## 5. 🛠️ Funcionalidades Extra
-
-### 5.1 🎨 Personalización
-Haz que UniTask sea tuyo:
-*   **Idiomas:** Español, Inglés, Alemán, Francés, Catalán, Portugués.
-*   **Temas Visuales:**
-    *   ☀️ **Claro:** Limpio y profesional.
-    *   🌙 **Oscuro:** Ideal para baja luz.
-    *   🔴 **Tema Corporativo (Rojo):** Alineado con la identidad de la marca.
-
----
-
-## 6. ⚙️ Administración (Solo Admins)
-
-Gestión completa del equipo y permisos:
-
-*   **Usuarios:** Alta, baja y modificación de perfiles completos (incluyendo Empresa, Cargo, Idioma, Dirección, etc.).
-*   **Invitaciones:** Genera enlaces de acceso seguro para nuevos miembros.
-*   **Roles:** Asigna permisos granulares (Admin, PM Global, Consultor, Cliente).
-*   **Datos Maestros:** Configura las opciones disponibles en los desplegables de toda la aplicación (Orígenes de datos, Tipos de tarea, etc.).
-
----
-
-## 7. ❓ Preguntas Frecuentes
-
-**¿Por qué no veo un proyecto?**
-Contacta a tu Administrador para que te asigne al proyecto desde la sección de "Usuarios".
-
-**¿Cómo funciona la IA?**
-Usamos modelos avanzados (Gemini) para "leer" tu texto natural y estructurarlo. No necesitas hablar "robot", escribe como siempre.
-
-**¿Borré algo por error?**
-Busca en la **Papelera** en el menú lateral para restaurarlo.
-
-**¿Novedades?**
-Haz clic en el número de versión (v12.12.0) en la cabecera para ver el registro de cambios detallado.
-
----
-*UniTask Controller v12.12.0*
+--------------------------------------------------------------------------------
+7. ❓ Preguntas Frecuentes (Ayuda)
+Me equivoqué y borré algo, ¿qué hago? ¡No entres en pánico! Ve al menú lateral y busca la Papelera. Ahí se guardan las cosas borradas por si quieres recuperarlas.
+No veo mi proyecto, ¿dónde está? Si no ves un proyecto en tu lista, es porque tu jefe no te ha dado permiso todavía. Pídele a tu Administrador que te "asigne al proyecto".
+¿Cómo busco algo rápido? En la sección de "Mis Proyectos" hay un Buscador. Escribe el nombre o el código del proyecto y aparecerá.
+¿Qué hago si tengo una duda técnica? Si algo no funciona, fíjate en la versión de la aplicación (está arriba y dice v13.1.6) y avisa a soporte técnico.
