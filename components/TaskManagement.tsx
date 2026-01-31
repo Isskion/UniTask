@@ -560,17 +560,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     }
                 }
 
-                const friendlyId = `TSK-${Math.floor(1000 + Math.random() * 9000)}`;
+                // [SMART ID] Removed client-side generation. Cloud Function assigns it.
+                // We set a temporary marker or leave it null.
+                const friendlyId = "Generando..."; // Temporary display
+
                 const docRef = await addDoc(collection(db, "tasks"), {
                     ...formData,
-                    ancestorIds: calculatedAncestors, // Save calculated path
-                    friendlyId,
+                    ancestorIds: calculatedAncestors,
+                    friendlyId: null, // Let backend write this
                     tenantId: tenantId || "1",
                     createdBy: user?.uid || "unknown",
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
-                const createdTask = { id: docRef.id, friendlyId, ...formData, ancestorIds: calculatedAncestors } as Task;
+
+                // Optimistic UI for local state
+                const createdTask = { id: docRef.id, friendlyId: "Generando ID...", ...formData, ancestorIds: calculatedAncestors } as Task;
                 setTasks(prev => [createdTask, ...prev]);
 
                 // NOTIFICATION (NEW TASK)

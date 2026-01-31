@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useSprints } from "@/hooks/useSprints";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
-import { Task } from "@/types";
-import { Timer, AlertTriangle, TrendingUp, Users } from "lucide-react";
+import { Task, Project } from "@/types";
+import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter } from "lucide-react";
 import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getActiveProjects } from "@/lib/projects";
 import {
     DndContext,
     closestCorners,
@@ -38,6 +39,11 @@ export function SprintPlanningBoard() {
     const [loading, setLoading] = useState(true);
     const [activeId, setActiveId] = useState<string | null>(null);
 
+    // Filters
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedProjectId, setSelectedProjectId] = useState<string>("ALL");
+    const [projects, setProjects] = useState<Project[]>([]);
+
     // Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -50,6 +56,17 @@ export function SprintPlanningBoard() {
     // Get active/planning sprints
     const availableSprints = sprints.filter(s => s.status === 'active' || s.status === 'planning');
     const selectedSprint = availableSprints.find(s => s.id === selectedSprintId);
+
+    // Load Projects
+    useEffect(() => {
+        const loadProjects = async () => {
+            if (tenantId) {
+                const projs = await getActiveProjects(tenantId);
+                setProjects(projs);
+            }
+        };
+        loadProjects();
+    }, [tenantId]);
 
     // Load tasks
     useEffect(() => {
@@ -75,10 +92,32 @@ export function SprintPlanningBoard() {
         return () => unsubscribe();
     }, [tenantId, selectedSprintId]);
 
-    // Calculate capacity metrics
+    // Filter Logic
+    const filterTasks = (tasks: Task[]) => {
+        return tasks.filter(task => {
+            // Text Search (ID or Title)
+            const matchesSearch = searchQuery === "" ||
+                task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (task.friendlyId && task.friendlyId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                task.id.toLowerCase().includes(searchQuery.toLowerCase());
+
+            // Project Filter
+            const matchesProject = selectedProjectId === "ALL" || task.projectId === selectedProjectId;
+
+            return matchesSearch && matchesProject;
+        });
+    };
+
+    const filteredBacklog = useMemo(() => filterTasks(backlogTasks), [backlogTasks, searchQuery, selectedProjectId]);
+    const filteredSprint = useMemo(() => filterTasks(sprintTasks), [sprintTasks, searchQuery, selectedProjectId]);
+
+
+    // Calculate capacity metrics (based on FULL sprint tasks, not filtered, usually? Or filtered? 
+    // Capacity usually refers to the committed sprint. If I filter the view, capacity should probably remain true to the sprint.)
     const calculateCapacity = () => {
         if (!selectedSprint) return { committed: 0, capacity: 0, percentage: 0 };
 
+        // We use ALL sprint tasks for capacity calculation, even if hidden by filter
         const committed = sprintTasks.reduce((sum, task) => sum + (task.estimatedEffort || 0), 0);
         const capacity = selectedSprint.capacity || 20; // Default 20 days
         const percentage = capacity > 0 ? (committed / capacity) * 100 : 0;
@@ -132,7 +171,6 @@ export function SprintPlanningBoard() {
         // Only update if changed
         if (task.sprintId !== newSprintId) {
             // Optimistic Update (Optional, but Firestore listener is fast enough usually)
-
             // Firestore Update
             try {
                 const taskRef = doc(db, 'tasks', taskId);
@@ -141,28 +179,19 @@ export function SprintPlanningBoard() {
                 };
 
                 // If assigning to a sprint, suggest updating the clientDeadline to match Sprint End
-                // This fits the "Promise Simulator" concept: We promise to deliver by Sprint End.
                 if (newSprintId) {
                     const targetSprint = availableSprints.find(s => s.id === newSprintId);
                     if (targetSprint && targetSprint.endDate) {
-                        // We set it as the default deadline if none exists, or update it?
-                        // Providing a strong default makes sense for "Simulator".
-                        // Let's set it.
                         updates.clientDeadline = targetSprint.endDate;
-
-                        // Also update endDate (technical deadline) to match?
-                        // Let's keep them synced for now to ensure visibility in ABM.
                         updates.endDate = targetSprint.endDate.toDate ? targetSprint.endDate.toDate().toISOString() : targetSprint.endDate;
                     }
                 } else {
-                    // If moving to backlog, maybe clear the deadline?
-                    // Safer to keep it, as client might still expect it by then.
+                    // Backlog Logic
                 }
 
                 await updateDoc(taskRef, updates);
             } catch (error) {
                 console.error("Error updating sprint:", error);
-                // Revert logic here if needed, or rely on snapshot to fix it
             }
         }
     };
@@ -196,9 +225,41 @@ export function SprintPlanningBoard() {
                         <Timer className="w-6 h-6 text-emerald-500" />
                         {t('sprints.simulator_title')}
                     </h1>
-                    <p className={cn("text-sm mt-1", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                    <p className={cn("text-sm mt-1 mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
                         {t('sprints.simulator_subtitle')}
                     </p>
+
+                    {/* Filters Toolbar */}
+                    <div className="flex flex-col md:flex-row gap-4">
+                        {/* Search */}
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder={t('sprints.search_placeholder') || "Search ID or Name..."}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary/20"
+                            />
+                        </div>
+
+                        {/* Project Filter */}
+                        <div className="relative w-full md:w-64">
+                            <Filter className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                            <select
+                                value={selectedProjectId}
+                                onChange={(e) => setSelectedProjectId(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 appearance-none bg-background border-input text-foreground focus:ring-primary/20"
+                            >
+                                <option value="ALL">All Projects</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Sprint Selector & Capacity */}
@@ -263,17 +324,17 @@ export function SprintPlanningBoard() {
                         <DroppableColumn
                             id="backlog-column"
                             title={t('sprints.backlog')}
-                            count={backlogTasks.length}
+                            count={filteredBacklog.length}
                             icon={Users}
                             isLight={isLight}
                             className={isLight ? "bg-white border-black" : "bg-card border-white/10"}
                         >
-                            {backlogTasks.length === 0 ? (
+                            {filteredBacklog.length === 0 ? (
                                 <p className={cn("text-xs text-center py-8", isLight ? "text-zinc-400" : "text-zinc-500")}>
                                     {t('sprints.no_backlog_tasks')}
                                 </p>
                             ) : (
-                                backlogTasks.map(task => (
+                                filteredBacklog.map(task => (
                                     <DraggableTaskCard key={task.id} task={task} isLight={isLight} t={t} />
                                 ))
                             )}
@@ -283,19 +344,19 @@ export function SprintPlanningBoard() {
                         <DroppableColumn
                             id="sprint-column"
                             title={t('sprints.current_promise')}
-                            count={sprintTasks.length}
+                            count={filteredSprint.length}
                             icon={TrendingUp}
                             isLight={isLight}
                             className={isLight ? "bg-white border-black shadow-emerald-100" : "bg-emerald-950/20 border-emerald-500/20"}
                             titleClassName={isLight ? "text-emerald-700" : "text-emerald-400"}
                             headerIconClassName={isLight ? "text-emerald-700" : "text-emerald-400"}
                         >
-                            {sprintTasks.length === 0 ? (
+                            {filteredSprint.length === 0 ? (
                                 <p className={cn("text-xs text-center py-8", isLight ? "text-emerald-600" : "text-emerald-500")}>
                                     {t('sprints.drag_here')}
                                 </p>
                             ) : (
-                                sprintTasks.map(task => (
+                                filteredSprint.map(task => (
                                     <DraggableTaskCard key={task.id} task={task} isLight={isLight} inSprint t={t} />
                                 ))
                             )}

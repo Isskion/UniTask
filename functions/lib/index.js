@@ -25,4 +25,6 @@ __exportStar(require("./auth"), exports);
 __exportStar(require("./processUserClaims"), exports);
 __exportStar(require("./support"), exports);
 __exportStar(require("./pdf"), exports);
+__exportStar(require("./ping"), exports);
+__exportStar(require("./tasks"), exports);
 //# sourceMappingURL=index.js.map

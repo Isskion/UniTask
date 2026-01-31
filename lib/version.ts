@@ -1,6 +1,14 @@
-export const APP_VERSION = "13.1.4";
+export const APP_VERSION = "13.1.5";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.5",
+        title: "Fix Sprint Filters",
+        date: "2026-01-31",
+        features: [
+            "**UI Fix**: Resolved issue where sprint filters were invisible in some theme configurations."
+        ]
+    },
     {
         version: "13.1.4",
         title: "Dependency Fix",
