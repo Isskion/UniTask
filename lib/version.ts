@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.1.9";
+export const APP_VERSION = "13.1.10";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.10",
+        title: "Sprint Board Perfection",
+        date: "2026-01-31",
+        features: [
+            "**Auto-Open**: Board now intelligently opens the active sprint for today.",
+            "**Data Safety**: Safe Sprint Deletion ensures tasks are returned to backlog before sprint removal.",
+            "**Burndown Chart**: Added visual progress tracking to sprint dashboard."
+        ]
+    },
     {
         version: "13.1.9",
         title: "Sprint Intelligence",

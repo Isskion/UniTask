@@ -6,11 +6,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { useSprints } from "@/hooks/useSprints";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
+import { format, addDays, getDay, startOfToday, endOfDay, isWithinInterval } from 'date-fns';
 import { Task, Project, UserProfile } from "@/types";
 import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter, Briefcase, BarChart } from "lucide-react";
 import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getActiveProjects } from "@/lib/projects";
+import { SprintBurndown } from "@/components/SprintBurndown"; // Import Burndown component
 import {
     DndContext,
     closestCorners,
@@ -30,7 +32,7 @@ export function SprintPlanningBoard() {
     const { user, tenantId } = useAuth();
     const { theme } = useTheme();
     const isLight = theme === 'light';
-    const { sprints } = useSprints();
+    const { sprints, loading: sprintsLoading } = useSprints();
     const { t } = useLanguage();
 
     const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
@@ -109,6 +111,43 @@ export function SprintPlanningBoard() {
 
         return () => unsubscribe();
     }, [tenantId, selectedSprintId]);
+
+    // [AUTOMATION] Auto-Open Active Sprint on Load
+    useEffect(() => {
+        // Wait for sprints to load (ignore tasks loading)
+        if (sprintsLoading || sprints.length === 0) return;
+
+        // Prevent re-setting if user already selected something OR if we already auto-opened
+        if (selectedSprintId) return;
+
+        console.log("Auto-Open Logic Running...", { sprintsCount: sprints.length });
+
+        const now = startOfToday();
+
+        // Priority 1: Active Sprint that matches Today
+        let targetSprint = sprints.find(s => {
+            if (s.status !== 'active') return false;
+            const start = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
+            const end = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
+            const endInclusive = endOfDay(end);
+            return isWithinInterval(now, { start, end: endInclusive });
+        });
+
+        if (targetSprint) console.log("Priority 1 (Date Match):", targetSprint.name);
+
+        // Priority 2: ANY Active Sprint (Fallback if date mismatch but status is Active)
+        if (!targetSprint) {
+            targetSprint = sprints.find(s => s.status === 'active');
+            if (targetSprint) console.log("Priority 2 (Any Active):", targetSprint.name);
+        }
+
+        if (targetSprint) {
+            console.log("✅ Auto-opening sprint:", targetSprint.name);
+            setSelectedSprintId(targetSprint.id);
+        } else {
+            console.warn("⚠️ No active sprint found to auto-open.");
+        }
+    }, [sprintsLoading, sprints, selectedSprintId]);
 
     // Filter Logic
     const filterTasks = (tasks: Task[]) => {
@@ -191,13 +230,13 @@ export function SprintPlanningBoard() {
 
     // Get capacity color
     const getCapacityColor = () => {
-        if (percentage < 80) return "text-green-500";
+        if (percentage < 80) return "text-indigo-500"; // Healthy = Indigo (Brand)
         if (percentage < 100) return "text-yellow-500";
         return "text-red-500";
     };
 
     const getCapacityBg = () => {
-        if (percentage < 80) return "bg-green-500";
+        if (percentage < 80) return "bg-indigo-500"; // Healthy = Indigo (Brand)
         if (percentage < 100) return "bg-yellow-500";
         return "bg-red-500";
     };
@@ -289,7 +328,7 @@ export function SprintPlanningBoard() {
                 {/* Header */}
                 <div className="border-b pb-4 border-border">
                     <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
-                        <Timer className="w-6 h-6 text-emerald-500" />
+                        <Timer className="w-6 h-6 text-indigo-500" />
                         {t('sprints.simulator_title')}
                     </h1>
                     <p className="text-sm mt-1 mb-4 text-muted-foreground">
@@ -424,6 +463,23 @@ export function SprintPlanningBoard() {
                             </div>
                         </div>
                     )}
+
+                    {/* Burndown Chart (Right below Capacity/Workload) */}
+                    {selectedSprint && (
+                        <div className="mt-6 pt-6 border-t border-border">
+                            <h4 className="text-xs font-bold uppercase mb-3 flex items-center gap-2 text-foreground opacity-80">
+                                <TrendingUp className="w-4 h-4" /> Burndown Chart
+                            </h4>
+                            <div className="bg-background/50 rounded-lg p-2 border border-border">
+                                <SprintBurndown
+                                    sprint={selectedSprint}
+                                    tasks={sprintTasks}
+                                    usersMap={usersMap}
+                                    selectedUserIds={selectedUserIds}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Board */}
@@ -454,12 +510,12 @@ export function SprintPlanningBoard() {
                             title={t('sprints.current_promise')}
                             count={filteredSprint.length}
                             icon={TrendingUp}
-                            className="bg-card shadow-emerald-500/5 border-emerald-500/20"
-                            titleClassName="text-emerald-500"
-                            headerIconClassName="text-emerald-500"
+                            className="bg-card shadow-indigo-500/5 border-indigo-500/20"
+                            titleClassName="text-indigo-500"
+                            headerIconClassName="text-indigo-500"
                         >
                             {filteredSprint.length === 0 ? (
-                                <p className="text-xs text-center py-8 text-emerald-500/60">
+                                <p className="text-xs text-center py-8 text-indigo-500/60">
                                     {t('sprints.drag_here')}
                                 </p>
                             ) : (
@@ -489,7 +545,7 @@ export function SprintPlanningBoard() {
                     ) : null}
                 </DragOverlay>
             </div>
-        </DndContext>
+        </DndContext >
     );
 }
 

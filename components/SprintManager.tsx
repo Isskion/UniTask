@@ -155,8 +155,44 @@ export default function SprintManager() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm(t('sprints.delete_confirm'))) return;
+        if (!tenantId) return;
+
+        // 1. Check for attached tasks
+        const tasksQuery = query(collection(db, 'tasks'), where('sprintId', '==', id), where('tenantId', '==', tenantId));
+        const tasksSnap = await getDocs(tasksQuery);
+        const taskCount = tasksSnap.size;
+
+        if (taskCount > 0) {
+            const confirmMessage = t('sprints.delete_confirm_with_tasks').replace('{count}', String(taskCount));
+            if (!confirm(confirmMessage)) return;
+
+            // 2. Eject Tasks (Revert In Progress -> Pending)
+            // Batching is safer for many tasks
+            let processed = 0;
+            for (const taskDoc of tasksSnap.docs) {
+                const taskData = taskDoc.data();
+                const updates: any = {
+                    sprintId: null,
+                    needsRollover: null // Clean up any flags
+                };
+
+                // Revert "in_progress" to "pending" (Backlog)
+                // Keep "completed" or "review" as is (Advanced states)
+                if (taskData.status === 'in_progress') {
+                    updates.status = 'pending';
+                }
+
+                await safeUpdateDoc(doc(db, 'tasks', taskDoc.id), updates);
+                processed++;
+            }
+            showToast(t('common.info'), `${processed} tasks returned to backlog.`, "info");
+        } else {
+            if (!confirm(t('sprints.delete_confirm'))) return;
+        }
+
+        // 3. Delete Sprint
         await safeDeleteDoc(doc(db, 'sprints', id));
+        showToast(t('common.success'), t('sprints.success_deleted'), "success");
     };
 
     const formatDate = (ts: any) => {

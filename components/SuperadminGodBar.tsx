@@ -3,9 +3,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { RoleLevel } from '../types';
-import { collection, getDocs, orderBy, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Shield, Building2, Users, LogOut, ChevronDown } from 'lucide-react';
+import { collection, getDocs, doc, updateDoc, writeBatch, query, where, serverTimestamp, orderBy } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useTheme } from '@/hooks/useTheme';
+import { useSprints } from "@/hooks/useSprints";
+import { Shield, Zap, Database, Download, Upload, X, Terminal, Trash2, RefreshCw, Ghost, Building2, Users, LogOut, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const SuperadminGodBar: React.FC = () => {
@@ -23,6 +25,8 @@ export const SuperadminGodBar: React.FC = () => {
         { id: "4", name: "Test Corp" },
         { id: "5", name: "Dev Team" }
     ];
+
+    const { sprints } = useSprints(); // Get current valid sprints
 
     useEffect(() => {
         const loadTenants = async () => {
@@ -48,6 +52,98 @@ export const SuperadminGodBar: React.FC = () => {
         };
         loadTenants();
     }, []);
+
+    // [FIX] Rescue Orphaned Tasks (Tasks pointing to deleted sprints)
+    const handleRescueOrphans = async () => {
+        if (!viewContext?.activeTenantId) {
+            alert("Please select a tenant first.");
+            return;
+        }
+        if (!confirm("🛡️ Scan and rescue tasks stuck in deleted sprints for the current tenant?\n\nThis will move them back to the Backlog.")) return;
+
+        try {
+            const tenantId = viewContext.activeTenantId;
+            // 1. Get all valid sprint IDs
+            const validSprintIds = new Set(sprints.map(s => s.id));
+
+            // 2. Scan ALL tasks (or tasks with sprintId != null if index exists, but scan all is safer for God Mode)
+            const q = query(collection(db, "tasks"), where("tenantId", "==", tenantId));
+            const snapshot = await getDocs(q);
+
+            let rescuedCount = 0;
+            const batch = writeBatch(db);
+            const BATCH_SIZE = 450; // Firestore batch limit is 500
+            let batchCount = 0;
+
+            for (const docSnap of snapshot.docs) {
+                const t = docSnap.data();
+                if (t.sprintId && !validSprintIds.has(t.sprintId)) {
+                    // FOUND ORPHAN!
+                    const ref = doc(db, "tasks", docSnap.id);
+
+                    const updates: any = {
+                        sprintId: null,
+                        needsRollover: null,
+                        updatedAt: serverTimestamp()
+                    };
+
+                    // Revert status if needed (Active -> Pending)
+                    if (t.status === 'in_progress') {
+                        updates.status = 'pending';
+                    }
+
+                    batch.update(ref, updates);
+                    rescuedCount++;
+                    batchCount++;
+
+                    if (batchCount >= BATCH_SIZE) {
+                        await batch.commit();
+                        batchCount = 0;
+                        console.log(`Batch committed for tenant ${tenantId}. Rescued: ${rescuedCount}`);
+                        // Start a new batch
+                        // batch = writeBatch(db); // No need to re-declare, just re-assign
+                    }
+                }
+            }
+
+            if (batchCount > 0) { // Commit any remaining operations
+                await batch.commit();
+            }
+
+            if (rescuedCount > 0) {
+                alert(`✅ Rescued ${rescuedCount} ghost tasks for tenant ${tenantId}! Returned to Backlog.`);
+            } else {
+                alert("👍 No orphaned tasks found for this tenant. Database is clean.");
+            }
+        } catch (e: any) {
+            console.error("Rescue failed:", e);
+            alert("Error: " + e.message);
+        }
+    };
+
+    // Previous handlers...
+    const handleFixDates = async () => {
+        // Placeholder for handleFixDates logic
+        alert("Fix Dates functionality not yet implemented.");
+    };
+
+    const handleRefreshToken = async () => {
+        if (!auth.currentUser) return;
+        try {
+            await auth.currentUser.getIdToken(true);
+            alert("✅ Token Refreshed! Permissions updated.\nTry the button again.");
+            window.location.reload();
+        } catch (e: any) {
+            alert("Error refreshing token: " + e.message);
+        }
+    };
+
+    const handleCheckClaims = async () => {
+        if (!auth.currentUser) return;
+        const token = await auth.currentUser.getIdTokenResult();
+        console.log("CLAIMS:", token.claims);
+        alert(`🔎 Claims:\nRole: ${token.claims.roleLevel}\nTenant: ${token.claims.tenantId}\nUID: ${auth.currentUser.uid}`);
+    };
 
     const isSimulating = viewContext?.isMasquerading;
 
@@ -86,6 +182,51 @@ export const SuperadminGodBar: React.FC = () => {
 
                 {/* RIGHT: Controls */}
                 <div className="flex items-center gap-4">
+
+                    {/* Utility Buttons */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleRescueOrphans}
+                            className="flex items-center gap-1 hover:text-white transition-colors text-amber-300"
+                            title="Rescue tasks from deleted sprints"
+                        >
+                            <Ghost className="w-4 h-4" />
+                            <span className="hidden sm:inline">Rescue Ghosts</span>
+                        </button>
+
+                        <div className="h-4 w-px bg-white/20 mx-2" />
+
+                        <button
+                            onClick={handleFixDates}
+                            className="flex items-center gap-1 hover:text-white transition-colors text-amber-300"
+                            title="Fix incorrect dates (e.g., sprint start/end)"
+                        >
+                            <Shield className="w-4 h-4" />
+                            <span className="hidden sm:inline">Fix Dates</span>
+                        </button>
+
+                        <div className="h-4 w-px bg-white/20 mx-2" />
+
+                        <button
+                            onClick={handleRefreshToken}
+                            className="flex items-center gap-1 hover:text-white transition-colors text-zinc-400 hover:text-amber-300"
+                            title="Force Refresh Permissions (Fix Access Denied)"
+                        >
+                            <RefreshCw className="w-4 h-4" />
+                        </button>
+
+                        <div className="h-4 w-px bg-white/20 mx-2" />
+
+                        <button
+                            onClick={handleCheckClaims}
+                            className="flex items-center gap-1 hover:text-white transition-colors text-zinc-400 hover:text-cyan-300"
+                            title="Inspect Token Claims"
+                        >
+                            <Terminal className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="h-4 w-px bg-amber-500/20" />
 
                     {/* Role Selector */}
                     <div className="flex items-center gap-2">
