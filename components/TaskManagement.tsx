@@ -479,7 +479,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                 raci: { responsible: [], accountable: [], consulted: [], informed: [] },
                 dependencies: [],
-                tenantId: tenantId || "1"
+                tenantId: tenantId || "1",
+                isActive: true // [FIX] Ensure task is visible by default
             };
             const ghost = { id: 'new', friendlyId: 'NEW', ...newTemplate } as Task;
             setSelectedTask(ghost);

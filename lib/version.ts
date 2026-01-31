@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.1.6";
+export const APP_VERSION = "13.1.7";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.7",
+        title: "Sprint Resource Filtering",
+        date: "2026-01-31",
+        features: [
+            "**Resource Filters**: Clickable workload cards to filter tasks by assignee in Sprint Planning.",
+            "**Documentation**: Updated User Manual with 'Simplified Guide' (Step 4.5)."
+        ]
+    },
     {
         version: "13.1.6",
         title: "Sprint Planning Enhancements",

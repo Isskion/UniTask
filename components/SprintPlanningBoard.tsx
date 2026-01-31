@@ -34,6 +34,7 @@ export function SprintPlanningBoard() {
     const { t } = useLanguage();
 
     const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]); // [NEW] Resource Filter
     const [backlogTasks, setBacklogTasks] = useState<Task[]>([]);
     const [sprintTasks, setSprintTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
@@ -121,12 +122,15 @@ export function SprintPlanningBoard() {
             // Project Filter
             const matchesProject = selectedProjectId === "ALL" || task.projectId === selectedProjectId;
 
-            return matchesSearch && matchesProject;
+            // Resource Filter
+            const matchesUser = selectedUserIds.length === 0 || (task.assignedTo && selectedUserIds.includes(task.assignedTo));
+
+            return matchesSearch && matchesProject && matchesUser;
         });
     };
 
-    const filteredBacklog = useMemo(() => filterTasks(backlogTasks), [backlogTasks, searchQuery, selectedProjectId]);
-    const filteredSprint = useMemo(() => filterTasks(sprintTasks), [sprintTasks, searchQuery, selectedProjectId]);
+    const filteredBacklog = useMemo(() => filterTasks(backlogTasks), [backlogTasks, searchQuery, selectedProjectId, selectedUserIds]);
+    const filteredSprint = useMemo(() => filterTasks(sprintTasks), [sprintTasks, searchQuery, selectedProjectId, selectedUserIds]);
 
 
     // Calculate capacity metrics
@@ -345,8 +349,23 @@ export function SprintPlanningBoard() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                 {Object.entries(workloadByUser).map(([uid, load]) => {
                                     const userProfile = usersMap[uid];
+                                    const isSelected = selectedUserIds.includes(uid);
+
                                     return (
-                                        <div key={uid} className="flex items-center gap-2 p-2 rounded-lg bg-background border border-border">
+                                        <div
+                                            key={uid}
+                                            onClick={() => {
+                                                setSelectedUserIds(prev =>
+                                                    prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
+                                                );
+                                            }}
+                                            className={cn(
+                                                "flex items-center gap-2 p-2 rounded-lg bg-background border transition-all cursor-pointer hover:shadow-md select-none",
+                                                isSelected
+                                                    ? "border-primary ring-1 ring-primary shadow-sm bg-primary/5"
+                                                    : "border-border hover:border-primary/50"
+                                            )}
+                                        >
                                             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 font-bold text-[10px] text-muted-foreground border border-border">
                                                 {userProfile?.photoURL ? (
                                                     <img src={userProfile.photoURL} alt={userProfile.displayName} className="w-full h-full object-cover" />
