@@ -1,6 +1,25 @@
-export const APP_VERSION = "13.1.2";
+export const APP_VERSION = "13.1.4";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.4",
+        title: "Dependency Fix",
+        date: "2026-01-31",
+        features: [
+            "**Build Pipeline**: Fixed Vercel deployment conflict in `functions/`.",
+            "**Dependencies**: Resolved `firebase` version mismatch."
+        ]
+    },
+    {
+        version: "13.1.3",
+        title: "Promise Simulation Filters & Smart IDs",
+        date: "2026-01-30",
+        features: [
+            "**Sprint Planner Filters**: Added text search and project filtering to the Promise Simulation board.",
+            "**Smart IDs**: Implemented [Project]-[YYMM][SEQ] task ID format and migration tools.",
+            "**EUP Pickup Flow**: Updated SQL database schema for pickup transitions (Pending Validation)."
+        ]
+    },
     {
         version: "13.1.2",
         title: "Production Release & Static Export",
