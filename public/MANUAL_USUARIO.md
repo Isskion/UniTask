@@ -1,5 +1,5 @@
 📘 Manual de Usuario: UniTask Controller (Guía Fácil)
-Versión 13.1.8
+Versión 13.1.9
 ¡Bienvenido a UniTask! Piensa en esta aplicación como tu asistente personal inteligente. Su trabajo es recordar las cosas por ti para que no tengas que memorizar todo lo que hiciste en el trabajo. Sirve para anotar tus tareas, organizar tus proyectos y avisar a tu equipo de tus avances.
 
 --------------------------------------------------------------------------------
@@ -80,4 +80,4 @@ Puedes cambiar cómo se ve UniTask para que sea más cómodo para tus ojos:
 Me equivoqué y borré algo, ¿qué hago? ¡No entres en pánico! Ve al menú lateral y busca la Papelera. Ahí se guardan las cosas borradas por si quieres recuperarlas.
 No veo mi proyecto, ¿dónde está? Si no ves un proyecto en tu lista, es porque tu jefe no te ha dado permiso todavía. Pídele a tu Administrador que te "asigne al proyecto".
 ¿Cómo busco algo rápido? En la sección de "Mis Proyectos" hay un Buscador. Escribe el nombre o el código del proyecto y aparecerá.
-¿Qué hago si tengo una duda técnica? Si algo no funciona, fíjate en la versión de la aplicación (está arriba y dice v13.1.8) y avisa a soporte técnico.
+¿Qué hago si tengo una duda técnica? Si algo no funciona, fíjate en la versión de la aplicación (está arriba y dice v13.1.9) y avisa a soporte técnico.

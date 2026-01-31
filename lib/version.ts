@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.1.8";
+export const APP_VERSION = "13.1.9";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.9",
+        title: "Sprint Intelligence",
+        date: "2026-01-31",
+        features: [
+            "**Smart Defaults**: New Sprint button now proposes logical dates (Next Monday start, 2-week duration) and auto-names based on week number.",
+            "**Overlap Protection**: System now prevents saving sprints with overlapping dates to ensure clean 2-week cycles."
+        ]
+    },
     {
         version: "13.1.8",
         title: "Sprint Lifecycle Automation",

@@ -11,7 +11,7 @@ import { db } from '@/lib/firebase';
 import { Sprint, getRoleLevel } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
-import { format } from 'date-fns';
+import { format, addDays, getDay, startOfToday } from 'date-fns';
 import { Task } from '@/types'; // Import Task type
 
 export default function SprintManager() {
@@ -58,6 +58,37 @@ export default function SprintManager() {
     const handleSave = async () => {
         if (!tenantId || !formData.name || !formData.startDate || !formData.endDate) {
             showToast(t('common.error'), t('sprints.error_missing_fields'), "error");
+            return;
+        }
+
+        // [VALIDATION] Check for Overlaps with Existing Sprints (Strict Sequential)
+        const newStart = new Date(formData.startDate as string);
+        const newEnd = new Date(formData.endDate as string);
+
+        // Filter out the current sprint if editing
+        const otherSprints = sprints.filter(s => s.id !== formData.id);
+
+        const hasOverlap = otherSprints.some(s => {
+            const existingStart = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
+            const existingEnd = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
+
+            // Overlap condition: (StartA <= EndB) and (EndA >= StartB)
+            // https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+            return newStart <= existingEnd && newEnd >= existingStart;
+        });
+
+        if (hasOverlap) {
+            const conflictingSprint = otherSprints.find(s => {
+                const existingStart = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
+                const existingEnd = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
+                return newStart <= existingEnd && newEnd >= existingStart;
+            });
+
+            showToast(
+                t('common.error'),
+                `Fechas coinciden con: ${conflictingSprint?.name} (${formatDate(conflictingSprint?.startDate)} - ${formatDate(conflictingSprint?.endDate)})`,
+                "error"
+            );
             return;
         }
 
@@ -154,11 +185,38 @@ export default function SprintManager() {
                 {canManage && (
                     <button
                         onClick={() => {
+                            // [SMART DEFAULTS]
+                            // 1. Find reference date (End of last sprint or Today)
+                            let refDate = startOfToday();
+                            if (sprints.length > 0) {
+                                // Sprints are ordered by startDate desc. Find the latest endDate.
+                                const latestSprint = [...sprints].sort((a, b) => {
+                                    const endA = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate);
+                                    const endB = b.endDate?.toDate ? b.endDate.toDate() : new Date(b.endDate);
+                                    return endB.getTime() - endA.getTime();
+                                })[0];
+
+                                if (latestSprint) {
+                                    refDate = latestSprint.endDate?.toDate ? latestSprint.endDate.toDate() : new Date(latestSprint.endDate);
+                                }
+                            }
+
+                            // 2. Find next Monday
+                            // If refDate is Friday(5), +3 = Monday
+                            // If refDate is Sunday(0), +1 = Monday
+                            const day = getDay(refDate); // 0 (Sun) - 6 (Sat)
+                            const daysUntilMonday = day === 0 ? 1 : (8 - day);
+
+                            const startDate = addDays(refDate, daysUntilMonday);
+
+                            // 3. End Date: Friday of the 2nd week (+11 days from Monday)
+                            const endDate = addDays(startDate, 11);
+
                             setFormData({
-                                name: `Sprint W${format(new Date(), 'w')}`,
+                                name: `Sprint W${format(startDate, 'w')}`,
                                 status: 'planning',
-                                startDate: new Date().toISOString().split('T')[0],
-                                endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                                startDate: startDate.toISOString().split('T')[0],
+                                endDate: endDate.toISOString().split('T')[0]
                             } as any);
                             setIsEditing(true);
                         }}
