@@ -6,9 +6,9 @@ import { useTheme } from "@/hooks/useTheme";
 import { useSprints } from "@/hooks/useSprints";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
-import { Task, Project } from "@/types";
-import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter } from "lucide-react";
-import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { Task, Project, UserProfile } from "@/types";
+import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter, Briefcase, BarChart } from "lucide-react";
+import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getActiveProjects } from "@/lib/projects";
 import {
@@ -44,6 +44,9 @@ export function SprintPlanningBoard() {
     const [selectedProjectId, setSelectedProjectId] = useState<string>("ALL");
     const [projects, setProjects] = useState<Project[]>([]);
 
+    // Resource Management
+    const [usersMap, setUsersMap] = useState<Record<string, UserProfile>>({});
+
     // Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -57,15 +60,29 @@ export function SprintPlanningBoard() {
     const availableSprints = sprints.filter(s => s.status === 'active' || s.status === 'planning');
     const selectedSprint = availableSprints.find(s => s.id === selectedSprintId);
 
-    // Load Projects
+    // Load Projects & Users
     useEffect(() => {
-        const loadProjects = async () => {
-            if (tenantId) {
-                const projs = await getActiveProjects(tenantId);
-                setProjects(projs);
+        const loadMetadata = async () => {
+            if (!tenantId) return;
+
+            // Projects
+            const projs = await getActiveProjects(tenantId);
+            setProjects(projs);
+
+            // Users (for Workload)
+            try {
+                const qUsers = query(collection(db, "users"), where("tenantId", "==", tenantId));
+                const snapUsers = await getDocs(qUsers);
+                const uMap: Record<string, UserProfile> = {};
+                snapUsers.forEach(d => {
+                    uMap[d.id] = { uid: d.id, ...d.data() } as UserProfile;
+                });
+                setUsersMap(uMap);
+            } catch (e) {
+                console.error("Error loading users for sprint board:", e);
             }
         };
-        loadProjects();
+        loadMetadata();
     }, [tenantId]);
 
     // Load tasks
@@ -112,12 +129,10 @@ export function SprintPlanningBoard() {
     const filteredSprint = useMemo(() => filterTasks(sprintTasks), [sprintTasks, searchQuery, selectedProjectId]);
 
 
-    // Calculate capacity metrics (based on FULL sprint tasks, not filtered, usually? Or filtered? 
-    // Capacity usually refers to the committed sprint. If I filter the view, capacity should probably remain true to the sprint.)
+    // Calculate capacity metrics
     const calculateCapacity = () => {
         if (!selectedSprint) return { committed: 0, capacity: 0, percentage: 0 };
 
-        // We use ALL sprint tasks for capacity calculation, even if hidden by filter
         const committed = sprintTasks.reduce((sum, task) => sum + (task.estimatedEffort || 0), 0);
         const capacity = selectedSprint.capacity || 20; // Default 20 days
         const percentage = capacity > 0 ? (committed / capacity) * 100 : 0;
@@ -126,6 +141,19 @@ export function SprintPlanningBoard() {
     };
 
     const { committed, capacity, percentage } = calculateCapacity();
+
+    // Group Workload by User
+    const workloadByUser = useMemo(() => {
+        const stats: Record<string, number> = {};
+        sprintTasks.forEach(t => {
+            if (t.assignedTo) {
+                stats[t.assignedTo] = (stats[t.assignedTo] || 0) + (t.estimatedEffort || 0);
+            } else {
+                stats['unassigned'] = (stats['unassigned'] || 0) + (t.estimatedEffort || 0);
+            }
+        });
+        return stats;
+    }, [sprintTasks]);
 
     // Get capacity color
     const getCapacityColor = () => {
@@ -170,8 +198,6 @@ export function SprintPlanningBoard() {
 
         // Only update if changed
         if (task.sprintId !== newSprintId) {
-            // Optimistic Update (Optional, but Firestore listener is fast enough usually)
-            // Firestore Update
             try {
                 const taskRef = doc(db, 'tasks', taskId);
                 const updates: any = {
@@ -185,8 +211,6 @@ export function SprintPlanningBoard() {
                         updates.clientDeadline = targetSprint.endDate;
                         updates.endDate = targetSprint.endDate.toDate ? targetSprint.endDate.toDate().toISOString() : targetSprint.endDate;
                     }
-                } else {
-                    // Backlog Logic
                 }
 
                 await updateDoc(taskRef, updates);
@@ -202,10 +226,8 @@ export function SprintPlanningBoard() {
         return (
             <div className="flex items-center justify-center h-96">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-                    <p className={cn("text-sm", isLight ? "text-zinc-600" : "text-zinc-400")}>
-                        {t('sprints.loading')}
-                    </p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-sm text-muted-foreground">{t('sprints.loading')}</p>
                 </div>
             </div>
         );
@@ -220,36 +242,36 @@ export function SprintPlanningBoard() {
         >
             <div className="space-y-6">
                 {/* Header */}
-                <div className={cn("border-b pb-4", isLight ? "border-black" : "border-white/10")}>
-                    <h1 className={cn("text-2xl font-bold flex items-center gap-2", isLight ? "text-black" : "text-white")}>
+                <div className="border-b pb-4 border-border">
+                    <h1 className="text-2xl font-bold flex items-center gap-2 text-foreground">
                         <Timer className="w-6 h-6 text-emerald-500" />
                         {t('sprints.simulator_title')}
                     </h1>
-                    <p className={cn("text-sm mt-1 mb-4", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                    <p className="text-sm mt-1 mb-4 text-muted-foreground">
                         {t('sprints.simulator_subtitle')}
                     </p>
 
                     {/* Filters Toolbar */}
                     <div className="flex flex-col md:flex-row gap-4">
                         {/* Search */}
-                        <div className="relative flex-1">
+                        <div className="relative flex-1 min-w-[250px] shrink-0">
                             <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder={t('sprints.search_placeholder') || "Search ID or Name..."}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary/20"
+                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary/20 transition-all"
                             />
                         </div>
 
                         {/* Project Filter */}
-                        <div className="relative w-full md:w-64">
+                        <div className="relative w-full md:w-64 min-w-[200px] shrink-0">
                             <Filter className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
                             <select
                                 value={selectedProjectId}
                                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 appearance-none bg-background border-input text-foreground focus:ring-primary/20"
+                                className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 appearance-none bg-background border-input text-foreground focus:ring-primary/20 transition-all"
                             >
                                 <option value="ALL">All Projects</option>
                                 {projects.map(p => (
@@ -263,19 +285,17 @@ export function SprintPlanningBoard() {
                 </div>
 
                 {/* Sprint Selector & Capacity */}
-                <div className={cn("border rounded-xl p-6 shadow-sm", isLight ? "bg-white border-black" : "bg-card border-white/10")}>
+                <div className="border rounded-xl p-6 shadow-sm bg-card border-border">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Sprint Selector */}
                         <div>
-                            <label className={cn("text-xs font-bold uppercase block mb-2", isLight ? "text-zinc-700" : "text-white")}>
+                            <label className="text-xs font-bold uppercase block mb-2 text-foreground">
                                 {t('sprints.sprint_active')}
                             </label>
                             <select
                                 value={selectedSprintId || ""}
                                 onChange={e => setSelectedSprintId(e.target.value || null)}
-                                className={cn("w-full border rounded-lg px-4 py-3 text-sm font-bold focus:ring-2 outline-none",
-                                    isLight ? "bg-white border-black text-black focus:ring-black/10" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
-                                )}
+                                className="w-full border rounded-lg px-4 py-3 text-sm font-bold focus:ring-2 outline-none bg-background border-input text-foreground focus:ring-primary/20"
                             >
                                 <option value="">{t('sprints.select_sprint')}</option>
                                 {availableSprints.map(s => (
@@ -289,12 +309,12 @@ export function SprintPlanningBoard() {
                         {/* Capacity Indicator */}
                         {selectedSprint && (
                             <div>
-                                <label className={cn("text-xs font-bold uppercase block mb-2", isLight ? "text-zinc-700" : "text-white")}>
+                                <label className="text-xs font-bold uppercase block mb-2 text-foreground">
                                     {t('sprints.sprint_promise')}
                                 </label>
                                 <div className="space-y-2">
                                     {/* Progress Bar */}
-                                    <div className={cn("h-8 rounded-lg overflow-hidden", isLight ? "bg-zinc-100" : "bg-black/20")}>
+                                    <div className="h-8 rounded-lg overflow-hidden bg-muted/50">
                                         <div
                                             className={cn("h-full transition-all duration-300", getCapacityBg())}
                                             style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -315,6 +335,35 @@ export function SprintPlanningBoard() {
                             </div>
                         )}
                     </div>
+
+                    {/* Workload Distribution (NEW) */}
+                    {selectedSprint && (
+                        <div className="mt-6 pt-6 border-t border-border">
+                            <h4 className="text-xs font-bold uppercase mb-3 flex items-center gap-2 text-foreground opacity-80">
+                                <BarChart className="w-4 h-4" /> Team Workload Distribution
+                            </h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                {Object.entries(workloadByUser).map(([uid, load]) => {
+                                    const userProfile = usersMap[uid];
+                                    return (
+                                        <div key={uid} className="flex items-center gap-2 p-2 rounded-lg bg-background border border-border">
+                                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 font-bold text-[10px] text-muted-foreground border border-border">
+                                                {userProfile?.photoURL ? (
+                                                    <img src={userProfile.photoURL} alt={userProfile.displayName} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span>{userProfile?.displayName ? userProfile.displayName.substring(0, 2).toUpperCase() : "??"}</span>
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-[10px] font-bold truncate text-foreground">{userProfile?.displayName || "Unassigned"}</div>
+                                                <div className="text-[10px] font-mono text-muted-foreground">{load.toFixed(1)} days</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Board */}
@@ -326,11 +375,10 @@ export function SprintPlanningBoard() {
                             title={t('sprints.backlog')}
                             count={filteredBacklog.length}
                             icon={Users}
-                            isLight={isLight}
-                            className={isLight ? "bg-white border-black" : "bg-card border-white/10"}
+                            className="bg-card border-border"
                         >
                             {filteredBacklog.length === 0 ? (
-                                <p className={cn("text-xs text-center py-8", isLight ? "text-zinc-400" : "text-zinc-500")}>
+                                <p className="text-xs text-center py-8 text-muted-foreground">
                                     {t('sprints.no_backlog_tasks')}
                                 </p>
                             ) : (
@@ -346,13 +394,12 @@ export function SprintPlanningBoard() {
                             title={t('sprints.current_promise')}
                             count={filteredSprint.length}
                             icon={TrendingUp}
-                            isLight={isLight}
-                            className={isLight ? "bg-white border-black shadow-emerald-100" : "bg-emerald-950/20 border-emerald-500/20"}
-                            titleClassName={isLight ? "text-emerald-700" : "text-emerald-400"}
-                            headerIconClassName={isLight ? "text-emerald-700" : "text-emerald-400"}
+                            className="bg-card shadow-emerald-500/5 border-emerald-500/20"
+                            titleClassName="text-emerald-500"
+                            headerIconClassName="text-emerald-500"
                         >
                             {filteredSprint.length === 0 ? (
-                                <p className={cn("text-xs text-center py-8", isLight ? "text-emerald-600" : "text-emerald-500")}>
+                                <p className="text-xs text-center py-8 text-emerald-500/60">
                                     {t('sprints.drag_here')}
                                 </p>
                             ) : (
@@ -363,12 +410,12 @@ export function SprintPlanningBoard() {
                         </DroppableColumn>
                     </div>
                 ) : (
-                    <div className={cn("border rounded-xl p-12 text-center", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                        <Timer className={cn("w-12 h-12 mx-auto mb-4", isLight ? "text-zinc-400" : "text-zinc-600")} />
-                        <p className={cn("text-sm font-bold", isLight ? "text-zinc-700" : "text-white")}>
+                    <div className="border rounded-xl p-12 text-center bg-card border-border">
+                        <Timer className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                        <p className="text-sm font-bold text-foreground">
                             {t('sprints.select_to_start')}
                         </p>
-                        <p className={cn("text-xs mt-1", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                        <p className="text-xs mt-1 text-muted-foreground">
                             {t('sprints.select_desc')}
                         </p>
                     </div>
@@ -387,7 +434,7 @@ export function SprintPlanningBoard() {
 }
 
 // Droppable Column Component
-function DroppableColumn({ id, title, count, children, icon: Icon, isLight, className, titleClassName, headerIconClassName }: any) {
+function DroppableColumn({ id, title, count, children, icon: Icon, className, titleClassName, headerIconClassName }: any) {
     const { setNodeRef, isOver } = useDroppable({ id });
 
     return (
@@ -395,16 +442,16 @@ function DroppableColumn({ id, title, count, children, icon: Icon, isLight, clas
             ref={setNodeRef}
             className={cn("border rounded-xl p-4 shadow-sm transition-colors",
                 className,
-                isOver && (isLight ? "bg-zinc-50 border-emerald-500 ring-2 ring-emerald-500/10" : "bg-white/5 border-emerald-500 ring-2 ring-emerald-500/10")
+                isOver && "bg-accent border-emerald-500 ring-2 ring-emerald-500/10"
             )}
         >
             <h3 className={cn("text-sm font-bold uppercase mb-4 flex items-center gap-2",
-                titleClassName || (isLight ? "text-zinc-700" : "text-white")
+                titleClassName || "text-foreground"
             )}>
                 <Icon className={cn("w-4 h-4", headerIconClassName)} />
                 {title} ({count})
             </h3>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto min-h-[200px]">
+            <div className="space-y-2 max-h-[600px] overflow-y-auto min-h-[200px] pr-2 custom-scrollbar">
                 {children}
             </div>
         </div>
@@ -431,34 +478,39 @@ function DraggableTaskCard(props: any) {
 // Task Card Pure Component
 function TaskCard({ task, isLight, inSprint = false, t }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string }) {
     const hasRisk = task.clientDeadline && task.sprintId;
+    const isCompleted = task.status === 'completed';
 
     return (
-        <div className={cn("border rounded-lg p-3 cursor-grab hover:shadow-md transition-all select-none bg-white",
-            isLight ? "bg-white border-black hover:border-black/70 shadow-sm" : "bg-zinc-900 border-white/10 hover:border-indigo-500/50"
+        <div className={cn("border rounded-lg p-3 cursor-grab hover:shadow-md transition-all select-none bg-background",
+            isCompleted && inSprint
+                ? "bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50" // Completed in Sprint (Green)
+                : (isLight ? "border-input hover:border-primary/50" : "border-white/5 hover:border-primary/50")
         )}>
             <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                    <p className={cn("text-xs font-bold truncate", isLight ? "text-zinc-900" : "text-white")}>
+                    <p className={cn("text-xs font-bold truncate",
+                        isCompleted ? "text-emerald-500" : "text-foreground"
+                    )}>
                         {task.friendlyId || task.id.slice(0, 8)}
                     </p>
-                    <p className={cn("text-xs mt-1 line-clamp-2", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                    <p className={cn("text-xs mt-1 line-clamp-2", isCompleted ? "opacity-70" : "text-muted-foreground")}>
                         {task.title}
                     </p>
                 </div>
                 {task.estimatedEffortSize && (
                     <div className={cn("text-[10px] font-bold px-2 py-1 rounded",
-                        task.estimatedEffortSize === 'XS' ? "bg-blue-100 text-blue-700" :
-                            task.estimatedEffortSize === 'S' ? "bg-green-100 text-green-700" :
-                                task.estimatedEffortSize === 'M' ? "bg-yellow-100 text-yellow-700" :
-                                    task.estimatedEffortSize === 'L' ? "bg-orange-100 text-orange-700" :
-                                        "bg-red-100 text-red-700"
+                        task.estimatedEffortSize === 'XS' ? "bg-blue-500/10 text-blue-500" :
+                            task.estimatedEffortSize === 'S' ? "bg-green-500/10 text-green-500" :
+                                task.estimatedEffortSize === 'M' ? "bg-yellow-500/10 text-yellow-500" :
+                                    task.estimatedEffortSize === 'L' ? "bg-orange-500/10 text-orange-500" :
+                                        "bg-red-500/10 text-red-500"
                     )}>
                         {task.estimatedEffortSize}
                     </div>
                 )}
             </div>
             {task.estimatedEffort && (
-                <div className={cn("text-[10px] mt-2 font-mono", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                <div className="text-[10px] mt-2 font-mono text-muted-foreground opacity-70">
                     ≈ {task.estimatedEffort} {t('sprints.days')}
                 </div>
             )}

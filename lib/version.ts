@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.1.5";
+export const APP_VERSION = "13.1.6";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.6",
+        title: "Sprint Planning Enhancements",
+        date: "2026-01-31",
+        features: [
+            "**Sprint Filters**: Improved visibility and layout robustness.",
+            "**Workload View**: Added resource workload distribution (effort by user).",
+            "**Task Highlights**: Completed tasks in active sprint now highlighted in green."
+        ]
+    },
     {
         version: "13.1.5",
         title: "Fix Sprint Filters",
