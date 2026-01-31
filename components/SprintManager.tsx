@@ -12,6 +12,7 @@ import { Sprint, getRoleLevel } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { format } from 'date-fns';
+import { Task } from '@/types'; // Import Task type
 
 export default function SprintManager() {
     const { theme } = useTheme();
@@ -78,11 +79,40 @@ export default function SprintManager() {
                 await safeUpdateDoc(doc(db, 'sprints', formData.id), payload);
                 showToast(t('common.success'), t('sprints.success_updated'), "success");
             } else {
-                await addDoc(collection(db, 'sprints'), {
+                const docRef = await addDoc(collection(db, 'sprints'), {
                     ...payload,
                     createdAt: serverTimestamp(),
                     status: 'planning' // Default for new
                 });
+
+                // [AUTOMATION] Check for Rollover Tasks and Move them
+                if (tenantId) {
+                    const rolloverQuery = query(
+                        collection(db, 'tasks'),
+                        where('tenantId', '==', tenantId),
+                        where('needsRollover', '==', true)
+                    );
+
+                    const rolloverSnap = await getDocs(rolloverQuery);
+                    if (!rolloverSnap.empty) {
+                        console.log(`Rolling over ${rolloverSnap.size} tasks to new sprint ${docRef.id}`);
+                        let count = 0;
+                        // Batch update ideally, but sequential for safety/simplicity now
+                        for (const taskDoc of rolloverSnap.docs) {
+                            await safeUpdateDoc(doc(db, 'tasks', taskDoc.id), {
+                                sprintId: docRef.id,
+                                needsRollover: null, // Clear flag
+                                // Optional: Update deadline to new sprint end
+                                clientDeadline: payload.endDate
+                            });
+                            count++;
+                        }
+                        if (count > 0) {
+                            showToast(t('common.info'), `${count} tasks rolled over from expired sprint.`, "info");
+                        }
+                    }
+                }
+
                 showToast(t('common.success'), t('sprints.success_created'), "success");
             }
             setIsEditing(false);

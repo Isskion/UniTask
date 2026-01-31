@@ -146,6 +146,36 @@ export function SprintPlanningBoard() {
 
     const { committed, capacity, percentage } = calculateCapacity();
 
+    // [AUTOMATION] Check for Sprint Expiry & Flag Tasks
+    useEffect(() => {
+        if (!selectedSprint || !sprintTasks.length || !activeId) return; // Only run if loaded and not dragging
+
+        const checkExpiry = async () => {
+            const now = new Date();
+            const endDate = selectedSprint.endDate?.toDate ? selectedSprint.endDate.toDate() : new Date(selectedSprint.endDate);
+
+            // If sprint expired yesterday or before
+            if (endDate < now && selectedSprint.status === 'active') {
+                const needsUpdate = sprintTasks.filter(t => !t.needsRollover && t.status !== 'completed');
+
+                if (needsUpdate.length > 0) {
+                    console.log(`Flagging ${needsUpdate.length} tasks for rollover from expired sprint ${selectedSprint.name}`);
+                    // Batch update could be better, but for now individual updates
+                    needsUpdate.forEach(async (task) => {
+                        try {
+                            const ref = doc(db, 'tasks', task.id);
+                            await updateDoc(ref, { needsRollover: true });
+                        } catch (e) {
+                            console.error("Error flagging task:", e);
+                        }
+                    });
+                }
+            }
+        };
+
+        checkExpiry();
+    }, [selectedSprint, sprintTasks.length]); // Run when sprint or task count changes
+
     // Group Workload by User
     const workloadByUser = useMemo(() => {
         const stats: Record<string, number> = {};
@@ -214,6 +244,17 @@ export function SprintPlanningBoard() {
                     if (targetSprint && targetSprint.endDate) {
                         updates.clientDeadline = targetSprint.endDate;
                         updates.endDate = targetSprint.endDate.toDate ? targetSprint.endDate.toDate().toISOString() : targetSprint.endDate;
+                    }
+
+                    // [AUTOMATION] Pending -> In Progress when added to Sprint
+                    if (task.status === 'pending') {
+                        updates.status = 'in_progress';
+                    }
+                } else {
+                    // [AUTOMATION] In Progress -> Pending when removed from Sprint (Back to Backlog)
+                    // We only reset if it was "in_progress". We keep "completed" or "review".
+                    if (task.status === 'in_progress') {
+                        updates.status = 'pending';
                     }
                 }
 

@@ -234,6 +234,7 @@ export interface Task {
     id: string;
     friendlyId?: string; // e.g. "EUP-1"
     taskNumber?: number;
+    needsRollover?: boolean; // [AUTOMATION] Flag for sprint expiry rollover
 
     // Core Links
     weekId: string;        // Legacy link (Date string)

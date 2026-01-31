@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.1.7";
+export const APP_VERSION = "13.1.8";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.8",
+        title: "Sprint Lifecycle Automation",
+        date: "2026-01-31",
+        features: [
+            "**Auto-Status**: Dragging tasks to Sprint sets 'In Progress'; removing sets 'Pending'.",
+            "**Sprint Rollover**: Tasks from expired sprints are automatically flagged and moved to the next created sprint."
+        ]
+    },
     {
         version: "13.1.7",
         title: "Sprint Resource Filtering",
