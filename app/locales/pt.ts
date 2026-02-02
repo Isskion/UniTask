@@ -496,7 +496,12 @@ export const pt: Dictionary = {
         loading_sprints: "Carregando sprints...",
         error_missing_fields: "Campos obrigatórios ausentes",
         success_updated: "Sprint atualizado",
-        success_created: "Sprint criado"
+        success_created: "Sprint criado",
+        error_completed_closed_sprint: "Imóvel: Não é possível mover uma tarefa concluída de um sprint fechado.",
+        error_completed_active_sprint_permission: "Apenas administradores podem mover tarefas concluídas de um sprint ativo.",
+        error_completed_immovable: "Tarefas concluídas não podem ser movidas do quadro. Use o Gerenciador de Tarefas (ABM) para alterar o sprint.",
+        error_completed_no_backlog: "Tarefas concluídas não podem voltar ao backlog. Você só pode trocá-las de sprint.",
+        confirm_completed_move: "Confirmação Admin: Esta tarefa já está concluída. Tem certeza que deseja movê-la para outro sprint?"
     },
     comments: {
         title: "Comentários",

@@ -496,7 +496,12 @@ export const de: Dictionary = {
         loading_sprints: "Lade Sprints...",
         error_missing_fields: "Fehlende erforderliche Felder",
         success_updated: "Sprint aktualisiert",
-        success_created: "Sprint erstellt"
+        success_created: "Sprint erstellt",
+        error_completed_closed_sprint: "Unbeweglich: Abgeschlossene Aufgaben können nicht aus einem geschlossenen Sprint verschoben werden.",
+        error_completed_active_sprint_permission: "Nur Administratoren können abgeschlossene Aufgaben aus einem aktiven Sprint verschieben.",
+        error_completed_immovable: "Abgeschlossene Aufgaben können nicht vom Board verschoben werden. Verwenden Sie den Task-Manager (ABM), um den Sprint zu ändern.",
+        error_completed_no_backlog: "Abgeschlossene Aufgaben können nicht ins Backlog zurückkehren. Sie können sie nur in einen anderen Sprint verschieben.",
+        confirm_completed_move: "Admin-Bestätigung: Diese Aufgabe ist bereits abgeschlossen. Sind Sie sicher, dass Sie sie in einen anderen Sprint verschieben möchten?"
     },
     comments: {
         title: "Kommentare",

@@ -496,7 +496,12 @@ export const ca: Dictionary = {
         loading_sprints: "Carregant sprints...",
         error_missing_fields: "Falten camps requerits",
         success_updated: "Sprint actualitzat",
-        success_created: "Sprint creat"
+        success_created: "Sprint creat",
+        error_completed_closed_sprint: "Inamovible: No es pot moure una tasca tancada d'un sprint tancat.",
+        error_completed_active_sprint_permission: "Només els administradors poden moure tasques tancades d'un sprint actiu.",
+        error_completed_immovable: "Les tasques terminades no es poden moure des del tauler. Utilitza el Gestor de Tasques (ABM) per canviar el sprint.",
+        error_completed_no_backlog: "Les tasques terminades no poden tornar al backlog. Només pots canviar-les de sprint.",
+        confirm_completed_move: "Admin Override: Aquesta tasca ja està tancada. Segur que vols moure-la a un altre sprint?"
     },
     comments: {
         title: "Comentaris",

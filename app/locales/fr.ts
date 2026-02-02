@@ -496,7 +496,12 @@ export const fr: Dictionary = {
         loading_sprints: "Chargement des sprints...",
         error_missing_fields: "Champs requis manquants",
         success_updated: "Sprint mis à jour",
-        success_created: "Sprint créé"
+        success_created: "Sprint créé",
+        error_completed_closed_sprint: "Inamovible: Impossible de déplacer une tâche terminée d'un sprint fermé.",
+        error_completed_active_sprint_permission: "Seuls les administrateurs peuvent déplacer les tâches terminées d'un sprint actif.",
+        error_completed_immovable: "Les tâches terminées ne peuvent pas être déplacées depuis le tableau. Utilisez le Gestionnaire de Tâches (ABM) pour changer le sprint.",
+        error_completed_no_backlog: "Les tâches terminées ne peuvent pas retourner au backlog. Vous pouvez uniquement les changer de sprint.",
+        confirm_completed_move: "Admin Override: Cette tâche est déjà terminée. Êtes-vous sûr de vouloir la déplacer vers un autre sprint?"
     },
     comments: {
         title: "Commentaires",
