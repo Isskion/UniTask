@@ -224,6 +224,21 @@ service cloud.firestore {
       );
     }
 
+    // --- KNOWLEDGE AREA (Lessons Learned & Solution Records) ---
+    // Open access for all authenticated users within the same tenant
+    match /knowledge_entries/{entryId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && docTenantMatches(request.resource.data)));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60)));
+    }
+
+    match /knowledge_tags/{tagId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 60));
+    }
+
     match /project_activity_feed/{eventId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));

@@ -62,7 +62,10 @@ export const ca: Dictionary = {
         organizations: "Tenants",
         tasks: "Tasques",
         users: "Usuaris",
-        appManagement: "Gestió Unitask"
+        appManagement: "Gestió Unitask",
+        "knowledge-area": "Àrea de Coneixement",
+        "lessons-learned": "Lliçons Apreses",
+        "solution-records": "Registres de Solucions"
     },
 
     theme: {
@@ -513,5 +516,19 @@ export const ca: Dictionary = {
         hours_ago: "h",
         days_ago: "d",
         mentioned_you: "t'ha mencionat en una tasca"
+    },
+    knowledge_base: {
+        title: "Àrea de Coneixement",
+        lessons_learned: "Lliçons Apreses",
+        solution_records: "Registres de Solucions",
+        new_entry: "Nova Entrada",
+        search_placeholder: "Cercar...",
+        copy_content: "Copiar Contingut",
+        copied: "Copiat",
+        changelog: "Historial de Canvis",
+        created_by: "Creat per",
+        updated_by: "Modificat per",
+        no_entries: "No hi ha entrades registrades",
+        delete_confirm: "Eliminar aquesta entrada?"
     }
 };

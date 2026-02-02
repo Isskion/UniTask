@@ -62,7 +62,10 @@ export const de: Dictionary = {
         organizations: "Tenants",
         tasks: "Aufgaben",
         users: "Benutzer",
-        appManagement: "Unitask Verwaltung"
+        appManagement: "Unitask Verwaltung",
+        "knowledge-area": "Wissensbereich",
+        "lessons-learned": "Gelernte Lektionen",
+        "solution-records": "Lösungsregister"
     },
 
     theme: {
@@ -513,5 +516,19 @@ export const de: Dictionary = {
         hours_ago: "Std.",
         days_ago: "T.",
         mentioned_you: "hat Sie in einer Aufgabe erwähnt"
+    },
+    knowledge_base: {
+        title: "Wissensbereich",
+        lessons_learned: "Gelernte Lektionen",
+        solution_records: "Lösungsregister",
+        new_entry: "Neuer Eintrag",
+        search_placeholder: "Suchen...",
+        copy_content: "Inhalt kopieren",
+        copied: "Kopiert",
+        changelog: "Änderungsverlauf",
+        created_by: "Erstellt von",
+        updated_by: "Geändert von",
+        no_entries: "Keine Einträge vorhanden",
+        delete_confirm: "Diesen Eintrag löschen?"
     }
 };

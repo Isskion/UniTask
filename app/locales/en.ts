@@ -60,7 +60,10 @@ export const en = {
         organizations: "Tenants",
         tasks: "Tasks",
         users: "Users",
-        appManagement: "Unitask Management"
+        appManagement: "Unitask Management",
+        "knowledge-area": "Knowledge Area",
+        "lessons-learned": "Lessons Learned",
+        "solution-records": "Solution Records"
     },
 
     theme: {
@@ -511,6 +514,20 @@ export const en = {
         hours_ago: "h ago",
         days_ago: "d ago",
         mentioned_you: "mentioned you in a task"
+    },
+    knowledge_base: {
+        title: "Knowledge Area",
+        lessons_learned: "Lessons Learned",
+        solution_records: "Solution Records",
+        new_entry: "New Entry",
+        search_placeholder: "Search...",
+        copy_content: "Copy Content",
+        copied: "Copied",
+        changelog: "Change History",
+        created_by: "Created by",
+        updated_by: "Updated by",
+        no_entries: "No entries recorded",
+        delete_confirm: "Delete this entry?"
     }
 };
 

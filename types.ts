@@ -404,3 +404,45 @@ export interface SupportTicket {
     createdAt: any;
     updatedAt: any;
 }
+
+// Knowledge Area Types
+export interface ChangeLogEntry {
+    userId: string;
+    userName: string;
+    timestamp: any;
+    action: 'created' | 'updated' | 'deleted';
+    changes?: string;
+}
+
+export interface KnowledgeEntry {
+    id: string;
+    type: 'lesson_learned' | 'solution_record';
+    title: string;
+    content: string;              // Large text field
+    projectId?: string;           // Optional project link
+    tags: string[];               // Categorization with autocomplete
+
+    // Audit trail
+    createdBy: string;
+    createdByName?: string;
+    createdAt: any;
+    updatedBy?: string;
+    updatedByName?: string;
+    updatedAt?: any;
+
+    // Change log (embedded)
+    changelog: ChangeLogEntry[];
+
+    // Multi-tenant
+    tenantId: string;
+    isActive: boolean;
+}
+
+// Knowledge Tag (for autocomplete)
+export interface KnowledgeTag {
+    id: string;
+    name: string;
+    tenantId: string;
+    usageCount: number;
+    createdAt: any;
+}

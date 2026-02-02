@@ -76,7 +76,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -88,7 +88,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management'].includes(view)) {
+            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'].includes(view)) {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -96,7 +96,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management'].includes(saved)) {
+            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'].includes(saved)) {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);

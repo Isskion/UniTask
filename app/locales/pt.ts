@@ -62,7 +62,10 @@ export const pt: Dictionary = {
         organizations: "Tenants",
         tasks: "Tarefas",
         users: "Usuários",
-        appManagement: "Gestão Unitask"
+        appManagement: "Gestão Unitask",
+        "knowledge-area": "Área de Conhecimento",
+        "lessons-learned": "Lições Aprendidas",
+        "solution-records": "Registros de Soluções"
     },
 
     theme: {
@@ -513,5 +516,19 @@ export const pt: Dictionary = {
         hours_ago: "h",
         days_ago: "d",
         mentioned_you: "mencionou você em uma tarefa"
+    },
+    knowledge_base: {
+        title: "Área de Conhecimento",
+        lessons_learned: "Lições Aprendidas",
+        solution_records: "Registros de Soluções",
+        new_entry: "Nova Entrada",
+        search_placeholder: "Pesquisar...",
+        copy_content: "Copiar Conteúdo",
+        copied: "Copiado",
+        changelog: "Histórico de Alterações",
+        created_by: "Criado por",
+        updated_by: "Modificado por",
+        no_entries: "Nenhuma entrada registrada",
+        delete_confirm: "Excluir esta entrada?"
     }
 };
