@@ -1,92 +1,117 @@
 import * as functions from "firebase-functions";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { isAiEnabled, checkUsageLimit, logUsage } from "./utils";
+import * as cors from "cors";
 
-export const chat = functions.https.onCall(async (data, context) => {
-    // 1. Auth Check
-    if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
-    }
-    const { uid: userId, token } = context.auth;
-    const tenantId = token.tenantId as string || "unknown";
-    // Fix role check: token.role is explicitly set in syncUserClaims or custom claims
-    // We assume 'role' claim exists? Original code used `token.roleLevel`.
-    // Let's use `token.role` if available, or fetch it? 
-    // In `analyze.ts` I used `roleLevel`. 
-    // `chat-assistant.ts` passed `userRole` as arg, but trusted `token` is safer.
-    // Let's stick to `token.role` if it exists. Ideally `context.auth.token.role`.
-    const userRole = (token.role || "user") as string;
+// Initialize CORS middleware
+const corsHandler = cors({ origin: true });
 
-    // 2. Security Checks
-    const status = await isAiEnabled(tenantId);
-    if (!status.enabled) {
-        throw new functions.https.HttpsError('permission-denied', status.reason || "AI Disabled");
-    }
+export const chat = functions.https.onRequest(async (req, res) => {
+    // 1. CORS Wrapper
+    corsHandler(req, res, async () => {
+        try {
+            // 2. Auth Check (Manually verification needed for onRequest)
+            // For simple fetching from client with Auth header:
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                res.status(401).send({ error: "Unauthorized" });
+                return;
+            }
+            const idToken = authHeader.split("Bearer ")[1];
 
-    const { history, newMessage } = data;
-    if (!history || !newMessage) {
-        throw new functions.https.HttpsError('invalid-argument', 'Missing history or message');
-    }
+            // Verify Token using Admin SDK (Need to import admin)
+            // We need to import admin here or pass it. 
+            // Better to keep structure simple: assume valid if this was onCall, but for onRequest we strictly need admin.
+            // Let's import admin.
+            const admin = await import("firebase-admin");
+            if (!admin.apps.length) admin.initializeApp();
 
-    const usageCheck = await checkUsageLimit(tenantId, userId, userRole, "chat_assistant");
-    if (!usageCheck.allowed) {
-        throw new functions.https.HttpsError('resource-exhausted', usageCheck.reason || "Limit reached");
-    }
+            let decodedToken;
+            try {
+                decodedToken = await admin.auth().verifyIdToken(idToken);
+            } catch (e) {
+                res.status(403).send({ error: "Invalid Token" });
+                return;
+            }
 
-    const apiKey = process.env.GEMINI_API_KEY || functions.config().gemini?.key;
-    if (!apiKey) throw new functions.https.HttpsError('internal', "AI Key missing");
+            const userId = decodedToken.uid;
+            const tenantId = decodedToken.tenantId || "unknown";
+            const userRole = (decodedToken.role || "user") as string;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            // 3. Security Checks
+            const status = await isAiEnabled(tenantId);
+            if (!status.enabled) {
+                res.status(403).send({ error: status.reason || "AI Disabled" });
+                return;
+            }
 
-    // Sanitize? Server side PromptGuard sanitizer logic is simple: remove XML like tags if needed.
-    // We'll trust Gemini slightly more here or reimplement simple sanitization.
-    // Reimplementing simple sanitation to match client expectations
-    const sanitize = (str: string) => str.replace(/<[^>]*>/g, '');
+            const { history, newMessage } = req.body;
+            if (!history || !newMessage) {
+                res.status(400).send({ error: "Missing history or message" });
+                return;
+            }
 
-    const protectedHistory = history.map((msg: any) => ({
-        role: msg.role,
-        parts: [{ text: msg.role === 'user' ? sanitize(msg.text) : msg.text }]
-    }));
+            const usageCheck = await checkUsageLimit(tenantId, userId, userRole, "chat_assistant");
+            if (!usageCheck.allowed) {
+                res.status(429).send({ error: usageCheck.reason || "Limit reached" });
+                return;
+            }
 
-    const systemPrompt = `
-        You are "UniHelp", the specialized AI assistant for the UniTask application.
-        UniTask is a project management and task tracking system.
-        
-        Your ONLY goal is to help users navigate the app, explain features, and answer questions about using UniTask.
-        
-        CRITICAL INSTRUCTION:
-        - If the user asks about anything NOT related to the application, project management, or productivity within this context, you must POLITELY REFUSE.
-        - Do not answer general knowledge questions.
-        - Use the data provided in <USER_MESSAGE> to answer.
-    `;
+            const apiKey = process.env.GEMINI_API_KEY || functions.config().gemini?.key;
+            if (!apiKey) {
+                res.status(500).send({ error: "AI Key missing" });
+                return;
+            }
 
-    const securedMessage = `<USER_MESSAGE>${sanitize(newMessage)}</USER_MESSAGE>`;
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    try {
-        const chatSession = model.startChat({
-            history: protectedHistory,
-            generationConfig: { maxOutputTokens: 1000 },
-        });
+            const sanitize = (str: string) => str.replace(/<[^>]*>/g, '');
 
-        const result = await chatSession.sendMessage(`${systemPrompt}\n\n${securedMessage}`);
-        const response = await result.response;
-        const text = response.text();
+            const protectedHistory = history.map((msg: any) => ({
+                role: msg.role,
+                parts: [{ text: msg.role === 'user' ? sanitize(msg.text) : msg.text }]
+            }));
 
-        if (userRole !== 'superadmin') {
-            await logUsage({
-                userId,
-                tenantId,
-                action: "chat_assistant",
-                charsIn: securedMessage.length + systemPrompt.length,
-                charsOut: text.length,
-                model: "gemini-2.0-flash"
+            const systemPrompt = `
+                You are "UniHelp", the specialized AI assistant for the UniTask application.
+                UniTask is a project management and task tracking system.
+                
+                Your ONLY goal is to help users navigate the app, explain features, and answer questions about using UniTask.
+                
+                CRITICAL INSTRUCTION:
+                - If the user asks about anything NOT related to the application, project management, or productivity within this context, you must POLITELY REFUSE.
+                - Do not answer general knowledge questions.
+                - Use the data provided in <USER_MESSAGE> to answer.
+            `;
+
+            const securedMessage = `<USER_MESSAGE>${sanitize(newMessage)}</USER_MESSAGE>`;
+
+            const chatSession = model.startChat({
+                history: protectedHistory,
+                generationConfig: { maxOutputTokens: 1000 },
             });
-        }
 
-        return { success: true, text };
-    } catch (e: any) {
-        console.error("Chat Error:", e);
-        throw new functions.https.HttpsError('internal', e.message || "Failed to generate response.");
-    }
+            const result = await chatSession.sendMessage(`${systemPrompt}\n\n${securedMessage}`);
+            const response = await result.response;
+            const text = response.text();
+
+            if (userRole !== 'superadmin') {
+                await logUsage({
+                    userId,
+                    tenantId,
+                    action: "chat_assistant",
+                    charsIn: securedMessage.length + systemPrompt.length,
+                    charsOut: text.length,
+                    model: "gemini-2.0-flash"
+                });
+            }
+
+            res.status(200).send({ success: true, text });
+
+        } catch (e: any) {
+            console.error("Chat Error:", e);
+            res.status(500).send({ error: e.message || "Internal Server Error" });
+        }
+    });
 });

@@ -494,7 +494,12 @@ export const en = {
         loading_sprints: "Loading sprints...",
         error_missing_fields: "Missing required fields",
         success_updated: "Sprint updated",
-        success_created: "Sprint created"
+        success_created: "Sprint created",
+        error_completed_closed_sprint: "Cannot move completed tasks from a Closed sprint. This history is locked.",
+        error_completed_active_sprint_permission: "Only Administrators can move completed tasks from an active sprint.",
+        error_completed_immovable: "Completed tasks cannot be moved from the Sprint Board. Use the Task Manager (ABM) to change sprints.",
+        error_completed_no_backlog: "Completed tasks cannot go back to backlog. You can only change their sprint.",
+        confirm_completed_move: "Admin Override: Are you sure you want to move this completed task to another sprint?"
     },
     comments: {
         title: "Comments",

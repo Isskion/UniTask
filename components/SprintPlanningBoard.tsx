@@ -7,7 +7,7 @@ import { useSprints } from "@/hooks/useSprints";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { format, addDays, getDay, startOfToday, endOfDay, isWithinInterval } from 'date-fns';
-import { Task, Project, UserProfile } from "@/types";
+import { Task, Project, UserProfile, RoleLevel } from "@/types";
 import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter, Briefcase, BarChart } from "lucide-react";
 import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -29,7 +29,7 @@ import {
 } from '@dnd-kit/core';
 
 export function SprintPlanningBoard() {
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, viewContext } = useAuth();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { sprints, loading: sprintsLoading } = useSprints();
@@ -99,6 +99,7 @@ export function SprintPlanningBoard() {
             const allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
 
             // Separate backlog (no sprint) from sprint tasks
+            // [REVERT] Backlog should NOT show completed tasks.
             const backlog = allTasks.filter(t => !t.sprintId && t.status !== 'completed');
             const sprint = selectedSprintId
                 ? allTasks.filter(t => t.sprintId === selectedSprintId)
@@ -271,6 +272,23 @@ export function SprintPlanningBoard() {
 
         // Only update if changed
         if (task.sprintId !== newSprintId) {
+            // [DEBUG] Log for troubleshooting
+            console.log('[SprintBoard] handleDragEnd:', {
+                taskId: task.id,
+                taskStatus: task.status,
+                fromSprint: task.sprintId,
+                toSprint: newSprintId,
+                isCompleted: task.status === 'completed'
+            });
+
+            // [STRICT RULE] Completed tasks CANNOT be moved via drag-and-drop at all.
+            // They must be managed via the Task Manager (ABM) with Admin approval.
+            if (task.status === 'completed') {
+                console.log('[SprintBoard] BLOCKING completed task move!');
+                alert(t('sprints.error_completed_immovable')); // "Completed tasks cannot be moved from the Sprint Board. Use Task Manager."
+                return;
+            }
+
             try {
                 const taskRef = doc(db, 'tasks', taskId);
                 const updates: any = {
@@ -298,8 +316,10 @@ export function SprintPlanningBoard() {
                 }
 
                 await updateDoc(taskRef, updates);
-            } catch (error) {
+                // alert(t('sprints.success_updated')); // Optional success message
+            } catch (error: any) {
                 console.error("Error updating sprint:", error);
+                alert(`${t('common.error')}: ${error.message || 'Update failed'}`);
             }
         }
     };
@@ -576,8 +596,11 @@ function DroppableColumn({ id, title, count, children, icon: Icon, className, ti
 
 // Draggable Task Card Wrapper
 function DraggableTaskCard(props: any) {
+    const isCompleted = props.task.status === 'completed';
+    // [CHANGE] Disable dragging for completed tasks strict rule
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: props.task.id,
+        disabled: isCompleted
     });
 
     const style = transform ? {
@@ -585,21 +608,22 @@ function DraggableTaskCard(props: any) {
     } : undefined;
 
     return (
-        <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50")}>
-            <TaskCard {...props} />
+        <div ref={setNodeRef} style={style} {...listeners} {...attributes} className={cn("touch-none", isDragging && "opacity-50", isCompleted && "cursor-default")}>
+            <TaskCard {...props} isDraggable={!isCompleted} />
         </div>
     );
 }
 
 // Task Card Pure Component
-function TaskCard({ task, isLight, inSprint = false, t }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string }) {
+function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string; isDraggable?: boolean }) {
     const hasRisk = task.clientDeadline && task.sprintId;
     const isCompleted = task.status === 'completed';
 
     return (
-        <div className={cn("border rounded-lg p-3 cursor-grab hover:shadow-md transition-all select-none bg-background",
+        <div className={cn("border rounded-lg p-3 transition-all select-none bg-background",
+            isDraggable ? "cursor-grab hover:shadow-md" : "cursor-default opacity-90",
             isCompleted && inSprint
-                ? "bg-emerald-500/10 border-emerald-500/30 hover:border-emerald-500/50" // Completed in Sprint (Green)
+                ? "bg-emerald-500/10 border-emerald-500/30" // Completed in Sprint (Green)
                 : (isLight ? "border-input hover:border-primary/50" : "border-white/5 hover:border-primary/50")
         )}>
             <div className="flex items-start justify-between gap-2">

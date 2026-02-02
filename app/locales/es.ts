@@ -496,7 +496,12 @@ export const es: Dictionary = {
         loading_sprints: "Cargando sprints...",
         error_missing_fields: "Faltan campos requeridos",
         success_updated: "Sprint actualizado",
-        success_created: "Sprint creado"
+        success_created: "Sprint creado",
+        error_completed_closed_sprint: "Inamovible: No se puede mover una tarea cerrada de un sprint cerrado.",
+        error_completed_active_sprint_permission: "Solo los administradores pueden mover tareas cerradas de un sprint activo.",
+        error_completed_immovable: "Las tareas terminadas no se pueden mover desde el tablero. Usa el Gestor de Tareas (ABM) para cambiar el sprint.",
+        error_completed_no_backlog: "Las tareas terminadas no pueden volver al backlog. Solo puedes cambiarlas de sprint.",
+        confirm_completed_move: "Admin Override: Esta tarea ya está cerrada. ¿Seguro que quieres moverla a otro sprint?"
     },
     comments: {
         title: "Comentarios",

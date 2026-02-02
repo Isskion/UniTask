@@ -1219,7 +1219,40 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Sprint / Ciclo</label>
                                                 <select
                                                     value={formData.sprintId || ""}
-                                                    onChange={e => setFormData({ ...formData, sprintId: e.target.value })}
+                                                    onChange={e => {
+                                                        const newSprintId = e.target.value || null;
+                                                        const currentSprintId = selectedTask?.sprintId || null;
+
+                                                        // [STRICT RULE] Completed tasks have special restrictions
+                                                        if (selectedTask?.status === 'completed' && currentSprintId) {
+                                                            // Rule 1: Cannot remove from sprint (set to backlog)
+                                                            if (!newSprintId) {
+                                                                alert(t('sprints.error_completed_no_backlog')); // "Completed tasks cannot be moved to backlog."
+                                                                return;
+                                                            }
+
+                                                            // Rule 2: Can only change sprint if Admin + source is active
+                                                            const sourceSprint = sprints.find(s => s.id === currentSprintId);
+                                                            if (newSprintId !== currentSprintId) {
+                                                                if (sourceSprint?.status === 'closed') {
+                                                                    alert(t('sprints.error_completed_closed_sprint')); // "Cannot move completed task from closed sprint."
+                                                                    return;
+                                                                }
+
+                                                                if (sourceSprint?.status === 'active') {
+                                                                    if (!isAdmin) {
+                                                                        alert(t('sprints.error_completed_active_sprint_permission')); // "Only Admins can move completed tasks from active sprint."
+                                                                        return;
+                                                                    }
+
+                                                                    const confirmMove = window.confirm(t('sprints.confirm_completed_move')); // "Admin Override: Are you sure?"
+                                                                    if (!confirmMove) return;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        setFormData({ ...formData, sprintId: e.target.value });
+                                                    }}
                                                     className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
                                                         isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
                                                     )}
