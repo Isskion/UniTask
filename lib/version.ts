@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.1.10";
+export const APP_VERSION = "13.1.11";
 
 export const CHANGELOG = [
+    {
+        version: "13.1.11",
+        title: "Strict Sprint Controls",
+        date: "2026-02-02",
+        features: [
+            "**Completed Tasks Locked**: Tasks marked 'Completed' can no longer be dragged on the Sprint Board.",
+            "**ABM Controls**: Completed tasks can only change sprint (not remove), and require Admin + Active Sprint confirmation.",
+            "**Localization**: Updated all 6 languages with new sprint control messages."
+        ]
+    },
     {
         version: "13.1.10",
         title: "Sprint Board Perfection",
