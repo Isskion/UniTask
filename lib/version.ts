@@ -1,6 +1,17 @@
-export const APP_VERSION = "13.1.11";
+export const APP_VERSION = "13.2.0";
 
 export const CHANGELOG = [
+    {
+        version: "13.2.0",
+        title: "Knowledge Area Module",
+        date: "2026-02-02",
+        features: [
+            "**New Module**: Added 'Lessons Learned' and 'Solution Records' for internal knowledge management.",
+            "**Bulk Export**: New 'Copy Filtered' button to extract multiple entries to clipboard.",
+            "**Localization**: Full support for 6 languages (EN, ES, CA, FR, PT, DE).",
+            "**Security**: Team-wide read access with role-based write permissions."
+        ]
+    },
     {
         version: "13.1.11",
         title: "Strict Sprint Controls",
