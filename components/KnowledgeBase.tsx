@@ -12,7 +12,8 @@ import {
     doc, serverTimestamp, orderBy
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { KnowledgeEntry, ChangeLogEntry, Project } from '@/types';
+import { getActiveProjects } from '@/lib/projects'; // Import helper
+import { KnowledgeEntry, ChangeLogEntry, Project, getRoleLevel } from '@/types'; // Import getRoleLevel
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -28,7 +29,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
     const isLight = theme === 'light';
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, userRole } = useAuth();
 
     // State
     const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
@@ -87,17 +88,15 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
     const loadProjects = async () => {
         if (!tenantId) return;
         try {
-            const q = query(
-                collection(db, 'projects'),
-                where('tenantId', '==', tenantId),
-                where('isActive', '==', true)
-            );
-            const snap = await getDocs(q);
-            setProjects(snap.docs.map(d => ({ id: d.id, ...d.data() } as Project)));
+            // [MODIFIED] Filter by user assignment if not admin
+            const roleLvl = getRoleLevel(userRole);
+            const projectsList = await getActiveProjects(tenantId, user?.uid, roleLvl);
+            setProjects(projectsList);
         } catch (error) {
             console.error('Error loading projects:', error);
         }
     };
+
 
     // Filtered entries
     const filteredEntries = useMemo(() => {

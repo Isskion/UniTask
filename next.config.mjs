@@ -3,7 +3,8 @@ const nextConfig = {
     images: {
         unoptimized: true
     },
-    output: 'export'
+    output: 'export',
+    productionBrowserSourceMaps: false
 };
 
 export default nextConfig;

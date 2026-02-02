@@ -1,5 +1,5 @@
-import { functions } from "@/lib/firebase";
-import { httpsCallable } from "firebase/functions";
+import { app } from "@/lib/firebase"; // Import 'app' instead of 'functions'
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 interface CreateInviteResult {
     success: boolean;
@@ -22,7 +22,10 @@ export async function createInviteAction(
     assignedProjectIds: string[] = []
 ): Promise<CreateInviteResult> {
     try {
-        const inviteFn = httpsCallable(functions, 'inviteUser');
+        // Explicitly target europe-west1 to match deployment and solve IAM/403 issues
+        const functionsEU = getFunctions(app, 'europe-west1');
+        const inviteFn = httpsCallable(functionsEU, 'inviteUser');
+
         const result = await inviteFn({
             tenantId,
             targetRole,

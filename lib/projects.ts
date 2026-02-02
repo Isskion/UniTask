@@ -54,9 +54,9 @@ export async function updateProject(projectId: string, data: Partial<Project>) {
 /**
  * Fetches all active projects (optionally filtered by tenantId in the future).
  */
-export async function getActiveProjects(tenantId: string = "1"): Promise<Project[]> {
+export async function getActiveProjects(tenantId: string = "1", userId?: string, roleLevel: number = 100): Promise<Project[]> {
     try {
-        console.log("🔍 getActiveProjects called with tenantId:", tenantId);
+        console.log("🔍 getActiveProjects called with tenantId:", tenantId, "User:", userId, "Level:", roleLevel);
         let q;
 
         if (tenantId === "ALL") {
@@ -65,11 +65,21 @@ export async function getActiveProjects(tenantId: string = "1"): Promise<Project
                 where("isActive", "==", true)
             );
         } else {
-            q = query(
-                collection(db, PROJECTS_COLLECTION),
-                where("tenantId", "==", tenantId),
-                where("isActive", "==", true)
-            );
+            // Permission Filter: If not Admin (level < 80) and userId provided, filter by assignment
+            if (userId && roleLevel < 80) {
+                q = query(
+                    collection(db, PROJECTS_COLLECTION),
+                    where("tenantId", "==", tenantId),
+                    where("isActive", "==", true),
+                    where("teamIds", "array-contains", userId)
+                );
+            } else {
+                q = query(
+                    collection(db, PROJECTS_COLLECTION),
+                    where("tenantId", "==", tenantId),
+                    where("isActive", "==", true)
+                );
+            }
         }
         const snapshot = await getDocs(q);
         console.log("📦 Found projects:", snapshot.size);

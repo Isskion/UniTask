@@ -15,13 +15,7 @@
 
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-
-// Ensure admin is initialized before using firestore
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
-
-const db = admin.firestore();
+import { getDb } from './utils'; // Lazy init
 
 // Role Weight Mapping (Duplicated to avoid import issues in Cloud Functions)
 const ROLE_LEVELS: Record<string, number> = {
@@ -39,6 +33,7 @@ export const processUserClaims = functions.region('europe-west1').auth.user().on
     console.log(`[processUserClaims] Processing new user: ${user.email}`);
 
     try {
+        const db = getDb();
         // 1. Check if user is in admin whitelist
         const adminDoc = await db.collection('system_config').doc('admins').get();
         const allowedEmails: string[] = adminDoc.exists
@@ -151,6 +146,7 @@ export const updateUserClaims = functions.region('europe-west1').https.onCall(as
     await admin.auth().setCustomUserClaims(targetUserId, updatedClaims);
 
     // Sync to Firestore profile
+    const db = getDb();
     await db.collection('users').doc(targetUserId).set({
         role: updatedClaims.role,
         roleLevel: updatedClaims.roleLevel,

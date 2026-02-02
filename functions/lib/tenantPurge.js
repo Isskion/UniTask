@@ -15,11 +15,7 @@ exports.processScheduledDeletions = exports.purgeTenantData = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const auditLogger_1 = require("./utils/auditLogger");
-// Ensure admin is initialized before using firestore
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
-const db = admin.firestore();
+const utils_1 = require("./utils"); // Lazy init
 // Collections to clean when purging a tenant
 const COLLECTIONS_TO_PURGE = [
     'projects',
@@ -42,10 +38,11 @@ exports.purgeTenantData = functions
     memory: '2GB' // Extra memory for batch processing
 })
     .https.onCall(async (data, context) => {
+    var _a, _b, _c;
+    const db = (0, utils_1.getDb)();
     // ═══════════════════════════════════════════════════════
     // 1. AUTHORIZATION CHECK
     // ═══════════════════════════════════════════════════════
-    var _a, _b, _c;
     if (!((_a = context.auth) === null || _a === void 0 ? void 0 : _a.token.role) || context.auth.token.role !== 'superadmin') {
         (0, auditLogger_1.logAdminAction)(((_b = context.auth) === null || _b === void 0 ? void 0 : _b.uid) || 'unknown', 'UNAUTHORIZED_PURGE_ATTEMPT', data.targetTenantId, { attemptedBy: (_c = context.auth) === null || _c === void 0 ? void 0 : _c.token.email }, 'CRITICAL');
         throw new functions.https.HttpsError('permission-denied', 'Esta operación de alto riesgo está restringida a Superadmins.');
@@ -155,6 +152,7 @@ exports.processScheduledDeletions = functions.region('europe-west1').pubsub
     .schedule('0 2 * * *')
     .timeZone('Europe/Madrid')
     .onRun(async () => {
+    const db = (0, utils_1.getDb)();
     const now = new Date();
     const pendingDeletions = await db.collection('tenants')
         .where('status', '==', 'pending_deletion')

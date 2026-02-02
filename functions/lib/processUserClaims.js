@@ -17,11 +17,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUserClaims = exports.processUserClaims = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-// Ensure admin is initialized before using firestore
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
-const db = admin.firestore();
+const utils_1 = require("./utils"); // Lazy init
 // Role Weight Mapping (Duplicated to avoid import issues in Cloud Functions)
 const ROLE_LEVELS = {
     'usuario_externo': 10,
@@ -37,6 +33,7 @@ exports.processUserClaims = functions.region('europe-west1').auth.user().onCreat
     var _a;
     console.log(`[processUserClaims] Processing new user: ${user.email}`);
     try {
+        const db = (0, utils_1.getDb)();
         // 1. Check if user is in admin whitelist
         const adminDoc = await db.collection('system_config').doc('admins').get();
         const allowedEmails = adminDoc.exists
@@ -123,6 +120,7 @@ exports.updateUserClaims = functions.region('europe-west1').https.onCall(async (
     const updatedClaims = Object.assign(Object.assign(Object.assign(Object.assign({}, currentClaims), (newRole && { role: newRole })), (newRole && { roleLevel: newLevel })), (newTenantId && { tenantId: newTenantId }));
     await admin.auth().setCustomUserClaims(targetUserId, updatedClaims);
     // Sync to Firestore profile
+    const db = (0, utils_1.getDb)();
     await db.collection('users').doc(targetUserId).set({
         role: updatedClaims.role,
         roleLevel: updatedClaims.roleLevel,

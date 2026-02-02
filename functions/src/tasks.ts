@@ -1,7 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-
-const db = admin.firestore();
+import { getDb } from "./utils";
 
 /**
  * Generates a "Smart ID" for new tasks: [PROJECT_CODE]-[YY][MM][XX]
@@ -12,6 +11,7 @@ const db = admin.firestore();
 export const generateFriendlyId = functions.firestore
     .document("tasks/{taskId}")
     .onCreate(async (snap, context) => {
+        const db = getDb();
         const taskId = context.params.taskId;
         const taskData = snap.data();
 

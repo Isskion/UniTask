@@ -1,17 +1,22 @@
 import * as admin from "firebase-admin";
 
-if (!admin.apps.length) {
-    admin.initializeApp();
-}
+let dbInstance: admin.firestore.Firestore | null = null;
 
-const db = admin.firestore();
-
-export const getDb = () => db;
+export const getDb = () => {
+    if (!admin.apps.length) {
+        admin.initializeApp();
+    }
+    if (!dbInstance) {
+        dbInstance = admin.firestore();
+    }
+    return dbInstance;
+};
 
 // --- SHARED PROMPT GUARD UTILS ---
 
 export async function isAiEnabled(tenantId: string): Promise<{ enabled: boolean; reason?: string }> {
     try {
+        const db = getDb();
         const globalRef = db.collection('app_config').doc('global');
         const globalSnap = await globalRef.get();
         if (globalSnap.exists && globalSnap.data()?.aiGlobalEnabled === false) {
@@ -34,6 +39,7 @@ export async function isAiEnabled(tenantId: string): Promise<{ enabled: boolean;
 export async function checkUsageLimit(tenantId: string, userId: string, userRole: string, action: string): Promise<{ allowed: boolean; reason?: string }> {
     if (userRole === 'superadmin') return { allowed: true };
 
+    const db = getDb();
     const tenantRef = db.collection('tenants').doc(tenantId);
     const tenantSnap = await tenantRef.get();
     const config = tenantSnap.data() || {};
@@ -49,6 +55,7 @@ export async function checkUsageLimit(tenantId: string, userId: string, userRole
 
 export async function logUsage(data: any) {
     try {
+        const db = getDb();
         await db.collection('ai_performance_logs').add({
             ...data,
             timestamp: admin.firestore.FieldValue.serverTimestamp()

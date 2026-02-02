@@ -2,16 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logUsage = exports.checkUsageLimit = exports.isAiEnabled = exports.getDb = void 0;
 const admin = require("firebase-admin");
-if (!admin.apps.length) {
-    admin.initializeApp();
-}
-const db = admin.firestore();
-const getDb = () => db;
+let dbInstance = null;
+const getDb = () => {
+    if (!admin.apps.length) {
+        admin.initializeApp();
+    }
+    if (!dbInstance) {
+        dbInstance = admin.firestore();
+    }
+    return dbInstance;
+};
 exports.getDb = getDb;
 // --- SHARED PROMPT GUARD UTILS ---
 async function isAiEnabled(tenantId) {
     var _a, _b;
     try {
+        const db = (0, exports.getDb)();
         const globalRef = db.collection('app_config').doc('global');
         const globalSnap = await globalRef.get();
         if (globalSnap.exists && ((_a = globalSnap.data()) === null || _a === void 0 ? void 0 : _a.aiGlobalEnabled) === false) {
@@ -33,6 +39,7 @@ exports.isAiEnabled = isAiEnabled;
 async function checkUsageLimit(tenantId, userId, userRole, action) {
     if (userRole === 'superadmin')
         return { allowed: true };
+    const db = (0, exports.getDb)();
     const tenantRef = db.collection('tenants').doc(tenantId);
     const tenantSnap = await tenantRef.get();
     const config = tenantSnap.data() || {};
@@ -45,6 +52,7 @@ async function checkUsageLimit(tenantId, userId, userRole, action) {
 exports.checkUsageLimit = checkUsageLimit;
 async function logUsage(data) {
     try {
+        const db = (0, exports.getDb)();
         await db.collection('ai_performance_logs').add(Object.assign(Object.assign({}, data), { timestamp: admin.firestore.FieldValue.serverTimestamp() }));
     }
     catch (e) {

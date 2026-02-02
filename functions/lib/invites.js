@@ -5,7 +5,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const utils_1 = require("./utils"); // Ensure utils exports getDb or we call admin.firestore()
 // Re-using admin instance
-const db = (0, utils_1.getDb)();
+// const db = getDb(); // REMOVED: Global init causes crash
 function generateCode(length = 8) {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let result = "";
@@ -25,43 +25,62 @@ function getRoleLevelNum(role) {
         default: return 0;
     }
 }
-exports.inviteUser = functions.https.onCall(async (data, context) => {
+exports.inviteUser = functions
+    .region('europe-west1')
+    .https.onCall(async (data, context) => {
     var _a;
+    // 1. Auth Check
     if (!context.auth) {
+        console.error("[inviteUser] Unauthenticated call");
         throw new functions.https.HttpsError('unauthenticated', 'Auth required');
     }
     const { uid, token } = context.auth;
     const { tenantId, targetRole, assignedProjectIds = [] } = data;
-    // Get Creator Role (Trust Custom Claims!)
-    const creatorRole = token.role || 'usuario_externo';
-    // If we want detailed check, fetch DB, but claims should be synced.
-    // Let's fetch from DB if claim is missing (legacy safety)
-    let finalCreatorRole = creatorRole;
-    if (!token.role) {
-        const userDoc = await db.collection('users').doc(uid).get();
-        if (userDoc.exists)
-            finalCreatorRole = (_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
-    }
-    const creatorLevel = getRoleLevelNum(finalCreatorRole);
-    const targetLevel = getRoleLevelNum(targetRole);
-    if (creatorLevel < 80) {
-        throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions');
-    }
-    if (creatorLevel === 80 && targetLevel >= 80) {
-        throw new functions.https.HttpsError('permission-denied', 'Cannot invite equal/higher role');
-    }
-    // Create Code
-    // Collision check logic
-    let code = generateCode();
-    let attempts = 0;
-    while (attempts < 3) {
-        const doc = await db.collection('invites').doc(code).get();
-        if (!doc.exists)
-            break;
-        code = generateCode();
-        attempts++;
-    }
+    console.log(`[inviteUser] Call from ${uid} for tenant ${tenantId}, role ${targetRole}`);
+    // 2. Logic & Permission Check
     try {
+        const db = (0, utils_1.getDb)(); // Lazy load to ensure init
+        // Get Creator Role (Trust Custom Claims!)
+        const creatorRole = token.role || 'usuario_externo';
+        let finalCreatorRole = creatorRole;
+        // Fallback check if claim missing
+        if (!token.role) {
+            console.log("[inviteUser] No role claim, checking DB...");
+            const userDoc = await db.collection('users').doc(uid).get();
+            if (userDoc.exists)
+                finalCreatorRole = (_a = userDoc.data()) === null || _a === void 0 ? void 0 : _a.role;
+        }
+        const creatorLevel = getRoleLevelNum(finalCreatorRole);
+        const targetLevel = getRoleLevelNum(targetRole);
+        console.log(`[inviteUser] Levels - Creator: ${creatorLevel}, Target: ${targetLevel}`);
+        if (creatorLevel < 80) {
+            console.warn("[inviteUser] Permission denied (Level < 80)");
+            throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions');
+        }
+        if (creatorLevel === 80 && targetLevel >= 80) {
+            // Allow App Admins to invite other admins? Usually restricted. 
+            // Logic says: Cannot invite equal/higher.
+            console.warn(`[inviteUser] Permission denied (Target level ${targetLevel} >= Creator ${creatorLevel})`);
+            throw new functions.https.HttpsError('permission-denied', 'Cannot invite equal/higher role');
+        }
+        // 3. Generate Code
+        let code = generateCode();
+        let attempts = 0;
+        let collision = false;
+        while (attempts < 3) {
+            const doc = await db.collection('invites').doc(code).get();
+            if (!doc.exists)
+                break;
+            console.log("[inviteUser] Collision detected, retrying...");
+            code = generateCode();
+            attempts++;
+            if (attempts === 3)
+                collision = true;
+        }
+        if (collision) {
+            throw new functions.https.HttpsError('resource-exhausted', 'Failed to generate unique code');
+        }
+        // 4. Write to DB
         await db.collection('invites').doc(code).set({
             code,
             createdBy: uid,
@@ -71,10 +90,16 @@ exports.inviteUser = functions.https.onCall(async (data, context) => {
             role: targetRole,
             assignedProjectIds
         });
+        console.log(`[inviteUser] Success: ${code}`);
         return { success: true, code };
     }
     catch (e) {
-        throw new functions.https.HttpsError('internal', "Failed to create invite: " + e.message);
+        console.error("[inviteUser] CRITICAL ERROR:", e);
+        // Ensure we pass meaningful message if it's already HttpsError
+        if (e instanceof functions.https.HttpsError) {
+            throw e;
+        }
+        throw new functions.https.HttpsError('internal', `Failed to create invite: ${e.message}`);
     }
 });
 //# sourceMappingURL=invites.js.map

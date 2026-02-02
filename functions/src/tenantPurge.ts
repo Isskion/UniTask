@@ -13,13 +13,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { logTenantPurge, logAdminAction } from './utils/auditLogger';
-
-// Ensure admin is initialized before using firestore
-if (admin.apps.length === 0) {
-    admin.initializeApp();
-}
-
-const db = admin.firestore();
+import { getDb } from './utils'; // Lazy init
 
 // Collections to clean when purging a tenant
 const COLLECTIONS_TO_PURGE = [
@@ -52,6 +46,7 @@ export const purgeTenantData = functions
         memory: '2GB'           // Extra memory for batch processing
     })
     .https.onCall(async (data: PurgeRequest, context) => {
+        const db = getDb();
 
         // ═══════════════════════════════════════════════════════
         // 1. AUTHORIZATION CHECK
@@ -225,6 +220,7 @@ export const processScheduledDeletions = functions.region('europe-west1').pubsub
     .schedule('0 2 * * *')
     .timeZone('Europe/Madrid')
     .onRun(async () => {
+        const db = getDb();
         const now = new Date();
 
         const pendingDeletions = await db.collection('tenants')

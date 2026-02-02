@@ -2,8 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateFriendlyId = void 0;
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const db = admin.firestore();
+const utils_1 = require("./utils");
 /**
  * Generates a "Smart ID" for new tasks: [PROJECT_CODE]-[YY][MM][XX]
  * Example: TSP-260101 (First task of Jan 2026 for Transpais)
@@ -13,6 +12,7 @@ const db = admin.firestore();
 exports.generateFriendlyId = functions.firestore
     .document("tasks/{taskId}")
     .onCreate(async (snap, context) => {
+    const db = (0, utils_1.getDb)();
     const taskId = context.params.taskId;
     const taskData = snap.data();
     // Safety check: Avoid infinite loops or reprocessing if ID already looks correct (unlikely on create)

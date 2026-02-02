@@ -2,8 +2,6 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { getDb } from "./utils";
 
-const db = getDb();
-
 export const submitSupport = functions.https.onCall(async (data, context) => {
     // Auth check optional for support? Usually good to have.
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login required');
@@ -11,6 +9,7 @@ export const submitSupport = functions.https.onCall(async (data, context) => {
     const { userId, userName, userEmail, tenantId, message, context: msgContext } = data;
 
     try {
+        const db = getDb();
         // 1. Create Ticket
         const ticketRef = await db.collection("support_tickets").add({
             userId,
