@@ -2156,19 +2156,22 @@ export default function DailyFollowUp() {
 
                 {/* PDF Scanner Modal */}
                 {isPdfScannerOpen && (
-                    <PDFScanner
-                        isOpen={isPdfScannerOpen}
-                        onClose={() => setIsPdfScannerOpen(false)}
-                        onScanComplete={(scannedText) => {
-                            // Update the current block's content with scanned text
-                            const currentBlock = getCurrentBlock();
-                            if (currentBlock) {
-                                updateBlockContent(currentBlock.id, scannedText);
-                            }
-                            setIsPdfScannerOpen(false);
-                            showToast("UniTask AI", "Documento escaneado correctamente", "success");
-                        }}
-                    />
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full p-6">
+                            <PDFScanner
+                                onExtractComplete={(data) => {
+                                    // Update the current block's content with scanned text
+                                    const currentBlock = getCurrentBlock();
+                                    if (currentBlock) {
+                                        updateBlockContent(currentBlock.id, data.text);
+                                    }
+                                    setIsPdfScannerOpen(false);
+                                    showToast("UniTask AI", `Documento escaneado: ${data.pageCount} páginas`, "success");
+                                }}
+                                onCancel={() => setIsPdfScannerOpen(false)}
+                            />
+                        </div>
+                    </div>
                 )}
             </AppLayout >
         </>
