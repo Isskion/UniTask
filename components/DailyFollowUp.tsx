@@ -2160,11 +2160,38 @@ export default function DailyFollowUp() {
                         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full p-6">
                             <PDFScanner
                                 onExtractComplete={(data) => {
-                                    // Update the current block's content with scanned text
-                                    const currentBlock = getCurrentBlock();
-                                    if (currentBlock) {
-                                        updateBlockContent(currentBlock.id, data.text);
-                                    }
+                                    // Add scanned text to the current project
+                                    setFormData(prev => {
+                                        const currentProject = prev.projects.find(p => p.id === selectedProjectId);
+                                        if (!currentProject) return prev;
+
+                                        const updatedProjects = prev.projects.map(p => {
+                                            if (p.id !== selectedProjectId) return p;
+
+                                            const blocks = p.blocks && p.blocks.length > 0 ? p.blocks : [];
+
+                                            // Add text to first block or create new one
+                                            if (blocks.length > 0) {
+                                                const updatedBlocks = [...blocks];
+                                                updatedBlocks[0] = {
+                                                    ...updatedBlocks[0],
+                                                    content: (updatedBlocks[0].content || '') + '\n\n' + data.text
+                                                };
+                                                return { ...p, blocks: updatedBlocks, pmNotes: updatedBlocks[0].content };
+                                            } else {
+                                                const newBlock = {
+                                                    id: `block-${Date.now()}`,
+                                                    title: 'Documento Escaneado',
+                                                    content: data.text,
+                                                    isCollapsed: false
+                                                };
+                                                return { ...p, blocks: [newBlock], pmNotes: data.text };
+                                            }
+                                        });
+
+                                        return { ...prev, projects: updatedProjects };
+                                    });
+
                                     setIsPdfScannerOpen(false);
                                     showToast("UniTask AI", `Documento escaneado: ${data.pageCount} páginas`, "success");
                                 }}
