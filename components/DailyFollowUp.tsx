@@ -39,8 +39,10 @@ import ReportManagement from "./reports/ReportManagement"; // Added Import
 import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
+import DocumentTypesManager from "./admin/DocumentTypesManager"; // Added import
 import { KnowledgeBase } from "./KnowledgeBase";
 import { useLanguage } from "@/context/LanguageContext";
+import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
 // Helper to map language string to date-fns locale
@@ -53,7 +55,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -151,7 +153,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = searchParams.get('mode') as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -179,7 +181,7 @@ export default function DailyFollowUp() {
         }
     }, [currentDate, isHydrated]);
 
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | null>(null);
+    const [viewMode, setViewMode] = useState<ViewMode | null>(null);
 
     // Persist View Mode
     useEffect(() => {
@@ -235,6 +237,9 @@ export default function DailyFollowUp() {
     // Move Feature State
     const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
     const [moveTargetDate, setMoveTargetDate] = useState("");
+
+    // PDF Scanner State
+    const [isPdfScannerOpen, setIsPdfScannerOpen] = useState(false);
 
 
     // Prevent accidental navigation if unsaved
@@ -1620,102 +1625,17 @@ export default function DailyFollowUp() {
 
                                             {/* 2. SCAN PDF */}
                                             <div>
-                                                <input
-                                                    type="file"
-                                                    accept="application/pdf"
-                                                    className="hidden"
-                                                    id="daily-pdf-scan-header"
-                                                    onChange={async (e) => {
-                                                        const file = e.target.files?.[0];
-                                                        if (!file) return;
-                                                        setSaving(true);
-                                                        showToast("UniTask AI", "Leyendo documento...", "info");
-                                                        try {
-                                                            const reader = new FileReader();
-                                                            reader.onload = async () => {
-                                                                const base64String = (reader.result as string).split(',')[1];
-
-                                                                // [FIX] Add Auth Token - Not needed explicitly for Callable, handled by SDK
-                                                                if (!user) {
-                                                                    showToast("Error", "Not authenticated", "error");
-                                                                    setSaving(false);
-                                                                    return;
-                                                                }
-
-                                                                // Dynamic import to ensure browser compatibility
-                                                                const { httpsCallable } = await import("firebase/functions");
-                                                                const { functions } = await import("@/lib/firebase");
-
-                                                                const analyzePdfFn = httpsCallable(functions, 'analyzePdf');
-
-                                                                const res = await analyzePdfFn({ base64Data: base64String });
-                                                                const json = res.data as any;
-
-
-                                                                if (json.success && json.data) {
-                                                                    const { title, description, action_items, endDate, full_content } = json.data;
-                                                                    const md = `\n\n### 📄 ${title || 'Scanned Document'}\n\n${full_content || '(No text could be extracted)'}\n`;
-
-                                                                    if (activeTab === 'General') {
-                                                                        setEntry(prev => ({ ...prev, generalNotes: (prev.generalNotes || "") + md }));
-                                                                    } else {
-                                                                        const newBlock: ContentBlock = {
-                                                                            id: crypto.randomUUID(),
-                                                                            title: title || "PDF Summary",
-                                                                            content: md,
-                                                                            type: 'notes'
-                                                                        };
-                                                                        setEntry(prev => {
-                                                                            const exists = prev.projects.some(p => p.name === activeTab);
-                                                                            if (exists) {
-                                                                                return {
-                                                                                    ...prev,
-                                                                                    projects: prev.projects.map(p =>
-                                                                                        p.name === activeTab
-                                                                                            ? { ...p, blocks: [...(p.blocks || []), newBlock] }
-                                                                                            : p
-                                                                                    )
-                                                                                };
-                                                                            } else {
-                                                                                // Create new project entry if it doesn't exist for this day
-                                                                                const gp = globalProjects.find(g => g.name === activeTab);
-                                                                                return {
-                                                                                    ...prev,
-                                                                                    projects: [...prev.projects, {
-                                                                                        name: activeTab,
-                                                                                        projectId: gp?.id || "",
-                                                                                        pmNotes: "",
-                                                                                        conclusions: "",
-                                                                                        nextSteps: "",
-                                                                                        blocks: [newBlock],
-                                                                                        status: 'active'
-                                                                                    }]
-                                                                                };
-                                                                            }
-                                                                        });
-                                                                        setIsDirty(true); // Mark state as dirty after scan results arrive
-                                                                    }
-                                                                    setAiSummary(description || "Sin resumen disponible");
-                                                                    setAiSuggestions(action_items || []);
-                                                                    setIsTasksPanelVisible(true); // Auto-open panel
-                                                                    showToast("UniTask AI", "Documento leído.", "success");
-                                                                } else {
-                                                                    console.error(json);
-                                                                    showToast("Error", `Fallo al procesar: ${json.error}`, "error");
-                                                                }
-                                                                setSaving(false);
-                                                            };
-
-
-                                                            reader.readAsDataURL(file);
-                                                        } catch (err) { console.error(err); showToast("Error", "Fallo al procesar", "error"); setSaving(false); }
-                                                        e.target.value = "";
-                                                    }}
-                                                />
-                                                <label htmlFor="daily-pdf-scan-header" className={cn("cursor-pointer flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm", isLight ? "bg-sky-50 text-sky-600 border-sky-100 hover:bg-sky-100" : "bg-sky-500/10 text-sky-400 border-sky-500/20 hover:bg-sky-500/20")} title={t('follow_up.scan_pdf')}>
-                                                    <Sparkles className="w-3 h-3" /> {t('follow_up.scan')}
-                                                </label>
+                                                <button
+                                                    onClick={() => setIsPdfScannerOpen(true)}
+                                                    className="p-1.5 rounded-full hover:bg-muted text-zinc-500 hover:text-indigo-600 transition-colors"
+                                                    title="Escanear y procesar documento PDF"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                </button>
                                             </div>
+
+
+
 
                                             {/* 3. MOVE (PM+ only) */}
                                             {activeTab !== 'General' && getRoleLevel(userRole) >= RoleLevel.PM && (
@@ -2150,6 +2070,8 @@ export default function DailyFollowUp() {
                             />
                         ) : viewMode === 'admin-task-master' ? (
                             <TaskMasterDataManagement />
+                        ) : viewMode === 'admin-document-types' ? (
+                            <DocumentTypesManager />
                         ) : viewMode === 'sprint-cycles' ? (
                             <div className="p-6 h-full overflow-y-auto">
                                 <SprintManager />
