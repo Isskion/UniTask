@@ -2161,12 +2161,12 @@ export default function DailyFollowUp() {
                             <PDFScanner
                                 onExtractComplete={(data) => {
                                     // Add scanned text to the current project
-                                    setFormData(prev => {
-                                        const currentProject = prev.projects.find(p => p.id === selectedProjectId);
+                                    setEntry(prev => {
+                                        const currentProject = prev.projects.find(p => p.id === activeTab);
                                         if (!currentProject) return prev;
 
                                         const updatedProjects = prev.projects.map(p => {
-                                            if (p.id !== selectedProjectId) return p;
+                                            if (p.id !== activeTab) return p;
 
                                             const blocks = p.blocks && p.blocks.length > 0 ? p.blocks : [];
 
@@ -2192,6 +2192,7 @@ export default function DailyFollowUp() {
                                         return { ...prev, projects: updatedProjects };
                                     });
 
+                                    setIsDirty(true);
                                     setIsPdfScannerOpen(false);
                                     showToast("UniTask AI", `Documento escaneado: ${data.pageCount} páginas`, "success");
                                 }}
