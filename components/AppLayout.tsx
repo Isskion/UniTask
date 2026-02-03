@@ -46,8 +46,8 @@ import { auth } from "@/lib/firebase";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -254,6 +254,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                 </>
                             )}
+                            {/* Document Types (Admin) */}
+                            {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
+                                <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types') || "Tipos de Documento"} />
+                            )}
                         </div>
 
                         {/* System */}
@@ -434,7 +438,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
 
             {/* GLOBAL RECOVERY PANEL */}
-            {userRole === 'superadmin' && <FirebaseDiagnostic />}
+            {(userRole === 'superadmin' || getRoleLevel(userRole) >= 80) && <FirebaseDiagnostic />}
         </div>
     );
 }
