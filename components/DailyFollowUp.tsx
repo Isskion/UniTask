@@ -2162,11 +2162,11 @@ export default function DailyFollowUp() {
                                 onExtractComplete={(data) => {
                                     // Add scanned text to the current project
                                     setEntry(prev => {
-                                        const currentProject = prev.projects.find(p => p.projectId === activeTab);
+                                        const currentProject = prev.projects.find(p => p.name === activeTab);
                                         if (!currentProject) return prev;
 
                                         const updatedProjects = prev.projects.map(p => {
-                                            if (p.projectId !== activeTab) return p;
+                                            if (p.name !== activeTab) return p;
 
                                             const blocks = p.blocks && p.blocks.length > 0 ? p.blocks : [];
 
