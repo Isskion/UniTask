@@ -446,3 +446,15 @@ export interface KnowledgeTag {
     usageCount: number;
     createdAt: any;
 }
+
+// Master Data: Document Types
+export interface DocumentType {
+    id: string;             // Firestore ID
+    code: string;           // e.g. "SCOPE"
+    name: string;           // e.g. "Definición de Alcance"
+    description?: string;   // Memo
+    isProjectChecklist: boolean; // "Cheq Proyecto"
+    tenantId: string;
+    isActive: boolean;
+    createdAt: any;
+}
