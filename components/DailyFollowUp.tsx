@@ -1390,7 +1390,7 @@ export default function DailyFollowUp() {
     return (
         <>
             <AppLayout
-                viewMode={viewMode}
+                viewMode={viewMode as Exclude<ViewMode, null>}
                 onViewChange={setViewMode}
                 onOpenChangelog={() => setShowChangelog(true)}
             >
