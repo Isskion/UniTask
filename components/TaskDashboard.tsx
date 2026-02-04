@@ -6,7 +6,7 @@ import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle } from 'lucide-react';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
@@ -356,13 +356,24 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                             task.status === 'review' ? "bg-amber-500" : "bg-zinc-500"
                                                 )} />
 
-                                                <div className="mt-1 ml-2">
+                                                <div
+                                                    className="mt-1 ml-2 cursor-pointer hover:scale-110 transition-transform active:scale-95"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent double trigger
+                                                        router.push(`/?view=task-manager&taskId=${task.id}`);
+                                                    }}
+                                                    title="Abrir Tarea"
+                                                >
                                                     {task.status === 'completed' ? (
-                                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
                                                     ) : task.isBlocking ? (
-                                                        <Ban className="w-4 h-4 text-destructive animate-pulse" />
+                                                        <Ban className="w-5 h-5 text-destructive animate-pulse" />
+                                                    ) : task.status === 'in_progress' ? (
+                                                        <PlayCircle className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                                                    ) : task.status === 'review' ? (
+                                                        <AlertCircle className="w-5 h-5 text-amber-500 fill-amber-500/10" />
                                                     ) : (
-                                                        <Circle className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                        <Circle className="w-5 h-5 text-zinc-400 hover:text-primary transition-colors" />
                                                     )}
                                                 </div>
 
