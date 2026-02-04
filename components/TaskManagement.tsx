@@ -145,11 +145,18 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
     // AUTO-SELECT TASK FROM ID (Fix for Notifications)
     useEffect(() => {
-        if (initialTaskId && processedInitialRef.current !== initialTaskId) {
+        // [FIX] Check URL params if initialTaskId prop is missing (Client-side navigation support)
+        let targetId = initialTaskId;
+        if (!targetId && typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            targetId = params.get('taskId');
+        }
+
+        if (targetId && processedInitialRef.current !== targetId) {
             const loadDeepLinkedTask = async () => {
                 try {
                     const { doc, getDoc } = await import("firebase/firestore");
-                    const docRef = doc(db, "tasks", initialTaskId);
+                    const docRef = doc(db, "tasks", targetId);
                     const snap = await getDoc(docRef);
                     if (snap.exists()) {
                         const taskData = { id: snap.id, ...snap.data() } as Task;
@@ -170,7 +177,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         setSelectedTask(normalizedTask);
                         setFormData(normalizedTask); // Sync Form Data
                         setSidebarFilter('all'); // Ensure visibility
-                        processedInitialRef.current = initialTaskId; // Mark as processed
+                        processedInitialRef.current = targetId; // Mark as processed
                     }
                 } catch (e) {
                     console.error("Error loading deep linked task:", e);

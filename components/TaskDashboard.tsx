@@ -6,7 +6,9 @@ import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil } from 'lucide-react';
+
+
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
@@ -346,7 +348,11 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                             <div
                                                 key={task.id}
                                                 // [NEW] OnClick to Open ABM
-                                                onClick={() => router.push(`/?view=task-manager&taskId=${task.id}`)}
+                                                onClick={() => {
+                                                    // [FIX] Dispatch event for instant switch
+                                                    window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'task-manager' } }));
+                                                    router.push(`/?mode=task-manager&taskId=${task.id}`);
+                                                }}
                                                 className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer"
                                             >
                                                 {/* Left Status Stripe */}
@@ -357,24 +363,36 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 )} />
 
                                                 <div
-                                                    className="mt-1 ml-2 cursor-pointer hover:scale-110 transition-transform active:scale-95"
+                                                    className="mt-1 ml-2 cursor-pointer hover:scale-110 transition-transform active:scale-95 relative group/icon w-6 h-6 flex items-center justify-center"
                                                     onClick={(e) => {
                                                         e.stopPropagation(); // Prevent double trigger
-                                                        router.push(`/?view=task-manager&taskId=${task.id}`);
+                                                        // [FIX] Dispatch event for instant switch
+                                                        window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'task-manager' } }));
+                                                        router.push(`/?mode=task-manager&taskId=${task.id}`);
                                                     }}
-                                                    title="Abrir Tarea"
+                                                    title="Abrir Ficha de Tarea (ABM)"
                                                 >
-                                                    {task.status === 'completed' ? (
-                                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
-                                                    ) : task.isBlocking ? (
-                                                        <Ban className="w-5 h-5 text-destructive animate-pulse" />
-                                                    ) : task.status === 'in_progress' ? (
-                                                        <PlayCircle className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
-                                                    ) : task.status === 'review' ? (
-                                                        <AlertCircle className="w-5 h-5 text-amber-500 fill-amber-500/10" />
-                                                    ) : (
-                                                        <Circle className="w-5 h-5 text-zinc-400 hover:text-primary transition-colors" />
-                                                    )}
+                                                    {/* Layer 1: Status Icon (Fades out on Hover) */}
+                                                    <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover/icon:opacity-0">
+                                                        {task.status === 'completed' ? (
+                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
+                                                        ) : task.isBlocking ? (
+                                                            <Ban className="w-5 h-5 text-destructive animate-pulse" />
+                                                        ) : task.status === 'in_progress' ? (
+                                                            <PlayCircle className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                                                        ) : task.status === 'review' ? (
+                                                            <AlertCircle className="w-5 h-5 text-amber-500 fill-amber-500/10" />
+                                                        ) : (
+                                                            <Circle className="w-5 h-5 text-zinc-400" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Layer 2: Edit Icon (Fades in on Hover) - "Invented" Interaction */}
+                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/icon:opacity-100 transition-opacity duration-200 scale-75 group-hover/icon:scale-110">
+                                                        <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
+                                                            <Pencil className="w-3 h-3" />
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex-1 min-w-0 space-y-1">
