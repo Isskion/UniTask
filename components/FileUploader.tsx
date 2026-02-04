@@ -9,17 +9,24 @@ import { useAuth } from "@/context/AuthContext";
 
 interface FileUploaderProps {
     tenantId: string;
-    taskId?: string; // Optional: If new task, we might upload to a temp folder or just use "new" and move later? Better: require ID or use a temp ID.
+    entityId?: string; // Replaces taskId
+    entityType?: 'tasks' | 'projects'; // New prop
     onUploadComplete: (file: { name: string; url: string; type: string; size: number }) => void;
     className?: string;
+    // Legacy support
+    taskId?: string;
 }
 
-export function FileUploader({ tenantId, taskId, onUploadComplete, className }: FileUploaderProps) {
+export function FileUploader({ tenantId, entityId, entityType = 'tasks', taskId, onUploadComplete, className }: FileUploaderProps) {
     const { user } = useAuth();
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Resolve effective ID and Type (Support legacy taskId)
+    const activeEntityId = entityId || taskId || "temp_uploads";
+    const activeEntityType = taskId ? 'tasks' : entityType;
 
     const handleFile = async (file: File) => {
         if (!file) return;
@@ -38,10 +45,10 @@ export function FileUploader({ tenantId, taskId, onUploadComplete, className }: 
             const { ref, uploadBytesResumable, getDownloadURL } = await import("firebase/storage");
             const { storage } = await import("@/lib/firebase");
 
-            const safeTaskId = taskId || "temp_uploads";
             // Clean filename
             const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "")}`;
-            const filePath = `tenants/${tenantId}/tasks/${safeTaskId}/attachments/${fileName}`;
+            // Dynamic Path: tenants/{tid}/{entityType}/{id}/attachments/{file}
+            const filePath = `tenants/${tenantId}/${activeEntityType}/${activeEntityId}/attachments/${fileName}`;
 
             const storageRef = ref(storage, filePath);
             const uploadTask = uploadBytesResumable(storageRef, file);

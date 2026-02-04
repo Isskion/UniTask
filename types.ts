@@ -416,7 +416,7 @@ export interface ChangeLogEntry {
 
 export interface KnowledgeEntry {
     id: string;
-    type: 'lesson_learned' | 'solution_record';
+    type: 'lesson_learned' | 'solution_record' | 'product_proposal';
     title: string;
     content: string;              // Large text field
     projectId?: string;           // Optional project link

@@ -15,6 +15,8 @@ import TaskMasterDataManagement from "./TaskMasterDataManagement";
 import { AppLayout } from "./AppLayout";
 import ChangelogModal from "./ChangelogModal";
 import ManualViewer from "./ManualViewer";
+import { KnowledgeBase } from "./KnowledgeBase";
+import { ProductProposals } from "./ProductProposals";
 import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
@@ -76,7 +78,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -88,7 +90,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'].includes(view)) {
+            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals'].includes(view)) {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -96,7 +98,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records'].includes(saved)) {
+            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals'].includes(saved)) {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -1203,6 +1205,13 @@ export default function WeeklyEditor() {
                     {viewMode === 'support-management' && (
                         <div className="h-full overflow-hidden">
                             <SupportManagement />
+                        </div>
+                    )}
+
+                    {/* View: Product Proposals */}
+                    {viewMode === 'product-proposals' && (
+                        <div className="h-full overflow-hidden">
+                            <ProductProposals />
                         </div>
                     )}
 

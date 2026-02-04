@@ -50,7 +50,7 @@ export const analyzeDocumentStructure = functions.https.onCall(async (data, cont
     if (!apiKey) throw new functions.https.HttpsError('internal', "AI Key missing");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
         Act as a Visual Document Expert.
@@ -119,7 +119,7 @@ export const analyzePdf = functions.https.onCall(async (data, context) => {
     if (!apiKey) throw new functions.https.HttpsError('internal', "AI Key missing");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
         Extract structured data from this PDF project document.
@@ -139,7 +139,7 @@ export const analyzePdf = functions.https.onCall(async (data, context) => {
         if (userRole !== 'superadmin') {
             await logUsage({
                 userId, tenantId, action: "analyze_pdf_api",
-                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-2.0-flash"
+                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-1.5-flash"
             });
         }
 
@@ -168,7 +168,7 @@ export const summarizeNotes = functions.https.onCall(async (data, context) => {
     if (!apiKey) throw new functions.https.HttpsError('internal', "AI Key missing");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
         Analyze the following Project Management notes and extract key insights.
@@ -193,7 +193,7 @@ export const summarizeNotes = functions.https.onCall(async (data, context) => {
         if (userRole !== 'superadmin') {
             await logUsage({
                 userId, tenantId, action: "summarize_notes",
-                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-2.0-flash"
+                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-1.5-flash"
             });
         }
 

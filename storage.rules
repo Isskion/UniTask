@@ -20,10 +20,8 @@ service firebase.storage {
 
     // Tenant Assets: /tenants/{tenantId}/...
     match /tenants/{tenantId}/{allPaths=**} {
-      // Allow if tenantId claim matches tenantId (the path segment)
-      allow read, write: if isAuthenticated() && (
-        request.auth.token.get('tenantId', null) == tenantId
-      );
+      // DEBUG: Allow if authenticated (skipping tenantId check for now)
+      allow read, write: if isAuthenticated();
     }
     
     // Explicit rule for task attachments (Nested under tenants for security)

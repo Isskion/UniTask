@@ -173,7 +173,7 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
                         .join('\n\n') || "No additional notes.";
 
                     results.push({
-                        id: `journal-${d.id}-${projectId}`,
+                        id: `journal::${d.id}::${projectId}`,
                         projectId,
                         date: Timestamp.fromDate(entryDate),
                         authorId: 'system',
@@ -212,12 +212,13 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
  */
 export async function trashTimelineEvent(eventId: string, userId: string) {
     try {
-        // [FIX] Handle Journal Entry Soft Delete (Composite ID)
-        if (eventId.startsWith('journal-')) {
-            const parts = eventId.split('-');
+        // [FIX] Handle Journal Entry Soft Delete (Composite ID safely)
+        if (eventId.startsWith('journal::')) {
+            const parts = eventId.split('::');
             const docId = parts[1];
-            // Reconstruct projectId (might contain hyphens)
-            const targetProjectId = parts.slice(2).join('-');
+            const targetProjectId = parts[2];
+
+            if (!docId || !targetProjectId) throw new Error("Invalid Journal ID format");
 
             const docReference = doc(db, 'journal_entries', docId);
             const docSnap = await getDoc(docReference);
@@ -239,6 +240,39 @@ export async function trashTimelineEvent(eventId: string, userId: string) {
             });
             console.log(`[Updates] Journal Entry Block ${docId}/${targetProjectId} moved to trash by ${userId}`);
             return;
+        }
+
+        // [FIX] Handle Legacy Journal IDs (journal-yyyy-mm-dd-projectID)
+        // This prevents "Permission Denied" when trying to delete older items that haven't been refreshed to :: format
+        if (eventId.startsWith('journal-')) {
+            const parts = eventId.split('-');
+            // Expected: ['journal', 'yyyy', 'MM', 'dd', ...projectIdParts]
+            if (parts.length >= 5) {
+                const docId = `${parts[1]}-${parts[2]}-${parts[3]}`; // Reconstruct Date ID
+                const targetProjectId = parts.slice(4).join('-');
+
+                const docReference = doc(db, 'journal_entries', docId);
+                const docSnap = await getDoc(docReference);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data() as DailyStatus;
+                    const updatedProjects = data.projects.map(p => {
+                        if (p.projectId === targetProjectId) {
+                            return { ...p, status: 'trash', isTrashed: true, deletedBy: userId, deletedAt: new Date().toISOString() };
+                        }
+                        return p;
+                    });
+
+                    await updateDoc(docReference, {
+                        projects: updatedProjects
+                    });
+                    console.log(`[Updates] Legacy Journal Entry Block ${docId}/${targetProjectId} moved to trash by ${userId}`);
+                    return;
+                }
+            }
+            // If we fall through here, it might be a malformed ID or not found, 
+            // but we let it fall to the standard handler which will likely fail permissions, 
+            // but at least we tried.
         }
 
 

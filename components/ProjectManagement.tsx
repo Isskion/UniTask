@@ -17,6 +17,7 @@ import { ProjectMindMapModal } from "./ProjectMindMapModal";
 // New Components
 import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
+import { ProjectDocuments } from "./ProjectDocuments";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
@@ -33,7 +34,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'feed' | 'settings'>('feed');
+    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents'>('feed');
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
@@ -478,6 +479,32 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     </button>
                                 )}
 
+                                {/* DOCUMENT TOGGLE */}
+                                {!isNew && (
+                                    <div className={cn("flex bg-muted/20 p-1 rounded-full border ml-2", isLight ? "border-zinc-200" : "border-white/10")}>
+                                        <button
+                                            onClick={() => setUserTab('feed')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                                userTab === 'feed'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            Feed
+                                        </button>
+                                        <button
+                                            onClick={() => setUserTab('documents')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                                userTab === 'documents'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            Docs
+                                        </button>
+                                    </div>
+                                )}
+
                                 {userTab === 'settings' && (
                                     <button
                                         onClick={handleBack}
@@ -660,6 +687,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             {t('projects.system_id')} <span className="font-mono text-zinc-500">{selectedProject.id}</span>
                                         </p>
                                     </div>
+                                </div>
+                            )}
+
+                            {/* VIEW 3: DOCUMENTS */}
+                            {userTab === 'documents' && !isNew && selectedProject && (
+                                <div className="p-4 md:p-8 max-w-5xl mx-auto">
+                                    <ProjectDocuments
+                                        project={selectedProject}
+                                        tenantId={selectedProject.tenantId || tenantId || "1"}
+                                    />
                                 </div>
                             )}
 

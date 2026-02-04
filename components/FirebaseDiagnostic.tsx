@@ -37,6 +37,14 @@ export default function FirebaseDiagnostic() {
             if (!user) {
                 const errMsg = "Debes iniciar sesión para probar la escritura.";
                 addLog(`⚠️ ${errMsg}`);
+            } else {
+                // Check Claims
+                try {
+                    const tokenResult = await user.getIdTokenResult();
+                    addLog(`Claims: Role=${tokenResult.claims.roleLevel || 'N/A'}, Tenant=${tokenResult.claims.tenantId || 'MISSING'}`);
+                } catch (e: any) {
+                    addLog(`Error fetching claims: ${e.message}`);
+                }
             }
 
             // 2. Test Write

@@ -25,7 +25,8 @@ import {
     BookOpen,
     Timer,
     Lightbulb,
-    BookMarked
+    BookMarked,
+    Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -46,8 +47,8 @@ import { auth } from "@/lib/firebase";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -215,6 +216,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
                             <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
                             <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
+                            <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
                         </div>
 
                         {/* Sprint Management (NEW) - Permissions: PM+ */}
@@ -406,6 +408,13 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             </div>
 
                             <div className="mt-4 space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
+                                <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
+                                <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
+                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                            </div>
+
+                            <div className="mt-4 space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
                                 {canManagePermissions && (
                                     <>
@@ -438,7 +447,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
 
             {/* GLOBAL RECOVERY PANEL */}
-            {(userRole === 'superadmin' || getRoleLevel(userRole) >= 80) && <FirebaseDiagnostic />}
+            {(userRole === 'superadmin') && <FirebaseDiagnostic />}
         </div>
     );
 }

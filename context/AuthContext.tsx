@@ -275,20 +275,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const snapshot = await getDoc(userRef);
             const existingData = snapshot.data();
 
-            // Is the user an orphan? (Existing but no tenant or default guest tenant)
-            const isOrphan = snapshot.exists() && (
-                !existingData?.tenantId ||
-                existingData?.tenantId === "unknown" ||
-                (existingData?.tenantId === "1" && existingData?.role === "usuario_externo")
-            );
-
-            if (!snapshot.exists() || (isOrphan && inviteData)) {
-                console.log("[AuthContext] Creating or updating user profile...");
+            // Logic Update: Always process profile update if we have valid Invite Data
+            // This ensures that even existing users get assigned the new Tenant/Project
+            if (!snapshot.exists() || inviteData) {
+                console.log("[AuthContext] Creating or updating user profile With Invite Data...");
 
                 // 2. Determine Initial Data (Invite vs Default)
+                // If inviteData exists, it OVERRIDES existing role/tenant
                 const finalRole = inviteData?.role || (existingData?.role || 'usuario_externo');
                 const finalTenantId = inviteData?.tenantId || (existingData?.tenantId || "1");
-                const finalProjects = inviteData?.assignedProjectIds || (existingData?.assignedProjectIds || []);
+
+                // Merge projects: Add new ones to existing list
+                const existingProjects = existingData?.assignedProjectIds || [];
+                const newProjects = inviteData?.assignedProjectIds || [];
+                const mergedProjects = Array.from(new Set([...existingProjects, ...newProjects]));
+
                 const autoActive = !!inviteData || (existingData?.isActive || false);
 
                 const profilePayload: any = {
@@ -299,7 +300,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     role: finalRole,
                     roleLevel: getRoleLevel(finalRole),
                     tenantId: finalTenantId,
-                    assignedProjectIds: finalProjects,
+                    assignedProjectIds: mergedProjects,
                     isActive: autoActive,
                     updatedAt: serverTimestamp(),
                     lastLogin: serverTimestamp()
@@ -322,7 +323,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     });
                     alert("✅ INVITACIÓN ACEPTADA: Ahora tienes acceso a " + (inviteData.tenantId || "tu organización"));
                 } else if (inviteCode && inviteData && inviteData.usedBy === user.uid) {
-                    // Invite already consumed by this user, just proceed silently
                     console.log("[AuthContext] Invite already consumed by this user, skipping re-consumption.");
                 } else if (!snapshot.exists()) {
                     alert("✅ PERFIL DE USUARIO CREADO CORRECTAMENTE");
@@ -336,7 +336,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     window.location.reload();
                 }
             } else {
-                console.log("[AuthContext] User profile already exists and is valid.");
+                console.log("[AuthContext] User profile already exists and is valid. No invite to process.");
             }
         } catch (e: any) {
             console.error("[AuthContext] Error in createUserProfile:", e);
@@ -347,10 +347,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
-            const result = await signInWithPopup(auth, provider);
-            if (result.user) {
-                await createUserProfile(result.user);
-            }
+            await signInWithPopup(auth, provider);
+            // Reliance on useEffect to trigger profile creation/invite processing
         } catch (error: any) {
             if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
                 console.log("[AuthContext] Login popup cancelled by user. This is expected.");
@@ -362,11 +360,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const loginWithEmail = async (e: string, p: string) => {
-        const result = await signInWithEmailAndPassword(auth, e, p);
-        // Fallback: Check/Create profile on login too, in case registration succeeded but DB failed
-        if (result.user) {
-            await createUserProfile(result.user);
-        }
+        await signInWithEmailAndPassword(auth, e, p);
+        // Reliance on useEffect
     };
 
     const registerWithEmail = async (e: string, p: string, name?: string) => {
@@ -375,6 +370,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (name) {
                 await updateProfile(result.user, { displayName: name });
             }
+            // Explicit call needed here? Maybe not if onIdTokenChanged fires with user.
+            // But registration might not trigger onIdTokenChanged immediately with profile updated.
+            // Keeping it for safety on REGISTRATION only, but Login is handled by Effect.
             await createUserProfile(result.user, name);
         }
     };

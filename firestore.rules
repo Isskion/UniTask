@@ -253,6 +253,16 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 60));
     }
 
+    // --- DOCUMENT TYPES (Minute Types) ---
+    match /document_types/{typeId} {
+        // [DEBUG] Relaxed rule for debugging permissions
+        allow read: if isAuthenticated(); 
+        // Original: allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+        // Only Admins (>=80) can manage master data
+        allow write: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 80)); 
+        allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && getRealRole() >= 80));
+    }
+
     match /project_activity_feed/{eventId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));

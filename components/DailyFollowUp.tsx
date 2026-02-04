@@ -41,6 +41,7 @@ import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
 import DocumentTypesManager from "./admin/DocumentTypesManager"; // Added import
 import { KnowledgeBase } from "./KnowledgeBase";
+import { ProductProposals } from "./ProductProposals";
 import { useLanguage } from "@/context/LanguageContext";
 import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
@@ -55,7 +56,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -707,9 +708,11 @@ export default function DailyFollowUp() {
             setAiSuggestions(suggestions);
             setIsTasksPanelVisible(true); // Auto-open on success
 
-        } catch (e) {
-            console.error(e);
-            showToast("Error", "Error en AI", "error");
+        } catch (e: any) {
+            console.error("AI Error:", e);
+            const errorMsg = e.message || e.toString();
+            showToast("Error AI", `Falló la generación: ${errorMsg}`, "error");
+            alert(`Detalle del error AI:\n${errorMsg}\n\nSi persiste, verifica la consola y los logs de Firebase.`);
         } finally {
             setIsAILoading(false);
         }
@@ -2101,6 +2104,8 @@ export default function DailyFollowUp() {
                             <KnowledgeBase type="lesson_learned" />
                         ) : viewMode === 'solution-records' ? (
                             <KnowledgeBase type="solution_record" />
+                        ) : viewMode === 'product-proposals' ? (
+                            <ProductProposals />
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}
@@ -2160,10 +2165,41 @@ export default function DailyFollowUp() {
                         <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl max-w-2xl w-full p-6">
                             <PDFScanner
                                 onExtractComplete={(data) => {
-                                    // Add scanned text to the current project
+                                    // 1. Guard: Check for empty text (e.g. Scanned Image PDF)
+                                    if (!data.text || !data.text.trim()) {
+                                        showToast(
+                                            "Aviso",
+                                            "El PDF parece no contener texto seleccionable. Si es una imagen escaneada, intenta usar un PDF con texto digital.",
+                                            "warning"
+                                        );
+                                        // We can choose to stop or continue. 
+                                        // If it's truly empty, adding it might just add whitespace.
+                                        // Let's stop to avoid confusion ("It finished but nothing happened").
+                                        setIsPdfScannerOpen(false);
+                                        return;
+                                    }
+
+                                    // 2. Handle 'General' Tab
+                                    if (activeTab === 'General') {
+                                        setEntry(prev => ({
+                                            ...prev,
+                                            generalNotes: (prev.generalNotes || '') + '\n\n--- PDF SCANNED TEXT ---\n' + data.text
+                                        }));
+                                        setIsDirty(true);
+                                        setIsPdfScannerOpen(false);
+                                        showToast("UniTask AI", `Texto añadido a Notas Generales (${data.pageCount} págs.)`, "success");
+                                        return;
+                                    }
+
+                                    // 3. Handle Project Tabs (Existing Logic)
                                     setEntry(prev => {
                                         const currentProject = prev.projects.find(p => p.name === activeTab);
-                                        if (!currentProject) return prev;
+                                        // Fallback/Safety: If not found in current daily entry, we can't easily add it without "initializing" the project first.
+                                        // But usually if we are ON the tab, it exists or was initialized by DailyFollowUp logic.
+                                        if (!currentProject) {
+                                            console.warn(`[PDFScanner] Project ${activeTab} not found in entry.`);
+                                            return prev;
+                                        }
 
                                         const updatedProjects = prev.projects.map(p => {
                                             if (p.name !== activeTab) return p;
