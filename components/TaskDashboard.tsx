@@ -6,7 +6,7 @@ import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp } from 'lucide-react';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
@@ -28,10 +28,14 @@ interface TaskDashboardProps {
     permissionLoading?: boolean;
 }
 
+import { useRouter } from 'next/navigation';
+
 export default function TaskDashboard({ projects, userProfile, permissionLoading }: TaskDashboardProps) {
     const { user, tenantId } = useAuth();
+    // ...
     const { permissions, isAdmin, getAllowedProjectIds, loading: permissionsLoading } = usePermissions();
     const { t } = useLanguage();
+    const router = useRouter(); // [NEW] Router
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -41,6 +45,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
     // Data for Filters
     const [users, setUsers] = useState<UserProfile[]>([]);
+    const [sprints, setSprints] = useState<{ id: string; name: string; color?: string }[]>([]); // [NEW] Sprints State
     const [attributeDefinitions, setAttributeDefinitions] = useState<AttributeDefinition[]>([]);
     const [masterData, setMasterData] = useState<Record<string, MasterDataItem[]>>({
         priority: [], area: [], scope: [], module: []
@@ -60,7 +65,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         return () => unsubscribe();
     }, [tenantId]);
 
-    // 2. Load MasterData & Users (One-time fetch for filters)
+    // 2. Load MasterData & Users & Sprints (One-time fetch for filters)
     useEffect(() => {
         if (!tenantId) return;
 
@@ -73,6 +78,16 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
             setUsers(list);
         };
         fetchUsers();
+
+        // Sprints (New)
+        const fetchSprints = async () => {
+            const q = query(collection(db, "sprints"), where("tenantId", "==", tenantId));
+            const snap = await getDocs(q);
+            const list: { id: string; name: string; color?: string }[] = [];
+            snap.forEach(d => list.push({ id: d.id, name: d.data().name, color: d.data().color }));
+            setSprints(list);
+        };
+        fetchSprints();
 
         // Attribute Definitions
         const qAttr = query(collection(db, "attribute_definitions"), where("tenantId", "==", tenantId), where("isActive", "==", true));
@@ -328,7 +343,12 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
                                     <div className="grid gap-2">
                                         {pTasks.map(task => (
-                                            <div key={task.id} className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden">
+                                            <div
+                                                key={task.id}
+                                                // [NEW] OnClick to Open ABM
+                                                onClick={() => router.push(`/?view=task-manager&taskId=${task.id}`)}
+                                                className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer"
+                                            >
                                                 {/* Left Status Stripe */}
                                                 <div className={cn("absolute left-0 top-0 bottom-0 w-1",
                                                     task.status === 'completed' ? "bg-emerald-500" :
@@ -364,6 +384,14 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                                 task.status === 'review' ? 'REVISIÓN' :
                                                                     task.status === 'completed' ? 'HECHO' : 'PENDIENTE'}
                                                         </span>
+
+                                                        {/* [NEW] Sprint Badge */}
+                                                        {(task.sprintId && sprints.find(s => s.id === task.sprintId)) && (
+                                                            <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/5 px-1.5 py-0.5 rounded border border-indigo-500/10 flex items-center gap-1">
+                                                                <TrendingUp className="w-3 h-3" />
+                                                                {sprints.find(s => s.id === task.sprintId)?.name || 'Sprint'}
+                                                            </span>
+                                                        )}
 
                                                         {task.priority && (
                                                             <span className={cn("text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border",
