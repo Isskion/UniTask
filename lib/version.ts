@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.2.0";
+export const APP_VERSION = "13.2.1";
 
 export const CHANGELOG = [
+    {
+        version: "13.2.1",
+        title: "Task Navigation Fix",
+        date: "2026-02-04",
+        features: [
+            "**Task Dashboard**: Fixed issue where clicking the task status circle did not open the detail view.",
+            "**Micro-Interactions**: Added visual feedback (pencil icon) when hovering over task status to indicate editability."
+        ]
+    },
     {
         version: "13.2.0",
         title: "Knowledge Area Module",
