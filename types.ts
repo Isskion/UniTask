@@ -422,7 +422,7 @@ export interface KnowledgeEntry {
     type: 'lesson_learned' | 'solution_record' | 'product_proposal';
     title: string;
     content: string;              // Large text field
-    projectId?: string;           // Optional project link
+    projectId?: string | null;    // Optional project link
     tags: string[];               // Categorization with autocomplete
     attachments?: string[];       // New: Screenshot URLs
 
