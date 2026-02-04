@@ -69,9 +69,12 @@ export function SprintBurndown({ sprint, tasks, usersMap, selectedUserIds }: Spr
                 // Let's assume if closedAt is missing, it was effectively closed "at the end" or "now".
                 // Actually, if we want a nice chart, we should rely on closedAt.
 
-                if (!t.closedAt) return sum;
+                // [FIX] Fallback to 'updatedAt' if 'closedAt' is missing
+                const dateRef = t.closedAt || t.updatedAt;
+                if (!dateRef) return sum; // If absolutely no date, we can't plot it
 
-                const closedDate = t.closedAt.toDate ? t.closedAt.toDate() : new Date(t.closedAt);
+                const closedDate = (dateRef as any).toDate ? (dateRef as any).toDate() : new Date(dateRef as string | number | Date);
+
                 if (isBefore(closedDate, endOfDay(day))) { // If closed before end of this day
                     return sum + (t.estimatedEffort || 0);
                 }

@@ -122,15 +122,12 @@ service cloud.firestore {
         isSuperAdmin() || 
         (docTenantMatches(resource.data) && docTenantMatches(request.resource.data) &&
          // Validate effort tracking fields if present
-         // [FIX] Allow App Admin (80) to bypass strict validation OR allow empty string
-         (getRealRole() >= 80 || (
-             (!('estimatedEffortSize' in request.resource.data) || 
-              request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
-             (!('estimatedEffort' in request.resource.data) || 
-              request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort == null) &&
-             (!('actualEffort' in request.resource.data) || 
-              request.resource.data.actualEffort is number || request.resource.data.actualEffort == null)
-         ))
+         (!('estimatedEffortSize' in request.resource.data) || 
+          request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL']) &&
+         (!('estimatedEffort' in request.resource.data) || 
+          request.resource.data.estimatedEffort is number) &&
+         (!('actualEffort' in request.resource.data) || 
+          request.resource.data.actualEffort is number)
         )
       );
       

@@ -230,8 +230,10 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             const val1 = formData[key] ?? "";
             const val2 = (selectedTask as any)[key] ?? "";
             // Loose equality for null/undefined/"" and trimming strings
-            const v1Str = String(val1).trim();
-            const v2Str = String(val2).trim();
+            // Treat null as empty string explicitly to avoid "null" string conversion
+            const v1Str = (val1 === null || val1 === undefined) ? "" : String(val1).trim();
+            const v2Str = (val2 === null || val2 === undefined) ? "" : String(val2).trim();
+
             if (v1Str !== v2Str) return true;
         }
 
@@ -502,6 +504,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     };
 
     const handleSave = async () => {
+        // console.log("[DEBUG] handleSave triggered. formData:", formData);
         if (!formData.title) return showToast("UniTaskController", t('task_manager.title_required'), "error");
         if (!formData.projectId) return showToast("UniTaskController", t('task_manager.project_required'), "error");
 
@@ -628,6 +631,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             return;
                         }
                     }
+
+                    // console.log("[DEBUG] handleSave Update Payload:", JSON.stringify(data, null, 2));
 
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
