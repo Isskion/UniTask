@@ -32,11 +32,13 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
     const userOptions = useMemo(() => users.map(u => ({ value: u.uid, label: u.displayName })), [users]);
     const sprintOptions = useMemo(() => [
         { value: 'unassigned', label: 'Sin Sprint (Backlog)', color: '#71717a' },
-        ...sprints.map(s => ({
-            value: s.id,
-            label: `${s.name}`, // Removed status from label to keep it clean, color indicates status
-            color: s.status === 'active' ? '#10b981' : s.status === 'closed' ? '#71717a' : '#f59e0b'
-        }))
+        ...sprints
+            .filter(s => s.status === 'active') // [FIX] Only show Active Sprints as requested
+            .map(s => ({
+                value: s.id,
+                label: `${s.name}`, // Removed status from label to keep it clean, color indicates status
+                color: '#10b981' // Active is always Green
+            }))
     ], [sprints]);
 
     const statusOptions = [
