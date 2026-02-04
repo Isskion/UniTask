@@ -6,6 +6,8 @@ import { createTimelineEvent } from "@/lib/updates";
 import { subscribeToAllTasks } from "@/lib/tasks";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2, Send, CheckSquare, Sparkles, X } from "lucide-react";
+import { AttachmentManager } from "./AttachmentManager";
+import RichTextEditor from "./RichTextEditor"; // Added import // Added import
 
 interface TodaysWorkbenchProps {
     project: Project;
@@ -16,6 +18,7 @@ interface TodaysWorkbenchProps {
 export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: TodaysWorkbenchProps) {
     const { user, tenantId } = useAuth();
     const [notes, setNotes] = useState("");
+    const [attachments, setAttachments] = useState<string[]>([]); // New State
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Context: Active Tasks
@@ -51,12 +54,14 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
                     notes: notes,
                     nextSteps: [],
                     blockers: "",
-                    flags: []
+                    flags: [],
+                    attachments: attachments // Add attachments
                 },
                 tags: ['Quick Update']
             });
 
             setNotes("");
+            setAttachments([]); // Reset attachments
             onUpdatePosted();
         } catch (e) {
             console.error(e);
@@ -83,12 +88,20 @@ export default function TodaysWorkbench({ project, onUpdatePosted, onCancel }: T
                         </button>
                     </div>
 
-                    <textarea
-                        autoFocus
-                        value={notes}
-                        onChange={e => setNotes(e.target.value)}
-                        placeholder={`What progress was made today on ${project.name}?`}
-                        className="w-full h-32 bg-background border border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                    <div className="h-64 border border-border rounded-xl overflow-hidden mb-4">
+                        <RichTextEditor
+                            content={notes}
+                            onChange={setNotes}
+                            placeholder={`What progress was made today on ${project.name}?`}
+                            className="h-full bg-background text-foreground"
+                            storagePath={`tenants/${tenantId}/projects/${project.id}/feed`}
+                        />
+                    </div>
+
+                    <AttachmentManager
+                        attachments={attachments}
+                        onAttachmentsChange={setAttachments}
+                        storagePath={`tenants/${tenantId}/projects/${project.id}/feed`}
                     />
 
                     <div className="flex justify-between items-center">

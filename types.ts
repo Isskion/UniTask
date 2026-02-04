@@ -62,6 +62,7 @@ export interface TimelineEvent {
         nextSteps?: string[]; // Extracted tasks
         blockers?: string;
         flags?: string[]; // "Important", "Client Request"
+        attachments?: string[]; // New: Screenshot URLs
     };
 
     tags?: string[];
@@ -168,6 +169,7 @@ export interface ProjectEntry {
     conclusions: string;
     blocks?: ContentBlock[]; // New: Supports multiple note blocks
     nextSteps: string;
+    attachments?: string[]; // New: Screenshot URLs
     status?: 'active' | 'trash';
 }
 
@@ -196,6 +198,7 @@ export interface WeeklyEntry {
     nextSteps: string; // Global pending items (Legacy)
     projects: ProjectEntry[];
     createdAt: string;
+    attachments?: string[]; // New: Legacy/General Attachments
 }
 
 // Action Item / Task Definition
@@ -421,6 +424,7 @@ export interface KnowledgeEntry {
     content: string;              // Large text field
     projectId?: string;           // Optional project link
     tags: string[];               // Categorization with autocomplete
+    attachments?: string[];       // New: Screenshot URLs
 
     // Audit trail
     createdBy: string;

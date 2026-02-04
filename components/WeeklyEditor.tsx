@@ -14,9 +14,10 @@ import TenantManagement from "./TenantManagement";
 import TaskMasterDataManagement from "./TaskMasterDataManagement";
 import { AppLayout } from "./AppLayout";
 import ChangelogModal from "./ChangelogModal";
-import ManualViewer from "./ManualViewer";
+import ManualViewer from "./ManualViewer"; // Ensure ManualViewer is imported only once if needed, assuming distinct imports
 import { KnowledgeBase } from "./KnowledgeBase";
 import { ProductProposals } from "./ProductProposals";
+import { AttachmentManager } from "./AttachmentManager"; // Added import
 import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
@@ -399,13 +400,14 @@ export default function WeeklyEditor() {
                 pmNotes: entry.pmNotes,
                 conclusions: entry.conclusions,
                 nextSteps: entry.nextSteps,
+                attachments: entry.attachments || []
             };
         }
         const project = entry.projects.find(p => p.name === activeTab);
-        return project || { pmNotes: "", conclusions: "", nextSteps: "" };
+        return project || { pmNotes: "", conclusions: "", nextSteps: "", attachments: [] };
     };
 
-    const updateCurrentData = (field: keyof ProjectEntry, value: string) => {
+    const updateCurrentData = (field: keyof ProjectEntry, value: any) => {
         if (activeTab === "General") {
             setEntry(prev => ({ ...prev, [field]: value }));
         } else {
@@ -1038,9 +1040,14 @@ export default function WeeklyEditor() {
                                                         content={getCurrentData().pmNotes}
                                                         onChange={(html) => updateCurrentData("pmNotes", html)}
                                                         placeholder="General meeting notes..."
-                                                        className="h-full"
+                                                        storagePath={`tenants/${tenantId}/weekly/${entry.id}/general`}
                                                     />
                                                 </div>
+                                                <AttachmentManager
+                                                    attachments={getCurrentData().attachments || []}
+                                                    onAttachmentsChange={(urls) => updateCurrentData("attachments", urls)}
+                                                    storagePath={`tenants/${tenantId}/weekly/${entry.id}/general`}
+                                                />
                                             </div>
 
                                             {/* GENERAL CONCLUSIONS */}
@@ -1099,8 +1106,14 @@ export default function WeeklyEditor() {
                                                                 onChange={(html) => updateCurrentData("pmNotes", html)}
                                                                 placeholder={`Status update for ${activeTab}...`}
                                                                 className="h-full"
+                                                                storagePath={`tenants/${tenantId}/weekly/${entry.id}/projects/${prjId}`}
                                                             />
                                                         </div>
+                                                        <AttachmentManager
+                                                            attachments={getCurrentData().attachments || []}
+                                                            onAttachmentsChange={(urls) => updateCurrentData("attachments", urls)}
+                                                            storagePath={`tenants/${tenantId}/weekly/${entry.id}/projects/${prjId}`}
+                                                        />
                                                     </div>
 
                                                     {/* LEGACY DATA MIGRATION VIEW (Only if content exists) */}

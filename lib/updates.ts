@@ -182,7 +182,8 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
                         content: {
                             notes: combinedNotes,
                             nextSteps: projEntry.nextSteps ? projEntry.nextSteps.split('\n').filter(s => s.trim().length > 0) : [],
-                            blockers: ""
+                            blockers: "",
+                            attachments: projEntry.attachments || [] // Map attachments
                         }
                     });
                 }

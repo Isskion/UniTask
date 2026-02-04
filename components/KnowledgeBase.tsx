@@ -7,6 +7,8 @@ import {
     Search, Plus, Trash2, Copy, Check, Clock, User, Tag,
     FolderGit2, Lightbulb, BookMarked, ChevronRight, X
 } from 'lucide-react';
+import { AttachmentManager } from './AttachmentManager';
+import RichTextEditor from './RichTextEditor';
 import {
     collection, query, where, getDocs, addDoc, updateDoc, deleteDoc,
     doc, serverTimestamp, orderBy
@@ -46,7 +48,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         title: '',
         content: '',
         projectId: '',
-        tags: [] as string[]
+        tags: [] as string[],
+        attachments: [] as string[]
     });
     const [tagInput, setTagInput] = useState('');
     const [showTagSuggestions, setShowTagSuggestions] = useState(false);
@@ -124,7 +127,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
             title: entry.title,
             content: entry.content,
             projectId: entry.projectId || '',
-            tags: entry.tags || []
+            tags: entry.tags || [],
+            attachments: entry.attachments || []
         });
     };
 
@@ -136,7 +140,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
             title: '',
             content: '',
             projectId: '',
-            tags: []
+            tags: [],
+            attachments: []
         });
     };
 
@@ -181,8 +186,9 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                     type,
                     title: formData.title,
                     content: formData.content,
-                    projectId: formData.projectId || undefined,
+                    projectId: formData.projectId || null,
                     tags: formData.tags,
+                    attachments: formData.attachments,
                     createdBy: user?.uid || '',
                     createdByName: user?.displayName || 'Unknown',
                     createdAt: serverTimestamp(),
@@ -209,6 +215,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                     content: formData.content,
                     projectId: formData.projectId || null,
                     tags: formData.tags,
+                    attachments: formData.attachments,
                     updatedBy: user?.uid,
                     updatedByName: user?.displayName,
                     updatedAt: serverTimestamp(),
@@ -446,17 +453,12 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                 <label className={cn("text-xs font-bold uppercase block mb-2", isLight ? "text-zinc-500" : "text-white/70")}>
                                     {t('task_manager.description') || "Contenido"}
                                 </label>
-                                <textarea
-                                    value={formData.content}
-                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                <RichTextEditor
+                                    content={formData.content}
+                                    onChange={(html: string) => setFormData({ ...formData, content: html })}
                                     placeholder="Escribe el contenido detallado..."
-                                    rows={12}
-                                    className={cn(
-                                        "w-full px-4 py-3 rounded-lg border text-sm resize-none",
-                                        isLight
-                                            ? "bg-white border-zinc-200 text-zinc-900 focus:ring-2 focus:ring-primary/30"
-                                            : "bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-primary/30"
-                                    )}
+                                    storagePath={`tenants/${tenantId}/knowledge/${isNew ? 'temp' : selectedEntry?.id || 'unknown'}`}
+                                    className="min-h-[300px]"
                                 />
                             </div>
 
@@ -546,6 +548,14 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                     ))}
                                 </select>
                             </div>
+
+                            {/* Attachments */}
+                            <AttachmentManager
+                                attachments={formData.attachments}
+                                onAttachmentsChange={(urls) => setFormData({ ...formData, attachments: urls })}
+                                storagePath={`tenants/${tenantId}/knowledge/${isNew ? 'temp' : selectedEntry?.id || 'unknown'}`}
+                                className="pt-2"
+                            />
 
                             {/* Audit Info */}
                             {!isNew && selectedEntry && (

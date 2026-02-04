@@ -197,8 +197,16 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
 
             {/* Content: Notes */}
             {event.content.notes && (
-                <div className={cn("text-sm whitespace-pre-wrap leading-relaxed mb-4 font-light", isLight ? "text-zinc-900" : "text-zinc-200")}>
-                    <HighlightText text={event.content.notes} highlight={searchQuery} />
+                <div className={cn("text-sm leading-relaxed mb-4 font-light",
+                    isLight ? "text-zinc-900" : "text-zinc-200",
+                    // If HTML (heuristic), remove whitespace-pre-wrap to let HTML control layout
+                    /<[a-z][\s\S]*>/i.test(event.content.notes) ? "prose prose-sm max-w-none" : "whitespace-pre-wrap"
+                )}>
+                    {/<[a-z][\s\S]*>/i.test(event.content.notes) ? (
+                        <div dangerouslySetInnerHTML={{ __html: event.content.notes }} />
+                    ) : (
+                        <HighlightText text={event.content.notes} highlight={searchQuery} />
+                    )}
                 </div>
             )}
 
@@ -218,7 +226,28 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
                     </ul>
                 </div>
             )}
-        </div>
+
+            {/* Content: Attachments */}
+            {
+                event.content.attachments && event.content.attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        {event.content.attachments.map((url, idx) => (
+                            <div key={idx} className="relative group rounded-lg overflow-hidden border border-zinc-800 w-24 h-16 bg-zinc-900 cursor-pointer">
+                                <img
+                                    src={url}
+                                    alt="Attachment"
+                                    className="w-full h-full object-cover"
+                                    onClick={() => window.open(url, '_blank')}
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-[10px] text-white font-medium">View</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+        </div >
     );
 }
 
