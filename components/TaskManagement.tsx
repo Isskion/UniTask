@@ -164,15 +164,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         // For now just set selectedTask.
 
                         // [FIX] Normalization for Deep Link
-                        const normalizedTask = {
-                            ...taskData,
-                            title: taskData.title || taskData.description || "",
-                            // Ensure arrays are at least empty arrays, not undefined
-                            dependencies: taskData.dependencies || [],
-                            acceptanceCriteria: taskData.acceptanceCriteria || [],
-                            attributes: taskData.attributes || {},
-                            raci: taskData.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
-                        };
+                        const normalizedTask = normalizeTask(taskData);
 
                         setSelectedTask(normalizedTask);
                         setFormData(normalizedTask); // Sync Form Data
@@ -221,12 +213,25 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     // Permissions Helper - now using usePermissions hook
     const isAdmin = checkIsAdmin();
 
+    // [FIX] Normalize Task Helper - ensures consistent task data structure
+    const normalizeTask = (task: Task): Task => {
+        return {
+            ...task,
+            title: task.title || task.description || "",
+            dependencies: task.dependencies || [],
+            acceptanceCriteria: task.acceptanceCriteria || [],
+            attributes: task.attributes || {},
+            raci: task.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
+        };
+    };
+
     // Dirty Check Helper
     const isDirty = () => {
         if (!selectedTask && !isNew) return false;
         if (isNew) {
             // Check if user typed anything meaningful
-            return !!formData.title || !!formData.description || (formData.acceptanceCriteria?.length ?? 0) > 1;
+            const hasContent = !!formData.title || !!formData.description || (formData.acceptanceCriteria?.length ?? 0) > 1;
+            return hasContent;
         }
         if (!selectedTask) return false;
 
@@ -245,15 +250,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
 
         // Complex objects
-        if (JSON.stringify(formData.raci) !== JSON.stringify(selectedTask.raci)) return true;
+        const raciForm = JSON.stringify(formData.raci);
+        const raciSelected = JSON.stringify(selectedTask.raci);
+        if (raciForm !== raciSelected) return true;
 
         // Deep compare dependencies (arrays)
         const deps1 = (formData.dependencies || []).sort().join(',');
         const deps2 = (selectedTask.dependencies || []).sort().join(',');
         if (deps1 !== deps2) return true;
 
-        if (JSON.stringify(formData.acceptanceCriteria) !== JSON.stringify(selectedTask.acceptanceCriteria)) return true;
-        if (JSON.stringify(formData.attributes) !== JSON.stringify(selectedTask.attributes)) return true;
+        const acForm = JSON.stringify(formData.acceptanceCriteria);
+        const acSelected = JSON.stringify(selectedTask.acceptanceCriteria);
+        if (acForm !== acSelected) return true;
+
+        const attrsForm = JSON.stringify(formData.attributes);
+        const attrsSelected = JSON.stringify(selectedTask.attributes);
+        if (attrsForm !== attrsSelected) return true;
 
         // [V3 Migration] Safe Progress Check
         const oldP = getProgressSafe(selectedTask).actual;
@@ -264,8 +276,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     };
 
     // Warn on browser close/refresh
-    // Warn on browser close/refresh
-    /*
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty()) {
@@ -276,7 +286,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [formData, selectedTask, isNew]);
-    */
 
     // UI States
     const [isStatusOpen, setIsStatusOpen] = useState(false);
@@ -330,12 +339,21 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     useEffect(() => {
         const checkInitialTask = async () => {
             if (!loading && initialTaskId) {
+                // [FIX] Prevent re-processing the same initialTaskId
+                if (processedInitialRef.current === initialTaskId) return;
+
                 // IMPORTANT: If already selected, do nothing more!
-                if (selectedTask?.id === initialTaskId) return;
+                if (selectedTask?.id === initialTaskId) {
+                    processedInitialRef.current = initialTaskId; // Mark as processed
+                    return;
+                }
 
                 const target = tasks.find(t => t.id === initialTaskId);
                 if (target) {
-                    setSelectedTask(target);
+                    const normalized = normalizeTask(target);
+                    setSelectedTask(normalized);
+                    setFormData(normalized);
+                    processedInitialRef.current = initialTaskId; // Mark as processed
                 } else {
                     if (!retriedIds.current.has(initialTaskId)) {
                         retriedIds.current.add(initialTaskId);
@@ -345,8 +363,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             if (taskDoc.exists()) {
                                 const foundTask = { id: taskDoc.id, ...taskDoc.data() } as Task;
                                 // Add to list and select
+                                const normalized = normalizeTask(foundTask);
                                 setTasks(prev => [foundTask, ...prev]);
-                                setSelectedTask(foundTask);
+                                setSelectedTask(normalized);
+                                setFormData(normalized);
+                                processedInitialRef.current = initialTaskId; // Mark as processed
                             } else {
                                 showToast("Error", "La tarea solicitada ya no existe.", "error");
                             }
@@ -369,7 +390,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         };
 
         checkInitialTask();
-    }, [initialTaskId, loading, tasks, loadData, showToast, selectedTask, user, userRole]);
+    }, [initialTaskId, loading, tasks, loadData, showToast, user, userRole]); // Removed selectedTask to prevent loop
 
     useEffect(() => {
         // Fetch User Profile if we need it for filtering
@@ -431,19 +452,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     // --- HANDLERS ---
 
     const handleSelectTask = (task: Task) => {
+        // [FIX] Check if CURRENT task (not the new one) has unsaved changes
+        // We need to check BEFORE updating selectedTask
+        const currentTaskIsDirty = isDirty();
+
         const proceed = () => {
             // [FIX] Normalize Data on Selection
             // This ensures selectedTask (baseline) and formData (draft) start IDENTICAL
             // to prevent immediate "unsaved changes" flag.
-            const normalizedTask = {
-                ...task,
-                title: task.title || task.description || "",
-                // Ensure arrays are at least empty arrays, not undefined
-                dependencies: task.dependencies || [],
-                acceptanceCriteria: task.acceptanceCriteria || [],
-                attributes: task.attributes || {},
-                raci: task.raci || { responsible: [], accountable: [], consulted: [], informed: [] }
-            };
+            const normalizedTask = normalizeTask(task);
 
             setSelectedTask(normalizedTask);
             setFormData(normalizedTask);
@@ -455,7 +472,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             setConfirmModal(null);
         };
 
-        if (isDirty()) {
+        if (currentTaskIsDirty) {
             setConfirmModal({
                 open: true,
                 title: t('task_manager.unsaved_changes'),
