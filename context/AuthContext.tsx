@@ -253,6 +253,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 if (inviteSnap.exists()) {
                     const data = inviteSnap.data();
+
+                    // Check Deactivation
+                    if (data.isActive === false) {
+                        console.warn("[AuthContext] Invite is deactivated.");
+                        alert("⛔ Invitación desactivada. Contacte al administrador.");
+                        return;
+                    }
+
+                    // Check Expiration (10 days)
+                    if (data.createdAt) {
+                        const createdTime = data.createdAt.toMillis();
+                        const tenDays = 10 * 24 * 60 * 60 * 1000;
+                        if (Date.now() - createdTime > tenDays) {
+                            console.warn("[AuthContext] Invite expired.");
+                            alert("⛔ Invitación caducada. Contacte al administrador.");
+                            return;
+                        }
+                    }
+
                     if (!data.isUsed) {
                         inviteData = data;
                     } else if (data.usedBy === user.uid) {

@@ -52,6 +52,22 @@ export const checkInvite = functions.region('europe-west1').https.onCall(async (
             return { valid: false, reason: "Invitation already used" };
         }
 
+        // 2. Check if active (Manual deactivation)
+        if (invite?.isActive === false) {
+            return { valid: false, reason: "EXPIRED_OR_REVOKED" };
+        }
+
+        // 3. Check expiration (10 days)
+        if (invite?.createdAt) {
+            const createdTime = invite.createdAt.toDate().getTime();
+            const tenDaysInMillis = 10 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+
+            if (now - createdTime > tenDaysInMillis) {
+                return { valid: false, reason: "EXPIRED_OR_REVOKED" };
+            }
+        }
+
         return {
             valid: true,
             tenantId: invite?.tenantId,
@@ -75,11 +91,30 @@ export const consumeInvite = functions.region('europe-west1').https.onCall(async
         const inviteRef = db.collection('invites').doc(code);
         const inviteSnap = await inviteRef.get();
 
-        if (!inviteSnap.exists || inviteSnap.data()?.isUsed) {
-            throw new functions.https.HttpsError('failed-precondition', 'Invalid or already used invitation');
+        if (!inviteSnap.exists) {
+            throw new functions.https.HttpsError('not-found', 'Invitation not found');
         }
 
         const inviteData = inviteSnap.data();
+
+        // 1. Check if Used
+        if (inviteData?.isUsed) {
+            throw new functions.https.HttpsError('failed-precondition', 'Invitation already used');
+        }
+
+        // 2. Check if Active
+        if (inviteData?.isActive === false) {
+            throw new functions.https.HttpsError('failed-precondition', 'EXPIRED_OR_REVOKED');
+        }
+
+        // 3. Check Expiration
+        if (inviteData?.createdAt) {
+            const createdTime = inviteData.createdAt.toDate().getTime();
+            const tenDaysInMillis = 10 * 24 * 60 * 60 * 1000;
+            if (Date.now() - createdTime > tenDaysInMillis) {
+                throw new functions.https.HttpsError('failed-precondition', 'EXPIRED_OR_REVOKED');
+            }
+        }
 
         // Transactional update: mark used and sync user data
         await db.runTransaction(async (transaction) => {
@@ -102,8 +137,51 @@ export const consumeInvite = functions.region('europe-west1').https.onCall(async
 
         return { success: true };
     } catch (e: any) {
+        // Pass through known errors
+        if (e instanceof functions.https.HttpsError) throw e;
         throw new functions.https.HttpsError('internal', e.message);
     }
+});
+
+/**
+ * Manually deactivates an invite
+ */
+export const deactivateInvite = functions.region('europe-west1').https.onCall(async (data: any, context: functions.https.CallableContext) => {
+    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Auth required');
+
+    // Only Admins (Level >= 80) can deactivate? Or Creator?
+    // Simplified: Check if user is at least Admin or the Creator
+
+    const { code } = data;
+    if (!code) throw new functions.https.HttpsError('invalid-argument', 'Code required');
+
+    const db = getDb();
+    const inviteRef = db.collection('invites').doc(code);
+    const inviteSnap = await inviteRef.get();
+
+    if (!inviteSnap.exists) throw new functions.https.HttpsError('not-found', 'Invite not found');
+
+    const inviteData = inviteSnap.data();
+
+    // Permission Check: 
+    // Must be Creator OR (RoleLevel >= 80)
+    const requestorUid = context.auth.uid;
+    const isCreator = inviteData?.createdBy === requestorUid;
+
+    // We can check claim for admin status
+    const requestorLevel = context.auth.token.roleLevel || 0;
+
+    if (!isCreator && requestorLevel < 80) {
+        throw new functions.https.HttpsError('permission-denied', 'You cannot deactivate this invite');
+    }
+
+    await inviteRef.update({
+        isActive: false,
+        deactivatedBy: requestorUid,
+        deactivatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true };
 });
 
 export const inviteUser = functions
@@ -176,6 +254,7 @@ export const inviteUser = functions
                 createdBy: uid,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 isUsed: false,
+                isActive: true, // Default active
                 tenantId,
                 role: targetRole,
                 assignedProjectIds

@@ -38,3 +38,15 @@ export async function createInviteAction(
         return { success: false, code: undefined, error: error.message || "Error interno" };
     }
 }
+
+export async function deactivateInviteAction(code: string): Promise<{ success: boolean; error?: string }> {
+    try {
+        const functionsEU = getFunctions(app, 'europe-west1');
+        const deactivateFn = httpsCallable(functionsEU, 'deactivateInvite');
+        await deactivateFn({ code });
+        return { success: true };
+    } catch (error: any) {
+        console.error("❌ [Client] Deactivate Error:", error);
+        return { success: false, error: error.message || "Error al desactivar invitación" };
+    }
+}

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inviteUser = void 0;
+exports.inviteUser = exports.consumeInvite = exports.checkInvite = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const utils_1 = require("./utils"); // Ensure utils exports getDb or we call admin.firestore()
@@ -19,12 +19,83 @@ function getRoleLevelNum(role) {
         case 'superadmin': return 100;
         case 'app_admin': return 80;
         case 'global_pm': return 60;
-        case 'consultor': return 20;
-        case 'usuario_base': return 10;
+        case 'consultant':
+        case 'consultor': return 40;
+        case 'team_member': return 20;
+        case 'client': return 10;
+        case 'usuario_base': return 20; // Default base role
         case 'usuario_externo': return 5;
         default: return 0;
     }
 }
+// ... existing inviteUser ...
+/**
+ * Validates an invite code
+ */
+exports.checkInvite = functions.region('europe-west1').https.onCall(async (data, context) => {
+    const { code } = data;
+    if (!code)
+        throw new functions.https.HttpsError('invalid-argument', 'Code required');
+    try {
+        const db = (0, utils_1.getDb)();
+        const doc = await db.collection('invites').doc(code).get();
+        if (!doc.exists) {
+            return { valid: false, reason: "Invitation not found" };
+        }
+        const invite = doc.data();
+        if (invite === null || invite === void 0 ? void 0 : invite.isUsed) {
+            return { valid: false, reason: "Invitation already used" };
+        }
+        return {
+            valid: true,
+            tenantId: invite === null || invite === void 0 ? void 0 : invite.tenantId,
+            role: invite === null || invite === void 0 ? void 0 : invite.role,
+            assignedProjectIds: invite === null || invite === void 0 ? void 0 : invite.assignedProjectIds
+        };
+    }
+    catch (e) {
+        throw new functions.https.HttpsError('internal', e.message);
+    }
+});
+/**
+ * Consumes an invite code (Marks it as used)
+ */
+exports.consumeInvite = functions.region('europe-west1').https.onCall(async (data, context) => {
+    var _a;
+    const { code, userUid } = data;
+    if (!code || !userUid)
+        throw new functions.https.HttpsError('invalid-argument', 'Code and User UID required');
+    try {
+        const db = (0, utils_1.getDb)();
+        const inviteRef = db.collection('invites').doc(code);
+        const inviteSnap = await inviteRef.get();
+        if (!inviteSnap.exists || ((_a = inviteSnap.data()) === null || _a === void 0 ? void 0 : _a.isUsed)) {
+            throw new functions.https.HttpsError('failed-precondition', 'Invalid or already used invitation');
+        }
+        const inviteData = inviteSnap.data();
+        // Transactional update: mark used and sync user data
+        await db.runTransaction(async (transaction) => {
+            transaction.update(inviteRef, {
+                isUsed: true,
+                usedBy: userUid,
+                usedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            // Update user document if it exists
+            const userRef = db.collection('users').doc(userUid);
+            transaction.set(userRef, {
+                tenantId: inviteData === null || inviteData === void 0 ? void 0 : inviteData.tenantId,
+                role: inviteData === null || inviteData === void 0 ? void 0 : inviteData.role,
+                roleLevel: getRoleLevelNum(inviteData === null || inviteData === void 0 ? void 0 : inviteData.role),
+                isActive: true,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        });
+        return { success: true };
+    }
+    catch (e) {
+        throw new functions.https.HttpsError('internal', e.message);
+    }
+});
 exports.inviteUser = functions
     .region('europe-west1')
     .https.onCall(async (data, context) => {

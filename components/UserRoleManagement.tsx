@@ -12,6 +12,10 @@ import { migrateToMultiTenant } from '@/lib/migration';
 import { cn } from "@/lib/utils";
 import { useTheme } from '@/hooks/useTheme';
 import { useLanguage } from '@/context/LanguageContext';
+import { Mail, Clock, Ban, CheckCircle } from 'lucide-react';
+import { deactivateInviteAction } from '@/app/actions/invites';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DEFAULT_GROUP: Partial<PermissionGroup> = {
     name: '',
@@ -36,12 +40,21 @@ export default function UserRoleManagement() {
     const [migrating, setMigrating] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingGroup, setEditingGroup] = useState<PermissionGroup | null>(null);
-    const [activeTab, setActiveTab] = useState<'general' | 'projects' | 'tasks' | 'views' | 'special'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'projects' | 'tasks' | 'views' | 'special' | 'invites'>('general'); // For Modal
+    const [mainTab, setMainTab] = useState<'roles' | 'invites'>('roles'); // For Main Page
     const [formData, setFormData] = useState<Partial<PermissionGroup>>(DEFAULT_GROUP);
+    const [invites, setInvites] = useState<any[]>([]);
+    const [loadingInvites, setLoadingInvites] = useState(false);
 
     useEffect(() => {
         loadGroups();
-    }, [tenantId]); // Add tenantId to dependencies to reload groups if it changes
+    }, [tenantId]);
+
+    useEffect(() => {
+        if (mainTab === 'invites') {
+            loadInvites();
+        }
+    }, [mainTab, tenantId]); // Add tenantId to dependencies to reload groups if it changes
 
     const loadGroups = async () => {
         if (!tenantId) {
@@ -61,6 +74,25 @@ export default function UserRoleManagement() {
             console.error('Error loading permission groups:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadInvites = async () => {
+        if (!tenantId) return;
+        setLoadingInvites(true);
+        try {
+            const q = query(collection(db, 'invites'), where('tenantId', '==', tenantId));
+            const snapshot = await getDocs(q);
+            const loadedInvites = snapshot.docs.map(doc => ({
+                code: doc.id,
+                ...doc.data()
+            }));
+            loadedInvites.sort((a: any, b: any) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+            setInvites(loadedInvites);
+        } catch (error) {
+            console.error('Error loading invites:', error);
+        } finally {
+            setLoadingInvites(false);
         }
     };
 
@@ -204,207 +236,314 @@ export default function UserRoleManagement() {
                 </button>
             </div>
 
-            {/* Groups Grid */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Superadmin Static Card */}
-                    {userRole === 'superadmin' && (
-                        <div
-                            className={cn(
-                                "rounded-xl border p-5 flex flex-col gap-4 relative group transition-all duration-300",
-                                isLight
-                                    ? "bg-white border-indigo-200 shadow-lg shadow-indigo-50"
-                                    : "bg-[#18181b] border-indigo-500/30 shadow-lg shadow-indigo-500/10"
-                            )}
-                            style={{ borderLeftWidth: '4px', borderLeftColor: '#6366F1' }}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-indigo-900" : "text-white")}>
-                                        <Shield className="w-5 h-5 text-indigo-500" />
-                                        Super Admin
-                                    </h3>
-                                    <p className={cn("text-sm mt-1 font-medium", isLight ? "text-indigo-700" : "text-indigo-200/70")}>
-                                        {t('roles_page.super_admin_desc')}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                    isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200" : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
-                                )}>
-                                    <Sparkles className="w-3 h-3" /> {t('roles_page.all_access')}
-                                </span>
-                            </div>
-                        </div>
+            {/* Main Tabs */}
+            <div className="flex gap-4 border-b border-zinc-200/10 shrink-0">
+                <button
+                    onClick={() => setMainTab('roles')}
+                    className={cn(
+                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                        mainTab === 'roles'
+                            ? (isLight ? "border-red-600 text-red-600" : (isRed ? "border-[#D32F2F] text-white" : "border-white text-white"))
+                            : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
                     )}
+                >
+                    Roles
+                </button>
+                <button
+                    onClick={() => setMainTab('invites')}
+                    className={cn(
+                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+                        mainTab === 'invites'
+                            ? (isLight ? "border-red-600 text-red-600" : (isRed ? "border-[#D32F2F] text-white" : "border-white text-white"))
+                            : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                    )}
+                >
+                    Invitaciones
+                </button>
+            </div>
 
-                    {groups.map(group => (
-                        <div
-                            key={group.id}
-                            className={cn(
-                                "rounded-xl border p-5 flex flex-col gap-4 relative group transition-all duration-300",
-                                isLight
-                                    ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-lg hover:shadow-red-50"
-                                    : (isRed
-                                        ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:border-[#D32F2F]/40 hover:shadow-lg hover:shadow-[#D32F2F]/10"
-                                        : "bg-[#18181b] border-white/5 hover:border-white/10 hover:shadow-lg hover:shadow-black")
-                            )}
-                            style={{ borderLeftWidth: '4px', borderLeftColor: group.color }}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-950" : "text-white")}>
-                                        <Shield className="w-5 h-5" style={{ color: group.color }} />
-                                        {group.name}
-                                    </h3>
-                                    <p className={cn("text-sm mt-1 font-medium", isLight ? "text-zinc-700" : (isRed ? "text-white/70" : "text-zinc-400"))}>
-                                        {group.description || t('common.none')}
-                                    </p>
+            {/* Groups Grid */}
+            {mainTab === 'roles' && (
+                <div className="flex-1 overflow-y-auto p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Superadmin Static Card */}
+                        {userRole === 'superadmin' && (
+                            <div
+                                className={cn(
+                                    "rounded-xl border p-5 flex flex-col gap-4 relative group transition-all duration-300",
+                                    isLight
+                                        ? "bg-white border-indigo-200 shadow-lg shadow-indigo-50"
+                                        : "bg-[#18181b] border-indigo-500/30 shadow-lg shadow-indigo-500/10"
+                                )}
+                                style={{ borderLeftWidth: '4px', borderLeftColor: '#6366F1' }}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-indigo-900" : "text-white")}>
+                                            <Shield className="w-5 h-5 text-indigo-500" />
+                                            Super Admin
+                                        </h3>
+                                        <p className={cn("text-sm mt-1 font-medium", isLight ? "text-indigo-700" : "text-indigo-200/70")}>
+                                            {t('roles_page.super_admin_desc')}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => handleEdit(group)}
-                                        className={cn("p-2 rounded-lg transition-colors",
-                                            isLight
-                                                ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
-                                                : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
-                                        )}
-                                        title={t('common.edit')}
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDuplicate(group)}
-                                        className={cn("p-2 rounded-lg transition-colors",
-                                            isLight
-                                                ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
-                                                : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
-                                        )}
-                                        title={t('common.copy')}
-                                    >
-                                        <Copy className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(group.id!)}
-                                        className={cn("p-2 rounded-lg transition-colors",
-                                            isLight
-                                                ? "bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-900"
-                                                : (isRed ? "bg-[#D32F2F]/20 hover:bg-red-900/40 text-white hover:text-red-200" : "bg-white/5 hover:bg-red-900/20 text-white hover:text-red-400")
-                                        )}
-                                        title={t('common.delete')}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
+                                <div className="flex flex-wrap gap-2">
+                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                        isLight ? "bg-indigo-50 text-indigo-600 border-indigo-200" : "bg-indigo-500/20 text-indigo-300 border-indigo-500/30"
+                                    )}>
+                                        <Sparkles className="w-3 h-3" /> {t('roles_page.all_access')}
+                                    </span>
                                 </div>
                             </div>
+                        )}
 
-                            {/* Permission Summary Chips */}
-                            <div className="flex flex-wrap gap-2">
-                                {group.specialPermissions?.viewAllUserProfiles && (
-                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                        isLight
-                                            ? "bg-blue-50 text-blue-600 border-blue-200"
-                                            : (isRed ? "bg-blue-500/10 text-blue-200 border-blue-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20")
-                                    )}>
-                                        <Users className="w-3 h-3" /> {t('roles_page.permissions.special.viewAllUserProfiles.label')}
-                                    </span>
+                        {groups.map(group => (
+                            <div
+                                key={group.id}
+                                className={cn(
+                                    "rounded-xl border p-5 flex flex-col gap-4 relative group transition-all duration-300",
+                                    isLight
+                                        ? "bg-white border-zinc-200 hover:border-red-200 hover:shadow-lg hover:shadow-red-50"
+                                        : (isRed
+                                            ? "bg-[#D32F2F]/10 border-[#D32F2F]/20 hover:border-[#D32F2F]/40 hover:shadow-lg hover:shadow-[#D32F2F]/10"
+                                            : "bg-[#18181b] border-white/5 hover:border-white/10 hover:shadow-lg hover:shadow-black")
                                 )}
-                                {group.projectAccess?.viewAll && (
-                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                        isLight
-                                            ? "bg-green-50 text-green-600 border-green-200"
-                                            : (isRed ? "bg-green-500/10 text-green-200 border-green-500/20" : "bg-green-500/10 text-green-400 border-green-500/20")
-                                    )}>
-                                        <FolderGit2 className="w-3 h-3" /> {t('roles_page.tabs.projects')}
-                                    </span>
-                                )}
-                                {group.taskAccess?.create && (
-                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                        isLight
-                                            ? "bg-purple-50 text-purple-600 border-purple-200"
-                                            : (isRed ? "bg-purple-500/10 text-purple-200 border-purple-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20")
-                                    )}>
-                                        <ListTodo className="w-3 h-3" /> {t('roles_page.tabs.tasks')}
-                                    </span>
-                                )}
-                                {group.viewAccess?.dashboard && (
-                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                        isLight
-                                            ? "bg-yellow-50 text-yellow-600 border-yellow-200"
-                                            : (isRed ? "bg-yellow-500/10 text-yellow-200 border-yellow-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20")
-                                    )}>
-                                        <BarChart3 className="w-3 h-3" /> {t('roles_page.permissions.views.dashboard.label')}
-                                    </span>
-                                )}
-                                {group.specialPermissions?.managePermissions && (
-                                    <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
-                                        isLight
-                                            ? "bg-red-50 text-red-600 border-red-200"
-                                            : (isRed ? "bg-red-500/10 text-red-200 border-red-500/20" : "bg-red-500/10 text-red-400 border-red-500/20")
-                                    )}>
-                                        <Settings className="w-3 h-3" /> Admin
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-
-                    {/* Empty State */}
-                    {groups.length === 0 && !loading && (
-                        <div className="col-span-full flex flex-col items-center justify-center p-12 text-center opacity-50">
-                            <Shield className={cn("w-16 h-16 mb-4", isLight ? "text-zinc-300" : (isRed ? "text-white/20" : "text-zinc-600"))} />
-                            <h3 className={cn("text-xl font-bold", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.no_groups')}</h3>
-                            <p className={cn("max-w-md mx-auto mt-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                {t('roles_page.no_groups_desc')}
-                            </p>
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={handleInitializeGroups}
-                                    className={cn("mt-6 px-4 py-2 rounded font-bold transition-all",
-                                        isLight
-                                            ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
-                                            : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 text-white" : "bg-white/5 hover:bg-white/10 text-white")
-                                    )}
-                                >
-                                    {t('roles_page.init_defaults')}
-                                </button>
-                                {
-                                    // [FIX] Show "Import Roles" button only if organization is empty and != '1'
-                                    tenantId !== '1' && (
+                                style={{ borderLeftWidth: '4px', borderLeftColor: group.color }}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-950" : "text-white")}>
+                                            <Shield className="w-5 h-5" style={{ color: group.color }} />
+                                            {group.name}
+                                        </h3>
+                                        <p className={cn("text-sm mt-1 font-medium", isLight ? "text-zinc-700" : (isRed ? "text-white/70" : "text-zinc-400"))}>
+                                            {group.description || t('common.none')}
+                                        </p>
+                                    </div>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
-                                            onClick={async () => {
-                                                if (!confirm(t('roles_page.import_confirm'))) return;
-                                                setMigrating(true);
-                                                try {
-                                                    const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
-                                                    console.log(resLog);
-                                                    alert(t('roles_page.import_success') + "\n" + resLog);
-                                                    await loadGroups(); // Refresh UI
-                                                } catch (e: any) {
-                                                    console.error(e);
-                                                    alert(t('common.error') + ": " + e.message);
-                                                } finally {
-                                                    setMigrating(false);
-                                                }
-                                            }}
-                                            disabled={migrating}
-                                            className={cn("mt-6 px-4 py-2 rounded font-bold transition-all border border-transparent",
+                                            onClick={() => handleEdit(group)}
+                                            className={cn("p-2 rounded-lg transition-colors",
                                                 isLight
-                                                    ? "bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-200"
-                                                    : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/20"
+                                                    ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
+                                                    : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
                                             )}
+                                            title={t('common.edit')}
                                         >
-                                            <Sparkles className={cn("w-4 h-4 inline mr-2", migrating && "animate-spin")} />
-                                            {migrating ? t('roles_page.importing') : t('roles_page.import_roles')}
+                                            <Edit2 className="w-4 h-4" />
                                         </button>
-                                    )
-                                }
+                                        <button
+                                            onClick={() => handleDuplicate(group)}
+                                            className={cn("p-2 rounded-lg transition-colors",
+                                                isLight
+                                                    ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-900"
+                                                    : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/40 text-white" : "bg-white/5 hover:bg-white/10 text-white")
+                                            )}
+                                            title={t('common.copy')}
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(group.id!)}
+                                            className={cn("p-2 rounded-lg transition-colors",
+                                                isLight
+                                                    ? "bg-red-100 hover:bg-red-200 text-red-700 hover:text-red-900"
+                                                    : (isRed ? "bg-[#D32F2F]/20 hover:bg-red-900/40 text-white hover:text-red-200" : "bg-white/5 hover:bg-red-900/20 text-white hover:text-red-400")
+                                            )}
+                                            title={t('common.delete')}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Permission Summary Chips */}
+                                <div className="flex flex-wrap gap-2">
+                                    {group.specialPermissions?.viewAllUserProfiles && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-blue-50 text-blue-600 border-blue-200"
+                                                : (isRed ? "bg-blue-500/10 text-blue-200 border-blue-500/20" : "bg-blue-500/10 text-blue-400 border-blue-500/20")
+                                        )}>
+                                            <Users className="w-3 h-3" /> {t('roles_page.permissions.special.viewAllUserProfiles.label')}
+                                        </span>
+                                    )}
+                                    {group.projectAccess?.viewAll && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-green-50 text-green-600 border-green-200"
+                                                : (isRed ? "bg-green-500/10 text-green-200 border-green-500/20" : "bg-green-500/10 text-green-400 border-green-500/20")
+                                        )}>
+                                            <FolderGit2 className="w-3 h-3" /> {t('roles_page.tabs.projects')}
+                                        </span>
+                                    )}
+                                    {group.taskAccess?.create && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-purple-50 text-purple-600 border-purple-200"
+                                                : (isRed ? "bg-purple-500/10 text-purple-200 border-purple-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20")
+                                        )}>
+                                            <ListTodo className="w-3 h-3" /> {t('roles_page.tabs.tasks')}
+                                        </span>
+                                    )}
+                                    {group.viewAccess?.dashboard && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                                                : (isRed ? "bg-yellow-500/10 text-yellow-200 border-yellow-500/20" : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20")
+                                        )}>
+                                            <BarChart3 className="w-3 h-3" /> {t('roles_page.permissions.views.dashboard.label')}
+                                        </span>
+                                    )}
+                                    {group.specialPermissions?.managePermissions && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-red-50 text-red-600 border-red-200"
+                                                : (isRed ? "bg-red-500/10 text-red-200 border-red-500/20" : "bg-red-500/10 text-red-400 border-red-500/20")
+                                        )}>
+                                            <Settings className="w-3 h-3" /> Admin
+                                        </span>
+                                    )}
+                                </div>
                             </div>
+                        ))}
+
+                        {/* Empty State */}
+                        {groups.length === 0 && !loading && (
+                            <div className="col-span-full flex flex-col items-center justify-center p-12 text-center opacity-50">
+                                <Shield className={cn("w-16 h-16 mb-4", isLight ? "text-zinc-300" : (isRed ? "text-white/20" : "text-zinc-600"))} />
+                                <h3 className={cn("text-xl font-bold", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.no_groups')}</h3>
+                                <p className={cn("max-w-md mx-auto mt-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                    {t('roles_page.no_groups_desc')}
+                                </p>
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={handleInitializeGroups}
+                                        className={cn("mt-6 px-4 py-2 rounded font-bold transition-all",
+                                            isLight
+                                                ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
+                                                : (isRed ? "bg-[#D32F2F]/20 hover:bg-[#D32F2F]/30 text-white" : "bg-white/5 hover:bg-white/10 text-white")
+                                        )}
+                                    >
+                                        {t('roles_page.init_defaults')}
+                                    </button>
+                                    {
+                                        // [FIX] Show "Import Roles" button only if organization is empty and != '1'
+                                        tenantId !== '1' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm(t('roles_page.import_confirm'))) return;
+                                                    setMigrating(true);
+                                                    try {
+                                                        const resLog = await import('@/lib/permissionGroups').then(m => m.startTenantPopulation(tenantId || "1", user?.uid)); // Lazy load to avoid cycle if any
+                                                        console.log(resLog);
+                                                        alert(t('roles_page.import_success') + "\n" + resLog);
+                                                        await loadGroups(); // Refresh UI
+                                                    } catch (e: any) {
+                                                        console.error(e);
+                                                        alert(t('common.error') + ": " + e.message);
+                                                    } finally {
+                                                        setMigrating(false);
+                                                    }
+                                                }}
+                                                disabled={migrating}
+                                                className={cn("mt-6 px-4 py-2 rounded font-bold transition-all border border-transparent",
+                                                    isLight
+                                                        ? "bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-200"
+                                                        : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/20"
+                                                )}
+                                            >
+                                                <Sparkles className={cn("w-4 h-4 inline mr-2", migrating && "animate-spin")} />
+                                                {migrating ? t('roles_page.importing') : t('roles_page.import_roles')}
+                                            </button>
+                                        )
+                                    }
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Invites List */}
+            {mainTab === 'invites' && (
+                <div className="flex-1 overflow-y-auto p-6">
+                    {loadingInvites ? (
+                        <div className="h-full flex items-center justify-center">
+                            <div className="text-zinc-500">Cargando invitaciones...</div>
+                        </div>
+                    ) : invites.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center opacity-50">
+                            <Mail className="w-16 h-16 mb-4 text-zinc-500" />
+                            <h3 className="text-xl font-bold">No hay invitaciones</h3>
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {invites.map((invite) => {
+                                const isExpired = invite.createdAt && (Date.now() - invite.createdAt.toMillis() > 10 * 24 * 60 * 60 * 1000);
+                                const isUsed = invite.isUsed;
+                                const isActive = invite.isActive !== false; // Default true
+
+                                let status = 'active';
+                                if (isUsed) status = 'used';
+                                else if (!isActive) status = 'revoked';
+                                else if (isExpired) status = 'expired';
+
+                                return (
+                                    <div key={invite.code} className={cn(
+                                        "p-4 rounded-lg border flex justify-between items-center transition-all",
+                                        isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10"
+                                    )}>
+                                        <div className="flex gap-4 items-center">
+                                            <div className={cn(
+                                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                                                status === 'active' ? "bg-green-500/10 text-green-500" :
+                                                    status === 'used' ? "bg-blue-500/10 text-blue-500" :
+                                                        "bg-red-500/10 text-red-500"
+                                            )}>
+                                                {status === 'active' && <Clock className="w-5 h-5" />}
+                                                {status === 'used' && <CheckCircle className="w-5 h-5" />}
+                                                {(status === 'revoked' || status === 'expired') && <Ban className="w-5 h-5" />}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold flex items-center gap-2">
+                                                    {invite.role}
+                                                    <span className="text-xs font-mono bg-black/10 px-2 py-0.5 rounded">{invite.code}</span>
+                                                </div>
+                                                <div className="text-sm opacity-70">
+                                                    Creada {invite.createdAt ? formatDistanceToNow(invite.createdAt.toDate(), { addSuffix: true, locale: es }) : 'N/A'}
+                                                    {status === 'expired' && <span className="text-red-500 ml-2 font-bold">(Caducada)</span>}
+                                                    {status === 'revoked' && <span className="text-red-500 ml-2 font-bold">(Desactivada)</span>}
+                                                    {status === 'used' && <span className="text-blue-500 ml-2 font-bold">(Usada)</span>}
+                                                </div>
+                                                <div className="text-xs opacity-50 mt-1">Tenant: {invite.tenantId}</div>
+                                            </div>
+                                        </div>
+
+                                        {status === 'active' && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm("¿Seguro que quieres desactivar esta invitación?")) return;
+                                                    const res = await deactivateInviteAction(invite.code);
+                                                    if (res.success) {
+                                                        loadInvites();
+                                                    } else {
+                                                        alert(res.error);
+                                                    }
+                                                }}
+                                                className="px-3 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded text-sm font-medium transition-colors"
+                                            >
+                                                Desactivar
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
-            </div>
+            )}
 
             {/* Modal */}
             {

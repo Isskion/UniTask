@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.3.0";
+export const APP_VERSION = "13.3.1";
 
 export const CHANGELOG = [
+    {
+        version: "13.3.1",
+        title: "Invite Management",
+        date: "2026-02-07",
+        features: [
+            "**Invite Deactivation**: Admins can now manually deactivate invitations.",
+            "**Expiration Policy**: Invitations now automatically expire after 10 days.",
+            "**Invite List**: New tab in User Management to view and manage active invitations."
+        ]
+    },
     {
         version: "13.3.0",
         title: "Security & Clean Export",
