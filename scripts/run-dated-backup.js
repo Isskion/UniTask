@@ -10,14 +10,26 @@ if (!fs.existsSync(dotEnvPath)) {
 }
 
 const envContent = fs.readFileSync(dotEnvPath, 'utf8');
-const serviceAccountMatch = envContent.match(/FIREBASE_SERVICE_ACCOUNT='(.*?)'/);
+let serviceAccount;
+const customKeyPath = path.join(__dirname, '..', 'serviceAccountKey.json');
 
-if (!serviceAccountMatch) {
-    console.error('❌ FIREBASE_SERVICE_ACCOUNT not found in .env.local');
-    process.exit(1);
+if (fs.existsSync(customKeyPath)) {
+    console.log('📂 Using serviceAccountKey.json for authentication');
+    serviceAccount = JSON.parse(fs.readFileSync(customKeyPath, 'utf8'));
+} else {
+    const serviceAccountMatch = envContent.match(/FIREBASE_SERVICE_ACCOUNT=['"](.*?)['"]/);
+    if (!serviceAccountMatch) {
+        console.error('❌ FIREBASE_SERVICE_ACCOUNT not found in .env.local and serviceAccountKey.json missing');
+        process.exit(1);
+    }
+    try {
+        serviceAccount = JSON.parse(serviceAccountMatch[1]);
+    } catch (e) {
+        console.error('❌ Error parsing FIREBASE_SERVICE_ACCOUNT from .env.local:', e.message);
+        console.log('Match length:', serviceAccountMatch[1].length);
+        process.exit(1);
+    }
 }
-
-const serviceAccount = JSON.parse(serviceAccountMatch[1]);
 
 if (!admin.apps.length) {
     admin.initializeApp({

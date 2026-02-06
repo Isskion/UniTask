@@ -4,7 +4,7 @@ import { MultiPowerSelect } from "./ui/MultiPowerSelect";
 import { TaskFiltersState } from "@/hooks/useTaskAdvancedFilters";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
-import { AttributeDefinition, MasterDataItem } from "@/types";
+import { AttributeDefinition, MasterDataItem, UserProfile } from "@/types"; // [FIX] Import UserProfile
 import { useMasterDataLabels } from "@/hooks/useMasterDataLabels";
 import { useSprints } from "@/hooks/useSprints";
 
@@ -16,7 +16,7 @@ interface TaskFiltersProps {
     filters: TaskFiltersState;
     setFilters: (f: TaskFiltersState) => void;
     projects: { id: string; name: string; color?: string }[];
-    users: { uid: string; displayName: string }[];
+    users: UserProfile[]; // [FIX] Use explicit type to access isActive
     masterData: Record<string, MasterDataItem[]>;
     attributeDefinitions: AttributeDefinition[];
 }
@@ -33,7 +33,7 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
     const sprintOptions = useMemo(() => [
         { value: 'unassigned', label: 'Sin Sprint (Backlog)', color: '#71717a' },
         ...sprints
-            .filter(s => s.status === 'active') // [FIX] Only show Active Sprints as requested
+            .filter(s => s.status === 'active' || s.status === 'planning') // [FIX] Show Active AND Planning sprints
             .map(s => ({
                 value: s.id,
                 label: `${s.name}`, // Removed status from label to keep it clean, color indicates status

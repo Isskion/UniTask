@@ -321,6 +321,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         usedAt: serverTimestamp(),
                         usedBy: user.uid
                     });
+
+                    // FORCE CLAIMS SYNC
+                    try {
+                        const { syncUserClaimsAction } = await import('@/app/actions/auth-actions');
+                        await syncUserClaimsAction(user.uid);
+                        console.log("[AuthContext] Custom claims synchronized successfully.");
+                    } catch (syncError) {
+                        console.error("[AuthContext] Error synchronizing claims:", syncError);
+                    }
+
                     alert("✅ INVITACIÓN ACEPTADA: Ahora tienes acceso a " + (inviteData.tenantId || "tu organización"));
                 } else if (inviteCode && inviteData && inviteData.usedBy === user.uid) {
                     console.log("[AuthContext] Invite already consumed by this user, skipping re-consumption.");

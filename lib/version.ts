@@ -1,6 +1,25 @@
-export const APP_VERSION = "13.2.1";
+export const APP_VERSION = "13.3.0";
 
 export const CHANGELOG = [
+    {
+        version: "13.3.0",
+        title: "Security & Clean Export",
+        date: "2026-02-05",
+        features: [
+            "**Knowledge Base**: Implemented high-security sanitization for content export.",
+            "**URL Protection**: Prevented exposure of sensitive Firestore Storage URLs.",
+            "**Editor Security**: Disabled image dragging to avoid accidental URL leaking."
+        ]
+    },
+    {
+        version: "13.2.2",
+        title: "Filters Fix",
+        date: "2026-02-04",
+        features: [
+            "**Sprint Filters**: Fixed issue where 'Planning' status sprints were not selectable.",
+            "**Data Integrity**: Reverted user filter restrictions to ensure visibility of all assigned tasks."
+        ]
+    },
     {
         version: "13.2.1",
         title: "Task Navigation Fix",

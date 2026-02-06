@@ -20,12 +20,91 @@ function getRoleLevelNum(role: string): number {
         case 'superadmin': return 100;
         case 'app_admin': return 80;
         case 'global_pm': return 60;
-        case 'consultor': return 20;
-        case 'usuario_base': return 10;
+        case 'consultant':
+        case 'consultor': return 40;
+        case 'team_member': return 20;
+        case 'client': return 10;
+        case 'usuario_base': return 20; // Default base role
         case 'usuario_externo': return 5;
         default: return 0;
     }
 }
+
+// ... existing inviteUser ...
+
+/**
+ * Validates an invite code
+ */
+export const checkInvite = functions.region('europe-west1').https.onCall(async (data: any, context: functions.https.CallableContext) => {
+    const { code } = data;
+    if (!code) throw new functions.https.HttpsError('invalid-argument', 'Code required');
+
+    try {
+        const db = getDb();
+        const doc = await db.collection('invites').doc(code).get();
+
+        if (!doc.exists) {
+            return { valid: false, reason: "Invitation not found" };
+        }
+
+        const invite = doc.data();
+        if (invite?.isUsed) {
+            return { valid: false, reason: "Invitation already used" };
+        }
+
+        return {
+            valid: true,
+            tenantId: invite?.tenantId,
+            role: invite?.role,
+            assignedProjectIds: invite?.assignedProjectIds
+        };
+    } catch (e: any) {
+        throw new functions.https.HttpsError('internal', e.message);
+    }
+});
+
+/**
+ * Consumes an invite code (Marks it as used)
+ */
+export const consumeInvite = functions.region('europe-west1').https.onCall(async (data: any, context: functions.https.CallableContext) => {
+    const { code, userUid } = data;
+    if (!code || !userUid) throw new functions.https.HttpsError('invalid-argument', 'Code and User UID required');
+
+    try {
+        const db = getDb();
+        const inviteRef = db.collection('invites').doc(code);
+        const inviteSnap = await inviteRef.get();
+
+        if (!inviteSnap.exists || inviteSnap.data()?.isUsed) {
+            throw new functions.https.HttpsError('failed-precondition', 'Invalid or already used invitation');
+        }
+
+        const inviteData = inviteSnap.data();
+
+        // Transactional update: mark used and sync user data
+        await db.runTransaction(async (transaction) => {
+            transaction.update(inviteRef, {
+                isUsed: true,
+                usedBy: userUid,
+                usedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Update user document if it exists
+            const userRef = db.collection('users').doc(userUid);
+            transaction.set(userRef, {
+                tenantId: inviteData?.tenantId,
+                role: inviteData?.role,
+                roleLevel: getRoleLevelNum(inviteData?.role),
+                isActive: true, // Auto-activate on invite
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        });
+
+        return { success: true };
+    } catch (e: any) {
+        throw new functions.https.HttpsError('internal', e.message);
+    }
+});
 
 export const inviteUser = functions
     .region('europe-west1')

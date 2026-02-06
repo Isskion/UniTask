@@ -41,6 +41,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
     const [selectedEntry, setSelectedEntry] = useState<KnowledgeEntry | null>(null);
     const [isNew, setIsNew] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [alert, setAlert] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
     const [copied, setCopied] = useState(false);
 
     // Form state
@@ -164,6 +166,39 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) });
     };
 
+    // Help fix for security: Strip HTML for clipboard and preview (v13.3.0 Robust)
+    const stripHtml = (htmlContent: string) => {
+        if (!htmlContent) return "";
+
+        let text = htmlContent;
+
+        // 1. Replace <img> tags (both raw and escaped) with [Imagen]
+        text = text.replace(/<img[^>]*>/gi, '[Imagen]');
+        text = text.replace(/&lt;img[^&gt;]*&gt;/gi, '[Imagen]');
+
+        // 2. Convert common block elements to newlines
+        text = text.replace(/<\/p>|<\/div>|<br\s*\/?>|<li>/gi, '\n');
+        text = text.replace(/&lt;\/p&gt;|&lt;\/div&gt;|&lt;br\s*\/&gt;|&lt;li&gt;/gi, '\n');
+
+        // 3. Remove all other tags (both raw and escaped)
+        text = text.replace(/<[^>]*>/g, '');
+        text = text.replace(/&lt;[^&gt;]*&gt;/g, '');
+
+        // 4. Manual entity cleanup
+        text = text.replace(/&nbsp;/g, ' ')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'");
+
+        // 5. Final trim and whitespace cleanup
+        const result = text.trim().replace(/\n{3,}/g, '\n\n');
+
+        // Add a small marker to verify the fix is active
+        return "[SECURE-V3] " + result;
+    };
+
     // Save entry
     const handleSave = async () => {
         if (!formData.title.trim()) {
@@ -171,6 +206,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
             return;
         }
 
+        setSaving(true);
         try {
             const changeLogEntry: ChangeLogEntry = {
                 userId: user?.uid || '',
@@ -228,6 +264,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         } catch (error: any) {
             console.error('Error saving:', error);
             showToast("UniTask", error.message || t('common.error'), "error");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -251,7 +289,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
 
     // Copy content
     const handleCopy = async () => {
-        const text = `# ${formData.title}\n\n${formData.content}`;
+        const plainContent = stripHtml(formData.content);
+        const text = `# ${formData.title}\n\n${plainContent}`;
         await navigator.clipboard.writeText(text);
         setCopied(true);
         showToast("UniTask", t('common.copied') || "Copiado", "success");
@@ -314,11 +353,12 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                     {filteredEntries.length > 0 && (
                         <button
                             onClick={() => {
-                                const header = `KNOWLEDGE BASE EXPORT: "${title}"\nFILTER: "${searchQuery}"\nDATE: ${new Date().toLocaleDateString()}\n----------------------------------------\n\n`;
+                                const header = `KNOWLEDGE BASE EXPORT (V13.3.0 SECURED): "${title}"\nFILTER: "${searchQuery}"\nDATE: ${new Date().toLocaleDateString()}\n----------------------------------------\n\n`;
                                 const content = filteredEntries.map(e => {
                                     const date = e.createdAt?.toDate ? format(e.createdAt.toDate(), 'dd/MM/yyyy') : 'Unknown Date';
                                     const tags = e.tags && e.tags.length > 0 ? `\nTags: ${e.tags.join(', ')}` : '';
-                                    return `[${date}] ${e.title}\nBy: ${e.createdByName || 'Unknown'}\n\n${e.content}${tags}`;
+                                    const plainContent = stripHtml(e.content);
+                                    return `[${date}] ${e.title}\nBy: ${e.createdByName || 'Unknown'}\n\n${plainContent}${tags}`;
                                 }).join('\n\n----------------------------------------\n\n');
 
                                 navigator.clipboard.writeText(header + content);
@@ -365,7 +405,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                     isLight ? "text-zinc-900" : "text-white"
                                 )}>{entry.title}</p>
                                 <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                    {entry.content.slice(0, 80)}...
+                                    {stripHtml(entry.content).slice(0, 80)}...
                                 </p>
                                 {entry.tags?.length > 0 && (
                                     <div className="flex gap-1 mt-2 flex-wrap">
@@ -613,8 +653,10 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                         )}>
                             <button
                                 onClick={handleSave}
-                                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+                                disabled={saving}
+                                className="px-6 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
+                                {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                                 {t('common.save') || "Guardar"}
                             </button>
                         </div>

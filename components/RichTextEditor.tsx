@@ -53,7 +53,7 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
         content: content,
         editorProps: {
             attributes: {
-                class: `prose prose-sm prose-invert max-w-none focus:outline-none min-h-[150px] p-4 ${className}`,
+                class: `prose prose-sm prose-invert max-w-none focus:outline-none min-h-[150px] p-4 [&_img]:select-none [&_img]:[user-drag:none] [&_img]:[-webkit-user-drag:none] ${className}`,
             },
             handleDrop: (view, event, slice, moved) => {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {

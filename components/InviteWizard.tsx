@@ -101,6 +101,18 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
 
     const handleGenerate = async () => {
         if (!user) return;
+
+        // --- SECURITY VALIDATION ---
+        if (selectedRole !== 'superadmin' && selectedTenant === 'SYSTEM') {
+            alert("Security Error: Only 'Superadmin' can be assigned to the SYSTEM tenant. Please select a specific organization.");
+            return;
+        }
+
+        if (selectedRole !== 'superadmin' && !selectedTenant && !isNewTenant) {
+            alert("Please select or create an organization for this invitation.");
+            return;
+        }
+
         setLoading(true);
         try {
             let targetTenantId = selectedTenant;

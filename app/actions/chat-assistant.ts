@@ -12,7 +12,7 @@ export async function sendChatMessage(history: ChatMessage[], newMessage: string
 
         const token = await currentUser.getIdToken();
         const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-        const region = "us-central1"; // hardcoded as per lib/firebase.ts
+        const region = "us-central1"; // Match deployed function region
 
         // Construct URL - Handle localhost for dev if needed, but usually we target the cloud function
         // If user is running emulators, they should set NEXT_PUBLIC_FUNCTIONS_EMULATOR probably, 

@@ -45,7 +45,7 @@ describe("Security Rules - Masquerading \u0026 Multi-Tenancy", () => {
     test("Superadmin (Tenant 1) writing to Tenant B -> ALLOW (Bypass)", async () => {
         const superAdminAuth = {
             uid: "super-user",
-            role: 100, // SUPERADMIN
+            roleLevel: 100, // SUPERADMIN
             tenantId: "1",
         };
         const db = getDb(superAdminAuth);
@@ -65,7 +65,7 @@ describe("Security Rules - Masquerading \u0026 Multi-Tenancy", () => {
     test("Standard Admin (Tenant A) writing to Tenant B -> DENY", async () => {
         const adminAuth = {
             uid: "admin-user",
-            role: 80, // ADMIN
+            roleLevel: 80, // ADMIN
             tenantId: "A",
         };
         const db = getDb(adminAuth);
@@ -83,7 +83,7 @@ describe("Security Rules - Masquerading \u0026 Multi-Tenancy", () => {
     test("Standard Admin (Tenant A) writing to Tenant A -> ALLOW", async () => {
         const adminAuth = {
             uid: "admin-user",
-            role: 80,
+            roleLevel: 80,
             tenantId: "A",
         };
         const db = getDb(adminAuth);
@@ -102,7 +102,7 @@ describe("Security Rules - Masquerading \u0026 Multi-Tenancy", () => {
         // Depending on exact rules for Projects, usually Users can't create projects
         const userAuth = {
             uid: "simple-user",
-            role: 20, // EQUIPO
+            roleLevel: 20, // EQUIPO
             tenantId: "A",
         };
         const db = getDb(userAuth);
@@ -113,5 +113,31 @@ describe("Security Rules - Masquerading \u0026 Multi-Tenancy", () => {
                 tenantId: "A"
             })
         );
+    });
+
+    test("Super Admin can read/write to system/counters -> ALLOW", async () => {
+        const superAdminAuth = {
+            uid: "super-user",
+            roleLevel: 100,
+            tenantId: "1",
+        };
+        const db = getDb(superAdminAuth);
+        const counterRef = db.collection("system").doc("counters");
+
+        await assertSucceeds(counterRef.get());
+        await assertSucceeds(counterRef.set({ tenants: 10 }));
+    });
+
+    test("Standard User cannot read/write to system/counters -> DENY", async () => {
+        const userAuth = {
+            uid: "simple-user",
+            roleLevel: 20,
+            tenantId: "A",
+        };
+        const db = getDb(userAuth);
+        const counterRef = db.collection("system").doc("counters");
+
+        await assertFails(counterRef.get());
+        await assertFails(counterRef.set({ tenants: 10 }));
     });
 });

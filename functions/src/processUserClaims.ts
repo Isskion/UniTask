@@ -21,6 +21,7 @@ import { getDb } from './utils'; // Lazy init
 const ROLE_LEVELS: Record<string, number> = {
     'usuario_externo': 10,
     'usuario_base': 20,
+    'consultant': 40,
     'consultor': 40,
     'global_pm': 60,
     'app_admin': 80,

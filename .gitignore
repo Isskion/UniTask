@@ -43,6 +43,7 @@ next-env.d.ts
 .vercel
 .env*.local
 fix-env.js
+repair-env.js
 
 # backups
 backup_*/
