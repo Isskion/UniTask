@@ -169,7 +169,30 @@ export function SprintPlanningBoard() {
         });
     };
 
-    const filteredBacklog = useMemo(() => filterTasks(backlogTasks), [backlogTasks, searchQuery, selectedProjectId, selectedUserIds]);
+    const filteredBacklog = useMemo(() => {
+        const tasks = filterTasks(backlogTasks);
+
+        return tasks.sort((a, b) => {
+            // Priority: review > in_progress > pending > others
+            const priority: Record<string, number> = {
+                'review': 0,
+                'in_progress': 1,
+                'pending': 2
+            };
+
+            const pA = priority[a.status] ?? 99;
+            const pB = priority[b.status] ?? 99;
+
+            if (pA !== pB) return pA - pB;
+
+            // Secondary: Oldest First (createdAt)
+            const dateA = a.createdAt && (a.createdAt as any).seconds ? (a.createdAt as any).seconds : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const dateB = b.createdAt && (b.createdAt as any).seconds ? (b.createdAt as any).seconds : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+
+            return dateA - dateB;
+        });
+    }, [backlogTasks, searchQuery, selectedProjectId, selectedUserIds]);
+
     const filteredSprint = useMemo(() => filterTasks(sprintTasks), [sprintTasks, searchQuery, selectedProjectId, selectedUserIds]);
 
 
@@ -308,8 +331,16 @@ export function SprintPlanningBoard() {
                         updates.status = 'in_progress';
                     }
                 } else {
-                    // [AUTOMATION] In Progress -> Pending when removed from Sprint (Back to Backlog)
-                    // We only reset if it was "in_progress". We keep "completed" or "review".
+                    // [AUTOMATION] Back to Backlog Cleanup
+                    // 1. Remove Sprint Association
+                    updates.sprintId = null;
+                    updates.needsRollover = null; // Clear any legacy flags
+
+                    // 2. Reset Status?
+                    // User Rule: "in_progress" -> "pending".
+                    // "completed" -> Blocked above, so we don't worry.
+                    // "review" -> Keep it? Or reset? Usually review implies it needs attention. 
+                    // Let's stick to: In Progress -> Pending. Review -> Review (maybe they are reviewing it outside sprint)
                     if (task.status === 'in_progress') {
                         updates.status = 'pending';
                     }
@@ -519,7 +550,7 @@ export function SprintPlanningBoard() {
                                 </p>
                             ) : (
                                 filteredBacklog.map(task => (
-                                    <DraggableTaskCard key={task.id} task={task} isLight={isLight} t={t} />
+                                    <DraggableTaskCard key={task.id} task={task} isLight={isLight} t={t} usersMap={usersMap} />
                                 ))
                             )}
                         </DroppableColumn>
@@ -540,7 +571,7 @@ export function SprintPlanningBoard() {
                                 </p>
                             ) : (
                                 filteredSprint.map(task => (
-                                    <DraggableTaskCard key={task.id} task={task} isLight={isLight} inSprint t={t} />
+                                    <DraggableTaskCard key={task.id} task={task} isLight={isLight} inSprint t={t} usersMap={usersMap} />
                                 ))
                             )}
                         </DroppableColumn>
@@ -560,7 +591,7 @@ export function SprintPlanningBoard() {
                 <DragOverlay>
                     {activeTask ? (
                         <div className="opacity-80 rotate-2 cursor-grabbing">
-                            <TaskCard task={activeTask} isLight={isLight} t={t} />
+                            <TaskCard task={activeTask} isLight={isLight} t={t} usersMap={usersMap} />
                         </div>
                     ) : null}
                 </DragOverlay>
@@ -615,49 +646,117 @@ function DraggableTaskCard(props: any) {
 }
 
 // Task Card Pure Component
-function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string; isDraggable?: boolean }) {
+function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true, usersMap }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string; isDraggable?: boolean; usersMap?: Record<string, UserProfile> }) {
     const hasRisk = task.clientDeadline && task.sprintId;
     const isCompleted = task.status === 'completed';
 
+    // Assignee
+    const assignee = task.assignedTo && usersMap ? usersMap[task.assignedTo] : null;
+
+    // Date Formatting
+    const formatDateShort = (val: any) => {
+        if (!val) return null;
+        const d = val.toDate ? val.toDate() : new Date(val);
+        return format(d, 'dd/MM');
+    };
+
+    const deadline = task.clientDeadline;
+    const deadlineDate = deadline ? (deadline.toDate ? deadline.toDate() : new Date(deadline)) : null;
+    const isOverdue = deadlineDate && deadlineDate < new Date();
+
+    // Status Colors
+    const getStatusColor = (s: string) => {
+        switch (s) {
+            case 'completed': return 'bg-emerald-500 text-white';
+            case 'in_progress': return 'bg-blue-500 text-white';
+            case 'review': return 'bg-purple-500 text-white';
+            default: return 'bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300';
+        }
+    };
+
+    const getStatusLabel = (s: string) => {
+        switch (s) {
+            case 'completed': return 'DONE'; // Compact
+            case 'in_progress': return 'WIP';
+            case 'review': return 'REV';
+            default: return 'PEND';
+        }
+    };
+
     return (
-        <div className={cn("border rounded-lg p-3 transition-all select-none bg-background",
+        <div className={cn("border rounded-lg p-3 transition-all select-none bg-background relative",
             isDraggable ? "cursor-grab hover:shadow-md" : "cursor-default opacity-90",
             isCompleted && inSprint
                 ? "bg-emerald-500/10 border-emerald-500/30" // Completed in Sprint (Green)
                 : (isLight ? "border-input hover:border-primary/50" : "border-white/5 hover:border-primary/50")
         )}>
-            <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex-1 min-w-0">
-                    <p className={cn("text-xs font-bold truncate",
-                        isCompleted ? "text-emerald-500" : "text-foreground"
-                    )}>
-                        {task.friendlyId || task.id.slice(0, 8)}
-                    </p>
-                    <p className={cn("text-xs mt-1 line-clamp-2", isCompleted ? "opacity-70" : "text-muted-foreground")}>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className={cn("text-[10px] uppercase font-bold px-1.5 py-0.5 rounded leading-none", getStatusColor(task.status))}>
+                            {getStatusLabel(task.status)}
+                        </span>
+                        <p className={cn("text-[10px] font-mono opacity-50 truncate")}>
+                            {task.friendlyId || task.id.slice(0, 4)}
+                        </p>
+                    </div>
+                    <p className={cn("text-xs font-medium leading-snug line-clamp-2", isCompleted ? "opacity-70" : "text-foreground")}>
                         {task.title}
                     </p>
                 </div>
-                {task.estimatedEffortSize && (
-                    <div className={cn("text-[10px] font-bold px-2 py-1 rounded",
-                        task.estimatedEffortSize === 'XS' ? "bg-blue-500/10 text-blue-500" :
-                            task.estimatedEffortSize === 'S' ? "bg-green-500/10 text-green-500" :
-                                task.estimatedEffortSize === 'M' ? "bg-yellow-500/10 text-yellow-500" :
-                                    task.estimatedEffortSize === 'L' ? "bg-orange-500/10 text-orange-500" :
-                                        "bg-red-500/10 text-red-500"
-                    )}>
-                        {task.estimatedEffortSize}
-                    </div>
-                )}
             </div>
-            {task.estimatedEffort && (
-                <div className="text-[10px] mt-2 font-mono text-muted-foreground opacity-70">
-                    ≈ {task.estimatedEffort} {t('sprints.days')}
+
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50">
+                {/* Left: Assignee */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                    {assignee ? (
+                        <>
+                            <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 text-[8px] font-bold border border-border">
+                                {assignee.photoURL ? (
+                                    <img src={assignee.photoURL} alt={assignee.displayName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span>{assignee.displayName ? assignee.displayName.substring(0, 2).toUpperCase() : "??"}</span>
+                                )}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">
+                                {assignee.displayName?.split(' ')[0]}
+                            </span>
+                        </>
+                    ) : (
+                        <span className="text-[10px] text-muted-foreground italic opacity-50">Unassigned</span>
+                    )}
                 </div>
-            )}
-            {hasRisk && (
-                <div className="flex items-center gap-1 mt-2 text-[10px] text-red-500">
+
+                {/* Right: Deadline & Size */}
+                <div className="flex items-center gap-2 shrink-0">
+                    {deadlineDate && (
+                        <div className={cn("text-[10px] font-mono flex items-center gap-1", isOverdue ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                            {isOverdue && <AlertTriangle className="w-3 h-3" />}
+                            {formatDateShort(deadline)}
+                        </div>
+                    )}
+
+                    {task.estimatedEffortSize && (
+                        <div className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded",
+                            task.estimatedEffortSize === 'XS' ? "bg-blue-500/10 text-blue-500" :
+                                task.estimatedEffortSize === 'S' ? "bg-green-500/10 text-green-500" :
+                                    task.estimatedEffortSize === 'M' ? "bg-yellow-500/10 text-yellow-500" :
+                                        task.estimatedEffortSize === 'L' ? "bg-orange-500/10 text-orange-500" :
+                                            "bg-red-500/10 text-red-500"
+                        )}>
+                            {task.estimatedEffortSize}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Risk Indicator moved to bottom or combined with date? 
+               Let's keep the dedicated risk if strictly needed, but date color mostly covers it.
+               The previous code had dedicated risk line.
+            */}
+            {hasRisk && !deadlineDate && (
+                <div className="flex items-center gap-1 mt-1 text-[10px] text-red-500">
                     <AlertTriangle className="w-3 h-3" />
-                    {t('sprints.risk_client_deadline')}
                 </div>
             )}
         </div>

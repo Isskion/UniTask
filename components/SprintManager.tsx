@@ -116,30 +116,40 @@ export default function SprintManager() {
                     status: 'planning' // Default for new
                 });
 
-                // [AUTOMATION] Check for Rollover Tasks and Move them
-                if (tenantId) {
-                    const rolloverQuery = query(
-                        collection(db, 'tasks'),
-                        where('tenantId', '==', tenantId),
-                        where('needsRollover', '==', true)
-                    );
+                // [AUTOMATION] Check for Rollover Tasks (Expired Sprint -> Backlog)
+                if (tenantId && sprints.length > 0) {
+                    // Find the most recent sprint (that isn't the one we just created)
+                    // Sprints are ordered desc by startDate.
+                    const lastSprint = sprints[0];
+                    const now = new Date();
+                    const lastEndDate = lastSprint.endDate?.toDate ? lastSprint.endDate.toDate() : new Date(lastSprint.endDate);
 
-                    const rolloverSnap = await getDocs(rolloverQuery);
-                    if (!rolloverSnap.empty) {
-                        console.log(`Rolling over ${rolloverSnap.size} tasks to new sprint ${docRef.id}`);
-                        let count = 0;
-                        // Batch update ideally, but sequential for safety/simplicity now
-                        for (const taskDoc of rolloverSnap.docs) {
-                            await safeUpdateDoc(doc(db, 'tasks', taskDoc.id), {
-                                sprintId: docRef.id,
-                                needsRollover: null, // Clear flag
-                                // Optional: Update deadline to new sprint end
-                                clientDeadline: payload.endDate
-                            });
-                            count++;
+                    // If the last sprint has expired
+                    if (lastEndDate < now) {
+                        const tasksQuery = query(
+                            collection(db, 'tasks'),
+                            where('tenantId', '==', tenantId),
+                            where('sprintId', '==', lastSprint.id)
+                        );
+
+                        const tasksSnap = await getDocs(tasksQuery);
+                        let movedCount = 0;
+
+                        for (const taskDoc of tasksSnap.docs) {
+                            const tData = taskDoc.data();
+                            // If task is NOT completed, move to Backlog
+                            if (tData.status !== 'completed') {
+                                await safeUpdateDoc(doc(db, 'tasks', taskDoc.id), {
+                                    sprintId: null, // Back to Backlog
+                                    status: 'pending', // Reset status if it was in_progress
+                                    needsRollover: null // Clear legacy flag
+                                });
+                                movedCount++;
+                            }
                         }
-                        if (count > 0) {
-                            showToast(t('common.info'), `${count} tasks rolled over from expired sprint.`, "info");
+
+                        if (movedCount > 0) {
+                            showToast(t('common.info'), `${movedCount} tasks returned to Backlog from ${lastSprint.name}.`, "info");
                         }
                     }
                 }

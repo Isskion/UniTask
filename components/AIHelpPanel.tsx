@@ -7,6 +7,7 @@ import { sendChatMessage, ChatMessage } from '@/app/actions/chat-assistant';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { AiFeedbackButton } from './AiFeedbackButton';
 
 interface AIHelpPanelProps {
     isOpen: boolean;
@@ -142,6 +143,12 @@ export function AIHelpPanel({ isOpen, onClose }: AIHelpPanelProps) {
                                     </ReactMarkdown>
                                 ) : (
                                     <p>{msg.text}</p>
+                                )}
+                                {msg.role === 'model' && idx > 0 && messages[idx - 1].role === 'user' && (
+                                    <AiFeedbackButton
+                                        question={messages[idx - 1].text}
+                                        botResponse={msg.text}
+                                    />
                                 )}
                             </div>
                         </div>

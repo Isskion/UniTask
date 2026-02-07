@@ -46,7 +46,7 @@ exports.analyzeDocumentStructure = functions.https.onCall(async (data, context) 
     if (!apiKey)
         throw new functions.https.HttpsError('internal', "AI Key missing");
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `
         Act as a Visual Document Expert.
         Analyze the following document content to extract BOTH its logical structure AND its estimated visual layout zones.
@@ -110,7 +110,7 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
     if (!apiKey)
         throw new functions.https.HttpsError('internal', "AI Key missing");
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `
         Extract structured data from this PDF project document.
         Return JSON fields: title, full_content (markdown), description, endDate, priority, action_items.
@@ -127,7 +127,7 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
         if (userRole !== 'superadmin') {
             await (0, utils_1.logUsage)({
                 userId, tenantId, action: "analyze_pdf_api",
-                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-1.5-flash"
+                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-2.0-flash"
             });
         }
         return { success: true, data: parsedData };
@@ -154,7 +154,7 @@ exports.summarizeNotes = functions.https.onCall(async (data, context) => {
     if (!apiKey)
         throw new functions.https.HttpsError('internal', "AI Key missing");
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `
         Analyze the following Project Management notes and extract key insights.
         Input Notes:
@@ -176,7 +176,7 @@ exports.summarizeNotes = functions.https.onCall(async (data, context) => {
         if (userRole !== 'superadmin') {
             await (0, utils_1.logUsage)({
                 userId, tenantId, action: "summarize_notes",
-                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-1.5-flash"
+                charsIn: prompt.length, charsOut: responseText.length, model: "gemini-2.0-flash"
             });
         }
         return parsedData;

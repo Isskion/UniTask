@@ -1,0 +1,8 @@
+Tasks for Sprint rv4o2aNcyMQ1LGNqI6ZI:
+
+Found 3 total tasks.
+TASK: Revisar documentación Transfollow (Status: completed)
+TASK: Generar flujo de información de etiquetas a Generix. (iñaki) (Status: completed)
+TASK: Definir Middleware o integrador para realizar las conexiones con WMS - TMS y terceros (Status: completed)
+
+No incomplete tasks found to move.
