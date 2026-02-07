@@ -689,6 +689,16 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         }
                     }
 
+                    // [BURNDOWN FIX] Set closedAt timestamp on completion
+                    if (data.status === 'completed' && selectedTask.status !== 'completed') {
+                        data.closedAt = serverTimestamp();
+                        data.closedBy = user?.uid;
+                    } else if (data.status && data.status !== 'completed' && selectedTask.status === 'completed') {
+                        // Re-opening task
+                        data.closedAt = null;
+                        data.closedBy = null;
+                    }
+
                     // console.log("[DEBUG] handleSave Update Payload:", JSON.stringify(data, null, 2));
 
                     await updateDoc(doc(db, "tasks", selectedTask.id), {

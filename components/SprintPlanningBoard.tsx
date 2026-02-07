@@ -114,39 +114,33 @@ export function SprintPlanningBoard() {
     }, [tenantId, selectedSprintId]);
 
     // [AUTOMATION] Auto-Open Active Sprint on Load
+    // [AUTOMATION] Auto-Open Active Sprint on Load
     useEffect(() => {
-        // Wait for sprints to load (ignore tasks loading)
-        if (sprintsLoading || sprints.length === 0) return;
+        if (sprintsLoading) return;
 
-        // Prevent re-setting if user already selected something OR if we already auto-opened
+        // If selection already exists, do nothing
         if (selectedSprintId) return;
 
-        console.log("Auto-Open Logic Running...", { sprintsCount: sprints.length });
-
-        const now = startOfToday();
-
-        // Priority 1: Active Sprint that matches Today
-        let targetSprint = sprints.find(s => {
-            if (s.status !== 'active') return false;
-            const start = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
-            const end = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
-            const endInclusive = endOfDay(end);
-            return isWithinInterval(now, { start, end: endInclusive });
+        console.log("Auto-Open Debug:", {
+            count: sprints.length,
+            statuses: sprints.map(s => `${s.name}: ${s.status}`)
         });
 
-        if (targetSprint) console.log("Priority 1 (Date Match):", targetSprint.name);
+        // 1. Priority: Find ACTIVE sprint
+        let target = sprints.find(s => s.status === 'active');
 
-        // Priority 2: ANY Active Sprint (Fallback if date mismatch but status is Active)
-        if (!targetSprint) {
-            targetSprint = sprints.find(s => s.status === 'active');
-            if (targetSprint) console.log("Priority 2 (Any Active):", targetSprint.name);
+        // 2. Fallback: Find LATEST PLANNED sprint (since sprints are desc ordered)
+        if (!target) {
+            target = sprints.find(s => s.status === 'planning');
         }
 
-        if (targetSprint) {
-            console.log("✅ Auto-opening sprint:", targetSprint.name);
-            setSelectedSprintId(targetSprint.id);
+        if (target) {
+            console.log(`✅ Auto-opening sprint: ${target.name} (${target.status})`);
+            setSelectedSprintId(target.id);
         } else {
-            console.warn("⚠️ No active sprint found to auto-open.");
+            console.warn("⚠️ No active or planning sprint found. Available:", sprints.map(s => s.status));
+            // LAST RESORT: Just pick the first one if it exists?
+            // if (sprints.length > 0) setSelectedSprintId(sprints[0].id);
         }
     }, [sprintsLoading, sprints, selectedSprintId]);
 

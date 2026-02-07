@@ -106,6 +106,28 @@ export default function SprintManager() {
             if (payload.endDate instanceof Date) payload.endDate = Timestamp.fromDate(payload.endDate);
             else if (typeof payload.endDate === 'string') payload.endDate = Timestamp.fromDate(new Date(payload.endDate));
 
+            // [ARCHITECTURAL ENFORCEMENT] Single Active Sprint Rule
+            // If setting this sprint to 'active', update ALL other active sprints to 'closed'
+            if (payload.status === 'active') {
+                const otherActiveSprints = otherSprints.filter(s => s.status === 'active');
+                if (otherActiveSprints.length > 0) {
+                    console.log(`[SprintManager] Closing ${otherActiveSprints.length} other active sprints.`);
+                    // We can do this in parallel, but sequential is safer for error handling
+                    for (const activeSprint of otherActiveSprints) {
+                        try {
+                            await safeUpdateDoc(doc(db, 'sprints', activeSprint.id), {
+                                status: 'closed',
+                                closedAt: serverTimestamp(), // Optional metadata
+                                updatedAt: serverTimestamp()
+                            });
+                            showToast(t('common.info'), `Sprint anterior '${activeSprint.name}' cerrado automáticamente.`, "info");
+                        } catch (e) {
+                            console.error(`Failed to auto-close sprint ${activeSprint.name}`, e);
+                        }
+                    }
+                }
+            }
+
             if (formData.id) {
                 await safeUpdateDoc(doc(db, 'sprints', formData.id), payload);
                 showToast(t('common.success'), t('sprints.success_updated'), "success");
@@ -113,7 +135,7 @@ export default function SprintManager() {
                 const docRef = await addDoc(collection(db, 'sprints'), {
                     ...payload,
                     createdAt: serverTimestamp(),
-                    status: 'planning' // Default for new
+                    status: payload.status || 'planning' // Default for new
                 });
 
                 // [AUTOMATION] Check for Rollover Tasks (Expired Sprint -> Backlog)
