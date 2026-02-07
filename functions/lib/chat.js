@@ -8,7 +8,11 @@ const utils_1 = require("./utils");
 const cors = require("cors");
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
-exports.chat = functions.https.onRequest(async (req, res) => {
+exports.chat = functions.runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 60,
+    memory: '512MB'
+}).https.onRequest(async (req, res) => {
     // 1. CORS Wrapper
     corsHandler(req, res, async () => {
         var _a, _b;

@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.3.1";
+export const APP_VERSION = "13.3.2";
 
 export const CHANGELOG = [
+    {
+        version: "13.3.2",
+        title: "UI/UX Brand Refresh",
+        date: "2026-02-07",
+        features: [
+            "**New Branding**: Implemented new application logos with premium aesthetic effects.",
+            "**Login Screen**: Enhanced login screen with large, integrated logo.",
+            "**Sidebar**: Standardized sidebar branding with high-contrast header and proper text alignment."
+        ]
+    },
     {
         version: "13.3.1",
         title: "Invite Management",

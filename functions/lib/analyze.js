@@ -5,7 +5,11 @@ const functions = require("firebase-functions");
 const generative_ai_1 = require("@google/generative-ai");
 const utils_1 = require("./utils");
 // --- FUNCTION 1: Analyze Document Structure ---
-exports.analyzeDocumentStructure = functions.https.onCall(async (data, context) => {
+exports.analyzeDocumentStructure = functions.runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 300,
+    memory: '2GB'
+}).https.onCall(async (data, context) => {
     var _a;
     // 1. Auth Check
     if (!context.auth) {
@@ -137,7 +141,11 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
     }
 });
 // --- FUNCTION 3: Summarize Notes (Weekly/Daily) ---
-exports.summarizeNotes = functions.https.onCall(async (data, context) => {
+exports.summarizeNotes = functions.runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 120,
+    memory: '1GB'
+}).https.onCall(async (data, context) => {
     var _a;
     if (!context.auth)
         throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');

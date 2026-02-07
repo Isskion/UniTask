@@ -33,6 +33,7 @@ import { APP_VERSION } from "@/lib/version";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { useTheme } from "@/hooks/useTheme";
 import { NotificationBell } from "@/components/NotificationBell";
 import { VersionBadge } from "@/components/VersionBadge";
 import { getRoleLevel, RoleLevel } from "@/types"; // Added import
@@ -69,6 +70,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const { t } = useLanguage();
 
+
+    // const { theme } = useTheme(); 
+    const logoSrc = '/brand-white.png';
+    // console.log(`[LogoDebug] Current theme: ${theme}, loading: ${logoSrc}`);
 
     // Check if user can manage permissions (with legacy role fallback)
     const canManagePermissions = can('managePermissions', 'special') ||
@@ -184,18 +189,25 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <div className="flex flex-1 overflow-hidden">
                 {/* SIDEBAR (Desktop) */}
                 <aside className="w-64 flex flex-col border-r border-border bg-card/50">
-                    {/* Header / User */}
-                    <div className="h-14 flex items-center px-4 border-b border-border gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain theme-logo" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-sm font-bold text-foreground truncate">UniTask Controller</h1>
-                                {onOpenChangelog && <VersionBadge onClick={onOpenChangelog} />}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground truncate">Consultant Workspace</p>
-                        </div>
+                    {/* Header / Logo */}
+                    {/* Header / Logo */}
+                    <div className="h-14 flex items-center px-4 border-b border-border/40 gap-3">
+                        <img
+                            src={logoSrc}
+                            alt="Unitask"
+                            className="h-8 w-auto object-contain rounded-lg transition-all duration-300 hover:scale-105 origin-left"
+                            style={{
+                                maskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)',
+                                WebkitMaskImage: 'radial-gradient(ellipse at center, black 60%, transparent 100%)'
+                            }}
+                            onError={(e) => {
+                                // Fallback if logo not found
+                                e.currentTarget.src = "/logo.png";
+                            }}
+                        />
+                        <span className="text-sm font-bold text-foreground tracking-tight">
+                            UniTaskController
+                        </span>
                     </div>
 
                     {/* Navigation */}

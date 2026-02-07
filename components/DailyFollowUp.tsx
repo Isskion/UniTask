@@ -1253,13 +1253,26 @@ export default function DailyFollowUp() {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-orange-600 rounded-full mix-blend-screen filter blur-[100px] opacity-10"></div>
 
                 <div className="relative z-10 glass-panel p-12 rounded-3xl border border-white/10 flex flex-col items-center max-w-md w-full shadow-2xl">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D32F2F] to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-red-900/50">
-                        <UserCircle2 className="w-8 h-8 text-white" />
+                    <div className="mb-8 relative">
+                        {/* Logo with fade-out effect and rounded corners */}
+                        <img
+                            src="/brand-white.png"
+                            alt="UniTask Logo"
+                            className="w-48 h-auto object-contain rounded-3xl hover:scale-105 transition-transform duration-500"
+                            style={{
+                                maskImage: 'radial-gradient(ellipse at center, black 50%, transparent 95%)',
+                                WebkitMaskImage: 'radial-gradient(ellipse at center, black 50%, transparent 95%)'
+                            }}
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = '<span class="text-red-500 font-bold text-xl">LOGO ERROR</span>';
+                            }}
+                        />
                     </div>
 
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-2">
+                    {/* <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-2">
                         UniTaskController
-                    </h1>
+                    </h1> */}
                     <p className="text-zinc-500 text-sm mb-8 text-center">
                         Gestión inteligente de proyectos y tareas
                     </p>

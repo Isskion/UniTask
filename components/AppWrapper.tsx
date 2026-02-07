@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { Loader2, UserCircle2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import WeeklyEditor from "@/components/WeeklyEditor";
 import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
 import { UIProvider } from "@/context/UIContext";
@@ -26,13 +26,24 @@ export default function AppWrapper() {
                 <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-orange-600 rounded-full mix-blend-screen filter blur-[100px] opacity-10"></div>
 
                 <div className="relative z-10 glass-panel p-12 rounded-3xl border border-white/10 flex flex-col items-center max-w-md w-full shadow-2xl">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D32F2F] to-orange-600 flex items-center justify-center mb-6 shadow-lg shadow-red-900/50">
-                        <UserCircle2 className="w-8 h-8 text-white" />
+                    <div className="mb-6 flex justify-center w-full">
+                        <img
+                            src="/brand-red.png"
+                            alt="UniTaskController Logo"
+                            className="w-48 h-auto max-h-48 object-contain drop-shadow-[0_0_15px_rgba(211,47,47,0.4)]"
+                            onError={(e) => {
+                                console.error('Logo load failed:', e.currentTarget.src);
+                                e.currentTarget.style.display = 'none';
+                                // Fallback: simple text or nothing, to confirm image issue.
+                                // Don't inject old logo.
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) {
+                                    parent.innerHTML = '<div class="text-red-500 font-bold">LOGO ERROR</div>';
+                                }
+                            }}
+                        />
                     </div>
 
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent mb-2">
-                        UniTaskController
-                    </h1>
                     <p className="text-zinc-500 text-sm mb-8 text-center">
                         Gestión inteligente de proyectos y tareas
                     </p>

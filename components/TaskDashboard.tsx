@@ -335,6 +335,39 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                             const pName = project?.name || "Sin Proyecto";
                             const pColor = project?.color || "#555";
 
+                            // [SORTING] Match Sprint Board & TaskManagement Logic
+                            // Priority: review > in_progress > pending > completed > others
+                            // Secondary: Oldest First
+                            const sortedTasks = [...pTasks].sort((a, b) => {
+                                const priority: Record<string, number> = {
+                                    'review': 0,
+                                    'in_progress': 1,
+                                    'pending': 2,
+                                    'completed': 3
+                                };
+
+                                const statusA = a.status ? a.status.toLowerCase() : '';
+                                const statusB = b.status ? b.status.toLowerCase() : '';
+
+                                const pA = priority[statusA] ?? 99;
+                                const pB = priority[statusB] ?? 99;
+
+                                if (pA !== pB) return pA - pB;
+
+                                const getTime = (d: any) => {
+                                    if (!d) return 0;
+                                    if (d.seconds) return d.seconds * 1000;
+                                    if (d instanceof Date) return d.getTime();
+                                    if (typeof d === 'string') return new Date(d).getTime();
+                                    return 0;
+                                };
+
+                                const timeA = getTime(a.createdAt);
+                                const timeB = getTime(b.createdAt);
+
+                                return timeA - timeB;
+                            });
+
                             return (
                                 <div key={pid} className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="flex items-center gap-2 border-b border-border pb-2 px-1 sticky top-0 bg-background/95 backdrop-blur z-10 pt-2">
@@ -344,7 +377,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                     </div>
 
                                     <div className="grid gap-2">
-                                        {pTasks.map(task => (
+                                        {sortedTasks.map(task => (
                                             <div
                                                 key={task.id}
                                                 // [NEW] OnClick to Open ABM

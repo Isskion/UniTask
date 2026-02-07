@@ -5,7 +5,11 @@ import { isAiEnabled, logUsage } from "./utils";
 
 
 // --- FUNCTION 1: Analyze Document Structure ---
-export const analyzeDocumentStructure = functions.https.onCall(async (data, context) => {
+export const analyzeDocumentStructure = functions.runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 300,
+    memory: '2GB'
+}).https.onCall(async (data, context) => {
     // 1. Auth Check
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
@@ -151,7 +155,11 @@ export const analyzePdf = functions.https.onCall(async (data, context) => {
 });
 
 // --- FUNCTION 3: Summarize Notes (Weekly/Daily) ---
-export const summarizeNotes = functions.https.onCall(async (data, context) => {
+export const summarizeNotes = functions.runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 120,
+    memory: '1GB'
+}).https.onCall(async (data, context) => {
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
 
     const { uid: userId, token } = context.auth;

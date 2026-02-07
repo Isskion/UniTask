@@ -446,7 +446,40 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
 
         return true;
+    }).sort((a, b) => {
+        // [SORTING V15] Match Sprint Board Logic
+        // Priority: review > in_progress > pending > completed > others
+        const priority: Record<string, number> = {
+            'review': 0,
+            'in_progress': 1,
+            'pending': 2,
+            'completed': 3
+        };
+
+        const statusA = a.status ? a.status.toLowerCase() : '';
+        const statusB = b.status ? b.status.toLowerCase() : '';
+
+        const pA = priority[statusA] ?? 99;
+        const pB = priority[statusB] ?? 99;
+
+        if (pA !== pB) return pA - pB;
+
+        // Secondary: Oldest First (createdAt)
+        const getTime = (d: any) => {
+            if (!d) return 0;
+            if (d.seconds) return d.seconds * 1000; // Firestore Timestamp
+            if (d instanceof Date) return d.getTime();
+            if (typeof d === 'string') return new Date(d).getTime();
+            return 0;
+        };
+
+        const timeA = getTime(a.createdAt);
+        const timeB = getTime(b.createdAt);
+
+        return timeA - timeB;
     });
+
+
 
 
     // --- HANDLERS ---
@@ -1008,6 +1041,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     />
                                 </div>
                                 <button
+                                    onClick={() => setShowTree(!showTree)}
+                                    className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
                                     title={showTree ? "Ver Lista" : "Ver Jerarquía"}
                                 >
                                     {showTree ? <List className="w-3.5 h-3.5" /> : <FolderGit2 className="w-3.5 h-3.5" />}
@@ -1926,7 +1961,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 )
                 }
             </div>
-        </div>
+        </div >
     );
 };
 
