@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.3.2";
+export const APP_VERSION = "13.3.3";
 
 export const CHANGELOG = [
+    {
+        version: "13.3.3",
+        title: "Sprint Burndown Precision",
+        date: "2026-02-08",
+        features: [
+            "**Burndown Chart Fix**: Resolved data precision issue where completed tasks were not registering in the chart.",
+            "**Single Active Sprint**: Enforced strict 'One Active Sprint' rule to prevent data conflicts."
+        ]
+    },
     {
         version: "13.3.2",
         title: "UI/UX Brand Refresh",
