@@ -709,10 +709,18 @@ export default function DailyFollowUp() {
             setIsTasksPanelVisible(true); // Auto-open on success
 
         } catch (e: any) {
-            console.error("AI Error:", e);
+            console.error("AI Error Full Details:", e);
             const errorMsg = e.message || e.toString();
             showToast("Error AI", `Falló la generación: ${errorMsg}`, "error");
-            alert(`Detalle del error AI:\n${errorMsg}\n\nSi persiste, verifica la consola y los logs de Firebase.`);
+
+            // Log to console for user to see in F12
+            console.group("AI Extraction Failure");
+            console.error("Error Message:", errorMsg);
+            console.error("Stack Trace:", e.stack);
+            if (e.details) console.error("Firebase/Function Details:", e.details);
+            console.groupEnd();
+
+            alert(`Error al generar tareas (AI):\n\n${errorMsg}\n\nRevisa la consola (F12) para más detalles técnicos.`);
         } finally {
             setIsAILoading(false);
         }
