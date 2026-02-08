@@ -696,10 +696,10 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     } else if (data.status && data.status !== 'completed' && selectedTask.status === 'completed') {
                         // Re-opening task
                         data.closedAt = null;
-                        data.closedBy = null;
+                        data.closedBy = null as any;
                     }
 
-                    // console.log("[DEBUG] handleSave Update Payload:", JSON.stringify(data, null, 2));
+
 
                     await updateDoc(doc(db, "tasks", selectedTask.id), {
                         ...data,
