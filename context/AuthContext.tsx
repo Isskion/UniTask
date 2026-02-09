@@ -294,6 +294,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const snapshot = await getDoc(userRef);
             const existingData = snapshot.data();
 
+            // ========== SECURITY: Block new users without invitation ==========
+            if (!snapshot.exists() && !inviteData) {
+                console.error("[SECURITY] 🚫 New user attempted login without invitation:", user.email);
+
+                // Clear, informative message to the user
+                alert(
+                    "⛔ ACCESO DENEGADO\n\n" +
+                    "Tu cuenta de Google no está registrada en el sistema.\n\n" +
+                    "Para acceder a UniTask necesitas una invitación.\n" +
+                    "Solicita un código de invitación al administrador de tu organización.\n\n" +
+                    "Se cerrará la sesión automáticamente."
+                );
+
+                await auth.signOut();
+                return;
+            }
+            // ===================================================================
+
             // Logic Update: Always process profile update if we have valid Invite Data
             // This ensures that even existing users get assigned the new Tenant/Project
             if (!snapshot.exists() || inviteData) {
