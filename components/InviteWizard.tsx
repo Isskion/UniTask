@@ -27,7 +27,7 @@ const ROLES = [
     { value: 'global_pm', label: 'Global PM', icon: Crown, desc: 'Multi-project management' },
     { value: 'app_admin', label: 'App Admin', icon: Crown, desc: 'Tenant Administrator' },
     // SuperAdmin only visible to SuperAdmins
-    { value: 'superadmin', label: 'Super Admin', icon: ShieldAlert, desc: 'Full System Access' },
+    { value: 'superadmin', label: 'Super Admin', icon: Crown, desc: 'Full System Access' },
 ];
 
 export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizardProps) {

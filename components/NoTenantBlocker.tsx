@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { ShieldAlert } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { RoleLevel } from '@/types';
 
@@ -55,7 +55,7 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     if (user && !tenantId) {
         return (
             <div className="h-screen w-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-6 text-center">
-                <ShieldAlert className="w-16 h-16 text-red-600 mb-6 animate-pulse" />
+                <AlertTriangle className="w-16 h-16 text-red-600 mb-6 animate-pulse" />
                 <h1 className="text-2xl font-bold mb-2 text-red-500 uppercase tracking-widest">Access Denied</h1>
                 <p className="text-zinc-400 max-w-md mb-8">
                     Your account is not associated with any tenant.
