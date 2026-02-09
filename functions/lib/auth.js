@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = void 0;
 const functions = require("firebase-functions");
 // import * as admin from "firebase-admin"; 
-exports.resetPassword = functions.https.onCall(async (data, context) => {
+exports.resetPassword = functions.region("europe-west1").https.onCall(async (data, context) => {
     console.log("[resetPassword] STUB MODE. Input:", data);
     return { success: true, message: "STUB: Function is reachable!" };
     /*

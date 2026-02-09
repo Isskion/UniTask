@@ -55,6 +55,10 @@
                     {
                         "key": "Cache-Control",
                         "value": "no-cache, no-store, must-revalidate"
+                    },
+                    {
+                        "key": "Content-Security-Policy",
+                        "value": "default-src 'self' https://unitaskcontroller.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://www.google.com https://www.gstatic.com https://unitaskcontroller.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.googleusercontent.com https://firebasestorage.googleapis.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://unitaskcontroller.com; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://*.google.com https://unitaskcontroller.com"
                     }
                 ]
             }

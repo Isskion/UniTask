@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inviteUser = exports.deactivateInvite = exports.consumeInvite = exports.checkInvite = void 0;
+exports.inviteUser = exports.deactivateInvite = exports.consumeInvite = exports.checkInvite = exports.createInvite = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const utils_1 = require("./utils"); // Ensure utils exports getDb or we call admin.firestore()
@@ -29,6 +29,13 @@ function getRoleLevelNum(role) {
     }
 }
 // ... existing inviteUser ...
+/**
+ * Creates a new invite code
+ */
+exports.createInvite = functions.region("europe-west1").https.onCall(async (data, context) => {
+    // TODO: Implement createInvite logic
+    throw new functions.https.HttpsError('unimplemented', 'createInvite is not yet implemented');
+});
 /**
  * Validates an invite code
  */
@@ -170,8 +177,8 @@ exports.inviteUser = functions
         throw new functions.https.HttpsError('unauthenticated', 'Auth required');
     }
     const { uid, token } = context.auth;
-    const { tenantId, targetRole, assignedProjectIds = [] } = data;
-    console.log(`[inviteUser] Call from ${uid} for tenant ${tenantId}, role ${targetRole}`);
+    const { tenantId, targetRole, assignedProjectIds = [], newTenantName } = data;
+    console.log(`[inviteUser] Call from ${uid} for tenant ${tenantId} (New: ${newTenantName}), role ${targetRole}`);
     // 2. Logic & Permission Check
     try {
         const db = (0, utils_1.getDb)(); // Lazy load to ensure init
@@ -193,45 +200,96 @@ exports.inviteUser = functions
             throw new functions.https.HttpsError('permission-denied', 'Insufficient permissions');
         }
         if (creatorLevel === 80 && targetLevel >= 80) {
-            // Allow App Admins to invite other admins? Usually restricted. 
-            // Logic says: Cannot invite equal/higher.
             console.warn(`[inviteUser] Permission denied (Target level ${targetLevel} >= Creator ${creatorLevel})`);
             throw new functions.https.HttpsError('permission-denied', 'Cannot invite equal/higher role');
         }
-        // 3. Generate Code
+        // 3. Atomic Transaction (Tenant + Project + Invite)
         let code = generateCode();
         let attempts = 0;
-        let collision = false;
-        while (attempts < 3) {
-            const doc = await db.collection('invites').doc(code).get();
-            if (!doc.exists)
-                break;
-            console.log("[inviteUser] Collision detected, retrying...");
-            code = generateCode();
-            attempts++;
-            if (attempts === 3)
-                collision = true;
+        let transactionSuccess = false;
+        while (!transactionSuccess && attempts < 3) {
+            try {
+                await db.runTransaction(async (t) => {
+                    // A. Check Collision
+                    const inviteRef = db.collection('invites').doc(code);
+                    const inviteDoc = await t.get(inviteRef);
+                    if (inviteDoc.exists) {
+                        throw new Error("COLLISION");
+                    }
+                    // B. Handle New Tenant
+                    let finalTenantId = tenantId;
+                    let finalProjectIds = assignedProjectIds;
+                    if (newTenantName) {
+                        // B1. Get Next Tenant ID
+                        const counterRef = db.collection("system").doc("counters");
+                        const counterDoc = await t.get(counterRef);
+                        let nextId = 2;
+                        if (counterDoc.exists) {
+                            const counterData = counterDoc.data();
+                            nextId = ((counterData === null || counterData === void 0 ? void 0 : counterData.tenants) || (counterData === null || counterData === void 0 ? void 0 : counterData.organizations) || 1) + 1;
+                        }
+                        // Update Counter
+                        t.set(counterRef, { tenants: nextId }, { merge: true });
+                        finalTenantId = nextId.toString();
+                        // B2. Create Tenant
+                        const newTenantRef = db.collection('tenants').doc(finalTenantId);
+                        t.set(newTenantRef, {
+                            id: finalTenantId,
+                            name: newTenantName,
+                            code: newTenantName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                            isActive: true
+                        });
+                        // B3. Create Default Project
+                        const projectCode = (newTenantName.substring(0, 3) + "-001").toUpperCase();
+                        const newProjectRef = db.collection('projects').doc();
+                        t.set(newProjectRef, {
+                            id: newProjectRef.id,
+                            name: newTenantName,
+                            code: projectCode,
+                            clientName: newTenantName,
+                            status: 'active',
+                            health: 'healthy',
+                            isActive: true,
+                            tenantId: finalTenantId,
+                            teamIds: [],
+                            createdAt: admin.firestore.FieldValue.serverTimestamp()
+                        });
+                        finalProjectIds = [newProjectRef.id];
+                    }
+                    // C. Create Invite
+                    t.set(inviteRef, {
+                        code,
+                        createdBy: uid,
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        isUsed: false,
+                        isActive: true,
+                        tenantId: finalTenantId,
+                        role: targetRole,
+                        assignedProjectIds: finalProjectIds
+                    });
+                });
+                transactionSuccess = true;
+            }
+            catch (e) {
+                if (e.message === "COLLISION") {
+                    console.log(`[inviteUser] Collision for code ${code}, retrying...`);
+                    code = generateCode();
+                    attempts++;
+                }
+                else {
+                    throw e; // Rethrow real errors
+                }
+            }
         }
-        if (collision) {
+        if (!transactionSuccess) {
             throw new functions.https.HttpsError('resource-exhausted', 'Failed to generate unique code');
         }
-        // 4. Write to DB
-        await db.collection('invites').doc(code).set({
-            code,
-            createdBy: uid,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            isUsed: false,
-            isActive: true,
-            tenantId,
-            role: targetRole,
-            assignedProjectIds
-        });
         console.log(`[inviteUser] Success: ${code}`);
         return { success: true, code };
     }
     catch (e) {
         console.error("[inviteUser] CRITICAL ERROR:", e);
-        // Ensure we pass meaningful message if it's already HttpsError
         if (e instanceof functions.https.HttpsError) {
             throw e;
         }

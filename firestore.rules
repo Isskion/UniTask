@@ -268,9 +268,8 @@ service cloud.firestore {
 
     // --- DOCUMENT TYPES (Minute Types) ---
     match /document_types/{typeId} {
-        // [DEBUG] Relaxed rule for debugging permissions
-        allow read: if isAuthenticated(); 
-        // Original: allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+        // [SECURE] Tenant-scoped read access
+        allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
         // Only Admins (>=80) can manage master data
         allow write: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 80)); 
         allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && getRealRole() >= 80));
@@ -288,9 +287,9 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
     }
 
-    // --- DIAGNOSTIC ---
+    // --- DIAGNOSTIC (Restricted to SuperAdmin) ---
     match /_diagnostic/{docId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isSuperAdmin();
     }
   }
 }

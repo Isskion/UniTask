@@ -1,5 +1,5 @@
 import { functions } from "@/lib/firebase";
-import { httpsCallable } from "firebase/functions";
+import { httpsCallable, getFunctions } from "firebase/functions";
 
 export interface WidgetSuggestion {
     type: 'header' | 'paragraph' | 'task_list' | 'chart' | 'kpis';
@@ -38,7 +38,9 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
         const buffer = Buffer.from(arrayBuffer);
         const base64Data = buffer.toString('base64');
 
-        const analyzeFn = httpsCallable(functions, 'analyzeDocumentStructure');
+        // Explicitly use europe-west1 to match deployment
+        const functionsEU = getFunctions(undefined, 'europe-west1');
+        const analyzeFn = httpsCallable(functionsEU, 'analyzeDocumentStructure');
 
         const result = await analyzeFn({
             fileBase64: base64Data,
@@ -83,11 +85,18 @@ export interface AISummaryResult {
 
 export async function summarizeNotesWithAI(notes: string): Promise<AISummaryResult> {
     try {
-        const summarizeFn = httpsCallable(functions, 'summarizeNotes');
+        const functionsEU = getFunctions(undefined, 'europe-west1');
+        const summarizeFn = httpsCallable(functionsEU, 'summarizeNotes');
         const result = await summarizeFn({ notes });
         return result.data as AISummaryResult;
     } catch (e: any) {
         console.error("Summarize Error:", e);
+        console.error("Error Details:", {
+            code: e.code,
+            message: e.message,
+            details: e.details,
+            stack: e.stack
+        });
         return {
             resumenEjecutivo: "",
             tareasExtraidas: [],

@@ -279,6 +279,38 @@ export default function FirebaseDiagnostic() {
         }
     };
 
+    const handleTestAI = async () => {
+        setStatus('running');
+        addLog("--- PRUEBA DE CONECTIVIDAD AI (EUROPE-WEST1) ---");
+        try {
+            const { summarizeNotesWithAI } = await import("@/app/actions/analyze-document");
+            addLog("1. Enviando solicitud de prueba ('Hola Mundo')...");
+
+            const start = Date.now();
+            const result = await summarizeNotesWithAI("Hola mundo, esto es una prueba de conectividad.");
+            const duration = Date.now() - start;
+
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            addLog(`✅ RESPUESTA RECIBIDA en ${duration}ms`);
+            addLog(`   Resumen: ${result.resumenEjecutivo}`);
+            addLog(`   Tareas: ${result.tareasExtraidas.length}`);
+            setStatus('success');
+
+        } catch (e: any) {
+            console.error(e);
+            setStatus('error');
+            addLog(`❌ ERROR AI: ${e.message}`);
+            setErrorDetails({
+                message: e.message,
+                stack: e.stack,
+                details: e.details || "No details"
+            });
+        }
+    };
+
     return (
         <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 items-end">
             {status === 'idle' && (
@@ -387,6 +419,15 @@ export default function FirebaseDiagnostic() {
                             className="flex items-center gap-1 bg-cyan-900/50 hover:bg-cyan-800 text-cyan-200 px-2 py-2 rounded text-xs font-bold ring-1 ring-cyan-500 w-full justify-center"
                         >
                             <Sparkles className="w-3 h-3" /> Audit: Fliping
+                        </button>
+
+                        <div className="w-full h-px bg-white/10 my-1"></div>
+
+                        <button
+                            onClick={handleTestAI}
+                            className="flex items-center gap-1 bg-pink-900/50 hover:bg-pink-800 text-pink-200 px-2 py-2 rounded text-xs font-bold ring-1 ring-pink-500 w-full justify-center"
+                        >
+                            <Sparkles className="w-3 h-3" /> TEST AI CONNECTION
                         </button>
                     </div>
 

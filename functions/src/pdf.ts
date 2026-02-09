@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 
 
-export const generatePdf = functions.runWith({
+export const generatePdf = functions.region("europe-west1").runWith({
     timeoutSeconds: 300,
     memory: '2GB'
 }).https.onCall(async (data, context) => {

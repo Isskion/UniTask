@@ -26,6 +26,8 @@ const ROLES = [
     { value: 'consultant', label: 'Consultant', icon: Shield, desc: 'Full operational management' },
     { value: 'global_pm', label: 'Global PM', icon: Crown, desc: 'Multi-project management' },
     { value: 'app_admin', label: 'App Admin', icon: Crown, desc: 'Tenant Administrator' },
+    // SuperAdmin only visible to SuperAdmins
+    { value: 'superadmin', label: 'Super Admin', icon: ShieldAlert, desc: 'Full System Access' },
 ];
 
 export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizardProps) {
@@ -66,6 +68,13 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             // Standard users start at Role selection (Step 1 now), but have fixed tenant
             setSelectedTenant(tenantId || "1");
         } else {
+            // SUPERADMIN: Determine default based on context
+            // If they are in 'SYSTEM', default to '1' to avoid accidents. 
+            if (tenantId === 'SYSTEM') {
+                setSelectedTenant("1");
+            } else {
+                setSelectedTenant(tenantId || "1");
+            }
             loadTenants();
         }
     }, [isOpen]);
@@ -119,30 +128,11 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             let finalSelectedProjects = selectedProjects;
 
             // 1. Create Tenant if needed
+            // 1. New Tenant Flow (Server-Side)
+            // We pass the name to the action, and the server creates it atomically.
             if (isNewTenant && newTenantName) {
-                // A. Create Tenant
-                const newTenantId = await createTenant({
-                    name: newTenantName,
-                    code: newTenantName.toLowerCase().replace(/\s+/g, '-'),
-                    isActive: true
-                });
-                targetTenantId = newTenantId;
-
-                // B. Auto-Create Project (Same Name)
-                const newProjectCode = newTenantName.toUpperCase().substring(0, 3) + "-001";
-                const newProjectId = await createProject({
-                    name: newTenantName, // Project name same as tenant
-                    code: newProjectCode,
-                    clientName: newTenantName,
-                    status: 'active',
-                    health: 'healthy',
-                    isActive: true,
-                    tenantId: newTenantId, // Correctly link to new tenant
-                    teamIds: [], // Empty initially
-                });
-
-                // C. Auto-assign this project to the invite
-                finalSelectedProjects = [newProjectId];
+                // targetTenantId will be assigned by server if we pass newTenantName
+                targetTenantId = "PENDING_CREATION";
             }
 
             // --- SECURE SERVER ACTION ---
@@ -150,8 +140,10 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             const result = await createInviteAction(
                 token,
                 targetTenantId,
+                targetTenantId,
                 selectedRole,
-                finalSelectedProjects
+                finalSelectedProjects,
+                isNewTenant ? newTenantName : undefined // Pass name for server-side creation
             );
 
             if (!result.success) {
@@ -251,7 +243,11 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                 <p className={textMuted}>What level of permissions will they have in the system?</p>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {ROLES.map(role => {
+                                    {ROLES.filter(r => {
+                                        // Hide SuperAdmin if user is not SuperAdmin
+                                        if (r.value === 'superadmin' && getRoleLevel(userRole) < 100) return false;
+                                        return true;
+                                    }).map(role => {
                                         const Icon = role.icon;
                                         const isSelected = selectedRole === role.value;
                                         return (
@@ -291,8 +287,8 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                 <h3 className={cn("text-2xl font-bold", textBase)}>Select Tenant</h3>
                                 <p className={textMuted}>Define which tenant this new user will belong to.</p>
 
-                                {/* New Tenant Toggle Logic - Only if Admin role selected in Step 1 */}
-                                {((selectedRole === 'app_admin' || selectedRole === 'global_pm') && getRoleLevel(userRole) >= 100) && (
+                                {/* New Tenant Toggle Logic - Allow SuperAdmins too */}
+                                {((selectedRole === 'app_admin' || selectedRole === 'global_pm' || selectedRole === 'superadmin') && getRoleLevel(userRole) >= 100) && (
                                     <div className="mb-6 p-4 border border-blue-500/20 bg-blue-500/5 rounded-xl flex items-center justify-between">
                                         <div>
                                             <h4 className="font-bold text-blue-400">Create New Tenant?</h4>

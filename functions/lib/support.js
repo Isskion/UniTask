@@ -4,7 +4,7 @@ exports.submitSupport = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const utils_1 = require("./utils");
-exports.submitSupport = functions.https.onCall(async (data, context) => {
+exports.submitSupport = functions.region("europe-west1").https.onCall(async (data, context) => {
     // Auth check optional for support? Usually good to have.
     if (!context.auth)
         throw new functions.https.HttpsError('unauthenticated', 'Login required');

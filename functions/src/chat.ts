@@ -7,7 +7,7 @@ import * as cors from "cors";
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
 
-export const chat = functions.runWith({
+export const chat = functions.region("europe-west1").runWith({
     secrets: ["GEMINI_API_KEY"],
     timeoutSeconds: 60,
     memory: '512MB'

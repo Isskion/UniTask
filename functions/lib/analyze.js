@@ -5,7 +5,7 @@ const functions = require("firebase-functions");
 const generative_ai_1 = require("@google/generative-ai");
 const utils_1 = require("./utils");
 // --- FUNCTION 1: Analyze Document Structure ---
-exports.analyzeDocumentStructure = functions.runWith({
+exports.analyzeDocumentStructure = functions.region("europe-west1").runWith({
     secrets: ["GEMINI_API_KEY"],
     timeoutSeconds: 300,
     memory: '2GB'
@@ -46,11 +46,17 @@ exports.analyzeDocumentStructure = functions.runWith({
         throw new functions.https.HttpsError('internal', "Failed to parse document: " + e.message);
     }
     const truncatedText = text.slice(0, 15000);
-    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key);
-    if (!apiKey)
-        throw new functions.https.HttpsError('internal', "AI Key missing");
+    // Priority: 1. Runtime Env (Secrets) 2. Config (Legacy) 3. Local Env
+    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key) || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("AI Key missing in all sources (Env, Config)");
+        throw new functions.https.HttpsError('internal', "AI Key missing configuration");
+    }
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        generationConfig: { responseMimeType: "application/json" }
+    });
     const prompt = `
         Act as a Visual Document Expert.
         Analyze the following document content to extract BOTH its logical structure AND its estimated visual layout zones.
@@ -71,12 +77,16 @@ exports.analyzeDocumentStructure = functions.runWith({
             },
             "visualZones": []
         }
-        RETURN ONLY JSON.
     `;
     try {
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
-        const jsonText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        // Robust JSON Extraction
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart === -1 || jsonEnd === -1)
+            throw new Error("No valid JSON found in response");
+        const jsonText = responseText.substring(jsonStart, jsonEnd + 1);
         const parsed = JSON.parse(jsonText);
         if (userRole !== 'superadmin') {
             await (0, utils_1.logUsage)({
@@ -96,8 +106,11 @@ exports.analyzeDocumentStructure = functions.runWith({
     }
 });
 // --- FUNCTION 2: Analyze PDF (Task Extraction) ---
-exports.analyzePdf = functions.https.onCall(async (data, context) => {
-    var _a;
+exports.analyzePdf = functions.region("europe-west1").runWith({
+    secrets: ["GEMINI_API_KEY"],
+    timeoutSeconds: 300,
+    memory: '1GB'
+}).https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
     }
@@ -110,11 +123,14 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
     const base64Data = data.base64Data;
     if (!base64Data)
         throw new functions.https.HttpsError('invalid-argument', 'No PDF data');
-    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key);
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey)
         throw new functions.https.HttpsError('internal', "AI Key missing");
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        generationConfig: { responseMimeType: "application/json" }
+    });
     const prompt = `
         Extract structured data from this PDF project document.
         Return JSON fields: title, full_content (markdown), description, endDate, priority, action_items.
@@ -126,7 +142,12 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
             { inlineData: { data: base64Data, mimeType: "application/pdf" } }
         ]);
         const responseText = result.response.text();
-        const jsonStr = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+        // Robust JSON Extraction
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart === -1 || jsonEnd === -1)
+            throw new Error("No valid JSON found in response");
+        const jsonStr = responseText.substring(jsonStart, jsonEnd + 1);
         const parsedData = JSON.parse(jsonStr);
         if (userRole !== 'superadmin') {
             await (0, utils_1.logUsage)({
@@ -137,16 +158,18 @@ exports.analyzePdf = functions.https.onCall(async (data, context) => {
         return { success: true, data: parsedData };
     }
     catch (e) {
+        console.error("AI Analysis Error:", e);
         throw new functions.https.HttpsError('internal', "AI Analysis failed: " + e.message);
     }
 });
 // --- FUNCTION 3: Summarize Notes (Weekly/Daily) ---
-exports.summarizeNotes = functions.runWith({
+exports.summarizeNotes = functions.region("europe-west1").runWith({
     secrets: ["GEMINI_API_KEY"],
     timeoutSeconds: 120,
     memory: '1GB'
 }).https.onCall(async (data, context) => {
-    var _a;
+    var _a, _b;
+    functions.logger.info("SummarizeNotes called", { auth: !!context.auth, data: !!data.notes });
     if (!context.auth)
         throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
     const { uid: userId, token } = context.auth;
@@ -158,11 +181,17 @@ exports.summarizeNotes = functions.runWith({
     const notes = data.notes;
     if (!notes)
         throw new functions.https.HttpsError('invalid-argument', 'No notes provided');
-    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key);
-    if (!apiKey)
+    const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key) || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    functions.logger.info("AI Config Check", { hasKey: !!apiKey, method: process.env.GEMINI_API_KEY ? "secret" : (((_b = functions.config().gemini) === null || _b === void 0 ? void 0 : _b.key) ? "config" : "none") });
+    if (!apiKey) {
+        functions.logger.error("AI Key Verification Failed");
         throw new functions.https.HttpsError('internal', "AI Key missing");
+    }
     const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        generationConfig: { responseMimeType: "application/json" }
+    });
     const prompt = `
         Analyze the following Project Management notes and extract key insights.
         Input Notes:
@@ -174,12 +203,16 @@ exports.summarizeNotes = functions.runWith({
         - "proximosPasos": An array of next steps or recommendations.
         
         Language: Detect language of input (Spanish/English) and match output language.
-        RETURN ONLY JSON.
     `;
     try {
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
-        const jsonStr = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+        // Robust JSON Extraction
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart === -1 || jsonEnd === -1)
+            throw new Error("No valid JSON found in response");
+        const jsonStr = responseText.substring(jsonStart, jsonEnd + 1);
         const parsedData = JSON.parse(jsonStr);
         if (userRole !== 'superadmin') {
             await (0, utils_1.logUsage)({

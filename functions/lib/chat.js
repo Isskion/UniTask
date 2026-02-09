@@ -8,7 +8,7 @@ const utils_1 = require("./utils");
 const cors = require("cors");
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
-exports.chat = functions.runWith({
+exports.chat = functions.region("europe-west1").runWith({
     secrets: ["GEMINI_API_KEY"],
     timeoutSeconds: 60,
     memory: '512MB'

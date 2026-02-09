@@ -19,7 +19,8 @@ export async function createInviteAction(
     idToken: string, // Kept for signature compatibility, but SDK handles auth usually.
     tenantId: string,
     targetRole: string,
-    assignedProjectIds: string[] = []
+    assignedProjectIds: string[] = [],
+    newTenantName?: string
 ): Promise<CreateInviteResult> {
     try {
         // Explicitly target europe-west1 to match deployment and solve IAM/403 issues
@@ -29,7 +30,8 @@ export async function createInviteAction(
         const result = await inviteFn({
             tenantId,
             targetRole,
-            assignedProjectIds
+            assignedProjectIds,
+            newTenantName
         });
 
         return result.data as CreateInviteResult;

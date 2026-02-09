@@ -33,6 +33,6 @@ const db = initializeFirestore(app, {
 const auth = getAuth(app);
 const storage = getStorage(app);
 import { getFunctions } from "firebase/functions";
-const functions = getFunctions(app, "us-central1"); // Match deployed function region
+const functions = getFunctions(app, "europe-west1"); // Match deployed function region
 
 export { app, db, auth, storage, functions };

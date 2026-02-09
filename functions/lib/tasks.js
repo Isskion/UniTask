@@ -9,7 +9,7 @@ const utils_1 = require("./utils");
  *
  * Trigger: onCreate of a task document.
  */
-exports.generateFriendlyId = functions.firestore
+exports.generateFriendlyId = functions.region("europe-west1").firestore
     .document("tasks/{taskId}")
     .onCreate(async (snap, context) => {
     const db = (0, utils_1.getDb)();

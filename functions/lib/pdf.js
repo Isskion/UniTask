@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generatePdf = void 0;
 const functions = require("firebase-functions");
-exports.generatePdf = functions.runWith({
+exports.generatePdf = functions.region("europe-west1").runWith({
     timeoutSeconds: 300,
     memory: '2GB'
 }).https.onCall(async (data, context) => {

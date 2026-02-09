@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 // import * as admin from "firebase-admin"; 
 
-export const resetPassword = functions.https.onCall(async (data, context) => {
+export const resetPassword = functions.region("europe-west1").https.onCall(async (data, context) => {
     console.log("[resetPassword] STUB MODE. Input:", data);
     return { success: true, message: "STUB: Function is reachable!" };
 

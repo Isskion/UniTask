@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { getDb } from "./utils";
 
-export const submitSupport = functions.https.onCall(async (data, context) => {
+export const submitSupport = functions.region("europe-west1").https.onCall(async (data, context) => {
     // Auth check optional for support? Usually good to have.
     if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Login required');
 

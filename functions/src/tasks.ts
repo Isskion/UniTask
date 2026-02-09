@@ -8,7 +8,7 @@ import { getDb } from "./utils";
  * 
  * Trigger: onCreate of a task document.
  */
-export const generateFriendlyId = functions.firestore
+export const generateFriendlyId = functions.region("europe-west1").firestore
     .document("tasks/{taskId}")
     .onCreate(async (snap, context) => {
         const db = getDb();

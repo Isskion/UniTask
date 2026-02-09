@@ -27,9 +27,24 @@ import { getStorage } from "firebase-admin/storage";
 // FOR NOW, we'll implement the shell. User might need to provide SERVICE_ACCOUNT key later.
 
 // Parse Service Account from Environment Variable
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-    : undefined;
+const serviceAccount = (() => {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+    if (!raw) return undefined;
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        // Attempt to clean up common copy-paste errors (newline chars)
+        try {
+            // Replace invalid control characters with escaped versions
+            // This handles cases where .env has literal newlines inside the JSON string
+            const sanitized = raw.replace(/\n/g, "\\n").replace(/\r/g, "");
+            return JSON.parse(sanitized);
+        } catch (e2) {
+            console.error("CRITICAL: Failed to parse FIREBASE_SERVICE_ACCOUNT.", e2);
+            return undefined;
+        }
+    }
+})();
 
 const firebaseAdminConfig = {
     credential: serviceAccount ? cert(serviceAccount) : undefined,
