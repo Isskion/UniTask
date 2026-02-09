@@ -1,5 +1,8 @@
-import { functions, app } from "@/lib/firebase";
-import { httpsCallable, getFunctions } from "firebase/functions";
+import { auth } from "@/lib/firebase";
+
+// CONSTANTS
+const PROJECT_ID = "minuta-f75a4";
+const REGION = "europe-west1";
 
 export interface WidgetSuggestion {
     type: 'header' | 'paragraph' | 'task_list' | 'chart' | 'kpis';
@@ -28,6 +31,41 @@ export interface AnalysisResult {
     error?: string;
 }
 
+// Helper for REST calls to Firebase Functions
+async function callFunction(name: string, data: any) {
+    const url = `https://${REGION}-${PROJECT_ID}.cloudfunctions.net/${name}`;
+    console.log(`📡 Calling Cloud Function (REST): ${url}`);
+
+    let token = "";
+    if (auth.currentUser) {
+        token = await auth.currentUser.getIdToken();
+    }
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ data }) // Firebase onCall expects "data" wrapper
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Function ${name} Failed: ${response.status}`, errorText);
+        throw new Error(`Cloud Function Error (${response.status}): ${errorText}`);
+    }
+
+    const json = await response.json();
+
+    // onCall returns { result: ... } or { error: ... }
+    if (json.error) {
+        throw new Error(json.error.message || "Unknown Function Error");
+    }
+
+    return { data: json.result };
+}
+
 export async function analyzeDocumentStructure(formData: FormData): Promise<AnalysisResult> {
     try {
         const file = formData.get('file') as File;
@@ -38,20 +76,15 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
         const buffer = Buffer.from(arrayBuffer);
         const base64Data = buffer.toString('base64');
 
-        // Explicitly use europe-west1 to match deployment
-        const functionsEU = getFunctions(app, 'europe-west1');
-        const analyzeFn = httpsCallable(functionsEU, 'analyzeDocumentStructure');
-
-        const result = await analyzeFn({
+        const result = await callFunction('analyzeDocumentStructure', {
             fileBase64: base64Data,
             fileType: file.type
         });
 
-        const data = result.data as any; // Cloud Function returns data in .data
+        const data = result.data as any;
 
         if (!data.success && !data.templateName) {
-            // Handle raw error if not structured
-            return { success: false, error: "Cloud Function Error" };
+            return { success: false, error: "Cloud Function Error (No Data)" };
         }
 
         return {
@@ -85,18 +118,10 @@ export interface AISummaryResult {
 
 export async function summarizeNotesWithAI(notes: string): Promise<AISummaryResult> {
     try {
-        const functionsEU = getFunctions(app, 'europe-west1');
-        const summarizeFn = httpsCallable(functionsEU, 'summarizeNotes');
-        const result = await summarizeFn({ notes });
+        const result = await callFunction('summarizeNotes', { notes });
         return result.data as AISummaryResult;
     } catch (e: any) {
         console.error("Summarize Error:", e);
-        console.error("Error Details:", {
-            code: e.code,
-            message: e.message,
-            details: e.details,
-            stack: e.stack
-        });
         return {
             resumenEjecutivo: "",
             tareasExtraidas: [],
