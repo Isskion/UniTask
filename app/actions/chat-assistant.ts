@@ -12,12 +12,10 @@ export async function sendChatMessage(history: ChatMessage[], newMessage: string
 
         const token = await currentUser.getIdToken();
         const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-        const region = "us-central1"; // Match deployed function region
+        const region = "europe-west1"; // Match deployed function region
 
-        // Construct URL - Handle localhost for dev if needed, but usually we target the cloud function
-        // If user is running emulators, they should set NEXT_PUBLIC_FUNCTIONS_EMULATOR probably, 
-        // but for now let's target the deployed or standard URL structure.
-        // User log showed: https://us-central1-minuta-f75a4.cloudfunctions.net/chat
+        // Construct URL for Cloud Function
+        // Deployed at: https://europe-west1-minuta-f75a4.cloudfunctions.net/chat
         const url = `https://${region}-${projectId}.cloudfunctions.net/chat`;
 
         console.log("SENDING CHAT TO:", url);
