@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { db, auth } from "@/lib/firebase";
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp, clearIndexedDbPersistence, terminate, disableNetwork, enableNetwork, collection, query, where, getDocs } from "firebase/firestore";
-import { Activity, AlertTriangle, CheckCircle2, Loader2, XCircle, RefreshCw, Wifi, WifiOff, Server, ShieldAlert, Trash2, Database, Sparkles } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, Loader2, XCircle, RefreshCw, Wifi, WifiOff, Server, Trash2, Database, Sparkles } from "lucide-react";
 
 import { resetDatabase, migrateLegacyUsers } from "@/lib/maintenance";
 
@@ -390,7 +390,7 @@ export default function FirebaseDiagnostic() {
                             onClick={handleSelfRepair}
                             className="flex items-center gap-1 bg-yellow-600/20 hover:bg-yellow-600/40 text-yellow-400 px-2 py-2 rounded text-xs font-bold ring-1 ring-yellow-500/50 w-full justify-center"
                         >
-                            <ShieldAlert className="w-3 h-3" /> Reparar Permisos (Hacerme Admin)
+                            <AlertTriangle className="w-3 h-3" /> Reparar Permisos (Hacerme Admin)
                         </button>
 
 
