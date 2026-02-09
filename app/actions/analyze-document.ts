@@ -1,4 +1,4 @@
-import { functions } from "@/lib/firebase";
+import { functions, app } from "@/lib/firebase";
 import { httpsCallable, getFunctions } from "firebase/functions";
 
 export interface WidgetSuggestion {
@@ -39,7 +39,7 @@ export async function analyzeDocumentStructure(formData: FormData): Promise<Anal
         const base64Data = buffer.toString('base64');
 
         // Explicitly use europe-west1 to match deployment
-        const functionsEU = getFunctions(undefined, 'europe-west1');
+        const functionsEU = getFunctions(app, 'europe-west1');
         const analyzeFn = httpsCallable(functionsEU, 'analyzeDocumentStructure');
 
         const result = await analyzeFn({
@@ -85,7 +85,7 @@ export interface AISummaryResult {
 
 export async function summarizeNotesWithAI(notes: string): Promise<AISummaryResult> {
     try {
-        const functionsEU = getFunctions(undefined, 'europe-west1');
+        const functionsEU = getFunctions(app, 'europe-west1');
         const summarizeFn = httpsCallable(functionsEU, 'summarizeNotes');
         const result = await summarizeFn({ notes });
         return result.data as AISummaryResult;
