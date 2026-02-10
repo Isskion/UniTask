@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.3.3";
+export const APP_VERSION = "13.4.0";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.0",
+        title: "Robust Invite & Registration",
+        date: "2026-02-10",
+        features: [
+            "**Invite Flow V3**: Fixed argument passing issue in invitations.",
+            "**Registration Security**: Resolved race condition in tenant assignment.",
+            "**Deployment**: Standardized Vercel/Firebase synchronization."
+        ]
+    },
     {
         version: "13.3.3",
         title: "Sprint Burndown Precision",

@@ -52,38 +52,32 @@ export const processUserClaims = functions.region('europe-west1').auth.user().on
                 isActive: true,
                 roleLevel: 100
             };
+
+            // 2. Set immutable Custom Claims in JWT
+            await admin.auth().setCustomUserClaims(user.uid, customClaims);
+            console.log(`[processUserClaims] Claims set for ${user.uid}:`, customClaims);
+
+            // 3. Create/Update user profile in Firestore (Using 'users' collection)
+            await db.collection('users').doc(user.uid).set({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || '',
+                role: customClaims.role,
+                roleLevel: customClaims.roleLevel,
+                tenantId: customClaims.tenantId,
+                isActive: customClaims.isActive,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                lastLogin: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            console.log(`[processUserClaims] Superadmin profile created/updated for ${user.uid}`);
+
         } else {
-            // Regular user: Assign to default tenant
-            const tenantId = await resolveTenantForUser(user);
-            console.log(`[processUserClaims] Regular user assigned to tenant: ${tenantId}`);
-            const defaultRole = 'usuario_base';
-            customClaims = {
-                role: defaultRole,
-                tenantId: tenantId,
-                isActive: false, // Pending approval by admin
-                roleLevel: ROLE_LEVELS[defaultRole] || 20
-            };
+            console.log(`[processUserClaims] Regular user created: ${user.email}. Skipping default assignment (handled by invitation flow).`);
+            // Do NOT overwrite claims or profile. 
+            // completeRegistration handles this.
         }
-
-        // 2. Set immutable Custom Claims in JWT
-        await admin.auth().setCustomUserClaims(user.uid, customClaims);
-        console.log(`[processUserClaims] Claims set for ${user.uid}:`, customClaims);
-
-        // 3. Create/Update user profile in Firestore (Using 'users' collection)
-        await db.collection('users').doc(user.uid).set({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || '',
-            role: customClaims.role,
-            roleLevel: customClaims.roleLevel,
-            tenantId: customClaims.tenantId,
-            isActive: customClaims.isActive,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            lastLogin: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        console.log(`[processUserClaims] User profile created/updated for ${user.uid}`);
 
     } catch (error) {
         console.error(`[processUserClaims] Error processing user ${user.uid}:`, error);
@@ -93,6 +87,7 @@ export const processUserClaims = functions.region('europe-west1').auth.user().on
 
 /**
  * Resolves which tenant a new user should be assigned to.
+ * @deprecated - Logic moved to invitation flow
  */
 async function resolveTenantForUser(user: admin.auth.UserRecord): Promise<string> {
     return '1';

@@ -57,7 +57,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
     // --- LOAD DATA ---
     useEffect(() => {
         if (!isOpen) return;
-        console.log("🦄 InviteWizard loaded - V3-DEBUG (Fix Applied 2026-02-10) - " + new Date().toISOString());
+        console.log("🦄 InviteWizard loaded - " + new Date().toISOString());
         setStep(1);
         setGeneratedCode(null);
         setSelectedProjects([]);
@@ -179,9 +179,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="fixed top-2 right-2 bg-red-600 text-white px-4 py-2 z-[9999] font-bold rounded shadow-lg pointer-events-none border-2 border-white">
-                V3-DEBUG (Fix Active)
-            </div>
+
             <div className={cn(
                 "w-full max-w-4xl h-[600px] rounded-xl flex overflow-hidden shadow-2xl border transition-colors",
                 bgBase, borderBase
@@ -574,6 +572,6 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
