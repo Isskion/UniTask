@@ -362,6 +362,16 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                             const taskDoc = await getDoc(doc(db, "tasks", initialTaskId));
                             if (taskDoc.exists()) {
                                 const foundTask = { id: taskDoc.id, ...taskDoc.data() } as Task;
+
+                                // [FIX] Tenant Isolation Check
+                                // Prevent Superadmins from seeing mixed content when masquerading
+                                if (foundTask.tenantId && foundTask.tenantId !== tenantId) {
+                                    console.warn(`[TaskManagement] Task ${foundTask.id} belongs to tenant ${foundTask.tenantId}, current context is ${tenantId}. Hiding.`);
+                                    // Optional: Show toast or clear URL?
+                                    // For now, just ignore it so it doesn't appear in the wrong list
+                                    return;
+                                }
+
                                 // Add to list and select
                                 const normalized = normalizeTask(foundTask);
                                 setTasks(prev => [foundTask, ...prev]);
