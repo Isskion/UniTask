@@ -178,6 +178,11 @@ exports.inviteUser = functions
     }
     const { uid, token } = context.auth;
     const { tenantId, targetRole, assignedProjectIds = [], newTenantName } = data;
+    console.log(`[inviteUser V2 DEBUG] Type of newTenantName: ${typeof newTenantName}, IsArray: ${Array.isArray(newTenantName)}`);
+    console.log(`[inviteUser V2 DEBUG] Data:`, { tenantId, targetRole, assignedProjectIds, newTenantName });
+    if (newTenantName && typeof newTenantName !== 'string') {
+        throw new functions.https.HttpsError('invalid-argument', `Invalid newTenantName: Expected string, got ${typeof newTenantName} (${Array.isArray(newTenantName) ? 'Array' : 'Object'})`);
+    }
     console.log(`[inviteUser] Call from ${uid} for tenant ${tenantId} (New: ${newTenantName}), role ${targetRole}`);
     // 2. Logic & Permission Check
     try {

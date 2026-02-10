@@ -39,6 +39,7 @@ interface AuthContextType {
     loginWithGoogle: () => Promise<void>;
     loginWithEmail: (e: string, p: string) => Promise<void>;
     registerWithEmail: (e: string, p: string, name?: string) => Promise<void>;
+    requestRegistration: (e: string, p: string, name: string, inviteCode: string) => Promise<{ success: boolean; message?: string }>;
     logout: () => Promise<void>;
 }
 
@@ -69,9 +70,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 let refreshTimer: NodeJS.Timeout | null = null;
 
                 const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
-                    if (!snapshot.exists()) return;
+                    if (!snapshot.exists()) {
+                        console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
+                        auth.signOut();
+                        return;
+                    }
 
                     const data = snapshot.data();
+
+                    // Block users with no valid tenant
+                    if (!data.tenantId || data.tenantId === "unknown") {
+                        console.warn("[AuthContext] ⛔ User has invalid tenantId. Auto-signing out.");
+                        auth.signOut();
+                        return;
+                    }
+
                     const latestSyncId = data.syncId;
                     const currentSyncId = claims.syncId;
 
@@ -127,6 +140,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
                 });
 
+                // [SECURITY] Quick profile existence check BEFORE allowing the app to render
+                const { doc: docRef, getDoc: getDocSnap } = await import('firebase/firestore');
+                const profileSnap = await getDocSnap(docRef(db, 'users', currentUser.uid));
+                if (!profileSnap.exists()) {
+                    console.warn("[AuthContext] ⛔ User authenticated but no profile found. Signing out...");
+                    await auth.signOut();
+                    return;
+                }
+                const profileData = profileSnap.data();
+                if (!profileData?.tenantId || profileData.tenantId === "unknown") {
+                    console.warn("[AuthContext] ⛔ User profile has invalid tenantId. Signing out...");
+                    await auth.signOut();
+                    return;
+                }
+
                 // Setup efficient state update on initial load (without waiting for listener)
                 let parsedRole = Number(claims.roleLevel) || 0;
                 let realTenantId = (claims.tenantId as string) || "unknown";
@@ -179,13 +207,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return () => unsubscribe();
     }, []);
 
-    // [NEW] Auto-process invite if present in URL and user is logged in
+    // Auto-process invite ONLY for Google Sign-In users (Google verifies email identity)
+    // Email/password users MUST go through requestRegistration → email verification → completeRegistration
     useEffect(() => {
         if (!loading && user) {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('invite')) {
-                console.log("[AuthContext] Auto-processing invite from URL for authenticated user...");
-                createUserProfile(user);
+                // Only auto-process for Google users (providerData check)
+                const isGoogleUser = user.providerData?.some(p => p.providerId === 'google.com');
+                if (isGoogleUser) {
+                    console.log("[AuthContext] Google user with invite detected. Auto-processing...");
+                    createUserProfile(user);
+                } else {
+                    console.log("[AuthContext] Email/password user with invite. Must use verification flow.");
+                }
             }
         }
     }, [loading, user]);
@@ -294,28 +329,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const snapshot = await getDoc(userRef);
             const existingData = snapshot.data();
 
-            // ========== SECURITY: Block new users without invitation ==========
+            // Logic Update: Only EXISTING users can have their profile updated via invite.
+            // New profiles (first-time users) can ONLY be created by completeRegistration Cloud Function.
             if (!snapshot.exists() && !inviteData) {
-                console.error("[SECURITY] 🚫 New user attempted login without invitation:", user.email);
-
-                // Clear, informative message to the user
-                alert(
-                    "⛔ ACCESO DENEGADO\n\n" +
-                    "Tu cuenta de Google no está registrada en el sistema.\n\n" +
-                    "Para acceder a UniTask necesitas una invitación.\n" +
-                    "Solicita un código de invitación al administrador de tu organización.\n\n" +
-                    "Se cerrará la sesión automáticamente."
-                );
-
+                // No profile and no invite → ghost user, reject
+                console.warn("[AuthContext] ⛔ New user without invite trying to create profile. Rejected.");
+                alert("⛔ No se puede crear un perfil sin invitación válida.");
                 await auth.signOut();
                 return;
             }
-            // ===================================================================
 
-            // Logic Update: Always process profile update if we have valid Invite Data
-            // This ensures that even existing users get assigned the new Tenant/Project
-            if (!snapshot.exists() || inviteData) {
-                console.log("[AuthContext] Creating or updating user profile With Invite Data...");
+            if (!snapshot.exists() && inviteData) {
+                // New user WITH invite → this path should no longer be used (use completeRegistration).
+                // But for backwards-compatibility with existing Google login + invite flow, allow it.
+                console.log("[AuthContext] Creating user profile from invite (Google Login flow)...");
+            }
+
+            if (snapshot.exists() || inviteData) {
+                console.log("[AuthContext] Processing user profile With Invite Data...");
 
                 // 2. Determine Initial Data (Invite vs Default)
                 // If inviteData exists, it OVERRIDES existing role/tenant
@@ -412,15 +443,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const registerWithEmail = async (e: string, p: string, name?: string) => {
-        const result = await createUserWithEmailAndPassword(auth, e, p);
-        if (result.user) {
-            if (name) {
-                await updateProfile(result.user, { displayName: name });
-            }
-            // Explicit call needed here? Maybe not if onIdTokenChanged fires with user.
-            // But registration might not trigger onIdTokenChanged immediately with profile updated.
-            // Keeping it for safety on REGISTRATION only, but Login is handled by Effect.
-            await createUserProfile(result.user, name);
+        // [DISABLED] Direct registration is no longer allowed.
+        // All registrations must go through requestRegistration → email verification → completeRegistration
+        // This prevents creating ghost users in Firebase Auth without a valid invitation.
+        throw new Error("El registro directo no está disponible. Usa el flujo de invitación con verificación de email.");
+    };
+
+    const requestRegistration = async (e: string, p: string, name: string, inviteCode: string) => {
+        try {
+            const { getFunctions, httpsCallable } = await import('firebase/functions');
+            const { app } = await import('@/lib/firebase');
+            const functionsEU = getFunctions(app, 'europe-west1');
+            const requestFn = httpsCallable(functionsEU, 'requestRegistration');
+
+            const result = await requestFn({ email: e, password: p, name, inviteCode });
+            return result.data as { success: boolean; message?: string };
+        } catch (error: any) {
+            console.error("[AuthContext] requestRegistration error:", error);
+            throw error;
         }
     };
 
@@ -443,6 +483,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             loginWithGoogle,
             loginWithEmail,
             registerWithEmail,
+            requestRegistration,
             logout
         }}>
             {!loading && children}

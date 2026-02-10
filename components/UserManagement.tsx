@@ -8,7 +8,7 @@ import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
 import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2 } from "lucide-react";
 import { getAllInvites, InviteCode } from "@/lib/invites";
-import { createInviteAction } from "@/app/actions/invites";
+import { createInviteActionV3 } from "@/app/actions/invites";
 import InviteWizard from "./InviteWizard";
 import { updateUserClaimsFunction } from "@/lib/functions";
 

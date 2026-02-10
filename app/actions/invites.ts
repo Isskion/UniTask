@@ -15,7 +15,7 @@ interface CreateInviteResult {
  * @param targetRole - Role to assign to the new user
  * @param assignedProjectIds - Projects to assign
  */
-export async function createInviteAction(
+export async function createInviteActionV3(
     idToken: string, // Kept for signature compatibility, but SDK handles auth usually.
     tenantId: string,
     targetRole: string,
@@ -26,6 +26,8 @@ export async function createInviteAction(
         // Explicitly target europe-west1 to match deployment and solve IAM/403 issues
         const functionsEU = getFunctions(app, 'europe-west1');
         const inviteFn = httpsCallable(functionsEU, 'inviteUser');
+
+        console.log("[Client] createInviteActionV3 calling:", { tenantId, targetRole, assignedProjectIds, newTenantName });
 
         const result = await inviteFn({
             tenantId,

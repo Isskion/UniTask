@@ -78,7 +78,8 @@ export default function DailyFollowUp() {
         loading: authLoading,
         loginWithGoogle,
         loginWithEmail,
-        registerWithEmail
+        registerWithEmail,
+        requestRegistration
     } = useAuth();
     const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
@@ -1339,8 +1340,27 @@ export default function DailyFollowUp() {
                                 return;
                             }
 
-                            if (registerWithEmail) {
-                                registerWithEmail(email, password, name).catch((err: any) => alert(err.message));
+                            // [NEW] Get invite code from URL
+                            const inviteCode = searchParams.get('invite');
+                            if (!inviteCode) {
+                                showToast("Error", "Se requiere una invitación válida para registrarse.", "error");
+                                return;
+                            }
+
+                            if (requestRegistration) {
+                                setLoading(true);
+                                requestRegistration(email, password, name, inviteCode)
+                                    .then((res) => {
+                                        if (res.success) {
+                                            alert("📧 " + (res.message || "Email de verificación enviado. Revisa tu bandeja de entrada para completar el registro."));
+                                            setIsRegistering(false);
+                                        }
+                                    })
+                                    .catch((err: any) => {
+                                        console.error("Registration Request Error:", err);
+                                        alert("❌ Error: " + err.message);
+                                    })
+                                    .finally(() => setLoading(false));
                             } else {
                                 alert("Error: Función de registro no disponible. Recarga la página.");
                             }

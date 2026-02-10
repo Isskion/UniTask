@@ -15,6 +15,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const admin = require("firebase-admin");
+const dotenv = require("dotenv");
+dotenv.config();
 if (!admin.apps.length) {
     admin.initializeApp();
 }
@@ -27,4 +29,5 @@ __exportStar(require("./support"), exports);
 __exportStar(require("./pdf"), exports);
 __exportStar(require("./ping"), exports);
 __exportStar(require("./tasks"), exports);
+__exportStar(require("./registration"), exports);
 //# sourceMappingURL=index.js.map
