@@ -335,9 +335,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     title={t('support.title')}
                                 >
                                     <LifeBuoy className="w-4 h-4" />
-
-                                    <span className="text-[9px] opacity-30 font-mono hidden md:inline">v{APP_VERSION} | {userRole}</span>
+                                    <span className="text-[9px] opacity-30 font-mono hidden md:inline">{userRole}</span>
                                 </button>
+
+                                <VersionBadge onClick={onOpenChangelog} />
                             </div>
                         </div>
 
