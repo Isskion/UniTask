@@ -195,7 +195,8 @@ export function SprintPlanningBoard() {
         if (!selectedSprint) return { committed: 0, capacity: 0, percentage: 0 };
 
         const committed = sprintTasks.reduce((sum, task) => sum + (task.estimatedEffort || 0), 0);
-        const capacity = selectedSprint.capacity || 20; // Default 20 days
+        // [CHANGE] Use plannedCapacity (calculated based on resources) if available, fallback to legacy capacity
+        const capacity = selectedSprint.plannedCapacity || selectedSprint.capacity || 20;
         const percentage = capacity > 0 ? (committed / capacity) * 100 : 0;
 
         return { committed, capacity, percentage };
@@ -304,6 +305,28 @@ export function SprintPlanningBoard() {
                 console.log('[SprintBoard] BLOCKING completed task move!');
                 alert(t('sprints.error_completed_immovable')); // "Completed tasks cannot be moved from the Sprint Board. Use Task Manager."
                 return;
+            }
+
+            // [VALIDATION] Capacity Check
+            if (newSprintId && selectedSprint) {
+                const taskEffort = task.estimatedEffort || 0;
+                // Check if adding this task exceeds capacity
+                // We use 'committed' calculated above which is current sprint load
+                // Since 'task' is NOT in 'sprintTasks' (it's in backlogTasks or another sprint if we supported cross-sprint drag), it's safe to add.
+                // NOTE: If we support reordering within sprint, this check isn't needed because sprintId doesn't change.
+                const projectedLoad = committed + taskEffort;
+                const sprintLimit = selectedSprint.plannedCapacity || selectedSprint.capacity || 20;
+
+                if (projectedLoad > sprintLimit) {
+                    const confirmOverload = window.confirm(
+                        `⚠️ ALERTA DE CAPACIDAD\n\n` +
+                        `Añadir esta tarea excederá la capacidad planificada del Sprint.\n` +
+                        `Capacidad: ${sprintLimit} días\n` +
+                        `Actual + Tarea: ${projectedLoad.toFixed(1)} días\n\n` +
+                        `¿Deseas continuar de todos modos?`
+                    );
+                    if (!confirmOverload) return;
+                }
             }
 
             try {

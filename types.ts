@@ -95,6 +95,7 @@ export interface UserProfile {
     // New: Permission Group
     permissionGroupId?: string; // Reference to permission_groups collection
     customPermissions?: Partial<PermissionGroup>; // Optional override
+    isConsultant?: boolean; // New: If true, count as resource for sprint capacity
 }
 
 // Permission Group System
@@ -224,7 +225,13 @@ export interface Sprint {
 
     // Metadata
     goal?: string;
-    capacity?: number;
+    capacity?: number; // Legacy total points (aggregated from tasks)
+
+    // Capacity & Effort [NEW]
+    pointsPerUserPerDay?: number;
+    resourceCount?: number;
+    includeWeekends?: boolean;
+    plannedCapacity?: number; // Target capacity based on resources/days
 
     createdAt?: any;
     updatedAt?: any;

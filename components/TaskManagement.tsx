@@ -1335,6 +1335,34 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                             }
                                                         }
 
+                                                        // [VALIDATION] Capacity Check
+                                                        if (newSprintId) {
+                                                            const targetSprint = sprints.find(s => s.id === newSprintId);
+                                                            if (targetSprint) {
+                                                                const taskEffort = formData.estimatedEffort || 0;
+
+                                                                // Calculate current load of target sprint
+                                                                // Exclude current task id just in case (though onChange implies difference)
+                                                                const currentLoad = tasks
+                                                                    .filter(t => t.sprintId === newSprintId && t.id !== formData.id)
+                                                                    .reduce((sum, t) => sum + (t.estimatedEffort || 0), 0);
+
+                                                                const projectedLoad = currentLoad + taskEffort;
+                                                                const sprintLimit = targetSprint.plannedCapacity || targetSprint.capacity || 20;
+
+                                                                if (projectedLoad > sprintLimit) {
+                                                                    const confirmOverload = window.confirm(
+                                                                        `⚠️ ALERTA DE CAPACIDAD\n\n` +
+                                                                        `Añadir esta tarea al Sprint "${targetSprint.name}" excederá su capacidad planificada.\n` +
+                                                                        `Capacidad: ${sprintLimit} días\n` +
+                                                                        `Actual + Tarea: ${projectedLoad.toFixed(1)} días\n\n` +
+                                                                        `¿Deseas continuar de todos modos?`
+                                                                    );
+                                                                    if (!confirmOverload) return;
+                                                                }
+                                                            }
+                                                        }
+
                                                         setFormData({ ...formData, sprintId: e.target.value });
                                                     }}
                                                     className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",

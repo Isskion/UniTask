@@ -216,7 +216,8 @@ export default function UserManagement() {
             role: user.role || 'team_member',
             tenantId: user.tenantId || "",
             assignedProjectIds: user.assignedProjectIds || [],
-            permissionGroupId: user.permissionGroupId || ""
+            permissionGroupId: user.permissionGroupId || "",
+            isConsultant: user.isConsultant || false
         });
     };
 
@@ -584,6 +585,21 @@ export default function UserManagement() {
                                     >
                                         {ROLES.map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
                                     </select>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Check className="w-3 h-3" /> Consultor
+                                    </label>
+                                    <div className="flex items-center gap-2 px-3 py-1.5 h-[38px]">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.isConsultant || false}
+                                            onChange={e => setFormData({ ...formData, isConsultant: e.target.checked })}
+                                            className="w-4 h-4 accent-[#D32F2F] cursor-pointer"
+                                        />
+                                        <span className="text-xs opacity-70">Contar para capacidad de sprints</span>
+                                    </div>
                                 </div>
 
                                 {getRoleLevel(userRole) >= 100 && (

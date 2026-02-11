@@ -28,8 +28,64 @@ export default function SprintManager() {
     const [formData, setFormData] = useState<Partial<Sprint>>({
         name: '',
         status: 'planning',
-        goal: ''
+        goal: '',
+        pointsPerUserPerDay: 1,
+        resourceCount: 0,
+        includeWeekends: false,
+        plannedCapacity: 0
     });
+
+    const [consultantCount, setConsultantCount] = useState(0);
+
+    useEffect(() => {
+        if (!tenantId) return;
+        const loadConsultants = async () => {
+            try {
+                const q = query(collection(db, "users"), where("tenantId", "==", tenantId), where("isConsultant", "==", true));
+                const snapshot = await getDocs(q);
+                setConsultantCount(snapshot.size);
+            } catch (e) {
+                console.error("Error loading consultant count:", e);
+                setConsultantCount(0);
+            }
+        };
+        loadConsultants();
+    }, [tenantId]);
+
+    const calculatePlannedCapacity = (start: any, end: any, points: number, resources: number, includeWeekends: boolean) => {
+        if (!start || !end) return 0;
+        const startDate = new Date(start instanceof Date ? start : (start.toDate ? start.toDate() : start));
+        const endDate = new Date(end instanceof Date ? end : (end.toDate ? end.toDate() : end));
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) return 0;
+
+        let workDays = 0;
+        let curr = new Date(startDate);
+        while (curr <= endDate) {
+            const dayOfWeek = curr.getDay(); // 0 = Sun, 6 = Sat
+            if (includeWeekends || (dayOfWeek !== 0 && dayOfWeek !== 6)) {
+                workDays++;
+            }
+            curr.setDate(curr.getDate() + 1);
+        }
+        return workDays * points * resources;
+    };
+
+    // Automatic recalculation of plannedCapacity
+    useEffect(() => {
+        if (isEditing && formData.startDate && formData.endDate) {
+            const newCapacity = calculatePlannedCapacity(
+                formData.startDate,
+                formData.endDate,
+                formData.pointsPerUserPerDay || 1,
+                formData.resourceCount || 0,
+                formData.includeWeekends || false
+            );
+            if (newCapacity !== formData.plannedCapacity) {
+                setFormData(prev => ({ ...prev, plannedCapacity: newCapacity }));
+            }
+        }
+    }, [formData.startDate, formData.endDate, formData.pointsPerUserPerDay, formData.resourceCount, formData.includeWeekends, isEditing]);
 
     // Permission Check
     const canManage = getRoleLevel(userRole) >= 60; // PM or above
@@ -284,7 +340,11 @@ export default function SprintManager() {
                                 name: `Sprint W${format(startDate, 'w')}`,
                                 status: 'planning',
                                 startDate: startDate.toISOString().split('T')[0],
-                                endDate: endDate.toISOString().split('T')[0]
+                                endDate: endDate.toISOString().split('T')[0],
+                                pointsPerUserPerDay: 1,
+                                resourceCount: consultantCount,
+                                includeWeekends: false,
+                                plannedCapacity: calculatePlannedCapacity(startDate, endDate, 1, consultantCount, false)
                             } as any);
                             setIsEditing(true);
                         }}
@@ -353,6 +413,44 @@ export default function SprintManager() {
                             </div>
                         )}
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-3 rounded-lg bg-black/5 border border-white/5">
+                        <div>
+                            <label className="block text-[10px] uppercase font-bold mb-1 opacity-70">Puntos/Día</label>
+                            <input
+                                type="number"
+                                value={formData.pointsPerUserPerDay || 1}
+                                onChange={e => setFormData({ ...formData, pointsPerUserPerDay: Number(e.target.value) })}
+                                className="w-full bg-transparent border rounded px-3 py-2 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] uppercase font-bold mb-1 opacity-70">Recursos (Consultores)</label>
+                            <input
+                                type="number"
+                                value={formData.resourceCount ?? consultantCount}
+                                onChange={e => setFormData({ ...formData, resourceCount: Number(e.target.value) })}
+                                className="w-full bg-transparent border rounded px-3 py-2 text-sm"
+                            />
+                        </div>
+                        <div className="flex flex-col justify-center">
+                            <label className="block text-[10px] uppercase font-bold mb-1 opacity-70">Trabajo Fin de Semana</label>
+                            <label className="relative inline-flex items-center cursor-pointer mt-1">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.includeWeekends || false}
+                                    onChange={e => setFormData({ ...formData, includeWeekends: e.target.checked })}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-9 h-5 bg-zinc-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                        <div className="flex flex-col justify-center bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
+                            <label className="block text-[10px] uppercase font-bold mb-0.5 text-emerald-500">Promesa Posible</label>
+                            <div className="text-xl font-black text-emerald-500">{formData.plannedCapacity || 0} pts</div>
+                        </div>
+                    </div>
+
                     <div className="flex justify-end gap-2">
                         <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 text-xs opacity-70 hover:opacity-100">{t('sprints.cancel')}</button>
                         <button onClick={handleSave} className="bg-primary text-primary-foreground px-4 py-1.5 rounded text-xs font-bold flex items-center gap-2">
@@ -387,6 +485,14 @@ export default function SprintManager() {
                                     <span>→</span>
                                     <span>{formatDate(sprint.endDate)}</span>
                                 </div>
+                                <div className="flex items-center gap-3 mt-1">
+                                    <div className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                        CAPACIDAD: {sprint.plannedCapacity || 0} PTS
+                                    </div>
+                                    <div className="text-[10px] opacity-50 uppercase tracking-widest font-bold">
+                                        {sprint.resourceCount || 0} REC · {sprint.pointsPerUserPerDay || 1} PTS/D
+                                    </div>
+                                </div>
                                 {sprint.goal && <div className="text-xs opacity-80 mt-1 italic max-w-md truncate">"{sprint.goal}"</div>}
                             </div>
                         </div>
@@ -400,6 +506,9 @@ export default function SprintManager() {
                                             // Handle dates for form
                                             startDate: sprint.startDate?.toDate ? sprint.startDate.toDate().toISOString().split('T')[0] : sprint.startDate,
                                             endDate: sprint.endDate?.toDate ? sprint.endDate.toDate().toISOString().split('T')[0] : sprint.endDate,
+                                            // [FIX] Ensure resourceCount has a value (default to active consultants if 0/undefined)
+                                            resourceCount: sprint.resourceCount || consultantCount,
+                                            pointsPerUserPerDay: sprint.pointsPerUserPerDay || 1,
                                         });
                                         setIsEditing(true);
                                     }}

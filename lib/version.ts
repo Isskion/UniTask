@@ -1,6 +1,17 @@
-export const APP_VERSION = "13.4.0";
+export const APP_VERSION = "13.4.1";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.1",
+        title: "Sprint Capacity Planning",
+        date: "2026-02-11",
+        features: [
+            "**Capacity Engine**: Define team capacity by resources and points/day.",
+            "**Visual Feedback**: Real-time capacity vs. commitment bars on the dashboard.",
+            "**Smart Validation**: Alerts when assigning tasks exceeding sprint limits.",
+            "**Legacy Support**: Auto-calculation for existing sprints upon edit."
+        ]
+    },
     {
         version: "13.4.0",
         title: "Robust Invite & Registration",

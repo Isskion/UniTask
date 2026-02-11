@@ -184,7 +184,7 @@ service cloud.firestore {
       allow update: if isAuthenticated() && 
                     request.auth.uid == userId && 
                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(
-                      ['displayName', 'photoURL', 'phoneNumber', 'jobTitle', 'bio', 'preferences', 'theme', 'language', 'updatedAt', 'isConsultant']
+                      ['displayName', 'photoURL', 'phoneNumber', 'jobTitle', 'bio', 'preferences', 'theme', 'language', 'updatedAt']
                     );
 
       // 3. App Admin (80) managing others in their tenant
