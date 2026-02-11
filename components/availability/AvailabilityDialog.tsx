@@ -36,6 +36,7 @@ export function AvailabilityDialog({
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [notes, setNotes] = useState("");
+    const [consumedDays, setConsumedDays] = useState<number>(0);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -49,6 +50,7 @@ export function AvailabilityDialog({
                 setStartDate(format(start, "yyyy-MM-dd"));
                 setEndDate(format(end, "yyyy-MM-dd"));
                 setNotes(availability.notes || "");
+                setConsumedDays(availability.consumedDays || 0);
             } else {
                 // If creating new and NOT admin, force own ID
                 setUserId(userLevel < 60 && user ? user.uid : "");
@@ -56,6 +58,7 @@ export function AvailabilityDialog({
                 setStartDate(format(new Date(), "yyyy-MM-dd"));
                 setEndDate(format(new Date(), "yyyy-MM-dd"));
                 setNotes("");
+                setConsumedDays(0);
             }
         }
     }, [open, availability]);
@@ -69,7 +72,8 @@ export function AvailabilityDialog({
                 type,
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
-                notes
+                notes,
+                consumedDays
             });
             onOpenChange(false);
         } catch (error) {
@@ -187,6 +191,20 @@ export function AvailabilityDialog({
                             />
                         </div>
                     </div>
+                    {(type === 'vacation' || type === 'sick_leave' || type === 'personal_days') && (
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-zinc-500 uppercase">Días Consumidos</label>
+                            <input
+                                type="number"
+                                value={consumedDays}
+                                onChange={e => setConsumedDays(parseInt(e.target.value) || 0)}
+                                className={cn("w-full px-3 py-2 rounded text-sm outline-none focus:border-blue-500 transition-colors", inputBg, textBase)}
+                                min="0"
+                                step="1"
+                                placeholder="Días laborales utilizados..."
+                            />
+                        </div>
+                    )}
 
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-zinc-500 uppercase">Notas</label>
@@ -230,7 +248,7 @@ export function AvailabilityDialog({
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

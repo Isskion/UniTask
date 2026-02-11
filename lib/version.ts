@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.4.2";
+export const APP_VERSION = "13.4.3";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.3",
+        title: "Dispoplan Enhancements",
+        date: "2026-02-11",
+        features: [
+            "**Consumed Days**: Added field to track used vacation/sick leave days for yearly statistics.",
+            "**UI Refinement**: Registry table now displays consumed days per entry."
+        ]
+    },
     {
         version: "13.4.2",
         title: "Availability Registry",

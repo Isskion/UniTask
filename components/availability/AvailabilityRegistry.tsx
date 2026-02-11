@@ -92,7 +92,7 @@ export default function AvailabilityRegistry() {
         if (selectedAvailability) {
             await updateAvailability(selectedAvailability.id, data);
         } else {
-            await addAvailability(data.userId, data.type, data.startDate, data.endDate, data.notes);
+            await addAvailability(data.userId, data.type, data.startDate, data.endDate, data.notes, data.consumedDays);
         }
     };
 
@@ -228,6 +228,7 @@ export default function AvailabilityRegistry() {
                                 <th className="text-left px-4 py-3 text-xs font-black uppercase text-zinc-500">Tipo</th>
                                 <th className="text-left px-4 py-3 text-xs font-black uppercase text-zinc-500">Desde</th>
                                 <th className="text-left px-4 py-3 text-xs font-black uppercase text-zinc-500">Hasta</th>
+                                <th className="text-left px-4 py-3 text-xs font-black uppercase text-zinc-500">Días</th>
                                 <th className="text-left px-4 py-3 text-xs font-black uppercase text-zinc-500">Notas</th>
                                 <th className="text-right px-4 py-3 text-xs font-black uppercase text-zinc-500">Acciones</th>
                             </tr>
@@ -269,6 +270,7 @@ export default function AvailabilityRegistry() {
                                             </td>
                                             <td className="px-4 py-3 text-sm">{format(startDate, "dd MMM yyyy", { locale: es })}</td>
                                             <td className="px-4 py-3 text-sm">{format(endDate, "dd MMM yyyy", { locale: es })}</td>
+                                            <td className="px-4 py-3 text-sm font-bold">{availability.consumedDays || 0}</td>
                                             <td className="px-4 py-3 text-xs text-zinc-500 max-w-xs truncate">{availability.notes || "-"}</td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-2">

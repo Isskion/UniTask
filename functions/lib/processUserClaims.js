@@ -90,7 +90,7 @@ async function resolveTenantForUser(user) {
  * Update claims helper
  */
 exports.updateUserClaims = functions.region('europe-west1').https.onCall(async (data, context) => {
-    var _a, _b;
+    var _a, _b, _c, _d;
     // Verify caller is superadmin (Level 100)
     const callerLevel = ((_a = context.auth) === null || _a === void 0 ? void 0 : _a.token.roleLevel) || 0;
     const callerRole = (_b = context.auth) === null || _b === void 0 ? void 0 : _b.token.role;
@@ -105,9 +105,34 @@ exports.updateUserClaims = functions.region('europe-west1').https.onCall(async (
     const targetUser = await admin.auth().getUser(targetUserId);
     const currentClaims = targetUser.customClaims || {};
     const targetLevel = currentClaims.roleLevel || 0;
+    const isSelfUpdate = targetUserId === ((_c = context.auth) === null || _c === void 0 ? void 0 : _c.uid);
     // Safety: You can't edit someone with higher or equal level unless you are Superadmin (100)
-    if (callerLevel <= targetLevel && callerRole !== 'superadmin') {
+    // EXCEPTION: You can "sync" yourself (no role/tenant change requested)
+    if (callerLevel <= targetLevel && callerRole !== 'superadmin' && !isSelfUpdate) {
         throw new functions.https.HttpsError('permission-denied', 'Cannot edit a user with equal or higher rank');
+    }
+    // [FIX] Self-Sync Mode: If updating self and no params provided, just REFRESH from Firestore
+    if (isSelfUpdate && !newRole && !newTenantId) {
+        console.log(`[updateUserClaims] Self-sync requested for ${targetUserId}`);
+        const db = (0, utils_1.getDb)();
+        const userDoc = await db.collection('users').doc(targetUserId).get();
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User profile not found');
+        }
+        const userData = userDoc.data() || {};
+        const syncedClaims = {
+            role: userData.role || 'team_member',
+            roleLevel: userData.roleLevel || 0,
+            tenantId: userData.tenantId || "1",
+            isActive: (_d = userData.isActive) !== null && _d !== void 0 ? _d : true
+        };
+        await admin.auth().setCustomUserClaims(targetUserId, syncedClaims);
+        console.log(`[updateUserClaims] Synced claims for ${targetUserId}:`, syncedClaims);
+        return { success: true, claims: syncedClaims, mode: 'sync' };
+    }
+    // Standard Update Flow (Admin updating others)
+    if (isSelfUpdate && (newRole || newTenantId)) {
+        throw new functions.https.HttpsError('permission-denied', 'Cannot change your own role/tenant manually.');
     }
     // Calculate new Level if role changes
     const newLevel = newRole ? (ROLE_LEVELS[newRole] || 0) : undefined;
@@ -116,12 +141,7 @@ exports.updateUserClaims = functions.region('europe-west1').https.onCall(async (
     await admin.auth().setCustomUserClaims(targetUserId, updatedClaims);
     // Sync to Firestore profile
     const db = (0, utils_1.getDb)();
-    await db.collection('users').doc(targetUserId).set({
-        role: updatedClaims.role,
-        roleLevel: updatedClaims.roleLevel,
-        tenantId: updatedClaims.tenantId,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+    await db.collection('users').doc(targetUserId).set(Object.assign(Object.assign({}, updatedClaims), { updatedAt: admin.firestore.FieldValue.serverTimestamp() }), { merge: true });
     console.log(`[updateUserClaims] Updated claims for ${targetUserId}:`, updatedClaims);
     return { success: true, claims: updatedClaims };
 });

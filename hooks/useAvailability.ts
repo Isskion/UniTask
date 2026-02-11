@@ -52,7 +52,8 @@ export function useAvailability(tenantId: string) {
         type: AvailabilityType,
         startDate: Date,
         endDate: Date,
-        notes?: string
+        notes?: string,
+        consumedDays?: number
     ) => {
         if (!user) throw new Error("User not authenticated");
 
@@ -64,6 +65,7 @@ export function useAvailability(tenantId: string) {
             endDate: Timestamp.fromDate(endDate),
             status: 'approved', // Auto-approve for now if added by admin/manager
             notes: notes || "",
+            consumedDays: consumedDays || 0,
             createdBy: user.uid,
             createdAt: Timestamp.now()
         });

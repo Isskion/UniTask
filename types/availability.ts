@@ -14,6 +14,7 @@ export interface UserAvailability {
     endDate: Timestamp | Date;
     status: AvailabilityStatus;
     notes?: string;
+    consumedDays?: number;
     createdBy: string;
     createdAt: Timestamp | Date;
     approvedBy?: string;
