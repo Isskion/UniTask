@@ -36,39 +36,82 @@ export default function SprintManager() {
     });
 
     const [consultantCount, setConsultantCount] = useState(0);
+    const [consultants, setConsultants] = useState<string[]>([]);
+    const [availabilities, setAvailabilities] = useState<any[]>([]);
 
     useEffect(() => {
         if (!tenantId) return;
-        const loadConsultants = async () => {
+        const loadResources = async () => {
             try {
-                const q = query(collection(db, "users"), where("tenantId", "==", tenantId), where("isConsultant", "==", true));
-                const snapshot = await getDocs(q);
-                setConsultantCount(snapshot.size);
+                // Load Consultant IDs
+                const qUsers = query(collection(db, "users"), where("tenantId", "==", tenantId), where("isConsultant", "==", true));
+                const snapUsers = await getDocs(qUsers);
+                const consultantIds = snapUsers.docs.map(doc => doc.id);
+                setConsultants(consultantIds);
+                setConsultantCount(consultantIds.length);
+
+                // Load Availabilities
+                const qAvail = query(collection(db, "user_availability"), where("tenantId", "==", tenantId));
+                const snapAvail = await getDocs(qAvail);
+                const availData = snapAvail.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setAvailabilities(availData);
             } catch (e) {
-                console.error("Error loading consultant count:", e);
-                setConsultantCount(0);
+                console.error("Error loading resources for capacity:", e);
+                setConsultants([]);
+                setAvailabilities([]);
             }
         };
-        loadConsultants();
+        loadResources();
     }, [tenantId]);
 
-    const calculatePlannedCapacity = (start: any, end: any, points: number, resources: number, includeWeekends: boolean) => {
-        if (!start || !end) return 0;
+    const calculatePlannedCapacity = (start: any, end: any, points: number, resourceIds: string[], includeWeekends: boolean) => {
+        if (!start || !end || resourceIds.length === 0) return 0;
         const startDate = new Date(start instanceof Date ? start : (start.toDate ? start.toDate() : start));
         const endDate = new Date(end instanceof Date ? end : (end.toDate ? end.toDate() : end));
 
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) return 0;
 
-        let workDays = 0;
+        let totalCapacity = 0;
         let curr = new Date(startDate);
         while (curr <= endDate) {
             const dayOfWeek = curr.getDay(); // 0 = Sun, 6 = Sat
-            if (includeWeekends || (dayOfWeek !== 0 && dayOfWeek !== 6)) {
-                workDays++;
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+            if (includeWeekends || !isWeekend) {
+                // For each resource, check if they are available this day
+                resourceIds.forEach(resId => {
+                    const isAbsent = availabilities.some(a => {
+                        // Skip if it's "Teletrabajo"
+                        if (a.type === 'remote') return false;
+                        if (a.userId !== resId) return false;
+
+                        const aStart = a.startDate instanceof Date ? a.startDate : a.startDate.toDate();
+                        const aEnd = a.endDate instanceof Date ? a.endDate : a.endDate.toDate();
+
+                        // Set times to midnight for comparison
+                        const checkDay = new Date(curr);
+                        checkDay.setHours(0, 0, 0, 0);
+
+                        const cmpStart = new Date(aStart);
+                        cmpStart.setHours(0, 0, 0, 0);
+
+                        const cmpEnd = new Date(aEnd);
+                        cmpEnd.setHours(23, 59, 59, 999);
+
+                        return checkDay >= cmpStart && checkDay <= cmpEnd;
+                    });
+
+                    if (!isAbsent) {
+                        totalCapacity += points;
+                    }
+                });
             }
             curr.setDate(curr.getDate() + 1);
         }
-        return workDays * points * resources;
+        return totalCapacity;
     };
 
     // Automatic recalculation of plannedCapacity
@@ -78,14 +121,14 @@ export default function SprintManager() {
                 formData.startDate,
                 formData.endDate,
                 formData.pointsPerUserPerDay || 1,
-                formData.resourceCount || 0,
+                consultants,
                 formData.includeWeekends || false
             );
             if (newCapacity !== formData.plannedCapacity) {
                 setFormData(prev => ({ ...prev, plannedCapacity: newCapacity }));
             }
         }
-    }, [formData.startDate, formData.endDate, formData.pointsPerUserPerDay, formData.resourceCount, formData.includeWeekends, isEditing]);
+    }, [formData.startDate, formData.endDate, formData.pointsPerUserPerDay, consultants, availabilities, formData.includeWeekends, isEditing]);
 
     // Permission Check
     const canManage = getRoleLevel(userRole) >= 60; // PM or above
@@ -342,9 +385,9 @@ export default function SprintManager() {
                                 startDate: startDate.toISOString().split('T')[0],
                                 endDate: endDate.toISOString().split('T')[0],
                                 pointsPerUserPerDay: 1,
-                                resourceCount: consultantCount,
+                                resourceCount: consultants.length,
                                 includeWeekends: false,
-                                plannedCapacity: calculatePlannedCapacity(startDate, endDate, 1, consultantCount, false)
+                                plannedCapacity: calculatePlannedCapacity(startDate, endDate, 1, consultants, false)
                             } as any);
                             setIsEditing(true);
                         }}
@@ -426,12 +469,10 @@ export default function SprintManager() {
                         </div>
                         <div>
                             <label className="block text-[10px] uppercase font-bold mb-1 opacity-70">Recursos (Consultores)</label>
-                            <input
-                                type="number"
-                                value={formData.resourceCount ?? consultantCount}
-                                onChange={e => setFormData({ ...formData, resourceCount: Number(e.target.value) })}
-                                className="w-full bg-transparent border rounded px-3 py-2 text-sm"
-                            />
+                            <div className="w-full bg-black/10 border border-white/10 rounded px-3 py-2 text-sm opacity-80 cursor-default">
+                                {consultants.length} activos
+                            </div>
+                            <p className="text-[9px] mt-1 text-zinc-500 italic leading-tight">La capacidad se ajusta según las ausencias registradas.</p>
                         </div>
                         <div className="flex flex-col justify-center">
                             <label className="block text-[10px] uppercase font-bold mb-1 opacity-70">Trabajo Fin de Semana</label>
@@ -506,8 +547,8 @@ export default function SprintManager() {
                                             // Handle dates for form
                                             startDate: sprint.startDate?.toDate ? sprint.startDate.toDate().toISOString().split('T')[0] : sprint.startDate,
                                             endDate: sprint.endDate?.toDate ? sprint.endDate.toDate().toISOString().split('T')[0] : sprint.endDate,
-                                            // [FIX] Ensure resourceCount has a value (default to active consultants if 0/undefined)
-                                            resourceCount: sprint.resourceCount || consultantCount,
+                                            // [FIX] Use live consultant list count
+                                            resourceCount: consultants.length,
                                             pointsPerUserPerDay: sprint.pointsPerUserPerDay || 1,
                                         });
                                         setIsEditing(true);

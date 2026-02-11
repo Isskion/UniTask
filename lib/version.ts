@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.4.3";
+export const APP_VERSION = "13.4.4";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.4",
+        title: "Dynamic Capacity Planning",
+        date: "2026-02-11",
+        features: [
+            "**Real-time Availability**: Sprint capacity now automatically adjusts based on Dispoplan absences.",
+            "**Teletrabajo Exclusion**: Remote work entries do not reduce capacity, while vacations and sick leaves do."
+        ]
+    },
     {
         version: "13.4.3",
         title: "Dispoplan Enhancements",
