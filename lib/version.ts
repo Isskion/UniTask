@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.4.4";
+export const APP_VERSION = "13.4.5";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.5",
+        title: "Madrid Public Holidays",
+        date: "2026-02-11",
+        features: [
+            "**Holiday Integration**: Madrid public holidays (2025-2026) are now automatically excluded from sprint capacity.",
+            "**Smart Capacity**: Holidays falling on weekdays are treated as non-working days for planning purposes."
+        ]
+    },
     {
         version: "13.4.4",
         title: "Dynamic Capacity Planning",

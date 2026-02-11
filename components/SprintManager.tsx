@@ -12,6 +12,7 @@ import { Sprint, getRoleLevel } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
 import { format, addDays, getDay, startOfToday } from 'date-fns';
+import { isMadridHoliday } from '@/lib/holidays';
 import { Task } from '@/types'; // Import Task type
 
 export default function SprintManager() {
@@ -79,8 +80,20 @@ export default function SprintManager() {
         while (curr <= endDate) {
             const dayOfWeek = curr.getDay(); // 0 = Sun, 6 = Sat
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isHoliday = isMadridHoliday(curr);
 
-            if (includeWeekends || !isWeekend) {
+            // If it's a holiday, it doesn't count as a working day (unless we force weekend work AND holiday work - usually not)
+            // For now, holidays are treated like weekends: they reduce capacity unless explicitly handled otherwise.
+            // Requirement: "ESTOS DÍAS NO DEBEN CONTAR TAMPOCO COMO LABORABLES SI CAEN DE LUNES A VIERNES"
+
+            // If it's a holiday, we skip adding points for this day regardless of resources
+            // Logic: 
+            // - If Include Weekends is false AND it's a weekend -> Skip
+            // - If it's a holiday -> Skip (Overrides weekend check if it falls on weekday)
+
+            const isWorkingDay = includeWeekends ? true : !isWeekend;
+
+            if (isWorkingDay && !isHoliday) {
                 // For each resource, check if they are available this day
                 resourceIds.forEach(resId => {
                     const isAbsent = availabilities.some(a => {
