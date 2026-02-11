@@ -208,6 +208,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         <span className="text-sm font-bold text-foreground tracking-tight">
                             UniTaskController
                         </span>
+                        <div className="ml-auto">
+                            <VersionBadge onClick={onOpenChangelog} />
+                        </div>
                     </div>
 
                     {/* Navigation */}
@@ -338,7 +341,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <span className="text-[9px] opacity-30 font-mono hidden md:inline">{userRole}</span>
                                 </button>
 
-                                <VersionBadge onClick={onOpenChangelog} />
                             </div>
                         </div>
 
