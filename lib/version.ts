@@ -1,6 +1,17 @@
-export const APP_VERSION = "13.4.1";
+export const APP_VERSION = "13.4.2";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.2",
+        title: "Availability Registry",
+        date: "2026-02-11",
+        features: [
+            "**Registry View**: New list view for managing all unavailability entries.",
+            "**Advanced Filters**: Filter by resource, type, and date range.",
+            "**Permissions**: Role-based access control for entry management.",
+            "**Localization**: Full 6-language support for the new module."
+        ]
+    },
     {
         version: "13.4.1",
         title: "Sprint Capacity Planning",

@@ -120,11 +120,45 @@ export const updateUserClaims = functions.region('europe-west1').https.onCall(as
 
     const targetLevel = currentClaims.roleLevel || 0;
 
+    const isSelfUpdate = targetUserId === context.auth?.uid;
+
     // Safety: You can't edit someone with higher or equal level unless you are Superadmin (100)
-    if (callerLevel <= targetLevel && callerRole !== 'superadmin') {
+    // EXCEPTION: You can "sync" yourself (no role/tenant change requested)
+    if (callerLevel <= targetLevel && callerRole !== 'superadmin' && !isSelfUpdate) {
         throw new functions.https.HttpsError(
             'permission-denied',
             'Cannot edit a user with equal or higher rank'
+        );
+    }
+
+    // [FIX] Self-Sync Mode: If updating self and no params provided, just REFRESH from Firestore
+    if (isSelfUpdate && !newRole && !newTenantId) {
+        console.log(`[updateUserClaims] Self-sync requested for ${targetUserId}`);
+        const db = getDb();
+        const userDoc = await db.collection('users').doc(targetUserId).get();
+
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User profile not found');
+        }
+
+        const userData = userDoc.data() || {};
+        const syncedClaims = {
+            role: userData.role || 'team_member',
+            roleLevel: userData.roleLevel || 0,
+            tenantId: userData.tenantId || "1",
+            isActive: userData.isActive ?? true
+        };
+
+        await admin.auth().setCustomUserClaims(targetUserId, syncedClaims);
+        console.log(`[updateUserClaims] Synced claims for ${targetUserId}:`, syncedClaims);
+        return { success: true, claims: syncedClaims, mode: 'sync' };
+    }
+
+    // Standard Update Flow (Admin updating others)
+    if (isSelfUpdate && (newRole || newTenantId)) {
+        throw new functions.https.HttpsError(
+            'permission-denied',
+            'Cannot change your own role/tenant manually.'
         );
     }
 
@@ -144,9 +178,7 @@ export const updateUserClaims = functions.region('europe-west1').https.onCall(as
     // Sync to Firestore profile
     const db = getDb();
     await db.collection('users').doc(targetUserId).set({
-        role: updatedClaims.role,
-        roleLevel: updatedClaims.roleLevel,
-        tenantId: updatedClaims.tenantId,
+        ...updatedClaims, // Use spread to update profile with new claims
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 

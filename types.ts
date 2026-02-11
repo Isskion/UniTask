@@ -96,6 +96,7 @@ export interface UserProfile {
     permissionGroupId?: string; // Reference to permission_groups collection
     customPermissions?: Partial<PermissionGroup>; // Optional override
     isConsultant?: boolean; // New: If true, count as resource for sprint capacity
+    worksOnWeekends?: boolean; // New: If true, weekends are considered working days in DispoPlan
 }
 
 // Permission Group System

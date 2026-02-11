@@ -6,7 +6,7 @@ import { collection, getDocs, doc, query, orderBy, where } from "firebase/firest
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
-import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2 } from "lucide-react";
+import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2, Calendar } from "lucide-react";
 import { getAllInvites, InviteCode } from "@/lib/invites";
 import { createInviteActionV3 } from "@/app/actions/invites";
 import InviteWizard from "./InviteWizard";
@@ -217,7 +217,8 @@ export default function UserManagement() {
             tenantId: user.tenantId || "",
             assignedProjectIds: user.assignedProjectIds || [],
             permissionGroupId: user.permissionGroupId || "",
-            isConsultant: user.isConsultant || false
+            isConsultant: user.isConsultant || false,
+            worksOnWeekends: user.worksOnWeekends || false
         });
     };
 
@@ -602,6 +603,21 @@ export default function UserManagement() {
                                     </div>
                                 </div>
 
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" /> Fines de Semana
+                                    </label>
+                                    <div className="flex items-center gap-2 px-3 py-1.5 h-[38px]">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.worksOnWeekends || false}
+                                            onChange={e => setFormData({ ...formData, worksOnWeekends: e.target.checked })}
+                                            className="w-4 h-4 accent-[#D32F2F] cursor-pointer"
+                                        />
+                                        <span className="text-xs opacity-70">Trabaja sábados y domingos</span>
+                                    </div>
+                                </div>
+
                                 {getRoleLevel(userRole) >= 100 && (
                                     <div className="space-y-1">
                                         <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
@@ -784,7 +800,8 @@ export default function UserManagement() {
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

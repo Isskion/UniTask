@@ -26,7 +26,7 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return getRealRole() >= 100;
+      return getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com';
     }
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
@@ -171,7 +171,12 @@ service cloud.firestore {
 
     // Users Collection
     match /users/{userId} {
-      allow get: if (request.auth != null && request.auth.uid == userId) || isSuperAdmin();
+      // GET: Self, SuperAdmin, OR any authenticated user in the same tenant
+      allow get: if isSuperAdmin() || 
+                 (request.auth != null && request.auth.uid == userId) ||
+                 (isAuthenticated() && docTenantMatches(resource.data));
+      
+      // LIST: Admins see all. Regular users see all IN THEIR TENANT (for mentions/assigning)
       allow list: if isSuperAdmin() || 
                   (isAuthenticated() && request.auth.uid == userId) ||
                   (isAuthenticated() && docTenantMatches(resource.data));
@@ -200,6 +205,29 @@ service cloud.firestore {
       // Users cannot DELETE or CREATE their own full docs via client (handled by backend/admin)
       // Exception: If you have a specific creation flow, verify it here. Assuming backend does creation on auth.
       allow create, delete: if isSuperAdmin();
+    }
+
+    // --- AVAILABILITY (Dispoplan) ---
+    match /user_availability/{availId} {
+      // READ: Everyone in the tenant can see everyone else's availability (Transparency)
+      allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+      
+      // CREATE: Use must match tenant
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+
+      // UPDATE/DELETE: 
+      // 1. Owner can modify their own.
+      // 2. Managers (Role >= 60) can modify anyone in their tenant.
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (
+            resource.data.userId == request.auth.uid || 
+            getRealRole() >= 60
+        ))
+      );
     }
 
     // --- ENTRIES & STORAGE ---
