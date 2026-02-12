@@ -133,6 +133,10 @@ export interface PermissionGroup {
         userManagement: boolean;
         weeklyEditor: boolean;
         dailyFollowUp: boolean;
+        knowledgeBase: boolean;
+        sprintManagement: boolean;
+        dispoPlan: boolean;
+        unavailabilityRegistry: boolean;
     };
 
     // Export Permissions

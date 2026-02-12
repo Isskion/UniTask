@@ -27,11 +27,15 @@ export function useAvailability(tenantId: string) {
         let q;
         if (tenantId === "ALL") {
             q = query(collection(db, "user_availability"));
-        } else {
+        } else if (tenantId) {
             q = query(
                 collection(db, "user_availability"),
                 where("tenantId", "==", tenantId)
             );
+        } else {
+            // No tenantId available yet (or user has no tenant), skip query to avoid permission-denied
+            setLoading(false);
+            return;
         }
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -41,6 +45,13 @@ export function useAvailability(tenantId: string) {
             })) as UserAvailability[];
 
             setAvailabilities(data);
+            setLoading(false);
+        }, (error) => {
+            if (error.code === 'permission-denied') {
+                console.log("Permission denied for availability listener (expected during logout).");
+            } else {
+                console.error("Error listening to availability:", error);
+            }
             setLoading(false);
         });
 

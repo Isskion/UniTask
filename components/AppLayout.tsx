@@ -49,8 +49,8 @@ import { auth } from "@/lib/firebase";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -227,16 +227,18 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                         </div>
 
-                        {/* Knowledge Area (NEW) - Open to all users */}
-                        <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
-                            <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
-                            <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                            <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
-                        </div>
+                        {/* Knowledge Area (NEW) */}
+                        {can('knowledgeBase', 'views') && (
+                            <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
+                                <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
+                                <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
+                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                            </div>
+                        )}
 
-                        {/* Sprint Management (NEW) - Permissions: PM+ */}
-                        {getRoleLevel(userRole) >= RoleLevel.PM && (
+                        {/* Sprint Management (NEW) */}
+                        {can('sprintManagement', 'views') && (
                             <div className="space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('sprints.menu_title')}</p>
                                 <NavItem mode="sprint-cycles" icon={Timer} label={t('sprints.menu_cycles')} />
@@ -259,13 +261,17 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="admin-task-master" icon={Layout} label={t('nav.taskMaster')} />
                             )}
 
+                            {can('userManagement', 'views') && (
+                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                            )}
                             {canManagePermissions && (
-                                <>
-                                    <NavItem mode="users" icon={Users} label={t('nav.people')} />
-                                    <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                </>
+                                <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
+                            )}
+                            {can('dispoPlan', 'views') && (
+                                <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                            )}
+                            {can('unavailabilityRegistry', 'views') && (
+                                <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                             )}
 
                             {userRole === 'superadmin' && (
@@ -425,20 +431,22 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                             </div>
 
-                            <div className="mt-4 space-y-1">
-                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
-                                <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
-                                <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
-                            </div>
+                            {can('knowledgeBase', 'views') && (
+                                <div className="mt-4 space-y-1">
+                                    <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
+                                    <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
+                                    <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
+                                    <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                                </div>
+                            )}
 
                             <div className="mt-4 space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
+                                {can('userManagement', 'views') && (
+                                    <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                )}
                                 {canManagePermissions && (
-                                    <>
-                                        <NavItem mode="users" icon={Users} label={t('nav.people')} />
-                                        <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                                    </>
+                                    <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
                                 )}
                                 {userRole === 'superadmin' && (
                                     <>

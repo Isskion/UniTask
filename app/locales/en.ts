@@ -281,7 +281,11 @@ export const en = {
                 projectManagement: { label: "Project Management", desc: "Project administration view" },
                 userManagement: { label: "User Management", desc: "User administration view" },
                 weeklyEditor: { label: "Weekly Editor", desc: "Weekly planning view" },
-                dailyFollowUp: { label: "Daily Follow-Up", desc: "Daily logbook view" }
+                dailyFollowUp: { label: "Daily Follow-Up", desc: "Daily logbook view" },
+                knowledgeBase: { label: "Knowledge Base", desc: "Access to knowledge base" },
+                sprintManagement: { label: "Sprint Management", desc: "Access to sprint planning and management" },
+                dispoPlan: { label: "DispoPlan", desc: "Access to availability calendar" },
+                unavailabilityRegistry: { label: "Unavailability Registry", desc: "Access to unavailability registry" }
             },
             special: {
                 viewAllUserProfiles: { label: "View all user profiles", desc: "Access to information of all users" },

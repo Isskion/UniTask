@@ -11,8 +11,10 @@ service cloud.firestore {
 
     // Get Real Role: STRICT TOKEN ONLY
     // "Fallo Ruidoso": If the token claim is missing, access is 0. No DB fallbacks.
+    // Get Real Role: STRICT TOKEN ONLY
+    // "Fallo Ruidoso": If the token claim is missing, access is 0. No DB fallbacks.
     function getRealRole() {
-      return (request.auth.token != null && 'roleLevel' in request.auth.token) 
+      return (request.auth != null && request.auth.token != null && 'roleLevel' in request.auth.token) 
         ? int(request.auth.token.roleLevel) 
         : 0;
     }
@@ -20,13 +22,13 @@ service cloud.firestore {
     // Get Real TenantId: STRICT TOKEN ONLY
     // Default to "__DENY__" to prevent accidental access to "unknown" or "1" if claim is missing.
     function getRealTenantId() {
-       return (request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId).size() > 0)
+       return (request.auth != null && request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId).size() > 0)
          ? string(request.auth.token.tenantId)
          : "__DENY__";
     }
 
     function isSuperAdmin() {
-      return getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com';
+      return request.auth != null && (getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com');
     }
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, DocumentSnapshot, FirestoreError } from 'firebase/firestore';
 import { PermissionGroup } from '@/types';
 
 // Default Fallback Permissions based on Legacy Roles
@@ -10,7 +10,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         name: 'Admin Legacy',
         projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: true },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true },
         exportAccess: { tasks: true, projects: true, reports: true },
         specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true }
     },
@@ -18,7 +18,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         name: 'PM Legacy',
         projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: false },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true },
         exportAccess: { tasks: true, projects: true, reports: true },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
     },
@@ -26,7 +26,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         name: 'Usuario Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
     },
@@ -35,7 +35,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         name: 'Consultor Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
+        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
     },
@@ -49,7 +49,7 @@ const DEFAULT_PERMISSIONS: PermissionGroup = {
     description: 'Default restricted access',
     projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
-    viewAccess: { dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false },
+    viewAccess: { dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
     exportAccess: { tasks: false, projects: false, reports: false },
     specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false },
     createdAt: new Date(),
@@ -69,6 +69,8 @@ export function usePermissions() {
             return;
         }
 
+        let unsubscribe: (() => void) | undefined;
+
         const loadPermissions = async () => {
             let permissionGroupId = null;
 
@@ -83,24 +85,42 @@ export function usePermissions() {
                 console.error("Error fetching user profile for permissions", err);
             }
 
-            // 1. If user has a specific Permission Group assigned, fetch it
+            // 1. If user has a specific Permission Group assigned, listen to it
             if (permissionGroupId) {
                 try {
                     const groupRef = doc(db, 'permission_groups', permissionGroupId);
-                    const groupSnap = await getDoc(groupRef);
 
-                    if (groupSnap.exists()) {
-                        setPermissions({ id: groupSnap.id, ...groupSnap.data() } as PermissionGroup);
+                    // Real-time listener
+                    unsubscribe = onSnapshot(groupRef, (groupSnap: DocumentSnapshot) => {
+                        if (groupSnap.exists()) {
+                            setPermissions({ id: groupSnap.id, ...groupSnap.data() } as PermissionGroup);
+                        } else {
+                            console.warn(`Permission Group ${permissionGroupId} not found. Falling back to role.`);
+                            // Fallback if group deleted
+                            if (userRole && LEGACY_ROLE_MAP[userRole]) {
+                                setPermissions({ ...DEFAULT_PERMISSIONS, ...LEGACY_ROLE_MAP[userRole] } as PermissionGroup);
+                            } else {
+                                setPermissions(DEFAULT_PERMISSIONS);
+                            }
+                        }
                         setLoading(false);
-                        return;
-                    }
-                    console.warn(`Permission Group ${permissionGroupId} not found. Falling back to role.`);
+                    }, (error: FirestoreError) => {
+                        if (error.code === 'permission-denied') {
+                            // Expected race condition during logout
+                            console.log("Permission denied for permission group listener (expected during logout).");
+                        } else {
+                            console.error("Error listening to permission group:", error);
+                        }
+                        setLoading(false);
+                    });
+
+                    return; // Exit, letting the listener handle updates
                 } catch (error) {
-                    console.error("Error loading permission group:", error);
+                    console.error("Error setting up permission group listener:", error);
                 }
             }
 
-            // 2. Fallback to Legacy Role Mapping
+            // 2. Fallback to Legacy Role Mapping (if no group ID or error)
             if (userRole && LEGACY_ROLE_MAP[userRole]) {
                 setPermissions({ ...DEFAULT_PERMISSIONS, ...LEGACY_ROLE_MAP[userRole] } as PermissionGroup);
             } else {
@@ -111,6 +131,10 @@ export function usePermissions() {
         };
 
         loadPermissions();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, [user, userRole, authLoading]);
 
     const can = (action: string, context: string): boolean => {
@@ -126,6 +150,15 @@ export function usePermissions() {
         }
         if (context === 'projects') {
             // Add project logic
+        }
+
+        if (context === 'views') {
+            const hasAccess = permissions.viewAccess?.[action as keyof typeof permissions.viewAccess] || false;
+            return hasAccess;
+        }
+
+        if (context === 'special') {
+            return permissions.specialPermissions?.[action as keyof typeof permissions.specialPermissions] || false;
         }
 
         return false;

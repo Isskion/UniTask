@@ -138,6 +138,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         // Optimistic Profile Hydration for UI display ONLY (Not security)
                         setUserProfile(data as UserProfile);
                     }
+                }, (error) => {
+                    if (error.code === 'permission-denied') {
+                        console.log("[AuthContext] Permission denied for profile listener (expected during logout).");
+                    } else {
+                        console.error("[AuthContext] Profile listener error:", error);
+                    }
                 });
 
                 // [SECURITY] Quick profile existence check BEFORE allowing the app to render

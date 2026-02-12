@@ -23,7 +23,7 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
     color: '#6366f1',
     projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-    viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true },
+    viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
     exportAccess: { tasks: true, projects: false, reports: false },
     specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
 };
@@ -709,7 +709,8 @@ export default function UserRoleManagement() {
                                     <div className="space-y-3">
                                         <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.views')}</h4>
                                         {[
-                                            'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp'
+                                            'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp',
+                                            'knowledgeBase', 'sprintManagement', 'dispoPlan', 'unavailabilityRegistry'
                                         ].map(key => (
                                             <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
                                                 <input

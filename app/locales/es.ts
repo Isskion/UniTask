@@ -283,7 +283,11 @@ export const es: Dictionary = {
                 projectManagement: { label: "Gestión de Proyectos", desc: "Vista de administración de proyectos" },
                 userManagement: { label: "Gestión de Usuarios", desc: "Vista de administración de usuarios" },
                 weeklyEditor: { label: "Editor Semanal", desc: "Vista de planificación semanal" },
-                dailyFollowUp: { label: "Seguimiento Diario", desc: "Vista de bitácora diaria" }
+                dailyFollowUp: { label: "Seguimiento Diario", desc: "Vista de bitácora diaria" },
+                knowledgeBase: { label: "Áreas de Conocimiento", desc: "Acceso a la base de conocimiento" },
+                sprintManagement: { label: "Gestión de Sprint", desc: "Acceso a la planificación y gestión de sprints" },
+                dispoPlan: { label: "DispoPlan", desc: "Acceso a calendario de disponibilidad" },
+                unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acceso al registro de ausencias" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos los perfiles de usuario", desc: "Acceso a información de todos los usuarios" },
