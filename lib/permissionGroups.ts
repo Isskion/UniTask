@@ -31,7 +31,11 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             projectManagement: true,
             userManagement: true,
             weeklyEditor: true,
-            dailyFollowUp: true
+            dailyFollowUp: true,
+            knowledgeBase: true,
+            sprintManagement: true,
+            dispoPlan: true,
+            unavailabilityRegistry: true
         },
         exportAccess: {
             tasks: true,
@@ -71,7 +75,11 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             projectManagement: true,
             userManagement: false,
             weeklyEditor: true,
-            dailyFollowUp: true
+            dailyFollowUp: true,
+            knowledgeBase: true,
+            sprintManagement: true,
+            dispoPlan: true,
+            unavailabilityRegistry: true
         },
         exportAccess: {
             tasks: true,
@@ -111,7 +119,11 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             projectManagement: false,
             userManagement: false,
             weeklyEditor: true,
-            dailyFollowUp: true
+            dailyFollowUp: true,
+            knowledgeBase: true,
+            sprintManagement: false,
+            dispoPlan: true,
+            unavailabilityRegistry: false
         },
         exportAccess: {
             tasks: true,
@@ -151,7 +163,11 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             projectManagement: false,
             userManagement: false,
             weeklyEditor: true,
-            dailyFollowUp: true
+            dailyFollowUp: true,
+            knowledgeBase: true,
+            sprintManagement: false,
+            dispoPlan: true,
+            unavailabilityRegistry: false
         },
         exportAccess: {
             tasks: true,
@@ -191,7 +207,11 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             projectManagement: false,
             userManagement: false,
             weeklyEditor: false,
-            dailyFollowUp: false
+            dailyFollowUp: false,
+            knowledgeBase: false,
+            sprintManagement: false,
+            dispoPlan: false,
+            unavailabilityRegistry: false
         },
         exportAccess: {
             tasks: false,
