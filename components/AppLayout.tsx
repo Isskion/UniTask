@@ -46,11 +46,12 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
 import { RefreshCw } from "lucide-react";
 import { auth } from "@/lib/firebase";
+import ProfileSettingsModal from "@/components/ProfileSettingsModal";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -69,6 +70,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { t } = useLanguage();
 
 
@@ -225,6 +227,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                             <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
+                            <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
                         </div>
 
                         {/* Knowledge Area (NEW) */}
@@ -299,19 +302,29 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                     {/* Footer User Profile */}
                     <div className="p-3 border-t border-border">
-                        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group cursor-pointer">
+                        <div
+                            onClick={() => setIsProfileOpen(true)}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group cursor-pointer"
+                        >
                             {user?.photoURL ? (
-                                <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-border" />
+                                <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-border transition-transform group-hover:scale-110" />
                             ) : (
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border">
-                                    <span className="text-xs font-bold text-muted-foreground">?</span>
+                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border group-hover:bg-primary/10 transition-colors">
+                                    <span className="text-xs font-bold text-muted-foreground group-hover:text-primary">?</span>
                                 </div>
                             )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-foreground truncate">{user?.displayName || 'User'}</p>
+                                <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">{user?.displayName || 'User'}</p>
                                 <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                             </div>
-                            <button onClick={logout} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-md transition-all" title="Logout">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    logout();
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-md transition-all"
+                                title="Logout"
+                            >
                                 <LogOut className="w-4 h-4" />
                             </button>
                         </div>
@@ -429,6 +442,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
+                                <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
                             </div>
 
                             {can('knowledgeBase', 'views') && (
@@ -471,6 +485,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             </div>
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
+            <ProfileSettingsModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
             {/* GLOBAL RECOVERY PANEL */}
             {(userRole === 'superadmin') && <FirebaseDiagnostic />}

@@ -70,7 +70,8 @@ export const ca: Dictionary = {
         appManagement: "Gestió Unitask",
         "knowledge-area": "Àrea de Coneixement",
         "lessons-learned": "Lliçons Apreses",
-        "solution-records": "Registres de Solucions"
+        "solution-records": "Registres de Solucions",
+        uniflux: "Uniflux Engine"
     },
 
     theme: {
@@ -283,7 +284,12 @@ export const ca: Dictionary = {
                 projectManagement: { label: "Gestió de projectes", desc: "Vista d'administració de projectes" },
                 userManagement: { label: "Gestió d'usuaris", desc: "Vista d'administració d'usuaris" },
                 weeklyEditor: { label: "Editor setmanal", desc: "Vista de planificació setmanal" },
-                dailyFollowUp: { label: "Seguiment diari", desc: "Vista de quadern de bitàcola diari" }
+                dailyFollowUp: { label: "Seguiment diari", desc: "Vista de quadern de bitàcola diari" },
+                knowledgeBase: { label: "Àrea de Coneixement", desc: "Accés a l'àrea de coneixement" },
+                sprintManagement: { label: "Gestió de Sprints", desc: "Accés a la planificació i gestió de sprints" },
+                dispoPlan: { label: "DispoPlan", desc: "Accés al calendari de disponibilitat" },
+                unavailabilityRegistry: { label: "Registre d'indisponibilitats", desc: "Accés al registre d'indisponibilitats" },
+                uniflux: { label: "Uniflux Engine", desc: "Accés al motor de disseny semàntic Uniflux" }
             },
             special: {
                 viewAllUserProfiles: { label: "Veure tots els perfils d'usuari", desc: "Accés a informació de tots els usuaris" },

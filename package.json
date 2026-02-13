@@ -20,6 +20,7 @@
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "@types/papaparse": "^5.5.2",
+    "@xyflow/react": "^12.10.0",
     "ai": "^6.0.6",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

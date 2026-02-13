@@ -1748,7 +1748,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                             isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
                                                         )}
                                                         value={formData.projectId || ""}
-                                                        onChange={e => setFormData({ ...formData, projectId: e.target.value })}
+                                                        onChange={e => {
+                                                            const pid = e.target.value;
+                                                            const proj = visibleProjects.find(p => p.id === pid);
+                                                            setFormData({
+                                                                ...formData,
+                                                                projectId: pid,
+                                                                projectCode: proj?.code || 'TSK'
+                                                            });
+                                                        }}
                                                         disabled={!isNew}
                                                     >
                                                         <option value="" disabled>{t('task_manager.select_project')}</option>

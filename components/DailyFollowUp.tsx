@@ -46,6 +46,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import AvailabilityManager from "./availability/AvailabilityManager"; // Added DispoPlan import
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
+import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
 // Helper to map language string to date-fns locale
@@ -58,7 +59,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -157,7 +158,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = searchParams.get('mode') as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'uniflux'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -2153,6 +2154,8 @@ export default function DailyFollowUp() {
                             <AvailabilityManager />
                         ) : viewMode === 'availability-registry' ? (
                             <AvailabilityRegistry />
+                        ) : viewMode === 'uniflux' ? (
+                            <UnifluxWorkspace />
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}

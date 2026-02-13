@@ -68,7 +68,8 @@ export const en = {
         appManagement: "Unitask Management",
         "knowledge-area": "Knowledge Area",
         "lessons-learned": "Lessons Learned",
-        "solution-records": "Solution Records"
+        "solution-records": "Solution Records",
+        uniflux: "Uniflux Engine"
     },
 
     theme: {
@@ -285,7 +286,8 @@ export const en = {
                 knowledgeBase: { label: "Knowledge Base", desc: "Access to knowledge base" },
                 sprintManagement: { label: "Sprint Management", desc: "Access to sprint planning and management" },
                 dispoPlan: { label: "DispoPlan", desc: "Access to availability calendar" },
-                unavailabilityRegistry: { label: "Unavailability Registry", desc: "Access to unavailability registry" }
+                unavailabilityRegistry: { label: "Unavailability Registry", desc: "Access to unavailability registry" },
+                uniflux: { label: "Uniflux Engine", desc: "Access to the Uniflux semantic design engine" }
             },
             special: {
                 viewAllUserProfiles: { label: "View all user profiles", desc: "Access to information of all users" },

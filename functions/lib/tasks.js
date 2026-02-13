@@ -67,6 +67,7 @@ exports.generateFriendlyId = functions.region("europe-west1").firestore
         // 5. Update Task
         return snap.ref.update({
             friendlyId: friendlyId,
+            projectCode: projectCode,
             smartIdGenerated: true // Flag to signal UI
         });
     }

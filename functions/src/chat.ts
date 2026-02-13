@@ -68,11 +68,16 @@ export const chat = functions.region("europe-west1").runWith({
 
             const db = getDb();
 
-            // Fetch Knowledge Base
+            // Fetch Knowledge Base (Tenant-specific with fallback)
             let appMap = "";
             try {
-                const knowledgeSnap = await db.collection('app_config').doc('ai_knowledge').get();
-                appMap = knowledgeSnap.exists ? knowledgeSnap.data()?.content || "" : "";
+                const tenantConfigSnap = await db.collection('tenants').doc(tenantId).collection('config').doc('ai_knowledge').get();
+                if (tenantConfigSnap.exists) {
+                    appMap = tenantConfigSnap.data()?.content || "";
+                } else {
+                    const knowledgeSnap = await db.collection('app_config').doc('ai_knowledge').get();
+                    appMap = knowledgeSnap.exists ? knowledgeSnap.data()?.content || "" : "";
+                }
             } catch (e) {
                 console.warn("Knowledge base fetch failed", e);
             }
@@ -81,8 +86,9 @@ export const chat = functions.region("europe-west1").runWith({
             let corrections = "";
             try {
                 const correctionsSnap = await db.collection('ai_corrections')
+                    .where('tenantId', 'in', ['global', tenantId])
                     .orderBy('timestamp', 'desc')
-                    .limit(10)
+                    .limit(20)
                     .get();
 
                 corrections = correctionsSnap.docs.map(doc => {

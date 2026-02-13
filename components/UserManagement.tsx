@@ -6,7 +6,8 @@ import { collection, getDocs, doc, query, orderBy, where } from "firebase/firest
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
-import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2, Calendar } from "lucide-react";
+import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2, Calendar, Camera } from "lucide-react";
+import { useFileUploader } from "@/hooks/useFileUploader";
 import { getAllInvites, InviteCode } from "@/lib/invites";
 import { createInviteActionV3 } from "@/app/actions/invites";
 import InviteWizard from "./InviteWizard";
@@ -35,6 +36,7 @@ export default function UserManagement() {
     const { theme } = useTheme();
     const { showToast } = useToast();
     const { t } = useLanguage();
+    const { uploadFile, uploading: isUploadingAvatar, progress: uploadProgress } = useFileUploader();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
     const [users, setUsers] = useState<UserData[]>([]);
@@ -213,6 +215,7 @@ export default function UserManagement() {
             address: user.address || "",
             phone: user.phone || "",
             language: user.language || "es",
+            photoURL: user.photoURL || "",
             role: user.role || 'team_member',
             tenantId: user.tenantId || "",
             assignedProjectIds: user.assignedProjectIds || [],
@@ -263,6 +266,24 @@ export default function UserManagement() {
             alert("Error saving: " + (error as any).message);
         } finally {
             setUpdating(null);
+        }
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!editingUser) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const path = `profile_pictures/${editingUser.uid}`;
+            const result = await uploadFile(file, path);
+            if (result) {
+                setFormData(prev => ({ ...prev, photoURL: result.url }));
+                showToast("Éxito", "Imagen cargada. Recuerda guardar cambios.", "success");
+            }
+        } catch (error: any) {
+            console.error("Error uploading avatar:", error);
+            showToast("Error", "Fallo al subir imagen: " + error.message, "error");
         }
     };
 
@@ -543,11 +564,27 @@ export default function UserManagement() {
 
                         <div className="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
                             <div className="flex items-center gap-4 mb-6">
-                                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
-                                    {editingUser.photoURL ? (
-                                        <img src={editingUser.photoURL} alt={editingUser.displayName} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <span className="font-bold text-xl text-zinc-400">{editingUser.displayName?.substring(0, 2).toUpperCase()}</span>
+                                <div className="relative group/avatar">
+                                    <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10 shrink-0">
+                                        {formData.photoURL ? (
+                                            <img src={formData.photoURL} alt={formData.displayName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="font-bold text-xl text-zinc-400">{formData.displayName?.substring(0, 2).toUpperCase()}</span>
+                                        )}
+
+                                        {isUploadingAvatar && (
+                                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                                                <Loader2 className="w-4 h-4 text-white animate-spin" />
+                                                <span className="text-[8px] text-white font-bold mt-1">{Math.round(uploadProgress)}%</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {!isUploadingAvatar && (
+                                        <label className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover/avatar:opacity-100 cursor-pointer transition-opacity rounded-full">
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+                                            <Camera className="w-5 h-5 text-white" />
+                                        </label>
                                     )}
                                 </div>
                                 <div className="flex-1">

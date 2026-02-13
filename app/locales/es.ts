@@ -70,7 +70,8 @@ export const es: Dictionary = {
         appManagement: "Gestión Unitask",
         "knowledge-area": "Área de Conocimiento",
         "lessons-learned": "Lecciones Aprendidas",
-        "solution-records": "Registros de Soluciones"
+        "solution-records": "Registros de Soluciones",
+        uniflux: "Uniflux Engine"
     },
 
     theme: {
@@ -287,7 +288,8 @@ export const es: Dictionary = {
                 knowledgeBase: { label: "Áreas de Conocimiento", desc: "Acceso a la base de conocimiento" },
                 sprintManagement: { label: "Gestión de Sprint", desc: "Acceso a la planificación y gestión de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Acceso a calendario de disponibilidad" },
-                unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acceso al registro de ausencias" }
+                unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acceso al registro de ausencias" },
+                uniflux: { label: "Uniflux Engine", desc: "Acceso al motor de diseño semántico Uniflux" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos los perfiles de usuario", desc: "Acceso a información de todos los usuarios" },
