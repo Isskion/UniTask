@@ -33,6 +33,22 @@ export const MADRID_HOLIDAYS = [
     "2026-12-07", // Traslado del Día de la Constitución
     "2026-12-08", // Inmaculada Concepción
     "2026-12-25", // Natividad del Señor
+
+    // --- 2027 ---
+    "2027-01-01", // Año Nuevo
+    "2027-01-06", // Epifanía del Señor
+    "2027-03-25", // Jueves Santo
+    "2027-03-26", // Viernes Santo
+    "2027-05-01", // Fiesta del Trabajo
+    "2027-05-03", // Traslado Comunidad de Madrid (May 2 is Sun)
+    "2027-05-15", // San Isidro
+    "2027-08-16", // Traslado Asunción (Aug 15 is Sun)
+    "2027-10-12", // Fiesta Nacional de España
+    "2027-11-01", // Todos los Santos
+    "2027-11-09", // La Almudena
+    "2027-12-06", // Día de la Constitución Española
+    "2027-12-08", // Inmaculada Concepción
+    "2027-12-25", // Natividad del Señor
 ];
 
 export const isMadridHoliday = (date: Date): boolean => {
