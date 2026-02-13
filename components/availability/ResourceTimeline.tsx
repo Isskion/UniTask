@@ -6,6 +6,8 @@ import { format, addDays, getDaysInMonth, startOfMonth, endOfMonth, isSameDay, i
 import { es } from "date-fns/locale";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
+import { isMadridHoliday } from "@/lib/holidays";
+import { Star } from "lucide-react";
 
 interface ResourceTimelineProps {
     users: UserProfile[];
@@ -60,12 +62,17 @@ export function ResourceTimeline({
                     <div
                         key={day.toISOString()}
                         className={cn(
-                            "flex-none w-10 text-center py-2 border-r flex flex-col justify-center",
+                            "flex-none w-10 text-center py-2 border-r flex flex-col justify-center relative",
                             isLight ? "divide-zinc-200" : "divide-white/5",
-                            [0, 6].includes(day.getDay()) ? (isLight ? "bg-zinc-100/50" : "bg-white/5") : ""
+                            [0, 6].includes(day.getDay()) ? (isLight ? "bg-zinc-100/50" : "bg-white/5") : "",
+                            isMadridHoliday(day) ? (isLight ? "bg-amber-100/50" : "bg-amber-500/10") : ""
                         )}
+                        title={isMadridHoliday(day) ? "Festivo en Madrid" : ""}
                     >
-                        <div className={cn("text-[10px] font-bold uppercase", isLight ? "text-zinc-500" : "text-zinc-400")}>{format(day, 'EEEEE', { locale: es })}</div>
+                        <div className={cn("text-[10px] font-bold uppercase flex items-center justify-center gap-0.5", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                            {format(day, 'EEEEE', { locale: es })}
+                            {isMadridHoliday(day) && <Star className="w-2 h-2 fill-amber-500 text-amber-500" />}
+                        </div>
                         <div className={cn("font-black text-sm", isLight ? "text-zinc-900" : "text-white")}>{format(day, 'd')}</div>
                     </div>
                 ))}
@@ -94,8 +101,9 @@ export function ResourceTimeline({
                         {days.map(day => {
                             const entry = getAvailabilityForCell(user.uid, day);
                             const isWeekend = [0, 6].includes(day.getDay());
+                            const isHoliday = isMadridHoliday(day);
                             const isWorkingWeekend = isWeekend && user.worksOnWeekends;
-                            const shouldDim = isWeekend && !isWorkingWeekend;
+                            const shouldDim = (isWeekend && !isWorkingWeekend) || isHoliday;
 
                             return (
                                 <div
@@ -104,12 +112,12 @@ export function ResourceTimeline({
                                         "flex-none w-10 h-10 relative flex items-center justify-center p-0.5 cursor-pointer transition-colors border-r",
                                         isLight ? "border-zinc-100" : "border-white/5",
                                         shouldDim
-                                            ? (isLight ? "bg-zinc-50" : "bg-white/[0.02]") // Non-working day (Gray)
+                                            ? (isHoliday ? (isLight ? "bg-amber-50/50" : "bg-amber-900/10") : (isLight ? "bg-zinc-50" : "bg-white/[0.02]")) // Holiday (Amber) or Weekend (Gray)
                                             : (isLight ? "bg-emerald-50/50" : "bg-emerald-900/10"), // Working day (Green)
                                         !entry && "hover:bg-blue-500/10"
                                     )}
                                     onClick={() => entry ? onEntryClick(entry) : onEmptyCellClick(user, day)}
-                                    title={entry ? `${AVAILABILITY_TYPES[entry.type].label}: ${entry.notes || ""}` : ""}
+                                    title={entry ? `${AVAILABILITY_TYPES[entry.type].label}: ${entry.notes || ""}` : (isHoliday ? "Festivo en Madrid" : "")}
                                 >
                                     {entry && (
                                         <div
