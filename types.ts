@@ -255,6 +255,7 @@ export interface Task {
     weekId: string;        // Legacy link (Date string)
     relatedDailyStatusId?: string; // Link to specific Daily Status Document
     projectId?: string;    // Parent Project
+    projectCode?: string;  // Project Code (e.g. "VMS")
     tenantId: string;      // Multi-tenant isolation
 
     // [V3] Hierarchy & Navigation (Shadow / Hybrid)
@@ -470,6 +471,7 @@ export interface DocumentType {
     name: string;           // e.g. "Definición de Alcance"
     description?: string;   // Memo
     isProjectChecklist: boolean; // "Cheq Proyecto"
+    isImage: boolean;          // "Información es Imagen"
     tenantId: string;
     isActive: boolean;
     createdAt: any;

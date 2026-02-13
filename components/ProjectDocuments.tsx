@@ -5,11 +5,13 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { Project, DocumentType, UserProfile } from "@/types";
 import { PDFScanner } from "./PDFScanner";
-import { FileText, CheckCircle2, AlertCircle, Loader2, Trash2, Download, ExternalLink } from "lucide-react";
+import { FileText, CheckCircle2, AlertCircle, Loader2, Trash2, Download, ExternalLink, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
+import { useFileUploader } from "@/hooks/useFileUploader";
 import { format } from "date-fns";
+import { Image as ImageIcon, Maximize2 } from "lucide-react";
 
 interface ProjectDocumentsProps {
     project: Project;
@@ -39,6 +41,8 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
     const [documents, setDocuments] = useState<ProjectDocument[]>([]);
     const [uploadingType, setUploadingType] = useState<string | null>(null); // To track which item is being uploaded
     const [viewingDoc, setViewingDoc] = useState<ProjectDocument | null>(null); // For Text Preview Modal
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const { uploadFile, uploading: isUploadingFile, progress: uploadProgress } = useFileUploader();
 
     useEffect(() => {
         loadData();
@@ -104,6 +108,43 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
         } catch (e) {
             console.error("Error saving doc metadata:", e);
             showToast("Error", "No se pudo guardar la información extraída", "error");
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, typeId: string) => {
+        if (!user || !e.target.files?.[0]) return;
+
+        const file = e.target.files[0];
+        const docType = docTypes.find(t => t.id === typeId);
+
+        try {
+            setUploadingType(typeId);
+            const path = `tenants/${tenantId}/projects/${project.id}/documents`;
+            const result = await uploadFile(file, path);
+
+            if (result) {
+                const newDoc = {
+                    name: file.name,
+                    url: result.url,
+                    type: file.type,
+                    size: result.size,
+                    typeId: typeId,
+                    typeCode: docType?.code || "GENERIC",
+                    uploadedBy: user.uid,
+                    uploadedByName: user.displayName || "User",
+                    uploadedAt: serverTimestamp(),
+                    tenantId: tenantId
+                };
+
+                await addDoc(collection(db, "projects", project.id, "documents"), newDoc);
+                showToast("Documentos", "Archivo subido correctamente", "success");
+                loadData();
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            showToast("Error", "No se pudo subir el archivo", "error");
+        } finally {
+            setUploadingType(null);
         }
     };
 
@@ -184,12 +225,19 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                             {matches.map(doc => (
                                                 <button
                                                     key={doc.id}
-                                                    onClick={() => setViewingDoc(doc)}
+                                                    onClick={() => {
+                                                        setViewingDoc(doc);
+                                                        setIsPreviewOpen(true);
+                                                    }}
                                                     className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-background border text-xs hover:text-primary hover:border-primary transition-all group"
                                                 >
-                                                    <FileText className="w-3 h-3" />
+                                                    {doc.url ? <ImageIcon className="w-3 h-3 text-blue-500" /> : <FileText className="w-3 h-3" />}
                                                     <span className="truncate max-w-[150px]">{doc.name}</span>
-                                                    <span className="text-[10px] text-muted-foreground">({doc.pageCount} págs)</span>
+                                                    {doc.pageCount ? (
+                                                        <span className="text-[10px] text-muted-foreground">({doc.pageCount} págs)</span>
+                                                    ) : (
+                                                        <span className="text-[10px] text-muted-foreground">({(doc.size / 1024).toFixed(0)} KB)</span>
+                                                    )}
                                                 </button>
                                             ))}
                                         </div>
@@ -198,24 +246,51 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
 
                                 {/* Action */}
                                 <div className="shrink-0 flex items-center gap-2">
-                                    {uploadingType === type.id ? (
-                                        <div className="w-80">
-                                            <PDFScanner
-                                                onExtractComplete={(data) => handleScanComplete(data, type.id)}
-                                                onCancel={() => setUploadingType(null)}
-                                            />
+                                    {type.isImage ? (
+                                        <div className="flex items-center gap-2">
+                                            {uploadingType === type.id ? (
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    <span>Subiendo {Math.round(uploadProgress)}%</span>
+                                                </div>
+                                            ) : (
+                                                <label className={cn("px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-2 cursor-pointer",
+                                                    isComplete
+                                                        ? "bg-transparent border-border text-muted-foreground hover:bg-muted"
+                                                        : "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20"
+                                                )}>
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={(e) => handleFileUpload(e, type.id)}
+                                                        accept="image/*,application/pdf"
+                                                    />
+                                                    <ImageIcon className="w-4 h-4" />
+                                                    {isComplete ? "Subir otro" : "Adjuntar Imagen/PDF"}
+                                                </label>
+                                            )}
                                         </div>
                                     ) : (
-                                        <button
-                                            onClick={() => setUploadingType(type.id)}
-                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-2",
-                                                isComplete
-                                                    ? "bg-transparent border-border text-muted-foreground hover:bg-muted"
-                                                    : "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
-                                            )}
-                                        >
-                                            {isComplete ? "Escanear otro" : "Escanear PDF"}
-                                        </button>
+                                        uploadingType === type.id ? (
+                                            <div className="w-80">
+                                                <PDFScanner
+                                                    onExtractComplete={(data) => handleScanComplete(data, type.id)}
+                                                    onCancel={() => setUploadingType(null)}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => setUploadingType(type.id)}
+                                                className={cn("px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-2",
+                                                    isComplete
+                                                        ? "bg-transparent border-border text-muted-foreground hover:bg-muted"
+                                                        : "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-500/20"
+                                                )}
+                                            >
+                                                <FileText className="w-4 h-4" />
+                                                {isComplete ? "Escanear otro" : "Escanear PDF"}
+                                            </button>
+                                        )
                                     )}
                                 </div>
                             </div>
@@ -234,12 +309,18 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                         {otherDocs.map(doc => (
                             <div key={doc.id} className="bg-card border rounded-lg p-3 flex gap-3 group hover:border-primary/50 transition-all">
                                 <div className="shrink-0 w-10 h-10 rounded bg-muted flex items-center justify-center">
-                                    <FileText className="w-5 h-5 text-muted-foreground" />
+                                    {doc.url ? <ImageIcon className="w-5 h-5 text-blue-500" /> : <FileText className="w-5 h-5 text-muted-foreground" />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <a href={doc.url} target="_blank" rel="noreferrer" className="block font-medium text-sm truncate hover:text-primary hover:underline">
+                                    <button
+                                        onClick={() => {
+                                            setViewingDoc(doc);
+                                            setIsPreviewOpen(true);
+                                        }}
+                                        className="block font-medium text-sm truncate hover:text-primary hover:underline text-left w-full"
+                                    >
                                         {doc.name}
-                                    </a>
+                                    </button>
                                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
                                         <span>{(doc.size / 1024 / 1024).toFixed(2)} MB</span>
                                         <span>•</span>
@@ -261,34 +342,88 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
             )}
 
             {/* Modal for Viewing Text */}
-            {viewingDoc && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-background rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col">
-                        <div className="p-4 border-b flex justify-between items-center">
+            {isPreviewOpen && viewingDoc && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-background rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col">
+                        <div className="p-4 border-b flex justify-between items-center bg-muted/30">
                             <div>
-                                <h3 className="font-bold text-lg">{viewingDoc.name}</h3>
-                                <p className="text-xs text-muted-foreground">Extraído el {viewingDoc.uploadedAt ? format(viewingDoc.uploadedAt.toDate(), "dd/MM/yyyy HH:mm") : ""}</p>
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    {viewingDoc.url ? <ImageIcon className="w-5 h-5 text-blue-500" /> : <FileText className="w-5 h-5 text-indigo-500" />}
+                                    {viewingDoc.name}
+                                </h3>
+                                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                                    <span>Extraído el {viewingDoc.uploadedAt ? format(viewingDoc.uploadedAt.toDate(), "dd/MM/yyyy HH:mm") : ""}</span>
+                                    <span>•</span>
+                                    <span>Por {viewingDoc.uploadedByName}</span>
+                                </p>
                             </div>
-                            <button onClick={() => setViewingDoc(null)} className="p-2 hover:bg-muted rounded-full">
-                                <Trash2 className="w-5 h-5 opacity-0 pointer-events-none" /> {/* Spacer */}
-                                <span className="sr-only">Cerrar</span>
-                                <div className="text-xl">×</div>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {viewingDoc.url && (
+                                    <a
+                                        href={viewingDoc.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors"
+                                        title="Abrir en pestaña nueva"
+                                    >
+                                        <ExternalLink className="w-5 h-5" />
+                                    </a>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        setIsPreviewOpen(false);
+                                        setViewingDoc(null);
+                                    }}
+                                    className="p-2 hover:bg-muted rounded-full transition-colors"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-6 font-mono text-xs whitespace-pre-wrap bg-muted/20">
-                            {viewingDoc.content || "Sin contenido extraído."}
+
+                        <div className="flex-1 overflow-hidden relative bg-zinc-950/50 flex items-center justify-center">
+                            {viewingDoc.url ? (
+                                viewingDoc.type?.includes("pdf") ? (
+                                    <iframe
+                                        src={viewingDoc.url}
+                                        className="w-full h-full border-none"
+                                        title={viewingDoc.name}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full p-4 flex items-center justify-center overflow-auto">
+                                        <img
+                                            src={viewingDoc.url}
+                                            alt={viewingDoc.name}
+                                            className="max-w-full max-h-full object-contain shadow-2xl rounded"
+                                        />
+                                    </div>
+                                )
+                            ) : (
+                                <div className="w-full h-full overflow-y-auto p-8 font-mono text-xs whitespace-pre-wrap leading-relaxed text-zinc-300">
+                                    {viewingDoc.content || "Sin contenido extraído."}
+                                </div>
+                            )}
                         </div>
-                        <div className="p-4 border-t flex justify-end gap-2">
+
+                        <div className="p-4 border-t flex justify-between items-center bg-muted/20">
                             <button
                                 onClick={() => {
                                     handleDelete(viewingDoc.id);
+                                    setIsPreviewOpen(false);
                                     setViewingDoc(null);
                                 }}
-                                className="text-red-500 text-xs px-4 py-2 hover:underline"
+                                className="flex items-center gap-2 text-red-500 text-xs font-bold px-4 py-2 hover:bg-red-500/10 rounded-lg transition-colors"
                             >
+                                <Trash2 className="w-4 h-4" />
                                 Eliminar Documento
                             </button>
-                            <button onClick={() => setViewingDoc(null)} className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-bold">
+                            <button
+                                onClick={() => {
+                                    setIsPreviewOpen(false);
+                                    setViewingDoc(null);
+                                }}
+                                className="bg-primary text-primary-foreground px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                            >
                                 Cerrar
                             </button>
                         </div>

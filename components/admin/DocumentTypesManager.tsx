@@ -14,7 +14,7 @@ import { db } from '@/lib/firebase';
 import { DocumentType } from '@/types';
 import {
     Plus, Search, Edit2, Trash2, Save, X,
-    CheckSquare, FileText, Info
+    CheckSquare, FileText, Info, Image as ImageIcon
 } from 'lucide-react';
 
 export default function DocumentTypesManager() {
@@ -36,7 +36,8 @@ export default function DocumentTypesManager() {
         code: '',
         name: '',
         description: '',
-        isProjectChecklist: false
+        isProjectChecklist: false,
+        isImage: false
     });
 
     // Load Data
@@ -71,7 +72,8 @@ export default function DocumentTypesManager() {
             code: type.code,
             name: type.name,
             description: type.description,
-            isProjectChecklist: type.isProjectChecklist
+            isProjectChecklist: type.isProjectChecklist,
+            isImage: type.isImage || false
         });
         setIsCreating(false);
     };
@@ -82,7 +84,8 @@ export default function DocumentTypesManager() {
             code: '',
             name: '',
             description: '',
-            isProjectChecklist: false
+            isProjectChecklist: false,
+            isImage: false
         });
         setIsCreating(true);
     };
@@ -192,6 +195,7 @@ export default function DocumentTypesManager() {
                                         <th className="px-4 py-3">Código</th>
                                         <th className="px-4 py-3">Nombre</th>
                                         <th className="px-4 py-3 text-center">Proyecto?</th>
+                                        <th className="px-4 py-3 text-center">Imagen?</th>
                                         <th className="px-4 py-3 text-right">Acciones</th>
                                     </tr>
                                 </thead>
@@ -202,7 +206,12 @@ export default function DocumentTypesManager() {
                                             <td className="px-4 py-3 font-medium">{type.name}</td>
                                             <td className="px-4 py-3 text-center">
                                                 {type.isProjectChecklist && (
-                                                    <CheckSquare className="w-4 h-4 text-green-500 mx-auto" />
+                                                    <CheckSquare className="w-4 h-4 text-green-500 mx-auto" title="Checklist" />
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                {type.isImage && (
+                                                    <ImageIcon className="w-4 h-4 text-blue-500 mx-auto" title="Imagen/PDF" />
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right">
@@ -223,7 +232,7 @@ export default function DocumentTypesManager() {
 
                 {/* Right: Form (Overlay or Side Panel when creating/editing) */}
                 {(isCreating || editingId) && (
-                    <div className={cn("flex-1 rounded-xl border p-6 flex flex-col gap-4 h-fit", bgColor, borderColor)}>
+                    <div className={cn("flex-1 rounded-xl border p-6 flex flex-col gap-4 h-fit max-h-[85vh] overflow-y-auto", bgColor, borderColor)}>
                         <h3 className={cn("font-bold text-lg flex items-center gap-2", textColor)}>
                             {isCreating ? <Plus className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
                             {isCreating ? "Crear Nuevo Tipo" : "Editar Tipo"}
@@ -257,23 +266,37 @@ export default function DocumentTypesManager() {
                                 <textarea
                                     value={formData.description}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    rows={4}
+                                    rows={2}
                                     placeholder="Explica qué tipo de información se espera..."
                                     className={cn("w-full px-3 py-2 rounded-lg border text-sm resize-none", isLight ? "bg-white" : "bg-black/20", borderColor)}
                                 />
                             </div>
 
-                            <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+                            <div className="flex items-center gap-3 p-2 rounded-lg border border-dashed border-primary/30 bg-primary/5">
                                 <input
                                     type="checkbox"
                                     id="chkProject"
                                     checked={formData.isProjectChecklist || false}
                                     onChange={e => setFormData({ ...formData, isProjectChecklist: e.target.checked })}
-                                    className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                                    className="w-3 h-3 text-primary rounded border-gray-300 focus:ring-primary"
                                 />
-                                <label htmlFor="chkProject" className="text-sm cursor-pointer select-none">
-                                    <span className="font-bold block text-primary">Check de Proyecto</span>
-                                    <span className="text-xs text-muted-foreground">Marcar si este documento es un requisito clave para el Checklist del Proyecto.</span>
+                                <label htmlFor="chkProject" className="text-sm cursor-pointer select-none flex-1 leading-tight">
+                                    <span className="font-bold block text-primary text-xs">Check de Proyecto</span>
+                                    <span className="text-[10px] text-muted-foreground">Requisito clave para el Checklist del Proyecto.</span>
+                                </label>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-2 rounded-lg border border-dashed border-blue-500/30 bg-blue-500/5">
+                                <input
+                                    type="checkbox"
+                                    id="chkImage"
+                                    checked={formData.isImage || false}
+                                    onChange={e => setFormData({ ...formData, isImage: e.target.checked })}
+                                    className="w-3 h-3 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                />
+                                <label htmlFor="chkImage" className="text-sm cursor-pointer select-none flex-1 leading-tight">
+                                    <span className="font-bold block text-blue-500 text-xs">Información en Imagen/PDF</span>
+                                    <span className="text-[10px] text-muted-foreground">Se aporta como archivo adjunto en vez de extraer texto.</span>
                                 </label>
                             </div>
                         </div>
