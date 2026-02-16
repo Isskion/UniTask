@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (currentUser) {
                 // --- REAL-TIME PROFILE SYNC LISTENER ---
                 // "The Source of Truth": We trust Firestore for UI permissions, not the potentially stale Token Claims.
-                const { doc, onSnapshot, getDoc } = await import('firebase/firestore');
+                const { doc, onSnapshot, getDocFromServer } = await import('firebase/firestore');
 
                 // 2. Setup New Listener
                 const profileRef = doc(db, 'users', currentUser.uid);
@@ -83,13 +83,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     if (!snapshot.exists()) {
                         if (snapshot.metadata.fromCache) {
-                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Attempting FORCE SERVER FETCH...`);
+                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Attempting FORCE SERVER FETCH (Strict)...`);
 
-                            // Fallback: Force a getDoc from server to break the cache loop
-                            getDoc(profileRef).then(serverSnap => {
+                            // Fallback: Force a getDocFromServer to break the cache loop ABSOLUTELY
+                            getDocFromServer(profileRef).then(serverSnap => {
                                 console.log(`[AuthContext] 🌍 Force Fetch Result. Exists: ${serverSnap.exists()}`);
                                 if (serverSnap.exists()) {
-                                    // Manually update state, the listener might fire later but this unblocks the UI
+                                    // Manually update state
                                     const data = serverSnap.data();
                                     setUserProfile(data as UserProfile);
 
@@ -110,14 +110,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     });
                                     setLoading(false); // UNBLOCK UI!
                                 } else {
-                                    console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server Fetch). Auto-signing out.`);
-                                    alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó que no existe.`);
+                                    console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by STRICT Server Fetch).`);
+                                    alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó explícitamente que no existe el documento.\nProject: ${db.app.options.projectId}`);
                                     auth.signOut();
                                 }
                             }).catch(err => {
                                 console.error("[AuthContext] 💥 Force Fetch Error:", err);
-                                alert("Error de conexión al validar tu perfil. Por favor reintenta.");
-                                setLoading(false); // Stop loading to show error
+                                if (err.code === 'unavailable') {
+                                    alert("Error de Conexión: No se puede contactar con el servidor de base de datos.\nRevisa tu conexión a internet.");
+                                } else if (err.code === 'permission-denied') {
+                                    alert("Permiso Denegado: Existes, pero las reglas de seguridad bloquean la lectura de tu propio perfil.");
+                                } else {
+                                    alert(`Error al validar tu perfil: ${err.message}`);
+                                }
+                                // Do not look for cache clearing here yet, just fail safely.
                             });
 
                             return;
