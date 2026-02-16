@@ -75,10 +75,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 const { doc, onSnapshot } = await import('firebase/firestore');
 
                 // 2. Setup New Listener
-                const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+                // 2. Setup New Listener
+                const profileRef = doc(db, 'users', currentUser.uid);
+                console.log(`[AuthContext] 🔍 Listening to profile: users/${currentUser.uid} (Project: ${db.app.options.projectId})`);
+
+                const profileUnsub = onSnapshot(profileRef, (snapshot) => {
+                    console.log(`[AuthContext] 📸 Snapshot received. Exists: ${snapshot.exists()}, FromCache: ${snapshot.metadata.fromCache}`);
+
                     if (!snapshot.exists()) {
-                        console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
-                        auth.signOut();
+                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile at users/${currentUser.uid}. Auto-signing out.`);
+                        // Temporary: Don't sign out immediately to allow inspection
+                        // auth.signOut(); 
+                        alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos (users).\n\nPor favor contacta a soporte.`);
                         return;
                     }
 
