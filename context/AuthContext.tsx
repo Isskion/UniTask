@@ -124,7 +124,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                             if (serverSaysExists) {
                                                 alert(`⚠️ ERROR DE SINCRONIZACIÓN [PROYECTO: ${serverProject}]\n\nTu usuario EXISTE en el servidor, pero el cliente no lo ve.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
                                             } else {
-                                                alert(`⛔ ERROR CRÍTICO [PROYECTO: ${serverProject}]\n\nTu usuario NO EXISTE en el servidor.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
+                                                const shouldFix = confirm(`⛔ ERROR CRÍTICO DETECTADO\n\nTu usuario local (${currentUser.uid}) NO COINCIDE con la base de datos.\nEsto suele pasar si tu cuenta fue recreada o reseteada recientemente.\n\n¿Quieres intentar una REPARACIÓN AUTOMÁTICA?\n(Esto migrará tus datos y te pedirá loguearte de nuevo)`);
+
+                                                if (shouldFix) {
+                                                    // Call Auto-Fix API
+                                                    fetch('/api/admin/fix-user', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            email: currentUser.email,
+                                                            problemUid: currentUser.uid
+                                                        })
+                                                    })
+                                                        .then(res => res.json())
+                                                        .then(fixData => {
+                                                            alert(`🔧 RESULTADO DE REPARACIÓN:\n${JSON.stringify(fixData, null, 2)}\n\nAhora la página se recargará. Por favor inicia sesión de nuevo.`);
+                                                            window.location.reload();
+                                                        })
+                                                        .catch(e => alert(`Fallo al reparar: ${e.message}`));
+                                                    return; // Don't sign out immediately, wait for fix
+                                                } else {
+                                                    alert(`⛔ ERROR CRÍTICO [PROYECTO: ${serverProject}]\n\nTu usuario NO EXISTE en el servidor.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
+                                                }
                                             }
                                             // auth.signOut(); // Keep session active for debugging context? No, safer to sign out.
                                             auth.signOut();

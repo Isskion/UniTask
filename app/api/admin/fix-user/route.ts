@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
 
-        const log = [];
+        const log: string[] = [];
         const logFn = (msg: string) => log.push(msg);
 
         logFn(`🔧 INICIANDO AUTO-REPARACIÓN para: ${email}`);
