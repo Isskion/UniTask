@@ -3,7 +3,7 @@ const nextConfig = {
     images: {
         unoptimized: true
     },
-    output: 'export',
+    output: 'standalone',
     productionBrowserSourceMaps: false,
     eslint: {
         ignoreDuringBuilds: true,
