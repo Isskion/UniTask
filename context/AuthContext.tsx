@@ -83,10 +83,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     console.log(`[AuthContext] 📸 Snapshot received. Exists: ${snapshot.exists()}, FromCache: ${snapshot.metadata.fromCache}`);
 
                     if (!snapshot.exists()) {
-                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile at users/${currentUser.uid}. Auto-signing out.`);
-                        // Temporary: Don't sign out immediately to allow inspection
+                        if (snapshot.metadata.fromCache) {
+                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Waiting for server sync...`);
+                            return; // Do NOT sign out yet. Wait for server version.
+                        }
+
+                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server). Auto-signing out.`);
+                        // Now we are sure it's not on the server.
                         // auth.signOut(); 
-                        alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos (users).\n\nPor favor contacta a soporte.`);
+                        alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó que no existe.`);
                         return;
                     }
 
