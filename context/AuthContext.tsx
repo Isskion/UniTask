@@ -54,21 +54,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
+    // Ref to track the profile listener unsubscribe function
+    const profileUnsubRef = React.useRef<(() => void) | null>(null);
+
     useEffect(() => {
+        console.log("[AuthContext] VERSION CHECK: 13.4.10-CLEAN-BUILD");
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                // Initial Load: Get current token result
-                let tokenResult = await currentUser.getIdTokenResult();
-                let claims = tokenResult.claims;
 
+            // 1. Cleanup previous listener immediately
+            if (profileUnsubRef.current) {
+                console.log("[AuthContext] Cleaning up previous profile listener.");
+                profileUnsubRef.current();
+                profileUnsubRef.current = null;
+            }
+
+            if (currentUser) {
                 // --- REAL-TIME PROFILE SYNC LISTENER ---
-                // "The Consumer": Watches for backend modifications to trigger Token Refresh
+                // "The Source of Truth": We trust Firestore for UI permissions, not the potentially stale Token Claims.
                 const { doc, onSnapshot } = await import('firebase/firestore');
 
-                // Debounce timer reference
-                let refreshTimer: NodeJS.Timeout | null = null;
-
+                // 2. Setup New Listener
                 const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
                     if (!snapshot.exists()) {
                         console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
@@ -85,122 +91,87 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return;
                     }
 
-                    const latestSyncId = data.syncId;
-                    const currentSyncId = claims.syncId;
+                    // [STABLE APPROACH] Decoupled Logic
+                    // We update the UI state (userProfile, identity, viewContext) based purely on Firestore.
+                    // We do NOT check token claims here. This prevents the "Loop detected" error.
+                    // If permissions fail on backend, the user will see an error there, but the app won't crash.
 
-                    // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
-                    // Also refresh if roleLevel/tenantId mismatches critically.
+                    // [FIX] Stability Check: Only update if data actually changed
+                    setUserProfile(prev => {
+                        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+                        return data as UserProfile;
+                    });
 
-                    const needsRefresh = (latestSyncId && (!currentSyncId || latestSyncId > currentSyncId)) ||
-                        (data.roleLevel !== claims.roleLevel) ||
-                        (data.tenantId !== claims.tenantId);
+                    const dbRole = Number(data.roleLevel) || 0;
+                    const dbTenantId = String(data.tenantId) || "unknown";
 
-                    if (needsRefresh) {
-                        console.log("[AuthContext] ⚠️ Profile mismatch detected. Scheduling forced token refresh...");
+                    // Update Identity if it changed
+                    setIdentity(prev => {
+                        if (prev && prev.realRole === dbRole && prev.realTenantId === dbTenantId) return prev;
+                        return {
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            realRole: dbRole,
+                            realTenantId: dbTenantId
+                        };
+                    });
 
-                        // [FIX] Block UI immediately to prevent permission errors with stale token
-                        // This forces 'loading' to true, unmounting the app and stopping failed queries.
-                        setViewContext(null);
-
-                        // Debounce: Wait 2s to allow Cloud Functions to settle propagation
-                        if (refreshTimer) clearTimeout(refreshTimer);
-
-                        refreshTimer = setTimeout(async () => {
-                            console.log("[AuthContext] 🔄 Executing Forced Token Refresh...");
-                            try {
-                                tokenResult = await currentUser.getIdTokenResult(true); // Force Refresh
-                                claims = tokenResult.claims;
-                                console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
-
-                                // Re-evaluate identity with NEW token
-                                const newRole = Number(claims.roleLevel) || 0;
-                                const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
-
-                                setIdentity({
-                                    uid: currentUser.uid,
-                                    email: currentUser.email,
-                                    realRole: newRole,
-                                    realTenantId: newTenant
-                                });
-
-                                // Reset View Context to match reality
-                                setViewContext(prev => prev?.isMasquerading ? prev : {
-                                    activeRole: newRole,
-                                    activeTenantId: newTenant,
+                    // Update ViewContext if not masquerading
+                    setViewContext(prev => {
+                        // If masquerading, don't disturb it unless we need to?
+                        // Actually, if real role drops below SuperAdmin, we should probably kill masquerade.
+                        if (prev?.isMasquerading) {
+                            if (dbRole < RoleLevel.SUPERADMIN) {
+                                // Security: Lost superadmin status in DB -> Kill masquerade
+                                return {
+                                    activeRole: dbRole,
+                                    activeTenantId: dbTenantId,
                                     isMasquerading: false
-                                });
-
-                            } catch (e) {
-                                console.error("[AuthContext] Token refresh failed:", e);
+                                };
                             }
-                        }, 2000);
-                    } else {
-                        // Optimistic Profile Hydration for UI display ONLY (Not security)
-                        setUserProfile(data as UserProfile);
-                    }
+                            return prev;
+                        }
+
+                        // Normal update
+                        if (prev && prev.activeRole === dbRole && prev.activeTenantId === dbTenantId) return prev;
+
+                        return {
+                            activeRole: dbRole,
+                            activeTenantId: dbTenantId,
+                            isMasquerading: false
+                        };
+                    });
+
+                    setLoading(false);
+
                 }, (error) => {
+                    console.error("[AuthContext] Profile listener error:", error);
+                    let errorMsg = "Error de conexión/permisos al cargar perfil.";
+
                     if (error.code === 'permission-denied') {
-                        console.log("[AuthContext] Permission denied for profile listener (expected during logout).");
-                    } else {
-                        console.error("[AuthContext] Profile listener error:", error);
+                        errorMsg = "Permiso denegado: No tienes acceso a tu perfil de usuario.";
+                        console.warn("[AuthContext] Permission Denied. Rules might be blocking access.");
                     }
+
+                    // CRITICAL FIX: Ensure we escape the loading state!
+                    setLoading(false);
+
+                    // If it's a hard error (like permission denied on own profile), we should probably logout
+                    // to avoid a broken state where Auth matches but Firestore is inaccessible.
+                    // But maybe show a toast/alert first?
+                    // For now, auto-logout is safer than infinite loop.
+                    auth.signOut().catch(e => console.error("SignOut error:", e));
+                    alert(`⛔ Error de Acceso: ${errorMsg}\n\nSesión cerrada por seguridad.`);
                 });
 
-                // [SECURITY] Quick profile existence check BEFORE allowing the app to render
-                const { doc: docRef, getDoc: getDocSnap } = await import('firebase/firestore');
-                const profileSnap = await getDocSnap(docRef(db, 'users', currentUser.uid));
-                if (!profileSnap.exists()) {
-                    console.warn("[AuthContext] ⛔ User authenticated but no profile found. Signing out...");
-                    await auth.signOut();
-                    return;
-                }
-                const profileData = profileSnap.data();
-                if (!profileData?.tenantId || profileData.tenantId === "unknown") {
-                    console.warn("[AuthContext] ⛔ User profile has invalid tenantId. Signing out...");
-                    await auth.signOut();
-                    return;
-                }
+                // Store the unsubscribe function in the ref
+                profileUnsubRef.current = profileUnsub;
 
-                // Setup efficient state update on initial load (without waiting for listener)
-                let parsedRole = Number(claims.roleLevel) || 0;
-                let realTenantId = (claims.tenantId as string) || "unknown";
-
-                const newIdentity: UserIdentity = {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    realRole: parsedRole,
-                    realTenantId
-                };
-
-                setIdentity(newIdentity);
+                // Initial basic setup (Pre-listener)
                 setUser(currentUser);
+                // setLoading(false); // Moved inside onSnapshot callbacks
 
-                // Initialize View Context
-                const savedSim = localStorage.getItem('superadmin_simulation_context');
-                if (parsedRole >= RoleLevel.SUPERADMIN && savedSim) {
-                    try {
-                        const parsed = JSON.parse(savedSim);
-                        setViewContext({
-                            activeRole: parsed.activeRole,
-                            activeTenantId: parsed.activeTenantId,
-                            isMasquerading: true
-                        });
-                    } catch (e) {
-                        setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
-                    }
-                } else {
-                    setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
-                }
-
-                setLoading(false);
-
-                // Cleanup internal listener on unmount/change
-                // Note: We can't easily return cleanup for the inner effect from onIdTokenChanged. 
-                // Ideally this listener logic would be a separate useEffect dependent on 'user'.
-                // But for now, this closure works for the active session.
-
-            } else {
-                // Logout / No user
+            } else {  // Logout / No user
                 setUser(null);
                 setIdentity(null);
                 setViewContext(null);
@@ -210,7 +181,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            // Cleanup auth listener
+            unsubscribe();
+            // Cleanup profile listener
+            if (profileUnsubRef.current) {
+                profileUnsubRef.current();
+            }
+        };
     }, []);
 
     // Auto-process invite ONLY for Google Sign-In users (Google verifies email identity)
