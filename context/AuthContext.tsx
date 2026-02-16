@@ -111,8 +111,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     setLoading(false); // UNBLOCK UI!
                                 } else {
                                     console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by STRICT Server Fetch).`);
-                                    alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó explícitamente que no existe el documento.\nProject: ${db.app.options.projectId}`);
-                                    auth.signOut();
+
+                                    // Attempt to diagnose via Server API
+                                    fetch(`/api/debug/user?uid=${currentUser.uid}`)
+                                        .then(res => res.json())
+                                        .then(data => {
+                                            console.error("[AuthContext] 🕵️‍♂️ Diagnostic Result:", data);
+                                            const serverSaysExists = data.firestoreExists;
+                                            const serverProject = data.adminAppProjectId;
+
+                                            if (serverSaysExists) {
+                                                alert(`⚠️ ERROR DE SINCRONIZACIÓN\n\nTu usuario EXISTE en el servidor (${serverProject}), pero tu aplicación no puede verlo.\n\nPosible causa: Problema de caché o reglas de seguridad.\nUID: ${currentUser.uid}`);
+                                            } else {
+                                                alert(`⛔ ERROR CRÍTICO\n\nTu usuario NO EXISTE en el servidor (${serverProject}).\n\nEsto confirma que el usuario de autenticación no tiene un perfil en 'users'. Contacta a soporte.\nUID: ${currentUser.uid}`);
+                                            }
+                                            // auth.signOut(); // Keep session active for debugging context? No, safer to sign out.
+                                            auth.signOut();
+                                        })
+                                        .catch(err => {
+                                            alert(`Error Crítico y fallo en diagnóstico: ${err.message}`);
+                                            auth.signOut();
+                                        });
                                 }
                             }).catch(err => {
                                 console.error("[AuthContext] 💥 Force Fetch Error:", err);
