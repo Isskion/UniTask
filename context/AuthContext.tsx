@@ -72,9 +72,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (currentUser) {
                 // --- REAL-TIME PROFILE SYNC LISTENER ---
                 // "The Source of Truth": We trust Firestore for UI permissions, not the potentially stale Token Claims.
-                const { doc, onSnapshot } = await import('firebase/firestore');
+                const { doc, onSnapshot, getDoc } = await import('firebase/firestore');
 
-                // 2. Setup New Listener
                 // 2. Setup New Listener
                 const profileRef = doc(db, 'users', currentUser.uid);
                 console.log(`[AuthContext] 🔍 Listening to profile: users/${currentUser.uid} (Project: ${db.app.options.projectId})`);
@@ -84,13 +83,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     if (!snapshot.exists()) {
                         if (snapshot.metadata.fromCache) {
-                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Waiting for server sync...`);
-                            return; // Do NOT sign out yet. Wait for server version.
+                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Attempting FORCE SERVER FETCH...`);
+
+                            // Fallback: Force a getDoc from server to break the cache loop
+                            getDoc(profileRef).then(serverSnap => {
+                                console.log(`[AuthContext] 🌍 Force Fetch Result. Exists: ${serverSnap.exists()}`);
+                                if (serverSnap.exists()) {
+                                    // Manually update state, the listener might fire later but this unblocks the UI
+                                    const data = serverSnap.data();
+                                    setUserProfile(data as UserProfile);
+
+                                    const dbRole = Number(data.roleLevel) || 0;
+                                    const dbTenantId = String(data.tenantId) || "unknown";
+
+                                    setIdentity({
+                                        uid: currentUser.uid,
+                                        email: currentUser.email,
+                                        realRole: dbRole,
+                                        realTenantId: dbTenantId
+                                    });
+
+                                    setViewContext({
+                                        activeRole: dbRole,
+                                        activeTenantId: dbTenantId,
+                                        isMasquerading: false
+                                    });
+                                    setLoading(false); // UNBLOCK UI!
+                                } else {
+                                    console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server Fetch). Auto-signing out.`);
+                                    alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó que no existe.`);
+                                    auth.signOut();
+                                }
+                            }).catch(err => {
+                                console.error("[AuthContext] 💥 Force Fetch Error:", err);
+                                alert("Error de conexión al validar tu perfil. Por favor reintenta.");
+                                setLoading(false); // Stop loading to show error
+                            });
+
+                            return;
                         }
 
-                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server). Auto-signing out.`);
-                        // Now we are sure it's not on the server.
-                        // auth.signOut(); 
+                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server Snapshot). Auto-signing out.`);
                         alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó que no existe.`);
                         return;
                     }
