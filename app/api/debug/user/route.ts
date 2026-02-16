@@ -15,6 +15,8 @@ export async function GET(request: Request) {
         envProjectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
         serviceAccountProjectId: process.env.FIREBASE_PROJECT_ID, // Might be undefined
         adminAppProjectId: adminApp.options.projectId,
+        // @ts-ignore - databaseId might be internal or part of options
+        databaseId: (adminDb as any).databaseId || adminApp.options.databaseURL,
         authRecord: null,
         firestoreDoc: null,
         firestoreExists: false,
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
                 result.authRecord = { uid: userRecord.uid, email: userRecord.email, disabled: userRecord.disabled };
             }
         } catch (e: any) {
-            result.authError = e.message;
+            result.authError = `${e.code || 'unknown'}: ${e.message}`; // Capture code and message
         }
 
         // 2. Check Firestore
@@ -46,12 +48,19 @@ export async function GET(request: Request) {
             result.firestorePath = docRef.path;
             if (snapshot.exists) {
                 const data = snapshot.data();
+                // Flatten data for easier reading in alerts
                 result.firestoreDoc = {
+                    SHARD: 'Direct Read',
+                    EXISTS: true,
+                    uid_field: data?.uid,
                     tenantId: data?.tenantId,
                     role: data?.role,
+                    roleLevel: data?.roleLevel,
                     email: data?.email,
-                    uid: data?.uid
+                    _fullData: JSON.stringify(data).substring(0, 200) + '...' // Truncate to avoid massive payloads
                 };
+            } else {
+                result.firestoreDoc = { EXISTS: false, reason: "Snapshot.exists is false" };
             }
         } else {
             result.firestoreError = "Could not determine UID for Firestore lookup";

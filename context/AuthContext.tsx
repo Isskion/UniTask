@@ -119,11 +119,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                             console.error("[AuthContext] 🕵️‍♂️ Diagnostic Result:", data);
                                             const serverSaysExists = data.firestoreExists;
                                             const serverProject = data.adminAppProjectId;
+                                            const debugInfo = JSON.stringify(data, null, 2);
 
                                             if (serverSaysExists) {
-                                                alert(`⚠️ ERROR DE SINCRONIZACIÓN\n\nTu usuario EXISTE en el servidor (${serverProject}), pero tu aplicación no puede verlo.\n\nPosible causa: Problema de caché o reglas de seguridad.\nUID: ${currentUser.uid}`);
+                                                alert(`⚠️ ERROR DE SINCRONIZACIÓN [PROYECTO: ${serverProject}]\n\nTu usuario EXISTE en el servidor, pero el cliente no lo ve.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
                                             } else {
-                                                alert(`⛔ ERROR CRÍTICO\n\nTu usuario NO EXISTE en el servidor (${serverProject}).\n\nEsto confirma que el usuario de autenticación no tiene un perfil en 'users'. Contacta a soporte.\nUID: ${currentUser.uid}`);
+                                                alert(`⛔ ERROR CRÍTICO [PROYECTO: ${serverProject}]\n\nTu usuario NO EXISTE en el servidor.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
                                             }
                                             // auth.signOut(); // Keep session active for debugging context? No, safer to sign out.
                                             auth.signOut();
