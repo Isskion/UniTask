@@ -13,9 +13,6 @@ import {
     setDoc
 } from "firebase/firestore";
 import { Project, WeeklyEntry } from "@/types";
-import { getTenantCollection, getTenantDoc } from "./tenant_db";
-import { ScopeQueryBuilder } from "./ScopeQueryBuilder";
-import { UserProfile } from "@/types";
 
 const PROJECTS_COLLECTION = "projects";
 
@@ -26,9 +23,7 @@ const PROJECTS_COLLECTION = "projects";
  */
 export async function createProject(data: Omit<Project, 'id' | 'createdAt' | 'lastUpdate'>) {
     try {
-        // [SAM] Hard Isolation: Use Tenant Collection
-        const tenantId = data.tenantId || "1";
-        const docRef = await addDoc(getTenantCollection(db, PROJECTS_COLLECTION, tenantId), {
+        const docRef = await addDoc(collection(db, PROJECTS_COLLECTION), {
             ...data,
             createdAt: serverTimestamp(),
             lastUpdate: serverTimestamp()
@@ -45,9 +40,7 @@ export async function createProject(data: Omit<Project, 'id' | 'createdAt' | 'la
  */
 export async function updateProject(projectId: string, data: Partial<Project>) {
     try {
-        // [SAM] Hard Isolation: Require tenantId to find doc
-        const tenantId = data.tenantId || "1";
-        const ref = getTenantDoc(db, PROJECTS_COLLECTION, projectId, tenantId);
+        const ref = doc(db, PROJECTS_COLLECTION, projectId);
         await updateDoc(ref, {
             ...data,
             lastUpdate: serverTimestamp()
@@ -60,54 +53,37 @@ export async function updateProject(projectId: string, data: Partial<Project>) {
 
 /**
  * Fetches all active projects (optionally filtered by tenantId in the future).
- * SAM UPDATE: Now accepts UserProfile for value-based scoping.
  */
-export async function getActiveProjects(
-    tenantId: string = "1",
-    userOrId?: string | UserProfile | null,
-    roleLevel: number = 100
-): Promise<Project[]> {
+export async function getActiveProjects(tenantId: string = "1", userId?: string, roleLevel: number = 100): Promise<Project[]> {
     try {
+        console.log("🔍 getActiveProjects called with tenantId:", tenantId, "User:", userId, "Level:", roleLevel);
         let q;
 
-        // [SAM] New Path: Use ScopeQueryBuilder if we have a full profile
-        if (userOrId && typeof userOrId === 'object' && 'accessScopes' in userOrId) {
-            const userProfile = userOrId as UserProfile;
-
-            // 1. Build Base Secured Query
-            q = ScopeQueryBuilder.build(db, PROJECTS_COLLECTION, userProfile);
-
-            // 2. Add Business Filters (Active only)
-            q = query(q, where("isActive", "==", true));
-
+        if (tenantId === "ALL") {
+            q = query(
+                collection(db, PROJECTS_COLLECTION),
+                where("isActive", "==", true)
+            );
         } else {
-            // [Legacy] Fallback Path
-            if (tenantId === "ALL") {
+            // Permission Filter: If not Admin (level < 80) and userId provided, filter by assignment
+            if (userId && roleLevel < 80) {
                 q = query(
                     collection(db, PROJECTS_COLLECTION),
-                    where("isActive", "==", true)
+                    where("tenantId", "==", tenantId),
+                    where("isActive", "==", true),
+                    where("teamIds", "array-contains", userId)
                 );
             } else {
-                const uid = typeof userOrId === 'string' ? userOrId : null;
-                // Permission Filter: If not Admin (level < 80) and userId provided, filter by assignment
-                if (uid && roleLevel < 80) {
-                    q = query(
-                        getTenantCollection(db, PROJECTS_COLLECTION, tenantId),
-                        where("isActive", "==", true),
-                        where("teamIds", "array-contains", uid)
-                    );
-                } else {
-                    q = query(
-                        getTenantCollection(db, PROJECTS_COLLECTION, tenantId),
-                        where("isActive", "==", true)
-                    );
-                }
+                q = query(
+                    collection(db, PROJECTS_COLLECTION),
+                    where("tenantId", "==", tenantId),
+                    where("isActive", "==", true)
+                );
             }
         }
-
         const snapshot = await getDocs(q);
+        console.log("📦 Found projects:", snapshot.size);
         const projects = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Project));
-
         // Client-side sort
         projects.sort((a, b) => a.name.localeCompare(b.name));
         return projects;
@@ -119,9 +95,6 @@ export async function getActiveProjects(
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
     try {
-        // Note: This relies on legacy root unless we know tenantId.
-        // For Hard Isolation, we strictly need tenantId.
-        // BUT, for compatibility, maybe we try root?
         const ref = doc(db, PROJECTS_COLLECTION, projectId);
         const snap = await getDoc(ref);
         if (snap.exists()) {
@@ -167,6 +140,7 @@ export async function ensureProjectExists(legacyProject: {
     }
 
     // 3. Create new if not found (Auto-migration)
+    // We infer a code from the name for now
     const code = legacyProject.name.substring(0, 3).toUpperCase() + "-" + Math.floor(Math.random() * 1000);
 
     const newId = await createProject({
@@ -199,15 +173,9 @@ export async function syncShadowProjects(entry: WeeklyEntry) {
             if (!projectId) continue;
 
             // B. Create "The Update Object" (projects/{id}/updates/{updateId})
+            // We use a deterministic ID based on weekId to avoid duplicates if saved multiple times
+            // Format: "week-20251125"
             const updateId = `week-${entry.id}`;
-            // NOTE: Shadow sync strictly writes to ROOT currently in this function
-            // We should update it if we want it to write to tenant?
-            // createProject DOES write to tenant.
-            // But 'updateRef' below uses root 'projects'.
-            // For now, let's leave it as legacy shadow sync or update it?
-            // Let's update it to likely use getTenantDoc if we knew tenantId.
-            // But we don't easily know tenantId here without fetching project.
-            // Start simple: keep as is for now, refactor later.
             const updateRef = doc(db, PROJECTS_COLLECTION, projectId, "updates", updateId);
 
             await setDoc(updateRef, {
@@ -216,11 +184,15 @@ export async function syncShadowProjects(entry: WeeklyEntry) {
                 weekNumber: entry.weekNumber,
                 year: entry.year,
                 date: serverTimestamp(),
+
+                // Content Snapshot
                 content: {
                     pmNotes: p.pmNotes,
                     conclusions: p.conclusions,
                     nextSteps: p.nextSteps,
                 },
+
+                // Metadata
                 authorId: "legacy-sync",
                 updatedAt: serverTimestamp()
             }, { merge: true });

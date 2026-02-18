@@ -1,7 +1,6 @@
 import { db } from "./firebase";
 import { collection, addDoc, updateDoc, doc, query, where, getDocs, orderBy, serverTimestamp, onSnapshot, limit } from "firebase/firestore";
 import { Task } from "@/types";
-import { getTenantCollection, getTenantDoc } from "./tenant_db";
 
 const TASKS_COLLECTION = "tasks";
 
@@ -9,22 +8,22 @@ export async function createTask(
     taskData: Omit<Task, 'id' | 'createdAt' | 'friendlyId' | 'taskNumber'>,
     userId: string,
     addDocFn: any, // Injected Safe Add
-    projectCode?: string // New optional param
+    projectNameForId?: string
 ) {
     try {
         let friendlyId: string | undefined;
         let taskNumber: number | undefined;
 
         // Generate Friendly ID if Project ID is present
-        if (taskData.projectId && (projectNameForId || projectCode)) {
+        if (taskData.projectId && projectNameForId) {
             // Get ALL tasks to calculate max (Avoids Index requirement for now)
             // TODO: Create Index and revert to orderBy/limit for scale > 1000 tasks
-            // [SAM] Hard Isolation: Use Tenant Collection
-            const tenantId = taskData.tenantId || "1";
             const q = query(
-                getTenantCollection(db, TASKS_COLLECTION, tenantId),
-                where('projectId', '==', taskData.projectId)
-                // where('tenantId', '==', taskData.tenantId) // Implicit in path
+                collection(db, TASKS_COLLECTION),
+                where('projectId', '==', taskData.projectId),
+                // FIX: Must filter by tenantId to satisfy "allow list" security rule
+                // and to prevent counting tasks from other tenants (if valid)
+                where('tenantId', '==', taskData.tenantId)
             );
             const snapshot = await getDocs(q);
 
@@ -36,20 +35,12 @@ export async function createTask(
 
             taskNumber = maxNum + 1;
 
-            // Generate Prefix 
-            // Priority: Project Code > Project Name > "TSK"
-            let prefix = "TSK";
-            if (projectCode) {
-                prefix = projectCode.toUpperCase();
-            } else if (projectNameForId) {
-                prefix = projectNameForId.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
-            }
-
+            // Generate Prefix (First 3 chars of name, or 'TSK')
+            const prefix = projectNameForId.slice(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
             friendlyId = `${prefix}-${taskNumber}`;
         }
 
-        const tenantId = taskData.tenantId || "1";
-        const docRef = await addDocFn(getTenantCollection(db, TASKS_COLLECTION, tenantId), {
+        const docRef = await addDocFn(collection(db, TASKS_COLLECTION), {
             ...taskData,
             friendlyId: friendlyId || null,
             taskNumber: taskNumber || null,
@@ -68,8 +59,8 @@ export async function createTask(
 export async function getTasksByWeek(weekId: string, tenantId: string): Promise<Task[]> {
     try {
         const q = query(
-            getTenantCollection(db, TASKS_COLLECTION, tenantId),
-            // where("tenantId", "==", tenantId), // Implicit
+            collection(db, TASKS_COLLECTION),
+            where("tenantId", "==", tenantId),
             where("weekId", "==", weekId),
             where("isActive", "==", true)
         );
@@ -84,24 +75,13 @@ export async function getTasksByWeek(weekId: string, tenantId: string): Promise<
     }
 }
 
-import { ScopeQueryBuilder } from "./ScopeQueryBuilder";
-import { UserProfile } from "@/types";
-
-export async function getAllOpenTasks(tenantId: string, userProfile?: UserProfile | null): Promise<Task[]> {
+export async function getAllOpenTasks(tenantId: string): Promise<Task[]> {
     try {
-        let q;
-
-        if (userProfile) {
-            q = ScopeQueryBuilder.build(db, TASKS_COLLECTION, userProfile);
-            q = query(q, where("isActive", "==", true));
-        } else {
-            q = query(
-                getTenantCollection(db, TASKS_COLLECTION, tenantId),
-                // where("tenantId", "==", tenantId),
-                where("isActive", "==", true)
-            );
-        }
-
+        const q = query(
+            collection(db, TASKS_COLLECTION),
+            where("tenantId", "==", tenantId),
+            where("isActive", "==", true)
+        );
         const snapshot = await getDocs(q);
         // Client-side Filter: Remove completed
         return snapshot.docs
@@ -115,8 +95,8 @@ export async function getAllOpenTasks(tenantId: string, userProfile?: UserProfil
 
 export function subscribeToOpenTasks(tenantId: string, callback: (tasks: Task[]) => void) {
     const q = query(
-        getTenantCollection(db, TASKS_COLLECTION, tenantId),
-        // where("tenantId", "==", tenantId),
+        collection(db, TASKS_COLLECTION),
+        where("tenantId", "==", tenantId),
         where("isActive", "==", true)
     );
     return onSnapshot(q,
@@ -137,8 +117,8 @@ export function subscribeToOpenTasks(tenantId: string, callback: (tasks: Task[])
 // Subscribe to tasks for a specific project (Real-time list for Editor)
 export function subscribeToProjectTasks(tenantId: string, projectId: string, callback: (tasks: Task[]) => void) {
     const q = query(
-        getTenantCollection(db, TASKS_COLLECTION, tenantId),
-        // where("tenantId", "==", tenantId),
+        collection(db, TASKS_COLLECTION),
+        where("tenantId", "==", tenantId),
         where("projectId", "==", projectId),
         where("isActive", "==", true)
     );
@@ -159,24 +139,7 @@ export function subscribeToProjectTasks(tenantId: string, projectId: string, cal
 
 export async function updateTaskStatus(taskId: string, status: 'pending' | 'completed', userId: string, updateDocFn: any) {
     try {
-        // We need tenantId to find the doc. 
-        // TEMPORARY: Assume we can't find it without tenantId.
-        // But `updateTaskStatus` signature doesn't have tenantId.
-        // This is a breaking change for the caller if we enforce it.
-        // TODO: Update callers to pass tenantId.
-
-        // For now, if we don't have tenantId, we are stuck?
-        // Actually, we can pass it in via `updateDocFn` context or we need to update the signature.
-        // Let's assume tenantId is "1" or we need to fetch it? No fetching is slow.
-        // Assumption: Caller context usually has tenantId.
-
-        // IMPORTANT: In the app, most calls to updateTaskStatus come from components that KNOW the tenantId.
-        // We should update the signature.
-        // CAUTION: This will break build if we don't update callers.
-
-        // For now, let's assume "1" to fix the compilation, but we must mark this as a TODO.
-        const tenantId = "1"; // FIXME: Pass tenantId
-        const ref = getTenantDoc(db, TASKS_COLLECTION, taskId, tenantId);
+        const ref = doc(db, TASKS_COLLECTION, taskId);
         const updateData: any = { status };
 
         if (status === 'completed') {
@@ -197,8 +160,7 @@ export async function updateTaskStatus(taskId: string, status: 'pending' | 'comp
 
 export async function toggleTaskBlock(taskId: string, isBlocking: boolean, userId: string, updateDocFn: any) {
     try {
-        const tenantId = "1"; // FIXME: Pass tenantId
-        const ref = getTenantDoc(db, TASKS_COLLECTION, taskId, tenantId);
+        const ref = doc(db, TASKS_COLLECTION, taskId);
         await updateDocFn(ref, { isBlocking });
     } catch (error) {
         console.error("Error toggling block:", error);
@@ -208,8 +170,8 @@ export async function toggleTaskBlock(taskId: string, isBlocking: boolean, userI
 
 export function subscribeToWeekTasks(tenantId: string, weekId: string, callback: (tasks: Task[]) => void) {
     const q = query(
-        getTenantCollection(db, TASKS_COLLECTION, tenantId),
-        // where("tenantId", "==", tenantId),
+        collection(db, TASKS_COLLECTION),
+        where("tenantId", "==", tenantId),
         where("weekId", "==", weekId),
         where("isActive", "==", true)
     );
@@ -262,8 +224,8 @@ export function sortTasks(tasks: Task[]): Task[] {
 // Subscribe to ALL active tasks (for global dashboard)
 export function subscribeToAllTasks(tenantId: string, callback: (tasks: Task[]) => void) {
     const q = query(
-        getTenantCollection(db, TASKS_COLLECTION, tenantId),
-        // where("tenantId", "==", tenantId),
+        collection(db, TASKS_COLLECTION),
+        where("tenantId", "==", tenantId),
         where("isActive", "==", true)
     );
     return onSnapshot(q,

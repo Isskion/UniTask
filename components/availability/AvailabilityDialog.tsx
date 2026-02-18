@@ -37,7 +37,6 @@ export function AvailabilityDialog({
     const [endDate, setEndDate] = useState("");
     const [notes, setNotes] = useState("");
     const [consumedDays, setConsumedDays] = useState<number>(0);
-    const [scope, setScope] = useState<{ regionId?: string; divisionId?: string }>({}); // Admin View
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -52,7 +51,6 @@ export function AvailabilityDialog({
                 setEndDate(format(end, "yyyy-MM-dd"));
                 setNotes(availability.notes || "");
                 setConsumedDays(availability.consumedDays || 0);
-                setScope({ regionId: availability.regionId, divisionId: availability.divisionId });
             } else {
                 // If creating new and NOT admin, force own ID
                 setUserId(userLevel < 60 && user ? user.uid : "");
@@ -61,7 +59,6 @@ export function AvailabilityDialog({
                 setEndDate(format(new Date(), "yyyy-MM-dd"));
                 setNotes("");
                 setConsumedDays(0);
-                setScope({});
             }
         }
     }, [open, availability]);
@@ -70,53 +67,14 @@ export function AvailabilityDialog({
         e.preventDefault();
         setSaving(true);
         try {
-            // [SAM Architecture] Enforce Single Scope for Resource
-            // When a PM creates/edits availability for a user, we must ensure THAT USER has a single active scope.
-            // We need to look up the target user's profile from the 'users' prop.
-            const targetUser = users.find(u => u.uid === userId);
-
-            if (targetUser && targetUser.accessScopes) {
-                const userRegions = targetUser.accessScopes.regionIds || [];
-                const userDivisions = targetUser.accessScopes.divisionIds || [];
-
-                // Filter out wildcards
-                const effectiveRegions = userRegions.filter(r => r !== '*');
-                const effectiveDivisions = userDivisions.filter(d => d !== '*');
-
-                if (effectiveRegions.length > 1 || effectiveDivisions.length > 1) {
-                    alert("El recurso seleccionado tiene múltiples Regiones o Divisiones activas. Para gestionar su disponibilidad, su perfil debe tener un contexto único.");
-                    setSaving(false);
-                    return;
-                }
-
-                // Inject Scope
-                const regionId = effectiveRegions.length === 1 ? effectiveRegions[0] : null;
-                const divisionId = effectiveDivisions.length === 1 ? effectiveDivisions[0] : null;
-
-                await onSave({
-                    userId,
-                    type,
-                    startDate: new Date(startDate),
-                    endDate: new Date(endDate),
-                    notes,
-                    consumedDays,
-                    regionId: regionId || undefined,
-                    divisionId: divisionId || undefined
-                });
-            } else {
-                // Fallback if no scope data (Legacy), just save without scope? 
-                // Or block? For now, proceed but warn log.
-                console.warn("Target user has no accessScopes defined.");
-                await onSave({
-                    userId,
-                    type,
-                    startDate: new Date(startDate),
-                    endDate: new Date(endDate),
-                    notes,
-                    consumedDays
-                });
-            }
-
+            await onSave({
+                userId,
+                type,
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                notes,
+                consumedDays
+            });
             onOpenChange(false);
         } catch (error) {
             console.error(error);
@@ -245,16 +203,6 @@ export function AvailabilityDialog({
                                 step="1"
                                 placeholder="Días laborales utilizados..."
                             />
-                        </div>
-                    )}
-
-                    {/* [ADMIN DEBUG] Scope Visibility */}
-                    {userLevel >= 80 && (
-                        <div className="p-2 bg-red-500/5 border border-red-500/10 rounded text-xs font-mono text-zinc-500">
-                            <div className="flex justify-between">
-                                <span>REGION: <span className="text-red-500">{scope.regionId || 'GLOBAL'}</span></span>
-                                <span>DIVISION: <span className="text-red-500">{scope.divisionId || 'GLOBAL'}</span></span>
-                            </div>
                         </div>
                     )}
 

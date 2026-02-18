@@ -5,7 +5,6 @@ import { Bell, Check } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { collection, query, where, orderBy, onSnapshot, limit, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { getTenantCollection, getTenantDoc } from "@/lib/tenant_db";
 import { Notification } from "@/types";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -25,10 +24,9 @@ export function NotificationBell() {
         // Listen for notifications for the current user
         // SAFEGUARD: Filter by BOTH userId and tenantId to satisfy strict rules
         const q = query(
-
-            getTenantCollection(db, "notifications", tenantId),
+            collection(db, "notifications"),
             where("userId", "==", user.uid),
-            // where("tenantId", "==", tenantId), // Implicit
+            where("tenantId", "==", tenantId),
             orderBy('createdAt', 'desc'),
             limit(10)
         );
@@ -65,7 +63,7 @@ export function NotificationBell() {
     const markAsRead = async (notification: Notification) => {
         if (notification.read) return;
         try {
-            await updateDoc(getTenantDoc(db, "notifications", notification.id, tenantId || "1"), {
+            await updateDoc(doc(db, "notifications", notification.id), {
                 read: true
             });
         } catch (e) {

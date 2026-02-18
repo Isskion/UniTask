@@ -31,7 +31,7 @@ const ROLES = [
 ];
 
 export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizardProps) {
-    const { user, userRole, tenantId, userProfile } = useAuth();
+    const { user, userRole, tenantId } = useAuth();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
@@ -100,8 +100,7 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
     const loadProjects = async () => {
         setLoading(true);
         try {
-            // [SAM] Enforce Scope Security
-            const rawProjects = await getActiveProjects(selectedTenant, userProfile || user?.uid, getRoleLevel(userRole));
+            const rawProjects = await getActiveProjects(selectedTenant);
             setProjects(rawProjects.map(p => ({ id: p.id, name: p.name, code: p.code })));
         } finally {
             setLoading(false);

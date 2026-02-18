@@ -156,7 +156,6 @@ export interface PermissionGroup {
         sprintManagement: boolean;
         dispoPlan: boolean;
         unavailabilityRegistry: boolean;
-        uniflux: boolean;
     };
 
     // Export Permissions
@@ -257,10 +256,6 @@ export interface Sprint {
     resourceCount?: number;
     includeWeekends?: boolean;
     plannedCapacity?: number; // Target capacity based on resources/days
-
-    // [SAM Architecture] Scoped Resource Fields
-    regionId?: string;
-    divisionId?: string;
 
     createdAt?: any;
     updatedAt?: any;

@@ -6,7 +6,7 @@ import { Loader2, Search, Layout, FolderGit2, FolderPlus, Trash2, Home, ArrowRig
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
 import { useRouter } from "next/navigation";
-import { Project, Task, getRoleLevel } from "@/types";
+import { Project, Task } from "@/types";
 import { getActiveProjects } from "@/lib/projects";
 import { cn } from "@/lib/utils";
 import { getAllOpenTasks } from "@/lib/tasks";
@@ -14,7 +14,7 @@ import { doc, getDoc } from "firebase/firestore"; // Standard import
 import { db } from "@/lib/firebase"; // Standard import
 
 export function CommandMenu() {
-    const { userRole, user, tenantId, userProfile: authProfile } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
     // Use Context for open state
     const { toggleCommandMenu, isCommandMenuOpen } = useUI();
 
@@ -63,18 +63,13 @@ export function CommandMenu() {
             const fetchData = async () => {
                 try {
                     // Profile
-                    // [SAM] Optimization: Use profile from AuthContext if available
-                    if (authProfile) {
-                        setUserProfile(authProfile);
-                    } else if (userRole !== 'app_admin' && userRole !== 'global_pm') {
+                    if (userRole !== 'app_admin' && userRole !== 'global_pm') {
                         const snap = await getDoc(doc(db, "users", user.uid));
                         if (snap.exists()) setUserProfile(snap.data());
                     }
 
                     // Projects
-                    // [SAM] Enforce Scope Security
-                    const roleLevel = getRoleLevel(userRole);
-                    const allProjects = await getActiveProjects(tenantId || "1", authProfile || user.uid, roleLevel);
+                    const allProjects = await getActiveProjects(tenantId || "1");
                     console.log("CommandMenu: Raw Projects:", allProjects); // Log raw data
                     setProjects(allProjects);
 

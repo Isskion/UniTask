@@ -15,7 +15,6 @@ import {
     Timestamp
 } from "firebase/firestore";
 import { TimelineEvent, Task, DailyStatus } from "@/types";
-import { getTenantCollection, getTenantDoc } from "./tenant_db";
 
 const PROJECTS_COLLECTION = "projects";
 const TIMELINE_SUBCOLLECTION = "updates"; // Keeping "updates" in Firestore for now
@@ -27,7 +26,7 @@ const DAILY_LOG_COLLECTION = "journal_entries"; // Ubiquitous name for the colle
  */
 export async function createTimelineEvent(projectId: string, tenantId: string, data: Omit<TimelineEvent, 'id' | 'createdAt' | 'tenantId'>) {
     try {
-        const eventsRef = getTenantCollection(db, 'project_activity_feed', tenantId);
+        const eventsRef = collection(db, 'project_activity_feed');
         const docRef = await addDoc(eventsRef, {
             ...data,
             projectId,
@@ -55,14 +54,14 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
 
         // 1. Fetch Manual Events (Subcollection)
         try {
-            const eventsRef = getTenantCollection(db, 'project_activity_feed', tenantId);
+            const eventsRef = collection(db, 'project_activity_feed');
             let qEvents;
             if (limitCount === -1 || limitCount === 0) {
                 console.log(`[Updates] Querying: Project=${projectId}, Tenant=${tenantId}, Sort=Date DESC (Full)`);
                 qEvents = query(
                     eventsRef,
                     where("projectId", "==", projectId),
-                    // where("tenantId", "==", tenantId), // Implicit
+                    where("tenantId", "==", tenantId),
                     // where("isTrashed", "!=", true), // REMOVED: Hides legacy data
                     // orderBy("isTrashed"),
                     orderBy("date", "desc")
@@ -94,7 +93,7 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
 
         // 2. Fetch Tasks Linked to Project
         try {
-            const tasksRef = getTenantCollection(db, TASKS_COLLECTION, tenantId);
+            const tasksRef = collection(db, TASKS_COLLECTION);
             let qTasks;
 
             if (limitCount === -1) {
@@ -141,14 +140,14 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
 
             if (limitCount === -1) {
                 qDailyLog = query(
-                    getTenantCollection(db, "journal_entries", tenantId),
-                    // where("tenantId", "==", tenantId),
+                    collection(db, "journal_entries"),
+                    where("tenantId", "==", tenantId),
                     orderBy("date", "desc")
                 );
             } else {
                 qDailyLog = query(
-                    getTenantCollection(db, DAILY_LOG_COLLECTION, tenantId),
-                    // where("tenantId", "==", tenantId),
+                    collection(db, DAILY_LOG_COLLECTION),
+                    where("tenantId", "==", tenantId),
                     orderBy("date", "desc"),
                     limit(limitCount || 30)
                 );
@@ -213,15 +212,6 @@ export async function getProjectTimeline(projectId: string, tenantId: string, li
  * Soft deletes (trashes) a specific event.
  */
 export async function trashTimelineEvent(eventId: string, userId: string) {
-    // FIXME: We need tenantId to find the doc. 
-    // This function signature lacks tenantId.
-    // Major Refactoring required or we assume "1" for now?
-    // The callers are usually specific components.
-    // Let's default to "1" or try to infer? 
-    // Actually, `trashTimelineEvent` is called from UI where we usually have context.
-    // TODO: Update signature to (eventId, userId, tenantId).
-    const tenantId = "1"; // Temporary Fallback
-
     try {
         // [FIX] Handle Journal Entry Soft Delete (Composite ID safely)
         if (eventId.startsWith('journal::')) {
@@ -231,7 +221,7 @@ export async function trashTimelineEvent(eventId: string, userId: string) {
 
             if (!docId || !targetProjectId) throw new Error("Invalid Journal ID format");
 
-            const docReference = getTenantDoc(db, 'journal_entries', docId, tenantId);
+            const docReference = doc(db, 'journal_entries', docId);
             const docSnap = await getDoc(docReference);
 
             if (!docSnap.exists()) {
@@ -262,7 +252,7 @@ export async function trashTimelineEvent(eventId: string, userId: string) {
                 const docId = `${parts[1]}-${parts[2]}-${parts[3]}`; // Reconstruct Date ID
                 const targetProjectId = parts.slice(4).join('-');
 
-                const docReference = getTenantDoc(db, 'journal_entries', docId, tenantId);
+                const docReference = doc(db, 'journal_entries', docId);
                 const docSnap = await getDoc(docReference);
 
                 if (docSnap.exists()) {
@@ -287,8 +277,7 @@ export async function trashTimelineEvent(eventId: string, userId: string) {
         }
 
 
-
-        const docRef = getTenantDoc(db, 'project_activity_feed', eventId, tenantId);
+        const docRef = doc(db, 'project_activity_feed', eventId);
         await updateDoc(docRef, {
             isTrashed: true,
             deletedAt: serverTimestamp(),
@@ -306,8 +295,7 @@ export async function trashTimelineEvent(eventId: string, userId: string) {
  */
 export async function deleteTimelineEvent(projectId: string, eventId: string) {
     try {
-        const tenantId = "1"; // FIXME: Update signature
-        const docRef = getTenantDoc(db, 'project_activity_feed', eventId, tenantId);
+        const docRef = doc(db, 'project_activity_feed', eventId);
         await deleteDoc(docRef);
     } catch (error) {
         console.error("Error deleting event:", error);

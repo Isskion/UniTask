@@ -14,12 +14,11 @@ export function VersionBadge({ onClick }: VersionBadgeProps) {
             onClick={onClick}
             className={cn(
                 "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold transition-all border",
-                "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30 animate-pulse"
+                "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 hover:bg-indigo-500/20"
             )}
-            title="VERIFIED CLEAN BUILD"
         >
-            <Sparkles className="w-3 h-3 text-emerald-400" />
-            v{APP_VERSION}-CLEAN
+            <Sparkles className="w-3 h-3" />
+            v{APP_VERSION}
         </button>
     );
 }

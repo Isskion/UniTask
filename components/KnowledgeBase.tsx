@@ -14,7 +14,6 @@ import {
     doc, serverTimestamp, orderBy
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getTenantCollection, getTenantDoc } from '@/lib/tenant_db'; // Import helper
 import { getActiveProjects } from '@/lib/projects'; // Import helper
 import { KnowledgeEntry, ChangeLogEntry, Project, getRoleLevel } from '@/types'; // Import getRoleLevel
 import { useLanguage } from '@/context/LanguageContext';
@@ -32,7 +31,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
     const isLight = theme === 'light';
     const { t } = useLanguage();
     const { showToast } = useToast();
-    const { user, tenantId, userRole, userProfile } = useAuth();
+    const { user, tenantId, userRole } = useAuth();
 
     // State
     const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
@@ -68,80 +67,20 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         if (!tenantId) return;
         setLoading(true);
         try {
-            // 1. Fetch Tenant Specific Entries (Standard)
-            // 1. Fetch Tenant Specific Entries (Standard)
-            let tenantItems: KnowledgeEntry[] = [];
-            try {
-                if (!tenantId || tenantId === 'unknown') {
-                    console.warn("[KnowledgeBase] Invalid Tenant ID:", tenantId);
-                    throw new Error("Invalid Tenant ID");
-                }
-
-                console.log(`[KnowledgeBase] Fetching for Tenant: ${tenantId}, Type: ${type}`);
-                const q = query(
-                    getTenantCollection(db, 'knowledge_entries', tenantId),
-                    where('type', '==', type),
-                    where('isActive', '==', true),
-                    orderBy('createdAt', 'desc')
-                );
-                const tenantSnap = await getDocs(q);
-                tenantItems = tenantSnap.docs.map(d => ({ id: d.id, ...d.data() } as KnowledgeEntry));
-            } catch (tenantError: any) {
-                console.error(`[KnowledgeBase] ❌ Tenant Query Failed (${tenantId}):`, tenantError);
-
-                if (tenantError.code === 'permission-denied' || tenantError.code === 'failed-precondition') {
-                    // Show specific toast but allow Root entries to try loading
-                    showToast("UniTask", `Error de acceso al Tenant (${tenantId}): ${tenantError.message}`, "error");
-                } else {
-                    throw tenantError; // Re-throw critical errors to main catch
-                }
-            }
-
-            // 2. Fetch Root Entries (Legacy/Global Fallback)
-            // Query root 'knowledge_entries' directly
-            // [SECURITY] Must filter by tenantId to satisfy docTenantMatches() rule
-            const qRoot = query(
+            const q = query(
                 collection(db, 'knowledge_entries'),
                 where('tenantId', '==', tenantId),
                 where('type', '==', type),
                 where('isActive', '==', true),
                 orderBy('createdAt', 'desc')
             );
-
-            let rootItems: KnowledgeEntry[] = [];
-            try {
-                const rootSnap = await getDocs(qRoot);
-                rootItems = rootSnap.docs.map(d => ({ id: d.id, ...d.data() } as KnowledgeEntry));
-            } catch (rootError) {
-                console.warn("Failed to fetch root knowledge_entries (might be restricted):", rootError);
-                // If this fails, we just don't show root items. The error shouldn't block tenant items.
-            }
-
-            // 3. Combine & Deduplicate (Tenant overrides Root)
-            const combinedMap = new Map<string, KnowledgeEntry>();
-
-            // Add root (legacy) items first
-            rootItems.forEach(item => combinedMap.set(item.id, item));
-
-            // Add/Overwrite with tenant items
-            tenantItems.forEach(item => combinedMap.set(item.id, item));
-
-            const finalItems = Array.from(combinedMap.values());
-
-            // Re-sort in memory
-            finalItems.sort((a, b) => {
-                // @ts-ignore - Firestore Timestamp handling
-                const tA = a.createdAt?.seconds || 0;
-                // @ts-ignore
-                const tB = b.createdAt?.seconds || 0;
-                return tB - tA; // Descending
-            });
-
-            setEntries(finalItems);
+            const snap = await getDocs(q);
+            const items = snap.docs.map(d => ({ id: d.id, ...d.data() } as KnowledgeEntry));
+            setEntries(items);
 
             // Extract all unique tags
             const tags = new Set<string>();
-            finalItems.forEach(e => e.tags?.forEach(tag => tags.add(tag)));
+            items.forEach(e => e.tags?.forEach(tag => tags.add(tag)));
             setAllTags(Array.from(tags).sort());
         } catch (error: any) {
             console.error('Error loading entries:', error);
@@ -156,8 +95,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         try {
             // [MODIFIED] Filter by user assignment if not admin
             const roleLvl = getRoleLevel(userRole);
-            // [SAM] Enforce Scope Security
-            const projectsList = await getActiveProjects(tenantId, userProfile || user?.uid, roleLvl);
+            const projectsList = await getActiveProjects(tenantId, user?.uid, roleLvl);
             setProjects(projectsList);
         } catch (error) {
             console.error('Error loading projects:', error);
@@ -295,7 +233,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                     isActive: true
                 };
 
-                const docRef = await addDoc(getTenantCollection(db, 'knowledge_entries', tenantId || undefined), newEntry);
+                const docRef = await addDoc(collection(db, 'knowledge_entries'), newEntry);
                 showToast("UniTask", t('common.success') || "Guardado", "success");
 
                 // Refresh and select new entry
@@ -305,7 +243,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                 setIsNew(false);
             } else if (selectedEntry) {
                 // Update existing
-                const docRef = getTenantDoc(db, 'knowledge_entries', selectedEntry.id, tenantId || undefined);
+                const docRef = doc(db, 'knowledge_entries', selectedEntry.id);
                 const existingChangelog = selectedEntry.changelog || [];
 
                 await updateDoc(docRef, {
@@ -337,7 +275,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         if (!window.confirm(t('knowledge_base.delete_confirm') || "¿Eliminar esta entrada?")) return;
 
         try {
-            const docRef = getTenantDoc(db, 'knowledge_entries', selectedEntry.id, tenantId!);
+            const docRef = doc(db, 'knowledge_entries', selectedEntry.id);
             await updateDoc(docRef, { isActive: false });
             showToast("UniTask", t('common.success') || "Eliminado", "success");
             setSelectedEntry(null);

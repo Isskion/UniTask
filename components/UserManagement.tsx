@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, query, orderBy, where } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { usePermissions } from "@/hooks/usePermissions";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
 import { Loader2, Plus, User, RefreshCw, Save, Trash2, Shield, ShieldCheck, Check, Building, Briefcase, Globe, Edit2, XCircle, MapPin, Phone, Ban, Ticket, Copy, FolderGit2, Calendar, Camera } from "lucide-react";
@@ -21,7 +20,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { getActiveProjects } from "@/lib/projects";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { useMasterData } from "@/lib/master_data";
 
 const ROLES = [
     { value: 'superadmin', label: 'Super Admin', color: 'text-indigo-500' },
@@ -33,26 +31,18 @@ const ROLES = [
 ];
 
 export default function UserManagement() {
-    const { userRole, user, tenantId, userProfile } = useAuth();
-    const { can, loading: permsLoading } = usePermissions();
+    const { userRole, user, tenantId } = useAuth();
     const { updateDoc, deleteDoc } = useSafeFirestore();
-    const { showToast } = useToast();
-    const { uploadFile, uploading: isUploadingAvatar, progress: uploadProgress } = useFileUploader();
     const { theme } = useTheme();
+    const { showToast } = useToast();
     const { t } = useLanguage();
+    const { uploadFile, uploading: isUploadingAvatar, progress: uploadProgress } = useFileUploader();
     const isLight = theme === 'light';
     const isRed = theme === 'red';
-
-    // Dynamic Master Data
-    const { regions: REGIONS, divisions: DIVISIONS } = useMasterData();
-
-    // State
     const [users, setUsers] = useState<UserData[]>([]);
     const [invites, setInvites] = useState<InviteCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState<string | null>(null);
-    // Security check for SAM editing
-    const canEditSAM = getRoleLevel(userRole) >= 80;
     const [activeTab, setActiveTab] = useState<'users' | 'invites'>('users');
     const [showInviteWizard, setShowInviteWizard] = useState(false);
 
@@ -72,10 +62,7 @@ export default function UserManagement() {
     const [availableTenants, setAvailableTenants] = useState<Tenant[]>([]);
 
     useEffect(() => {
-        // [FIX] Wait for permissions to load before checking access
-        if (permsLoading) return;
-
-        if (!can('userManagement', 'views')) {
+        if (getRoleLevel(userRole) < 70) {
             setLoading(false);
             return;
         }
@@ -83,11 +70,10 @@ export default function UserManagement() {
         loadData();
         loadProjectsForSelect();
         loadPermissionGroups();
-        // [FIX] Only Superadmins can load the full tenant list.
         if (getRoleLevel(userRole) >= 100) {
             loadTenants();
         }
-    }, [activeTab, userRole, tenantId, permsLoading]);
+    }, [activeTab, userRole, tenantId]);
 
     const loadTenants = async () => {
         try {
@@ -107,8 +93,7 @@ export default function UserManagement() {
         try {
             const userLevel = getRoleLevel(userRole);
             const targetTenant = (userLevel >= 100) ? "ALL" : (tenantId || "1");
-            // [SAM] Enforce Scope Security
-            const projects = await getActiveProjects(targetTenant, userProfile || user?.uid, userLevel);
+            const projects = await getActiveProjects(targetTenant);
             setAvailableProjects(projects.map(p => ({
                 id: p.id,
                 name: p.name,
@@ -139,18 +124,12 @@ export default function UserManagement() {
         setLoading(true);
         try {
             if (activeTab === 'users') {
-                console.log("[UserManagement] Loading users...", { userRole, tenantId, roleLevel: getRoleLevel(userRole) });
                 let q;
-                // [FIX] Scope Security: Only Superadmins (Level 100+) can see ALL users.
-                // Permission 'viewAllUserProfiles' might be active for HR/Admin roles, but they must still be tenant-scoped unless they are system-wide admins.
                 if (getRoleLevel(userRole) >= 100) {
-                    console.log("[UserManagement] Querying ALL users (Superadmin)");
                     q = query(collection(db, "users"));
                 } else if (tenantId) {
-                    console.log(`[UserManagement] Querying users for tenant: ${tenantId}`);
                     q = query(collection(db, "users"), where("tenantId", "==", tenantId));
                 } else {
-                    console.warn("[UserManagement] No tenantId found, aborting load.");
                     setUsers([]);
                     setLoading(false);
                     return;
@@ -164,8 +143,8 @@ export default function UserManagement() {
                 setUsers(loadedUsers);
             } else {
                 // Fetch invites: Superadmin sees everything, others see their tenant
-                // [FIX] Ensure we don't send undefined tenantId for non-superadmins (causes "Missing Permissions" error)
-                const queryTenant = getRoleLevel(userRole) >= 100 ? undefined : (tenantId || "1");
+                const userLevel = getRoleLevel(userRole);
+                const queryTenant = userLevel >= 100 ? undefined : (tenantId || "1");
 
                 let loadedInvites = await getAllInvites(queryTenant);
 
@@ -242,12 +221,7 @@ export default function UserManagement() {
             assignedProjectIds: user.assignedProjectIds || [],
             permissionGroupId: user.permissionGroupId || "",
             isConsultant: user.isConsultant || false,
-            worksOnWeekends: user.worksOnWeekends || false,
-            // [FIX] Deep clone accessScopes to ensure safely editable state
-            accessScopes: {
-                regionIds: user.accessScopes?.regionIds ? [...user.accessScopes.regionIds] : [],
-                divisionIds: user.accessScopes?.divisionIds ? [...user.accessScopes.divisionIds] : []
-            }
+            worksOnWeekends: user.worksOnWeekends || false
         });
     };
 
@@ -265,16 +239,7 @@ export default function UserManagement() {
             // This ensures the JWT token is refreshed with the new role/tenant
             if (payload.role || payload.tenantId) {
                 console.log("[UserManagement] Triggering claims update for:", editingUser.uid);
-
-                // [SAM] Self-Update Optimization:
-                // If updating self, don't send explicit params. Let the Cloud Function "Sync" from Firestore (which we just updated).
-                // This bypasses the "Cannot change your own role manually" security check in the backend.
-                const isSelfUpdate = user?.uid === editingUser.uid;
-
-                const claimsParams = isSelfUpdate ? {
-                    targetUserId: editingUser.uid
-                    // Omit params to trigger 'Sync Mode'
-                } : {
+                const claimsParams = {
                     targetUserId: editingUser.uid,
                     newRole: payload.role || editingUser.role,
                     newTenantId: payload.tenantId || editingUser.tenantId
@@ -357,11 +322,7 @@ export default function UserManagement() {
         showToast("Copied", "Link copied to clipboard", "success");
     };
 
-    if (permsLoading) { // [FIX] Show loading while permissions are being fetched
-        return <div className="p-8 text-center text-zinc-500 flex items-center justify-center"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading permissions...</div>;
-    }
-
-    if (!can('userManagement', 'views')) {
+    if (getRoleLevel(userRole) < 70) {
         return <div className="p-8 text-center text-zinc-500">Restricted Access</div>;
     }
 
@@ -792,140 +753,6 @@ export default function UserManagement() {
                                         <option value="en">English</option>
                                         <option value="fr">Français</option>
                                     </select>
-                                </div>
-                            </div>
-
-                            {/* SAM SCopes Configuration - Restricted to Admins */}
-                            <div className="space-y-4 pt-4 border-t border-white/5">
-                                <h4 className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
-                                    <Globe className="w-3 h-3" /> SAM Access Scopes
-                                </h4>
-                                {!canEditSAM && (
-                                    <div className="text-xs text-amber-500 bg-amber-500/10 p-2 rounded flex items-center gap-2">
-                                        <Ban className="w-3 h-3" />
-                                        Solo los Administradores pueden modificar los alcances geográficos.
-                                    </div>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Regions */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-medium opacity-70">Regiones Permitidas</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {REGIONS.map(region => {
-                                                const currentRegions = formData.accessScopes?.regionIds || [];
-                                                const hasWildcard = currentRegions.includes('*');
-                                                const isSelected = hasWildcard || currentRegions.includes(region.id);
-                                                return (
-                                                    <button
-                                                        key={region.id}
-                                                        onClick={() => {
-                                                            if (!canEditSAM) return;
-                                                            let newRegions: string[] = [];
-
-                                                            if (isSelected) {
-                                                                // Deselecting...
-                                                                if (hasWildcard) {
-                                                                    // [FIX] Expand wildcard: All regions EXCEPT this one
-                                                                    newRegions = REGIONS.map(r => r.id).filter(id => id !== region.id);
-                                                                } else {
-                                                                    // Standard processing
-                                                                    newRegions = currentRegions.filter(r => r !== region.id);
-                                                                }
-                                                            } else {
-                                                                // Selecting...
-                                                                newRegions = [...currentRegions, region.id];
-                                                                // Check if we now have ALL regions -> Collapse to '*'
-                                                                const allRegionIds = REGIONS.map(r => r.id);
-                                                                const hasAll = allRegionIds.every(id => newRegions.includes(id));
-                                                                if (hasAll) {
-                                                                    newRegions = ['*'];
-                                                                }
-                                                            }
-
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                accessScopes: {
-                                                                    divisionIds: prev.accessScopes?.divisionIds || [],
-                                                                    ...prev.accessScopes,
-                                                                    regionIds: newRegions
-                                                                }
-                                                            }));
-                                                        }}
-                                                        disabled={!canEditSAM}
-                                                        className={cn(
-                                                            "px-2 py-1 rounded text-[10px] border transition-all",
-                                                            isSelected
-                                                                ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/50"
-                                                                : "bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10",
-                                                            !canEditSAM && "cursor-not-allowed opacity-50"
-                                                        )}
-                                                    >
-                                                        {region.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    {/* Divisions */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-medium opacity-70">Divisiones Permitidas</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {DIVISIONS.map(div => {
-                                                const currentDivisions = formData.accessScopes?.divisionIds || [];
-                                                const hasWildcard = currentDivisions.includes('*');
-                                                const isSelected = hasWildcard || currentDivisions.includes(div.id);
-
-                                                return (
-                                                    <button
-                                                        key={div.id}
-                                                        onClick={() => {
-                                                            if (!canEditSAM) return;
-                                                            let newDivs: string[] = [];
-
-                                                            if (isSelected) {
-                                                                // Deselecting...
-                                                                if (hasWildcard) {
-                                                                    // [FIX] Expand wildcard
-                                                                    newDivs = DIVISIONS.map(d => d.id).filter(id => id !== div.id);
-                                                                } else {
-                                                                    newDivs = currentDivisions.filter(d => d !== div.id);
-                                                                }
-                                                            } else {
-                                                                // Selecting...
-                                                                newDivs = [...currentDivisions, div.id];
-                                                                // Check if we now have ALL divisions -> Collapse to '*'
-                                                                const allDivIds = DIVISIONS.map(d => d.id);
-                                                                const hasAll = allDivIds.every(id => newDivs.includes(id));
-                                                                if (hasAll) {
-                                                                    newDivs = ['*'];
-                                                                }
-                                                            }
-
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                accessScopes: {
-                                                                    regionIds: prev.accessScopes?.regionIds || [],
-                                                                    ...prev.accessScopes,
-                                                                    divisionIds: newDivs
-                                                                }
-                                                            }));
-                                                        }}
-                                                        disabled={!canEditSAM}
-                                                        className={cn(
-                                                            "px-2 py-1 rounded text-[10px] border transition-all",
-                                                            isSelected
-                                                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50"
-                                                                : "bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10",
-                                                            !canEditSAM && "cursor-not-allowed opacity-50"
-                                                        )}
-                                                    >
-                                                        {div.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 

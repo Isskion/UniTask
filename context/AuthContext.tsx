@@ -53,153 +53,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-    const [syncError, setSyncError] = useState<{ type: 'SYNC_ERROR' | 'CRITICAL_ERROR', message: string, debugInfo: string, canRepair: boolean } | null>(null);
-
-    // Ref to track the profile listener unsubscribe function
-    const profileUnsubRef = React.useRef<(() => void) | null>(null);
-
-    // --- REPAIR FUNCTION ---
-    const handleRepair = async () => {
-        if (!user || !user.email) return;
-
-        try {
-            const res = await fetch('/api/admin/fix-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: user.email,
-                    problemUid: user.uid
-                })
-            });
-            const fixData = await res.json();
-            alert(`✅ Reparación completada. Recargando...`);
-            window.location.reload();
-        } catch (e: any) {
-            setSyncError({
-                type: 'CRITICAL_ERROR',
-                message: `Fallo técnico en reparación: ${e.message}`,
-                debugInfo: JSON.stringify(e, null, 2),
-                canRepair: false
-            });
-        }
-    };
 
     useEffect(() => {
-        console.log("[AuthContext] VERSION CHECK: 13.4.10-CLEAN-BUILD-UI-FIX");
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
-
-            // 1. Cleanup previous listener immediately
-            if (profileUnsubRef.current) {
-                console.log("[AuthContext] Cleaning up previous profile listener.");
-                profileUnsubRef.current();
-                profileUnsubRef.current = null;
-            }
-
             if (currentUser) {
+                // Initial Load: Get current token result
+                let tokenResult = await currentUser.getIdTokenResult();
+                let claims = tokenResult.claims;
+
                 // --- REAL-TIME PROFILE SYNC LISTENER ---
-                // "The Source of Truth": We trust Firestore for UI permissions, not the potentially stale Token Claims.
-                const { doc, onSnapshot, getDocFromServer } = await import('firebase/firestore');
+                // "The Consumer": Watches for backend modifications to trigger Token Refresh
+                const { doc, onSnapshot } = await import('firebase/firestore');
 
-                // 2. Setup New Listener
-                const profileRef = doc(db, 'users', currentUser.uid);
-                console.log(`[AuthContext] 🔍 Listening to profile: users/${currentUser.uid} (Project: ${db.app.options.projectId})`);
+                // Debounce timer reference
+                let refreshTimer: NodeJS.Timeout | null = null;
 
-                const profileUnsub = onSnapshot(profileRef, (snapshot) => {
-                    console.log(`[AuthContext] 📸 Snapshot received. Exists: ${snapshot.exists()}, FromCache: ${snapshot.metadata.fromCache}`);
-
+                const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
                     if (!snapshot.exists()) {
-                        if (snapshot.metadata.fromCache) {
-                            console.warn(`[AuthContext] ⏳ Profile not found in cache. Attempting FORCE SERVER FETCH (Strict)...`);
-
-                            // Fallback: Force a getDocFromServer to break the cache loop ABSOLUTELY
-                            getDocFromServer(profileRef).then(serverSnap => {
-                                console.log(`[AuthContext] 🌍 Force Fetch Result. Exists: ${serverSnap.exists()}`);
-                                if (serverSnap.exists()) {
-                                    // Manually update state
-                                    const data = serverSnap.data();
-                                    setUserProfile(data as UserProfile);
-
-                                    const dbRole = Number(data.roleLevel) || 0;
-                                    const dbTenantId = String(data.tenantId) || "unknown";
-
-                                    setIdentity({
-                                        uid: currentUser.uid,
-                                        email: currentUser.email,
-                                        realRole: dbRole,
-                                        realTenantId: dbTenantId
-                                    });
-
-                                    setViewContext({
-                                        activeRole: dbRole,
-                                        activeTenantId: dbTenantId,
-                                        isMasquerading: false
-                                    });
-                                    setLoading(false); // UNBLOCK UI!
-                                } else {
-                                    console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by STRICT Server Fetch).`);
-
-                                    // Attempt to diagnose via Server API
-                                    fetch(`/api/debug/user?uid=${currentUser.uid}`)
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            console.error("[AuthContext] 🕵️‍♂️ Diagnostic Result:", data);
-                                            const serverSaysExists = data.firestoreExists;
-                                            // const serverProject = data.adminAppProjectId;
-                                            const debugInfo = JSON.stringify(data, null, 2);
-
-                                            if (serverSaysExists) {
-                                                // Sync Error -> Show UI to Repair
-                                                setSyncError({
-                                                    type: 'SYNC_ERROR',
-                                                    message: 'Tu usuario existe en el servidor pero no en tu navegador local (Cache/Sync Issue).',
-                                                    debugInfo: debugInfo,
-                                                    canRepair: true
-                                                });
-                                            } else {
-                                                // Critical Error -> Show UI to Repair/Recreate
-                                                setSyncError({
-                                                    type: 'CRITICAL_ERROR',
-                                                    message: 'Tu usuario NO EXISTE en la base de datos. Es necesario repararlo.',
-                                                    debugInfo: debugInfo,
-                                                    canRepair: true
-                                                });
-                                            }
-                                        })
-                                        .catch(err => {
-                                            setSyncError({
-                                                type: 'CRITICAL_ERROR',
-                                                message: `Error Crítico y fallo en diagnóstico: ${err.message}`,
-                                                debugInfo: JSON.stringify(err, null, 2),
-                                                canRepair: false
-                                            });
-                                            // auth.signOut(); // Let user read error first
-                                        });
-                                }
-                            }).catch(err => {
-                                console.error("[AuthContext] 💥 Force Fetch Error:", err);
-                                let msg = `Error al validar tu perfil: ${err.message}`;
-                                if (err.code === 'unavailable') msg = "Error de Conexión: No se puede contactar con el servidor.";
-                                if (err.code === 'permission-denied') msg = "Permiso Denegado: Existes, pero las reglas bloquean tu lectura.";
-
-                                setSyncError({
-                                    type: 'CRITICAL_ERROR',
-                                    message: msg,
-                                    debugInfo: JSON.stringify(err, null, 2),
-                                    canRepair: false
-                                });
-                            });
-
-                            return;
-                        }
-
-                        console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server Snapshot). Auto-signing out.`);
-                        setSyncError({
-                            type: 'CRITICAL_ERROR',
-                            message: `Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.`,
-                            debugInfo: "Snapshot confirmed non-existence.",
-                            canRepair: false
-                        });
+                        console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
+                        auth.signOut();
                         return;
                     }
 
@@ -212,106 +85,132 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         return;
                     }
 
-                    // [STABLE APPROACH] Decoupled Logic
-                    // We update the UI state (userProfile, identity, viewContext) based purely on Firestore.
-                    // We do NOT check token claims here. This prevents the "Loop detected" error.
-                    // If permissions fail on backend, the user will see an error there, but the app won't crash.
+                    const latestSyncId = data.syncId;
+                    const currentSyncId = claims.syncId;
 
-                    // [FIX] Stability Check: Only update if data actually changed
-                    setUserProfile(prev => {
-                        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
-                        return data as UserProfile;
-                    });
+                    // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
+                    // Also refresh if roleLevel/tenantId mismatches critically.
 
-                    const dbRole = Number(data.roleLevel) || 0;
-                    const dbTenantId = String(data.tenantId) || "unknown";
+                    const needsRefresh = (latestSyncId && (!currentSyncId || latestSyncId > currentSyncId)) ||
+                        (data.roleLevel !== claims.roleLevel) ||
+                        (data.tenantId !== claims.tenantId);
 
-                    // Update Identity if it changed
-                    setIdentity(prev => {
-                        if (prev && prev.realRole === dbRole && prev.realTenantId === dbTenantId) return prev;
-                        return {
-                            uid: currentUser.uid,
-                            email: currentUser.email,
-                            realRole: dbRole,
-                            realTenantId: dbTenantId
-                        };
-                    });
+                    if (needsRefresh) {
+                        console.log("[AuthContext] ⚠️ Profile mismatch detected. Scheduling forced token refresh...");
 
-                    // Update ViewContext if not masquerading
-                    setViewContext(prev => {
-                        // If masquerading, don't disturb it unless we need to?
-                        // Actually, if real role drops below SuperAdmin, we should probably kill masquerade.
-                        if (prev?.isMasquerading) {
-                            if (dbRole < RoleLevel.SUPERADMIN) {
-                                // Security: Lost superadmin status in DB -> Kill masquerade
-                                return {
-                                    activeRole: dbRole,
-                                    activeTenantId: dbTenantId,
+                        // [FIX] Block UI immediately to prevent permission errors with stale token
+                        // This forces 'loading' to true, unmounting the app and stopping failed queries.
+                        setViewContext(null);
+
+                        // Debounce: Wait 2s to allow Cloud Functions to settle propagation
+                        if (refreshTimer) clearTimeout(refreshTimer);
+
+                        refreshTimer = setTimeout(async () => {
+                            console.log("[AuthContext] 🔄 Executing Forced Token Refresh...");
+                            try {
+                                tokenResult = await currentUser.getIdTokenResult(true); // Force Refresh
+                                claims = tokenResult.claims;
+                                console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
+
+                                // Re-evaluate identity with NEW token
+                                const newRole = Number(claims.roleLevel) || 0;
+                                const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
+
+                                setIdentity({
+                                    uid: currentUser.uid,
+                                    email: currentUser.email,
+                                    realRole: newRole,
+                                    realTenantId: newTenant
+                                });
+
+                                // Reset View Context to match reality
+                                setViewContext(prev => prev?.isMasquerading ? prev : {
+                                    activeRole: newRole,
+                                    activeTenantId: newTenant,
                                     isMasquerading: false
-                                };
+                                });
+
+                            } catch (e) {
+                                console.error("[AuthContext] Token refresh failed:", e);
                             }
-                            return prev;
-                        }
-
-                        // Normal update
-                        if (prev && prev.activeRole === dbRole && prev.activeTenantId === dbTenantId) return prev;
-
-                        return {
-                            activeRole: dbRole,
-                            activeTenantId: dbTenantId,
-                            isMasquerading: false
-                        };
-                    });
-
-                    setLoading(false);
-
-                }, (error) => {
-                    console.error("[AuthContext] Profile listener error:", error);
-                    let errorMsg = "Error de conexión/permisos al cargar perfil.";
-
-                    if (error.code === 'permission-denied') {
-                        errorMsg = "Permiso denegado: No tienes acceso a tu perfil de usuario.";
-                        console.warn("[AuthContext] Permission Denied. Rules might be blocking access.");
+                        }, 2000);
+                    } else {
+                        // Optimistic Profile Hydration for UI display ONLY (Not security)
+                        setUserProfile(data as UserProfile);
                     }
-
-                    // CRITICAL FIX: Ensure we escape the loading state!
-                    setLoading(false);
-
-                    setSyncError({
-                        type: 'CRITICAL_ERROR',
-                        message: `⛔ Error de Acceso: ${errorMsg}`,
-                        debugInfo: JSON.stringify(error, null, 2),
-                        canRepair: false
-                    });
-                    // auth.signOut(); // Let user see error
+                }, (error) => {
+                    if (error.code === 'permission-denied') {
+                        console.log("[AuthContext] Permission denied for profile listener (expected during logout).");
+                    } else {
+                        console.error("[AuthContext] Profile listener error:", error);
+                    }
                 });
 
-                // Store the unsubscribe function in the ref
-                profileUnsubRef.current = profileUnsub;
+                // [SECURITY] Quick profile existence check BEFORE allowing the app to render
+                const { doc: docRef, getDoc: getDocSnap } = await import('firebase/firestore');
+                const profileSnap = await getDocSnap(docRef(db, 'users', currentUser.uid));
+                if (!profileSnap.exists()) {
+                    console.warn("[AuthContext] ⛔ User authenticated but no profile found. Signing out...");
+                    await auth.signOut();
+                    return;
+                }
+                const profileData = profileSnap.data();
+                if (!profileData?.tenantId || profileData.tenantId === "unknown") {
+                    console.warn("[AuthContext] ⛔ User profile has invalid tenantId. Signing out...");
+                    await auth.signOut();
+                    return;
+                }
 
-                // Initial basic setup (Pre-listener)
+                // Setup efficient state update on initial load (without waiting for listener)
+                let parsedRole = Number(claims.roleLevel) || 0;
+                let realTenantId = (claims.tenantId as string) || "unknown";
+
+                const newIdentity: UserIdentity = {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    realRole: parsedRole,
+                    realTenantId
+                };
+
+                setIdentity(newIdentity);
                 setUser(currentUser);
-                // setLoading(false); // Moved inside onSnapshot callbacks
 
-            } else {  // Logout / No user
+                // Initialize View Context
+                const savedSim = localStorage.getItem('superadmin_simulation_context');
+                if (parsedRole >= RoleLevel.SUPERADMIN && savedSim) {
+                    try {
+                        const parsed = JSON.parse(savedSim);
+                        setViewContext({
+                            activeRole: parsed.activeRole,
+                            activeTenantId: parsed.activeTenantId,
+                            isMasquerading: true
+                        });
+                    } catch (e) {
+                        setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
+                    }
+                } else {
+                    setViewContext({ activeRole: parsedRole, activeTenantId: realTenantId, isMasquerading: false });
+                }
+
+                setLoading(false);
+
+                // Cleanup internal listener on unmount/change
+                // Note: We can't easily return cleanup for the inner effect from onIdTokenChanged. 
+                // Ideally this listener logic would be a separate useEffect dependent on 'user'.
+                // But for now, this closure works for the active session.
+
+            } else {
+                // Logout / No user
                 setUser(null);
                 setIdentity(null);
                 setViewContext(null);
                 setUserProfile(null);
                 localStorage.removeItem('superadmin_simulation_context');
                 setLoading(false);
-                setSyncError(null); // Clear errors on logout
             }
         });
 
-        return () => {
-            // Cleanup auth listener
-            unsubscribe();
-            // Cleanup profile listener
-            if (profileUnsubRef.current) {
-                profileUnsubRef.current();
-            }
-        };
+        return () => unsubscribe();
     }, []);
 
     // Auto-process invite ONLY for Google Sign-In users (Google verifies email identity)
@@ -441,13 +340,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!snapshot.exists() && !inviteData) {
                 // No profile and no invite → ghost user, reject
                 console.warn("[AuthContext] ⛔ New user without invite trying to create profile. Rejected.");
-                setSyncError({
-                    type: 'CRITICAL_ERROR',
-                    message: "No se puede crear un perfil sin invitación válida.",
-                    debugInfo: "User tried to register without invite code.",
-                    canRepair: false
-                });
-                // await auth.signOut(); // Let user see error
+                alert("⛔ No se puede crear un perfil sin invitación válida.");
+                await auth.signOut();
                 return;
             }
 
@@ -530,12 +424,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         } catch (e: any) {
             console.error("[AuthContext] Error in createUserProfile:", e);
-            setSyncError({
-                type: 'CRITICAL_ERROR',
-                message: `ERROR AL PROCESAR PERFIL: ${e.message}`,
-                debugInfo: JSON.stringify(e, null, 2),
-                canRepair: false
-            });
+            alert("❌ ERROR AL PROCESAR PERFIL: " + e.message);
         }
     };
 
@@ -550,12 +439,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return;
             }
             console.error("[AuthContext] Google Login Error:", error);
-            setSyncError({
-                type: 'CRITICAL_ERROR',
-                message: `Error al iniciar sesión con Google: ${error.message}`,
-                debugInfo: JSON.stringify(error, null, 2),
-                canRepair: false
-            });
+            alert("Error al iniciar sesión con Google: " + error.message);
         }
     };
 
@@ -608,55 +492,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             requestRegistration,
             logout
         }}>
-            {/* ERROR OVERLAY FOR SYNC ISSUES */}
-            {syncError && (
-                <div className="fixed inset-0 z-[9999] bg-black/90 flex flex-col justify-center items-center text-white p-8 text-center backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-zinc-900 p-8 rounded-2xl max-w-2xl w-full border border-zinc-800 shadow-2xl flex flex-col items-center">
-                        <div className="bg-red-500/10 p-4 rounded-full mb-6">
-                            <h1 className="text-3xl font-bold text-red-500">
-                                {syncError.type === 'SYNC_ERROR' ? '⚠️ Problema de Sincronización' : '⛔ Error de Acceso'}
-                            </h1>
-                        </div>
-
-                        <p className="mb-8 text-zinc-300 text-lg leading-relaxed max-w-lg">
-                            {syncError.message}
-                        </p>
-
-                        <div className="flex gap-4 justify-center mb-8 w-full">
-                            {syncError.canRepair && (
-                                <button
-                                    onClick={handleRepair}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-2"
-                                >
-                                    <span>🛠️</span> Reparar Perfil
-                                </button>
-                            )}
-                            <button
-                                onClick={logout}
-                                className="bg-zinc-700 hover:bg-zinc-600 text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 border border-zinc-600"
-                            >
-                                Cerrar Sesión
-                            </button>
-                        </div>
-
-                        <div className="w-full">
-                            <details className="group">
-                                <summary className="cursor-pointer text-zinc-500 hover:text-zinc-400 mb-2 font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 select-none transition-colors">
-                                    <span>Ver Detalles Técnicos</span>
-                                    <span className="group-open:rotate-180 transition-transform">▼</span>
-                                </summary>
-                                <div className="bg-black/50 p-4 rounded-lg overflow-x-auto border border-zinc-800/50 text-left shadow-inner">
-                                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre-wrap break-all">
-                                        {syncError.debugInfo}
-                                    </pre>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {!loading && !syncError && children}
+            {!loading && children}
         </AuthContext.Provider>
     );
 };

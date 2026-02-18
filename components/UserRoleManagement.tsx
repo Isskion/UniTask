@@ -16,7 +16,6 @@ import { Mail, Clock, Ban, CheckCircle } from 'lucide-react';
 import { deactivateInviteAction } from '@/app/actions/invites';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useMasterData, MasterOption } from '@/lib/master_data'; // Import hook
 
 const DEFAULT_GROUP: Partial<PermissionGroup> = {
     name: '',
@@ -42,15 +41,9 @@ export default function UserRoleManagement() {
     const [showModal, setShowModal] = useState(false);
     const [editingGroup, setEditingGroup] = useState<PermissionGroup | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'projects' | 'tasks' | 'views' | 'special' | 'invites'>('general'); // For Modal
-    const [mainTab, setMainTab] = useState<'roles' | 'invites' | 'master_data'>('roles'); // For Main Page
+    const [mainTab, setMainTab] = useState<'roles' | 'invites'>('roles'); // For Main Page
     const [formData, setFormData] = useState<Partial<PermissionGroup>>(DEFAULT_GROUP);
     const [invites, setInvites] = useState<any[]>([]);
-
-    // Master Data Hooks
-    const { regions, divisions, saveMasterData } = useMasterData();
-    const [editingMaster, setEditingMaster] = useState<{ type: 'region' | 'division', item: MasterOption | null }>({ type: 'region', item: null });
-    const [masterForm, setMasterForm] = useState<Partial<MasterOption>>({});
-    const [showMasterModal, setShowMasterModal] = useState(false);
     const [loadingInvites, setLoadingInvites] = useState(false);
 
     useEffect(() => {
@@ -137,54 +130,6 @@ export default function UserRoleManagement() {
         } catch (error) {
             console.error('Error deleting group:', error);
             alert(t('roles_page.delete_error'));
-        }
-    }
-
-
-    // Master Data Handlers
-    const handleSaveMaster = async () => {
-        if (!masterForm.id || !masterForm.label) {
-            alert("ID y Etiqueta son obligatorios");
-            return;
-        }
-
-        const newItem: MasterOption = {
-            id: masterForm.id.toUpperCase().replace(/\s+/g, '_'),
-            label: masterForm.label,
-            description: masterForm.description || '',
-            isSystem: false
-        };
-
-        try {
-            if (editingMaster.type === 'region') {
-                const updated = editingMaster.item
-                    ? regions.map(r => r.id === editingMaster.item!.id ? newItem : r)
-                    : [...regions, newItem];
-                await saveMasterData(updated, divisions);
-            } else {
-                const updated = editingMaster.item
-                    ? divisions.map(d => d.id === editingMaster.item!.id ? newItem : d)
-                    : [...divisions, newItem];
-                await saveMasterData(regions, updated);
-            }
-            setShowMasterModal(false);
-        } catch (e) {
-            console.error("Error saving master data:", e);
-            alert("Error guardando datos maestros");
-        }
-    };
-
-    const handleDeleteMaster = async (type: 'region' | 'division', id: string) => {
-        if (!confirm("¿Eliminar este elemento? Esto no afectará a los datos históricos, pero dejará de estar disponible para nuevos registros.")) return;
-
-        try {
-            if (type === 'region') {
-                await saveMasterData(regions.filter(r => r.id !== id), divisions);
-            } else {
-                await saveMasterData(regions, divisions.filter(d => d.id !== id));
-            }
-        } catch (e) {
-            console.error("Error deleting:", e);
         }
     };
 
@@ -314,17 +259,6 @@ export default function UserRoleManagement() {
                     )}
                 >
                     Invitaciones
-                </button>
-                <button
-                    onClick={() => setMainTab('master_data')}
-                    className={cn(
-                        "px-4 py-2 text-sm font-medium border-b-2 transition-colors",
-                        mainTab === 'master_data'
-                            ? (isLight ? "border-red-600 text-red-600" : (isRed ? "border-[#D32F2F] text-white" : "border-white text-white"))
-                            : "border-transparent text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
-                    )}
-                >
-                    Entornos & Divisiones (SAM)
                 </button>
             </div>
 
@@ -611,170 +545,7 @@ export default function UserRoleManagement() {
                 </div>
             )}
 
-            {/* Master Data List */}
-            {mainTab === 'master_data' && (
-                <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                    {/* Regions Section */}
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                Regiones / Entornos
-                            </h3>
-                            <button
-                                onClick={() => {
-                                    setEditingMaster({ type: 'region', item: null });
-                                    setMasterForm({});
-                                    setShowMasterModal(true);
-                                }}
-                                className="px-3 py-1 bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 rounded text-sm font-medium transition-colors"
-                            >
-                                + Nueva Región
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {regions.map(region => (
-                                <div key={region.id} className={cn("p-4 rounded-lg border relative group", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="font-bold">{region.label}</div>
-                                            <div className="text-xs opacity-50 font-mono mt-1">{region.id}</div>
-                                            <div className="text-sm mt-2 opacity-70">{region.description}</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingMaster({ type: 'region', item: region });
-                                                    setMasterForm(region);
-                                                    setShowMasterModal(true);
-                                                }}
-                                                className="p-1 hover:bg-white/10 rounded"
-                                            >
-                                                <Edit2 className="w-4 h-4 opacity-50 hover:opacity-100" />
-                                            </button>
-                                            {!region.isSystem && (
-                                                <button
-                                                    onClick={() => handleDeleteMaster('region', region.id)}
-                                                    className="p-1 hover:bg-red-500/20 text-red-500 rounded"
-                                                >
-                                                    <Trash2 className="w-4 h-4 opacity-50 hover:opacity-100" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Divisions Section */}
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className={cn("text-lg font-bold flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                Divisiones
-                            </h3>
-                            <button
-                                onClick={() => {
-                                    setEditingMaster({ type: 'division', item: null });
-                                    setMasterForm({});
-                                    setShowMasterModal(true);
-                                }}
-                                className="px-3 py-1 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded text-sm font-medium transition-colors"
-                            >
-                                + Nueva División
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {divisions.map(div => (
-                                <div key={div.id} className={cn("p-4 rounded-lg border relative group", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="font-bold">{div.label}</div>
-                                            <div className="text-xs opacity-50 font-mono mt-1">{div.id}</div>
-                                            <div className="text-sm mt-2 opacity-70">{div.description}</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingMaster({ type: 'division', item: div });
-                                                    setMasterForm(div);
-                                                    setShowMasterModal(true);
-                                                }}
-                                                className="p-1 hover:bg-white/10 rounded"
-                                            >
-                                                <Edit2 className="w-4 h-4 opacity-50 hover:opacity-100" />
-                                            </button>
-                                            {!div.isSystem && (
-                                                <button
-                                                    onClick={() => handleDeleteMaster('division', div.id)}
-                                                    className="p-1 hover:bg-red-500/20 text-red-500 rounded"
-                                                >
-                                                    <Trash2 className="w-4 h-4 opacity-50 hover:opacity-100" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Master Data Modal */}
-            {showMasterModal && (
-                <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className={cn("rounded-xl w-full max-w-md p-6 shadow-2xl", isLight ? "bg-white" : "bg-[#09090b] border border-white/10")}>
-                        <h3 className={cn("text-lg font-bold mb-4", isLight ? "text-black" : "text-white")}>
-                            {editingMaster.item ? 'Editar' : 'Nueva'} {editingMaster.type === 'region' ? 'Región' : 'División'}
-                        </h3>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1 opacity-70">ID (Código)</label>
-                                <input
-                                    value={masterForm.id || ''}
-                                    onChange={e => setMasterForm({ ...masterForm, id: e.target.value.toUpperCase() })}
-                                    disabled={!!editingMaster.item} // ID immutable on edit
-                                    className={cn("w-full px-3 py-2 rounded border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-black/20 border-white/10 text-white")}
-                                    placeholder="EJ: EU, TECH"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 opacity-70">Etiqueta (Nombre)</label>
-                                <input
-                                    value={masterForm.label || ''}
-                                    onChange={e => setMasterForm({ ...masterForm, label: e.target.value })}
-                                    className={cn("w-full px-3 py-2 rounded border", isLight ? "bg-white border-zinc-200" : "bg-black/20 border-white/10 text-white")}
-                                    placeholder="Ej: Europa"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 opacity-70">Descripción</label>
-                                <textarea
-                                    value={masterForm.description || ''}
-                                    onChange={e => setMasterForm({ ...masterForm, description: e.target.value })}
-                                    className={cn("w-full px-3 py-2 rounded border h-20", isLight ? "bg-white border-zinc-200" : "bg-black/20 border-white/10 text-white")}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button
-                                onClick={() => setShowMasterModal(false)}
-                                className="px-4 py-2 rounded font-medium opacity-70 hover:opacity-100"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveMaster}
-                                className={cn("px-4 py-2 rounded font-bold text-white", isLight ? "bg-indigo-600 hover:bg-indigo-700" : "bg-indigo-600 hover:bg-indigo-500")}
-                            >
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Modal */}
             {
                 showModal && (
                     <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">

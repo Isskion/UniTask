@@ -445,8 +445,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             return (
                 <div className="bg-popover border border-border p-2 rounded-lg shadow-lg text-[10px]">
                     <div className="font-bold border-b border-border/50 pb-1 mb-1 text-center">{label}</div>
-                    {items.map((entry: any, idx: number) => (
-                        <div key={entry.dataKey || idx} className={cn("flex items-center gap-2 mb-0.5 last:mb-0", entry.value === 0 ? "opacity-50" : "")}>
+                    {items.map((entry: any) => (
+                        <div key={entry.name} className={cn("flex items-center gap-2 mb-0.5 last:mb-0", entry.value === 0 ? "opacity-50" : "")}>
                             <div
                                 className="w-2 h-2 rounded-full"
                                 style={{ backgroundColor: entry.color }}

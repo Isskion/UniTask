@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, where, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, query, orderBy, where, updateDoc } from "firebase/firestore";
 import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -13,9 +13,6 @@ import { Project, Tenant, getRoleLevel, RoleLevel, UserProfile } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ProjectMindMapModal } from "./ProjectMindMapModal";
-import { useMasterData } from "@/lib/master_data"; // Dynamic Hook
-import { getTenantCollection } from "@/lib/tenant_db"; // For cascade updates
-import { writeBatch } from "firebase/firestore"; // For batch updates
 
 // New Components
 import ProjectActivityFeed from "./ProjectActivityFeed";
@@ -23,7 +20,7 @@ import TodaysWorkbench from "./TodaysWorkbench";
 import { ProjectDocuments } from "./ProjectDocuments";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
-    const { userRole, user, tenantId, userProfile: authProfile } = useAuth();
+    const { userRole, user, tenantId } = useAuth();
     const { theme } = useTheme();
     const { t } = useLanguage();
     const isLight = theme === 'light';
@@ -37,16 +34,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'feed' | 'tasks' | 'details' | 'edit' | 'settings' | 'documents'>('feed');
-    const [scannerModalOpen, setScannerModalOpen] = useState(false);
-
-    // Dynamic Master Data
-    const { regions: REGIONS, divisions: DIVISIONS } = useMasterData(); // Alias for compatibility with existing code
-
-    // Context access check
-    // Context access check
-    if (!user) return <div className="flex h-full items-center justify-center">Please log in.</div>;
-    if (!tenantId) return <div className="flex h-full items-center justify-center text-zinc-500 animate-pulse">Initializing Tenant Context... (User: {user.email})</div>;
+    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents'>('feed');
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
@@ -73,10 +61,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         // Fetch User Profile if we need it for filtering (Assume Admin/PM doesn't need assignment filtering)
         const roleLevel = getRoleLevel(userRole);
 
-        // [SAM] Optimization: Use profile from AuthContext if available
-        if (authProfile) {
-            setUserProfile(authProfile);
-        } else if (user && roleLevel < RoleLevel.PM) {
+        if (user && roleLevel < RoleLevel.PM) {
             getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
                 .then(snap => {
                     if (!snap.empty) {
@@ -114,12 +99,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             const snap = await getDocs(q);
             const users = snap.docs.map(d => ({ uid: d.id, ...d.data() } as UserProfile));
             setAllUsers(users);
-        } catch (e: any) {
-            // [SAM] Suppress Permission Error for standard users who might not have listing rights
-            if (e?.code === 'permission-denied') {
-                console.warn("[ProjectManagement] Could not load team users (Permission Denied). This is expected for standard users.");
-                return;
-            }
+        } catch (e) {
             console.error("Error loading users for avatars", e);
         }
     };
@@ -129,16 +109,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         try {
             // Use centralized loader (handles ALL for superadmin)
             const targetTenant = (userRole === 'superadmin') ? "ALL" : (tenantId || "1");
-
-            // [SAM] Guard: If profile tenant doesn't match active tenant (e.g. during migration), wait.
-            if (userRole !== 'superadmin' && userProfile?.tenantId && userProfile.tenantId !== tenantId) {
-                console.log(`[ProjectManagement] Stale profile detected (Profile: ${userProfile.tenantId} vs Context: ${tenantId}). Aborting fetch.`);
-                setLoading(false); // Stop loading spinner
-                return;
-            }
-
-            // [SAM] Pass userProfile to enforce Scope Security at Query Level
-            const projs = await getActiveProjects(targetTenant, userProfile || user?.uid, getRoleLevel(userRole));
+            const projs = await getActiveProjects(targetTenant);
             setProjects(projs);
         } catch (error) {
             console.error("Error loading projects:", error);
@@ -232,85 +203,15 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                 setIsNew(false);
                 setUserTab('feed');
 
+            } else {
                 // Update
                 if (selectedProject?.id) {
                     const { id, ...data } = formData; // Exclude ID
-
-                    // [SAM] Value Change Detection for Cascade
-                    const regionChanged = data.regionId !== selectedProject.regionId;
-                    const divisionChanged = data.divisionId !== selectedProject.divisionId;
-                    const targetTenant = tenantId || "1";
-
-                    // Prepare payload
-                    const updatePayload: any = { ...data };
-
-                    // Generate Access Key if region/division present
-                    if (data.regionId && data.divisionId) {
-                        updatePayload._accessKey = `${data.regionId}:${data.divisionId}`;
-                    }
-
-                    // [FIX] Write to Tenant Collection, not Root
-                    // Was: await updateDoc(doc(db, "projects", selectedProject.id), updatePayload);
-                    const docRef = getTenantDoc(db, "projects", selectedProject.id, targetTenant);
-                    await updateDoc(docRef, updatePayload);
-
-                    // [SAM] Cascade Propagation (Client-Side Batch for immediate feedback)
-                    // ... (Cascade logic uses getTenantCollection already, confirming mismatch)
-                    if (regionChanged || divisionChanged) {
-                        try {
-                            setSaving(true); // Keep spinner
-                            showToast("UniTask", "Propagando cambios a tareas y bitácora...", "info");
-
-                            // 1. Fetch active tasks
-                            const tasksQ = query(
-                                getTenantCollection(db, "tasks", targetTenant),
-                                where("projectId", "==", selectedProject.id),
-                                where("isActive", "==", true)
-                            );
-                            const tasksSnap = await getDocs(tasksQ);
-
-                            // 2. Fetch feed items
-                            const feedQ = query(
-                                getTenantCollection(db, "project_activity_feed", targetTenant),
-                                where("projectId", "==", selectedProject.id)
-                            );
-                            const feedSnap = await getDocs(feedQ);
-
-                            // 3. Batched Write (Chunks of 500)
-                            const batch = writeBatch(db);
-                            let opCount = 0;
-
-                            const commonUpdates = {
-                                regionId: data.regionId,
-                                divisionId: data.divisionId,
-                                _accessKey: updatePayload._accessKey
-                            };
-
-                            tasksSnap.forEach(tDoc => {
-                                batch.update(tDoc.ref, commonUpdates);
-                                opCount++;
-                            });
-
-                            feedSnap.forEach(fDoc => {
-                                batch.update(fDoc.ref, commonUpdates);
-                                opCount++;
-                            });
-
-                            if (opCount > 0) {
-                                await batch.commit();
-                                console.log(`[SAM] Propagated scope to ${opCount} items.`);
-                                showToast("UniTask", `${opCount} elementos actualizados al nuevo entorno/división.`, "success");
-                            }
-                        } catch (err) {
-                            console.error("Cascade Error:", err);
-                            showToast("Error", "Fallo parcial en propagación de scopes.", "error");
-                        }
-                    }
+                    await updateDoc(doc(db, "projects", selectedProject.id), data as any);
 
                     // Update Local State
-                    const updatedProject = { ...selectedProject, ...data, ...updatePayload } as Project;
-                    setSelectedProject(updatedProject);
-                    setProjects(prev => prev.map(p => p.id === selectedProject.id ? updatedProject : p));
+                    setSelectedProject({ ...selectedProject, ...data } as Project);
+                    setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...data } as Project : p));
 
                     showToast("UniTaskController", t('projects.validation.saved'), "success");
                     setUserTab('feed'); // Close form
@@ -338,18 +239,13 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         if (!canEdit) return; // Guard
         if (!selectedProject?.id) return;
         const newState = !selectedProject.isActive;
-        const targetTenant = tenantId || "1";
 
         // Optimistic
         setFormData(prev => ({ ...prev, isActive: newState })); // Update form
         setSelectedProject(prev => prev ? { ...prev, isActive: newState } : null); // Update header
 
         try {
-            // [FIX] Write to Tenant Collection
-            // Was: await updateDoc(doc(db, "projects", selectedProject.id), { isActive: newState });
-            const docRef = getTenantDoc(db, "projects", selectedProject.id, targetTenant);
-            await updateDoc(docRef, { isActive: newState });
-
+            await updateDoc(doc(db, "projects", selectedProject.id), { isActive: newState });
             setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, isActive: newState } : p));
         } catch (e) {
             console.error(e);
@@ -359,23 +255,19 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // --- RENDER ---
 
-    // --- RENDER ---
-
     const ProjectList = () => (
         <div className="h-full flex flex-col">
             <div className={cn("p-4 border-b flex justify-between items-center", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
                 <h2 className={cn("text-sm font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-foreground")}>{t('projects.title')} ({visibleProjects.length})</h2>
-                <div className="flex items-center gap-2">
-                    {canCreate && (
-                        <button
-                            onClick={handleCreateClick}
-                            className="p-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-lg shadow-primary/20 transition-all"
-                            title={t('projects.create_new')}
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
+                {canCreate && (
+                    <button
+                        onClick={handleCreateClick}
+                        className="p-1.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md shadow-lg shadow-primary/20 transition-all"
+                        title={t('projects.create_new')}
+                    >
+                        <Plus className="w-4 h-4" />
+                    </button>
+                )}
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
                 {visibleProjects.map(p => {
@@ -769,52 +661,6 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                             </div>
                                         </div>
 
-                                        {/* SAM Scopes */}
-                                        <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
-                                            <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>Región (Entorno)</label>
-                                                <select
-                                                    disabled={!isNew && !!formData.regionId} // [FIX] Allow setting if empty (Legacy migration)
-                                                    value={formData.regionId || ""}
-                                                    onChange={e => setFormData({ ...formData, regionId: e.target.value })}
-                                                    className={cn("w-full border rounded-lg px-3 py-2 text-sm outline-none appearance-none disabled:opacity-50 disabled:cursor-not-allowed",
-                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
-                                                    )}
-                                                >
-                                                    <option value="">-- Seleccionar --</option>
-                                                    {REGIONS.filter(r => {
-                                                        const scopes = userProfile?.accessScopes?.regionIds;
-                                                        if (!scopes) return true; // Fallback
-                                                        if (scopes.includes('*')) return true; // Admin/Super
-                                                        return scopes.includes(r.id);
-                                                    }).map(r => (
-                                                        <option key={r.id} value={r.id}>{r.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>División</label>
-                                                <select
-                                                    disabled={!isNew && !!formData.divisionId} // [FIX] Allow setting if empty
-                                                    value={formData.divisionId || ""}
-                                                    onChange={e => setFormData({ ...formData, divisionId: e.target.value })}
-                                                    className={cn("w-full border rounded-lg px-3 py-2 text-sm outline-none appearance-none disabled:opacity-50 disabled:cursor-not-allowed",
-                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
-                                                    )}
-                                                >
-                                                    <option value="">-- Seleccionar --</option>
-                                                    {DIVISIONS.filter(d => {
-                                                        const scopes = userProfile?.accessScopes?.divisionIds;
-                                                        if (!scopes) return true;
-                                                        if (scopes.includes('*')) return true;
-                                                        return scopes.includes(d.id);
-                                                    }).map(d => (
-                                                        <option key={d.id} value={d.id}>{d.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
                                         <div className={cn("pt-6 border-t flex items-center justify-end gap-3", isLight ? "border-zinc-100" : "border-white/5")}>
                                             <button
                                                 onClick={handleBack}
@@ -856,18 +702,15 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
                         </div>
                     </div>
-                )
-                }
+                )}
                 {/* Mind Map Modal */}
-                {
-                    selectedProject && showMindMap && (
-                        <ProjectMindMapModal
-                            project={selectedProject}
-                            onClose={() => setShowMindMap(false)}
-                        />
-                    )
-                }
-            </div >
-        </div >
+                {selectedProject && showMindMap && (
+                    <ProjectMindMapModal
+                        project={selectedProject}
+                        onClose={() => setShowMindMap(false)}
+                    />
+                )}
+            </div>
+        </div>
     );
 }

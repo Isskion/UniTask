@@ -5,11 +5,9 @@ import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesSta
 import '@xyflow/react/dist/style.css';
 import { FlowGraph, FlowNode } from '@/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
 
-// Initial placeholder graph template
-const INITIAL_GRAPH_TEMPLATE: FlowGraph = {
+// Initial placeholder graph
+const INITIAL_GRAPH: FlowGraph = {
     id: 'draft-1',
     tenantId: 'demo',
     name: 'New Flow',
@@ -27,48 +25,7 @@ const INITIAL_GRAPH_TEMPLATE: FlowGraph = {
 };
 
 export default function UnifluxWorkspace() {
-    const { user, tenantId } = useAuth();
-    const { showToast } = useToast();
-    const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH_TEMPLATE);
-    const [isBlocked, setIsBlocked] = useState(false);
-
-    // [SAM Architecture] Enforce Single Scope & Tenant
-    useEffect(() => {
-        if (!user) return;
-
-        const userProfile = user as unknown as any;
-        const userRegions: string[] = userProfile?.accessScopes?.regionIds || [];
-        const userDivisions: string[] = userProfile?.accessScopes?.divisionIds || [];
-
-        const effectiveRegions = userRegions.filter(r => r !== '*');
-        const effectiveDivisions = userDivisions.filter(d => d !== '*');
-
-        if (effectiveRegions.length > 1 || effectiveDivisions.length > 1) {
-            showToast(
-                "Error de Contexto",
-                "Tu usuario tiene múltiples Regiones o Divisiones. Uniflux requiere un contexto único. Ajusta tu perfil.",
-                "error"
-            );
-            setIsBlocked(true);
-            return;
-        }
-
-        const regionId = effectiveRegions.length === 1 ? effectiveRegions[0] : undefined;
-        const divisionId = effectiveDivisions.length === 1 ? effectiveDivisions[0] : undefined;
-
-        // Update Graph Context
-        setGraph(prev => ({
-            ...prev,
-            tenantId: tenantId || 'demo',
-            regionId,
-            divisionId,
-            metadata: {
-                ...prev.metadata,
-                authorId: user.uid
-            }
-        }));
-
-    }, [user, tenantId]);
+    const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
 
     // React Flow State
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -111,22 +68,6 @@ export default function UnifluxWorkspace() {
         setGraph(newGraph);
     };
 
-    if (isBlocked) {
-        return (
-            <div className="w-full h-screen bg-gray-50 flex flex-col items-center justify-center p-8 text-center">
-                <div className="bg-white p-8 rounded-xl shadow-xl border border-red-100 max-w-md">
-                    <h2 className="text-xl font-bold text-red-600 mb-2">Acceso Restringido</h2>
-                    <p className="text-gray-600">
-                        Uniflux requiere un contexto de operación único (una sola Región/División).
-                    </p>
-                    <p className="text-sm text-gray-500 mt-4">
-                        Por favor, ve a tu Perfil y desactiva los scopes adicionales.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="w-full h-screen bg-gray-50 flex flex-col">
             <header className="h-14 bg-white border-b px-6 flex items-center justify-between z-10">
@@ -136,14 +77,8 @@ export default function UnifluxWorkspace() {
                     </span>
                     <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0.1 Alpha</span>
                 </div>
-                <div className="text-sm text-gray-500 flex items-center gap-4">
-                    <span>Draft: {graph.name}</span>
-                    {/* [ADMIN DEBUG] Scope Visibility */}
-                    {user && (user as any).roleLevel >= 80 && (
-                        <div className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded border border-red-100 font-mono">
-                            {graph.regionId || '*'}:{graph.divisionId || '*'}
-                        </div>
-                    )}
+                <div className="text-sm text-gray-500">
+                    Draft: {graph.name}
                 </div>
             </header>
 

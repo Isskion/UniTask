@@ -1,2 +1,0 @@
-Checked 24 users.
-Found 0 potentially problematic users.
