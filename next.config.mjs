@@ -5,9 +5,7 @@ const nextConfig = {
     },
     output: 'standalone',
     productionBrowserSourceMaps: false,
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
+
     typescript: {
         ignoreBuildErrors: true,
     },

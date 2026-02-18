@@ -52,6 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [viewContext, setViewContext] = useState<ViewContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [syncError, setSyncError] = useState<{ type: 'SYNC_ERROR' | 'CRITICAL_ERROR', message: string, debugInfo: string, canRepair: boolean } | null>(null);
 
     // Ref to track the profile listener unsubscribe function
@@ -74,7 +75,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             alert(`✅ Reparación completada. Recargando...`);
             window.location.reload();
         } catch (e: any) {
-            alert(`❌ Fallo técnico: ${e.message}`);
+            setSyncError({
+                type: 'CRITICAL_ERROR',
+                message: `Fallo técnico en reparación: ${e.message}`,
+                debugInfo: JSON.stringify(e, null, 2),
+                canRepair: false
+            });
         }
     };
 
@@ -435,8 +441,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (!snapshot.exists() && !inviteData) {
                 // No profile and no invite → ghost user, reject
                 console.warn("[AuthContext] ⛔ New user without invite trying to create profile. Rejected.");
-                alert("⛔ No se puede crear un perfil sin invitación válida.");
-                await auth.signOut();
+                setSyncError({
+                    type: 'CRITICAL_ERROR',
+                    message: "No se puede crear un perfil sin invitación válida.",
+                    debugInfo: "User tried to register without invite code.",
+                    canRepair: false
+                });
+                // await auth.signOut(); // Let user see error
                 return;
             }
 
@@ -519,7 +530,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
         } catch (e: any) {
             console.error("[AuthContext] Error in createUserProfile:", e);
-            alert("❌ ERROR AL PROCESAR PERFIL: " + e.message);
+            setSyncError({
+                type: 'CRITICAL_ERROR',
+                message: `ERROR AL PROCESAR PERFIL: ${e.message}`,
+                debugInfo: JSON.stringify(e, null, 2),
+                canRepair: false
+            });
         }
     };
 
@@ -534,7 +550,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return;
             }
             console.error("[AuthContext] Google Login Error:", error);
-            alert("Error al iniciar sesión con Google: " + error.message);
+            setSyncError({
+                type: 'CRITICAL_ERROR',
+                message: `Error al iniciar sesión con Google: ${error.message}`,
+                debugInfo: JSON.stringify(error, null, 2),
+                canRepair: false
+            });
         }
     };
 
@@ -589,77 +610,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }}>
             {/* ERROR OVERLAY FOR SYNC ISSUES */}
             {syncError && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0,0,0,0.9)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: 'white',
-                    padding: '2rem',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ backgroundColor: '#1f2937', padding: '2rem', borderRadius: '1rem', maxWidth: '600px', width: '100%', border: '1px solid #374151' }}>
-                        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#ef4444' }}>
-                            {syncError.type === 'SYNC_ERROR' ? '⚠️ PROBLEMA DE SINCRONIZACIÓN' : '⛔ ERROR DE ACCESO'}
-                        </h1>
-                        <p style={{ marginBottom: '2rem', color: '#d1d5db' }}>{syncError.message}</p>
+                <div className="fixed inset-0 z-[9999] bg-black/90 flex flex-col justify-center items-center text-white p-8 text-center backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-zinc-900 p-8 rounded-2xl max-w-2xl w-full border border-zinc-800 shadow-2xl flex flex-col items-center">
+                        <div className="bg-red-500/10 p-4 rounded-full mb-6">
+                            <h1 className="text-3xl font-bold text-red-500">
+                                {syncError.type === 'SYNC_ERROR' ? '⚠️ Problema de Sincronización' : '⛔ Error de Acceso'}
+                            </h1>
+                        </div>
 
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                        <p className="mb-8 text-zinc-300 text-lg leading-relaxed max-w-lg">
+                            {syncError.message}
+                        </p>
+
+                        <div className="flex gap-4 justify-center mb-8 w-full">
                             {syncError.canRepair && (
                                 <button
                                     onClick={handleRepair}
-                                    style={{
-                                        backgroundColor: '#3b82f6',
-                                        color: 'white',
-                                        padding: '0.75rem 1.5rem',
-                                        borderRadius: '0.5rem',
-                                        fontWeight: 'bold',
-                                        cursor: 'pointer',
-                                        border: 'none',
-                                        fontSize: '1rem',
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                    }}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center gap-2"
                                 >
-                                    🛠️ REPARAR PERFIL AHORA
+                                    <span>🛠️</span> Reparar Perfil
                                 </button>
                             )}
                             <button
                                 onClick={logout}
-                                style={{
-                                    backgroundColor: '#4b5563',
-                                    color: 'white',
-                                    padding: '0.75rem 1.5rem',
-                                    borderRadius: '0.5rem',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    border: 'none',
-                                    fontSize: '1rem'
-                                }}
+                                className="bg-zinc-700 hover:bg-zinc-600 text-white px-6 py-3 rounded-lg font-bold transition-all active:scale-95 border border-zinc-600"
                             >
                                 Cerrar Sesión
                             </button>
                         </div>
 
-                        <details style={{ textAlign: 'left', marginTop: '1rem' }}>
-                            <summary style={{ cursor: 'pointer', color: '#9ca3af', marginBottom: '0.5rem' }}>Ver Detalles Técnicos</summary>
-                            <pre style={{
-                                backgroundColor: '#111827',
-                                padding: '1rem',
-                                borderRadius: '0.5rem',
-                                overflowX: 'auto',
-                                fontSize: '0.8rem',
-                                color: '#6ee7b7'
-                            }}>
-                                {syncError.debugInfo}
-                            </pre>
-                        </details>
+                        <div className="w-full">
+                            <details className="group">
+                                <summary className="cursor-pointer text-zinc-500 hover:text-zinc-400 mb-2 font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 select-none transition-colors">
+                                    <span>Ver Detalles Técnicos</span>
+                                    <span className="group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <div className="bg-black/50 p-4 rounded-lg overflow-x-auto border border-zinc-800/50 text-left shadow-inner">
+                                    <pre className="text-xs text-emerald-400 font-mono whitespace-pre-wrap break-all">
+                                        {syncError.debugInfo}
+                                    </pre>
+                                </div>
+                            </details>
+                        </div>
                     </div>
                 </div>
             )}
