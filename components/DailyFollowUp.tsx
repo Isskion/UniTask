@@ -514,7 +514,20 @@ export default function DailyFollowUp() {
                         // Optional: could allow selecting entry
                     }
                 } else {
-                    setEntry({ ...defaultEntry, tenantId: targetTenant }); // Ensure default entry has correct tenant
+                    // [FIX] Auto-populate from globalProjects for new entries (Consultants and PMs)
+                    let initialProjects = [];
+                    if (userRole !== 'superadmin' && globalProjects.length > 0) {
+                        initialProjects = globalProjects.map(gp => ({
+                            projectId: gp.id,
+                            name: gp.name,
+                            status: 'active',
+                            pmNotes: "",
+                            conclusions: "",
+                            nextSteps: ""
+                        }));
+                        console.log(`[DailyFollowUp] Auto-populated ${initialProjects.length} projects for new entry.`);
+                    }
+                    setEntry({ ...defaultEntry, tenantId: targetTenant, projects: initialProjects });
                 }
             }
         } catch (e) {
