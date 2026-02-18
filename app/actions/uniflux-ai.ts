@@ -1,5 +1,5 @@
 import { auth } from "@/lib/firebase";
-import { FlowGraph } from "../../uniflux/core/types";
+import { FlowGraph } from "@/app/uniflux/core/types";
 
 const PROJECT_ID = "minuta-f75a4";
 const REGION = "europe-west1";

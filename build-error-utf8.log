@@ -1,0 +1,109 @@
+﻿
+> weekly-tracker@13.4.6 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 21.3s
+  Running TypeScript ...
+node.exe : Failed to 
+compile.
+En línea: 1 
+Carácter: 1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Failed    
+ to compile.:Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+
+./components/admin/Do
+cumentTypesManager.ts
+x:209:109
+Type error: Type '{ 
+className: string; 
+title: string; }' is 
+not assignable to 
+type 
+'IntrinsicAttributes 
+& Omit<LucideProps, 
+"ref"> & RefAttribute
+s<SVGSVGElement>'.
+  Property 'title' 
+does not exist on 
+type 
+'IntrinsicAttributes 
+& Omit<LucideProps, 
+"ref"> & RefAttribute
+s<SVGSVGElement>'.
+
+[0m [90m 207 
+|[39m               
+                     
+         [33m<[39m
+[33mtd[39m className
+[33m=[39m[32m"px-4
+ py-3 text-center"[3
+9m[33m>[39m
+ [90m 208 |[39m    
+                     
+                     
+   {type[33m.[39mis
+ProjectChecklist 
+[33m&&[39m (
+[31m[1m>[22m[39m
+[90m 209 |[39m      
+                     
+                     
+     [33m<[39m[33m
+CheckSquare[39m clas
+sName[33m=[39m[32m
+"w-4 h-4 
+text-green-500 
+mx-auto"[39m title[
+33m=[39m[32m"Checkl
+ist"[39m [33m/[39m
+[33m>[39m
+ [90m     |[39m    
+                     
+                     
+                     
+                     
+                     
+[31m[1m^[22m[39m
+ [90m 210 |[39m    
+                     
+                     
+   )}
+ [90m 211 |[39m    
+                     
+                    
+[33m<[39m[33m/[39m
+[33mtd[39m[33m>[3
+9m
+ [90m 212 |[39m    
+                     
+                    
+[33m<[39m[33mtd[39
+m className[33m=[39
+m[32m"px-4 py-3 text
+-center"[39m[33m>[
+39m[0m
+Next.js build worker 
+exited with code: 1 
+and signal: null

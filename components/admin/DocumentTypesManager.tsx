@@ -206,12 +206,12 @@ export default function DocumentTypesManager() {
                                             <td className="px-4 py-3 font-medium">{type.name}</td>
                                             <td className="px-4 py-3 text-center">
                                                 {type.isProjectChecklist && (
-                                                    <CheckSquare className="w-4 h-4 text-green-500 mx-auto" title="Checklist" />
+                                                    <CheckSquare className="w-4 h-4 text-green-500 mx-auto" />
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 {type.isImage && (
-                                                    <ImageIcon className="w-4 h-4 text-blue-500 mx-auto" title="Imagen/PDF" />
+                                                    <ImageIcon className="w-4 h-4 text-blue-500 mx-auto" />
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-right">

@@ -1,0 +1,102 @@
+﻿
+> weekly-tracker@13.4.6 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 19.7s
+  Running TypeScript ...
+node.exe : Failed to 
+compile.
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (F  
+  ailed to compile.:Str   
+ ing) [], RemoteExcept    
+ion
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+./components/WeeklyEditor.
+tsx:782:49
+Type error: Argument of 
+type '"trash" | "users" | 
+"dashboard" | "tasks" | 
+"projects" | "reports" | 
+"tenant-management" | 
+"editor" | "task-manager" 
+| "user-roles" | 
+"admin-task-master" | 
+"admin-document-types" | 
+... 10 more ... | 
+"uniflux"' is not 
+assignable to parameter 
+of type 
+'SetStateAction<"trash" | 
+"users" | "dashboard" | 
+"tasks" | "projects" | 
+"reports" | 
+"tenant-management" | 
+"editor" | "task-manager" 
+| "user-roles" | 
+"admin-task-master" | 
+"admin-document-types" | 
+... 7 more ... | 
+"product-proposals">'.
+  Type '"dispoplan"' is 
+not assignable to type 
+'SetStateAction<"trash" | 
+"users" | "dashboard" | 
+"tasks" | "projects" | 
+"reports" | 
+"tenant-management" | 
+"editor" | "task-manager" 
+| "user-roles" | 
+"admin-task-master" | 
+"admin-document-types" | 
+... 7 more ... | 
+"product-proposals">'.
+
+[0m [90m 780 |[39m     
+    [33m<[39m[33mAppLay
+out[39m
+ [90m 781 |[39m         
+    viewMode[33m=[39m{vi
+ewMode}
+[31m[1m>[22m[39m[90m 
+782 |[39m             onV
+iewChange[33m=[39m{(mode
+) [33m=>[39m 
+setViewMode(mode)}
+ [90m     |[39m         
+                          
+              
+[31m[1m^[22m[39m
+ [90m 783 |[39m         
+    onOpenChangelog[33m=
+[39m{() [33m=>[39m setSh
+owChangelog([36mtrue[39m
+)} [90m// Connected 
+prop[39m
+ [90m 784 |[39m         
+[33m>[39m
+ [90m 785 |[39m         
+    
+[33m<[39m[33mdiv[39m c
+lassName[33m=[39m[32m"f
+lex h-full gap-6 p-4 
+pt-2"[39m[33m>[39m[0m
+Next.js build worker 
+exited with code: 1 and 
+signal: null

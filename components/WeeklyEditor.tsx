@@ -779,7 +779,7 @@ export default function WeeklyEditor() {
     return (
         <AppLayout
             viewMode={viewMode}
-            onViewChange={(mode) => setViewMode(mode)}
+            onViewChange={(mode: any) => setViewMode(mode)}
             onOpenChangelog={() => setShowChangelog(true)} // Connected prop
         >
             <div className="flex h-full gap-6 p-4 pt-2">

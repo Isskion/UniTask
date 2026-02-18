@@ -1,0 +1,74 @@
+﻿
+> weekly-tracker@13.4.6 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 37.5s
+  Running TypeScript ...
+node.exe : Failed to 
+compile.
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (F  
+  ailed to compile.:Str   
+ ing) [], RemoteExcept    
+ion
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+./components/TaskManagemen
+t.tsx:586:48
+Type error: Property 
+'replace' does not exist 
+on type 'never'.
+
+[0m [90m 584 |[39m     
+    [90m// [V13.3] 
+Effort Tracking 
+Validation[39m
+ [90m 585 |[39m         
+[36mconst[39m 
+actualEffortValue 
+[33m=[39m 
+[36mtypeof[39m formData
+[33m.[39mactualEffort 
+[33m===[39m 
+[32m'string'[39m
+[31m[1m>[22m[39m[90m 
+586 |[39m             
+[33m?[39m parseFloat(for
+mData[33m.[39mactualEffo
+rt[33m.[39mreplace([32m
+','[39m[33m,[39m 
+[32m'.'[39m))
+ [90m     |[39m         
+                          
+             
+[31m[1m^[22m[39m
+ [90m 587 |[39m         
+    [33m:[39m formData[
+33m.[39mactualEffort[33m
+;[39m
+ [90m 588 |[39m
+ [90m 589 |[39m         
+[36mif[39m (formData[33
+m.[39mstatus 
+[33m===[39m 
+[32m'completed'[39m 
+[33m&&[39m [33m![39mac
+tualEffortValue) {[0m
+Next.js build worker 
+exited with code: 1 and 
+signal: null

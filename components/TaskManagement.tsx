@@ -583,7 +583,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
         // [V13.3] Effort Tracking Validation
         const actualEffortValue = typeof formData.actualEffort === 'string'
-            ? parseFloat(formData.actualEffort.replace(',', '.'))
+            ? parseFloat((formData.actualEffort as any).replace(',', '.'))
             : formData.actualEffort;
 
         if (formData.status === 'completed' && !actualEffortValue) {
@@ -641,7 +641,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                 // Clean actual effort before saving
                 const finalActualEffort = typeof formData.actualEffort === 'string'
-                    ? parseFloat(formData.actualEffort.replace(',', '.'))
+                    ? parseFloat((formData.actualEffort as any).replace(',', '.'))
                     : formData.actualEffort;
 
                 const docRef = await addDoc(collection(db, "tasks"), {
@@ -685,7 +685,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     // Clean actual effort before saving
                     if (data.actualEffort !== undefined && data.actualEffort !== null) {
                         data.actualEffort = typeof data.actualEffort === 'string'
-                            ? parseFloat(data.actualEffort.replace(',', '.'))
+                            ? parseFloat((data.actualEffort as any).replace(',', '.'))
                             : data.actualEffort;
                     }
 

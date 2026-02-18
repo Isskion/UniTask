@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/firebase"; // Assuming this exists or using admin
 import { collection, doc, setDoc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "firebase/firestore";
-import { FlowGraph, ValidationResult } from "../uniflux/core/types";
-import { UnifluxValidator } from "../uniflux/core/validator";
+import { FlowGraph, ValidationResult } from "@/app/uniflux/core/types";
+import { UnifluxValidator } from "@/app/uniflux/core/validator";
 
 /**
  * UNIFLUX SERVER ACTIONS

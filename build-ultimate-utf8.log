@@ -1,0 +1,31 @@
+﻿
+> weekly-tracker@13.4.6 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 19.0s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/9) ...
+­ƒöÑ Firebase Config Loaded: { apiKey: 'SET', projectId: 'minuta-f75a4', env: 'production' }
+  Generating static pages using 15 workers (2/9) 
+  Generating static pages using 15 workers (4/9) 
+  Generating static pages using 15 workers (6/9) 
+Ô£ô Generating static pages using 15 workers (9/9) in 1260.7ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /forgot-password
+Ôö£ Ôùï /report-render/daily
+Ôö£ Ôùï /tasks
+Ôö£ Ôùï /uniflux
+Ôöö Ôùï /verify-registration
+
+
+Ôùï  (Static)  prerendered as static content
+

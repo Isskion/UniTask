@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Sparkles, Send, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { generateFlowWithAI } from '@/app/actions/uniflux-ai';
-import { FlowGraph, ValidationResult } from '@/uniflux/core/types';
+import { FlowGraph, ValidationResult } from '@/app/uniflux/core/types';
 
 interface UnifluxToolbarProps {
     currentGraph: FlowGraph;
@@ -87,8 +87,8 @@ export default function UnifluxToolbar({ currentGraph, onGraphUpdate }: UnifluxT
                                     type="submit"
                                     disabled={!prompt.trim() || loading}
                                     className={`p-2 rounded-lg transition-all ${prompt.trim() && !loading
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md'
-                                            : 'bg-gray-100 text-gray-300'
+                                        ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md'
+                                        : 'bg-gray-100 text-gray-300'
                                         }`}
                                 >
                                     {loading ? (
