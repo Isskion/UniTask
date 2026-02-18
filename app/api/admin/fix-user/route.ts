@@ -16,6 +16,19 @@ export async function POST(request: Request) {
         logFn(`🔧 INICIANDO AUTO-REPARACIÓN para: ${email}`);
         logFn(`🔍 UID Problemático reportado: ${problemUid || 'No especificado'}`);
 
+        // DEBUG: Verificar Configuración de Admin SDK
+        const adminApp = adminAuth.app;
+        const serviceAccountProjectId = (adminApp.options.credential as any)?.projectId;
+        const envProjectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+
+        logFn(`⚙️  Admin SDK ProjectId: ${adminApp.options.projectId}`);
+        logFn(`⚙️  Service Account ID: ${serviceAccountProjectId || 'Unknown (Check Credential)'}`);
+        logFn(`⚙️  Env Var ProjectID: ${envProjectId}`);
+
+        if (adminApp.options.projectId !== envProjectId) {
+            logFn(`⚠️  MISMATCH DETECTADO: El SDK Admin apunta a un proyecto diferente al de las varibles de entorno.`);
+        }
+
         // 1. Obtener usuario actual por email
         let currentUser;
         try {
