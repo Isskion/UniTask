@@ -45,7 +45,13 @@ const COLLECTIONS = [
     'tasks',
     'users',
     'journal_entries', // Critical data
-    'sprints'
+    'sprints',
+    // Added for SAM Architecture Backup
+    'tenants',
+    'permission_groups',
+    'attribute_definitions',
+    'master_data',
+    'knowledge_entries'
 ];
 
 async function runBackup() {

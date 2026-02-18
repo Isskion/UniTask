@@ -1,6 +1,46 @@
-export const APP_VERSION = "13.4.5";
+export const APP_VERSION = "13.4.10";
 
 export const CHANGELOG = [
+    {
+        version: "13.4.10",
+        date: "2026-02-16",
+        changes: [
+            "FIX: Botón 'Fix Data' ahora visible en la cabecera de la lista de tareas"
+        ]
+    },
+    {
+        version: "13.4.9",
+        date: "2026-02-16",
+        changes: [
+            "FIX: Data integrity tool for invisible tasks",
+            "FIX: Force isActive=true on task save"
+        ]
+    },
+    {
+        version: "13.4.8",
+        date: "2026-02-16",
+        changes: [
+            "UX: Auto-guardado de comentarios pendientes al guardar/crear tarea"
+        ]
+    },
+    {
+        version: "13.4.7",
+        date: "2026-02-16",
+        changes: [
+            "HOTFIX: Auth Logic Loop Fix",
+            "Performance: Reduced Firestore Reads"
+        ]
+    },
+    {
+        version: "13.4.6",
+        title: "Effort Tracking & Mock Data",
+        date: "2026-02-13",
+        features: [
+            "**Decimal Effort**: Fixed bug in Task Management allowing decimal inputs (0.1, 0.5) in 'Esfuerzo Real'.",
+            "**Excel Generator**: New script to generate 2,000 mock orders in UniGIS-compatible XLSX format.",
+            "**UI Resilience**: Added support for comma decimal separators in effort tracking."
+        ]
+    },
     {
         version: "13.4.5",
         title: "Madrid Public Holidays",

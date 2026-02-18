@@ -4,15 +4,13 @@ service cloud.firestore {
     
     // --- HELPERS ---
     
+    // --- HELPERS (SAM ARCHITECTURE) ---
+    
     function isAuthenticated() {
       return request.auth != null;
     }
 
-
     // Get Real Role: STRICT TOKEN ONLY
-    // "Fallo Ruidoso": If the token claim is missing, access is 0. No DB fallbacks.
-    // Get Real Role: STRICT TOKEN ONLY
-    // "Fallo Ruidoso": If the token claim is missing, access is 0. No DB fallbacks.
     function getRealRole() {
       return (request.auth != null && request.auth.token != null && 'roleLevel' in request.auth.token) 
         ? int(request.auth.token.roleLevel) 
@@ -20,7 +18,6 @@ service cloud.firestore {
     }
 
     // Get Real TenantId: STRICT TOKEN ONLY
-    // Default to "__DENY__" to prevent accidental access to "unknown" or "1" if claim is missing.
     function getRealTenantId() {
        return (request.auth != null && request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId).size() > 0)
          ? string(request.auth.token.tenantId)
@@ -36,7 +33,144 @@ service cloud.firestore {
       return string(docData.get('tenantId', '1')) == getRealTenantId();
     }
 
+    // [SAM] Integrity Check: Key must match dimensions
+    function isKeyValid(data) {
+       // If no scope data is present (legacy), we might skip this or enforce it. 
+       // Strategy: If _accessKey is present, it MUST be valid.
+       return !('_accessKey' in data) || 
+              (data._accessKey == string(data.regionId) + ":" + string(data.divisionId));
+    }
+
+    // [SAM] Isolation Check: User Scope vs Resource Data
+    function hasAccess(userData, docData) {
+      return string(docData.get('tenantId', '1')) == userData.tenantId && 
+             (
+               userData.get('roleLevel', 0) >= 80 || 
+               (
+                 (userData.accessScopes.regionIds.hasAny(['*']) || userData.accessScopes.regionIds.hasAny([docData.regionId])) &&
+                 (userData.accessScopes.divisionIds.hasAny(['*']) || userData.accessScopes.divisionIds.hasAny([docData.divisionId]))
+               )
+             );
+    }
+
+    function getUserData() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     // --- RULES ---
+
+    // [SAM] Phase 3: Hard Isolation (Physical Namespacing)
+    match /tenants/{tenantId} {
+        
+        // Helper: Check if request is for this tenant
+        function isTenantAuth() {
+            return isAuthenticated() && (isSuperAdmin() || string(tenantId) == getRealTenantId());
+        }
+
+        // Projects (Nested)
+        match /projects/{projectId} {
+            // [SAM] List: Allow tenant members to see existence of projects (Query Fix)
+            allow list: if isTenantAuth();
+            // [SAM] Get: Enforce strict access control
+            allow get: if isTenantAuth() && hasAccess(getUserData(), resource.data);
+            
+            allow create: if isTenantAuth() && (
+                isSuperAdmin() || (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
+            );
+            allow update: if isTenantAuth() && (
+                isSuperAdmin() || 
+                (hasAccess(getUserData(), resource.data) && 
+                 hasAccess(getUserData(), request.resource.data) &&
+                 (getRealRole() >= 80 || 
+                  (resource.data.regionId == request.resource.data.regionId && 
+                   resource.data.divisionId == request.resource.data.divisionId)))
+            );
+            allow delete: if isTenantAuth() && (
+                isSuperAdmin() || (getRealRole() >= 80)
+            );
+        }
+
+        // Tasks (Nested)
+        match /tasks/{taskId} {
+            // [SAM] List: Allow tenant members to see tasks (Query Fix)
+            allow list: if isTenantAuth();
+            // [SAM] Get: Enforce strict access control
+            allow get: if isTenantAuth() && hasAccess(getUserData(), resource.data);
+
+            allow create: if isTenantAuth() && (
+                 isSuperAdmin() || (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
+            );
+            allow update: if isTenantAuth() && (
+                 isSuperAdmin() || 
+                 (hasAccess(getUserData(), resource.data) && 
+                  hasAccess(getUserData(), request.resource.data) &&
+                  (getRealRole() >= 80 || (
+                      // Validation logic copied from root
+                      (!('estimatedEffortSize' in request.resource.data) || request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
+                      (!('estimatedEffort' in request.resource.data) || request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort == null) &&
+                      (!('actualEffort' in request.resource.data) || request.resource.data.actualEffort is number || request.resource.data.actualEffort == null)
+                  )))
+            );
+            allow delete: if isTenantAuth() && (
+                 isSuperAdmin() || 
+                 (resource.data.createdBy == request.auth.uid || getRealRole() >= 80)
+            );
+        }
+
+        // --- Phase 4: Auxiliary Collections ---
+
+        // Journal Entries (Weekly Logs)
+        match /journal_entries/{entryId} {
+            allow read: if isTenantAuth(); // Broad read for tenant members for now, or refine to hasAccess
+            allow create: if isTenantAuth(); 
+            allow update: if isTenantAuth();
+            allow delete: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Project Activity Feed
+        match /project_activity_feed/{eventId} {
+            allow read: if isTenantAuth();
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth(); // Soft delete uses update
+            allow delete: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Task Comments
+        match /task_comments/{commentId} {
+            allow read: if isTenantAuth();
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth() && resource.data.authorId == request.auth.uid;
+            allow delete: if isTenantAuth() && (resource.data.authorId == request.auth.uid || getRealRole() >= 80);
+        }
+
+        // Notifications
+        match /notifications/{notifId} {
+            // Split into list/get for better query support
+            allow list: if isTenantAuth(); // Query filters by userId, rule implicitly relies on that or we rely on tenant isolation
+            allow get: if isTenantAuth() && resource.data.userId == request.auth.uid;
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth() && resource.data.userId == request.auth.uid;
+            allow delete: if isTenantAuth() && resource.data.userId == request.auth.uid;
+        }
+
+        // [SAM] Settings & Configuration (Master Data)
+        match /settings/{settingId} {
+            allow read: if isTenantAuth();
+            allow write: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Knowledge Entries (Tenant Scoped)
+        match /knowledge_entries/{entryId} {
+            allow read: if isTenantAuth();
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth();
+            allow delete: if isTenantAuth() && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60);
+        }
+
+        // Users (Nested Ref - Read Only for internal consistency if needed)
+        // Note: Users are still global 'users/{uid}' for Authentication, but we might mirror them?
+        // No, Keep Users Global for now.
+    }
 
     // Tenants Collection: Only SuperAdmins view the list
     match /tenants/{tenantId} {
@@ -59,17 +193,27 @@ service cloud.firestore {
 
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
     match /projects/{document=**} {
+      // [SAM] Read: Uses hasAccess() which checks Intersect(UserScope, ResourceData)
       allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && docTenantMatches(resource.data));
+                  (isAuthenticated() && (getRealRole() >= 80 || hasAccess(getUserData(), resource.data)));
       
+      // [SAM] Create: Must have access to target scope + Maintain Key Integrity
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
-        docTenantMatches(request.resource.data)
+        (hasAccess(getUserData(), request.resource.data) && 
+         isKeyValid(request.resource.data))
       );
       
+      // [SAM] Update: Must have access to BEFORE and AFTER states
       allow update: if isAuthenticated() && (
         isSuperAdmin() || 
-        (docTenantMatches(resource.data) && docTenantMatches(request.resource.data))
+        // Admin Bypass: Role >= 80 can update regardless of scope
+        (getRealRole() >= 80) ||
+        // Standard User: Must have access to both states AND cannot change scope
+        (hasAccess(getUserData(), resource.data) && 
+         hasAccess(getUserData(), request.resource.data) &&
+         (resource.data.regionId == request.resource.data.regionId && 
+          resource.data.divisionId == request.resource.data.divisionId))
       );
 
       // Delete: Only App Admins (Level >= 80) or SuperAdmins
@@ -111,21 +255,25 @@ service cloud.firestore {
 
     // Tasks Rules
     match /tasks/{taskId} {
+      // [SAM] Read: Enforce Scope Intersection
       allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && docTenantMatches(resource.data));
+                  (isAuthenticated() && (getRealRole() >= 80 || hasAccess(getUserData(), resource.data)));
       
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
-        docTenantMatches(request.resource.data)
+        (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
       );
 
-      // [V13.3] Allow effort tracking fields
+      // [V13.3] Allow effort tracking fields + [SAM] Update checks
       allow update: if isAuthenticated() && (
         isSuperAdmin() || 
-        (docTenantMatches(resource.data) && docTenantMatches(request.resource.data) &&
+        // Admin Bypass: Role >= 80 can update regardless of scope
+        (getRealRole() >= 80) ||
+        // Standard User: Limited updates + Scope Check
+        (hasAccess(getUserData(), resource.data) && 
+         hasAccess(getUserData(), request.resource.data) &&
          // Validate effort tracking fields if present
-         // [FIX] Allow App Admin (80) to bypass strict validation OR allow empty string
-         (getRealRole() >= 80 || (
+         ((
              (!('estimatedEffortSize' in request.resource.data) || 
               request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
              (!('estimatedEffort' in request.resource.data) || 
@@ -194,11 +342,10 @@ service cloud.firestore {
                       ['displayName', 'photoURL', 'phoneNumber', 'jobTitle', 'bio', 'preferences', 'theme', 'language', 'updatedAt', 'isConsultant']
                     );
 
-      // 3. App Admin (80) managing others in their tenant
+      // 3. App Admin (80) managing others in their tenant (INCLUDING THEMSELVES)
       allow update: if isAuthenticated() && 
                     getRealRole() >= 80 && 
                     docTenantMatches(resource.data) && 
-                    request.auth.uid != userId &&
                     // Cannot promote anyone to SuperAdmin (100)
                     int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) <= 80 &&
                     // Cannot change a user's tenant

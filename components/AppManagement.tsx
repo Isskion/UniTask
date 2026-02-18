@@ -51,6 +51,7 @@ import { useToast } from '@/context/ToastContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import { format, subDays, startOfDay, isAfter, isBefore } from 'date-fns';
+import TaskMigration from './admin/TaskMigration';
 
 interface AIUsageLog {
     id: string;
@@ -377,6 +378,11 @@ export default function AppManagement() {
                         <Power className="w-5 h-5 group-active:scale-90 transition-transform" />
                     </button>
                 </div>
+            </div>
+
+            {/* 🔥 MIGRATION TOOL (Moved to Top) */}
+            <div className="mb-0 border-b border-border pb-8">
+                <TaskMigration />
             </div>
 
             {/* Filter Bar */}
@@ -799,6 +805,7 @@ export default function AppManagement() {
                     </p>
                 </div>
             </div>
+
         </div>
     );
 }

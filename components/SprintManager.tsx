@@ -173,6 +173,32 @@ export default function SprintManager() {
             return;
         }
 
+        // [SAM Architecture] Enforce Single Scope for Creation
+        // Sprints must be created in a specific Region/Division context.
+        // If the user has multiple scopes active, they must narrow it down in their profile.
+        // Cast user to UserProfile to access custom claims/fields if they exist on the object
+        const userProfile = user as unknown as any;
+        const userRegions: string[] = userProfile?.accessScopes?.regionIds || [];
+        const userDivisions: string[] = userProfile?.accessScopes?.divisionIds || [];
+
+        // Filter out wildcard '*' if specific scopes exist (or treat * as global/root)
+        // For this enforcement, we want EXPLICIT single context.
+        const effectiveRegions = userRegions.filter(r => r !== '*');
+        const effectiveDivisions = userDivisions.filter(d => d !== '*');
+
+        if (effectiveRegions.length > 1 || effectiveDivisions.length > 1) {
+            showToast(
+                t('common.error'),
+                "Tu usuario tiene múltiples Regiones o Divisiones activas. Para crear un Sprint, debes seleccionar un contexto único en tu Perfil.",
+                "error"
+            );
+            return;
+        }
+
+        // Derive scope for the new Sprint
+        const targetRegion = effectiveRegions.length === 1 ? effectiveRegions[0] : null;
+        const targetDivision = effectiveDivisions.length === 1 ? effectiveDivisions[0] : null;
+
         // [VALIDATION] Check for Overlaps with Existing Sprints (Strict Sequential)
         const newStart = new Date(formData.startDate as string);
         const newEnd = new Date(formData.endDate as string);
@@ -208,6 +234,8 @@ export default function SprintManager() {
             const payload = {
                 ...formData,
                 tenantId: String(tenantId),
+                regionId: targetRegion || undefined,
+                divisionId: targetDivision || undefined,
                 updatedAt: serverTimestamp()
             };
 
@@ -352,17 +380,20 @@ export default function SprintManager() {
             default: return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
         }
     };
+    const canManageSprint = getRoleLevel(userRole) >= 80;
 
     if (loading) return <div className="p-8 text-center opacity-50">{t('sprints.loading_sprints')}</div>;
 
     return (
         <div className="space-y-6">
+
+
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-lg font-bold">{t('sprints.manager_title')}</h2>
                     <p className="text-xs opacity-70">{t('sprints.manager_subtitle')}</p>
                 </div>
-                {canManage && (
+                {canManageSprint && (
                     <button
                         onClick={() => {
                             // [SMART DEFAULTS]
@@ -516,9 +547,15 @@ export default function SprintManager() {
 
             <div className="grid grid-cols-1 gap-3">
                 {sprints.map(sprint => (
-                    <div key={sprint.id} className={cn("p-4 rounded-xl border flex items-center justify-between group transition-all",
+                    <div key={sprint.id} className={cn("relative p-4 rounded-xl border flex items-center justify-between group transition-all",
                         isLight ? "bg-white border-zinc-200 hover:border-zinc-300" : "bg-card border-white/5 hover:border-white/10"
                     )}>
+                        {/* [ADMIN BADGE] Absolute Positioned */}
+                        {getRoleLevel(userRole) >= 80 && (
+                            <div className="absolute top-2 right-12 text-[9px] bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded border border-red-500/20 font-mono pointer-events-none">
+                                {sprint.regionId || 'NONE'}:{sprint.divisionId || 'NONE'}
+                            </div>
+                        )}
                         <div className="flex items-center gap-4">
                             <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
                                 sprint.status === 'active' ? "bg-emerald-500/20 text-emerald-500" :
@@ -551,7 +588,7 @@ export default function SprintManager() {
                             </div>
                         </div>
 
-                        {canManage && (
+                        {canManageSprint && (
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => {
@@ -580,12 +617,19 @@ export default function SprintManager() {
                         )}
                     </div>
                 ))}
-                {sprints.length === 0 && (
+                {(sprints.length === 0) && (
                     <div className="p-8 text-center border border-dashed rounded-xl opacity-50 text-sm">
                         {t('sprints.no_sprints')}
                     </div>
                 )}
+
+                {/* [ADMIN DEBUG] Show Scope Info in Card */}
+                {sprints.map(sprint => (
+                    <div key={sprint.id + "_scope"} className="hidden"></div>
+                ))}
             </div>
+
+
         </div>
     );
 }

@@ -7,7 +7,7 @@ import { useSprints } from "@/hooks/useSprints";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { format, addDays, getDay, startOfToday, endOfDay, isWithinInterval } from 'date-fns';
-import { Task, Project, UserProfile, RoleLevel } from "@/types";
+import { Task, Project, UserProfile, RoleLevel, getRoleLevel } from "@/types";
 import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter, Briefcase, BarChart } from "lucide-react";
 import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -29,7 +29,7 @@ import {
 } from '@dnd-kit/core';
 
 export function SprintPlanningBoard() {
-    const { user, tenantId, viewContext } = useAuth();
+    const { user, tenantId, viewContext, userRole, userProfile } = useAuth();
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { sprints, loading: sprintsLoading } = useSprints();
@@ -69,7 +69,8 @@ export function SprintPlanningBoard() {
             if (!tenantId) return;
 
             // Projects
-            const projs = await getActiveProjects(tenantId);
+            // [SAM] Enforce Scope Security
+            const projs = await getActiveProjects(tenantId, userProfile || user?.uid, getRoleLevel(userRole));
             setProjects(projs);
 
             // Users (for Workload)

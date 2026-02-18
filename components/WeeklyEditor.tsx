@@ -618,6 +618,7 @@ export default function WeeklyEditor() {
             const currentProjectName = activeTab;
             // Find Clean Project ID if in a project tab
             let projectId: string | undefined = undefined;
+            let projectCode: string | undefined = undefined;
             if (currentProjectName !== "General") {
                 // Try to find in weekly entry projects first for the linked ID
                 const weeklyPrj = entry.projects.find(p => p.name === currentProjectName);
@@ -626,7 +627,14 @@ export default function WeeklyEditor() {
                 // Fallback to global projects search by name
                 if (!projectId) {
                     const gp = globalProjects.find(g => g.name === currentProjectName);
-                    if (gp) projectId = gp.id;
+                    if (gp) {
+                        projectId = gp.id;
+                        projectCode = gp.code;
+                    }
+                } else {
+                    // If found in weeklyPrj, we need to find the code from globalProjects using ID
+                    const gp = globalProjects.find(g => g.id === projectId);
+                    if (gp) projectCode = gp.code;
                 }
             }
 
@@ -644,7 +652,7 @@ export default function WeeklyEditor() {
                         isActive: true, // explicit for types
                         createdBy: user.uid,
                         assignedTo: user.uid // Auto-assign to creator for now
-                    }, user.uid, addDoc, currentProjectName);
+                    }, user.uid, addDoc, currentProjectName, projectCode);
                 }
                 showToast("UniTask", `✅ ${allItems.length} Tasks created in the database.`, "success");
             } catch (e) {

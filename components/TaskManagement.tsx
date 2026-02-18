@@ -49,6 +49,41 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null);
 
+    // [FIX] Admin Data Repair Utility
+    const handleFixInactiveTasks = async () => {
+        if (!confirm("Esto escaneará TODAS las tareas y asegurará que estén marcadas como 'activas' para que aparezcan en el Dashboard. ¿Continuar?")) return;
+
+        setLoading(true);
+        try {
+            const { getDoc, doc, updateDoc } = await import("firebase/firestore");
+            let fixedCount = 0;
+
+            // Iterate all loaded tasks (which might be comprehensive if admin)
+            // But better to verify against DB or purely rely on loaded state if we trust it.
+            // Since we are admin, 'tasks' should contain everything relevant to the tenant.
+
+            for (const task of tasks) {
+                if (!task.isActive) {
+                    await updateDoc(doc(db, "tasks", task.id), { isActive: true });
+                    fixedCount++;
+                }
+            }
+
+            if (fixedCount > 0) {
+                showToast("Reparación Completa", `Se reactivaron ${fixedCount} tareas invisibles.`, "success");
+                // Refresh data
+                loadData();
+            } else {
+                showToast("Todo Correcto", "No se encontraron tareas inactivas.", "info");
+            }
+        } catch (e) {
+            console.error("Error fixing tasks:", e);
+            showToast("Error", "Falló la reparación de datos.", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // [V3] UI Flags
     const [showTree, setShowTree] = useState(false); // List vs Hierarchy
     const [showMindMap, setShowMindMap] = useState<string | null>(null); // Mind Map Project ID
@@ -582,7 +617,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
         }
 
         // [V13.3] Effort Tracking Validation
-        if (formData.status === 'completed' && !formData.actualEffort) {
+        const actualEffortValue = typeof formData.actualEffort === 'string'
+            ? parseFloat(formData.actualEffort.replace(',', '.'))
+            : formData.actualEffort;
+
+        if (formData.status === 'completed' && !actualEffortValue) {
             return showToast("UniTaskController", "⚠️ Esfuerzo real obligatorio: Debes registrar los días invertidos para cerrar la tarea", "error");
         }
 
@@ -597,6 +636,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
         setSaving(true);
         try {
+            // [FIX] Enforce isActive: true by default
+            const baseTaskData = {
+                ...formData,
+                isActive: true
+            };
+
             if (isNew) {
                 // --- DEDUPLICATION CHECK ---
                 const { findDuplicate } = await import("@/lib/deduplication");
@@ -635,8 +680,14 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 // We set a temporary marker or leave it null.
                 const friendlyId = "Generando..."; // Temporary display
 
+                // Clean actual effort before saving
+                const finalActualEffort = typeof formData.actualEffort === 'string'
+                    ? parseFloat(formData.actualEffort.replace(',', '.'))
+                    : formData.actualEffort;
+
                 const docRef = await addDoc(collection(db, "tasks"), {
-                    ...formData,
+                    ...baseTaskData,
+                    actualEffort: finalActualEffort || null,
                     ancestorIds: calculatedAncestors,
                     friendlyId: null, // Let backend write this
                     tenantId: tenantId || "1",
@@ -645,9 +696,60 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     updatedAt: serverTimestamp()
                 });
 
+                // [UX FIX] Auto-save pending comment for NEW task
+                if (newComment.trim() && user && tenantId) {
+                    try {
+                        const mentions = parseMentions(newComment, users);
+                        await addComment(docRef.id, tenantId, user.uid, user.displayName || 'Usuario', user.photoURL || undefined, newComment, mentions);
+                        setNewComment(""); // Clear input
+                    } catch (commentError) {
+                        console.error("Error auto-saving comment:", commentError);
+                        showToast("Advertencia", "Tarea creada, pero hubo un error al guardar el comentario.", "warning");
+                    }
+                }
+
                 // Optimistic UI for local state
-                const createdTask = { id: docRef.id, friendlyId: "Generando ID...", ...formData, ancestorIds: calculatedAncestors } as Task;
+                const createdTask = {
+                    id: docRef.id,
+                    friendlyId: "Generando ID...",
+                    ...formData,
+                    ancestorIds: calculatedAncestors,
+                    tenantId: tenantId || "1" // Ensure tenantId is present in local state
+                } as Task;
                 setTasks(prev => [createdTask, ...prev]);
+
+                setSelectedTask(createdTask);
+                setIsNew(false);
+
+                // [FIX] Listen for Smart ID Generation ( Robustness )
+                // The Cloud Function will assign friendlyId asynchronously. 
+                // We listen for this change to update the UI without requiring a refresh.
+                const unsubscribe = onSnapshot(doc(db, "tasks", docRef.id), (snap) => {
+                    const data = snap.data() as Task;
+                    if (data?.friendlyId && data.friendlyId !== "Generando ID..." && !data.friendlyId.startsWith("Generando")) {
+
+                        // 1. Update in List
+                        setTasks(prev => prev.map(t =>
+                            t.id === docRef.id ? { ...t, friendlyId: data.friendlyId, projectCode: data.projectCode } : t
+                        ));
+
+                        // 2. Update Selection (if still selected)
+                        // We use a functional update or ref check to ensure we don't overwrite if user moved away
+                        if (selectedTask?.id === docRef.id || processedInitialRef.current === docRef.id) {
+                            setSelectedTask(prev => prev?.id === docRef.id ? { ...prev, friendlyId: data.friendlyId, projectCode: data.projectCode } : prev);
+                            // Also update form data to match, so it doesn't look "dirty"
+                            setFormData(prev => ({ ...prev, friendlyId: data.friendlyId }));
+                        }
+
+                        showToast("Tarea Creada", `ID Generado: ${data.friendlyId}`, "success");
+                        unsubscribe(); // Done
+                    }
+                });
+
+                // Safety Timeout: Stop listening after 15s to prevent memory leaks if function fails
+                setTimeout(() => {
+                    unsubscribe();
+                }, 15000);
 
                 // NOTIFICATION (NEW TASK)
                 if (formData.assignedTo && formData.assignedTo !== user?.uid) {
@@ -661,16 +763,33 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                         createdAt: serverTimestamp()
                     }).catch(e => console.error("Notification Error", e));
                 }
-
-                setSelectedTask(createdTask);
-                setIsNew(false);
             } else {
                 if (selectedTask?.id) {
+
+                    // [UX FIX] Auto-save pending comment for EXISTING task
+                    if (newComment.trim() && user && tenantId) {
+                        try {
+                            const mentions = parseMentions(newComment, users);
+                            await addComment(selectedTask.id, tenantId, user.uid, user.displayName || 'Usuario', user.photoURL || undefined, newComment, mentions);
+                            setNewComment(""); // Clear input
+                        } catch (commentError) {
+                            console.error("Error auto-saving comment:", commentError);
+                            showToast("Advertencia", "Error al guardar el comentario automático.", "warning");
+                        }
+                    }
+
                     // Check change BEFORE update (formData vs selectedTask)
                     const isAssignmentChanged = formData.assignedTo && formData.assignedTo !== selectedTask.assignedTo;
                     const assignee = formData.assignedTo;
 
-                    const { id, ...data } = formData;
+                    const { id, ...data } = baseTaskData;
+
+                    // Clean actual effort before saving
+                    if (data.actualEffort !== undefined && data.actualEffort !== null) {
+                        data.actualEffort = typeof data.actualEffort === 'string'
+                            ? parseFloat(data.actualEffort.replace(',', '.'))
+                            : data.actualEffort;
+                    }
 
                     // [V3 Migration] Dual Write Strategy
                     // We write to progressV13 (New Truth) and sync legacy progress (Backup/Compat)
@@ -1043,7 +1162,18 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     <div className={cn("p-4 border-b", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
                         <div className="flex justify-between items-center mb-3">
                             <h2 className={cn("text-xs font-bold uppercase tracking-wider", isLight ? "text-zinc-900" : "text-white")}>Tareas ({visibleTasks.length})</h2>
-                            <button onClick={handleCreateClick} className="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all"><Plus className="w-3.5 h-3.5" /></button>
+                            <div className="flex items-center gap-1">
+                                {isAdmin && (
+                                    <button
+                                        onClick={handleFixInactiveTasks}
+                                        className={cn("p-1.5 rounded-md transition-all mr-1 border", isLight ? "bg-amber-100 text-amber-600 border-amber-200" : "bg-amber-900/30 text-amber-500 border-amber-500/30")}
+                                        title="[ADMIN] Reparar Tareas Invisibles"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                                <button onClick={handleCreateClick} className="p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all"><Plus className="w-3.5 h-3.5" /></button>
+                            </div>
                         </div>
 
                         {/* Search & Filter */}
@@ -1820,11 +1950,23 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                         Esfuerzo Real <span className="text-red-500">*</span>
                                                     </label>
                                                     <input
-                                                        type="number"
-                                                        step="0.125"
-                                                        min="0"
-                                                        value={formData.actualEffort || ""}
-                                                        onChange={e => setFormData({ ...formData, actualEffort: parseFloat(e.target.value) || undefined })}
+                                                        type="text"
+                                                        value={formData.actualEffort !== undefined && formData.actualEffort !== null ? formData.actualEffort : ""}
+                                                        onChange={e => {
+                                                            const val = e.target.value;
+                                                            // Basic regex to allow numbers and decimal separators
+                                                            if (val === "" || /^[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                                                setFormData({ ...formData, actualEffort: val as any });
+                                                            }
+                                                        }}
+                                                        onBlur={e => {
+                                                            // On blur we can normalize decimal separator if needed, 
+                                                            // but let's keep it simple and just let the string stay until save.
+                                                            const val = e.target.value.replace(',', '.');
+                                                            if (val && !isNaN(parseFloat(val))) {
+                                                                setFormData({ ...formData, actualEffort: val as any });
+                                                            }
+                                                        }}
                                                         placeholder="Días reales"
                                                         className={cn("w-full border rounded-lg px-3 py-2 text-xs font-bold outline-none transition-all",
                                                             isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900" : "bg-black/20 border-white/10 text-white"

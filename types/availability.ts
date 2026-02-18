@@ -19,6 +19,10 @@ export interface UserAvailability {
     createdAt: Timestamp | Date;
     approvedBy?: string;
     approvedAt?: Timestamp | Date;
+
+    // [SAM Architecture] Scoped Resource Fields
+    regionId?: string;
+    divisionId?: string;
 }
 
 export const AVAILABILITY_TYPES: Record<AvailabilityType, { label: string; color: string }> = {

@@ -31,4 +31,6 @@ __exportStar(require("./ping"), exports);
 __exportStar(require("./tasks"), exports);
 __exportStar(require("./registration"), exports);
 __exportStar(require("./uniflux"), exports);
+__exportStar(require("./sam_sync"), exports);
+__exportStar(require("./sam_audit"), exports);
 //# sourceMappingURL=index.js.map

@@ -39,11 +39,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     };
 
     const t = (path: string) => {
+        if (!path) return ''; // Guard against undefined path
         const keys = path.split('.');
         let current: any = dictionaries[language];
         for (const key of keys) {
-            if (current[key] === undefined) {
-                console.warn(`Missing translation for key: ${path} in language: ${language}`);
+            if (current?.[key] === undefined) {
+                // console.warn(`Missing translation for key: ${path} in language: ${language}`);
                 // Fallback to English
                 let fallback: any = dictionaries['en'];
                 for (const fbKey of keys) {

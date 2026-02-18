@@ -27,6 +27,90 @@
                     "order": "ASCENDING"
                 }
             ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "_accessKey",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "regionId",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "projects",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "divisionId",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "tasks",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "_accessKey",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "tasks",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "regionId",
+                    "order": "ASCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "tasks",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "tenantId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "divisionId",
+                    "order": "ASCENDING"
+                }
+            ]
         }
     ],
     "fieldOverrides": []

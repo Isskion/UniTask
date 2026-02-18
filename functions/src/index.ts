@@ -18,3 +18,5 @@ export * from "./ping";
 export * from "./tasks";
 export * from "./registration";
 export * from "./uniflux";
+export * from "./sam_sync";
+export * from "./sam_audit";

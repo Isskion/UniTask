@@ -52,13 +52,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [viewContext, setViewContext] = useState<ViewContext | null>(null);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
-    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [syncError, setSyncError] = useState<{ type: 'SYNC_ERROR' | 'CRITICAL_ERROR', message: string, debugInfo: string, canRepair: boolean } | null>(null);
 
     // Ref to track the profile listener unsubscribe function
     const profileUnsubRef = React.useRef<(() => void) | null>(null);
 
+    // --- REPAIR FUNCTION ---
+    const handleRepair = async () => {
+        if (!user || !user.email) return;
+
+        try {
+            const res = await fetch('/api/admin/fix-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.email,
+                    problemUid: user.uid
+                })
+            });
+            const fixData = await res.json();
+            alert(`✅ Reparación completada. Recargando...`);
+            window.location.reload();
+        } catch (e: any) {
+            alert(`❌ Fallo técnico: ${e.message}`);
+        }
+    };
+
     useEffect(() => {
-        console.log("[AuthContext] VERSION CHECK: 13.4.10-CLEAN-BUILD");
+        console.log("[AuthContext] VERSION CHECK: 13.4.10-CLEAN-BUILD-UI-FIX");
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
 
@@ -118,60 +139,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                         .then(data => {
                                             console.error("[AuthContext] 🕵️‍♂️ Diagnostic Result:", data);
                                             const serverSaysExists = data.firestoreExists;
-                                            const serverProject = data.adminAppProjectId;
+                                            // const serverProject = data.adminAppProjectId;
                                             const debugInfo = JSON.stringify(data, null, 2);
 
                                             if (serverSaysExists) {
-                                                alert(`⚠️ ERROR DE SINCRONIZACIÓN [PROYECTO: ${serverProject}]\n\nTu usuario EXISTE en el servidor, pero el cliente no lo ve.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
+                                                // Sync Error -> Show UI to Repair
+                                                setSyncError({
+                                                    type: 'SYNC_ERROR',
+                                                    message: 'Tu usuario existe en el servidor pero no en tu navegador local (Cache/Sync Issue).',
+                                                    debugInfo: debugInfo,
+                                                    canRepair: true
+                                                });
                                             } else {
-                                                const shouldFix = confirm(`⛔ ERROR CRÍTICO DETECTADO\n\nTu usuario local (${currentUser.uid}) NO COINCIDE con la base de datos.\nEsto suele pasar si tu cuenta fue recreada o reseteada recientemente.\n\n¿Quieres intentar una REPARACIÓN AUTOMÁTICA?\n(Esto migrará tus datos y te pedirá loguearte de nuevo)`);
-
-                                                if (shouldFix) {
-                                                    // Call Auto-Fix API
-                                                    fetch('/api/admin/fix-user', {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({
-                                                            email: currentUser.email,
-                                                            problemUid: currentUser.uid
-                                                        })
-                                                    })
-                                                        .then(res => res.json())
-                                                        .then(fixData => {
-                                                            alert(`🔧 RESULTADO DE REPARACIÓN:\n${JSON.stringify(fixData, null, 2)}\n\nAhora la página se recargará. Por favor inicia sesión de nuevo.`);
-                                                            window.location.reload();
-                                                        })
-                                                        .catch(e => alert(`Fallo al reparar: ${e.message}`));
-                                                    return; // Don't sign out immediately, wait for fix
-                                                } else {
-                                                    alert(`⛔ ERROR CRÍTICO [PROYECTO: ${serverProject}]\n\nTu usuario NO EXISTE en el servidor.\n\nDETALLES TÉCNICOS:\n${debugInfo}`);
-                                                }
+                                                // Critical Error -> Show UI to Repair/Recreate
+                                                setSyncError({
+                                                    type: 'CRITICAL_ERROR',
+                                                    message: 'Tu usuario NO EXISTE en la base de datos. Es necesario repararlo.',
+                                                    debugInfo: debugInfo,
+                                                    canRepair: true
+                                                });
                                             }
-                                            // auth.signOut(); // Keep session active for debugging context? No, safer to sign out.
-                                            auth.signOut();
                                         })
                                         .catch(err => {
-                                            alert(`Error Crítico y fallo en diagnóstico: ${err.message}`);
-                                            auth.signOut();
+                                            setSyncError({
+                                                type: 'CRITICAL_ERROR',
+                                                message: `Error Crítico y fallo en diagnóstico: ${err.message}`,
+                                                debugInfo: JSON.stringify(err, null, 2),
+                                                canRepair: false
+                                            });
+                                            // auth.signOut(); // Let user read error first
                                         });
                                 }
                             }).catch(err => {
                                 console.error("[AuthContext] 💥 Force Fetch Error:", err);
-                                if (err.code === 'unavailable') {
-                                    alert("Error de Conexión: No se puede contactar con el servidor de base de datos.\nRevisa tu conexión a internet.");
-                                } else if (err.code === 'permission-denied') {
-                                    alert("Permiso Denegado: Existes, pero las reglas de seguridad bloquean la lectura de tu propio perfil.");
-                                } else {
-                                    alert(`Error al validar tu perfil: ${err.message}`);
-                                }
-                                // Do not look for cache clearing here yet, just fail safely.
+                                let msg = `Error al validar tu perfil: ${err.message}`;
+                                if (err.code === 'unavailable') msg = "Error de Conexión: No se puede contactar con el servidor.";
+                                if (err.code === 'permission-denied') msg = "Permiso Denegado: Existes, pero las reglas bloquean tu lectura.";
+
+                                setSyncError({
+                                    type: 'CRITICAL_ERROR',
+                                    message: msg,
+                                    debugInfo: JSON.stringify(err, null, 2),
+                                    canRepair: false
+                                });
                             });
 
                             return;
                         }
 
                         console.error(`[AuthContext] ⛔ User [${currentUser.uid}] has no Firestore profile (Confirmed by Server Snapshot). Auto-signing out.`);
-                        alert(`Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.\n\nEl servidor confirmó que no existe.`);
+                        setSyncError({
+                            type: 'CRITICAL_ERROR',
+                            message: `Error Crítico: Tu usuario (${currentUser.uid}) no tiene perfil en la base de datos.`,
+                            debugInfo: "Snapshot confirmed non-existence.",
+                            canRepair: false
+                        });
                         return;
                     }
 
@@ -249,12 +271,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // CRITICAL FIX: Ensure we escape the loading state!
                     setLoading(false);
 
-                    // If it's a hard error (like permission denied on own profile), we should probably logout
-                    // to avoid a broken state where Auth matches but Firestore is inaccessible.
-                    // But maybe show a toast/alert first?
-                    // For now, auto-logout is safer than infinite loop.
-                    auth.signOut().catch(e => console.error("SignOut error:", e));
-                    alert(`⛔ Error de Acceso: ${errorMsg}\n\nSesión cerrada por seguridad.`);
+                    setSyncError({
+                        type: 'CRITICAL_ERROR',
+                        message: `⛔ Error de Acceso: ${errorMsg}`,
+                        debugInfo: JSON.stringify(error, null, 2),
+                        canRepair: false
+                    });
+                    // auth.signOut(); // Let user see error
                 });
 
                 // Store the unsubscribe function in the ref
@@ -271,6 +294,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setUserProfile(null);
                 localStorage.removeItem('superadmin_simulation_context');
                 setLoading(false);
+                setSyncError(null); // Clear errors on logout
             }
         });
 
@@ -563,7 +587,84 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             requestRegistration,
             logout
         }}>
-            {!loading && children}
+            {/* ERROR OVERLAY FOR SYNC ISSUES */}
+            {syncError && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.9)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    color: 'white',
+                    padding: '2rem',
+                    textAlign: 'center'
+                }}>
+                    <div style={{ backgroundColor: '#1f2937', padding: '2rem', borderRadius: '1rem', maxWidth: '600px', width: '100%', border: '1px solid #374151' }}>
+                        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#ef4444' }}>
+                            {syncError.type === 'SYNC_ERROR' ? '⚠️ PROBLEMA DE SINCRONIZACIÓN' : '⛔ ERROR DE ACCESO'}
+                        </h1>
+                        <p style={{ marginBottom: '2rem', color: '#d1d5db' }}>{syncError.message}</p>
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                            {syncError.canRepair && (
+                                <button
+                                    onClick={handleRepair}
+                                    style={{
+                                        backgroundColor: '#3b82f6',
+                                        color: 'white',
+                                        padding: '0.75rem 1.5rem',
+                                        borderRadius: '0.5rem',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        fontSize: '1rem',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    }}
+                                >
+                                    🛠️ REPARAR PERFIL AHORA
+                                </button>
+                            )}
+                            <button
+                                onClick={logout}
+                                style={{
+                                    backgroundColor: '#4b5563',
+                                    color: 'white',
+                                    padding: '0.75rem 1.5rem',
+                                    borderRadius: '0.5rem',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    border: 'none',
+                                    fontSize: '1rem'
+                                }}
+                            >
+                                Cerrar Sesión
+                            </button>
+                        </div>
+
+                        <details style={{ textAlign: 'left', marginTop: '1rem' }}>
+                            <summary style={{ cursor: 'pointer', color: '#9ca3af', marginBottom: '0.5rem' }}>Ver Detalles Técnicos</summary>
+                            <pre style={{
+                                backgroundColor: '#111827',
+                                padding: '1rem',
+                                borderRadius: '0.5rem',
+                                overflowX: 'auto',
+                                fontSize: '0.8rem',
+                                color: '#6ee7b7'
+                            }}>
+                                {syncError.debugInfo}
+                            </pre>
+                        </details>
+                    </div>
+                </div>
+            )}
+
+            {!loading && !syncError && children}
         </AuthContext.Provider>
     );
 };

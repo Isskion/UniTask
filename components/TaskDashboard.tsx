@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
 import HighlightText from './ui/HighlightText';
+import TaskMigration from './admin/TaskMigration';
 
 
 
@@ -312,6 +313,14 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
             {/* Content Scroller */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-background">
+
+                {/* [ADMIN TOOL] Migration (Visible to SuperAdmin) */}
+                {userProfile?.role === 'superadmin' && (
+                    <div className="mb-6 border-b border-border pb-6">
+                        <TaskMigration />
+                    </div>
+                )}
+
                 {(loading || (permissionsLoading && !isAdmin())) ? (
                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
                         <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />

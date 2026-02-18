@@ -36,6 +36,10 @@ export interface FlowGraph {
         createdAt: any;
         updatedAt: any;
     };
+
+    // [SAM Architecture] Scoped Resource Fields
+    regionId?: string;
+    divisionId?: string;
 }
 
 export interface UnifluxError {

@@ -11,6 +11,7 @@ import {
     serverTimestamp,
     Timestamp
 } from "firebase/firestore";
+import { getTenantCollection } from "./tenant_db";
 
 export interface TaskComment {
     id: string;
@@ -62,7 +63,7 @@ export async function addComment(
     content: string,
     mentions: string[]
 ): Promise<string> {
-    const docRef = await addDoc(collection(db, "task_comments"), {
+    const docRef = await addDoc(getTenantCollection(db, "task_comments", tenantId), {
         taskId,
         tenantId,
         authorId,
@@ -76,7 +77,11 @@ export async function addComment(
     // Send notifications to mentioned users
     for (const mentionedUid of mentions) {
         if (mentionedUid !== authorId) { // Don't notify yourself
-            await addDoc(collection(db, "notifications"), {
+            // [SAM] Hard Isolation: Notifications under Tenant
+            // Note: Users might need to listen to notifications from ALL tenants they belong to
+            // or we need to know WHICH tenant the notification belongs to.
+            // Using tenantId here makes sense for context.
+            await addDoc(getTenantCollection(db, "notifications", tenantId), {
                 userId: mentionedUid,
                 type: 'mention',
                 title: 'Te han mencionado',
@@ -100,9 +105,9 @@ export function subscribeToComments(
     callback: (comments: TaskComment[]) => void
 ): () => void {
     const q = query(
-        collection(db, "task_comments"),
+        getTenantCollection(db, "task_comments", tenantId),
         where("taskId", "==", taskId),
-        where("tenantId", "==", tenantId),
+        // where("tenantId", "==", tenantId), // Implicit
         orderBy("createdAt", "desc")
     );
 

@@ -18,7 +18,7 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
     memory: '1GB'
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
-        var _a;
+        var _a, _b, _c;
         try {
             // 1. Auth Check (Manual for onRequest)
             const authHeader = req.headers.authorization;
@@ -55,6 +55,40 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
                 res.status(500).send({ error: "AI Key missing" });
                 return;
             }
+            const db = (0, utils_1.getDb)();
+            // 1. Fetch Tenant Knowledge (or Global)
+            let tenantKnowledge = "";
+            try {
+                // Try tenant-specific knowledge first
+                const tenantConfigSnap = await db.collection('tenants').doc(tenantId).collection('config').doc('ai_knowledge').get();
+                if (tenantConfigSnap.exists) {
+                    tenantKnowledge = ((_b = tenantConfigSnap.data()) === null || _b === void 0 ? void 0 : _b.content) || "";
+                }
+                else {
+                    // Fallback to global knowledge
+                    const globalKnowledgeSnap = await db.collection('app_config').doc('ai_knowledge').get();
+                    tenantKnowledge = globalKnowledgeSnap.exists ? ((_c = globalKnowledgeSnap.data()) === null || _c === void 0 ? void 0 : _c.content) || "" : "";
+                }
+            }
+            catch (e) {
+                console.warn("Knowledge fetch failed", e);
+            }
+            // 2. Fetch Recent Corrections
+            let corrections = "";
+            try {
+                const correctionsSnap = await db.collection('ai_corrections')
+                    .where('tenantId', 'in', ['global', tenantId])
+                    .orderBy('timestamp', 'desc')
+                    .limit(20)
+                    .get();
+                corrections = correctionsSnap.docs.map(doc => {
+                    const data = doc.data();
+                    return `Instruction: When asked "${data.question}", remember: "${data.correction}"`;
+                }).join('\n');
+            }
+            catch (e) {
+                console.warn("Corrections fetch failed", e);
+            }
             const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
                 model: "gemini-2.0-flash",
@@ -78,6 +112,12 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
         5. Position nodes logically: START at left (x:0, y:250), TERMINAL at right (x: 1000, y: 250).
 
         OUTPUT ONLY VALID JSON. No conversational text.
+
+        BUSINESS KNOWLEDGE FOR THIS TENANT:
+        ${tenantKnowledge}
+
+        RECENT CORRECTIONS/LEARNINGS:
+        ${corrections}
     `;
             let currentAiInput = userPrompt;
             if (currentGraph) {

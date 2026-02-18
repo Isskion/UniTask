@@ -25,6 +25,13 @@ export interface Project {
     phone?: string;
     address?: string;
 
+    // [SAM Architecture] Scoped Resource Fields
+    regionId?: string;
+    divisionId?: string;
+    _accessKey?: string;       // "REGION:DIVISION"
+    _tenantAccessKey?: string; // "TENANT:REGION:DIVISION"
+    _migrated?: boolean;
+
     // Security & Metadata
     tenantId: string; // Multi-tenant isolation
     teamIds: string[]; // New: UIDs of allowed consultants
@@ -84,6 +91,18 @@ export interface UserProfile {
     isActive: boolean;
     roleLevel?: number; // Added for caching/performance
     lastLogin?: any;
+
+    // [SAM Architecture] Access Scopes
+    accessScopes: {
+        regionIds: string[];   // e.g. ["CL", "ES"] or ["*"]
+        divisionIds: string[]; // e.g. ["DEV", "CONS"] or ["*"]
+    };
+    activeContext?: {
+        regionIds: string[];
+        divisionIds: string[];
+    };
+    authVersion?: number;
+    lastUpdatedBy?: string;
     // Extended fields
     company?: string;
     jobTitle?: string;
@@ -137,6 +156,7 @@ export interface PermissionGroup {
         sprintManagement: boolean;
         dispoPlan: boolean;
         unavailabilityRegistry: boolean;
+        uniflux: boolean;
     };
 
     // Export Permissions
@@ -238,6 +258,10 @@ export interface Sprint {
     includeWeekends?: boolean;
     plannedCapacity?: number; // Target capacity based on resources/days
 
+    // [SAM Architecture] Scoped Resource Fields
+    regionId?: string;
+    divisionId?: string;
+
     createdAt?: any;
     updatedAt?: any;
 }
@@ -257,6 +281,13 @@ export interface Task {
     projectId?: string;    // Parent Project
     projectCode?: string;  // Project Code (e.g. "VMS")
     tenantId: string;      // Multi-tenant isolation
+
+    // [SAM Architecture] Scoped Resource Fields (Denormalized)
+    regionId?: string;
+    divisionId?: string;
+    _accessKey?: string;
+    _tenantAccessKey?: string;
+    _migrated?: boolean;
 
     // [V3] Hierarchy & Navigation (Shadow / Hybrid)
     type?: TaskType;       // Optional during migration

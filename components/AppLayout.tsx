@@ -59,6 +59,7 @@ import { useUI } from "@/context/UIContext"; // Import Context
 import { useToast } from "@/context/ToastContext";
 import { collection, query, where, getDocs, addDoc, serverTimestamp, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getTenantCollection } from "@/lib/tenant_db";
 
 
 
@@ -135,8 +136,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                 sessionStorage.setItem('deadline_check_ts', Date.now().toString());
 
                 try {
-                    const qT = query(collection(db, "tasks"),
-                        where("tenantId", "==", tenantId),
+                    // [SAM] Use Tenant Collection (Hard Isolation) to fix Permission Error
+                    // Nested collection "tenants/{id}/tasks" allows listing by tenant members.
+                    const qT = query(getTenantCollection(db, "tasks", tenantId),
                         where("assignedTo", "==", user.uid),
                         where("status", "in", ["pending", "in_progress"]),
                         where("isActive", "==", true),
@@ -153,16 +155,15 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                     for (const task of overdueTasks) {
                         const qN = query(
-                            collection(db, "notifications"),
+                            getTenantCollection(db, "notifications", tenantId),
                             where("userId", "==", user.uid),
-                            where("tenantId", "==", tenantId),
                             where("taskId", "==", task.id),
                             where("type", "==", "deadline_expired")
                         );
                         const snapN = await getDocs(qN);
 
                         if (snapN.empty) {
-                            await addDoc(collection(db, "notifications"), {
+                            await addDoc(getTenantCollection(db, "notifications", tenantId), {
                                 userId: user.uid,
                                 tenantId: tenantId,
                                 type: 'deadline_expired',
@@ -222,12 +223,24 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         {/* Primary */}
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
-                            <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
-                            <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
-                            <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
-                            <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
-                            <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
+                            {can('dashboard', 'views') && (
+                                <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                            )}
+                            {can('weeklyEditor', 'views') && (
+                                <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                            )}
+                            {can('projectManagement', 'views') && (
+                                <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
+                            )}
+                            {can('taskManager', 'views') && (
+                                <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
+                            )}
+                            {can('taskDashboard', 'views') && (
+                                <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
+                            )}
+                            {can('uniflux', 'views') && (
+                                <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
+                            )}
                         </div>
 
                         {/* Knowledge Area (NEW) */}

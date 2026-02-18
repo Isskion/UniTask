@@ -15,6 +15,7 @@ import { saveDailyStatus, getDailyStatus, getRecentDailyStatusEntries, getDailyS
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { getTenantCollection } from "@/lib/tenant_db";
 import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search } from 'lucide-react';
 import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
@@ -82,7 +83,8 @@ export default function DailyFollowUp() {
         loginWithGoogle,
         loginWithEmail,
         registerWithEmail,
-        requestRegistration
+        requestRegistration,
+        userProfile: authProfile // Alias to avoid conflict with local state (though local state seems redundant now)
     } = useAuth();
     const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
@@ -276,6 +278,8 @@ export default function DailyFollowUp() {
 
     useEffect(() => {
         if (!user) return; // Wait for auth
+        // [FIX] Wait for tenantId to be loaded for non-superadmins
+        if (userRole !== 'superadmin' && !tenantId) return;
 
         let unsubscribe: () => void;
 
@@ -335,6 +339,12 @@ export default function DailyFollowUp() {
 
     // Load user profile
     useEffect(() => {
+        if (authProfile) {
+            setUserProfile(authProfile);
+            setProfileLoading(false);
+            return;
+        }
+
         if (!user?.uid) {
             setProfileLoading(false);
             return;
@@ -354,7 +364,7 @@ export default function DailyFollowUp() {
         };
         setProfileLoading(true);
         loadProfile();
-    }, [user]);
+    }, [user, authProfile]);
 
     // Navigation Events
     useEffect(() => {
@@ -391,8 +401,15 @@ export default function DailyFollowUp() {
 
             // Load Projects for current context
             try {
+                // [FIX] Guard against stale profile during tenant switch
+                if (userRole !== 'superadmin' && userProfile?.tenantId && tenantId && userProfile.tenantId !== tenantId) {
+                    console.log("[DailyFollowUp] Stale profile detected in loadInit... Aborting fetch.");
+                    return;
+                }
+
                 const targetTenant = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
-                const projs = await getActiveProjects(targetTenant);
+                // [SAM] Enforce Scope Security
+                const projs = await getActiveProjects(targetTenant, userProfile || user?.uid, getRoleLevel(userRole));
                 setGlobalProjects(projs);
             } catch (e) { console.error("Projects Load Error", e); }
 
@@ -420,6 +437,12 @@ export default function DailyFollowUp() {
 
         setLoading(true);
         const dateId = format(dateObj, 'yyyy-MM-dd');
+        // [FIX] Guard against stale profile during tenant switch
+        if (userRole !== 'superadmin' && userProfile?.tenantId && tenantId && userProfile.tenantId !== tenantId) {
+            console.log("[DailyFollowUp] Stale profile detected in loadData... Aborting fetch.");
+            setLoading(false);
+            return;
+        }
         const currentTenantId = tenantId || "1";
 
         // Default Empty State with UNIQUE ID (Format: Org_Date_Timestamp)
@@ -681,10 +704,11 @@ export default function DailyFollowUp() {
             if (activeTab !== 'General' && tenantId) {
                 const pId = globalProjects.find(p => p.name === activeTab)?.id;
                 if (pId) {
+
                     try {
                         const q = query(
-                            collection(db, "tasks"),
-                            where("tenantId", "==", tenantId),
+                            getTenantCollection(db, "tasks", tenantId),
+                            // where("tenantId", "==", tenantId), // Implicit
                             where("projectId", "==", pId),
                             where("isActive", "==", true)
                         );
@@ -694,20 +718,23 @@ export default function DailyFollowUp() {
                     } catch (e) {
                         console.error("[Deduplication] Fetch failed, falling back to state:", e);
                     }
+
+
+
+                    // [DEBUG] Monitor Deduplication Context
+                    console.log(`[Deduplication] Checking against ${tasksToCheck.length} loaded tasks.`);
+
+                    suggestions = suggestions.map(suggestion => {
+                        const duplicate = findDuplicate(suggestion, tasksToCheck, 0.75); // 75% threshold
+
+                        if (duplicate) {
+                            return `POSIBLE TAREA EXISTENTE EN ${duplicate.friendlyId} (${duplicate.title}): ${suggestion}`;
+                        }
+                        return suggestion;
+                    });
+
                 }
-            }
-
-            // [DEBUG] Monitor Deduplication Context
-            console.log(`[Deduplication] Checking against ${tasksToCheck.length} loaded tasks.`);
-
-            suggestions = suggestions.map(suggestion => {
-                const duplicate = findDuplicate(suggestion, tasksToCheck, 0.75); // 75% threshold
-
-                if (duplicate) {
-                    return `POSIBLE TAREA EXISTENTE EN ${duplicate.friendlyId} (${duplicate.title}): ${suggestion}`;
-                }
-                return suggestion;
-            });
+            } // Close if(pId) and if(activeTab)
 
             setAiSuggestions(suggestions);
             setIsTasksPanelVisible(true); // Auto-open on success
@@ -736,6 +763,7 @@ export default function DailyFollowUp() {
             // Determine Project ID and Name
             let projectId: string | undefined;
             let projectName: string | undefined;
+            let projectCode: string | undefined;
             let taskTenantId: string = tenantId || "1"; // Default fallback
 
             if (activeTab !== 'General') {
@@ -743,6 +771,7 @@ export default function DailyFollowUp() {
                 if (project) {
                     projectId = project.id;
                     projectName = project.name;
+                    projectCode = project.code;
                     // FIX: Always use the User's Tenant ID for creating tasks, even if project is shared/global.
                     // Strict Multi-Tenancy: I can only create data that belongs to ME/MY TENANT.
                     taskTenantId = tenantId || "1";
@@ -792,7 +821,8 @@ export default function DailyFollowUp() {
                 taskData,
                 user.uid, // authorId
                 addDoc, // INJECTED DEPENDENCY
-                projectName
+                projectName,
+                projectCode
             );
 
             // [FIX] Auto-save the Journal Entry to prevent "orphaned tasks"

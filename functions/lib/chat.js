@@ -15,7 +15,7 @@ exports.chat = functions.region("europe-west1").runWith({
 }).https.onRequest(async (req, res) => {
     // 1. CORS Wrapper
     corsHandler(req, res, async () => {
-        var _a, _b;
+        var _a, _b, _c;
         try {
             // 2. Auth Check
             const authHeader = req.headers.authorization;
@@ -62,11 +62,17 @@ exports.chat = functions.region("europe-west1").runWith({
                 return;
             }
             const db = (0, utils_1.getDb)();
-            // Fetch Knowledge Base
+            // Fetch Knowledge Base (Tenant-specific with fallback)
             let appMap = "";
             try {
-                const knowledgeSnap = await db.collection('app_config').doc('ai_knowledge').get();
-                appMap = knowledgeSnap.exists ? ((_b = knowledgeSnap.data()) === null || _b === void 0 ? void 0 : _b.content) || "" : "";
+                const tenantConfigSnap = await db.collection('tenants').doc(tenantId).collection('config').doc('ai_knowledge').get();
+                if (tenantConfigSnap.exists) {
+                    appMap = ((_b = tenantConfigSnap.data()) === null || _b === void 0 ? void 0 : _b.content) || "";
+                }
+                else {
+                    const knowledgeSnap = await db.collection('app_config').doc('ai_knowledge').get();
+                    appMap = knowledgeSnap.exists ? ((_c = knowledgeSnap.data()) === null || _c === void 0 ? void 0 : _c.content) || "" : "";
+                }
             }
             catch (e) {
                 console.warn("Knowledge base fetch failed", e);
@@ -75,8 +81,9 @@ exports.chat = functions.region("europe-west1").runWith({
             let corrections = "";
             try {
                 const correctionsSnap = await db.collection('ai_corrections')
+                    .where('tenantId', 'in', ['global', tenantId])
                     .orderBy('timestamp', 'desc')
-                    .limit(10)
+                    .limit(20)
                     .get();
                 corrections = correctionsSnap.docs.map(doc => {
                     const data = doc.data();
