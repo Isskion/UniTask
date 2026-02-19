@@ -318,9 +318,12 @@ function ExportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                         </select>
                         <button
                             onClick={() => setIsSavingTemplate(!isSavingTemplate)}
-                            className="p-2 border rounded hover:bg-zinc-100 dark:hover:bg-zinc-800" title="Save Template"
+                            className={cn("p-2 border rounded transition-colors",
+                                isLight ? "border-zinc-300 hover:bg-zinc-100 text-zinc-500" : "border-white/10 hover:bg-white/5 text-zinc-400"
+                            )}
+                            title="Save Template"
                         >
-                            <Save className="w-4 h-4 text-zinc-500" />
+                            <Save className="w-4 h-4" />
                         </button>
                     </div>
                     {isSavingTemplate && (
@@ -341,15 +344,17 @@ function ExportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                     <label className="text-xs font-bold uppercase text-zinc-500">Columns & Order</label>
 
                     {/* Selected (Ordered) */}
-                    <div className="flex flex-col gap-1.5 mb-4 p-2 bg-zinc-100 dark:bg-zinc-800/50 rounded">
-                        <span className="text-[10px] text-zinc-400 font-bold uppercase">Active Columns (Ordered)</span>
+                    <div className={cn("flex flex-col gap-1.5 mb-4 p-2 rounded", isLight ? "bg-zinc-100" : "bg-white/5")}>
+                        <span className={cn("text-[10px] font-bold uppercase", isLight ? "text-zinc-400" : "text-zinc-500")}>Active Columns (Ordered)</span>
                         {selectedColumns.map((col, idx) => (
-                            <div key={col} className="flex items-center justify-between p-2 bg-white dark:bg-zinc-800 border dark:border-white/10 rounded shadow-sm">
-                                <span className="text-xs font-medium">{AVAILABLE_COLUMNS.find(c => c.key === col)?.label || col}</span>
+                            <div key={col} className={cn("flex items-center justify-between p-2 border rounded shadow-sm",
+                                isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/10"
+                            )}>
+                                <span className={cn("text-xs font-medium", isLight ? "text-zinc-900" : "text-white")}>{AVAILABLE_COLUMNS.find(c => c.key === col)?.label || col}</span>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={() => moveColumn(idx, 'up')} disabled={idx === 0} className="p-1 hover:bg-zinc-100 hover:text-indigo-500 disabled:opacity-30">▲</button>
-                                    <button onClick={() => moveColumn(idx, 'down')} disabled={idx === selectedColumns.length - 1} className="p-1 hover:bg-zinc-100 hover:text-indigo-500 disabled:opacity-30">▼</button>
-                                    <button onClick={() => handleColumnToggle(col)} className="p-1 text-red-400 hover:bg-red-500/10 rounded ml-1"><X className="w-3 h-3" /></button>
+                                    <button onClick={() => moveColumn(idx, 'up')} disabled={idx === 0} className={cn("p-1 transition-colors disabled:opacity-30", isLight ? "hover:bg-zinc-100 hover:text-indigo-500" : "hover:bg-white/5 hover:text-indigo-400")}>▲</button>
+                                    <button onClick={() => moveColumn(idx, 'down')} disabled={idx === selectedColumns.length - 1} className={cn("p-1 transition-colors disabled:opacity-30", isLight ? "hover:bg-zinc-100 hover:text-indigo-500" : "hover:bg-white/5 hover:text-indigo-400")}>▼</button>
+                                    <button onClick={() => handleColumnToggle(col)} className="p-1 text-red-500 hover:bg-red-500/10 rounded ml-1"><X className="w-3 h-3" /></button>
                                 </div>
                             </div>
                         ))}
@@ -358,7 +363,10 @@ function ExportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                     <label className="text-xs font-bold uppercase text-zinc-500">Add Column</label>
                     <div className="flex flex-col gap-1.5">
                         {AVAILABLE_COLUMNS.filter(col => !selectedColumns.includes(col.key)).map(col => (
-                            <label key={col.key} className="flex items-center gap-3 p-2 rounded cursor-pointer transition-colors border border-transparent text-zinc-500 hover:bg-zinc-100 hover:dark:bg-white/5">
+                            <label key={col.key} className={cn(
+                                "flex items-center gap-3 p-2 rounded cursor-pointer transition-colors border border-transparent",
+                                isLight ? "text-zinc-600 hover:bg-zinc-100" : "text-zinc-400 hover:bg-white/5"
+                            )}>
                                 <input
                                     type="checkbox"
                                     checked={false}
@@ -408,7 +416,9 @@ function ExportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                                     {previewData.map((row, i) => (
                                         <tr key={i} className="hover:bg-white/5">
                                             {selectedColumns.map(col => (
-                                                <td key={`${i}-${col}`} className="px-4 py-2 border-r last:border-0 border-white/5 whitespace-nowrap text-zinc-500">
+                                                <td key={`${i}-${col}`} className={cn("px-4 py-2 border-r last:border-0 whitespace-nowrap",
+                                                    isLight ? "border-zinc-100 text-zinc-600" : "border-white/5 text-zinc-400"
+                                                )}>
                                                     {row[col] === undefined ? '-' : String(row[col])}
                                                 </td>
                                             ))}
@@ -646,15 +656,15 @@ function ImportView({ onClose, projectId, tenantId }: { onClose: () => void, pro
                 {currentStep === 2 && (
                     <div className="flex flex-col h-full">
                         <div className="flex items-center gap-6 mb-6">
-                            <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                            <div className={cn("p-4 rounded-lg border", isLight ? "bg-blue-50 border-blue-200" : "bg-blue-500/10 border-blue-500/20")}>
                                 <span className="block text-2xl font-bold text-blue-500">{summary.updates}</span>
                                 <span className="text-xs uppercase text-zinc-500">Updates</span>
                             </div>
-                            <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+                            <div className={cn("p-4 rounded-lg border", isLight ? "bg-green-50 border-green-200" : "bg-green-500/10 border-green-500/20")}>
                                 <span className="block text-2xl font-bold text-green-500">{summary.creates}</span>
                                 <span className="text-xs uppercase text-zinc-500">New Tasks</span>
                             </div>
-                            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                            <div className={cn("p-4 rounded-lg border", isLight ? "bg-red-50 border-red-200" : "bg-red-500/10 border-red-500/20")}>
                                 <span className="block text-2xl font-bold text-red-500">{summary.invalid + summary.skips}</span>
                                 <span className="text-xs uppercase text-zinc-500">Issues</span>
                             </div>
