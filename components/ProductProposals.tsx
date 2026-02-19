@@ -8,6 +8,7 @@ import {
     FolderGit2, Lightbulb, BookMarked, ChevronRight, X, Calendar, Download
 } from 'lucide-react';
 import { AttachmentManager } from './AttachmentManager';
+import RichTextEditor from './RichTextEditor';
 import {
     collection, query, where, getDocs, addDoc, updateDoc, deleteDoc,
     doc, serverTimestamp, orderBy, Timestamp
@@ -183,6 +184,38 @@ export function ProductProposals() {
         setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) });
     };
 
+    // Help fix for security: Strip HTML for clipboard and preview (v13.3.0 Robust)
+    const stripHtml = (htmlContent: string) => {
+        if (!htmlContent) return "";
+
+        let text = htmlContent;
+
+        // 1. Replace <img> tags (both raw and escaped) with [Imagen]
+        text = text.replace(/<img[^>]*>/gi, '[Imagen]');
+        text = text.replace(/&lt;img[^&gt;]*&gt;/gi, '[Imagen]');
+
+        // 2. Convert common block elements to newlines
+        text = text.replace(/<\/p>|<\/div>|<br\s*\/?>|<li>/gi, '\n');
+        text = text.replace(/&lt;\/p&gt;|&lt;\/div&gt;|&lt;br\s*\/&gt;|&lt;li&gt;/gi, '\n');
+
+        // 3. Remove all other tags (both raw and escaped)
+        text = text.replace(/<[^>]*>/g, '');
+        text = text.replace(/&lt;[^&gt;]*&gt;/g, '');
+
+        // 4. Manual entity cleanup
+        text = text.replace(/&nbsp;/g, ' ')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'");
+
+        // 5. Final trim and whitespace cleanup
+        const result = text.trim().replace(/\n{3,}/g, '\n\n');
+
+        return result;
+    };
+
     // Save entry
     const handleSave = async () => {
         if (!formData.title.trim()) {
@@ -284,7 +317,8 @@ export function ProductProposals() {
             const creationDate = safeParseDate(e.createdAt);
             const date = creationDate ? format(creationDate, 'dd/MM/yyyy HH:mm') : 'Unknown Date';
             const tags = e.tags && e.tags.length > 0 ? `\nTags: ${e.tags.join(', ')}` : '';
-            return `Title: ${e.title}\nDate: ${date}\nAuthor: ${e.createdByName || 'Unknown'}\n----------------------------------------\n${e.content}${tags}\n`;
+            const plainContent = stripHtml(e.content);
+            return `Title: ${e.title}\nDate: ${date}\nAuthor: ${e.createdByName || 'Unknown'}\n----------------------------------------\n${plainContent}${tags}\n`;
         }).join('\n========================================\n\n');
 
         const element = document.createElement("a");
@@ -440,6 +474,9 @@ export function ProductProposals() {
                                 )}>{entry.title}</p>
                                 <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                                     {format(safeParseDate(entry.createdAt) || new Date(), 'dd/MM/yyyy')} by {entry.createdByName}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground truncate opacity-70 italic mt-0.5">
+                                    {stripHtml(entry.content).slice(0, 60)}...
                                 </p>
 
                                 {entry.tags?.length > 0 && (
@@ -612,17 +649,12 @@ export function ProductProposals() {
                                 <label className={cn("text-xs font-bold uppercase block mb-2", isLight ? "text-zinc-500" : "text-white/70")}>
                                     {t('task_manager.description') || "Descripción detallada de la propuesta"}
                                 </label>
-                                <textarea
-                                    value={formData.content}
-                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                <RichTextEditor
+                                    content={formData.content}
+                                    onChange={(html: string) => setFormData({ ...formData, content: html })}
                                     placeholder="Describe la funcionalidad, el valor que aporta y los casos de uso..."
-                                    rows={15}
-                                    className={cn(
-                                        "w-full px-6 py-4 rounded-xl border text-sm resize-none leading-relaxed",
-                                        isLight
-                                            ? "bg-white border-zinc-200 text-zinc-900 focus:ring-2 focus:ring-yellow-500/30"
-                                            : "bg-black/20 border-white/10 text-white focus:ring-2 focus:ring-yellow-500/30"
-                                    )}
+                                    storagePath={`tenants/${tenantId}/knowledge/${isNew ? 'temp' : selectedEntry?.id || 'unknown'}`}
+                                    className="min-h-[300px]"
                                 />
                             </div>
 
