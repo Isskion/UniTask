@@ -12,7 +12,7 @@ import { db } from '@/lib/firebase';
 import { Sprint, getRoleLevel } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useToast } from '@/context/ToastContext';
-import { format, addDays, getDay, startOfToday } from 'date-fns';
+import { format, addDays, getDay, startOfToday, isValid } from 'date-fns';
 import { isMadridHoliday } from '@/lib/holidays';
 import { Task } from '@/types'; // Import Task type
 
@@ -103,15 +103,9 @@ export default function SprintManager() {
                         if (a.type === 'remote') return false;
                         if (a.userId !== resId) return false;
 
-                        const aStart = a.startDate instanceof Date ? a.startDate
-                            : (a.startDate?.toDate ? a.startDate.toDate()
-                                : a.startDate?.seconds !== undefined ? new Date(a.startDate.seconds * 1000)
-                                    : new Date(a.startDate));
-                        const aEnd = a.endDate instanceof Date ? a.endDate
-                            : (a.endDate?.toDate ? a.endDate.toDate()
-                                : a.endDate?.seconds !== undefined ? new Date(a.endDate.seconds * 1000)
-                                    : new Date(a.endDate));
-                        if (!aStart || isNaN(aStart.getTime()) || !aEnd || isNaN(aEnd.getTime())) return false;
+                        const aStart = safeParseDate(a.startDate);
+                        const aEnd = safeParseDate(a.endDate);
+                        if (!aStart || !isValid(aStart) || !aEnd || !isValid(aEnd)) return false;
 
                         // Set times to midnight for comparison
                         const checkDay = new Date(curr);

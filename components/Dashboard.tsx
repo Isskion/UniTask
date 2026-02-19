@@ -122,7 +122,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             let d: Date;
             if ((task.createdAt as any).toDate) {
                 const parsed = safeParseDate(task.createdAt);
-                d = parsed ? parsed : new Date();
+                d = (parsed && isValid(parsed)) ? parsed : new Date();
             } else if (typeof task.createdAt === 'string') {
                 d = new Date(task.createdAt);
             } else {
@@ -336,6 +336,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
                 // "Nuevas" (Created in period)
                 const bucket = buckets.find(b => {
+                    if (!isValid(createdAt)) return false;
                     if (timeScope === 'year') return b.dateKey === format(createdAt, 'yyyy-MM');
                     if (timeScope === 'month') return b.dateKey === format(createdAt, 'yyyy-Iw');
                     return b.dateKey === format(createdAt, 'yyyy-MM-dd');
@@ -357,11 +358,12 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                     let closedDate: Date | null = null;
                     if (closedDateRaw) {
                         const parsed = safeParseDate(closedDateRaw);
-                        if (parsed) closedDate = parsed;
+                        if (parsed && isValid(parsed)) closedDate = parsed;
                         else closedDate = new Date(closedDateRaw as any);
                     }
                     if (closedDate && isValid(closedDate)) {
                         const closeBucket = buckets.find(b => {
+                            if (!isValid(closedDate!)) return false;
                             if (timeScope === 'year') return b.dateKey === format(closedDate!, 'yyyy-MM');
                             if (timeScope === 'month') return b.dateKey === format(closedDate!, 'yyyy-Iw');
                             return b.dateKey === format(closedDate!, 'yyyy-MM-dd');

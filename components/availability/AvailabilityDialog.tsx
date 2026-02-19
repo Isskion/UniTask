@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { UserAvailability, AVAILABILITY_TYPES, AvailabilityType } from "@/types/availability";
 import { UserProfile, getRoleLevel } from "@/types";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { X, Save, Trash2, Calendar, User, FileText } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
@@ -47,7 +47,7 @@ export function AvailabilityDialog({
                 const start = safeParseDate(availability.startDate); // Replaced unsafe conversion
                 const end = safeParseDate(availability.endDate);     // Replaced unsafe conversion
 
-                if (start && end) { // Added check for valid dates
+                if (start && isValid(start) && end && isValid(end)) { // Added check for valid dates
                     setStartDate(format(start, "yyyy-MM-dd"));
                     setEndDate(format(end, "yyyy-MM-dd"));
                 } else {

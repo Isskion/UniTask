@@ -1,7 +1,7 @@
 "use client";
 
-import { safeParseDate } from '@/lib/date-utils';
-import { useState, useEffect, useMemo } from "react";
+import { safeParseDate } from "@/lib/date-utils";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useSprints } from "@/hooks/useSprints";

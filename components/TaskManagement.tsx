@@ -11,7 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem, getRoleLevel, RoleLevel } from "@/types";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay, isValid } from "date-fns";
 import { es, enUS, de, fr, ca, pt } from "date-fns/locale";
 import { useLanguage } from "@/context/LanguageContext";
 import { useToast } from "@/context/ToastContext";
@@ -999,7 +999,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     ))}
 
                     {days.map(d => {
-                        const isSelected = value && isSameDay(new Date(value), d);
+                        const valDate = value ? new Date(value) : null;
+                        const isSelected = (valDate && isValid(valDate)) && isSameDay(valDate, d);
                         // Prevent selection of past dates for Deadline (endDate), but allow if already selected
                         const isPast = (target === 'endDate' || target === 'clientDeadline') && isBefore(d, today);
                         const isDisabled = isPast && !isSelected;

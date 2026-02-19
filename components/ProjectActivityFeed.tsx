@@ -4,7 +4,7 @@ import { safeParseDate } from "@/lib/date-utils";
 import { useEffect, useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import { TimelineEvent } from "@/types";
 import { getProjectTimeline, trashTimelineEvent } from "@/lib/updates";
-import { format, isSameDay, isToday, isYesterday } from "date-fns";
+import { format, isSameDay, isToday, isYesterday, isValid } from "date-fns";
 import { es } from "date-fns/locale";
 import { MessageSquare, MessageCircle, AlertCircle, CheckCircle, Clock, Trash2, Search, Download, Loader2, Calendar, ArrowRight } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
@@ -138,11 +138,15 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
         <div className="space-y-8 p-4 max-w-3xl mx-auto pb-20">
             {sortedDates.map(dateKey => {
                 const group = grouped[dateKey];
-                const dateObj = new Date(dateKey);
 
-                let dateLabel = format(dateObj, "EEEE d 'of' MMMM", { locale: es }); // Keep locale for UI? The plan said English as universal language for code. Usually UI follows locale settings.
-                if (isToday(dateObj)) dateLabel = "Today";
-                if (isYesterday(dateObj)) dateLabel = "Yesterday";
+                let dateLabel = "Fecha desconocida";
+                const dateObj = dateKey !== 'unknown' ? new Date(dateKey) : null;
+
+                if (dateObj && isValid(dateObj)) {
+                    dateLabel = format(dateObj, "EEEE d 'of' MMMM", { locale: es });
+                    if (isToday(dateObj)) dateLabel = "Hoy";
+                    if (isYesterday(dateObj)) dateLabel = "Ayer";
+                }
 
                 return (
                     <div key={dateKey} className="relative pl-6 border-l-2 border-white/10 space-y-6">
@@ -194,7 +198,10 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
                     <HighlightText text={event.authorName || 'System'} highlight={searchQuery} />
                 </span>
                 <span className={cn("text-[10px]", isLight ? "text-zinc-500" : "text-zinc-500")}>
-                    • {safeParseDate(event.date) ? format(safeParseDate(event.date)!, 'HH:mm') : ''}
+                    • {(() => {
+                        const d = safeParseDate(event.date);
+                        return (d && isValid(d)) ? format(d, 'HH:mm') : '';
+                    })()}
                 </span>
             </div>
 
