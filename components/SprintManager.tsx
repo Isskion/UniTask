@@ -101,8 +101,15 @@ export default function SprintManager() {
                         if (a.type === 'remote') return false;
                         if (a.userId !== resId) return false;
 
-                        const aStart = a.startDate instanceof Date ? a.startDate : a.startDate.toDate();
-                        const aEnd = a.endDate instanceof Date ? a.endDate : a.endDate.toDate();
+                        const aStart = a.startDate instanceof Date ? a.startDate
+                            : (a.startDate?.toDate ? a.startDate.toDate()
+                                : a.startDate?.seconds !== undefined ? new Date(a.startDate.seconds * 1000)
+                                    : new Date(a.startDate));
+                        const aEnd = a.endDate instanceof Date ? a.endDate
+                            : (a.endDate?.toDate ? a.endDate.toDate()
+                                : a.endDate?.seconds !== undefined ? new Date(a.endDate.seconds * 1000)
+                                    : new Date(a.endDate));
+                        if (!aStart || isNaN(aStart.getTime()) || !aEnd || isNaN(aEnd.getTime())) return false;
 
                         // Set times to midnight for comparison
                         const checkDay = new Date(curr);
@@ -339,9 +346,17 @@ export default function SprintManager() {
         showToast(t('common.success'), t('sprints.success_deleted'), "success");
     };
 
+    const parseFirestoreDate = (ts: any): Date | null => {
+        if (!ts) return null;
+        if (ts.toDate && typeof ts.toDate === 'function') return ts.toDate();
+        if (ts.seconds !== undefined) return new Date(ts.seconds * 1000); // Serialized Timestamp
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
     const formatDate = (ts: any) => {
-        if (!ts) return '-';
-        const date = ts.toDate ? ts.toDate() : new Date(ts);
+        const date = parseFirestoreDate(ts);
+        if (!date) return '-';
         return format(date, 'dd MMM yyyy');
     };
 

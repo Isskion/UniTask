@@ -1,4 +1,5 @@
 ﻿"use client";
+import { safeParseDate } from '@/lib/date-utils';
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "@/lib/firebase";
@@ -1225,7 +1226,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 />
                                             </span>
                                             <span className="text-zinc-400">| PRJ: <span className={cn(isLight ? "text-zinc-600" : "text-zinc-300")}>{projects.find(p => p.id === formData.projectId)?.code || "-"}</span></span>
-                                            <span className="text-zinc-400">| <span className={cn(isLight ? "text-zinc-600" : "text-zinc-300")}>{formData.createdAt ? format(formData.createdAt.toDate ? formData.createdAt.toDate() : new Date(formData.createdAt), 'dd/MM/yy', { locale: es }) : "-"}</span></span>
+                                            <span className="text-zinc-400">| <span className={cn(isLight ? "text-zinc-600" : "text-zinc-300")}>                                                            {(() => { const d = safeParseDate(formData.createdAt); return d ? format(d, 'dd/MM/yy', { locale: es }) : '-'; })()}</span></span>
                                         </div>
                                     </div>
                                     <div className="relative">
@@ -1414,7 +1415,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                     <CalendarIcon className={cn("w-4 h-4 text-zinc-400")} />
                                                     <span className={cn("text-xs font-mono text-muted-foreground")}>
                                                         {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.endDate
-                                                            ? format(new Date(sprints.find(s => s.id === formData.sprintId)!.endDate.toDate ? sprints.find(s => s.id === formData.sprintId)!.endDate.toDate() : sprints.find(s => s.id === formData.sprintId)!.endDate), 'dd MMM yyyy', { locale: es })
+                                                            ? (() => { const d = safeParseDate(sprints.find(s => s.id === formData.sprintId)?.endDate); return d ? format(d, 'dd MMM yyyy', { locale: es }) : '-'; })()
                                                             : '-'
                                                         }
                                                     </span>
@@ -1431,10 +1432,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 <div className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-black/20 border-white/5")}>
                                                     <CalendarIcon className="w-4 h-4 text-zinc-500" />
                                                     <span className="text-xs text-zinc-500 font-mono">
-                                                        {formData.createdAt
-                                                            ? format(formData.createdAt.toDate ? formData.createdAt.toDate() : new Date(formData.createdAt), 'dd MMM yyyy', { locale: es })
-                                                            : (isNew ? format(new Date(), 'dd MMM yyyy', { locale: es }) : "Pendiente")
-                                                        }
+                                                        {(() => { const d = safeParseDate(formData.createdAt); return d ? format(d, 'dd MMM yyyy', { locale: es }) : (isNew ? format(new Date(), 'dd MMM yyyy', { locale: es }) : 'Pendiente'); })()}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1450,7 +1448,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                                 >
                                                     <CalendarIcon className={cn("w-4 h-4", isLight ? "text-zinc-400" : "text-zinc-400")} />
                                                     <span className={cn("text-xs font-mono", isLight ? "text-zinc-900" : "text-zinc-300")}>
-                                                        {formData.endDate ? format(new Date(formData.endDate), 'dd MMM yyyy', { locale: es }) : 'Seleccionar'}
+                                                        {(() => { const d = safeParseDate(formData.endDate); return d ? format(d, 'dd MMM yyyy', { locale: es }) : 'Seleccionar'; })()}
                                                     </span>
                                                 </div>
                                                 {datePickerTarget === 'endDate' && (
