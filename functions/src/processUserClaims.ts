@@ -146,7 +146,8 @@ export const updateUserClaims = functions.region('europe-west1').https.onCall(as
             role: userData.role || 'team_member',
             roleLevel: userData.roleLevel || 0,
             tenantId: userData.tenantId || "1",
-            isActive: userData.isActive ?? true
+            isActive: userData.isActive ?? true,
+            syncId: Date.now() // Ensure frontend detects the sync
         };
 
         await admin.auth().setCustomUserClaims(targetUserId, syncedClaims);

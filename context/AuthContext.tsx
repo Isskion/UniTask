@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
 import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { RoleLevel, getRoleLevel, UserProfile } from '../types'; // Imported from types.ts (DRY)
@@ -53,10 +53,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const profileUnsubRef = useRef<(() => void) | null>(null);
+    const lastRefreshTimeRef = useRef<number>(0);
+    const refreshCountRef = useRef<number>(0);
 
     useEffect(() => {
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
+            // [FIX] Cleanup previous profile listener if it exists to prevent "zombie" listeners
+            if (profileUnsubRef.current) {
+                console.log("[AuthContext] 🧹 Cleaning up previous profile listener...");
+                profileUnsubRef.current();
+                profileUnsubRef.current = null;
+            }
+
             if (currentUser) {
                 // Initial Load: Get current token result
                 let tokenResult = await currentUser.getIdTokenResult();
@@ -69,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 // Debounce timer reference
                 let refreshTimer: NodeJS.Timeout | null = null;
 
-                const profileUnsub = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+                profileUnsubRef.current = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
                     if (!snapshot.exists()) {
                         console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
                         auth.signOut();
@@ -90,13 +100,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
                     // Also refresh if roleLevel/tenantId mismatches critically.
-
-                    const needsRefresh = (latestSyncId && (!currentSyncId || latestSyncId > currentSyncId)) ||
+                    // [HARDEN] If token has NO syncId, we don't trigger refresh unless role/tenant differs.
+                    // This prevents loops where the server fails to provide a syncId.
+                    const needsRefresh = (latestSyncId && currentSyncId && latestSyncId > currentSyncId) ||
                         (Number(data.roleLevel) !== Number(claims.roleLevel)) ||
                         (String(data.tenantId) !== String(claims.tenantId));
 
                     if (needsRefresh) {
-                        console.log("[AuthContext] ⚠️ Profile mismatch detected. Scheduling forced token refresh...");
+                        console.log(`[AuthContext] ⚠️ Profile mismatch (Refreshes: ${refreshCountRef.current}). Firestore Sync: ${latestSyncId} | Token Sync: ${currentSyncId} | Role: ${data.roleLevel} vs ${claims.roleLevel} | Tenant: ${data.tenantId} vs ${claims.tenantId}`);
+                        // --- LOOP GUARD ---
+                        const now = Date.now();
+                        if (now - lastRefreshTimeRef.current < 60000) {
+                            refreshCountRef.current++;
+                        } else {
+                            refreshCountRef.current = 1;
+                            lastRefreshTimeRef.current = now;
+                        }
+
+                        if (refreshCountRef.current > 3) {
+                            console.error("[AuthContext] 🛡️ Refresh loop detected! (More than 3 attempts in 60s). Blocking further refreshes.");
+                            setLoading(false);
+                            return;
+                        }
+                        // -----------------
+
+                        console.log(`[AuthContext] ⚠️ Profile mismatch detected (Refreshes in window: ${refreshCountRef.current}). Scheduling forced token refresh...`);
 
                         // [FIX] Block UI immediately to prevent permission errors with stale token
                         // This forces 'loading' to true, unmounting the app and stopping failed queries.

@@ -7,6 +7,7 @@ import {
     Search, Plus, Trash2, Copy, Check, Clock, User, Tag,
     FolderGit2, Lightbulb, BookMarked, ChevronRight, X, Calendar, Download
 } from 'lucide-react';
+import { AttachmentManager } from './AttachmentManager';
 import {
     collection, query, where, getDocs, addDoc, updateDoc, deleteDoc,
     doc, serverTimestamp, orderBy, Timestamp
@@ -47,7 +48,8 @@ export function ProductProposals() {
     const [formData, setFormData] = useState({
         title: '',
         content: '',
-        tags: [] as string[]
+        tags: [] as string[],
+        attachments: [] as string[]
     });
     const [tagInput, setTagInput] = useState('');
     const [showTagSuggestions, setShowTagSuggestions] = useState(false);
@@ -145,7 +147,8 @@ export function ProductProposals() {
         setFormData({
             title: entry.title,
             content: entry.content,
-            tags: entry.tags || []
+            tags: entry.tags || [],
+            attachments: entry.attachments || []
         });
     };
 
@@ -156,7 +159,8 @@ export function ProductProposals() {
         setFormData({
             title: '',
             content: '',
-            tags: []
+            tags: [],
+            attachments: []
         });
     };
 
@@ -202,6 +206,7 @@ export function ProductProposals() {
                     title: formData.title,
                     content: formData.content,
                     tags: formData.tags,
+                    attachments: formData.attachments,
                     createdBy: user?.uid || '',
                     createdByName: user?.displayName || 'Unknown',
                     createdAt: serverTimestamp(),
@@ -227,6 +232,7 @@ export function ProductProposals() {
                     title: formData.title,
                     content: formData.content,
                     tags: formData.tags,
+                    attachments: formData.attachments,
                     updatedBy: user?.uid,
                     updatedByName: user?.displayName,
                     updatedAt: serverTimestamp(),
@@ -619,6 +625,14 @@ export function ProductProposals() {
                                     )}
                                 />
                             </div>
+
+                            {/* Images / Attachments */}
+                            <AttachmentManager
+                                attachments={formData.attachments}
+                                onAttachmentsChange={(urls) => setFormData({ ...formData, attachments: urls })}
+                                storagePath={`tenants/${tenantId}/knowledge/${isNew ? 'temp' : selectedEntry?.id || 'unknown'}`}
+                                className="pt-4"
+                            />
 
                         </div>
 
