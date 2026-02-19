@@ -1,5 +1,6 @@
 "use client";
 
+import { safeParseDate } from '@/lib/date-utils';
 import { useMemo } from 'react';
 import { Task, Sprint, UserProfile } from '@/types';
 import {
@@ -39,11 +40,11 @@ export function SprintBurndown({ sprint, tasks, usersMap, selectedUserIds }: Spr
     const data = useMemo(() => {
         if (!sprint.startDate || !sprint.endDate) return [];
 
-        const start = sprint.startDate?.toDate ? sprint.startDate.toDate() : new Date(sprint.startDate);
-        const end = sprint.endDate?.toDate ? sprint.endDate.toDate() : new Date(sprint.endDate);
+        const start = safeParseDate(sprint.startDate);
+        const end = safeParseDate(sprint.endDate);
 
         // Safety: Ensure valid dates
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) return [];
+        if (!start || !end) return [];
 
         const days = eachDayOfInterval({ start, end });
         const totalEffort = effectiveTasks.reduce((sum, t) => sum + (t.estimatedEffort || 0), 0);
@@ -73,9 +74,9 @@ export function SprintBurndown({ sprint, tasks, usersMap, selectedUserIds }: Spr
                 const dateRef = t.closedAt || t.updatedAt;
                 if (!dateRef) return sum; // If absolutely no date, we can't plot it
 
-                const closedDate = (dateRef as any).toDate ? (dateRef as any).toDate() : new Date(dateRef as string | number | Date);
+                const closedDate = safeParseDate(dateRef);
 
-                if (isBefore(closedDate, endOfDay(day))) { // If closed before end of this day
+                if (closedDate && isBefore(closedDate, endOfDay(day))) { // If closed before end of this day
                     return sum + (t.estimatedEffort || 0);
                 }
                 return sum;

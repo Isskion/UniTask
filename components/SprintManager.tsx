@@ -1,5 +1,6 @@
 "use client";
 
+import { safeParseDate } from '@/lib/date-utils';
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
@@ -70,8 +71,9 @@ export default function SprintManager() {
 
     const calculatePlannedCapacity = (start: any, end: any, points: number, resourceIds: string[], includeWeekends: boolean) => {
         if (!start || !end || resourceIds.length === 0) return 0;
-        const startDate = new Date(start instanceof Date ? start : (start.toDate ? start.toDate() : start));
-        const endDate = new Date(end instanceof Date ? end : (end.toDate ? end.toDate() : end));
+        const startDate = safeParseDate(start);
+        const endDate = safeParseDate(end);
+        if (!startDate || !endDate) return 0;
 
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || startDate > endDate) return 0;
 
@@ -188,8 +190,9 @@ export default function SprintManager() {
         const otherSprints = sprints.filter(s => s.id !== formData.id);
 
         const hasOverlap = otherSprints.some(s => {
-            const existingStart = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
-            const existingEnd = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
+            const existingStart = safeParseDate(s.startDate);
+            const existingEnd = safeParseDate(s.endDate);
+            if (!existingStart || !existingEnd) return false;
 
             // Overlap condition: (StartA <= EndB) and (EndA >= StartB)
             // https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
@@ -198,8 +201,9 @@ export default function SprintManager() {
 
         if (hasOverlap) {
             const conflictingSprint = otherSprints.find(s => {
-                const existingStart = s.startDate?.toDate ? s.startDate.toDate() : new Date(s.startDate);
-                const existingEnd = s.endDate?.toDate ? s.endDate.toDate() : new Date(s.endDate);
+                const existingStart = safeParseDate(s.startDate);
+                const existingEnd = safeParseDate(s.endDate);
+                if (!existingStart || !existingEnd) return false;
                 return newStart <= existingEnd && newEnd >= existingStart;
             });
 
@@ -263,10 +267,10 @@ export default function SprintManager() {
                     // Sprints are ordered desc by startDate.
                     const lastSprint = sprints[0];
                     const now = new Date();
-                    const lastEndDate = lastSprint.endDate?.toDate ? lastSprint.endDate.toDate() : new Date(lastSprint.endDate);
+                    const lastEndDate = safeParseDate(lastSprint.endDate);
 
                     // If the last sprint has expired
-                    if (lastEndDate < now) {
+                    if (lastEndDate && lastEndDate < now) {
                         const tasksQuery = query(
                             collection(db, 'tasks'),
                             where('tenantId', '==', tenantId),
@@ -386,13 +390,13 @@ export default function SprintManager() {
                             if (sprints.length > 0) {
                                 // Sprints are ordered by startDate desc. Find the latest endDate.
                                 const latestSprint = [...sprints].sort((a, b) => {
-                                    const endA = a.endDate?.toDate ? a.endDate.toDate() : new Date(a.endDate);
-                                    const endB = b.endDate?.toDate ? b.endDate.toDate() : new Date(b.endDate);
-                                    return endB.getTime() - endA.getTime();
+                                    const endA = safeParseDate(a.endDate)?.getTime() ?? 0;
+                                    const endB = safeParseDate(b.endDate)?.getTime() ?? 0;
+                                    return endB - endA;
                                 })[0];
 
                                 if (latestSprint) {
-                                    refDate = latestSprint.endDate?.toDate ? latestSprint.endDate.toDate() : new Date(latestSprint.endDate);
+                                    refDate = safeParseDate(latestSprint.endDate) ?? startOfToday();
                                 }
                             }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { safeParseDate } from '@/lib/date-utils';
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -210,10 +211,10 @@ export function SprintPlanningBoard() {
 
         const checkExpiry = async () => {
             const now = new Date();
-            const endDate = selectedSprint.endDate?.toDate ? selectedSprint.endDate.toDate() : new Date(selectedSprint.endDate);
+            const endDate = safeParseDate(selectedSprint.endDate);
 
             // If sprint expired yesterday or before
-            if (endDate < now && selectedSprint.status === 'active') {
+            if (endDate && endDate < now && selectedSprint.status === 'active') {
                 const needsUpdate = sprintTasks.filter(t => !t.needsRollover && t.status !== 'completed');
 
                 if (needsUpdate.length > 0) {
@@ -673,12 +674,12 @@ function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true, user
     // Date Formatting
     const formatDateShort = (val: any) => {
         if (!val) return null;
-        const d = val.toDate ? val.toDate() : new Date(val);
-        return format(d, 'dd/MM');
+        const d = safeParseDate(val);
+        return d ? format(d, 'dd/MM') : null;
     };
 
     const deadline = task.clientDeadline;
-    const deadlineDate = deadline ? (deadline.toDate ? deadline.toDate() : new Date(deadline)) : null;
+    const deadlineDate = safeParseDate(deadline);
     const isOverdue = deadlineDate && deadlineDate < new Date();
 
     // Status Colors
