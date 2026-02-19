@@ -42,8 +42,10 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
     const [newType, setNewType] = useState<'daily' | 'decision' | 'alert'>('daily');
     const [newAttachments, setNewAttachments] = useState<string[]>([]);
     const [submitting, setSubmitting] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const { uploadFile, uploading: isUploading, progress: uploadProgress } = useFileUploader();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const dropZoneRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         loadTimeline(false);
@@ -132,17 +134,68 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
 
     const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // New Entry Handlers
-    const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        const file = e.target.files[0];
+    // Shared upload helper
+    const uploadSingleFile = async (file: File) => {
         const targetTenantId = projectTenantId || tenantId || "1";
         const path = `tenants/${targetTenantId}/projects/${projectId}/attachments`;
         const result = await uploadFile(file, path);
         if (result) {
             setNewAttachments(prev => [...prev, result.url]);
         }
+    };
+
+    const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.[0]) return;
+        await uploadSingleFile(e.target.files[0]);
         if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    // Drag-and-drop handlers
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        // Handle dropped files (images, PDFs, .eml, .msg)
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            for (let i = 0; i < e.dataTransfer.files.length; i++) {
+                await uploadSingleFile(e.dataTransfer.files[i]);
+            }
+            return;
+        }
+
+        // Handle dropped text (email chain pasted as text)
+        const droppedText = e.dataTransfer.getData('text/plain');
+        if (droppedText) {
+            setNewNotes(prev => prev ? prev + '\n\n---\n\n' + droppedText : droppedText);
+        }
+    };
+
+    // Paste handler for images from clipboard
+    const handlePaste = async (e: React.ClipboardEvent) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                const file = item.getAsFile();
+                if (file) await uploadSingleFile(file);
+                return;
+            }
+        }
+        // If no image, let normal paste behavior happen (text goes into textarea)
     };
 
     const handleSubmitEntry = async () => {
@@ -150,16 +203,19 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
         setSubmitting(true);
         try {
             const targetTenantId = projectTenantId || tenantId || "1";
+            const contentPayload: TimelineEvent['content'] = {
+                notes: newNotes.trim(),
+            };
+            if (newAttachments.length > 0) {
+                contentPayload.attachments = newAttachments;
+            }
             await createTimelineEvent(projectId, targetTenantId, {
                 projectId,
                 date: new Date(),
                 authorId: user.uid,
                 authorName: user.displayName || 'User',
                 type: newType,
-                content: {
-                    notes: newNotes.trim(),
-                    attachments: newAttachments.length > 0 ? newAttachments : undefined,
-                },
+                content: contentPayload,
             });
             showToast("Seguimiento", "Entrada creada correctamente", "success");
             setNewNotes("");
@@ -233,13 +289,25 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
                         </button>
                     </div>
 
-                    <div className="p-4 space-y-3">
+                    <div
+                        ref={dropZoneRef}
+                        className={cn("p-4 space-y-3 transition-all", isDragging && "bg-indigo-500/10 ring-2 ring-indigo-500/50 ring-inset")}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onPaste={handlePaste}
+                    >
+                        {isDragging && (
+                            <div className="text-center py-6 text-indigo-400 text-sm font-bold animate-pulse">
+                                Suelta aquí para adjuntar...
+                            </div>
+                        )}
                         <textarea
                             value={newNotes}
                             onChange={e => setNewNotes(e.target.value)}
-                            placeholder="Escribe las notas del seguimiento..."
-                            rows={4}
-                            className={cn("w-full rounded-lg border p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all",
+                            placeholder="Pega la cadena de emails aquí o escribe notas... También puedes arrastrar archivos."
+                            rows={6}
+                            className={cn("w-full rounded-lg border p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all",
                                 isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900 border-white/5 text-zinc-200"
                             )}
                         />
