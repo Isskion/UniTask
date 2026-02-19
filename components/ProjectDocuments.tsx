@@ -12,8 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { useFileUploader } from "@/hooks/useFileUploader";
 import { format } from "date-fns";
-import { Image as ImageIcon, Maximize2, Copy, FileDown, Search as SearchIcon } from "lucide-react";
-import HighlightText from "./ui/HighlightText";
+import { Image as ImageIcon, Maximize2 } from "lucide-react";
 
 interface ProjectDocumentsProps {
     project: Project;
@@ -44,7 +43,6 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
     const [uploadingType, setUploadingType] = useState<string | null>(null); // To track which item is being uploaded
     const [viewingDoc, setViewingDoc] = useState<ProjectDocument | null>(null); // For Text Preview Modal
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-    const [viewerSearch, setViewerSearch] = useState("");
     const { uploadFile, uploading: isUploadingFile, progress: uploadProgress } = useFileUploader();
 
     useEffect(() => {
@@ -160,31 +158,6 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
         } catch (e) {
             showToast("Error", "No se pudo eliminar", "error");
         }
-    };
-
-    const handleCopy = (text: string) => {
-        navigator.clipboard.writeText(text);
-        showToast("Copiado", "Contenido copiado al portapapeles", "success");
-    };
-
-    const handleDownloadTxt = (doc: ProjectDocument) => {
-        const element = document.createElement("a");
-        const file = new Blob([doc.content || ""], { type: 'text/plain' });
-        element.href = URL.createObjectURL(file);
-        element.download = `${doc.name.replace(/\.[^/.]+$/, "")}_extraido.txt`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-    };
-
-    const handleDownloadOriginal = (url: string, name: string) => {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = name;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
     };
 
     // Filter Logic
@@ -392,52 +365,21 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                {viewingDoc.content && (
-                                    <div className="flex items-center gap-1 mr-2 px-2 py-1 bg-zinc-800 rounded-lg border border-white/5">
-                                        <button
-                                            onClick={() => handleCopy(viewingDoc.content!)}
-                                            className="p-1.5 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 text-[10px] font-bold uppercase"
-                                            title="Copiar Texto"
-                                        >
-                                            <Copy className="w-3.5 h-3.5" />
-                                            <span>Copiar</span>
-                                        </button>
-                                        <div className="w-[1px] h-3 bg-white/10 mx-1" />
-                                        <button
-                                            onClick={() => handleDownloadTxt(viewingDoc)}
-                                            className="p-1.5 hover:bg-white/10 rounded-md text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 text-[10px] font-bold uppercase"
-                                            title="Descargar TXT"
-                                        >
-                                            <FileDown className="w-3.5 h-3.5" />
-                                            <span>TXT</span>
-                                        </button>
-                                    </div>
-                                )}
                                 {viewingDoc.url && (
-                                    <div className="flex items-center gap-2 mr-2">
-                                        <button
-                                            onClick={() => handleDownloadOriginal(viewingDoc.url!, viewingDoc.name)}
-                                            className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors"
-                                            title="Descargar Original"
-                                        >
-                                            <Download className="w-5 h-5" />
-                                        </button>
-                                        <a
-                                            href={viewingDoc.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors"
-                                            title="Abrir en pestaña nueva"
-                                        >
-                                            <ExternalLink className="w-5 h-5" />
-                                        </a>
-                                    </div>
+                                    <a
+                                        href={viewingDoc.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-primary transition-colors"
+                                        title="Abrir en pestaña nueva"
+                                    >
+                                        <ExternalLink className="w-5 h-5" />
+                                    </a>
                                 )}
                                 <button
                                     onClick={() => {
                                         setIsPreviewOpen(false);
                                         setViewingDoc(null);
-                                        setViewerSearch("");
                                     }}
                                     className="p-2 hover:bg-muted rounded-full transition-colors"
                                 >
@@ -455,7 +397,7 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                         title={viewingDoc.name}
                                     />
                                 ) : (
-                                    <div className="w-full h-full p-4 flex items-center justify-center overflow-auto bg-zinc-950">
+                                    <div className="w-full h-full p-4 flex items-center justify-center overflow-auto">
                                         <img
                                             src={viewingDoc.url}
                                             alt={viewingDoc.name}
@@ -464,28 +406,8 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                     </div>
                                 )
                             ) : (
-                                <div className="w-full h-full flex flex-col bg-zinc-950">
-                                    <div className="p-3 border-b border-white/5 bg-black/40 flex items-center">
-                                        <div className="relative flex-1 max-w-sm">
-                                            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
-                                            <input
-                                                value={viewerSearch}
-                                                onChange={e => setViewerSearch(e.target.value)}
-                                                placeholder="Buscar en el texto..."
-                                                className="w-full bg-white/5 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-indigo-500/50 transition-all"
-                                            />
-                                        </div>
-                                        <div className="ml-auto text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                                            Modo Lectura • {viewingDoc.pageCount || 1} Págs
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-8 font-mono text-xs whitespace-pre-wrap leading-relaxed text-zinc-300 selection:bg-indigo-500/30">
-                                        {viewerSearch ? (
-                                            <HighlightText text={viewingDoc.content || ""} highlight={viewerSearch} />
-                                        ) : (
-                                            viewingDoc.content || "Sin contenido extraído."
-                                        )}
-                                    </div>
+                                <div className="w-full h-full overflow-y-auto p-8 font-mono text-xs whitespace-pre-wrap leading-relaxed text-zinc-300">
+                                    {viewingDoc.content || "Sin contenido extraído."}
                                 </div>
                             )}
                         </div>
