@@ -155,7 +155,7 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
                         <h3 className={cn("text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2", isLight ? "text-zinc-600" : "text-zinc-400")}>
                             <Calendar className="w-4 h-4" />
                             {dateLabel}
-                            {isToday(dateObj) && <span className="bg-red-500 text-white text-[10px] px-2 rounded-full normal-case">In Progress</span>}
+                            {dateObj && isValid(dateObj) && isToday(dateObj) && <span className="bg-red-500 text-white text-[10px] px-2 rounded-full normal-case">In Progress</span>}
                         </h3>
 
                         <div className="grid gap-4">
