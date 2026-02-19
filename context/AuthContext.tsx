@@ -92,8 +92,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     // Also refresh if roleLevel/tenantId mismatches critically.
 
                     const needsRefresh = (latestSyncId && (!currentSyncId || latestSyncId > currentSyncId)) ||
-                        (data.roleLevel !== claims.roleLevel) ||
-                        (data.tenantId !== claims.tenantId);
+                        (Number(data.roleLevel) !== Number(claims.roleLevel)) ||
+                        (String(data.tenantId) !== String(claims.tenantId));
 
                     if (needsRefresh) {
                         console.log("[AuthContext] ⚠️ Profile mismatch detected. Scheduling forced token refresh...");
