@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { safeParseDate } from "@/lib/date-utils";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { Project, DocumentType, UserProfile } from "@/types";
@@ -324,7 +325,10 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
                                         <span>{(doc.size / 1024 / 1024).toFixed(2)} MB</span>
                                         <span>•</span>
-                                        <span>{doc.uploadedAt ? format(doc.uploadedAt.toDate(), "dd/MM/yyyy") : "?"}</span>
+                                        <span>{(() => {
+                                            const date = safeParseDate(doc.uploadedAt);
+                                            return date ? format(date, "dd/MM/yyyy") : "?";
+                                        })()}</span>
                                     </div>
                                     <div className="text-[10px] text-indigo-400 mt-0.5">
                                         Subido por {doc.uploadedByName}
@@ -352,7 +356,10 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
                                     {viewingDoc.name}
                                 </h3>
                                 <p className="text-xs text-muted-foreground flex items-center gap-2">
-                                    <span>Extraído el {viewingDoc.uploadedAt ? format(viewingDoc.uploadedAt.toDate(), "dd/MM/yyyy HH:mm") : ""}</span>
+                                    <span>Extraído el {(() => {
+                                        const date = safeParseDate(viewingDoc.uploadedAt);
+                                        return date ? format(date, "dd/MM/yyyy HH:mm") : "";
+                                    })()}</span>
                                     <span>•</span>
                                     <span>Por {viewingDoc.uploadedByName}</span>
                                 </p>

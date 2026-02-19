@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { UserAvailability, AVAILABILITY_TYPES, AvailabilityType } from "@/types/availability";
 import { UserProfile, getRoleLevel } from "@/types";
@@ -7,6 +6,7 @@ import { X, Save, Trash2, Calendar, User, FileText } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { safeParseDate } from "@/lib/date-utils"; // Added import
 
 interface AvailabilityDialogProps {
     open: boolean;
@@ -44,11 +44,17 @@ export function AvailabilityDialog({
             if (availability) {
                 setUserId(availability.userId);
                 setType(availability.type);
-                const start = availability.startDate instanceof Date ? availability.startDate : (availability.startDate as any).toDate();
-                const end = availability.endDate instanceof Date ? availability.endDate : (availability.endDate as any).toDate();
+                const start = safeParseDate(availability.startDate); // Replaced unsafe conversion
+                const end = safeParseDate(availability.endDate);     // Replaced unsafe conversion
 
-                setStartDate(format(start, "yyyy-MM-dd"));
-                setEndDate(format(end, "yyyy-MM-dd"));
+                if (start && end) { // Added check for valid dates
+                    setStartDate(format(start, "yyyy-MM-dd"));
+                    setEndDate(format(end, "yyyy-MM-dd"));
+                } else {
+                    // Fallback or error handling if dates are invalid
+                    setStartDate(format(new Date(), "yyyy-MM-dd"));
+                    setEndDate(format(new Date(), "yyyy-MM-dd"));
+                }
                 setNotes(availability.notes || "");
                 setConsumedDays(availability.consumedDays || 0);
             } else {

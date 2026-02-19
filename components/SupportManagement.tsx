@@ -1,8 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp, where, getDocs, limit } from "firebase/firestore";
+import { db, storage } from "@/lib/firebase";
+import { safeParseDate } from "@/lib/date-utils";
+import {
+    collection,
+    query,
+    orderBy,
+    onSnapshot,
+    doc,
+    updateDoc,
+    addDoc,
+    deleteDoc,
+    serverTimestamp,
+    where,
+    getDocs,
+    limit
+} from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";

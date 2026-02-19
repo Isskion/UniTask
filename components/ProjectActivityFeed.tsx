@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import { safeParseDate } from "@/lib/date-utils";
+import { useEffect, useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import { TimelineEvent } from "@/types";
 import { getProjectTimeline, trashTimelineEvent } from "@/lib/updates";
 import { format, isSameDay, isToday, isYesterday } from "date-fns";
 import { es } from "date-fns/locale";
-import { Loader2, Calendar, CheckCircle2, AlertTriangle, FileText, ArrowRight, Trash2 } from "lucide-react";
+import { MessageSquare, MessageCircle, AlertCircle, CheckCircle, Clock, Trash2, Search, Download, Loader2, Calendar, ArrowRight } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
@@ -93,7 +94,8 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
             const header = `SEARCH RESULTS: "${searchQuery}"\nPROJECT: ${projectName}\nDATE: ${new Date().toLocaleDateString()}\n----------------------------------------\n\n`;
 
             const content = filteredEvents.map(u => {
-                const date = u.date?.toDate ? format(u.date.toDate(), 'dd/MM/yyyy HH:mm') : 'Unknown Date';
+                const activityDate = safeParseDate(u.date);
+                const date = activityDate ? format(activityDate, 'dd/MM/yyyy HH:mm') : 'Unknown Date';
                 const author = u.authorName || 'System';
                 let text = `[${date}] ${author}:\n${u.content.notes || ''}\n`;
 
@@ -111,7 +113,8 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
 
     // Group by Date for the "Day Header" effect
     const grouped = filteredEvents.reduce((acc, event) => {
-        const dateKey = event.date?.toDate ? format(event.date.toDate(), 'yyyy-MM-dd') : 'unknown';
+        const activityDate = safeParseDate(event.date);
+        const dateKey = activityDate ? format(activityDate, 'yyyy-MM-dd') : 'unknown';
         if (!acc[dateKey]) acc[dateKey] = [];
         acc[dateKey].push(event);
         return acc;
@@ -191,7 +194,7 @@ function TimelineCard({ event, isLight, searchQuery }: { event: TimelineEvent, i
                     <HighlightText text={event.authorName || 'System'} highlight={searchQuery} />
                 </span>
                 <span className={cn("text-[10px]", isLight ? "text-zinc-500" : "text-zinc-500")}>
-                    • {event.date?.toDate ? format(event.date.toDate(), 'HH:mm') : ''}
+                    • {safeParseDate(event.date) ? format(safeParseDate(event.date)!, 'HH:mm') : ''}
                 </span>
             </div>
 

@@ -1,8 +1,20 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { db } from "@/lib/firebase";
+import { safeParseDate } from "@/lib/date-utils";
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc,
+    setDoc,
+    serverTimestamp,
+    orderBy
+} from "firebase/firestore";
 import { PermissionGroup } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeFirestore } from '@/hooks/useSafeFirestore';
@@ -512,7 +524,10 @@ export default function UserRoleManagement() {
                                                     <span className="text-xs font-mono bg-black/10 px-2 py-0.5 rounded">{invite.code}</span>
                                                 </div>
                                                 <div className="text-sm opacity-70">
-                                                    Creada {invite.createdAt ? formatDistanceToNow(invite.createdAt.toDate(), { addSuffix: true, locale: es }) : 'N/A'}
+                                                    Creada {(() => {
+                                                        const date = safeParseDate(invite.createdAt);
+                                                        return date ? formatDistanceToNow(date, { addSuffix: true, locale: es }) : 'N/A';
+                                                    })()}
                                                     {status === 'expired' && <span className="text-red-500 ml-2 font-bold">(Caducada)</span>}
                                                     {status === 'revoked' && <span className="text-red-500 ml-2 font-bold">(Desactivada)</span>}
                                                     {status === 'used' && <span className="text-blue-500 ml-2 font-bold">(Usada)</span>}

@@ -8,6 +8,9 @@ import { useAuth } from '@/context/AuthContext';
 import { ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { isSameDay, isSameWeek, isSameMonth, isSameYear, parseISO, startOfWeek, endOfWeek, format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval, isValid, eachWeekOfInterval, getWeek, endOfDay, addWeeks, subWeeks, addMonths, subMonths, addYears, subYears } from 'date-fns';
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
+import { db } from "@/lib/firebase";
+import { safeParseDate } from "@/lib/date-utils";
+import { collection, query, where, getDocs, onSnapshot, orderBy, Timestamp } from "firebase/firestore";
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -118,7 +121,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
             // Handle Firestore Timestamp or Date or String
             let d: Date;
             if ((task.createdAt as any).toDate) {
-                d = (task.createdAt as any).toDate();
+                const parsed = safeParseDate(task.createdAt);
+                d = parsed ? parsed : new Date();
             } else if (typeof task.createdAt === 'string') {
                 d = new Date(task.createdAt);
             } else {
@@ -352,7 +356,8 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                     const closedDateRaw = task.closedAt || task.updatedAt;
                     let closedDate: Date | null = null;
                     if (closedDateRaw) {
-                        if ((closedDateRaw as any).toDate) closedDate = (closedDateRaw as any).toDate();
+                        const parsed = safeParseDate(closedDateRaw);
+                        if (parsed) closedDate = parsed;
                         else closedDate = new Date(closedDateRaw as any);
                     }
                     if (closedDate && isValid(closedDate)) {
@@ -388,11 +393,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
                         // Check if it was closed before this bucket end
                         if (t.closedAt) {
-                            const closedDate = (t.closedAt as any).toDate ? (t.closedAt as any).toDate() : new Date(t.closedAt);
+                            const closedDate = safeParseDate(t.closedAt) || new Date(t.closedAt);
                             if (isValid(closedDate) && closedDate <= bucketEnd) return false;
                         } else if (t.status === 'completed') {
                             if (t.updatedAt) {
-                                const uDate = (t.updatedAt as any).toDate ? (t.updatedAt as any).toDate() : new Date(t.updatedAt);
+                                const uDate = safeParseDate(t.updatedAt) || new Date(t.updatedAt);
                                 if (isValid(uDate) && uDate <= bucketEnd) return false;
                             }
                         }

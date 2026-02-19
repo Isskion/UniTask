@@ -21,6 +21,7 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { safeParseDate } from "@/lib/date-utils";
 
 interface KnowledgeBaseProps {
     type: 'lesson_learned' | 'solution_record';
@@ -355,7 +356,8 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                             onClick={() => {
                                 const header = `KNOWLEDGE BASE EXPORT (V13.3.0 SECURED): "${title}"\nFILTER: "${searchQuery}"\nDATE: ${new Date().toLocaleDateString()}\n----------------------------------------\n\n`;
                                 const content = filteredEntries.map(e => {
-                                    const date = e.createdAt?.toDate ? format(e.createdAt.toDate(), 'dd/MM/yyyy') : 'Unknown Date';
+                                    const creationDate = safeParseDate(e.createdAt);
+                                    const date = creationDate ? format(creationDate, 'dd/MM/yyyy') : 'Unknown Date';
                                     const tags = e.tags && e.tags.length > 0 ? `\nTags: ${e.tags.join(', ')}` : '';
                                     const plainContent = stripHtml(e.content);
                                     return `[${date}] ${e.title}\nBy: ${e.createdByName || 'Unknown'}\n\n${plainContent}${tags}`;
@@ -397,7 +399,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                         ? "bg-primary/10 border-primary/30"
                                         : isLight
                                             ? "bg-white border-zinc-100 hover:border-zinc-300"
-                                            : "bg-black/10 border-white/5 hover:border-white/10"
+                                            : "bg-black/10 border-white/10 hover:border-white/10"
                                 )}
                             >
                                 <p className={cn(
@@ -612,9 +614,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                             <span>{t('knowledge_base.created_by') || "Creado por"}: <strong className="text-foreground">{selectedEntry.createdByName}</strong></span>
                                             <Clock className="w-3 h-3 ml-2" />
                                             <span>
-                                                {selectedEntry.createdAt?.toDate
-                                                    ? format(selectedEntry.createdAt.toDate(), 'dd MMM yyyy HH:mm', { locale: es })
-                                                    : '-'}
+                                                {format(safeParseDate(selectedEntry.createdAt) || new Date(), 'dd MMM yyyy HH:mm', { locale: es })}
                                             </span>
                                         </div>
                                         {selectedEntry.updatedBy && (
@@ -623,9 +623,7 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
                                                 <span>{t('knowledge_base.updated_by') || "Modificado por"}: <strong className="text-foreground">{selectedEntry.updatedByName}</strong></span>
                                                 <Clock className="w-3 h-3 ml-2" />
                                                 <span>
-                                                    {selectedEntry.updatedAt?.toDate
-                                                        ? format(selectedEntry.updatedAt.toDate(), 'dd MMM yyyy HH:mm', { locale: es })
-                                                        : '-'}
+                                                    {format(safeParseDate(selectedEntry.updatedAt) || new Date(), 'dd MMM yyyy HH:mm', { locale: es })}
                                                 </span>
                                             </div>
                                         )}

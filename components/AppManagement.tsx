@@ -43,9 +43,11 @@ import {
     getDoc,
     updateDoc,
     serverTimestamp,
-    onSnapshot
+    onSnapshot,
+    addDoc // Added addDoc as per the provided snippet, assuming it's needed later
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { safeParseDate } from "@/lib/date-utils"; // Added safeParseDate
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useLanguage } from '@/context/LanguageContext';

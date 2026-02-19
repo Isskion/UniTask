@@ -1,5 +1,7 @@
+"use client";
 
 import { useMemo } from "react";
+import { safeParseDate } from "@/lib/date-utils";
 import { UserAvailability, AVAILABILITY_TYPES } from "@/types/availability";
 import { UserProfile } from "@/types";
 import { format, addDays, getDaysInMonth, startOfMonth, endOfMonth, isSameDay, isWithinInterval } from "date-fns";
@@ -42,8 +44,10 @@ export function ResourceTimeline({
     const getAvailabilityForCell = (userId: string, date: Date) => {
         return availabilities.find(a => {
             if (a.userId !== userId) return false;
-            const start = a.startDate instanceof Date ? a.startDate : (a.startDate as any).toDate();
-            const end = a.endDate instanceof Date ? a.endDate : (a.endDate as any).toDate();
+            const start = safeParseDate(a.startDate);
+            const end = safeParseDate(a.endDate);
+
+            if (!start || !end) return null;
             const d = new Date(date).setHours(0, 0, 0, 0);
             const s = new Date(start).setHours(0, 0, 0, 0);
             const e = new Date(end).setHours(0, 0, 0, 0);

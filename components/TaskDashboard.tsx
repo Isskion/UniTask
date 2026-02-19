@@ -8,10 +8,19 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
 import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil } from 'lucide-react';
 
-
 import { format, isBefore, startOfToday } from 'date-fns';
-import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from "@/lib/firebase";
+import { safeParseDate } from "@/lib/date-utils";
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    orderBy,
+    limit,
+    Timestamp,
+    onSnapshot
+} from "firebase/firestore";
 import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
@@ -195,7 +204,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
         const safeStr = (s: string) => `"${s ? s.replace(/"/g, '""') : ''}"`;
         filteredTasks.forEach(t => {
             const pName = projects.find(p => p.id === t.projectId)?.name || 'Unknown';
-            const dateStr = t.createdAt?.toDate ? format(t.createdAt.toDate(), 'yyyy-MM-dd') : '';
+            const creationDate = safeParseDate(t.createdAt);
+            const dateStr = creationDate ? format(creationDate, 'yyyy-MM-dd') : '';
             csv += `${t.friendlyId || ''},${safeStr(pName)},${t.status},${safeStr(t.description || t.title || '')},${dateStr}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -355,11 +365,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                 if (pA !== pB) return pA - pB;
 
                                 const getTime = (d: any) => {
-                                    if (!d) return 0;
-                                    if (d.seconds) return d.seconds * 1000;
-                                    if (d instanceof Date) return d.getTime();
-                                    if (typeof d === 'string') return new Date(d).getTime();
-                                    return 0;
+                                    const parsed = safeParseDate(d);
+                                    return parsed ? parsed.getTime() : 0;
                                 };
 
                                 const timeA = getTime(a.createdAt);
@@ -494,8 +501,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                         {task.endDate && (
                                                             <span className={cn("text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 border font-medium",
                                                                 (() => {
-                                                                    const date = task.endDate?.toDate ? task.endDate.toDate() : new Date(task.endDate);
-                                                                    return isBefore(date, startOfToday()) && task.status !== 'completed';
+                                                                    const date = safeParseDate(task.endDate);
+                                                                    return date && isBefore(date, startOfToday()) && task.status !== 'completed';
                                                                 })()
                                                                     ? "bg-red-100 text-red-700 border-red-200"
                                                                     : "bg-secondary text-muted-foreground border-border"
@@ -503,12 +510,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                                 <span className="opacity-70 mr-0.5">Deadline:</span>
                                                                 <CalendarIcon className="w-3 h-3" />
                                                                 {(() => {
-                                                                    try {
-                                                                        const date = task.endDate?.toDate ? task.endDate.toDate() : new Date(task.endDate);
-                                                                        return format(date, 'dd MMM');
-                                                                    } catch (e) {
-                                                                        return 'Fecha Inválida';
-                                                                    }
+                                                                    const date = safeParseDate(task.endDate);
+                                                                    return date ? format(date, 'dd MMM') : 'Fecha Inválida';
                                                                 })()}
                                                             </span>
                                                         )}
@@ -536,7 +539,10 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 <div className="flex flex-col items-end gap-1">
                                                     <div className="text-[10px] text-muted-foreground font-mono whitespace-nowrap bg-secondary/30 px-1.5 rounded" title="Fecha de Creación">
                                                         <span className="opacity-70 mr-1">Created:</span>
-                                                        {task.createdAt?.toDate ? format(task.createdAt.toDate(), 'dd MMM') : ''}
+                                                        {(() => {
+                                                            const date = safeParseDate(task.createdAt);
+                                                            return date ? format(date, 'dd MMM') : '';
+                                                        })()}
                                                     </div>
                                                 </div>
                                             </div>

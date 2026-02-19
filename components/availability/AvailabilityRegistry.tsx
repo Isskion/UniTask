@@ -9,6 +9,19 @@ import { es } from "date-fns/locale";
 import { UserAvailability, AVAILABILITY_TYPES } from "@/types/availability";
 import { getRoleLevel } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
+import { db } from "@/lib/firebase";
+import { safeParseDate } from "@/lib/date-utils";
+import {
+    collection,
+    query,
+    where,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    doc,
+    updateDoc,
+    serverTimestamp
+} from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 export default function AvailabilityRegistry() {
@@ -51,8 +64,10 @@ export default function AvailabilityRegistry() {
         // Date filter
         if (startDateFilter || endDateFilter) {
             filtered = filtered.filter(a => {
-                const aStart = a.startDate instanceof Date ? a.startDate : (a.startDate as any).toDate();
-                const aEnd = a.endDate instanceof Date ? a.endDate : (a.endDate as any).toDate();
+                const aStart = safeParseDate(a.startDate);
+                const aEnd = safeParseDate(a.endDate);
+
+                if (!aStart || !aEnd) return false;
 
                 let match = true;
                 if (startDateFilter) {
@@ -71,8 +86,10 @@ export default function AvailabilityRegistry() {
 
         // Sort by start date (newest first)
         return filtered.sort((a, b) => {
-            const dateA = a.startDate instanceof Date ? a.startDate : (a.startDate as any).toDate();
-            const dateB = b.startDate instanceof Date ? b.startDate : (b.startDate as any).toDate();
+            const dateA = safeParseDate(a.startDate);
+            const dateB = safeParseDate(b.startDate);
+
+            if (!dateA || !dateB) return 0;
             return dateB.getTime() - dateA.getTime();
         });
     }, [availabilities, filterUserId, filterType, startDateFilter, endDateFilter, userLevel, user]);
@@ -243,8 +260,10 @@ export default function AvailabilityRegistry() {
                             ) : (
                                 filteredAvailabilities.map(availability => {
                                     const typeConfig = AVAILABILITY_TYPES[availability.type];
-                                    const startDate = availability.startDate instanceof Date ? availability.startDate : (availability.startDate as any).toDate();
-                                    const endDate = availability.endDate instanceof Date ? availability.endDate : (availability.endDate as any).toDate();
+                                    const startDate = safeParseDate(availability.startDate);
+                                    const endDate = safeParseDate(availability.endDate);
+
+                                    if (!startDate || !endDate) return null;
 
                                     return (
                                         <tr

@@ -19,6 +19,7 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { safeParseDate } from "@/lib/date-utils";
 
 export function ProductProposals() {
     const { theme } = useTheme();
@@ -102,7 +103,8 @@ export function ProductProposals() {
         if (dateStart || dateEnd) {
             filtered = filtered.filter(e => {
                 if (!e.createdAt?.toDate) return false;
-                const date = e.createdAt.toDate();
+                const date = safeParseDate(e.createdAt);
+                if (!date) return false;
 
                 // If only start date
                 if (dateStart && !dateEnd) {
@@ -273,7 +275,8 @@ export function ProductProposals() {
 
         const header = `PRODUCT PROPOSALS EXPORT\nFILTER: "${searchQuery}"\nDATE RANGE: ${dateStart || 'Any'} to ${dateEnd || 'Any'}\nGENERATED: ${new Date().toLocaleString()}\n========================================\n\n`;
         const content = filteredEntries.map(e => {
-            const date = e.createdAt?.toDate ? format(e.createdAt.toDate(), 'dd/MM/yyyy HH:mm') : 'Unknown Date';
+            const creationDate = safeParseDate(e.createdAt);
+            const date = creationDate ? format(creationDate, 'dd/MM/yyyy HH:mm') : 'Unknown Date';
             const tags = e.tags && e.tags.length > 0 ? `\nTags: ${e.tags.join(', ')}` : '';
             return `Title: ${e.title}\nDate: ${date}\nAuthor: ${e.createdByName || 'Unknown'}\n----------------------------------------\n${e.content}${tags}\n`;
         }).join('\n========================================\n\n');
@@ -430,7 +433,7 @@ export function ProductProposals() {
                                     isLight ? "text-zinc-900" : "text-white"
                                 )}>{entry.title}</p>
                                 <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                                    {format(entry.createdAt?.toDate ? entry.createdAt.toDate() : new Date(), 'dd/MM/yyyy')} by {entry.createdByName}
+                                    {format(safeParseDate(entry.createdAt) || new Date(), 'dd/MM/yyyy')} by {entry.createdByName}
                                 </p>
 
                                 {entry.tags?.length > 0 && (
@@ -507,7 +510,7 @@ export function ProductProposals() {
                                         <div className="text-xs uppercase font-bold text-muted-foreground">Fecha</div>
                                         <div className="font-mono text-sm text-foreground">
                                             {selectedEntry.createdAt?.toDate
-                                                ? format(selectedEntry.createdAt.toDate(), 'dd MMM yyyy, HH:mm')
+                                                ? format(safeParseDate(selectedEntry.createdAt) || new Date(), 'dd MMM yyyy, HH:mm')
                                                 : '-'}
                                         </div>
                                     </div>
