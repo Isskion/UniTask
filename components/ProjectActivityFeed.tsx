@@ -1,16 +1,15 @@
 "use client";
 
 import { safeParseDate } from "@/lib/date-utils";
-import { useEffect, useState, forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { useEffect, useState, forwardRef, useImperativeHandle, useMemo } from "react";
 import { TimelineEvent } from "@/types";
-import { getProjectTimeline, trashTimelineEvent, createTimelineEvent } from "@/lib/updates";
+import { getProjectTimeline, trashTimelineEvent } from "@/lib/updates";
 import { format, isSameDay, isToday, isYesterday, isValid } from "date-fns";
 import { es } from "date-fns/locale";
-import { MessageSquare, MessageCircle, AlertCircle, CheckCircle, Clock, Trash2, Search, Download, Loader2, Calendar, ArrowRight, Plus, Paperclip, X, Send, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, MessageCircle, AlertCircle, CheckCircle, Clock, Trash2, Search, Download, Loader2, Calendar, ArrowRight } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/context/ToastContext";
-import { useFileUploader } from "@/hooks/useFileUploader";
 
 import { useAuth } from "@/context/AuthContext";
 import HighlightText from "./ui/HighlightText";
@@ -28,24 +27,13 @@ export interface ProjectActivityFeedHandle {
 
 const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivityFeedProps>(({ projectId, projectTenantId, projectName = "Project", searchQuery = "" }, ref) => {
     const { theme } = useTheme();
-    const { tenantId, user } = useAuth(); // Get Tenant Context
+    const { tenantId } = useAuth(); // Get Tenant Context
     const isLight = theme === 'light';
     const { showToast } = useToast();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [fullHistoryLoaded, setFullHistoryLoaded] = useState(false);
     const [fetchingHistory, setFetchingHistory] = useState(false);
-
-    // New Entry Form State
-    const [showNewEntry, setShowNewEntry] = useState(false);
-    const [newNotes, setNewNotes] = useState("");
-    const [newType, setNewType] = useState<'daily' | 'decision' | 'alert'>('daily');
-    const [newAttachments, setNewAttachments] = useState<string[]>([]);
-    const [submitting, setSubmitting] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const { uploadFile, uploading: isUploading, progress: uploadProgress } = useFileUploader();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const dropZoneRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         loadTimeline(false);
@@ -134,103 +122,6 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
 
     const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-    // Shared upload helper
-    const uploadSingleFile = async (file: File) => {
-        const targetTenantId = projectTenantId || tenantId || "1";
-        const path = `tenants/${targetTenantId}/projects/${projectId}/attachments`;
-        const result = await uploadFile(file, path);
-        if (result) {
-            setNewAttachments(prev => [...prev, result.url]);
-        }
-    };
-
-    const handleAttachFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        await uploadSingleFile(e.target.files[0]);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-    };
-
-    // Drag-and-drop handlers
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-    };
-    const handleDragLeave = (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-    };
-    const handleDrop = async (e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-
-        // Handle dropped files (images, PDFs, .eml, .msg)
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            for (let i = 0; i < e.dataTransfer.files.length; i++) {
-                await uploadSingleFile(e.dataTransfer.files[i]);
-            }
-            return;
-        }
-
-        // Handle dropped text (email chain pasted as text)
-        const droppedText = e.dataTransfer.getData('text/plain');
-        if (droppedText) {
-            setNewNotes(prev => prev ? prev + '\n\n---\n\n' + droppedText : droppedText);
-        }
-    };
-
-    // Paste handler for images from clipboard
-    const handlePaste = async (e: React.ClipboardEvent) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
-
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item.type.startsWith('image/')) {
-                e.preventDefault();
-                const file = item.getAsFile();
-                if (file) await uploadSingleFile(file);
-                return;
-            }
-        }
-        // If no image, let normal paste behavior happen (text goes into textarea)
-    };
-
-    const handleSubmitEntry = async () => {
-        if (!user || !newNotes.trim()) return;
-        setSubmitting(true);
-        try {
-            const targetTenantId = projectTenantId || tenantId || "1";
-            const contentPayload: TimelineEvent['content'] = {
-                notes: newNotes.trim(),
-            };
-            if (newAttachments.length > 0) {
-                contentPayload.attachments = newAttachments;
-            }
-            await createTimelineEvent(projectId, targetTenantId, {
-                projectId,
-                date: new Date(),
-                authorId: user.uid,
-                authorName: user.displayName || 'User',
-                type: newType,
-                content: contentPayload,
-            });
-            showToast("Seguimiento", "Entrada creada correctamente", "success");
-            setNewNotes("");
-            setNewType('daily');
-            setNewAttachments([]);
-            setShowNewEntry(false);
-            loadTimeline(false);
-        } catch (err) {
-            console.error(err);
-            showToast("Error", "No se pudo crear la entrada", "error");
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     if (loading) {
         return <div className="p-10 flex justify-center text-zinc-500"><Loader2 className="animate-spin w-6 h-6" /></div>;
     }
@@ -245,136 +136,6 @@ const ProjectActivityFeed = forwardRef<ProjectActivityFeedHandle, ProjectActivit
 
     return (
         <div className="space-y-8 p-4 max-w-3xl mx-auto pb-20">
-
-            {/* New Entry Button / Form */}
-            {!showNewEntry ? (
-                <button
-                    onClick={() => setShowNewEntry(true)}
-                    className={cn(
-                        "w-full border-2 border-dashed rounded-xl p-4 flex items-center justify-center gap-2 text-sm font-bold transition-all",
-                        isLight
-                            ? "border-zinc-300 text-zinc-500 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50"
-                            : "border-white/10 text-zinc-500 hover:border-indigo-500/50 hover:text-indigo-400 hover:bg-indigo-500/5"
-                    )}
-                >
-                    <Plus className="w-4 h-4" />
-                    Añadir Entrada / Adjuntar Email
-                </button>
-            ) : (
-                <div className={cn("border rounded-xl overflow-hidden shadow-lg animate-in slide-in-from-top-2 duration-300",
-                    isLight ? "bg-white border-zinc-200" : "bg-card border-white/10"
-                )}>
-                    <div className={cn("p-3 border-b flex items-center justify-between",
-                        isLight ? "bg-zinc-50" : "bg-muted/30"
-                    )}>
-                        <div className="flex items-center gap-3">
-                            <h4 className="text-xs font-bold uppercase tracking-widest">Nueva Entrada</h4>
-                            <select
-                                value={newType}
-                                onChange={e => setNewType(e.target.value as any)}
-                                className={cn("text-[10px] font-bold uppercase px-2 py-1 rounded-md border",
-                                    isLight ? "bg-white border-zinc-300" : "bg-zinc-800 border-white/10 text-zinc-300"
-                                )}
-                            >
-                                <option value="daily">Update</option>
-                                <option value="decision">Decisión</option>
-                                <option value="alert">Alerta</option>
-                            </select>
-                        </div>
-                        <button
-                            onClick={() => { setShowNewEntry(false); setNewNotes(""); setNewAttachments([]); }}
-                            className="p-1 hover:bg-muted rounded-full transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    <div
-                        ref={dropZoneRef}
-                        className={cn("p-4 space-y-3 transition-all", isDragging && "bg-indigo-500/10 ring-2 ring-indigo-500/50 ring-inset")}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onPaste={handlePaste}
-                    >
-                        {isDragging && (
-                            <div className="text-center py-6 text-indigo-400 text-sm font-bold animate-pulse">
-                                Suelta aquí para adjuntar...
-                            </div>
-                        )}
-                        <textarea
-                            value={newNotes}
-                            onChange={e => setNewNotes(e.target.value)}
-                            placeholder="Pega la cadena de emails aquí o escribe notas... También puedes arrastrar archivos."
-                            rows={6}
-                            className={cn("w-full rounded-lg border p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all",
-                                isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900 border-white/5 text-zinc-200"
-                            )}
-                        />
-
-                        {/* Attachments Preview */}
-                        {newAttachments.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {newAttachments.map((url, idx) => (
-                                    <div key={idx} className="relative group w-20 h-14 rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
-                                        <img src={url} alt="" className="w-full h-full object-cover" />
-                                        <button
-                                            onClick={() => setNewAttachments(prev => prev.filter((_, i) => i !== idx))}
-                                            className="absolute top-0.5 right-0.5 p-0.5 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="image/*,application/pdf,.eml,.msg"
-                                    onChange={handleAttachFile}
-                                />
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={isUploading}
-                                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all",
-                                        isLight
-                                            ? "border-zinc-300 text-zinc-600 hover:bg-zinc-100"
-                                            : "border-white/10 text-zinc-400 hover:bg-white/5 hover:text-white"
-                                    )}
-                                >
-                                    {isUploading ? (
-                                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {Math.round(uploadProgress)}%</>
-                                    ) : (
-                                        <><Paperclip className="w-3.5 h-3.5" /> Adjuntar</>
-                                    )}
-                                </button>
-                                <span className="text-[10px] text-zinc-500">
-                                    {newAttachments.length > 0 && `${newAttachments.length} archivo(s)`}
-                                </span>
-                            </div>
-                            <button
-                                onClick={handleSubmitEntry}
-                                disabled={submitting || !newNotes.trim()}
-                                className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all",
-                                    submitting || !newNotes.trim()
-                                        ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
-                                        : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20"
-                                )}
-                            >
-                                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                                Publicar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {sortedDates.map(dateKey => {
                 const group = grouped[dateKey];
 
