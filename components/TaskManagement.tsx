@@ -34,7 +34,7 @@ import { Network } from "lucide-react";
 
 
 export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
-    const { userRole, user, tenantId } = useAuth();
+    const { userRole, user, tenantId, userProfile } = useAuth();
     const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
     const isLight = theme === 'light';
@@ -48,7 +48,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const [projects, setProjects] = useState<Project[]>([]);
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [userProfile, setUserProfile] = useState<any>(null);
+
 
     // [V3] UI Flags
     const [showTree, setShowTree] = useState(false); // List vs Hierarchy
@@ -404,15 +404,6 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     }, [initialTaskId, loading, tasks, loadData, showToast, user, userRole]); // Removed selectedTask to prevent loop
 
     useEffect(() => {
-        // Fetch User Profile if we need it for filtering
-        if (user && !isAdmin) {
-            getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
-                .then(snap => {
-                    if (!snap.empty) {
-                        setUserProfile(snap.docs[0].data());
-                    }
-                });
-        }
         loadData();
     }, [user, userRole, loadData]);
 
@@ -775,7 +766,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             tenantId: tenantId,
                                             userId: user.uid,
                                             userEmail: user.email,
-                                            userName: user.displayName || 'Usuario',
+                                            userName: userProfile?.displayName || user.displayName || 'Usuario',
                                             type: 'dependency_released',
                                             details: `Dependencia liberada: "${selectedTask.title}" ha sido completada.`,
                                             createdAt: serverTimestamp()
@@ -843,7 +834,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     tenantId: tenantId,
                                     userId: user.uid,
                                     userEmail: user.email,
-                                    userName: user.displayName || 'Usuario',
+                                    userName: userProfile?.displayName || user.displayName || 'Usuario',
                                     type: 'classification_change',
                                     // @ts-ignore
                                     details: `${field.charAt(0).toUpperCase() + field.slice(1)} cambiado de "${selectedTask[field] || '-'}" a "${formData[field] || '-'}"`,

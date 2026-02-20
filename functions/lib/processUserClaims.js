@@ -124,7 +124,8 @@ exports.updateUserClaims = functions.region('europe-west1').https.onCall(async (
             role: userData.role || 'team_member',
             roleLevel: userData.roleLevel || 0,
             tenantId: userData.tenantId || "1",
-            isActive: (_d = userData.isActive) !== null && _d !== void 0 ? _d : true
+            isActive: (_d = userData.isActive) !== null && _d !== void 0 ? _d : true,
+            syncId: Date.now() // Ensure frontend detects the sync
         };
         await admin.auth().setCustomUserClaims(targetUserId, syncedClaims);
         console.log(`[updateUserClaims] Synced claims for ${targetUserId}:`, syncedClaims);

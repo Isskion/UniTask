@@ -544,5 +544,10 @@ export const de: Dictionary = {
         updated_by: "Geändert von",
         no_entries: "Keine Einträge vorhanden",
         delete_confirm: "Diesen Eintrag löschen?"
+    },
+    profile: {
+        settings_title: "Profile-Einstellungen",
+        display_name: "Anzeigename",
+        change_photo: "Profilfoto ändern"
     }
 };

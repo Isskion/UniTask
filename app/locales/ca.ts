@@ -544,5 +544,10 @@ export const ca: Dictionary = {
         updated_by: "Modificat per",
         no_entries: "No hi ha entrades registrades",
         delete_confirm: "Eliminar aquesta entrada?"
+    },
+    profile: {
+        settings_title: "Configuració del Perfil",
+        display_name: "Nom a mostrar",
+        change_photo: "Canviar Foto de Perfil"
     }
 };

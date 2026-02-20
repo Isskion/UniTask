@@ -108,6 +108,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     if (needsRefresh) {
                         console.log(`[AuthContext] ⚠️ Profile mismatch (Refreshes: ${refreshCountRef.current}). Firestore Sync: ${latestSyncId} | Token Sync: ${currentSyncId} | Role: ${data.roleLevel} vs ${claims.roleLevel} | Tenant: ${data.tenantId} vs ${claims.tenantId}`);
+
+                        // [OPTIMISTIC] Still update the UI profile so the name/photo reflects immediately
+                        setUserProfile(data as UserProfile);
+
                         // --- LOOP GUARD ---
                         const now = Date.now();
                         if (now - lastRefreshTimeRef.current < 60000) {
@@ -202,6 +206,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 setIdentity(newIdentity);
                 setUser(currentUser);
+                setUserProfile(profileData as UserProfile); // [NEW] Initial hydration
 
                 // Initialize View Context
                 const savedSim = localStorage.getItem('superadmin_simulation_context');

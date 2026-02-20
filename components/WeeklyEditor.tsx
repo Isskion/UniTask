@@ -53,11 +53,10 @@ async function fetchExistingIdsClient(tenantId: string = "1") {
 
 export default function WeeklyEditor() {
     const [showChangelog, setShowChangelog] = useState(false); // Added state
-    const { userRole, user, loading: authLoading, tenantId, viewContext } = useAuth(); // [FIX] Added viewContext
+    const { userRole, user, loading: authLoading, tenantId, viewContext, userProfile } = useAuth(); // [FIX] Use centralized userProfile
     const { addDoc } = useSafeFirestore(); // Safe Hook
     const { showToast } = useToast();
-    const [userProfile, setUserProfile] = useState<any>(null); // Store full user profile for assignments
-    const [profileLoading, setProfileLoading] = useState(true); // Track potential fetch delay
+    const [profileLoading, setProfileLoading] = useState(false); // No longer strictly needed but kept to avoid breaking refs if any
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]); // Cache for global projects (Full Type)
     const [weeklyProjectMap, setWeeklyProjectMap] = useState<Record<string, { code: string, color: string }[]>>({}); // WeekID -> Active Projects Codes
 
@@ -146,20 +145,8 @@ export default function WeeklyEditor() {
         if (!user?.uid) return;
 
         const loadInitData = async () => {
-            // 1. Fetch Profile
-            try {
-                const snap = await getDoc(doc(db, "user_profiles", user.uid));
-                if (snap.exists()) {
-                    const profileData = snap.data();
-                    setUserProfile(profileData);
-                } else {
-                    console.warn('[WeeklyEditor] No profile document found for user:', user.uid);
-                }
-            } catch (e) {
-                console.error("Error fetching user profile", e);
-            } finally {
-                setProfileLoading(false);
-            }
+            // 1. Profile is now handled by AuthContext
+            setProfileLoading(false);
 
             // 2. Fetch Global Projects for mapping
             try {

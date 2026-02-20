@@ -542,6 +542,11 @@ export const en = {
         updated_by: "Updated by",
         no_entries: "No entries recorded",
         delete_confirm: "Delete this entry?"
+    },
+    profile: {
+        settings_title: "Profile Settings",
+        display_name: "Display Name",
+        change_photo: "Change Profile Photo"
     }
 };
 

@@ -1,0 +1,125 @@
+﻿[dotenv@17.2.3] injecting env (12) from .env.local -- tip: ÔÜÖ´©Å  override existing env vars with { override: true }
+Searching for any user matching 'Danie'...
+node : Error: Could not 
+load the default 
+credentials. Browse to http
+s://cloud.google.com/docs/a
+uthentication/getting-start
+ed for more information.
+En línea: 1 Carácter: 1
++ node scripts/check_user_p
+rofile_v2.js 2>&1 | 
+Out-File -FilePath scrip 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (Err  
+  or: Could no...re info   
+ rmation.:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+    at GoogleAuth.getApplic
+ationDefaultAsync (C:\Users
+\daniel.delamo\.gemini\anti
+gravity\scratch\UniTask\nod
+e_modules\google-auth-libra
+ry\build\src\auth\googleaut
+h.js:287:15)
+    at async GoogleAuth._Go
+ogleAuth_determineClient (C
+:\Users\daniel.delamo\.gemi
+ni\antigravity\scratch\UniT
+ask\node_modules\google-aut
+h-library\build\src\auth\go
+ogleauth.js:834:32)
+    at async 
+GoogleAuth.getClient (C:\Us
+ers\daniel.delamo\.gemini\a
+ntigravity\scratch\UniTask\
+node_modules\google-auth-li
+brary\build\src\auth\google
+auth.js:698:20)
+    at async 
+GrpcClient._getCredentials 
+(C:\Users\daniel.delamo\.ge
+mini\antigravity\scratch\Un
+iTask\node_modules\google-g
+ax\build\src\grpc.js:145:24
+)
+    at async 
+GrpcClient.createStub (C:\U
+sers\daniel.delamo\.gemini\
+antigravity\scratch\UniTask
+\node_modules\google-gax\bu
+ild\src\grpc.js:318:23)
+Caused by: Error
+    at 
+QueryUtil._getResponse (C:\
+Users\daniel.delamo\.gemini
+\antigravity\scratch\UniTas
+k\node_modules\@google-clou
+d\firestore\build\src\refer
+ence\query-util.js:44:23)
+    at CollectionReference.
+_getResponse (C:\Users\dani
+el.delamo\.gemini\antigravi
+ty\scratch\UniTask\node_mod
+ules\@google-cloud\firestor
+e\build\src\reference\query
+.js:784:32)
+    at 
+CollectionReference._get (C
+:\Users\daniel.delamo\.gemi
+ni\antigravity\scratch\UniT
+ask\node_modules\@google-cl
+oud\firestore\build\src\ref
+erence\query.js:777:35)
+    at C:\Users\daniel.dela
+mo\.gemini\antigravity\scra
+tch\UniTask\node_modules\@g
+oogle-cloud\firestore\build
+\src\reference\query.js:745
+:43
+    at C:\Users\daniel.dela
+mo\.gemini\antigravity\scra
+tch\UniTask\node_modules\@g
+oogle-cloud\firestore\build
+\src\telemetry\enabled-trac
+e-util.js:110:30
+    at 
+NoopContextManager.with (C:
+\Users\daniel.delamo\.gemin
+i\antigravity\scratch\UniTa
+sk\node_modules\@openteleme
+try\api\build\src\context\N
+oopContextManager.js:25:19)
+    at ContextAPI.with (C:\
+Users\daniel.delamo\.gemini
+\antigravity\scratch\UniTas
+k\node_modules\@opentelemet
+ry\api\build\src\api\contex
+t.js:60:46)
+    at 
+NoopTracer.startActiveSpan 
+(C:\Users\daniel.delamo\.ge
+mini\antigravity\scratch\Un
+iTask\node_modules\@opentel
+emetry\api\build\src\trace\
+NoopTracer.js:65:31)
+    at ProxyTracer.startAct
+iveSpan (C:\Users\daniel.de
+lamo\.gemini\antigravity\sc
+ratch\UniTask\node_modules\
+@opentelemetry\api\build\sr
+c\trace\ProxyTracer.js:36:2
+4)
+    at EnabledTraceUtil.sta
+rtActiveSpan (C:\Users\dani
+el.delamo\.gemini\antigravi
+ty\scratch\UniTask\node_mod
+ules\@google-cloud\firestor
+e\build\src\telemetry\enabl
+ed-trace-util.js:102:28)

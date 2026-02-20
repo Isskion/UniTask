@@ -78,8 +78,9 @@ exports.syncUserClaims = functions.region('europe-west1').firestore
     const tenantChanged = oldData.tenantId !== newData.tenantId;
     const statusChanged = oldData.isActive !== newData.isActive;
     const levelChanged = oldData.roleLevel !== roleLevel; // If DB had wrong level
-    if (roleChanged || tenantChanged || statusChanged || levelChanged) {
-        console.log(`[syncUserClaims] Syncing claims for ${userId}. Reason: Role:${roleChanged} Tenant:${tenantChanged} Status:${statusChanged}`);
+    const syncIdChanged = newData.syncId && newData.syncId !== oldData.syncId;
+    if (roleChanged || tenantChanged || statusChanged || levelChanged || syncIdChanged) {
+        console.log(`[syncUserClaims] Syncing claims for ${userId}. Reason: Role:${roleChanged} Tenant:${tenantChanged} Status:${statusChanged} SyncId:${syncIdChanged}`);
         const newClaims = {
             role: roleRaw || 'unknown',
             roleLevel: roleLevel,

@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface ProfileSettingsModalProps {
     isOpen: boolean;
@@ -28,7 +30,7 @@ interface ProfileSettingsModalProps {
 }
 
 export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSettingsModalProps) {
-    const { user, userRole, tenantId } = useAuth();
+    const { user, userRole, tenantId, userProfile } = useAuth();
     const { updateDoc } = useSafeFirestore();
     const { uploadFile, uploading: isUploading, progress: uploadProgress } = useFileUploader();
     const { theme } = useTheme();
@@ -38,16 +40,16 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
     const isLight = theme === 'light';
     const isRed = theme === 'red';
 
-    const [displayName, setDisplayName] = useState(user?.displayName || "");
-    const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
+    const [displayName, setDisplayName] = useState(userProfile?.displayName || user?.displayName || "");
+    const [photoURL, setPhotoURL] = useState(userProfile?.photoURL || user?.photoURL || "");
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setDisplayName(user.displayName || "");
-            setPhotoURL(user.photoURL || "");
+        if (isOpen) {
+            setDisplayName(userProfile?.displayName || user?.displayName || "");
+            setPhotoURL(userProfile?.photoURL || user?.photoURL || "");
         }
-    }, [user, isOpen]);
+    }, [userProfile, user, isOpen]);
 
     if (!isOpen || !user) return null;
 
@@ -71,11 +73,22 @@ export default function ProfileSettingsModal({ isOpen, onClose }: ProfileSetting
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            // [SYNC] Update Firestore Source of Truth
             await updateDoc(doc(db, "users", user.uid), {
                 displayName,
                 photoURL,
                 lastUpdate: new Date()
             });
+
+            // [SYNC] Update Firebase Auth Profile (Required for immediate UI reflected in 'user' object)
+            if (auth.currentUser) {
+                await updateProfile(auth.currentUser, {
+                    displayName,
+                    photoURL
+                });
+                console.log("[ProfileSync] Auth profile synchronized successfully.");
+            }
+
             showToast("Éxito", "Perfil actualizado correctamente", "success");
             onClose();
         } catch (error: any) {

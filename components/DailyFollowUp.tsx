@@ -82,11 +82,12 @@ export default function DailyFollowUp() {
         loginWithGoogle,
         loginWithEmail,
         registerWithEmail,
-        requestRegistration
+        requestRegistration,
+        userProfile // [NEW] Added for consistency
     } = useAuth();
     const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
-    const [userProfile, setUserProfile] = useState<any>(null);
+
 
     const handleToggleBlock = async (task: Task) => {
         try {
@@ -333,28 +334,7 @@ export default function DailyFollowUp() {
         if (activeTab && activeTab !== "General") localStorage.setItem('daily_active_tab', activeTab);
     }, [activeTab]);
 
-    // Load user profile
-    useEffect(() => {
-        if (!user?.uid) {
-            setProfileLoading(false);
-            return;
-        }
-        const loadProfile = async () => {
-            try {
-                const docRef = doc(db, "users", user.uid);
-                const snap = await getDoc(docRef);
-                if (snap.exists()) {
-                    setUserProfile(snap.data());
-                }
-            } catch (e) {
-                console.error("[DailyFollowUp] Error fetching user profile", e);
-            } finally {
-                setProfileLoading(false);
-            }
-        };
-        setProfileLoading(true);
-        loadProfile();
-    }, [user]);
+
 
     // Navigation Events
     useEffect(() => {

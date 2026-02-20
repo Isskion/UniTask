@@ -63,7 +63,7 @@ import { db } from "@/lib/firebase";
 
 
 export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }: AppLayoutProps) {
-    const { user, logout, userRole, tenantId } = useAuth();
+    const { user, userProfile, logout, userRole, tenantId } = useAuth();
     const { can } = usePermissions();
     const { toggleCommandMenu } = useUI(); // Use Context hook
     const { showToast } = useToast();
@@ -306,15 +306,15 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             onClick={() => setIsProfileOpen(true)}
                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors group cursor-pointer"
                         >
-                            {user?.photoURL ? (
-                                <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-border transition-transform group-hover:scale-110" />
+                            {(userProfile?.photoURL || user?.photoURL) ? (
+                                <img src={userProfile?.photoURL || user?.photoURL || ""} alt="User" className="w-8 h-8 rounded-full border border-border transition-transform group-hover:scale-110" />
                             ) : (
                                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border group-hover:bg-primary/10 transition-colors">
                                     <span className="text-xs font-bold text-muted-foreground group-hover:text-primary">?</span>
                                 </div>
                             )}
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">{user?.displayName || 'User'}</p>
+                                <p className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">{userProfile?.displayName || user?.displayName || 'User'}</p>
                                 <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                             </div>
                             <button
