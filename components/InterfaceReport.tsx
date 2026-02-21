@@ -48,37 +48,43 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                     __html: `
                     @media print {
                         @page {
-                            margin: 1cm;
+                            margin: 1.5cm;
                             size: auto;
                         }
-                        html, body {
+                        /* Hide everything by default */
+                        body * {
+                            visibility: hidden;
+                        }
+                        /* Show only our report and its contents */
+                        #unitask-interface-report,
+                        #unitask-interface-report * {
+                            visibility: visible !important;
+                        }
+                        /* Position the report at the absolute top of the page */
+                        #unitask-interface-report {
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 100% !important;
+                            display: block !important;
                             height: auto !important;
                             overflow: visible !important;
                             background: white !important;
                             padding: 0 !important;
                             margin: 0 !important;
                         }
-                        body > * {
-                            display: none !important;
-                        }
-                        #unitask-interface-report {
-                            display: block !important;
-                            position: static !important;
-                            width: 100% !important;
-                            height: auto !important;
-                            overflow: visible !important;
-                            background: white !important;
-                            z-index: 99999 !important;
-                            padding: 0 !important;
-                        }
-                        #unitask-interface-report * {
-                            visibility: visible !important;
-                        }
+                        /* Hide specific elements within the report */
                         .print-hidden {
                             display: none !important;
                         }
+                        /* Avoid cutting cards between pages */
                         .break-inside-avoid {
                             break-inside: avoid;
+                            page-break-inside: avoid;
+                        }
+                        /* Reset background colors for print */
+                        .bg-background {
+                            background-color: white !important;
                         }
                     }
                 `}} />
