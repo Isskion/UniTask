@@ -64,7 +64,7 @@ import { db } from "@/lib/firebase";
 
 export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }: AppLayoutProps) {
     const { user, userProfile, logout, userRole, tenantId } = useAuth();
-    const { can } = usePermissions();
+    const { can, canUseAI } = usePermissions();
     const { toggleCommandMenu } = useUI(); // Use Context hook
     const { showToast } = useToast();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -227,7 +227,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                             <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
-                            <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
+                            {canUseAI() && <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />}
                         </div>
 
                         {/* Knowledge Area (NEW) */}
@@ -236,7 +236,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
                                 <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
                                 <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                                {canUseAI() && <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />}
                             </div>
                         )}
 
@@ -382,17 +382,19 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setIsHelpOpen(true)}
-                                className="p-2 rounded-full hover:bg-purple-500/10 text-muted-foreground hover:text-purple-500 transition-colors relative group"
-                                title={t('ai_help.title')}
-                            >
-                                <GeminiIcon className="w-5 h-5" />
-                                <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
-                                </span>
-                            </button>
+                            {canUseAI() && (
+                                <button
+                                    onClick={() => setIsHelpOpen(true)}
+                                    className="p-2 rounded-full hover:bg-purple-500/10 text-muted-foreground hover:text-purple-500 transition-colors relative group"
+                                    title={t('ai_help.title')}
+                                >
+                                    <GeminiIcon className="w-5 h-5" />
+                                    <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                                    </span>
+                                </button>
+                            )}
                             <ThemeSelector />
                             <NotificationBell />
                             <LanguageSelector />
@@ -442,7 +444,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
-                                <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />
+                                {canUseAI() && <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />}
                             </div>
 
                             {can('knowledgeBase', 'views') && (
@@ -450,7 +452,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
                                     <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
                                     <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                    <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                                    {canUseAI() && <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />}
                                 </div>
                             )}
 

@@ -46,6 +46,7 @@ export interface Tenant {
     code?: string; // Optional short code
     logoUrl?: string; // Optional branding
     isActive: boolean;
+    aiEnabled?: boolean; // New: Superadmin auth for AI billing
     createdAt?: any;
     updatedAt?: any;
 }
@@ -116,6 +117,7 @@ export interface UserProfile {
     customPermissions?: Partial<PermissionGroup>; // Optional override
     isConsultant?: boolean; // New: If true, count as resource for sprint capacity
     worksOnWeekends?: boolean; // New: If true, weekends are considered working days in DispoPlan
+    aiEnabled?: boolean; // New: Tenant Admin auth for User AI usage
 }
 
 // Permission Group System
@@ -501,4 +503,52 @@ export interface DocumentType {
     tenantId: string;
     isActive: boolean;
     createdAt: any;
+}
+
+// --- UniLeaks: Interfaces & Versioning ---
+
+export interface InterfaceVersion {
+    id: string;
+    versionName: string;      // e.g. "v1.0.2", "Initial Draft"
+    fileUrl: string;          // Link to Firebase Storage
+    fileName: string;
+    fileType: string;         // "json", "xml", "txt"
+    isProduction: boolean;    // Green highlight indicator
+    uploadedBy: string;       // User UID
+    uploadedAt: any;          // Timestamp
+    notes?: string;           // Optional changelog for this version
+}
+
+export interface InterfaceEntry {
+    id: string;
+    name: string;             // e.g. "SAP Inventory Sync", "Client XML Feed"
+    projectId: string;        // Parent project link
+    tenantId: string;
+    versions: InterfaceVersion[];
+    isActive: boolean;
+    createdAt: any;
+    updatedAt: any;
+}
+
+export interface UniLeakFolder {
+    id: string;
+    name: string;
+    parentId: string | null; // null if it's a root folder
+    projectId: string;
+    tenantId: string;
+    createdAt: any;
+    updatedAt: any;
+}
+
+export interface UniLeakNote {
+    id: string;
+    title: string;
+    content: string;
+    projectId: string;
+    tenantId: string;
+    userId: string;
+    isPublic: boolean;
+    folderId?: string | null; // null if it's in the root
+    createdAt: any;
+    updatedAt: any;
 }

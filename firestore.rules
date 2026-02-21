@@ -183,6 +183,12 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    // Master Data (Regions, Divisions, etc - Global Scope)
+    match /global_data/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
     match /projects/{document=**} {
       // [SAM] Read: Uses hasAccess() which checks Intersect(UserScope, ResourceData)
@@ -388,6 +394,47 @@ service cloud.firestore {
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
         docTenantMatches(request.resource.data)
+      );
+    }
+
+    // --- UNILEAKS NOTES & FOLDERS ---
+    match /unileaks_notes/{noteId} {
+      // READ: Tenant-scoped read (Client handles strict filtering)
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+      
+      // CREATE: Must match tenant and author
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(request.resource.data) && request.resource.data.userId == request.auth.uid)
+      );
+      
+      // UPDATE/DELETE: Only author can modify their own note
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && resource.data.userId == request.auth.uid)
+      );
+    }
+
+    match /unileaks_folders/{folderId} {
+      // READ: Tenant-scoped read
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+      
+      // CREATE: Must match tenant
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+      
+      // UPDATE/DELETE: Tenant-scoped (similar to notes, but currently no explicit owner is tracked for folders, so allow any tenant member to manage them for now, or restrict to creator if we add userId later - going with tenant member to not block)
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
       );
     }
 

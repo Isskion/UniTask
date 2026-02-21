@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-border: var(--border);
@@ -170,4 +171,43 @@
 /* Only Light theme gets the black logo */
 :root[data-theme="light"] .theme-logo {
   filter: none;
+}
+
+/* --- TIPTAP EDITOR STYLES --- */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(240 5% 64.9%);
+  /* Muted foreground */
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+/* Tiptap Table Base Styles for Editor View */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  min-width: 1em;
+  border: 1px solid theme('colors.border');
+  padding: 8px 12px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ProseMirror table th {
+  background-color: theme('colors.muted.DEFAULT');
+  font-weight: 600;
+  text-align: left;
 }
