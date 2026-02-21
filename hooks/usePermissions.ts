@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, onSnapshot, DocumentSnapshot, FirestoreError } from 'firebase/firestore';
-import { PermissionGroup } from '@/types';
+import { PermissionGroup, getRoleLevel } from '@/types';
 
 // Default Fallback Permissions based on Legacy Roles
 const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
@@ -58,9 +58,11 @@ const DEFAULT_PERMISSIONS: PermissionGroup = {
 };
 
 export function usePermissions() {
-    const { user, userRole, loading: authLoading } = useAuth();
+    const { user, userRole, loading: authLoading, tenantId, userProfile } = useAuth();
     const [permissions, setPermissions] = useState<PermissionGroup>(DEFAULT_PERMISSIONS);
     const [loading, setLoading] = useState(true);
+    const [globalAIEnabled, setGlobalAIEnabled] = useState<boolean>(false);
+    const [tenantAIEnabled, setTenantAIEnabled] = useState<boolean>(false);
 
     useEffect(() => {
         if (authLoading) return;
@@ -132,10 +134,29 @@ export function usePermissions() {
 
         loadPermissions();
 
+        // 4. Listen to Global AI Config
+        const unsubGlobal = onSnapshot(doc(db, "app_config", "global"), (snap) => {
+            if (snap.exists()) {
+                setGlobalAIEnabled(snap.data().aiGlobalEnabled !== false);
+            }
+        });
+
+        // 5. Listen to Tenant AI Config
+        let unsubTenant: (() => void) | undefined;
+        if (tenantId) {
+            unsubTenant = onSnapshot(doc(db, "tenants", tenantId), (snap) => {
+                if (snap.exists()) {
+                    setTenantAIEnabled(snap.data().aiEnabled !== false);
+                }
+            });
+        }
+
         return () => {
             if (unsubscribe) unsubscribe();
+            unsubGlobal();
+            if (unsubTenant) unsubTenant();
         };
-    }, [user, userRole, authLoading]);
+    }, [user, userRole, authLoading, tenantId]);
 
     const can = (action: string, context: string): boolean => {
         if (loading) return false;
@@ -173,5 +194,25 @@ export function usePermissions() {
         return 'ASSIGNED_ONLY';
     };
 
-    return { permissions, loading, can, isAdmin, getAllowedProjectIds };
+    const canUseAI = () => {
+        if (loading || authLoading) return false;
+
+        // Tier 1: Global Lock
+        if (!globalAIEnabled) return false;
+
+        // Tier 2: Tenant Lock
+        if (!tenantAIEnabled) return false;
+
+        // Tier 3: User Level
+        // Superadmins bypass individual user toggle but still respect Global/Tenant
+        const roleLevel = getRoleLevel(userRole);
+        if (roleLevel >= 100) return true;
+
+        // Regular users must have AI enabled and be at least level 70 (Tenant Admin / PM)
+        if (roleLevel < 70) return false;
+
+        return userProfile?.aiEnabled === true;
+    };
+
+    return { permissions, loading, can, isAdmin, getAllowedProjectIds, canUseAI };
 }
