@@ -522,6 +522,12 @@ export interface InterfaceVersion {
 export interface InterfaceEntry {
     id: string;
     name: string;             // e.g. "SAP Inventory Sync", "Client XML Feed"
+    description: string;      // Breve descripción del flujo
+    url?: string;             // NEW: Interface URL
+    clientId?: string;        // NEW: Client Identifier
+    clientSecret?: string;    // NEW: Authentication Secret
+    formatContent: string;    // Contenido de código/configuración (JSON, XML)
+    formatType: 'json' | 'xml' | 'txt' | 'other';
     projectId: string;        // Parent project link
     tenantId: string;
     versions: InterfaceVersion[];

@@ -219,6 +219,12 @@ service cloud.firestore {
         isSuperAdmin() || 
         (docTenantMatches(resource.data) && getRealRole() >= 80)
       );
+
+      // [NEW] Project Interfaces Subcollection
+      match /interfaces/{interfaceId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 60);
+      }
     }
 
     // --- [HARDENED] INVITES RULES ---
@@ -431,12 +437,14 @@ service cloud.firestore {
         docTenantMatches(request.resource.data)
       );
       
-      // UPDATE/DELETE: Tenant-scoped (similar to notes, but currently no explicit owner is tracked for folders, so allow any tenant member to manage them for now, or restrict to creator if we add userId later - going with tenant member to not block)
+      // UPDATE/DELETE: Tenant-scoped
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
         docTenantMatches(resource.data)
       );
     }
+
+
 
     // --- MASTER DATA & CONFIG ---
 

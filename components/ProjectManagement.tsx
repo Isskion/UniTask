@@ -19,6 +19,7 @@ import Link from 'next/link';
 import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
 import { ProjectDocuments } from "./ProjectDocuments";
+import { ProjectInterfaces } from "./ProjectInterfaces";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
@@ -37,7 +38,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents'>('feed');
+    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents' | 'interfaces'>('feed');
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
@@ -544,6 +545,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         >
                                             Docs
                                         </button>
+                                        <button
+                                            onClick={() => setUserTab('interfaces')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                                userTab === 'interfaces'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            Interfaces
+                                        </button>
                                     </div>
                                 )}
 
@@ -793,6 +804,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {userTab === 'documents' && !isNew && selectedProject && (
                                 <div className="p-4 md:p-8 max-w-5xl mx-auto">
                                     <ProjectDocuments
+                                        project={selectedProject}
+                                        tenantId={selectedProject.tenantId || tenantId || "1"}
+                                    />
+                                </div>
+                            )}
+
+                            {/* VIEW 4: INTERFACES */}
+                            {userTab === 'interfaces' && !isNew && selectedProject && (
+                                <div className="h-full">
+                                    <ProjectInterfaces
                                         project={selectedProject}
                                         tenantId={selectedProject.tenantId || tenantId || "1"}
                                     />
