@@ -12,6 +12,7 @@
         ]
     },
     "hosting": {
+        "target": "main",
         "public": "out",
         "ignore": [
             "firebase.json",
