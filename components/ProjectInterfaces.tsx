@@ -23,6 +23,7 @@ import {
     deleteInterface,
     updateInterfaceVersions
 } from "@/lib/interfaces";
+import { InterfaceReport } from "./InterfaceReport";
 
 interface ProjectInterfacesProps {
     project: Project;
@@ -43,6 +44,7 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
 
     // UI States
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showReport, setShowReport] = useState(false);
     const [saving, setSaving] = useState(false);
     const [newInterface, setNewInterface] = useState<Partial<InterfaceEntry>>({
         name: "",
@@ -339,6 +341,15 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                         />
                     </div>
                     <button
+                        onClick={() => setShowReport(true)}
+                        className={cn(
+                            "p-2 rounded-lg border transition-all flex items-center gap-2 px-4 text-sm hover:bg-black/5",
+                            isLight ? "border-zinc-200 text-zinc-600" : "border-white/10 text-zinc-400"
+                        )}
+                    >
+                        <FileText className="w-4 h-4" /> Informe
+                    </button>
+                    <button
                         onClick={() => setShowCreateModal(true)}
                         className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 px-4 font-bold text-sm"
                     >
@@ -524,6 +535,14 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showReport && (
+                <InterfaceReport
+                    project={project}
+                    interfaces={interfaces}
+                    onClose={() => setShowReport(false)}
+                />
             )}
         </div>
     );
