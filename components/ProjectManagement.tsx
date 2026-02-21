@@ -7,12 +7,13 @@ import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy, Network } from "lucide-react";
+import { Loader2, FolderGit2, Plus, Edit2, Save, XCircle, Search, Mail, Phone, Check, Ban, LayoutTemplate, PenSquare, ArrowLeft, Trash2, Copy, Network, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, Tenant, getRoleLevel, RoleLevel, UserProfile } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { ProjectMindMapModal } from "./ProjectMindMapModal";
+import Link from 'next/link';
 
 // New Components
 import ProjectActivityFeed from "./ProjectActivityFeed";
@@ -28,6 +29,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     const { can } = usePermissions();
     const [projects, setProjects] = useState<Project[]>([]);
     const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [regions, setRegions] = useState<any[]>([]);
+    const [divisions, setDivisions] = useState<any[]>([]);
     const [allUsers, setAllUsers] = useState<UserProfile[]>([]); // NEW: For team avatars
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState<any>(null); // For assignedProjectIds
@@ -74,7 +77,22 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         }
         loadProjects();
         loadUsers(); // NEW: Load users for team avatars
+        loadGlobalData();
     }, [user, userRole]);
+
+    const loadGlobalData = async () => {
+        try {
+            const snap = await getDocs(collection(db, "global_data"));
+            const data: any = {};
+            snap.forEach(doc => {
+                data[doc.id] = doc.data().items || [];
+            });
+            setRegions(data['regions'] || []);
+            setDivisions(data['divisions'] || []);
+        } catch (e) {
+            console.error("Error loading global data", e);
+        }
+    };
 
     const loadTenants = async () => {
         try {
@@ -159,7 +177,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             color: "#71717a",
             isActive: true,
             email: "",
-            phone: ""
+            phone: "",
+            regionId: "",
+            divisionId: ""
         };
         // We set selectedProject to a "Ghost" for the UI to render the Detail View structure
         setSelectedProject({ id: 'new', ...newTemplate } as Project);
@@ -173,6 +193,12 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
         if (!canCreate && !canEdit) return; // Guard
 
         if (!formData.name || !formData.code) return showToast("UniTaskController", t('projects.validation.required'), "error");
+
+        // Strict Scopes Check (Zero-Risk Pattern)
+        if (!formData.regionId || !formData.divisionId) {
+            return showToast("UniTaskController", "Región y División son obligatorias", "error");
+        }
+
         setSaving(true);
         try {
             if (isNew) {
@@ -410,6 +436,22 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {/* Header Actions */}
                             <div className="flex items-center gap-2">
 
+                                {/* UNILEAKS BUTTON */}
+                                {userTab === 'feed' && !isNew && (
+                                    <Link
+                                        href={`/unileaks?projectId=${selectedProject?.id}`}
+                                        target="_blank"
+                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2 border text-xs font-bold shrink-0",
+                                            isLight
+                                                ? "bg-primary text-black border-primary hover:bg-primary/90"
+                                                : "bg-primary text-black border-primary hover:bg-primary/90"
+                                        )}
+                                        title="Abrir UniLeaks para este proyecto"
+                                    >
+                                        <FileText className="w-4 h-4" /> <span className="hidden sm:inline">UniLeaks</span>
+                                    </Link>
+                                )}
+
                                 {/* MIND MAP BUTTON */}
                                 {userTab === 'feed' && !isNew && (
                                     <button
@@ -605,7 +647,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>{t('projects.full_name')}</label>
+                                                <label className={cn("text-[10px] uppercase font-bold", isLight ? "text-zinc-700" : "text-foreground")}>{t('projects.full_name')} *</label>
                                                 <input
                                                     disabled={!canEdit}
                                                     className={cn("w-full border rounded-lg px-3 py-2 font-bold focus:border-primary outline-none disabled:opacity-50",
@@ -615,6 +657,63 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                                     placeholder={t('projects.client_name')}
                                                 />
+                                            </div>
+                                        </div>
+
+                                        {/* Región & División (Strict Decoupled Enforcement) */}
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className={cn("text-[10px] uppercase font-bold text-rose-500")}>
+                                                    Región *
+                                                </label>
+                                                <select
+                                                    disabled={!canEdit}
+                                                    value={formData.regionId || ""}
+                                                    onChange={e => setFormData({ ...formData, regionId: e.target.value })}
+                                                    className={cn("w-full border rounded-lg px-3 py-2 text-sm focus:border-rose-400 outline-none appearance-none disabled:opacity-50",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
+                                                >
+                                                    <option value="">-- Seleccionar Región --</option>
+                                                    {regions
+                                                        ?.filter(r => {
+                                                            const roleLvl = getRoleLevel(userRole);
+                                                            if (roleLvl >= RoleLevel.SUPERADMIN) return true;
+                                                            if (userProfile?.accessScopes?.regionIds?.includes('*')) return true;
+                                                            return userProfile?.accessScopes?.regionIds?.includes(r.id);
+                                                        })
+                                                        .map(r => (
+                                                            <option key={r.id} value={r.id}>{r.name}</option>
+                                                        ))}
+                                                </select>
+                                                {userProfile?.accessScopes?.regionIds && !userProfile.accessScopes.regionIds.includes('*') && userRole !== 'superadmin' && (
+                                                    <p className="text-[9px] text-zinc-500 italic">Lista filtrada según tus permisos.</p>
+                                                )}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className={cn("text-[10px] uppercase font-bold text-rose-500")}>
+                                                    División *
+                                                </label>
+                                                <select
+                                                    disabled={!canEdit}
+                                                    value={formData.divisionId || ""}
+                                                    onChange={e => setFormData({ ...formData, divisionId: e.target.value })}
+                                                    className={cn("w-full border rounded-lg px-3 py-2 text-sm focus:border-rose-400 outline-none appearance-none disabled:opacity-50",
+                                                        isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/50 border-white/10 text-zinc-200"
+                                                    )}
+                                                >
+                                                    <option value="">-- Seleccionar División --</option>
+                                                    {divisions
+                                                        ?.filter(d => {
+                                                            const roleLvl = getRoleLevel(userRole);
+                                                            if (roleLvl >= RoleLevel.SUPERADMIN) return true;
+                                                            if (userProfile?.accessScopes?.divisionIds?.includes('*')) return true;
+                                                            return userProfile?.accessScopes?.divisionIds?.includes(d.id);
+                                                        })
+                                                        .map(d => (
+                                                            <option key={d.id} value={d.id}>{d.name}</option>
+                                                        ))}
+                                                </select>
                                             </div>
                                         </div>
 

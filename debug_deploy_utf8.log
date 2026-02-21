@@ -1,0 +1,29 @@
+﻿[2026-02-21T20:30:20.998Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[2026-02-21T20:30:20.999Z] > authorizing via signed-in user (argoss01@gmail.com)
+[2026-02-21T20:30:20.999Z] [iam] checking project minuta-f75a4 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[2026-02-21T20:30:21.000Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:21.000Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:21.001Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/minuta-f75a4:testIamPermissions [none]
+[2026-02-21T20:30:21.002Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/minuta-f75a4:testIamPermissions  x-goog-user-project=minuta-f75a4
+[2026-02-21T20:30:21.002Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/minuta-f75a4:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[2026-02-21T20:30:21.706Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/minuta-f75a4:testIamPermissions 200
+[2026-02-21T20:30:21.706Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/minuta-f75a4:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[2026-02-21T20:30:21.707Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:21.707Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:21.707Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/minuta-f75a4 [none]
+[2026-02-21T20:30:22.324Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/minuta-f75a4 200
+[2026-02-21T20:30:22.324Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/minuta-f75a4 {"projectId":"minuta-f75a4","projectNumber":"643064542850","displayName":"minuta","name":"projects/minuta-f75a4","resources":{"hostingSite":"minuta-f75a4"},"state":"ACTIVE","etag":"1_07ceb286-94ac-419c-9611-f7762b0f8cd0"}
+[2026-02-21T20:30:22.326Z] Specified "public" directory "out" does not exist; Deploy to Hosting site "main" may fail or be empty.
+
+=== Deploying to 'minuta-f75a4'...
+
+i  deploying hosting 
+[2026-02-21T20:30:22.331Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:22.331Z] Checked if tokens are valid: true, expires at: 1771709085200
+[2026-02-21T20:30:22.331Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/minuta-f75a4/versions [none]
+[2026-02-21T20:30:22.331Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/minuta-f75a4/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[2026-02-21T20:30:23.693Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/minuta-f75a4/versions 200
+[2026-02-21T20:30:23.693Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/minuta-f75a4/versions {"name":"projects/643064542850/sites/minuta-f75a4/versions/f8b67cb3b22a44c7","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+i  hosting[minuta-f75a4]: beginning deploy... 
+
+Error: Directory 'out' for Hosting does not exist.

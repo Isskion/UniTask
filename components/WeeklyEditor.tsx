@@ -893,14 +893,16 @@ export default function WeeklyEditor() {
                                         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                                         {saving ? "Saving..." : "Save Changes"}
                                     </button>
-                                    <button
-                                        onClick={handleAISummary}
-                                        disabled={isAILoading}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-[#D32F2F]/10 text-[#D32F2F] text-xs font-bold rounded border border-[#D32F2F]/20 hover:bg-[#D32F2F]/20 transition-colors"
-                                    >
-                                        <Sparkles className="w-3 h-3" />
-                                        AI Assist
-                                    </button>
+                                    {userProfile?.aiEnabled && (
+                                        <button
+                                            onClick={handleAISummary}
+                                            disabled={isAILoading}
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-[#D32F2F]/10 text-[#D32F2F] text-xs font-bold rounded border border-[#D32F2F]/20 hover:bg-[#D32F2F]/20 transition-colors"
+                                        >
+                                            <Sparkles className="w-3 h-3" />
+                                            AI Assist
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

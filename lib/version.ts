@@ -1,6 +1,18 @@
-export const APP_VERSION = "13.4.6";
+export const APP_VERSION = "13.5.0";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.0",
+        title: "UniLeaks MVP & Folders",
+        date: "2026-02-21",
+        features: [
+            "**UniLeaks Editor**: New Obsidian-style editor with Markdown support.",
+            "**Organized Folders**: Hierarchical folder system for organizing project notes.",
+            "**Formatting Controls**: Contextual menus for headings, tables, code blocks, and highlighting.",
+            "**Table Parametrization**: Specify rows and columns when inserting tables.",
+            "**Color Highlighting**: Text background highlighting with a custom color picker."
+        ]
+    },
     {
         version: "13.4.6",
         title: "Effort Tracking & Mock Data",

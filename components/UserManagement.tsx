@@ -70,20 +70,28 @@ export default function UserManagement() {
         loadData();
         loadProjectsForSelect();
         loadPermissionGroups();
-        if (getRoleLevel(userRole) >= 100) {
-            loadTenants();
-        }
+        loadTenants();
     }, [activeTab, userRole, tenantId]);
 
     const loadTenants = async () => {
         try {
-            const q = query(collection(db, "tenants"), orderBy("name"));
-            const snapshot = await getDocs(q);
-            const tenants = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Tenant[];
-            setAvailableTenants(tenants);
+            const userLevel = getRoleLevel(userRole);
+            if (userLevel >= 100) {
+                const q = query(collection(db, "tenants"), orderBy("name"));
+                const snapshot = await getDocs(q);
+                const tenants = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as Tenant[];
+                setAvailableTenants(tenants);
+            } else if (tenantId) {
+                // Load single tenant for non-superadmins
+                const docSnap = await getDocs(query(collection(db, "tenants"), where("__name__", "==", tenantId)));
+                if (!docSnap.empty) {
+                    const t = { id: docSnap.docs[0].id, ...docSnap.docs[0].data() } as Tenant;
+                    setAvailableTenants([t]);
+                }
+            }
         } catch (error) {
             console.error('Error loading tenants:', error);
         }
@@ -221,7 +229,8 @@ export default function UserManagement() {
             assignedProjectIds: user.assignedProjectIds || [],
             permissionGroupId: user.permissionGroupId || "",
             isConsultant: user.isConsultant || false,
-            worksOnWeekends: user.worksOnWeekends || false
+            worksOnWeekends: user.worksOnWeekends || false,
+            aiEnabled: user.aiEnabled || false
         });
     };
 
@@ -654,6 +663,35 @@ export default function UserManagement() {
                                         <span className="text-xs opacity-70">Trabaja sábados y domingos</span>
                                     </div>
                                 </div>
+
+                                {(() => {
+                                    const tenantForUser = availableTenants.find(t => t.id === (formData.tenantId || editingUser?.tenantId));
+                                    const currentUserLevel = getRoleLevel(userRole);
+                                    const isAuthorizedAdmin = currentUserLevel >= 70; // Tenant Admin or higher
+
+                                    if (tenantForUser?.aiEnabled && isAuthorizedAdmin) {
+                                        return (
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
+                                                    <Globe className="w-3 h-3" /> Acceso a IA
+                                                </label>
+                                                <div className="flex items-center gap-2 px-4 py-1.5 h-[38px] bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 rounded-lg">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.aiEnabled || false}
+                                                        onChange={e => setFormData({ ...formData, aiEnabled: e.target.checked })}
+                                                        className="w-4 h-4 accent-indigo-600 cursor-pointer"
+                                                    />
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 leading-tight">Habilitar IA (Cobros)</span>
+                                                        <span className="text-[8px] text-indigo-500/70 uppercase font-black tracking-tighter">Premium Feature</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
 
                                 {getRoleLevel(userRole) >= 100 && (
                                     <div className="space-y-1">

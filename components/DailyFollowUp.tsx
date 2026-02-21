@@ -15,9 +15,10 @@ import { saveDailyStatus, getDailyStatus, getRecentDailyStatusEntries, getDailyS
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search } from 'lucide-react';
+import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search, History } from 'lucide-react';
 import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
 import { summarizeNotesWithAI } from "@/app/actions/analyze-document";
@@ -47,6 +48,7 @@ import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import AvailabilityManager from "./availability/AvailabilityManager"; // Added DispoPlan import
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
 import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
+import InterfaceManager from "./unileaks/InterfaceManager"; // UniLeaks Interface Manager
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
 // Helper to map language string to date-fns locale
@@ -87,6 +89,7 @@ export default function DailyFollowUp() {
     } = useAuth();
     const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
+    const { canUseAI } = usePermissions();
 
 
     const handleToggleBlock = async (task: Task) => {
@@ -246,6 +249,14 @@ export default function DailyFollowUp() {
 
     // PDF Scanner State
     const [isPdfScannerOpen, setIsPdfScannerOpen] = useState(false);
+
+    // --- UNILeaks: Sub-Tabs for Projects ---
+    const [activeSubTab, setActiveSubTab] = useState<'notes' | 'interfaces'>('notes');
+
+    // Reset sub-tab when switching projects
+    useEffect(() => {
+        setActiveSubTab('notes');
+    }, [activeTab]);
 
 
     // Prevent accidental navigation if unsaved
@@ -1660,15 +1671,17 @@ export default function DailyFollowUp() {
                                             </button>
 
                                             {/* 2. SCAN PDF */}
-                                            <div>
-                                                <button
-                                                    onClick={() => setIsPdfScannerOpen(true)}
-                                                    className="p-1.5 rounded-full hover:bg-muted text-zinc-500 hover:text-indigo-600 transition-colors"
-                                                    title="Escanear y procesar documento PDF"
-                                                >
-                                                    <Sparkles className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                                            {canUseAI() && (
+                                                <div>
+                                                    <button
+                                                        onClick={() => setIsPdfScannerOpen(true)}
+                                                        className="p-1.5 rounded-full hover:bg-muted text-zinc-500 hover:text-indigo-600 transition-colors"
+                                                        title="Escanear y procesar documento PDF"
+                                                    >
+                                                        <Sparkles className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            )}
 
 
 
@@ -1725,33 +1738,33 @@ export default function DailyFollowUp() {
                                     </div>
                                 </div>
 
-                                {/* Tabs */}
-                                <div className={cn("flex items-center gap-1 p-2 border-b overflow-visible relative z-40 transition-colors",
+                                <div className={cn("flex flex-wrap items-center justify-between gap-2 p-2 border-b relative z-40 transition-colors",
                                     isLight ? "bg-white border-zinc-200" : "bg-muted/20 border-border"
                                 )}>
-                                    {getVisibleProjects().map(p => {
-                                        const gp = globalProjects.find(g => g.name === p.name);
-                                        return (
-                                            <button
-                                                key={p.name}
-                                                onClick={() => setActiveTab(p.name)}
-                                                className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
-                                                    activeTab === p.name
-                                                        ? (isLight
-                                                            ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
-                                                            : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
-                                                        : (isLight
-                                                            ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                                                            : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
-                                                )}
-                                            >
-                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
-                                                {p.name || "Sin Nombre"}
-                                            </button>
-                                        );
-                                    })}
-
-                                    <div className="relative ml-2 z-50">
+                                    <div className="flex flex-wrap items-center gap-1">
+                                        {getVisibleProjects().map(p => {
+                                            const gp = globalProjects.find(g => g.name === p.name);
+                                            return (
+                                                <button
+                                                    key={p.name}
+                                                    onClick={() => setActiveTab(p.name)}
+                                                    className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
+                                                        activeTab === p.name
+                                                            ? (isLight
+                                                                ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
+                                                                : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
+                                                            : (isLight
+                                                                ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                                                                : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
+                                                    )}
+                                                >
+                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
+                                                    {p.name || "Sin Nombre"}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex items-center flex-wrap gap-2 ml-2 z-50">
                                         {userRole === 'superadmin' && (
                                             <button
                                                 onClick={handlePrint}
@@ -1779,6 +1792,17 @@ export default function DailyFollowUp() {
                                             )}>
                                             <Plus className="w-3.5 h-3.5" /> {t('follow_up.add_project')}
                                         </button>
+
+                                        <Link
+                                            href="/unileaks"
+                                            target="_blank"
+                                            className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all ml-2 shrink-0",
+                                                isLight
+                                                    ? "bg-primary text-black border-primary hover:bg-primary/90"
+                                                    : "bg-primary text-black border-primary hover:bg-primary/90"
+                                            )}>
+                                            <FileText className="w-3.5 h-3.5" /> UniLeaks
+                                        </Link>
 
                                         {isAddProjectOpen && (
                                             <>
@@ -1823,6 +1847,31 @@ export default function DailyFollowUp() {
                                                             : `${t('follow_up.minute')}: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
                                                         }
                                                     </label>
+
+                                                    {/* Sub-Tabs Selector (UniLeaks) */}
+                                                    {activeTab !== 'General' && (
+                                                        <div className="flex bg-muted/30 p-0.5 rounded-lg border border-border/50">
+                                                            <button
+                                                                onClick={() => setActiveSubTab('notes')}
+                                                                className={cn(
+                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all",
+                                                                    activeSubTab === 'notes' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                )}
+                                                            >
+                                                                Bitácora
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setActiveSubTab('interfaces')}
+                                                                className={cn(
+                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
+                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                )}
+                                                            >
+                                                                <History className="w-3 h-3" />
+                                                                Interfaces
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -1841,70 +1890,81 @@ export default function DailyFollowUp() {
                                                 />
                                             ) : (
                                                 <div className="flex-1 flex flex-col gap-4 min-h-0">
-                                                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
-                                                        {getProjectBlocks(activeTab).map((block, idx) => (
-                                                            <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-all duration-300",
-                                                                isLight
-                                                                    ? "bg-white border-zinc-200 hover:border-zinc-300"
-                                                                    : "bg-white/5 border-white/10 hover:border-white/20",
-                                                                block.isCollapsed ? "h-fit bg-zinc-500/5 opacity-60" : "flex-1 min-h-[250px] shadow-sm"
-                                                            )}>
-                                                                <div className="flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={() => handleToggleBlockCollapse(activeTab, block.id)}
-                                                                        className={cn("p-1 rounded-md transition-transform duration-200", isLight ? "hover:bg-zinc-100" : "hover:bg-white/10", block.isCollapsed ? "-rotate-90" : "rotate-0")}
-                                                                    >
-                                                                        <ChevronDown className="w-4 h-4 text-zinc-400" />
-                                                                    </button>
-                                                                    <input
-                                                                        className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
-                                                                        value={block.title || `Bloque ${idx + 1}`}
-                                                                        onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
-                                                                        placeholder={t('follow_up.block_title_placeholder')}
-                                                                    />
-                                                                    {!block.isCollapsed && (
-                                                                        <button
-                                                                            onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
-                                                                            className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
-                                                                            title="Analizar solo este bloque"
-                                                                        >
-                                                                            <Sparkles className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    )}
-                                                                    {getProjectBlocks(activeTab).length > 1 && (
-                                                                        <button
-                                                                            onClick={() => handleRemoveBlock(activeTab, block.id)}
-                                                                            className="text-zinc-400 hover:text-red-400 transition-opacity"
-                                                                            title="Eliminar bloque"
-                                                                        >
-                                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                                {!block.isCollapsed && (
-                                                                    <textarea
-                                                                        value={block.content}
-                                                                        onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
-                                                                        className={cn("w-full flex-1 bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar",
-                                                                            isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                    {activeSubTab === 'interfaces' ? (
+                                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                            <InterfaceManager
+                                                                projectId={globalProjects.find(p => p.name === activeTab)?.id || ""}
+                                                                projectName={activeTab}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
+                                                                {getProjectBlocks(activeTab).map((block, idx) => (
+                                                                    <div key={block.id} className={cn("border rounded-xl p-3 flex flex-col gap-2 group relative transition-all duration-300",
+                                                                        isLight
+                                                                            ? "bg-white border-zinc-200 hover:border-zinc-300"
+                                                                            : "bg-white/5 border-white/10 hover:border-white/20",
+                                                                        block.isCollapsed ? "h-fit bg-zinc-500/5 opacity-60" : "flex-1 min-h-[250px] shadow-sm"
+                                                                    )}>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button
+                                                                                onClick={() => handleToggleBlockCollapse(activeTab, block.id)}
+                                                                                className={cn("p-1 rounded-md transition-transform duration-200", isLight ? "hover:bg-zinc-100" : "hover:bg-white/10", block.isCollapsed ? "-rotate-90" : "rotate-0")}
+                                                                            >
+                                                                                <ChevronDown className="w-4 h-4 text-zinc-400" />
+                                                                            </button>
+                                                                            <input
+                                                                                className={cn("bg-transparent text-xs font-bold focus:outline-none w-full", isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-white placeholder:text-zinc-500")}
+                                                                                value={block.title || `Bloque ${idx + 1}`}
+                                                                                onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
+                                                                                placeholder={t('follow_up.block_title_placeholder')}
+                                                                            />
+                                                                            {!block.isCollapsed && canUseAI() && (
+                                                                                <button
+                                                                                    onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
+                                                                                    className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
+                                                                                    title="Analizar solo este bloque"
+                                                                                >
+                                                                                    <Sparkles className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            )}
+                                                                            {getProjectBlocks(activeTab).length > 1 && (
+                                                                                <button
+                                                                                    onClick={() => handleRemoveBlock(activeTab, block.id)}
+                                                                                    className="text-zinc-400 hover:text-red-400 transition-opacity"
+                                                                                    title="Eliminar bloque"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                        {!block.isCollapsed && (
+                                                                            <textarea
+                                                                                value={block.content}
+                                                                                onChange={(e) => handleBlockUpdate(activeTab, block.id, 'content', e.target.value)}
+                                                                                className={cn("w-full flex-1 bg-transparent text-sm focus:outline-none resize-none leading-relaxed custom-scrollbar",
+                                                                                    isLight ? "text-zinc-900 placeholder:text-zinc-400" : "text-zinc-300 placeholder:text-zinc-600"
+                                                                                )}
+                                                                                placeholder={t('follow_up.block_content_placeholder')}
+                                                                            />
                                                                         )}
-                                                                        placeholder={t('follow_up.block_content_placeholder')}
-                                                                    />
-                                                                )}
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
-                                                    </div>
 
-                                                    <button
-                                                        onClick={() => handleAddBlock(activeTab)}
-                                                        className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
-                                                            isLight
-                                                                ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
-                                                                : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
-                                                        )}
-                                                    >
-                                                        <Plus className="w-4 h-4" /> {t('follow_up.add_note_block')}
-                                                    </button>
+                                                            <button
+                                                                onClick={() => handleAddBlock(activeTab)}
+                                                                className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
+                                                                    isLight
+                                                                        ? "border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50"
+                                                                        : "border-border text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/5"
+                                                                )}
+                                                            >
+                                                                <Plus className="w-4 h-4" /> {t('follow_up.add_note_block')}
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -1917,15 +1977,17 @@ export default function DailyFollowUp() {
                                                         <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
                                                         {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
                                                     </label>
-                                                    <button
-                                                        onClick={() => handleAI()}
-                                                        disabled={isAILoading}
-                                                        className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
-                                                        title="Analizar notas y extraer tareas"
-                                                    >
-                                                        {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                        {t('follow_up.extract_tasks')}
-                                                    </button>
+                                                    {canUseAI() && (
+                                                        <button
+                                                            onClick={() => handleAI()}
+                                                            disabled={isAILoading}
+                                                            className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
+                                                            title="Analizar notas y extraer tareas"
+                                                        >
+                                                            {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                            {t('follow_up.extract_tasks')}
+                                                        </button>
+                                                    )}
                                                 </div>
 
                                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
@@ -1953,11 +2015,10 @@ export default function DailyFollowUp() {
                                                     </div>
 
                                                     {/* AI RESULTS AREA */}
-                                                    {(aiSummary || aiSuggestions.length > 0) && (
+                                                    {canUseAI() && (aiSummary || aiSuggestions.length > 0) && (
                                                         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
                                                             <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
-
-                                                            {/* Summary */}
+                                                            {/* ... rest of the panel ... */}
                                                             {aiSummary && (
                                                                 <div className="mb-2">
                                                                     <h4 className="text-[10px] font-bold text-primary uppercase mb-1 flex items-center gap-1">
@@ -1968,8 +2029,6 @@ export default function DailyFollowUp() {
                                                                     </p>
                                                                 </div>
                                                             )}
-
-                                                            {/* Suggestions List */}
                                                             {aiSuggestions.length > 0 && (
                                                                 <div>
                                                                     <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
@@ -2005,7 +2064,6 @@ export default function DailyFollowUp() {
                                                                     </div>
                                                                 </div>
                                                             )}
-
                                                             <button
                                                                 onClick={() => { setAiSummary(""); setAiSuggestions([]); }}
                                                                 className="w-full text-[9px] text-center text-primary/50 hover:text-primary py-1 hover:underline"

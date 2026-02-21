@@ -1,0 +1,13 @@
+{
+  "projects": {},
+  "targets": {
+    "minuta-f75a4": {
+      "hosting": {
+        "main": [
+          "minuta-f75a4"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

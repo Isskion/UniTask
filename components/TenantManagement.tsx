@@ -27,7 +27,8 @@ export default function TenantManagement() {
     const [formData, setFormData] = useState<Partial<Tenant>>({
         name: "",
         code: "",
-        isActive: true
+        isActive: true,
+        aiEnabled: false
     });
 
     useEffect(() => {
@@ -63,7 +64,8 @@ export default function TenantManagement() {
         setFormData({
             name: tenant.name,
             code: tenant.code || tenant.id,
-            isActive: tenant.isActive
+            isActive: tenant.isActive,
+            aiEnabled: tenant.aiEnabled || false
         });
         setShowModal(true);
     };
@@ -82,6 +84,7 @@ export default function TenantManagement() {
                     name: formData.name,
                     code: formData.code || formData.name.toLowerCase().replace(/\s+/g, '-'),
                     isActive: formData.isActive,
+                    aiEnabled: formData.aiEnabled || false,
                     updatedAt: serverTimestamp()
                 });
             } else {
@@ -89,7 +92,8 @@ export default function TenantManagement() {
                 await createTenant({
                     name: formData.name,
                     code: formData.name.toLowerCase().replace(/\s+/g, '-'),
-                    isActive: formData.isActive ?? true
+                    isActive: formData.isActive ?? true,
+                    aiEnabled: formData.aiEnabled || false
                 });
             }
             await loadTenants();
@@ -242,7 +246,7 @@ export default function TenantManagement() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-4">
                                 <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                                     <input
                                         type="checkbox"
@@ -251,6 +255,19 @@ export default function TenantManagement() {
                                         className="rounded border-border text-indigo-600 focus:ring-indigo-500"
                                     />
                                     Tenant Active
+                                </label>
+
+                                <label className="flex items-center gap-2 text-sm cursor-pointer select-none p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/50 rounded-lg group">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.aiEnabled}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, aiEnabled: e.target.checked }))}
+                                        className="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-indigo-700 dark:text-indigo-300">Habilitar IA (UniLeaks Premium)</span>
+                                        <span className="text-[10px] text-indigo-500/70 uppercase font-black">Autorización Superadmin para Cobros</span>
+                                    </div>
                                 </label>
                             </div>
                         </div>
