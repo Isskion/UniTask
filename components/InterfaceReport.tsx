@@ -51,21 +51,34 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             margin: 1cm;
                             size: auto;
                         }
-                        body * {
-                            visibility: hidden;
+                        html, body {
+                            height: auto !important;
+                            overflow: visible !important;
+                            background: white !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
                         }
-                        #unitask-interface-report, #unitask-interface-report * {
-                            visibility: visible;
+                        body > * {
+                            display: none !important;
                         }
                         #unitask-interface-report {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
+                            display: block !important;
+                            position: static !important;
+                            width: 100% !important;
+                            height: auto !important;
+                            overflow: visible !important;
                             background: white !important;
+                            z-index: 99999 !important;
+                            padding: 0 !important;
+                        }
+                        #unitask-interface-report * {
+                            visibility: visible !important;
                         }
                         .print-hidden {
                             display: none !important;
+                        }
+                        .break-inside-avoid {
+                            break-inside: avoid;
                         }
                     }
                 `}} />
