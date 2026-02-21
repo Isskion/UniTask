@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     X, Printer, Check, Copy, ChevronRight, FileText,
     Link, Shield, Code, Download, FileJson, Share2,
@@ -34,11 +34,43 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
         window.print();
     };
 
+    useEffect(() => {
+        if (view === 'report') {
+            document.body.classList.add('report-open');
+            return () => document.body.classList.remove('report-open');
+        }
+    }, [view]);
+
     if (view === 'report') {
         return (
-            <div className="fixed inset-0 z-[70] bg-background overflow-y-auto custom-scrollbar animate-in fade-in duration-300 print:relative print:inset-auto print:overflow-visible">
+            <div id="unitask-interface-report" className="fixed inset-0 z-[70] bg-background overflow-y-auto custom-scrollbar animate-in fade-in duration-300 print:relative print:inset-0 print:overflow-visible print:bg-white">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @media print {
+                        @page {
+                            margin: 1cm;
+                            size: auto;
+                        }
+                        body * {
+                            visibility: hidden;
+                        }
+                        #unitask-interface-report, #unitask-interface-report * {
+                            visibility: visible;
+                        }
+                        #unitask-interface-report {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            background: white !important;
+                        }
+                        .print-hidden {
+                            display: none !important;
+                        }
+                    }
+                `}} />
                 {/* Control Bar (Hidden on print) */}
-                <div className="sticky top-0 z-10 p-4 border-b bg-background/80 backdrop-blur-md flex items-center justify-between print:hidden">
+                <div className="sticky top-0 z-10 p-4 border-b bg-background/80 backdrop-blur-md flex items-center justify-between print:hidden print-hidden">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setView('selector')}
