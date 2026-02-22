@@ -208,8 +208,8 @@ export function usePermissions() {
         const roleLevel = getRoleLevel(userRole);
         if (roleLevel >= 100) return true;
 
-        // Regular users must have AI enabled and be at least level 70 (Tenant Admin / PM)
-        if (roleLevel < 70) return false;
+        // Regular users must have AI enabled and be at least level 80 (Admin)
+        if (roleLevel < 80) return false;
 
         return userProfile?.aiEnabled === true;
     };

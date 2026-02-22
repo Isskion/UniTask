@@ -80,7 +80,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 let refreshTimer: NodeJS.Timeout | null = null;
 
                 profileUnsubRef.current = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+                    const isRepairPage = window.location.pathname.startsWith('/repair');
                     if (!snapshot.exists()) {
+                        if (isRepairPage) {
+                            console.log("[AuthContext] 🛠️ User has no Firestore profile but is on /repair. Allowing session.");
+                            setUserProfile(null); // Explicit clear
+                            return;
+                        }
                         console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
                         auth.signOut();
                         return;
@@ -90,24 +96,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // Block users with no valid tenant
                     if (!data.tenantId || data.tenantId === "unknown") {
+                        if (isRepairPage) {
+                            console.log("[AuthContext] 🛠️ User has invalid tenantId but is on /repair. Allowing session.");
+                            setUserProfile(data as UserProfile);
+                            return;
+                        }
                         console.warn("[AuthContext] ⛔ User has invalid tenantId. Auto-signing out.");
                         auth.signOut();
                         return;
                     }
 
-                    const latestSyncId = data.syncId;
-                    const currentSyncId = claims.syncId;
+                    const latestSyncId = Number(data.syncId) || 0;
+                    const currentSyncId = Number(claims.syncId) || 0;
 
                     // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
                     // Also refresh if roleLevel/tenantId mismatches critically.
-                    // [HARDEN] If token has NO syncId, we don't trigger refresh unless role/tenant differs.
-                    // This prevents loops where the server fails to provide a syncId.
-                    const needsRefresh = (latestSyncId && currentSyncId && latestSyncId > currentSyncId) ||
-                        (Number(data.roleLevel) !== Number(claims.roleLevel)) ||
-                        (String(data.tenantId) !== String(claims.tenantId));
+                    // [HARDEN] We only refresh if Firestore syncId is significantly newer (> 500ms) to avoid race conditions
+                    const syncStale = latestSyncId > (currentSyncId + 500);
+                    const roleMismatch = Number(data.roleLevel) !== Number(claims.roleLevel);
+                    const tenantMismatch = String(data.tenantId) !== String(claims.tenantId);
+
+                    const needsRefresh = syncStale || roleMismatch || tenantMismatch;
 
                     if (needsRefresh) {
-                        console.log(`[AuthContext] ⚠️ Profile mismatch (Refreshes: ${refreshCountRef.current}). Firestore Sync: ${latestSyncId} | Token Sync: ${currentSyncId} | Role: ${data.roleLevel} vs ${claims.roleLevel} | Tenant: ${data.tenantId} vs ${claims.tenantId}`);
+                        console.log(`[AuthContext] ⚠️ Refreash Triggered: Stale=${syncStale} (FS:${latestSyncId} vs TK:${currentSyncId}), Role=${roleMismatch} (${data.roleLevel} vs ${claims.roleLevel}), Tenant=${tenantMismatch} (${data.tenantId} vs ${claims.tenantId})`);
 
                         // [OPTIMISTIC] Still update the UI profile so the name/photo reflects immediately
                         setUserProfile(data as UserProfile);
@@ -145,7 +157,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
 
                                 // Re-evaluate identity with NEW token
-                                const newRole = Number(claims.roleLevel) || 0;
+                                // [Harden] Mapped roleLevel fallback for legacy claims
+                                let newRole = Number(claims.roleLevel);
+                                if (isNaN(newRole) && claims.role) {
+                                    console.log("[AuthContext] ⚠️ claims.roleLevel missing, falling back to legacy claims.role mapping.");
+                                    newRole = getRoleLevel(claims.role as string);
+                                }
+                                newRole = newRole || 0;
+
                                 const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
 
                                 setIdentity({
@@ -181,20 +200,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 // [SECURITY] Quick profile existence check BEFORE allowing the app to render
                 const { doc: docRef, getDoc: getDocSnap } = await import('firebase/firestore');
                 const profileSnap = await getDocSnap(docRef(db, 'users', currentUser.uid));
+                const isRepairPath = window.location.pathname.startsWith('/repair');
+
                 if (!profileSnap.exists()) {
-                    console.warn("[AuthContext] ⛔ User authenticated but no profile found. Signing out...");
-                    await auth.signOut();
-                    return;
+                    if (isRepairPath) {
+                        console.log("[AuthContext] 🛠️ Initial load: Missing profile allowed on /repair.");
+                    } else {
+                        console.error(`[AuthContext] ⛔ FATAL: UID ${currentUser.uid} authenticated but NO profile exists. Signing out...`);
+                        await auth.signOut();
+                        return;
+                    }
                 }
                 const profileData = profileSnap.data();
-                if (!profileData?.tenantId || profileData.tenantId === "unknown") {
-                    console.warn("[AuthContext] ⛔ User profile has invalid tenantId. Signing out...");
-                    await auth.signOut();
-                    return;
+                if (!profileData?.tenantId || profileData.tenantId === "unknown" || profileData.tenantId === "__DENY__") {
+                    if (isRepairPath) {
+                        console.log("[AuthContext] 🛠️ Initial load: Invalid tenant allowed on /repair.");
+                    } else {
+                        console.error(`[AuthContext] ⛔ FATAL: User profile ${currentUser.uid} has invalid/denied tenantId: ${profileData?.tenantId}. Check syncUserClaims logs.`);
+                        await auth.signOut();
+                        return;
+                    }
                 }
 
                 // Setup efficient state update on initial load (without waiting for listener)
-                let parsedRole = Number(claims.roleLevel) || 0;
+                // [Harden] Mapped roleLevel fallback for initial load
+                let parsedRole = Number(claims.roleLevel);
+                if (isNaN(parsedRole) && claims.role) {
+                    parsedRole = getRoleLevel(claims.role as string);
+                }
+                parsedRole = parsedRole || 0;
+
                 let realTenantId = (claims.tenantId as string) || "unknown";
 
                 const newIdentity: UserIdentity = {
@@ -477,8 +512,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const loginWithEmail = async (e: string, p: string) => {
-        await signInWithEmailAndPassword(auth, e, p);
-        // Reliance on useEffect
+        try {
+            await signInWithEmailAndPassword(auth, e, p);
+        } catch (error: any) {
+            console.error("[AuthContext] loginWithEmail error:", error);
+            if (error.code === 'auth/network-request-failed' || error.message?.includes('404')) {
+                console.error("[AuthContext] 🚨 404 or Network failure detected during sign-in. Check .env.local for quotes or API key validity.");
+            }
+            throw error;
+        }
     };
 
     const registerWithEmail = async (e: string, p: string, name?: string) => {

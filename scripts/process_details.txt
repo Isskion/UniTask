@@ -1,0 +1,11 @@
+﻿
+ProcessId CommandLine                                                                                                                                     CreationDate      
+--------- -----------                                                                                                                                     ------------      
+    10916 "C:\Program Files\nodejs\\node.exe"  "C:\Program Files\nodejs\\node_modules\npm\bin\npm-cli.js" run dev                                         22/02/2026 7:00:14
+     4108 "node"   "C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\node_modules\.bin\\..\next\dist\bin\next" dev                              22/02/2026 7:00:16
+    23588 "C:\Program Files\nodejs\node.exe" C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\node_modules\next\dist\server\lib\start-server.js 22/02/2026 7:00:16
+    30016 "node" C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\.next\dev\build\postcss.js 54891                                              22/02/2026 7:02:34
+     1856 "node" C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\.next\dev\build\postcss.js 61310                                              22/02/2026 7:02:35
+
+
+

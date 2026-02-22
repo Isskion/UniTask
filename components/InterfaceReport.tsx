@@ -48,23 +48,25 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                     __html: `
                     @media print {
                         @page {
-                            margin: 1.5cm;
+                            margin: 2cm;
                             size: auto;
                         }
-                        /* Hide everything by default */
-                        body * {
-                            visibility: hidden;
+                        /* Reset document for multi-page flow */
+                        html, body {
+                            height: auto !important;
+                            overflow: visible !important;
+                            background: white !important;
+                            color: black !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
                         }
-                        /* Show only our report and its contents */
-                        #unitask-interface-report,
-                        #unitask-interface-report * {
-                            visibility: visible !important;
+                        /* Hide everything by default using a more robust method */
+                        body > *:not(#unitask-interface-report) {
+                            display: none !important;
                         }
-                        /* Position the report at the absolute top of the page */
+                        /* Show our report correctly */
                         #unitask-interface-report {
-                            position: absolute !important;
-                            left: 0 !important;
-                            top: 0 !important;
+                            position: static !important;
                             width: 100% !important;
                             display: block !important;
                             height: auto !important;
@@ -72,19 +74,43 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             background: white !important;
                             padding: 0 !important;
                             margin: 0 !important;
+                            visibility: visible !important;
                         }
-                        /* Hide specific elements within the report */
-                        .print-hidden {
+                        #unitask-interface-report * {
+                            visibility: visible !important;
+                            color: black !important;
+                            border-color: #eee !important;
+                        }
+                        /* Link colors and primary accents on print */
+                        .text-primary {
+                            color: #000 !important;
+                            font-weight: bold !important;
+                        }
+                        /* Control Bar and UI elements MUST be hidden */
+                        .print-hidden, .sticky, button {
                             display: none !important;
+                            visibility: hidden !important;
                         }
-                        /* Avoid cutting cards between pages */
-                        .break-inside-avoid {
-                            break-inside: avoid;
-                            page-break-inside: avoid;
+                        /* Avoid cutting sections or cards */
+                        .break-inside-avoid, section, .rounded-2xl {
+                            break-inside: avoid !important;
+                            page-break-inside: avoid !important;
                         }
-                        /* Reset background colors for print */
-                        .bg-background {
-                            background-color: white !important;
+                        /* Ensure code blocks wrap instead of horizontal scroll */
+                        pre, code {
+                            white-space: pre-wrap !important;
+                            word-break: break-all !important;
+                            background: #f8f8f8 !important;
+                            border: 1px solid #ddd !important;
+                            color: #333 !important;
+                        }
+                        /* Reset background colors for cleaner print */
+                        .bg-zinc-50, .bg-zinc-900, .bg-card, .bg-background {
+                            background-color: transparent !important;
+                            background: none !important;
+                        }
+                        .border {
+                            border-color: #ddd !important;
                         }
                     }
                 `}} />

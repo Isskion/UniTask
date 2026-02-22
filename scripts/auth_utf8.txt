@@ -1,0 +1,24 @@
+﻿
+­ƒöì VERIFYING AUTH STATE FOR: daniel.delamo@unigis.com
+Ô£à UID: 6C9ZN0mfngNb5gIAWw1EMSaQcRR2
+­ƒôè Email Verified: true
+­ƒôè Disabled: false
+­ƒôè Metadata: {
+  "lastSignInTime": "Sun, 22 Feb 2026 06:43:50 GMT",
+  "creationTime": "Wed, 07 Jan 2026 15:40:54 GMT",
+  "lastRefreshTime": "Sun, 22 Feb 2026 07:38:51 GMT"
+}
+­ƒôè Providers: [
+  {
+    "providerId": "password",
+    "email": "daniel.delamo@unigis.com",
+    "uid": "daniel.delamo@unigis.com"
+  }
+]
+­ƒôè Custom Claims: {
+  "role": "app_admin",
+  "roleLevel": 80,
+  "tenantId": "3",
+  "isActive": true,
+  "syncId": 1771748270874
+}

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.syncUserClaims = void 0;
+exports.syncUserClaims = exports.onUserWriteSyncClaims = void 0;
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 // Initialize Admin if not already done
@@ -22,91 +22,109 @@ const SOT_ROLE_LEVELS = {
     'usuario_base': 20,
     'consultor': 40
 };
-// --- SYNC FUNCTION ---
+// --- SHARED LOGIC ---
 /**
- * syncUserClaims
+ * calculateAndSetClaims
  *
- * Trigger: On any write to /users/{userId}
- * Goal: Ensure Auth Custom Claims ALWAYS match the Firestore Document.
- * Policy: "Token Only" - The token is the single source of truth for Security Rules.
+ * Logic to calculate claims based on Firestore user document and set them in Auth.
  */
-exports.syncUserClaims = functions.region('europe-west1').firestore
-    .document('users/{userId}')
-    .onWrite(async (change, context) => {
-    const userId = context.params.userId;
-    // 1. DELETE Case: If user doc is deleted, revoke access immediately.
-    if (!change.after.exists) {
-        console.log(`[syncUserClaims] User ${userId} deleted. Revoking access.`);
+async function calculateAndSetClaims(userId, userData) {
+    if (!userData) {
+        console.log(`[calculateAndSetClaims] User ${userId} has no doc. Revoking access.`);
         await admin.auth().setCustomUserClaims(userId, { roleLevel: 0, tenantId: '__DENY__' });
         await admin.auth().revokeRefreshTokens(userId);
-        return;
+        return { success: true, message: "Access revoked" };
     }
-    const newData = change.after.data() || {};
-    const oldData = change.before.data() || {};
-    // 2. Extract & Normalize Data
-    const roleRaw = newData.role;
-    const tenantRaw = newData.tenantId;
-    const isActive = newData.isActive; // Boolean
-    // 3. Security Logic: Calculate "Real" Values
-    // Role Level Calculation (Strict Degradation)
+    const roleRaw = userData.role;
+    const tenantRaw = userData.tenantId;
+    const isActive = userData.isActive;
     let roleLevel = 0;
-    if (typeof roleRaw === 'string') {
+    if (typeof userData.roleLevel === 'number' && !isNaN(userData.roleLevel)) {
+        roleLevel = userData.roleLevel;
+    }
+    else if (typeof roleRaw === 'string' && roleRaw.trim().length > 0) {
         const normalizedRole = roleRaw.toLowerCase().trim();
         roleLevel = SOT_ROLE_LEVELS[normalizedRole] || 0;
-        if (roleLevel === 0 && normalizedRole !== '') {
-            console.warn(`[syncUserClaims] Unknown role '${roleRaw}' for user ${userId}. Degraded to 0.`);
+        if (roleLevel === 0 && !isNaN(parseInt(normalizedRole))) {
+            roleLevel = parseInt(normalizedRole);
         }
     }
-    // Tenant Calculation (Strict DEFAULT to __DENY__)
-    // Preventing "unknown" or empty strings from granting access
     let finalTenantId = '__DENY__';
     if (typeof tenantRaw === 'string' && tenantRaw.trim().length > 0) {
         finalTenantId = tenantRaw.trim();
     }
-    // Active Status Check
     if (isActive === false) {
-        console.log(`[syncUserClaims] User ${userId} is inactive. Level degraded to 0.`);
         roleLevel = 0;
-        // We keep tenantId for context, but level 0 blocks everything.
     }
-    // 4. Change Detection
-    // Compare with *theoretical* previous state? No, compare with *actual* previous data to decide if we need to call Auth API.
-    // HOWEVER, we should also check if the *current* claims match what we want. 
-    // Best practice: Just check data usage to minimize Auth API calls (rate limited).
-    // Did the factors influencing claims change?
-    const roleChanged = oldData.role !== newData.role;
-    const tenantChanged = oldData.tenantId !== newData.tenantId;
-    const statusChanged = oldData.isActive !== newData.isActive;
-    const levelChanged = oldData.roleLevel !== roleLevel; // If DB had wrong level
-    const syncIdChanged = newData.syncId && newData.syncId !== oldData.syncId;
-    if (roleChanged || tenantChanged || statusChanged || levelChanged || syncIdChanged) {
-        console.log(`[syncUserClaims] Syncing claims for ${userId}. Reason: Role:${roleChanged} Tenant:${tenantChanged} Status:${statusChanged} SyncId:${syncIdChanged}`);
-        const newClaims = {
-            role: roleRaw || 'unknown',
+    const newClaims = {
+        role: roleRaw || 'unknown',
+        roleLevel: roleLevel,
+        tenantId: finalTenantId,
+        isActive: !!isActive,
+        syncId: Date.now()
+    };
+    // A. Update Auth Claims
+    await admin.auth().setCustomUserClaims(userId, newClaims);
+    // B. Force Token Refresh
+    await admin.auth().revokeRefreshTokens(userId);
+    // C. Self-Healing Firestore
+    if (userData.roleLevel !== roleLevel || userData.syncId !== newClaims.syncId) {
+        await admin.firestore().collection('users').doc(userId).update({
             roleLevel: roleLevel,
-            tenantId: finalTenantId,
-            isActive: !!isActive,
-            syncId: Date.now() // Useful for frontend to detect staleness
-        };
-        // A. Update Auth Claims
-        await admin.auth().setCustomUserClaims(userId, newClaims);
-        // B. Force Token Refresh (Revocation)
-        // This is CRITICAL. It forces the client SDK to fetch a new token on next request.
-        await admin.auth().revokeRefreshTokens(userId);
-        console.log(`[syncUserClaims] SUCCESS: Claims updated for ${userId} ->`, newClaims);
-        // C. Self-Healing: Update Firestore if the calculated Level was missing/wrong
-        // This aids the "Frontend Viewer" to be accurate without hydrating logic.
-        if (newData.roleLevel !== roleLevel) {
-            console.log(`[syncUserClaims] Self-healing Firestore roleLevel (${newData.roleLevel} -> ${roleLevel})`);
-            // Use update to avoid triggering infinite loop? 
-            // onWrite triggers on update. WE MUST BE CAREFUL.
-            // If we update, we trigger onWrite again.
-            // We only update if it is different.
-            // The Check `levelChanged` above includes this.
-            // To prevent loop: Ensure the write strictly sets what we just calculated, 
-            // so next run `oldData.roleLevel === roleLevel` and we exit.
-            await change.after.ref.update({ roleLevel: roleLevel });
+            syncId: newClaims.syncId
+        });
+    }
+    return { success: true, claims: newClaims };
+}
+// --- SYNC FUNCTION (Trigger) ---
+/**
+ * onUserWriteSyncClaims
+ *
+ * Trigger: On any write to /users/{userId}
+ * Goal: Ensure Auth Custom Claims ALWAYS match the Firestore Document.
+ */
+exports.onUserWriteSyncClaims = functions.region('europe-west1').firestore
+    .document('users/{userId}')
+    .onWrite(async (change, context) => {
+    const userId = context.params.userId;
+    const newData = change.after.exists ? change.after.data() : null;
+    console.log(`[onUserWriteSyncClaims] Change detected for user ${userId}.`);
+    return calculateAndSetClaims(userId, newData);
+});
+// --- SYNC FUNCTION (HTTPS Callable) ---
+/**
+ * syncUserClaims
+ *
+ * Target for intentional "Repair" calls from UI.
+ */
+exports.syncUserClaims = functions.region('europe-west1').https.onCall(async (data, context) => {
+    // 1. Basic Auth Check
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'User must be logged in.');
+    }
+    const targetUserId = data.targetUserId;
+    if (!targetUserId) {
+        throw new functions.https.HttpsError('invalid-argument', 'targetUserId is required.');
+    }
+    // 2. Permission Check: Can only sync self or be Admin
+    const callerUid = context.auth.uid;
+    const isSelf = callerUid === targetUserId;
+    const callerLevel = context.auth.token.roleLevel || 0;
+    if (!isSelf && callerLevel < 80) {
+        throw new functions.https.HttpsError('permission-denied', 'Only admins can sync other users.');
+    }
+    console.log(`[syncUserClaims HTTPS] Request for user ${targetUserId} by ${callerUid}`);
+    try {
+        const userDoc = await admin.firestore().collection('users').doc(targetUserId).get();
+        if (!userDoc.exists) {
+            throw new functions.https.HttpsError('not-found', 'User profile not found in Firestore.');
         }
+        const result = await calculateAndSetClaims(targetUserId, userDoc.data());
+        return { success: true, message: "Claims synced successfully", claims: result.claims };
+    }
+    catch (error) {
+        console.error(`[syncUserClaims HTTPS] Error:`, error);
+        throw new functions.https.HttpsError('internal', error.message || 'Failed to sync claims.');
     }
 });
 //# sourceMappingURL=syncUserClaims.js.map

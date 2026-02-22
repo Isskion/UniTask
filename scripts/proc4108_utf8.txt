@@ -1,0 +1,4 @@
+﻿
+--- PID 4108 COMMAND LINE ---
+"node"   "C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\node_modules\.bin\\..\next\dist\bin\next" dev
+

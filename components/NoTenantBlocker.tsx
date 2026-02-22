@@ -10,6 +10,12 @@ export function NoTenantBlocker({ children }: { children: React.ReactNode }) {
     const { user, tenantId, loading, identity } = useAuth();
     const ADMIN_EMAIL = 'argoss01@gmail.com';
 
+    // [BYPASS] Skip blocker on repair page
+    const isRepairPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/repair');
+    if (isRepairPage) {
+        return <>{children}</>;
+    }
+
     useEffect(() => {
         // Wait for both auth AND identity to fully load
         if (loading || !user) return;

@@ -667,7 +667,7 @@ export default function UserManagement() {
                                 {(() => {
                                     const tenantForUser = availableTenants.find(t => t.id === (formData.tenantId || editingUser?.tenantId));
                                     const currentUserLevel = getRoleLevel(userRole);
-                                    const isAuthorizedAdmin = currentUserLevel >= 70; // Tenant Admin or higher
+                                    const isAuthorizedAdmin = currentUserLevel >= 80; // Tenant Admin (80) or higher
 
                                     if (tenantForUser?.aiEnabled && isAuthorizedAdmin) {
                                         return (

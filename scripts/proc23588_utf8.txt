@@ -1,0 +1,4 @@
+﻿
+--- PID 23588 COMMAND LINE ---
+"C:\Program Files\nodejs\node.exe" C:\Users\daniel.delamo\.gemini\antigravity\scratch\UniTask\node_modules\next\dist\server\lib\start-server.js
+

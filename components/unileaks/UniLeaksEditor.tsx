@@ -14,6 +14,7 @@ import Image from '@tiptap/extension-image';
 import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 import { Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon } from "lucide-react";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { useFileUploader } from "@/hooks/useFileUploader";
@@ -29,6 +30,7 @@ interface UniLeaksEditorProps {
 
 export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }: UniLeaksEditorProps) {
     const { showToast } = useToast();
+    const { user, tenantId: currentTenantId } = useAuth();
     const { deleteDoc: deleteFirebaseDoc } = useSafeFirestore();
     const { uploadFile, uploading: isUploadingImage } = useFileUploader();
 
@@ -118,7 +120,8 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     // AI/Storage path helper
     const handleImageUpload = async (file: File) => {
         try {
-            const path = `unileaks/images/${note.id || 'temp_' + Date.now()}`;
+            const effectiveTenantId = note.tenantId || currentTenantId || 'global';
+            const path = `tenants/${effectiveTenantId}/unileaks/images/${note.id || 'temp_' + Date.now()}`;
             showToast("Subiendo...", "Estamos guardando tu imagen...", "info");
             const result = await uploadFile(file, path);
             if (result && editor) {
