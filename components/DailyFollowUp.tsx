@@ -1827,8 +1827,8 @@ export default function DailyFollowUp() {
                                 </div>
 
                                 {/* Content Editor */}
-                                <div className="flex-1 p-6 overflow-y-auto mb-10 relative z-0">
-                                    <div className={cn("grid gap-6 h-full transition-all duration-300",
+                                <div className="flex-1 p-6 overflow-hidden mb-10 relative z-0">
+                                    <div className={cn("grid gap-6 h-full transition-all duration-300 min-h-0",
                                         isTasksPanelVisible ? "grid-cols-1 lg:grid-cols-[1.5fr_1fr]" : "grid-cols-1"
                                     )}>
                                         {/* Left: PM Notes (Blocks) */}
