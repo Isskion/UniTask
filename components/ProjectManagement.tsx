@@ -444,8 +444,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         target="_blank"
                                         className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2 border text-xs font-bold shrink-0",
                                             isLight
-                                                ? "bg-primary text-black border-primary hover:bg-primary/90"
-                                                : "bg-primary text-black border-primary hover:bg-primary/90"
+                                                ? "bg-zinc-950 text-white border-zinc-900 hover:bg-black"
+                                                : "bg-white text-black border-white hover:bg-zinc-200"
                                         )}
                                         title="Abrir UniLeaks para este proyecto"
                                     >

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation"; // Added for routing
 import ProjectManagement from "./ProjectManagement";
+import ProjectActivityFeed from "./ProjectActivityFeed";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
 import { AppLayout } from "./AppLayout";
@@ -251,7 +252,7 @@ export default function DailyFollowUp() {
     const [isPdfScannerOpen, setIsPdfScannerOpen] = useState(false);
 
     // --- UNILeaks: Sub-Tabs for Projects ---
-    const [activeSubTab, setActiveSubTab] = useState<'notes' | 'interfaces'>('notes');
+    const [activeSubTab, setActiveSubTab] = useState<'notes' | 'interfaces' | 'feed' | 'tasks'>('notes');
 
     // Reset sub-tab when switching projects
     useEffect(() => {
@@ -1842,7 +1843,7 @@ export default function DailyFollowUp() {
                                                         }
                                                     </label>
 
-                                                    {/* Sub-Tabs Selector (UniLeaks) */}
+                                                    {/* Sub-Tabs Selector (Project Views) */}
                                                     {activeTab !== 'General' && (
                                                         <div className="flex bg-muted/30 p-0.5 rounded-lg border border-border/50">
                                                             <button
@@ -1855,10 +1856,30 @@ export default function DailyFollowUp() {
                                                                 Bitácora
                                                             </button>
                                                             <button
+                                                                onClick={() => setActiveSubTab('feed')}
+                                                                className={cn(
+                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
+                                                                    activeSubTab === 'feed' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                )}
+                                                            >
+                                                                <Activity className="w-3 h-3" />
+                                                                Feed
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setActiveSubTab('tasks')}
+                                                                className={cn(
+                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
+                                                                    activeSubTab === 'tasks' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                )}
+                                                            >
+                                                                <CheckSquare className="w-3 h-3" />
+                                                                Tareas
+                                                            </button>
+                                                            <button
                                                                 onClick={() => setActiveSubTab('interfaces')}
                                                                 className={cn(
                                                                     "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm border border-primary/20" : "text-muted-foreground hover:text-foreground"
                                                                 )}
                                                             >
                                                                 <History className="w-3 h-3" />
@@ -1883,13 +1904,52 @@ export default function DailyFollowUp() {
                                                     placeholder={t('follow_up.today_summary')}
                                                 />
                                             ) : (
-                                                <div className="flex-1 flex flex-col gap-4 min-h-0">
+                                                <div className="flex-1 flex flex-col gap-4 min-h-0 relative overflow-hidden">
                                                     {activeSubTab === 'interfaces' ? (
                                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                             <InterfaceManager
                                                                 projectId={globalProjects.find(p => p.name === activeTab)?.id || ""}
                                                                 projectName={activeTab}
                                                             />
+                                                        </div>
+                                                    ) : activeSubTab === 'feed' ? (
+                                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                            <ProjectActivityFeed
+                                                                projectId={globalProjects.find(p => p.name === activeTab)?.id || ""}
+                                                                projectName={activeTab}
+                                                            />
+                                                        </div>
+                                                    ) : activeSubTab === 'tasks' ? (
+                                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                            {/* Simple Task View for this project */}
+                                                            <div className="space-y-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <h3 className="text-sm font-bold text-foreground">Tareas del Proyecto</h3>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    {projectTasks.length === 0 ? (
+                                                                        <p className="text-xs text-muted-foreground italic">No hay tareas activas</p>
+                                                                    ) : (
+                                                                        projectTasks.map(t => (
+                                                                            <div key={t.id} className="p-3 bg-muted/20 border border-border rounded-lg flex items-center justify-between group">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="font-mono text-[9px] text-muted-foreground">{t.friendlyId}</span>
+                                                                                    <span className="text-xs">{t.title}</span>
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setPendingTaskId(t.id);
+                                                                                        setViewMode('task-manager');
+                                                                                    }}
+                                                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded transition-all"
+                                                                                >
+                                                                                    <ArrowRight className="w-3 h-3" />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))
+                                                                    )}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     ) : (
                                                         <>
@@ -1946,7 +2006,6 @@ export default function DailyFollowUp() {
                                                                     </div>
                                                                 ))}
                                                             </div>
-
                                                             <button
                                                                 onClick={() => handleAddBlock(activeTab)}
                                                                 className={cn("mt-auto flex items-center justify-center gap-2 py-3 border-2 border-dashed rounded-xl transition-all text-xs font-bold shrink-0",
