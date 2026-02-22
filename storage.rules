@@ -30,5 +30,10 @@ service firebase.storage {
     match /tenants/{tenantId}/knowledge/{allPaths=**} {
        allow read, write: if isAuthenticated();
     }
+
+    // UniLeaks Notes Images
+    match /unileaks/{allPaths=**} {
+       allow read, write: if isAuthenticated();
+    }
   }
 }
