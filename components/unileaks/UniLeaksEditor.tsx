@@ -10,11 +10,13 @@ import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
 import Highlight from '@tiptap/extension-highlight';
+import Image from '@tiptap/extension-image';
 import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
 import { useToast } from "@/context/ToastContext";
-import { Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter } from "lucide-react";
+import { Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon } from "lucide-react";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
+import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,7 @@ interface UniLeaksEditorProps {
 export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }: UniLeaksEditorProps) {
     const { showToast } = useToast();
     const { deleteDoc: deleteFirebaseDoc } = useSafeFirestore();
+    const { uploadFile, uploading: isUploadingImage } = useFileUploader();
 
     // Local State for Edit
     const [title, setTitle] = useState(note.title || "");
@@ -55,6 +58,11 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             Highlight.configure({
                 multicolor: true,
             }),
+            Image.configure({
+                HTMLAttributes: {
+                    class: 'rounded-xl border border-border max-w-full h-auto my-4 shadow-lg',
+                },
+            }),
             Placeholder.configure({
                 placeholder: 'Escribe aquí tus ideas, reuniones, tareas... soporta Markdown!',
                 emptyEditorClass: 'is-editor-empty',
@@ -65,6 +73,30 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             attributes: {
                 class: 'focus:outline-none min-h-[50vh]',
             },
+            handlePaste: (view, event) => {
+                const items = Array.from(event.clipboardData?.items || []);
+                const imageItem = items.find(item => item.type.startsWith('image'));
+
+                if (imageItem) {
+                    const file = imageItem.getAsFile();
+                    if (file) {
+                        handleImageUpload(file);
+                        return true; // handled
+                    }
+                }
+                return false;
+            },
+            handleDrop: (view, event) => {
+                const files = Array.from(event.dataTransfer?.files || []);
+                const imageFile = files.find(file => file.type.startsWith('image'));
+
+                if (imageFile) {
+                    event.preventDefault();
+                    handleImageUpload(imageFile);
+                    return true;
+                }
+                return false;
+            }
         },
         onUpdate: ({ editor }) => {
             setContent(editor.getHTML());
@@ -82,6 +114,22 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             currentNoteIdRef.current = note.id;
         }
     }, [note, editor]);
+
+    // AI/Storage path helper
+    const handleImageUpload = async (file: File) => {
+        try {
+            const path = `unileaks/images/${note.id || 'temp_' + Date.now()}`;
+            showToast("Subiendo...", "Estamos guardando tu imagen...", "info");
+            const result = await uploadFile(file, path);
+            if (result && editor) {
+                editor.chain().focus().setImage({ src: result.url }).run();
+                showToast("Éxito", "Imagen subida correctamente", "success");
+            }
+        } catch (err) {
+            console.error("Error uploading image:", err);
+            showToast("Error", "No se pudo subir la imagen", "error");
+        }
+    };
 
     // Close context menu on external click
     useEffect(() => {
@@ -183,6 +231,23 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             <Trash2 className="w-5 h-5" />
                         </button>
                     )}
+                    <input
+                        type="file"
+                        id="unileaks-image-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleImageUpload(file);
+                        }}
+                    />
+                    <label
+                        htmlFor="unileaks-image-upload"
+                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                        title="Subir Imagen"
+                    >
+                        {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                    </label>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
