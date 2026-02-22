@@ -80,6 +80,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 const imageItem = items.find(item => item.type.startsWith('image'));
 
                 if (imageItem) {
+                    event.preventDefault(); // [ADD] Explicitly prevent default paste
                     const file = imageItem.getAsFile();
                     if (file) {
                         handleImageUpload(file);
@@ -122,6 +123,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         try {
             const effectiveTenantId = note.tenantId || currentTenantId || 'global';
             const path = `tenants/${effectiveTenantId}/unileaks/images/${note.id || 'temp_' + Date.now()}`;
+            console.log("[UniLeaks] 🚀 Uploading image to path:", path);
             showToast("Subiendo...", "Estamos guardando tu imagen...", "info");
             const result = await uploadFile(file, path);
             if (result && editor) {

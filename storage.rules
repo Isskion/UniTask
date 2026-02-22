@@ -2,28 +2,37 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    
+    // Helper function for authentication
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
-
-    // [FIX] Profile Pictures path (Must match useFileUploader.ts)
+    // 1. [SPECIFIC] Profile Pictures 
     match /profile_pictures/{userId}/{allPaths=**} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Legacy users path (kept for compatibility if needed)
+    // 2. [SPECIFIC] UniLeaks Notes Images (Compatibility with old path)
+    match /unileaks/{allPaths=**} {
+       allow read, write: if isAuthenticated();
+    }
+
+    // 3. [SPECIFIC] Tenant-scoped data (Includes new UniLeaks path)
+    match /tenants/{tenantId}/{allPaths=**} {
+       allow read, write: if isAuthenticated();
+    }
+
+    // 4. [LEGACY] Users path
     match /users/{userId}/{fileName} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    match /tenants/{tenantId}/{allPaths=**} {
-       allow read, write: if isAuthenticated();
+    // 5. [FALLBACK] Global Deny (Moved to bottom)
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }
