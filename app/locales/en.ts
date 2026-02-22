@@ -69,7 +69,9 @@ export const en = {
         "knowledge-area": "Knowledge Area",
         "lessons-learned": "Lessons Learned",
         "solution-records": "Solution Records",
-        uniflux: "Uniflux Engine"
+        uniflux: "Uniflux Engine",
+        unitask_tools: "Unitask Tools",
+        unileaks: "UniLeaks"
     },
 
     theme: {

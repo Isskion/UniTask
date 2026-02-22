@@ -15,7 +15,7 @@ import { saveDailyStatus, getDailyStatus, getRecentDailyStatusEntries, getDailyS
 import { auth, db } from "@/lib/firebase";
 // SECURE IMPORTS: Removed write methods from firebase/firestore
 import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search, History } from 'lucide-react';
+import { Plus, Trash2, Save, Sparkles, FileText, ChevronRight, ChevronDown, PenSquare, Eye, EyeOff, Layout, Calendar, Calendar as CalendarIcon, CheckSquare, Check, CheckSquare as CheckIcon, Clock, ArrowRight, X, AlertTriangle, Printer, Loader2, CalendarPlus, Activity, ListTodo, PlayCircle, PauseCircle, Timer, UserCircle2, Search, History, ShieldAlert } from 'lucide-react';
 import { generateDailyReportPDF } from '@/app/actions/pdf';
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -1404,6 +1404,13 @@ export default function DailyFollowUp() {
                         <button type="submit" className="w-full bg-zinc-800 text-zinc-200 font-bold py-2 px-4 rounded-lg hover:bg-zinc-700 transition-colors text-sm">
                             {isRegistering ? "Registrarse" : "Entrar"}
                         </button>
+
+                        <div className="pt-4 border-t border-zinc-900 text-center">
+                            <Link href="/repair" className="text-xs text-zinc-500 hover:text-red-500 transition-colors flex items-center justify-center gap-1">
+                                <ShieldAlert className="w-3 h-3" />
+                                ¿Problemas de acceso? Reparar sesión
+                            </Link>
+                        </div>
                     </form>
 
                     <p className="mt-6 text-xs text-zinc-600 text-center">
@@ -1671,17 +1678,15 @@ export default function DailyFollowUp() {
                                             </button>
 
                                             {/* 2. SCAN PDF */}
-                                            {canUseAI() && (
-                                                <div>
-                                                    <button
-                                                        onClick={() => setIsPdfScannerOpen(true)}
-                                                        className="p-1.5 rounded-full hover:bg-muted text-zinc-500 hover:text-indigo-600 transition-colors"
-                                                        title="Escanear y procesar documento PDF"
-                                                    >
-                                                        <Sparkles className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            )}
+                                            <div>
+                                                <button
+                                                    onClick={() => setIsPdfScannerOpen(true)}
+                                                    className="p-1.5 rounded-full hover:bg-muted text-zinc-500 hover:text-indigo-600 transition-colors"
+                                                    title="Escanear y procesar documento PDF"
+                                                >
+                                                    <Sparkles className="w-4 h-4" />
+                                                </button>
+                                            </div>
 
 
 
@@ -1792,17 +1797,6 @@ export default function DailyFollowUp() {
                                             )}>
                                             <Plus className="w-3.5 h-3.5" /> {t('follow_up.add_project')}
                                         </button>
-
-                                        <Link
-                                            href="/unileaks"
-                                            target="_blank"
-                                            className={cn("flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs font-bold transition-all ml-2 shrink-0",
-                                                isLight
-                                                    ? "bg-primary text-black border-primary hover:bg-primary/90"
-                                                    : "bg-primary text-black border-primary hover:bg-primary/90"
-                                            )}>
-                                            <FileText className="w-3.5 h-3.5" /> UniLeaks
-                                        </Link>
 
                                         {isAddProjectOpen && (
                                             <>
@@ -1920,7 +1914,7 @@ export default function DailyFollowUp() {
                                                                                 onChange={(e) => handleBlockUpdate(activeTab, block.id, 'title', e.target.value)}
                                                                                 placeholder={t('follow_up.block_title_placeholder')}
                                                                             />
-                                                                            {!block.isCollapsed && canUseAI() && (
+                                                                            {!block.isCollapsed && (
                                                                                 <button
                                                                                     onClick={() => handleAI(block.content, `Bloque específico: ${block.title}`)}
                                                                                     className={cn("transition-opacity", isLight ? "text-zinc-400 hover:text-zinc-800" : "text-zinc-400 hover:text-white")}
@@ -1977,17 +1971,15 @@ export default function DailyFollowUp() {
                                                         <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
                                                         {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
                                                     </label>
-                                                    {canUseAI() && (
-                                                        <button
-                                                            onClick={() => handleAI()}
-                                                            disabled={isAILoading}
-                                                            className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
-                                                            title="Analizar notas y extraer tareas"
-                                                        >
-                                                            {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                            {t('follow_up.extract_tasks')}
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        onClick={() => handleAI()}
+                                                        disabled={isAILoading}
+                                                        className="text-[10px] bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 px-2 py-1 rounded flex items-center gap-1 transition-colors disabled:opacity-50"
+                                                        title="Analizar notas y extraer tareas"
+                                                    >
+                                                        {isAILoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                        {t('follow_up.extract_tasks')}
+                                                    </button>
                                                 </div>
 
                                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
@@ -2015,7 +2007,7 @@ export default function DailyFollowUp() {
                                                     </div>
 
                                                     {/* AI RESULTS AREA */}
-                                                    {canUseAI() && (aiSummary || aiSuggestions.length > 0) && (
+                                                    {(aiSummary || aiSuggestions.length > 0) && (
                                                         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
                                                             <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
                                                             {/* ... rest of the panel ... */}

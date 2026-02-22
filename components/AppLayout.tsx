@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { SuperadminGodBar } from "@/components/SuperadminGodBar"; // Import God Bar at Top Level
 import {
     Layout,
@@ -121,6 +122,32 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
         );
     };
 
+    const NavLink = ({
+        href,
+        icon: Icon,
+        label,
+        target = "_self"
+    }: {
+        href: string,
+        icon: React.ElementType,
+        label: string,
+        target?: string
+    }) => {
+        return (
+            <Link
+                href={href}
+                target={target}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group relative",
+                    "text-muted-foreground hover:text-foreground hover:bg-accent"
+                )}
+            >
+                <Icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                <span>{label}</span>
+            </Link>
+        );
+    };
 
 
 
@@ -227,7 +254,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                             <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
-                            {canUseAI() && <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />}
                         </div>
 
                         {/* Knowledge Area (NEW) */}
@@ -236,7 +262,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
                                 <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
                                 <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                {canUseAI() && <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />}
+                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
                             </div>
                         )}
 
@@ -248,6 +274,13 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="sprint-planning" icon={Timer} label={t('sprints.menu_simulator')} />
                             </div>
                         )}
+
+                        {/* Unitask Tools (NEW) */}
+                        <div className="space-y-1">
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                            <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+                            <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                        </div>
 
                         {/* Secondary */}
                         {/* ADMINISTRATION */}
@@ -382,19 +415,17 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-3">
-                            {canUseAI() && (
-                                <button
-                                    onClick={() => setIsHelpOpen(true)}
-                                    className="p-2 rounded-full hover:bg-purple-500/10 text-muted-foreground hover:text-purple-500 transition-colors relative group"
-                                    title={t('ai_help.title')}
-                                >
-                                    <GeminiIcon className="w-5 h-5" />
-                                    <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
-                                    </span>
-                                </button>
-                            )}
+                            <button
+                                onClick={() => setIsHelpOpen(true)}
+                                className="p-2 rounded-full hover:bg-purple-500/10 text-muted-foreground hover:text-purple-500 transition-colors relative group"
+                                title={t('ai_help.title')}
+                            >
+                                <GeminiIcon className="w-5 h-5" />
+                                <span className="absolute -bottom-1 -right-1 flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                                </span>
+                            </button>
                             <ThemeSelector />
                             <NotificationBell />
                             <LanguageSelector />
@@ -444,7 +475,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
-                                {canUseAI() && <NavItem mode="uniflux" icon={Sparkles} label="Uniflux Engine" />}
+                            </div>
+
+                            <div className="mt-4 space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                                <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+                                <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             </div>
 
                             {can('knowledgeBase', 'views') && (
@@ -452,7 +488,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
                                     <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
                                     <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                    {canUseAI() && <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />}
+                                    <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
                                 </div>
                             )}
 

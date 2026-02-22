@@ -71,7 +71,9 @@ export const de: Dictionary = {
         "knowledge-area": "Wissensbereich",
         "lessons-learned": "Gelernte Lektionen",
         "solution-records": "Lösungsregister",
-        uniflux: "Uniflux Engine"
+        uniflux: "Uniflux Engine",
+        unitask_tools: "Unitask Tools",
+        unileaks: "UniLeaks"
     },
 
     theme: {
