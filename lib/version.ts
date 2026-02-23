@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.5.2";
+export const APP_VERSION = "13.5.3";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.3",
+        title: "Knowledge Base: Theme Fix",
+        date: "2026-02-23",
+        features: [
+            "**Theme Awareness**: Fixed text visibility in RichTextEditor for the light theme.",
+            "**Visual Improvements**: Optimized editor background and borders for better contrast in white theme."
+        ]
+    },
     {
         version: "13.5.2",
         title: "UniLeaks: Smart Visibility",

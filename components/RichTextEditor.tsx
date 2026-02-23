@@ -7,6 +7,8 @@ import Image from '@tiptap/extension-image';
 import { useEffect } from 'react';
 import { useFileUploader } from '@/hooks/useFileUploader';
 import { useToast } from '@/context/ToastContext';
+import { useTheme } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps {
     content: string;
@@ -19,6 +21,8 @@ interface RichTextEditorProps {
 export default function RichTextEditor({ content, onChange, placeholder, className, storagePath }: RichTextEditorProps) {
     const { uploadFile } = useFileUploader();
     const { showToast } = useToast();
+    const { theme } = useTheme();
+    const isLight = theme === 'light';
 
     const handleImageUpload = async (file: File) => {
         if (!storagePath) return;
@@ -53,7 +57,11 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
         content: content,
         editorProps: {
             attributes: {
-                class: `prose prose-sm prose-invert max-w-none focus:outline-none min-h-[150px] p-4 [&_img]:select-none [&_img]:[user-drag:none] [&_img]:[-webkit-user-drag:none] ${className}`,
+                class: cn(
+                    "prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4 [&_img]:select-none [&_img]:[user-drag:none] [&_img]:[-webkit-user-drag:none]",
+                    !isLight && "prose-invert",
+                    className
+                ),
             },
             handleDrop: (view, event, slice, moved) => {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
@@ -61,7 +69,7 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
                     if (file.type.startsWith('image/') && storagePath) {
                         event.preventDefault(); // Prevent default browser drop
                         handleImageUpload(file);
-                        return true;
+                        return true; // handled
                     }
                 }
                 return false;
@@ -75,7 +83,7 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
                             if (file) {
                                 event.preventDefault(); // Prevent default paste (which might be base64)
                                 handleImageUpload(file);
-                                return true;
+                                return true; // handled
                             }
                         }
                     }
@@ -93,7 +101,6 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
     });
 
     // Sync content if it changes externally (e.g. tab switch)
-    // Sync content if it changes externally (e.g. tab switch)
     useEffect(() => {
         if (editor && content !== editor.getHTML()) {
             editor.commands.setContent(content);
@@ -101,7 +108,12 @@ export default function RichTextEditor({ content, onChange, placeholder, classNa
     }, [content, editor]);
 
     return (
-        <div className="border border-white/10 rounded-xl bg-black/20 overflow-hidden focus-within:border-white/30 transition-colors">
+        <div className={cn(
+            "border transition-colors rounded-xl overflow-hidden",
+            isLight
+                ? "bg-zinc-50 border-zinc-200 focus-within:border-zinc-300"
+                : "bg-black/20 border-white/10 focus-within:border-white/30"
+        )}>
             {/* Toolbar could go here */}
             <EditorContent editor={editor} />
         </div>
