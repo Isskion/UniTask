@@ -1,6 +1,15 @@
-export const APP_VERSION = "13.5.6";
+export const APP_VERSION = "13.5.8";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.8",
+        date: "2026-02-23",
+        features: [
+            "Estabilidad de Build (Vercel): Corrección de inconsistencias de tipos en KnowledgeBase y ProductProposals",
+            "Refuerzo de Props: Implementación de type-casting preventivo para componentes críticos en DailyFollowUp",
+            "Módulo de Trazabilidad: Activación definitiva con todas las dependencias vinculadas"
+        ]
+    },
     {
         version: "13.5.6",
         date: "2026-02-23",
