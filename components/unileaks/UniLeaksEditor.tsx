@@ -15,7 +15,9 @@ import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon } from "lucide-react";
+import { Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon, Share2 } from "lucide-react";
+import { getShareUrl, copyToClipboard } from "@/lib/share";
+import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
@@ -33,12 +35,14 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const { user, tenantId: currentTenantId } = useAuth();
     const { deleteDoc: deleteFirebaseDoc } = useSafeFirestore();
     const { uploadFile, uploading: isUploadingImage } = useFileUploader();
+    const { t } = useLanguage();
 
     // Local State for Edit
     const [title, setTitle] = useState(note.title || "");
     const [content, setContent] = useState(note.content || "");
     const [isPublic, setIsPublic] = useState(note.isPublic || false);
     const [isSaving, setIsSaving] = useState(false);
+    const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number }>({ visible: false, x: 0, y: 0 });
 
     const currentNoteIdRef = useRef<string | null>(null);
@@ -103,6 +107,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         },
         onUpdate: ({ editor }) => {
             setContent(editor.getHTML());
+            setAutoSaveStatus('dirty');
         },
     });
 
@@ -148,13 +153,27 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleSave = async () => {
+    // --- AUTO-SAVE LOGIC ---
+    useEffect(() => {
+        // Only trigger if dirty and not already saving
+        if (autoSaveStatus !== 'dirty' || isSaving) return;
+
+        const timer = setTimeout(() => {
+            handleSave(true); // true = isAutoSave
+        }, 2000); // 2 second debounce
+
+        return () => clearTimeout(timer);
+    }, [title, content, isPublic, autoSaveStatus, isSaving]);
+
+    const handleSave = async (isAutoSave = false) => {
         if (!title.trim() && !content.trim()) {
-            showToast("Atención", "Escribe un título o contenido antes de guardar", "info");
+            if (!isAutoSave) showToast("Atención", "Escribe un título o contenido antes de guardar", "info");
             return;
         }
 
-        setIsSaving(true);
+        if (isAutoSave) setAutoSaveStatus('saving');
+        else setIsSaving(true);
+
         try {
             const noteDataToSave: Partial<UniLeakNote> = {
                 ...note,
@@ -170,7 +189,9 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 
             const savedId = await saveNote(noteDataToSave);
 
-            showToast("Guardado", "Nota guardada correctamente.", "success");
+            if (!isAutoSave) showToast("Guardado", "Nota guardada correctamente.", "success");
+
+            setAutoSaveStatus('saved');
 
             // Refresh parent state
             onSaveSuccess({
@@ -181,7 +202,8 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 
         } catch (error) {
             console.error("Error saving note:", error);
-            showToast("Error", "No se pudo guardar la nota.", "error");
+            if (!isAutoSave) showToast("Error", "No se pudo guardar la nota.", "error");
+            setAutoSaveStatus('error');
         } finally {
             setIsSaving(false);
         }
@@ -210,20 +232,44 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         <div className="flex flex-col h-full max-w-5xl mx-auto">
             {/* Header Toolbar */}
             <div className="flex items-center justify-between py-6 px-10 border-b border-border bg-background sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <label className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm font-medium",
-                        isPublic ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground hover:text-foreground"
-                    )}>
-                        <input
-                            type="checkbox"
-                            checked={isPublic}
-                            onChange={(e) => setIsPublic(e.target.checked)}
-                            className="hidden"
-                        />
-                        {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        {isPublic ? "Visible para todo el proyecto" : "Nota Privada"}
-                    </label>
+                <label className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm font-medium",
+                    isPublic ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground hover:text-foreground"
+                )}>
+                    <input
+                        type="checkbox"
+                        checked={isPublic}
+                        onChange={(e) => {
+                            setIsPublic(e.target.checked);
+                            setAutoSaveStatus('dirty');
+                        }}
+                        className="hidden"
+                    />
+                    {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                    {isPublic ? "Visible para todo el proyecto" : "Nota Privada"}
+                </label>
+            </div>
+
+            <div className="flex items-center gap-4">
+                {/* Auto-save Status Indicator */}
+                <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                    {autoSaveStatus === 'saving' ? (
+                        <span className="text-amber-500 flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
+                        </span>
+                    ) : autoSaveStatus === 'saved' ? (
+                        <span className="text-emerald-500 flex items-center gap-1">
+                            <Check className="w-3 h-3" /> Cambios guardados
+                        </span>
+                    ) : autoSaveStatus === 'dirty' ? (
+                        <span className="text-muted-foreground opacity-50 italic">
+                            Editando...
+                        </span>
+                    ) : autoSaveStatus === 'error' ? (
+                        <span className="text-red-500">
+                            Error al guardar
+                        </span>
+                    ) : null}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -249,12 +295,27 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     <label
                         htmlFor="unileaks-image-upload"
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
-                        title="Subir Imagen"
+                        title="Insertar Imagen"
                     >
                         {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
                     </label>
+
+                    {note.id && (
+                        <button
+                            onClick={async () => {
+                                const url = getShareUrl('unileaks', note.id);
+                                const success = await copyToClipboard(url);
+                                if (success) showToast("UniTask", t('common.link_copied'), "success");
+                            }}
+                            className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                            title="Compartir Nota"
+                        >
+                            <Share2 className="w-5 h-5" />
+                        </button>
+                    )}
+
                     <button
-                        onClick={handleSave}
+                        onClick={() => handleSave(false)}
                         disabled={isSaving}
                         className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -269,7 +330,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 <input
                     type="text"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                        setTitle(e.target.value);
+                        setAutoSaveStatus('dirty');
+                    }}
                     placeholder="Título de la nota..."
                     className="w-full text-5xl font-extrabold bg-transparent border-none outline-none mb-8 text-foreground placeholder-muted-foreground placeholder-opacity-50"
                 />
