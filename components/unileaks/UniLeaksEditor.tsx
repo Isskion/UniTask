@@ -148,6 +148,46 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         }
     };
 
+    // Update editor attributes when language changes or editor initializes
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) return;
+
+        // Map internal language codes to browser-friendly tags
+        const langMap: Record<string, string> = {
+            'es': 'es-ES',
+            'en': 'en-US',
+            'de': 'de-DE',
+            'fr': 'fr-FR',
+            'ca': 'ca-ES',
+            'pt': 'pt-PT'
+        };
+        const browserLang = langMap[language] || language;
+
+        // Force attributes on the DOM element of the editor
+        setTimeout(() => {
+            const dom = (editor.view.dom as HTMLElement);
+            if (dom) {
+                dom.setAttribute('lang', browserLang);
+                dom.setAttribute('spellcheck', 'true');
+                // Ensure classes are preserved
+                if (!dom.classList.contains('focus:outline-none')) {
+                    dom.classList.add('focus:outline-none');
+                }
+            }
+        }, 100);
+
+        // Also update options for consistency
+        editor.setOptions({
+            editorProps: {
+                attributes: {
+                    lang: browserLang,
+                    spellcheck: 'true',
+                    class: 'focus:outline-none min-h-[50vh]',
+                },
+            },
+        });
+    }, [editor, language]);
+
     // Close menus on external click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -312,6 +352,11 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 
         if (!selectedText || selectedText.trim().length < 2) {
             showToast("Aviso", "Selecciona una palabra válida primero.", "warning");
+            return;
+        }
+
+        if (selectedText.trim().length > 100) {
+            showToast("Aviso", "La selección es demasiado larga para ser una palabra.", "warning");
             return;
         }
 
