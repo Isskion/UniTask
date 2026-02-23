@@ -25,7 +25,7 @@ import { es } from 'date-fns/locale';
 import { safeParseDate } from "@/lib/date-utils";
 
 export interface KnowledgeBaseProps {
-    type: 'lesson_learned' | 'solution_record' | 'product_proposal' | 'manual';
+    type: 'lesson_learned' | 'solution_record' | 'product_proposal';
     initialId?: string | null;
 }
 
