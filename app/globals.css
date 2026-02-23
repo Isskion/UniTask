@@ -211,3 +211,35 @@
   font-weight: 600;
   text-align: left;
 }
+
+/* --- PRINT STYLES --- */
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  div,
+  section,
+  main {
+    position: static !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Ensure background colors/images are printed if needed */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

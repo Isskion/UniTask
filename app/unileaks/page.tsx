@@ -7,7 +7,7 @@ import { Project, UniLeakNote, UniLeakFolder } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { getActiveProjects } from "@/lib/projects";
-import { getProjectNotes, getProjectFolders, saveFolder, deleteFolder, deleteNote, saveNote } from "@/lib/unileaks";
+import { getProjectNotes, getProjectFolders, saveFolder, deleteFolder, deleteNote, saveNote, getNoteById } from "@/lib/unileaks";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
@@ -15,6 +15,7 @@ import { useToast } from "@/context/ToastContext";
 function UniLeaksContent() {
     const searchParams = useSearchParams();
     const queryProjectId = searchParams.get("projectId");
+    const queryNoteId = searchParams.get("noteId");
     const { user, tenantId, userRole, userProfile } = useAuth();
     const { can } = usePermissions();
     const { showToast } = useToast();
@@ -99,6 +100,31 @@ function UniLeaksContent() {
         };
         loadData();
     }, [activeProjectId, user, tenantId]);
+
+    // Handle initialNoteId for deep linking
+    useEffect(() => {
+        if (!user || !tenantId || !queryNoteId) return;
+
+        const handleDeepLink = async () => {
+            try {
+                const note = await getNoteById(queryNoteId);
+                if (note) {
+                    // Si ya está cargada en el proyecto activo, simplemente seleccionarla
+                    if (note.projectId === activeProjectId) {
+                        setActiveNote(note);
+                    } else {
+                        // Cambiar al proyecto de la nota
+                        setActiveProjectId(note.projectId);
+                        setActiveNote(note);
+                    }
+                }
+            } catch (error) {
+                console.error("Error handling deep link", error);
+            }
+        };
+
+        handleDeepLink();
+    }, [user, tenantId, queryNoteId, activeProjectId]);
 
     const handleNoteSelect = (note: UniLeakNote) => {
         setActiveNote(note);
@@ -318,26 +344,28 @@ function UniLeaksContent() {
     }
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground selection:bg-primary/30 selection:text-primary">
-            <UniLeaksSidebar
-                projects={projects}
-                activeProjectId={activeProjectId}
-                onProjectChange={setActiveProjectId}
-                notes={notes}
-                folders={folders}
-                activeNoteId={activeNote?.id || null}
-                onNoteSelect={handleNoteSelect}
-                onNewNote={(folderId) => handleNewNote(folderId)}
-                onUpdateNote={handleUpdateNote}
-                onDuplicateNote={handleDuplicateNote}
-                onDeleteNote={executeNoteDelete}
-                onCreateFolder={handleCreateFolder}
-                onUpdateFolder={handleUpdateFolder}
-                onDeleteFolder={handleDeleteFolder}
-                onMoveNote={handleMoveNote}
-                onMoveFolder={handleMoveFolder}
-                loading={loadingNotes}
-            />
+        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground selection:bg-primary/30 selection:text-primary print:h-auto print:overflow-visible">
+            <div className="print:hidden h-full">
+                <UniLeaksSidebar
+                    projects={projects}
+                    activeProjectId={activeProjectId}
+                    onProjectChange={setActiveProjectId}
+                    notes={notes}
+                    folders={folders}
+                    activeNoteId={activeNote?.id || null}
+                    onNoteSelect={handleNoteSelect}
+                    onNewNote={(folderId) => handleNewNote(folderId)}
+                    onUpdateNote={handleUpdateNote}
+                    onDuplicateNote={handleDuplicateNote}
+                    onDeleteNote={executeNoteDelete}
+                    onCreateFolder={handleCreateFolder}
+                    onUpdateFolder={handleUpdateFolder}
+                    onDeleteFolder={handleDeleteFolder}
+                    onMoveNote={handleMoveNote}
+                    onMoveFolder={handleMoveFolder}
+                    loading={loadingNotes}
+                />
+            </div>
             <div className="flex-1 overflow-y-auto">
                 {activeNote ? (
                     <UniLeaksEditor

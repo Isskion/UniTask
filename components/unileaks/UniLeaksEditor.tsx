@@ -15,7 +15,7 @@ import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon, Share2 } from "lucide-react";
+import { Check, Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon, Share2, Download, FileText, FileCode, FileType } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -44,6 +44,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [isSaving, setIsSaving] = useState(false);
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number }>({ visible: false, x: 0, y: 0 });
+    const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
     const currentNoteIdRef = useRef<string | null>(null);
     const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -141,17 +142,85 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         }
     };
 
-    // Close context menu on external click
+    // Close menus on external click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
                 setContextMenu({ visible: false, x: 0, y: 0 });
             }
+            if (showDownloadMenu) setShowDownloadMenu(false);
         };
-        // Using mousedown is strictly better for click-outside detection to avoid drag-outs
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [showDownloadMenu]);
+
+    // --- EXPORT LOGIC ---
+    const handleExportPDF = () => {
+        window.print();
+    };
+
+    const handleExportMarkdown = () => {
+        if (!editor) return;
+
+        // Simple HTML to Markdown conversion logic
+        let md = `# ${title}\n\n`;
+        const html = editor.getHTML();
+
+        // Very basic conversion (replace tags with MD equivalents)
+        const contentMd = html
+            .replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n')
+            .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n')
+            .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n')
+            .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
+            .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
+            .replace(/<em>(.*?)<\/em>/gi, '*$1*')
+            .replace(/<ul>(.*?)<\/ul>/gi, '$1\n')
+            .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
+            .replace(/<blockquote>(.*?)<\/blockquote>/gi, '> $1\n\n')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, ''); // Strip remaining tags
+
+        md += contentMd;
+
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title || 'nota'}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleExportHTML = () => {
+        if (!editor) return;
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>${title}</title>
+                <style>
+                    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; padding: 2rem; max-width: 800px; margin: auto; }
+                    h1 { font-size: 2.5rem; margin-bottom: 2rem; }
+                    img { max-width: 100%; border-radius: 8px; }
+                    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                </style>
+            </head>
+            <body>
+                <h1>${title}</h1>
+                ${editor.getHTML()}
+            </body>
+            </html>
+        `;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title || 'nota'}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     // --- AUTO-SAVE LOGIC ---
     useEffect(() => {
@@ -251,7 +320,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     </label>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 print:hidden">
                     {/* Auto-save Status Indicator */}
                     <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
                         {autoSaveStatus === 'saving' ? (
@@ -274,6 +343,37 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     </div>
 
                     <div className="flex items-center gap-1 border-l border-border pl-4">
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                                className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                title="Exportar / Descargar"
+                            >
+                                <Download className="w-5 h-5" />
+                            </button>
+                            {showDownloadMenu && (
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                    <button
+                                        onClick={() => { handleExportPDF(); setShowDownloadMenu(false); }}
+                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
+                                    >
+                                        <FileText className="w-4 h-4 text-red-500" /> PDF (Imprimir)
+                                    </button>
+                                    <button
+                                        onClick={() => { handleExportMarkdown(); setShowDownloadMenu(false); }}
+                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
+                                    >
+                                        <FileCode className="w-4 h-4 text-primary" /> Markdown (.md)
+                                    </button>
+                                    <button
+                                        onClick={() => { handleExportHTML(); setShowDownloadMenu(false); }}
+                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
+                                    >
+                                        <FileType className="w-4 h-4 text-amber-500" /> HTML (.html)
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         {note.id && (
                             <button
                                 onClick={handleDelete}
@@ -319,7 +419,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             </div>
 
             {/* Editor Area */}
-            <div className="flex-1 flex flex-col p-10 pb-20">
+            <div className="flex-1 flex flex-col p-10 pb-20 print:p-0">
                 <input
                     type="text"
                     value={title}
@@ -328,12 +428,12 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                         setAutoSaveStatus('dirty');
                     }}
                     placeholder="Título de la nota..."
-                    className="w-full text-5xl font-extrabold bg-transparent border-none outline-none mb-8 text-foreground placeholder-muted-foreground placeholder-opacity-50"
+                    className="w-full text-5xl font-extrabold bg-transparent border-none outline-none mb-8 text-foreground placeholder-muted-foreground placeholder-opacity-50 print:text-4xl print:mb-4"
                 />
 
                 <div className="flex-1 w-full relative">
                     {editor && (
-                        <BubbleMenu editor={editor} className="flex bg-card rounded-lg shadow-xl overflow-hidden border border-border">
+                        <BubbleMenu editor={editor} className="flex bg-card rounded-lg shadow-xl overflow-hidden border border-border print:hidden">
                             <button
                                 onClick={() => editor.chain().focus().toggleBold().run()}
                                 className={cn("px-3 py-1.5 text-sm font-bold hover:bg-muted transition-colors", editor.isActive('bold') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
