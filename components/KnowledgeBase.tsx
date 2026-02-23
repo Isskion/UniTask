@@ -5,8 +5,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
 import {
     Search, Plus, Trash2, Copy, Check, Clock, User, Tag,
-    FolderGit2, Lightbulb, BookMarked, ChevronRight, X
+    FolderGit2, Lightbulb, BookMarked, ChevronRight, X, Link as LinkIcon, Share2
 } from 'lucide-react';
+import { getShareUrl, copyToClipboard } from '@/lib/share';
 import { AttachmentManager } from './AttachmentManager';
 import RichTextEditor from './RichTextEditor';
 import {
@@ -23,11 +24,12 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { safeParseDate } from "@/lib/date-utils";
 
-interface KnowledgeBaseProps {
-    type: 'lesson_learned' | 'solution_record';
+export interface KnowledgeBaseProps {
+    type: 'lesson_learned' | 'solution_record' | 'product_proposal' | 'manual';
+    initialId?: string | null;
 }
 
-export function KnowledgeBase({ type }: KnowledgeBaseProps) {
+export function KnowledgeBase({ type, initialId }: KnowledgeBaseProps) {
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { t } = useLanguage();
@@ -63,6 +65,23 @@ export function KnowledgeBase({ type }: KnowledgeBaseProps) {
         loadEntries();
         loadProjects();
     }, [tenantId, type]);
+
+    // Handle initialId for deep linking
+    useEffect(() => {
+        if (initialId && entries.length > 0) {
+            const entry = entries.find(e => e.id === initialId);
+            if (entry) {
+                setSelectedEntry(entry);
+                setFormData({
+                    title: entry.title,
+                    content: entry.content,
+                    projectId: entry.projectId || "",
+                    tags: entry.tags || [],
+                    attachments: entry.attachments || []
+                });
+            }
+        }
+    }, [initialId, entries]);
 
     const loadEntries = async () => {
         if (!tenantId) return;

@@ -2235,9 +2235,9 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'app-management' ? (
                             <AppManagement />
                         ) : viewMode === 'lessons-learned' ? (
-                            <KnowledgeBase type="lesson_learned" initialId={searchParams.get('kbId')} />
+                            <KnowledgeBase type="lesson_learned" initialId={searchParams.get('kbId') as any} />
                         ) : viewMode === 'solution-records' ? (
-                            <KnowledgeBase type="solution_record" initialId={searchParams.get('kbId')} />
+                            <KnowledgeBase type="solution_record" initialId={searchParams.get('kbId') as any} />
                         ) : viewMode === 'product-proposals' ? (
                             <ProductProposals initialId={searchParams.get('proposalId')} />
                         ) : viewMode === 'dispoplan' ? (
