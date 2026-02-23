@@ -2200,7 +2200,7 @@ export default function DailyFollowUp() {
                                 permissionLoading={profileLoading}
                             />
                         ) : viewMode === 'task-manager' ? (
-                            <TaskManagement initialTaskId={pendingTaskId || searchParams.get('taskId')} />
+                            <TaskManagement initialTaskId={(pendingTaskId || searchParams.get('taskId')) as any} />
                         ) : viewMode === 'users' ? (
                             <UserManagement />
                         ) : viewMode === 'user-roles' ? (
@@ -2239,7 +2239,7 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'solution-records' ? (
                             <KnowledgeBase type="solution_record" initialId={searchParams.get('kbId') as any} />
                         ) : viewMode === 'product-proposals' ? (
-                            <ProductProposals initialId={searchParams.get('proposalId')} />
+                            <ProductProposals initialId={searchParams.get('proposalId') as any} />
                         ) : viewMode === 'dispoplan' ? (
                             <AvailabilityManager />
                         ) : viewMode === 'availability-registry' ? (

@@ -5,8 +5,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { cn } from "@/lib/utils";
 import {
     Search, Plus, Trash2, Copy, Check, Clock, User, Tag,
-    FolderGit2, Lightbulb, BookMarked, ChevronRight, X, Calendar, Download
+    FolderGit2, Lightbulb, BookMarked, ChevronRight, X, Calendar, Download, Share2
 } from 'lucide-react';
+import { getShareUrl, copyToClipboard } from '@/lib/share';
 import { AttachmentManager } from './AttachmentManager';
 import RichTextEditor from './RichTextEditor';
 import {
@@ -23,7 +24,11 @@ import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-f
 import { es } from 'date-fns/locale';
 import { safeParseDate } from "@/lib/date-utils";
 
-export function ProductProposals() {
+export interface ProductProposalsProps {
+    initialId?: string | null;
+}
+
+export function ProductProposals({ initialId }: ProductProposalsProps) {
     const { theme } = useTheme();
     const isLight = theme === 'light';
     const { t } = useLanguage();
@@ -60,6 +65,22 @@ export function ProductProposals() {
         if (!tenantId) return;
         loadEntries();
     }, [tenantId]);
+
+    // Handle initialId for deep linking
+    useEffect(() => {
+        if (initialId && entries.length > 0) {
+            const entry = entries.find(e => e.id === initialId);
+            if (entry) {
+                setSelectedEntry(entry);
+                setFormData({
+                    title: entry.title,
+                    content: entry.content,
+                    tags: entry.tags || [],
+                    attachments: entry.attachments || []
+                });
+            }
+        }
+    }, [initialId, entries]);
 
     const loadEntries = async () => {
         if (!tenantId) return;
@@ -345,6 +366,26 @@ export function ProductProposals() {
                     isLight ? "border-zinc-200" : "border-white/5"
                 )}>
                     <div className="flex items-center gap-2">
+                        {/* Top Bar Actions */}
+                        {selectedEntry && !isNew && (
+                            <button
+                                onClick={async () => {
+                                    const url = getShareUrl('proposals', selectedEntry.id);
+                                    const success = await copyToClipboard(url);
+                                    if (success) showToast("UniTask", t('common.link_copied'), "success");
+                                }}
+                                className={cn(
+                                    "p-2 rounded-lg transition-all border flex items-center gap-2 text-xs font-bold mr-2",
+                                    isLight
+                                        ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-indigo-600"
+                                        : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
+                                )}
+                                title={t('common.share')}
+                            >
+                                <Share2 className="w-4 h-4" />
+                                <span className="hidden sm:inline">Compartir</span>
+                            </button>
+                        )}
                         <Lightbulb className={cn("w-5 h-5 text-yellow-500")} />
                         <h2 className={cn("font-bold", isLight ? "text-zinc-900" : "text-white")}>
                             {t('knowledge_base.product_proposals') || "Propuestas de Producto"}
