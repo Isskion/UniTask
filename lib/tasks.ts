@@ -46,8 +46,10 @@ export async function createTask(
             taskNumber: taskNumber || null,
             createdBy: userId,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             isActive: true,
-            status: taskData.status || 'pending'
+            status: taskData.status || 'pending',
+            creationSource: taskData.creationSource || 'manual_main'
         });
         return docRef.id;
     } catch (error) {

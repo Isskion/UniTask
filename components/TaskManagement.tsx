@@ -8,7 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTheme } from "@/hooks/useTheme";
-import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer } from "lucide-react";
+import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer, Share2, Fingerprint } from "lucide-react";
+import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { Task, Project, UserProfile, AttributeDefinition, MasterDataItem, getRoleLevel, RoleLevel } from "@/types";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfToday, getDay, isValid } from "date-fns";
@@ -29,6 +30,8 @@ import { recalculateAncestors } from "@/lib/hierarchy-governance";
 import { HierarchyTree } from "./HierarchyTree";
 import { ProjectMindMapModal } from "./ProjectMindMapModal";
 import { Network } from "lucide-react";
+
+import { createTask } from "@/lib/tasks";
 
 // Local MasterDataItem definition removed in favor of types.ts
 
@@ -636,16 +639,13 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     ? parseFloat((formData.actualEffort as any).replace(',', '.'))
                     : formData.actualEffort;
 
-                const docRef = await addDoc(collection(db, "tasks"), {
+                const docRef = await createTask({
                     ...formData,
-                    actualEffort: finalActualEffort || null,
+                    actualEffort: finalActualEffort ?? undefined,
                     ancestorIds: calculatedAncestors,
-                    friendlyId: null, // Let backend write this
                     tenantId: tenantId || "1",
-                    createdBy: user?.uid || "unknown",
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
-                });
+                    creationSource: 'manual_main'
+                } as any, user?.uid || "unknown", addDoc, visibleProjects.find(p => p.id === formData.projectId)?.name);
 
                 // Optimistic UI for local state
                 const createdTask = { id: docRef.id, friendlyId: "Generando ID...", ...formData, ancestorIds: calculatedAncestors } as Task;
@@ -1236,10 +1236,22 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                                             <button
                                                 onClick={() => setShowAuditLog(true)}
-                                                className={cn("p-1.5 rounded transition-all mr-2", isLight ? "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5")}
+                                                className={cn("p-1.5 rounded transition-all mr-1", isLight ? "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5")}
                                                 title="Ver Bitácora de Cambios"
                                             >
                                                 <History className="w-4 h-4" />
+                                            </button>
+
+                                            <button
+                                                onClick={async () => {
+                                                    const url = getShareUrl('tasks', selectedTask.id);
+                                                    const success = await copyToClipboard(url);
+                                                    if (success) showToast("UniTask", t('common.link_copied'), "success");
+                                                }}
+                                                className={cn("p-1.5 rounded transition-all mr-2", isLight ? "text-zinc-400 hover:text-indigo-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-indigo-400 hover:bg-white/5")}
+                                                title="Copiar enlace de la tarea"
+                                            >
+                                                <Share2 className="w-4 h-4" />
                                             </button>
                                             <span className={cn("text-[10px] font-bold uppercase", isLight ? "text-zinc-500" : "text-zinc-400")}>Estado</span>
                                             <button onClick={() => setIsStatusOpen(!isStatusOpen)} className={cn("px-3 py-1 rounded text-xs font-bold border transition-all flex items-center gap-1.5", getStatusColor(formData.status))}>
@@ -1964,6 +1976,50 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Trazabilidad [V13.5.5] */}
+                                    {!isNew && (
+                                        <div className={cn("border rounded-xl p-5 shadow-lg relative overflow-hidden", isLight ? "bg-zinc-50 border-zinc-200" : "bg-card border-white/10")}>
+                                            <div className="absolute top-0 right-0 p-3 opacity-10">
+                                                <Fingerprint className="w-12 h-12" />
+                                            </div>
+                                            <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2", isLight ? "text-zinc-600" : "text-zinc-400")}>
+                                                <Fingerprint className="w-3.5 h-3.5" />
+                                                {t('traceability.title')}
+                                            </h3>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-[11px]">
+                                                    <span className="text-zinc-500">{t('traceability.created_by')}</span>
+                                                    <span className={cn("font-bold flex items-center gap-1.5", isLight ? "text-zinc-900" : "text-zinc-200")}>
+                                                        <div className="w-4 h-4 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[8px]">
+                                                            {users.find(u => u.uid === formData.createdBy)?.displayName?.substring(0, 1) || "?"}
+                                                        </div>
+                                                        {users.find(u => u.uid === formData.createdBy)?.displayName || "Sistema / IA"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[11px]">
+                                                    <span className="text-zinc-500">{t('traceability.created_at')}</span>
+                                                    <span className={cn("font-mono", isLight ? "text-zinc-900" : "text-white")}>
+                                                        {(() => {
+                                                            const d = safeParseDate(formData.createdAt);
+                                                            return d ? format(d, 'dd MMM yyyy HH:mm', { locale: es }) : '-';
+                                                        })()}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[11px]">
+                                                    <span className="text-zinc-500">{t('traceability.source')}</span>
+                                                    <span className={cn(
+                                                        "px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-tighter",
+                                                        formData.creationSource?.startsWith('ai_')
+                                                            ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                                                            : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                                                    )}>
+                                                        {t(`traceability.sources.${formData.creationSource || 'manual_main'}`)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Actions (Existente) */}
                                     <div className="pt-2 border-t border-white/5 flex flex-col gap-3">

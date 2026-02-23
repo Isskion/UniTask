@@ -18,7 +18,7 @@ import ManualViewer from "./ManualViewer"; // Ensure ManualViewer is imported on
 import { KnowledgeBase } from "./KnowledgeBase";
 import { ProductProposals } from "./ProductProposals";
 import { AttachmentManager } from "./AttachmentManager"; // Added import
-import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
+import { WeeklyEntry, ProjectEntry, RoleLevel, getRoleLevel, Project, TaskCreationSource } from "@/types"; // [FIX] Added RoleLevel, getRoleLevel, Project
 import { formatDateId, getWeekNumber, getYearNumber, cn } from "@/lib/utils";
 import { startOfWeek, addWeeks, subWeeks, isSameDay, parseISO, format, startOfISOWeekYear, getISOWeekYear, addDays } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -630,7 +630,8 @@ export default function WeeklyEditor() {
                         status: 'pending',
                         isActive: true, // explicit for types
                         createdBy: user.uid,
-                        assignedTo: user.uid // Auto-assign to creator for now
+                        assignedTo: user.uid, // Auto-assign to creator for now
+                        creationSource: 'ai_weekly'
                     }, user.uid, addDoc, currentProjectName);
                 }
                 showToast("UniTask", `✅ ${allItems.length} Tasks created in the database.`, "success");

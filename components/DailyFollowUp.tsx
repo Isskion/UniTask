@@ -8,7 +8,7 @@ import ProjectActivityFeed from "./ProjectActivityFeed";
 import TaskManagement from "./TaskManagement";
 import TaskDashboard from "./TaskDashboard";
 import { AppLayout } from "./AppLayout";
-import { Project, DailyStatus, Task, ContentBlock } from "@/types";
+import { Project, DailyStatus, Task, ContentBlock, TaskCreationSource } from "@/types";
 import { NotificationBell } from "./NotificationBell"; // Re-applied Import Fix
 import { cn } from "@/lib/utils";
 import { startOfWeek, isSameDay, format, subDays, addDays, getISOWeek, getYear } from "date-fns";
@@ -161,7 +161,7 @@ export default function DailyFollowUp() {
             if (savedDate) setCurrentDate(new Date(savedDate));
 
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
-            const urlMode = searchParams.get('mode') as ViewMode;
+            const urlMode = (searchParams.get('mode') || searchParams.get('view')) as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
             const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'uniflux'];
 
@@ -722,7 +722,7 @@ export default function DailyFollowUp() {
         }
     };
 
-    const handleAcceptSuggestion = async (taskDesc: string, isBlocked: boolean = false) => {
+    const handleAcceptSuggestion = async (taskDesc: string, isBlocked: boolean = false, source: TaskCreationSource = 'ai_daily') => {
         if (!user?.uid) return;
         try {
             // Determine Project ID and Name
@@ -753,7 +753,8 @@ export default function DailyFollowUp() {
                 isBlocking: isBlocked,
                 isActive: true,
                 createdBy: user.uid,
-                assignedTo: user.uid
+                assignedTo: user.uid,
+                creationSource: source
             };
             console.log("[DailyFollowUp] Creating Task Payload:", taskData);
 
@@ -817,7 +818,7 @@ export default function DailyFollowUp() {
             if (!confirmCreate) return;
         }
 
-        await handleAcceptSuggestion(newTaskText, isBlocked); // Reuse logic
+        await handleAcceptSuggestion(newTaskText, isBlocked, 'manual_daily'); // Reuse logic
         setNewTaskText("");
     };
 
@@ -2234,11 +2235,11 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'app-management' ? (
                             <AppManagement />
                         ) : viewMode === 'lessons-learned' ? (
-                            <KnowledgeBase type="lesson_learned" />
+                            <KnowledgeBase type="lesson_learned" initialId={searchParams.get('kbId')} />
                         ) : viewMode === 'solution-records' ? (
-                            <KnowledgeBase type="solution_record" />
+                            <KnowledgeBase type="solution_record" initialId={searchParams.get('kbId')} />
                         ) : viewMode === 'product-proposals' ? (
-                            <ProductProposals />
+                            <ProductProposals initialId={searchParams.get('proposalId')} />
                         ) : viewMode === 'dispoplan' ? (
                             <AvailabilityManager />
                         ) : viewMode === 'availability-registry' ? (

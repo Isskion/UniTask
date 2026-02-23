@@ -549,6 +549,20 @@ export const en = {
         settings_title: "Profile Settings",
         display_name: "Display Name",
         change_photo: "Change Profile Photo"
+    },
+    traceability: {
+        title: "Traceability",
+        created_by: "Created by",
+        created_at: "Creation date",
+        source: "Source",
+        sources: {
+            manual_main: "Manual (Manager)",
+            manual_daily: "Manual (Daily Log)",
+            ai_daily: "AI (Daily Suggestion)",
+            ai_weekly: "AI (Weekly Summary)",
+            import: "Bulk Import",
+            system: "System Automation"
+        }
     }
 };
 

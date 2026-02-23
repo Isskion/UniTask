@@ -551,5 +551,19 @@ export const fr: Dictionary = {
         settings_title: "Paramètres du profil",
         display_name: "Nom d'affichage",
         change_photo: "Changer la photo de profil"
+    },
+    traceability: {
+        title: "Traçabilité",
+        created_by: "Créé par",
+        created_at: "Date de création",
+        source: "Origine",
+        sources: {
+            manual_main: "Manuel (Gestionnaire)",
+            manual_daily: "Manuel (Journal quotidien)",
+            ai_daily: "IA (Suggestion quotidienne)",
+            ai_weekly: "IA (Résumé hebdomadaire)",
+            import: "Importation en masse",
+            system: "Automatisation du système"
+        }
     }
 };

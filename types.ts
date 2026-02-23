@@ -263,6 +263,8 @@ export interface Sprint {
     updatedAt?: any;
 }
 
+export type TaskCreationSource = 'manual_main' | 'manual_daily' | 'ai_daily' | 'ai_weekly' | 'import' | 'system';
+
 // [V3] Task Types
 export type TaskType = 'root_epic' | 'epic' | 'task' | 'subtask' | 'milestone';
 
@@ -366,6 +368,7 @@ export interface Task {
     dependencies?: string[]; // IDs of blocking tasks
     customIdFields?: Record<string, string>; // Deprecated: Migration to attributes pending
 
+    creationSource?: TaskCreationSource;
     isActive: boolean;
     createdBy: string;
     createdAt: any;

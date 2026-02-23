@@ -551,5 +551,19 @@ export const ca: Dictionary = {
         settings_title: "Configuració del Perfil",
         display_name: "Nom a mostrar",
         change_photo: "Canviar Foto de Perfil"
+    },
+    traceability: {
+        title: "Traçabilitat",
+        created_by: "Creat per",
+        created_at: "Data de creació",
+        source: "Origen",
+        sources: {
+            manual_main: "Manual (Gestor)",
+            manual_daily: "Manual (Seguiment Diari)",
+            ai_daily: "IA (Seguiment Diari)",
+            ai_weekly: "IA (Editor Setmanal)",
+            import: "Importació Massiva",
+            system: "Automatització del Sistema"
+        }
     }
 };

@@ -1,6 +1,33 @@
-export const APP_VERSION = "13.5.3";
+export const APP_VERSION = "13.5.6";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.6",
+        date: "2026-02-23",
+        features: [
+            "Módulo de Trazabilidad: Nueva sección en el Gestor de Tareas que muestra quién creó la tarea, cuándo y desde qué origen (Manual, IA Seguimiento, IA Semanal, etc.)",
+            "Internacionalización: Soporte completo de trazabilidad en 6 idiomas (ES, EN, CA, DE, FR, PT)",
+            "Auditoría de Origen: Registro automático del 'creationSource' en todos los flujos de creación de tareas"
+        ]
+    },
+    {
+        version: "13.5.5",
+        title: "Trazabilidad de Creación",
+        date: "2026-02-23",
+        features: [
+            "**Origen de Tarea**: Cada tarea ahora registra si fue creada manualmente, vía IA en seguimiento diario o IA en editor semanal.",
+            "**Seguridad de Auditoría**: Estandarización de metadatos de usuario y fecha de creación en todos los módulos."
+        ]
+    },
+    {
+        version: "13.5.4",
+        title: "Compartir y Deep Linking",
+        date: "2026-02-23",
+        features: [
+            "**Compartir**: Nuevo botón para copiar enlaces directos a tareas, propuestas, Unileaks y base de conocimiento.",
+            "**Deep Linking**: Los enlaces ahora abren automáticamente el ítem específico al ser accedidos."
+        ]
+    },
     {
         version: "13.5.3",
         title: "Knowledge Base: Theme Fix",
