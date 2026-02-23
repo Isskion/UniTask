@@ -232,96 +232,89 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         <div className="flex flex-col h-full max-w-5xl mx-auto">
             {/* Header Toolbar */}
             <div className="flex items-center justify-between py-6 px-10 border-b border-border bg-background sticky top-0 z-10">
-                <label className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm font-medium",
-                    isPublic ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground hover:text-foreground"
-                )}>
-                    <input
-                        type="checkbox"
-                        checked={isPublic}
-                        onChange={(e) => {
-                            setIsPublic(e.target.checked);
-                            setAutoSaveStatus('dirty');
-                        }}
-                        className="hidden"
-                    />
-                    {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                    {isPublic ? "Visible para todo el proyecto" : "Nota Privada"}
-                </label>
-            </div>
-
-            <div className="flex items-center gap-4">
-                {/* Auto-save Status Indicator */}
-                <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                    {autoSaveStatus === 'saving' ? (
-                        <span className="text-amber-500 flex items-center gap-1">
-                            <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
-                        </span>
-                    ) : autoSaveStatus === 'saved' ? (
-                        <span className="text-emerald-500 flex items-center gap-1">
-                            <Check className="w-3 h-3" /> Cambios guardados
-                        </span>
-                    ) : autoSaveStatus === 'dirty' ? (
-                        <span className="text-muted-foreground opacity-50 italic">
-                            Editando...
-                        </span>
-                    ) : autoSaveStatus === 'error' ? (
-                        <span className="text-red-500">
-                            Error al guardar
-                        </span>
-                    ) : null}
+                <div className="flex items-center gap-4">
+                    <label className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm font-medium",
+                        isPublic ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground hover:text-foreground"
+                    )}>
+                        <input
+                            type="checkbox"
+                            checked={isPublic}
+                            onChange={(e) => {
+                                setIsPublic(e.target.checked);
+                                setAutoSaveStatus('dirty');
+                            }}
+                            className="hidden"
+                        />
+                        {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                        {isPublic ? "Visible para todo el proyecto" : "Nota Privada"}
+                    </label>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {note.id && (
-                        <button
-                            onClick={handleDelete}
-                            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                            title="Eliminar Nota"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
-                    )}
-                    <input
-                        type="file"
-                        id="unileaks-image-upload"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file);
-                        }}
-                    />
-                    <label
-                        htmlFor="unileaks-image-upload"
-                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
-                        title="Insertar Imagen"
-                    >
-                        {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
-                    </label>
+                <div className="flex items-center gap-6">
+                    {/* Auto-save Status Indicator */}
+                    <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                        {autoSaveStatus === 'saving' ? (
+                            <span className="text-amber-500 flex items-center gap-1">
+                                <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
+                            </span>
+                        ) : autoSaveStatus === 'saved' ? (
+                            <span className="text-emerald-500 flex items-center gap-1">
+                                <Check className="w-3 h-3" /> Cambios guardados
+                            </span>
+                        ) : autoSaveStatus === 'dirty' ? (
+                            <span className="text-muted-foreground opacity-50 italic">
+                                Editando...
+                            </span>
+                        ) : autoSaveStatus === 'error' ? (
+                            <span className="text-red-500">
+                                Error al guardar
+                            </span>
+                        ) : null}
+                    </div>
 
-                    {note.id && (
-                        <button
-                            onClick={async () => {
-                                const url = getShareUrl('unileaks', note.id);
-                                const success = await copyToClipboard(url);
-                                if (success) showToast("UniTask", t('common.link_copied'), "success");
+                    <div className="flex items-center gap-1 border-l border-border pl-4">
+                        {note.id && (
+                            <button
+                                onClick={handleDelete}
+                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                title="Eliminar Nota"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
+                        )}
+                        <input
+                            type="file"
+                            id="unileaks-image-upload"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleImageUpload(file);
                             }}
-                            className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-500/10 rounded-lg transition-colors"
-                            title="Compartir Nota"
+                        />
+                        <label
+                            htmlFor="unileaks-image-upload"
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                            title="Insertar Imagen"
                         >
-                            <Share2 className="w-5 h-5" />
-                        </button>
-                    )}
+                            {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                        </label>
 
-                    <button
-                        onClick={() => handleSave(false)}
-                        disabled={isSaving}
-                        className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                        Guardar
-                    </button>
+                        {note.id && (
+                            <button
+                                onClick={async () => {
+                                    const url = getShareUrl('unileaks', note.id);
+                                    const success = await copyToClipboard(url);
+                                    if (success) showToast("UniTask", t('common.link_copied'), "success");
+                                }}
+                                className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                                title="Compartir Nota"
+                            >
+                                <Share2 className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
