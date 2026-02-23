@@ -1,5 +1,5 @@
 import { db } from "@/lib/firebase";
-import { collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { collection, addDoc, updateDoc, doc, query, where, getDocs, getDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { UniLeakNote, UniLeakFolder } from "@/types";
 
 export async function getProjectNotes(tenantId: string, projectId: string, currentUserId: string): Promise<UniLeakNote[]> {
@@ -13,6 +13,13 @@ export async function getProjectNotes(tenantId: string, projectId: string, curre
 
     // Filtrar localmente por permisos de lectura: o es pública, o es del mismo usuario.
     return allNotes.filter(note => note.userId === currentUserId || note.isPublic);
+}
+
+export async function getNoteById(noteId: string): Promise<UniLeakNote | null> {
+    const ref = doc(db, "unileaks_notes", noteId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as UniLeakNote;
 }
 
 export async function saveNote(noteData: Partial<UniLeakNote>): Promise<string> {
