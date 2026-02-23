@@ -13,9 +13,10 @@ import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
+import { addTenantWord, getTenantWords } from "@/lib/dictionary";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon, Share2, Download, FileText, FileCode, FileType } from "lucide-react";
+import { Check, Loader2, Save, Globe, Lock, Trash2, ChevronRight, List, ListOrdered, Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, Type, Quote, Code, ListPlus, Minus, Table as TableIcon, MessageSquareQuote, Highlighter, ImageIcon, Share2, Download, FileText, FileCode, FileType, BookMarked, SpellCheck } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -23,6 +24,7 @@ import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
 
 interface UniLeaksEditorProps {
     note: UniLeakNote;
@@ -35,7 +37,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const { user, tenantId: currentTenantId } = useAuth();
     const { deleteDoc: deleteFirebaseDoc } = useSafeFirestore();
     const { uploadFile, uploading: isUploadingImage } = useFileUploader();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     // Local State for Edit
     const [title, setTitle] = useState(note.title || "");
@@ -45,6 +47,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number }>({ visible: false, x: 0, y: 0 });
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+    const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
 
     const currentNoteIdRef = useRef<string | null>(null);
     const contextMenuRef = useRef<HTMLDivElement>(null);
@@ -74,11 +77,14 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 placeholder: 'Escribe aquí tus ideas, reuniones, tareas... soporta Markdown!',
                 emptyEditorClass: 'is-editor-empty',
             }),
+            TenantDictionary,
         ],
         content: note.content || "",
         editorProps: {
             attributes: {
                 class: 'focus:outline-none min-h-[50vh]',
+                spellcheck: 'true',
+                lang: language,
             },
             handlePaste: (view, event) => {
                 const items = Array.from(event.clipboardData?.items || []);
@@ -292,8 +298,30 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             showToast("Eliminada", "La nota ha sido eliminada.", "success");
             onDeleteSuccess(note.id);
         } catch (error) {
-            console.error("Error deleting note", error);
-            showToast("Error", "No se pudo eliminar la nota", "error");
+            console.error("Error deleting note:", error);
+            showToast("Error", "No se pudo eliminar la nota.", "error");
+        }
+    };
+
+    // Dictionary Actions
+    const handleAddToDictionary = async () => {
+        if (!editor || !currentTenantId || !user) return;
+
+        const { from, to } = editor.state.selection;
+        const selectedText = editor.state.doc.textBetween(from, to, ' ');
+
+        if (!selectedText || selectedText.trim().length < 2) {
+            showToast("Aviso", "Selecciona una palabra válida primero.", "warning");
+            return;
+        }
+
+        try {
+            await addTenantWord(currentTenantId, selectedText.trim(), user.uid);
+            editor.chain().focus().setMark('tenantDictionary', { spellcheck: 'false' }).run();
+            showToast("Diccionario", `"${selectedText.trim()}" añadido y validado.`, "success");
+        } catch (err) {
+            console.error("Error adding word:", err);
+            showToast("Error", "No se pudo añadir al diccionario", "error");
         }
     };
 
@@ -471,6 +499,14 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             >
                                 " Cita
                             </button>
+                            <div className="w-px bg-border mx-1" />
+                            <button
+                                onClick={handleAddToDictionary}
+                                title="Añadir al diccionario del proyecto"
+                                className="px-3 py-1.5 text-sm hover:bg-muted text-emerald-500 transition-colors"
+                            >
+                                <BookMarked className="w-4 h-4" />
+                            </button>
                         </BubbleMenu>
                     )}
                     <div
@@ -584,6 +620,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="border-t border-border my-1 pb-1" />
+
+                            <button
+                                onClick={() => { handleAddToDictionary(); setContextMenu({ visible: false, x: 0, y: 0 }); }}
+                                className="w-full text-left px-4 py-1.5 hover:bg-muted transition-colors flex items-center gap-3 text-emerald-600 font-medium"
+                            >
+                                <SpellCheck className="w-4 h-4" />
+                                Añadir al Diccionario
+                            </button>
 
                             <div className="border-t border-border my-1 pb-1" />
 

@@ -561,3 +561,11 @@ export interface UniLeakNote {
     createdAt: any;
     updatedAt: any;
 }
+
+export interface TenantWord {
+    id: string;
+    word: string;
+    tenantId: string;
+    addedBy: string;
+    createdAt: any;
+}
