@@ -141,20 +141,33 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
     const migrateLegacyData = async () => {
         setLoading(true);
         try {
+            // Check legacy root collection
             const oldColl = collection(db, "interfaces");
             const q = query(oldColl, where("projectId", "==", project.id));
             const snapshot = await getDocs(q);
 
-            if (snapshot.empty) {
+            // Check legacy project subcollection
+            const subColl = collection(db, "projects", project.id, "interfaces");
+            const snapSub = await getDocs(subColl);
+
+            if (snapshot.empty && snapSub.empty) {
                 showToast("Interfaces", "No se encontraron interfaces antiguas", "info");
                 return;
             }
 
             let count = 0;
+            // Migrate from legacy root
             for (const d of snapshot.docs) {
                 const data = d.data();
-                const newRef = doc(db, "projects", project.id, "interfaces", d.id);
-                await setDoc(newRef, { ...data, isActive: true });
+                const newRef = doc(db, "project_interfaces", d.id);
+                await setDoc(newRef, { ...data, projectId: project.id, isActive: true });
+                count++;
+            }
+            // Migrate from project subcollection
+            for (const d of snapSub.docs) {
+                const data = d.data();
+                const newRef = doc(db, "project_interfaces", d.id);
+                await setDoc(newRef, { ...data, projectId: project.id, isActive: true });
                 count++;
             }
 
