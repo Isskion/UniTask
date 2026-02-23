@@ -220,9 +220,10 @@ service cloud.firestore {
         (docTenantMatches(resource.data) && getRealRole() >= 80)
       );
 
-      // [NEW] Project Interfaces Subcollection
+      // [NEW] Project Interfaces Subcollection (Legacy Path - logic moved to root for query support)
       match /interfaces/{interfaceId} {
         allow read: if isAuthenticated();
+        // Allow write only for PMs (60) or SuperAdmins
         allow write: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 60);
       }
     }
@@ -472,6 +473,16 @@ service cloud.firestore {
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
         (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60))
+      );
+    }
+
+    // --- [NEW] UNILEAKS: PROJECT INTERFACES ---
+    match /project_interfaces/{interfaceId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (getRealRole() >= 60))
       );
     }
 
