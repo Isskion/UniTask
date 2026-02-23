@@ -20,6 +20,8 @@ interface UniLeaksSidebarProps {
     onCreateFolder: (name: string, parentId: string | null) => void;
     onUpdateFolder: (folderId: string, name: string) => void;
     onDeleteFolder: (folderId: string) => void;
+    onMoveNote: (noteId: string, folderId: string | null) => void;
+    onMoveFolder: (folderId: string, parentId: string | null) => void;
     loading: boolean;
 }
 
@@ -46,12 +48,15 @@ export default function UniLeaksSidebar({
     onCreateFolder,
     onUpdateFolder,
     onDeleteFolder,
+    onMoveNote,
+    onMoveFolder,
     loading
 }: UniLeaksSidebarProps) {
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, x: 0, y: 0, targetId: null, targetType: 'root' });
     const [isRenaming, setIsRenaming] = useState<string | null>(null);
     const [renameValue, setRenameValue] = useState("");
+    const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
     const renameInputRef = useRef<HTMLInputElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +92,42 @@ export default function UniLeaksSidebar({
             else next.add(folderId);
             return next;
         });
+    };
+
+    // Drag & Drop Handlers
+    const handleDragStart = (e: React.DragEvent, type: 'note' | 'folder', id: string) => {
+        e.dataTransfer.setData("type", type);
+        e.dataTransfer.setData("id", id);
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e: React.DragEvent, folderId: string | null) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOverFolder(folderId);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverFolder(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, targetFolderId: string | null) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOverFolder(null);
+
+        const type = e.dataTransfer.getData("type") as 'note' | 'folder';
+        const id = e.dataTransfer.getData("id");
+
+        if (!id) return;
+
+        if (type === 'note') {
+            onMoveNote(id, targetFolderId);
+        } else if (type === 'folder') {
+            // No permitir mover una carpeta a sí misma
+            if (id === targetFolderId) return;
+            onMoveFolder(id, targetFolderId);
+        }
     };
 
     const handleRenameSubmit = (folderId: string) => {
@@ -126,7 +167,16 @@ export default function UniLeaksSidebar({
 
         if (renderFolders.length === 0 && renderNotes.length === 0 && depth > 0) {
             return (
-                <div className="text-xs text-muted-foreground italic py-1 flex items-center gap-2 relative z-10" style={{ paddingLeft: `${depth * 32 + 12}px` }}>
+                <div
+                    onDragOver={(e) => handleDragOver(e, parentId)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, parentId)}
+                    className={cn(
+                        "text-xs text-muted-foreground italic py-1 flex items-center gap-2 relative z-10 transition-colors",
+                        dragOverFolder === parentId && "bg-primary/20 rounded"
+                    )}
+                    style={{ paddingLeft: `${depth * 32 + 12}px` }}
+                >
                     <div className="w-5 h-5 shrink-0" />
                     <span>Carpeta vacía</span>
                 </div>
@@ -144,12 +194,19 @@ export default function UniLeaksSidebar({
                 {combined.map(item => {
                     if (item.type === 'folder') {
                         const folder = item as UniLeakFolder;
+                        const isDraggingOver = dragOverFolder === folder.id;
                         return (
                             <div key={`folder-${folder.id}`} className="flex flex-col w-full">
                                 <div
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, 'folder', folder.id)}
+                                    onDragOver={(e) => handleDragOver(e, folder.id)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, folder.id)}
                                     className={cn(
                                         "flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-lg cursor-pointer group text-sm transition-colors relative z-10",
-                                        isRenaming === folder.id && "bg-muted"
+                                        isRenaming === folder.id && "bg-muted",
+                                        isDraggingOver && "bg-primary/30 scale-[1.02] shadow-sm ring-2 ring-primary/20"
                                     )}
                                     style={{ paddingLeft: `${depth * 32 + 12}px` }}
                                     onClick={() => toggleFolder(folder.id)}
@@ -224,6 +281,8 @@ export default function UniLeaksSidebar({
                         return (
                             <div
                                 key={`note-${note.id || 'new'}`}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, 'note', note.id)}
                                 onClick={() => onNoteSelect(note)}
                                 onContextMenu={(e) => handleContextMenu(e, 'note', note.id)}
                                 className={cn(
@@ -323,6 +382,9 @@ export default function UniLeaksSidebar({
             {/* Tree Content */}
             <div
                 className="flex-1 overflow-y-auto px-2 pb-6 space-y-1 relative"
+                onDragOver={(e) => handleDragOver(e, null)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, null)}
                 onContextMenu={(e) => {
                     // Si hacen click derecho en el espacio vacío, es raíz
                     if (e.target === e.currentTarget) handleContextMenu(e, 'root', null);
@@ -332,6 +394,10 @@ export default function UniLeaksSidebar({
                     <div className="text-center py-8 text-muted-foreground text-sm">Cargando...</div>
                 ) : (
                     renderTree(null, 0)
+                )}
+                {/* Visual indicator for drop at root */}
+                {dragOverFolder === null && (
+                    <div className="absolute inset-0 pointer-events-none border-2 border-primary/20 bg-primary/5 rounded-lg m-2 opacity-0 animate-in fade-in fill-none" style={{ opacity: dragOverFolder === null ? 1 : 0 }} />
                 )}
             </div>
 
@@ -386,9 +452,25 @@ export default function UniLeaksSidebar({
                             }}>
                                 <Edit2 className="w-4 h-4" /> Renombrar
                             </button>
+                            <button className="w-full text-left px-4 py-2 hover:bg-muted text-popover-foreground flex items-center gap-2" onClick={() => {
+                                const folderId = contextMenu.targetId;
+                                if (!folderId) return;
+                                // Simple list move for now as per user request "acción para mover de sitio"
+                                const otherFolders = folders.filter(f => f.id !== folderId);
+                                const options = ["Raíz", ...otherFolders.map(f => f.name)];
+                                const choice = prompt(`Mover a:\n${options.map((o, i) => `${i}: ${o}`).join('\n')}`);
+                                if (choice !== null) {
+                                    const idx = parseInt(choice);
+                                    if (idx === 0) onMoveFolder(folderId, null);
+                                    else if (idx > 0 && idx < options.length) onMoveFolder(folderId, otherFolders[idx - 1].id);
+                                }
+                                setContextMenu({ ...contextMenu, visible: false });
+                            }}>
+                                <Plus className="w-4 h-4 rotate-45" /> Mover a...
+                            </button>
                             <button className="w-full text-left px-4 py-2 hover:bg-destructive/20 text-destructive flex items-center gap-2" onClick={() => {
                                 if (contextMenu.targetId) {
-                                    if (confirm("¿Eliminar carpeta? No se podrá recuperar.")) onDeleteFolder(contextMenu.targetId);
+                                    onDeleteFolder(contextMenu.targetId);
                                 }
                                 setContextMenu({ ...contextMenu, visible: false });
                             }}>
@@ -397,7 +479,7 @@ export default function UniLeaksSidebar({
                         </>
                     )}
 
-                    {/* Note level options (Minimal) */}
+                    {/* Note level options */}
                     {contextMenu.targetType === 'note' && (
                         <>
                             <button className="w-full text-left px-4 py-2 hover:bg-muted text-popover-foreground flex items-center gap-2" onClick={() => {
@@ -407,6 +489,20 @@ export default function UniLeaksSidebar({
                                 }
                             }}>
                                 <Edit2 className="w-4 h-4" /> Renombrar
+                            </button>
+                            <button className="w-full text-left px-4 py-2 hover:bg-muted text-popover-foreground flex items-center gap-2" onClick={() => {
+                                const noteId = contextMenu.targetId;
+                                if (!noteId) return;
+                                const options = ["Raíz", ...folders.map(f => f.name)];
+                                const choice = prompt(`Mover a:\n${options.map((o, i) => `${i}: ${o}`).join('\n')}`);
+                                if (choice !== null) {
+                                    const idx = parseInt(choice);
+                                    if (idx === 0) onMoveNote(noteId, null);
+                                    else if (idx > 0 && idx < options.length) onMoveNote(noteId, folders[idx - 1].id);
+                                }
+                                setContextMenu({ ...contextMenu, visible: false });
+                            }}>
+                                <Plus className="w-4 h-4 rotate-45" /> Mover a...
                             </button>
                             <button className="w-full text-left px-4 py-2 hover:bg-muted text-popover-foreground flex items-center gap-2" onClick={() => {
                                 const noteToDup = notes.find(n => n.id === contextMenu.targetId);

@@ -235,12 +235,66 @@ function UniLeaksContent() {
         }
     };
 
+    const handleMoveNote = async (noteId: string, folderId: string | null) => {
+        try {
+            await saveNote({ id: noteId, folderId });
+            setNotes(prev => prev.map(n => n.id === noteId ? { ...n, folderId } : n));
+            showToast("Nota Movida", "La nota se ha movido correctamente", "success");
+        } catch (error) {
+            console.error("Error moving note", error);
+            showToast("Error", "No se pudo mover la nota", "error");
+        }
+    };
+
+    const handleMoveFolder = async (folderId: string, parentId: string | null) => {
+        // Evitar mover una carpeta dentro de sí misma o de sus hijos
+        if (folderId === parentId) return;
+
+        try {
+            await saveFolder({ id: folderId, parentId });
+            setFolders(prev => prev.map(f => f.id === folderId ? { ...f, parentId } : f));
+            showToast("Carpeta Movida", "La carpeta se ha movido correctamente", "success");
+        } catch (error) {
+            console.error("Error moving folder", error);
+            showToast("Error", "No se pudo mover la carpeta", "error");
+        }
+    };
+
     const handleDeleteFolder = async (folderId: string) => {
-        // Verificación básica: no permitir borrar si la carpeta tiene subcarpetas o notas.
+        const folder = folders.find(f => f.id === folderId);
+        if (!folder) return;
+
         const hasNotes = notes.some(n => n.folderId === folderId);
         const hasSubfolders = folders.some(f => f.parentId === folderId);
+
         if (hasNotes || hasSubfolders) {
-            showToast("Error", "La carpeta debe estar vacía para eliminarse", "error");
+            const confirmDelete = confirm("La carpeta no está vacía. ¿Deseas eliminarla junto con TODO su contenido (notas y subcarpetas)? Esta acción no se puede deshacer.");
+            if (!confirmDelete) return;
+
+            // Función recursiva local para obtener todos los IDs de carpetas descendientes
+            const getAllDescendantFolderIds = (id: string): string[] => {
+                const children = folders.filter(f => f.parentId === id);
+                return [id, ...children.flatMap(c => getAllDescendantFolderIds(c.id))];
+            };
+
+            const folderIdsToDelete = getAllDescendantFolderIds(folderId);
+
+            try {
+                // Eliminar todas las notas de todas esas carpetas
+                const notesToDelete = notes.filter(n => n.folderId && folderIdsToDelete.includes(n.folderId));
+                await Promise.all(notesToDelete.map(n => deleteNote(n.id)));
+
+                // Eliminar todas las carpetas
+                await Promise.all(folderIdsToDelete.map(id => deleteFolder(id)));
+
+                setNotes(prev => prev.filter(n => !n.folderId || !folderIdsToDelete.includes(n.folderId)));
+                setFolders(prev => prev.filter(f => !folderIdsToDelete.includes(f.id)));
+
+                showToast("Carpeta y Contenido Eliminados", "Se ha eliminado la carpeta y todo su contenido", "success");
+            } catch (error) {
+                console.error("Error in recursive deletion", error);
+                showToast("Error", "Hubo un error al intentar eliminar el contenido", "error");
+            }
             return;
         }
 
@@ -280,6 +334,8 @@ function UniLeaksContent() {
                 onCreateFolder={handleCreateFolder}
                 onUpdateFolder={handleUpdateFolder}
                 onDeleteFolder={handleDeleteFolder}
+                onMoveNote={handleMoveNote}
+                onMoveFolder={handleMoveFolder}
                 loading={loadingNotes}
             />
             <div className="flex-1 overflow-y-auto">

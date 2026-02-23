@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.5.0";
+export const APP_VERSION = "13.5.1";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.1",
+        title: "UniLeaks: Move & Recursive Delete",
+        date: "2026-02-23",
+        features: [
+            "**Recursive Deletion**: Delete folders even if they have content (with confirmation).",
+            "**Move Records**: Drag & Drop notes and folders between directories.",
+            "**Context Move**: New 'Mover a...' action in the context menu for better accessibility."
+        ]
+    },
     {
         version: "13.5.0",
         title: "UniLeaks MVP & Folders",

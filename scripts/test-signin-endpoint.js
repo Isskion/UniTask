@@ -1,7 +1,7 @@
 
 const https = require('https');
 
-const apiKey = "AIzaSyD_XYb-Ra9LWchmKYza_de4sfBHVm0P8Ow";
+const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "YOUR_API_KEY";
 const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
 
 const data = JSON.stringify({
