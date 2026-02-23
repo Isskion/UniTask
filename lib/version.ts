@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.5.1";
+export const APP_VERSION = "13.5.2";
 
 export const CHANGELOG = [
+    {
+        version: "13.5.2",
+        title: "UniLeaks: Smart Visibility",
+        date: "2026-02-23",
+        features: [
+            "**Smart Folders**: Empty folders are automatically hidden to keep the knowledge base clean.",
+            "**Visibility Rules**: A folder only appears if it contains at least one visible note or a visible subfolder.",
+            "**Renaming Exception**: Folders remain visible while being renamed to allow for easier organization."
+        ]
+    },
     {
         version: "13.5.1",
         title: "UniLeaks: Move & Recursive Delete",

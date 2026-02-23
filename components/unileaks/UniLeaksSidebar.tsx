@@ -160,9 +160,28 @@ export default function UniLeaksSidebar({
         if (e.key === "Escape") setIsRenaming(null);
     };
 
+    // Visibility logic: A folder is visible if it contains visible notes OR visible subfolders
+    // EXCEPT if it's currently being renamed (to allow creating and naming empty folders)
+    const isFolderVisible = (folderId: string): boolean => {
+        if (isRenaming === folderId) return true;
+
+        // Check if there are visible notes in this folder
+        const hasVisibleNotes = notes.some(n => n.folderId === folderId);
+        if (hasVisibleNotes) return true;
+
+        // Recursively check subfolders
+        const subfolders = folders.filter(f => f.parentId === folderId);
+        return subfolders.some(sf => isFolderVisible(sf.id));
+    };
+
     // Recursive rendering
     const renderTree = (parentId: string | null = null, depth: number = 0) => {
-        const renderFolders = folders.filter(f => f.parentId === parentId).sort((a, b) => a.name.localeCompare(b.name));
+        const renderFolders = folders
+            .filter(f => f.parentId === parentId)
+            // Filter by visibility: parent is null (root) or manual check
+            .filter(f => isFolderVisible(f.id))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
         const renderNotes = notes.filter(n => (!n.folderId && parentId === null) || n.folderId === parentId).sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
 
         if (renderFolders.length === 0 && renderNotes.length === 0 && depth > 0) {
