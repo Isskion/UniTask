@@ -1,6 +1,16 @@
-export const APP_VERSION = "13.5.8";
+export const APP_VERSION = "14.0.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.0.0",
+        date: "2026-02-24",
+        features: [
+            "UniLeaks Editor: Corrector ortográfico offline profesional integrado con nspell",
+            "Sugerencias Inteligentes: Recuperación de alternativas de corrección reales desde diccionarios Hunspell",
+            "Multi-idioma Estático: Carga dinámica de diccionarios (ES, EN, CA, DE, FR, PT) optimizada para el navegador",
+            "Integración de Diccionario: Las palabras del tenant se incorporan automáticamente a las sugerencias de nspell"
+        ]
+    },
     {
         version: "13.5.8",
         date: "2026-02-23",

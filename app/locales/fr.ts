@@ -37,7 +37,8 @@ export const fr: Dictionary = {
         ok: "OK",
         error: "Erreur",
         success: "Succès",
-        under_construction: "Module en construction :"
+        under_construction: "Module en construction :",
+        link_copied: "Lien copié dans le presse-papiers",
     },
     nav: {
         workspace: "Espace de travail",

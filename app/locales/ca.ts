@@ -37,7 +37,8 @@ export const ca: Dictionary = {
         ok: "D'acord",
         error: "Error",
         success: "Èxit",
-        under_construction: "Mòdul en construcció:"
+        under_construction: "Mòdul en construcció:",
+        link_copied: "Enllaç copiat al porta-retalls",
     },
     nav: {
         workspace: "Espai de treball",

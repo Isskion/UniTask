@@ -35,7 +35,8 @@ export const en = {
         ok: "OK",
         error: "Error",
         success: "Success",
-        under_construction: "Module under construction:"
+        under_construction: "Module under construction:",
+        link_copied: "Link copied to clipboard",
     },
     nav: {
         workspace: "Workspace",

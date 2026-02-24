@@ -472,12 +472,19 @@ service cloud.firestore {
 
     // --- [NEW] UNILEAKS: PROJECT INTERFACES ---
     match /project_interfaces/{interfaceId} {
-      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getTenantId());
-      allow create: if isAuthenticated() && (isSuperAdmin() || request.resource.data.tenantId == getTenantId());
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getRealTenantId());
+      allow create: if isAuthenticated() && (isSuperAdmin() || request.resource.data.tenantId == getRealTenantId());
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
-        (resource.data.tenantId == getTenantId() && (getRealRole() >= 60))
+        (resource.data.tenantId == getRealTenantId() && (getRealRole() >= 60))
       );
+    }
+
+    // --- [NEW] UNILEAKS: TENANT DICTIONARY ---
+    match /tenant_dictionary/{wordId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
     }
 
     // --- KNOWLEDGE AREA (Lessons Learned & Solution Records) ---
