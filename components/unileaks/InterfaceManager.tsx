@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, FileJson, FileCode, FileText, CheckCircle2, History, Trash2, CloudUpload, Loader2, ExternalLink } from "lucide-react";
+import { Plus, FileJson, FileCode, FileText, CheckCircle2, History, Trash2, CloudUpload, Loader2, ExternalLink, Edit2, X } from "lucide-react";
 import { InterfaceEntry, InterfaceVersion, Project } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -26,11 +26,30 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     const [interfaces, setInterfaces] = useState<InterfaceEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [editingInterface, setEditingInterface] = useState<InterfaceEntry | null>(null);
+
+    // Form States
     const [newName, setNewName] = useState("");
+    const [description, setDescription] = useState("");
+    const [url, setUrl] = useState("");
+    const [clientId, setClientId] = useState("");
+    const [clientSecret, setClientSecret] = useState("");
+
     const [selectedInterface, setSelectedInterface] = useState<InterfaceEntry | null>(null);
     const [isAddingVersion, setIsAddingVersion] = useState(false);
     const [versionName, setVersionName] = useState("");
     const [versionNotes, setVersionNotes] = useState("");
+
+    // Reset Form
+    const resetForm = () => {
+        setNewName("");
+        setDescription("");
+        setUrl("");
+        setClientId("");
+        setClientSecret("");
+        setIsCreating(false);
+        setEditingInterface(null);
+    };
 
     // --- FETCH INTERFACES ---
     useEffect(() => {
@@ -61,27 +80,51 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
         return () => unsubscribe();
     }, [projectId, tenantId]);
 
-    // --- CREATE INTERFACE ---
-    const handleCreateInterface = async () => {
+    // --- CREATE/UPDATE INTERFACE ---
+    const handleSaveInterface = async () => {
         if (!newName.trim() || !user) return;
 
         try {
-            await addDoc(collection(db, "project_interfaces"), {
+            const interfaceData = {
                 name: newName,
-                projectId,
-                tenantId: tenantId || "1",
-                versions: [],
-                isActive: true,
-                createdAt: serverTimestamp(),
+                description: description,
+                url: url,
+                clientId: clientId,
+                clientSecret: clientSecret,
                 updatedAt: serverTimestamp()
-            });
-            setNewName("");
-            setIsCreating(false);
-            showToast("Éxito", "Interfaz creada correctamente", "success");
+            };
+
+            if (editingInterface) {
+                await updateDoc(doc(db, "project_interfaces", editingInterface.id), interfaceData);
+                showToast("Éxito", "Interfaz actualizada correctamente", "success");
+            } else {
+                await addDoc(collection(db, "project_interfaces"), {
+                    ...interfaceData,
+                    projectId,
+                    tenantId: tenantId || "1",
+                    versions: [],
+                    isActive: true,
+                    createdAt: serverTimestamp(),
+                    formatContent: "", // Default if needed
+                    formatType: 'json'  // Default if needed
+                });
+                showToast("Éxito", "Interfaz creada correctamente", "success");
+            }
+            resetForm();
         } catch (error) {
-            console.error("Error creating interface:", error);
-            showToast("Error", "No se pudo crear la interfaz", "error");
+            console.error("Error saving interface:", error);
+            showToast("Error", "No se pudo guardar la interfaz", "error");
         }
+    };
+
+    const handleEditInterface = (intf: InterfaceEntry) => {
+        setEditingInterface(intf);
+        setNewName(intf.name || "");
+        setDescription(intf.description || "");
+        setUrl(intf.url || "");
+        setClientId(intf.clientId || "");
+        setClientSecret(intf.clientSecret || "");
+        setIsCreating(true);
     };
 
     // --- DELETE INTERFACE ---
@@ -190,7 +233,10 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                     <p className="text-sm text-zinc-500">Repositorio de versiones y documentación de interfaces del proyecto.</p>
                 </div>
                 <button
-                    onClick={() => setIsCreating(true)}
+                    onClick={() => {
+                        resetForm();
+                        setIsCreating(true);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors font-medium text-sm"
                 >
                     <Plus className="w-4 h-4" />
@@ -198,27 +244,84 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                 </button>
             </div>
 
-            {/* Create Form Modalish */}
+            {/* Create/Edit Form Modalish */}
             {isCreating && (
-                <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-xl space-y-3">
-                    <h3 className="text-sm font-bold text-zinc-300">Definir Nueva Interfaz</h3>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            placeholder="Nombre de la interfaz (ej. SAP Sync)"
-                            className="flex-1 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm focus:ring-1 ring-primary outline-none"
-                        />
+                <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4 shadow-xl animate-in fade-in zoom-in duration-200">
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-2">
+                        <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">
+                            {editingInterface ? `Editar Interfaz: ${editingInterface.name}` : "Definir Nueva Interfaz"}
+                        </h3>
+                        <button onClick={resetForm} className="text-zinc-500 hover:text-white transition-colors">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Nombre de la Interfaz</label>
+                            <input
+                                type="text"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                placeholder="ej. SAP Sync, Client XML Feed..."
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Descripción / Notas</label>
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Describa brevemente el propósito de esta interfaz..."
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none min-h-[80px] transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">URL / Endpoint (Opcional)</label>
+                            <input
+                                type="text"
+                                value={url}
+                                onChange={(e) => setUrl(e.target.value)}
+                                placeholder="https://api.example.com/v1/sync"
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Client ID / Key</label>
+                            <input
+                                type="text"
+                                value={clientId}
+                                onChange={(e) => setClientId(e.target.value)}
+                                placeholder="ID de autenticación"
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Client Secret / Pass</label>
+                            <input
+                                type="password"
+                                value={clientSecret}
+                                onChange={(e) => setClientSecret(e.target.value)}
+                                placeholder="••••••••••••"
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t border-zinc-800">
                         <button
-                            onClick={handleCreateInterface}
-                            className="px-4 py-2 bg-primary text-black rounded-lg text-sm font-bold"
+                            onClick={handleSaveInterface}
+                            className="flex-1 py-3 bg-primary text-black rounded-xl font-bold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/10"
                         >
-                            Crear
+                            {editingInterface ? "Guardar Cambios" : "Crear Interfaz"}
                         </button>
                         <button
-                            onClick={() => setIsCreating(false)}
-                            className="px-4 py-2 bg-zinc-800 text-zinc-400 rounded-lg text-sm"
+                            onClick={resetForm}
+                            className="px-6 py-3 bg-zinc-800 text-zinc-400 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
                         >
                             Cancelar
                         </button>
@@ -238,37 +341,57 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
             {/* Interface List */}
             <div className="grid gap-4">
                 {interfaces.map((intf) => (
-                    <div key={intf.id} className="bg-zinc-900/30 border border-zinc-800 rounded-2xl overflow-hidden">
+                    <div key={intf.id} className="bg-zinc-900/40 border border-zinc-800 rounded-2xl overflow-hidden group/card hover:border-zinc-700 transition-all shadow-lg">
                         <div className="p-4 flex items-center justify-between border-b border-zinc-800 bg-zinc-900/50">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-zinc-800 rounded-lg">
-                                    <FileCode className="w-5 h-5 text-primary" />
+                                <div className="p-2.5 bg-zinc-800 rounded-xl text-primary group-hover/card:scale-110 transition-transform">
+                                    <FileCode className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white">{intf.name}</h3>
-                                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{intf.versions.length} Versiones</p>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-white text-lg">{intf.name}</h3>
+                                        {intf.url && <span className="text-[8px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-md font-mono uppercase tracking-tighter">API</span>}
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{intf.versions?.length || 0} Versiones</p>
+                                        {intf.clientId && <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Credentialed</p>}
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handleEditInterface(intf)}
+                                    className="p-2.5 bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-xl transition-all"
+                                    title="Editar Configuración"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                </button>
                                 <button
                                     onClick={() => {
                                         setSelectedInterface(intf);
                                         setIsAddingVersion(true);
                                     }}
-                                    className="p-2 bg-zinc-800 text-zinc-400 hover:text-primary rounded-lg transition-colors"
+                                    className="p-2.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-all"
                                     title="Subir Nueva Versión"
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => handleDeleteInterface(intf.id)}
-                                    className="p-2 bg-zinc-800 text-zinc-400 hover:text-red-500 rounded-lg transition-colors"
+                                    className="p-2.5 bg-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                                     title="Eliminar Interfaz"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
+
+                        {/* Summary / Description */}
+                        {intf.description && (
+                            <div className="px-4 py-2 border-b border-zinc-800/50">
+                                <p className="text-xs text-zinc-400 italic line-clamp-1">{intf.description}</p>
+                            </div>
+                        )}
 
                         {/* Versions Sub-list */}
                         <div className="p-2 space-y-1">
@@ -402,8 +525,3 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     );
 }
 
-function X({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-    )
-}

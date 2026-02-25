@@ -60,13 +60,24 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             -webkit-print-color-adjust: exact !important;
                             print-color-adjust: exact !important;
                         }
-                        /* Hide everything by default using a more robust method */
-                        body > *:not(#unitask-interface-report) {
-                            display: none !important;
+                        /* 
+                         * STRATEGY: Use visibility to hide everything, then re-show the report.
+                         * This works regardless of DOM nesting depth (fixes #__next issue).
+                         * Step 1: Hide ALL content globally.
+                         */
+                        body * {
+                            visibility: hidden !important;
                         }
-                        /* Show our report correctly */
+                        /* Step 2: Make the report container and ALL its children visible */
+                        #unitask-interface-report,
+                        #unitask-interface-report * {
+                            visibility: visible !important;
+                        }
+                        /* Step 3: Position the report at the top of the page */
                         #unitask-interface-report {
-                            position: static !important;
+                            position: absolute !important;
+                            top: 0 !important;
+                            left: 0 !important;
                             width: 100% !important;
                             display: block !important;
                             height: auto !important;
@@ -74,10 +85,10 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             background: white !important;
                             padding: 0 !important;
                             margin: 0 !important;
-                            visibility: visible !important;
+                            z-index: 99999 !important;
                         }
+                        /* Text colors for print */
                         #unitask-interface-report * {
-                            visibility: visible !important;
                             color: black !important;
                             border-color: #eee !important;
                         }
@@ -87,7 +98,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             font-weight: bold !important;
                         }
                         /* Control Bar and UI elements MUST be hidden */
-                        .print-hidden, .sticky, button {
+                        .print-hidden {
                             display: none !important;
                             visibility: hidden !important;
                         }

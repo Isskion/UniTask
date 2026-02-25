@@ -1,6 +1,7 @@
 {
     "firestore": {
-        "rules": "firestore.rules"
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
     },
     "storage": {
         "rules": "storage.rules"
@@ -32,6 +33,10 @@
                     {
                         "key": "X-Content-Type-Options",
                         "value": "nosniff"
+                    },
+                    {
+                        "key": "Cross-Origin-Opener-Policy",
+                        "value": "same-origin-allow-popups"
                     },
                     {
                         "key": "X-Frame-Options",

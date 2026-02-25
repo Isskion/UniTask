@@ -487,6 +487,22 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
     }
 
+    // --- [NEW] UNIDOCS: TEMPLATES ---
+    match /unidocs_templates/{templateId} {
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(resource.data.tenantId) == string(request.auth.token.tenantId)
+      );
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(request.resource.data.tenantId) == string(request.auth.token.tenantId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (string(resource.data.tenantId) == string(request.auth.token.tenantId) && getRealRole() >= 60)
+      );
+    }
+
     // --- KNOWLEDGE AREA (Lessons Learned & Solution Records) ---
     // Open access for all authenticated users within the same tenant
     match /knowledge_entries/{entryId} {

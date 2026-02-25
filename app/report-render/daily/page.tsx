@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { DailyStatus, Project, Task } from '@/types';
-import { DailyMinuteReport } from '@/components/reports/DailyMinuteReport';
+import { DailyMinuteReport } from '@/components/unidocs/DailyMinuteReport';
 import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 

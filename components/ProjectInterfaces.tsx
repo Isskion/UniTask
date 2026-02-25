@@ -5,7 +5,7 @@ import {
     Search, Plus, ArrowLeft, Code, FileJson, FileText,
     Trash2, ExternalLink, CheckCircle2, MoreVertical,
     Save, X, Loader2, AlertCircle, FileCode, Check,
-    LayoutDashboard
+    LayoutDashboard, Edit2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, InterfaceEntry, InterfaceVersion } from "@/types";
@@ -44,6 +44,7 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
 
     // UI States
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [saving, setSaving] = useState(false);
     const [newInterface, setNewInterface] = useState<Partial<InterfaceEntry>>({
@@ -78,27 +79,32 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
         loadInterfaces();
     }, [loadInterfaces]);
 
+    const resetForm = () => {
+        setNewInterface({
+            name: "",
+            description: "",
+            url: "",
+            clientId: "",
+            clientSecret: "",
+            formatContent: "",
+            formatType: "json",
+            projectId: project.id,
+            tenantId: tenantId,
+            isActive: true,
+            versions: []
+        });
+        setIsEditing(false);
+    };
+
     const handleCreate = async () => {
         if (!newInterface.name) return showToast("Interfaces", "El nombre es obligatorio", "error");
         setSaving(true);
         try {
             const finalData = { ...newInterface, projectId: project.id, tenantId };
             await saveInterface(project.id, finalData);
-            showToast("Interfaces", "Interfaz creada con éxito", "success");
+            showToast("Interfaces", isEditing ? "Interfaz actualizada con éxito" : "Interfaz creada con éxito", "success");
             setShowCreateModal(false);
-            setNewInterface({
-                name: "",
-                description: "",
-                url: "",
-                clientId: "",
-                clientSecret: "",
-                formatContent: "",
-                formatType: "json",
-                projectId: project.id,
-                tenantId: tenantId,
-                isActive: true,
-                versions: []
-            });
+            resetForm();
             loadInterfaces();
         } catch (error) {
             console.error("Error saving interface:", error);
@@ -106,6 +112,13 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleEdit = (intf: InterfaceEntry, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        setNewInterface({ ...intf });
+        setIsEditing(true);
+        setShowCreateModal(true);
     };
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -214,6 +227,13 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                             )}
                         </div>
                     </div>
+                    <button
+                        onClick={() => handleEdit(selectedInterface)}
+                        className={cn("p-2 px-4 rounded-xl flex items-center gap-2 text-xs font-bold transition-all", isLight ? "bg-zinc-800 text-white hover:bg-zinc-700" : "bg-primary/20 text-primary hover:bg-primary/30")}
+                    >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        Editar Configuración
+                    </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -363,7 +383,10 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                         <FileText className="w-4 h-4" /> Informe
                     </button>
                     <button
-                        onClick={() => setShowCreateModal(true)}
+                        onClick={() => {
+                            resetForm();
+                            setShowCreateModal(true);
+                        }}
                         className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all flex items-center gap-2 px-4 font-bold text-sm"
                     >
                         <Plus className="w-4 h-4" /> Nueva
@@ -407,8 +430,16 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
+                                        onClick={(e) => handleEdit(i, e)}
+                                        className="p-1.5 text-zinc-500 hover:text-primary hover:bg-primary/10 rounded-md transition-all"
+                                        title="Editar"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                    </button>
+                                    <button
                                         onClick={(e) => handleDelete(i.id, e)}
                                         className="p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-all"
+                                        title="Eliminar"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -453,8 +484,8 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                         )}
                     >
                         <div className="p-6 border-b flex justify-between items-center bg-black/5">
-                            <h3 className="text-lg font-bold">Nueva Interfaz</h3>
-                            <button onClick={() => setShowCreateModal(false)} className="p-1 hover:bg-black/5 rounded-full">
+                            <h3 className="text-lg font-bold">{isEditing ? `Editar: ${newInterface.name}` : "Nueva Interfaz"}</h3>
+                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1 hover:bg-black/5 rounded-full">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -536,14 +567,14 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                             </div>
                         </div>
                         <div className="p-6 border-t bg-black/5 flex justify-end gap-3">
-                            <button onClick={() => setShowCreateModal(false)} className="px-6 py-2 text-sm font-bold opacity-60 hover:opacity-100">Cancelar</button>
+                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-6 py-2 text-sm font-bold opacity-60 hover:opacity-100">Cancelar</button>
                             <button
                                 onClick={handleCreate}
                                 disabled={saving}
                                 className="px-8 py-2 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center gap-2"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                Crear Interfaz
+                                {isEditing ? "Guardar Cambios" : "Crear Interfaz"}
                             </button>
                         </div>
                     </div>

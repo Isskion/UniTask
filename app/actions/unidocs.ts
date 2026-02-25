@@ -16,9 +16,11 @@ export interface BoundingBox {
     ymax: number;
     xmax: number;
     label: string;
+    sourceType?: 'dynamic' | 'static'; // ← NEW: Choose between dynamic data or static capture
+    staticValue?: string;              // ← NEW: Content if sourceType is 'static'
 }
 
-export interface AnalysisResult {
+export interface UniDocsAnalysisResult {
     success: boolean;
     templateName?: string;
     description?: string;
@@ -66,12 +68,13 @@ async function callFunction(name: string, data: any) {
     return { data: json.result };
 }
 
-export async function analyzeDocumentStructure(formData: FormData): Promise<AnalysisResult> {
+export async function analyzeDocumentStructure(formData: FormData): Promise<UniDocsAnalysisResult> {
     try {
         const file = formData.get('file') as File;
         if (!file) return { success: false, error: 'No file provided' };
 
-        // Convert File to Base64
+        // Convert File to Base64 (using FileReader for client-side compatibility if needed, 
+        // but this seems to be intended for a context where Buffer is available or polyfilled)
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const base64Data = buffer.toString('base64');
@@ -131,4 +134,16 @@ export async function summarizeNotesWithAI(notes: string): Promise<AISummaryResu
     }
 }
 
-
+export async function optimizeDocumentContent(notes: string, zones: BoundingBox[]): Promise<{ mapping: Record<string, string>, error?: string }> {
+    try {
+        const result = await callFunction('summarizeNotes', {
+            notes,
+            mode: 'layout_optimization',
+            zones: zones.map(z => ({ label: z.label }))
+        });
+        return { mapping: result.data.mapping || {} };
+    } catch (e: any) {
+        console.error("Optimization Error:", e);
+        return { mapping: {}, error: e.message || "Failed to optimize layout" };
+    }
+}

@@ -42,6 +42,37 @@ export default function SpellCheckPopover({
     const [loading, setLoading] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
     const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [adjustedPos, setAdjustedPos] = useState({ x: 0, y: 0 });
+    const [isPositioned, setIsPositioned] = useState(false);
+
+    // Handle viewport clamping
+    useEffect(() => {
+        if (!popover || !popoverRef.current) {
+            setIsPositioned(false);
+            return;
+        }
+
+        const menuHeight = popoverRef.current.offsetHeight;
+        const menuWidth = popoverRef.current.offsetWidth;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        let posX = popover.position.x;
+        let posY = popover.position.y + 8;
+
+        // Clamp right edge
+        if (posX + menuWidth > viewportWidth) {
+            posX = viewportWidth - menuWidth - 16;
+        }
+
+        // Clamp bottom edge
+        if (posY + menuHeight > viewportHeight) {
+            posY = viewportHeight - menuHeight - 16;
+        }
+
+        setAdjustedPos({ x: posX, y: posY });
+        setIsPositioned(true);
+    }, [popover]);
 
     // Close popover on outside click
     useEffect(() => {
@@ -123,102 +154,63 @@ export default function SpellCheckPopover({
     }, [verifiedWords, language]);
 
 
-    /**
-     * Click handler on the editor container - detects clicks on spell-errored words.
-     */
-    const handleEditorClick = useCallback(async (e: MouseEvent) => {
-        if (!editor) return;
-
-        const target = e.target as HTMLElement;
-        const editorEl = editor.view.dom;
-
-        // Only handle clicks inside the editor
-        if (!editorEl.contains(target)) return;
-
-        // Check if the click landed on a text node that's spell-errored
-        // We detect this by checking if the element or its parent has a misspelled marker
-        // Browsers don't expose this via CSS, so we check coordinates
-        const wordData = getWordAtPoint(e.clientX, e.clientY);
-        if (!wordData) return;
-
-        // We show the popover for any word in the editor
-        // The user can decide if it's wrong or not (dictionary feature)
-        const { word, range } = wordData;
-
-        // Only show if word is NOT in dictionary and it's a real word (not numbers/urls)
-        if (!word || word.length < 2) return;
-        if (/^\d+/.test(word)) return;
-        if (verifiedWords.some(w => w.toLowerCase() === word.toLowerCase())) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Position popover below the click point
-        await showPopover(word, e.clientX, e.clientY + 20, range);
-    }, [editor, getWordAtPoint, showPopover, verifiedWords]);
-
-    /**
-     * Handles hover - shows popover after a short delay.
-     */
-    const handleEditorMouseOver = useCallback((e: MouseEvent) => {
-        if (!editor) return;
-
-        const target = e.target as HTMLElement;
-        const editorEl = editor.view.dom;
-        if (!editorEl.contains(target)) return;
-
-        if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-
-        hoverTimerRef.current = setTimeout(async () => {
-            const wordData = getWordAtPoint(e.clientX, e.clientY);
-            if (!wordData) return;
-            const { word, range } = wordData;
-            if (!word || word.length < 2) return;
-            if (/^\d+/.test(word)) return;
-            // Only show hover popover if popover is not already visible for another word
-            if (popover?.word === word) return;
-            if (verifiedWords.some(w => w.toLowerCase() === word.toLowerCase())) return;
-        }, 800);
-    }, [editor, getWordAtPoint, popover, verifiedWords]);
 
     // Attach/detach event listeners to the editor DOM
+    // Dictionary popover shows when user DWELLS (stops moving) over a word.
+    // Right-click is NOT intercepted → browser context menu / formatting tools work normally.
     useEffect(() => {
         if (!editor) return;
         const dom = editor.view.dom as HTMLElement;
+        let dwellTimer: ReturnType<typeof setTimeout> | null = null;
+        let lastX = 0;
+        let lastY = 0;
 
-        // We listen on CTRL+click or middle-click to avoid interfering with normal editing
-        // But per the design, a simple click shows the popover
-        // We'll use contextmenu (right click) AND ctrl+click for now,
-        // with an option for a special "spell-click" that only fires when clicking
-        // on a browser-underlined word. Since we can't detect that via CSS, 
-        // we listen on all clicks but only show the popover for likely misspelled words.
-
-        // Use contextmenu to intercept native right-click spell suggestions
-        const handleContextMenu = async (e: MouseEvent) => {
+        const handleMouseMove = (e: MouseEvent) => {
             const editorEl = editor.view.dom;
             if (!editorEl.contains(e.target as Node)) return;
 
-            const wordData = getWordAtPoint(e.clientX, e.clientY);
-            if (!wordData) return;
+            lastX = e.clientX;
+            lastY = e.clientY;
 
-            const { word, range } = wordData;
-            if (!word || word.length < 2) return;
-            if (/^\d+/.test(word)) return;
+            // Reset the dwell timer on every move
+            if (dwellTimer) clearTimeout(dwellTimer);
 
-            // Show our popover instead of/alongside native context menu
-            e.preventDefault();
-            await showPopover(word, e.clientX, e.clientY, range);
+            // After 800ms of no movement, check if there's a word under the cursor
+            dwellTimer = setTimeout(async () => {
+                const wordData = getWordAtPoint(lastX, lastY);
+                if (!wordData) return;
+                const { word, range } = wordData;
+                if (!word || word.length < 2) return;
+                if (/^\d+/.test(word)) return;
+                if (verifiedWords.some(w => w.toLowerCase() === word.toLowerCase())) return;
+
+                // [ADD] ONLY show if the word is actually misspelled
+                const isCorrect = await spellCheckerService.checkWord(word, language, verifiedWords);
+                if (isCorrect) return;
+
+                // Don't re-show for the same word
+                if (popover?.word === word) return;
+
+                await showPopover(word, lastX, lastY + 20, range);
+            }, 800);
         };
 
-        dom.addEventListener('contextmenu', handleContextMenu);
-        dom.addEventListener('mouseover', handleEditorMouseOver as EventListener);
+        // Close popover when mouse leaves the editor entirely
+        const handleMouseLeave = () => {
+            if (dwellTimer) clearTimeout(dwellTimer);
+        };
+
+        dom.addEventListener('mousemove', handleMouseMove);
+        dom.addEventListener('mouseleave', handleMouseLeave);
 
         return () => {
-            dom.removeEventListener('contextmenu', handleContextMenu);
-            dom.removeEventListener('mouseover', handleEditorMouseOver as EventListener);
+            dom.removeEventListener('mousemove', handleMouseMove);
+            dom.removeEventListener('mouseleave', handleMouseLeave);
+            if (dwellTimer) clearTimeout(dwellTimer);
             if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
         };
-    }, [editor, handleEditorClick, handleEditorMouseOver, getWordAtPoint, showPopover]);
+    }, [editor, getWordAtPoint, showPopover, verifiedWords, popover]);
+
 
     // Replace word in editor with suggestion
     const handleReplace = (suggestion: string) => {
@@ -242,17 +234,17 @@ export default function SpellCheckPopover({
 
     if (!popover) return null;
 
-    // Clamp position to viewport
-    const viewportW = typeof window !== 'undefined' ? window.innerWidth : 800;
-    const viewportH = typeof window !== 'undefined' ? window.innerHeight : 600;
-    const popoverW = 220;
-    const posX = Math.min(popover.position.x, viewportW - popoverW - 16);
-    const posY = popover.position.y + 8;
-
     return (
         <div
             ref={popoverRef}
-            style={{ position: 'fixed', left: posX, top: posY, zIndex: 9999, width: popoverW }}
+            style={{
+                position: 'fixed',
+                left: adjustedPos.x,
+                top: adjustedPos.y,
+                zIndex: 9999,
+                width: 220,
+                visibility: isPositioned ? 'visible' : 'hidden'
+            }}
             className="bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
             onMouseDown={e => e.stopPropagation()}
         >

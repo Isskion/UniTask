@@ -283,7 +283,7 @@ export default function FirebaseDiagnostic() {
         setStatus('running');
         addLog("--- PRUEBA DE CONECTIVIDAD AI (EUROPE-WEST1) ---");
         try {
-            const { summarizeNotesWithAI } = await import("@/app/actions/analyze-document");
+            const { summarizeNotesWithAI } = await import("@/app/actions/unidocs");
             addLog("1. Enviando solicitud de prueba ('Hola Mundo')...");
 
             const start = Date.now();

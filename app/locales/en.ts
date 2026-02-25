@@ -71,6 +71,7 @@ export const en = {
         "lessons-learned": "Lessons Learned",
         "solution-records": "Solution Records",
         uniflux: "Uniflux Engine",
+        unidocs: "UniDocs",
         unitask_tools: "Unitask Tools",
         unileaks: "UniLeaks"
     },

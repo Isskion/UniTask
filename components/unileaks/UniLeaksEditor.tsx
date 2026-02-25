@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -26,6 +26,26 @@ import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
+import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePickerModal";
+import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
+import BulletList from '@tiptap/extension-bullet-list';
+
+const CustomBulletList = BulletList.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            listType: {
+                default: 'disc',
+                renderHTML: attributes => {
+                    return {
+                        'data-list-type': attributes.listType,
+                    }
+                },
+                parseHTML: element => element.getAttribute('data-list-type'),
+            },
+        }
+    },
+});
 
 interface UniLeaksEditorProps {
     note: UniLeakNote;
@@ -47,7 +67,33 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [isSaving, setIsSaving] = useState(false);
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+    const [showTemplatePicker, setShowTemplatePicker] = useState(false);
     const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
+
+    // --- LOAD TENANT DICTIONARY ON MOUNT ---
+    useEffect(() => {
+        if (!currentTenantId) return;
+
+        const loadDictionary = async () => {
+            try {
+                const words = await getTenantWords(currentTenantId);
+                const wordStrings = words.map(w => w.word);
+                console.log(`[UniLeaks] 📖 Loaded ${wordStrings.length} tenant dictionary words`);
+                setVerifiedWords(wordStrings);
+            } catch (error) {
+                console.error("[UniLeaks] Error loading tenant dictionary:", error);
+            }
+        };
+
+        loadDictionary();
+    }, [currentTenantId]);
+
+    const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number; word: string | null }>({
+        visible: false,
+        x: 0,
+        y: 0,
+        word: null
+    });
 
     const currentNoteIdRef = useRef<string | null>(null);
     const isSettingContentRef = useRef<boolean>(false);
@@ -56,7 +102,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                bulletList: false, // Disable default to use our custom one
+            }),
+            CustomBulletList,
             Table.configure({
                 resizable: true,
                 HTMLAttributes: {
@@ -79,6 +128,15 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 emptyEditorClass: 'is-editor-empty',
             }),
             TenantDictionary,
+            Extension.create({
+                name: 'listIndentation',
+                addKeyboardShortcuts() {
+                    return {
+                        Tab: () => this.editor.commands.sinkListItem('listItem'),
+                        'Shift-Tab': () => this.editor.commands.liftListItem('listItem'),
+                    }
+                },
+            }),
         ],
         content: note.content || "",
         editorProps: {
@@ -111,6 +169,36 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     return true;
                 }
                 return false;
+            },
+            handleDOMEvents: {
+                contextmenu: (view, event) => {
+                    event.preventDefault();
+
+                    // Get word under cursor
+                    let word = null;
+                    const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                    if (pos) {
+                        const $pos = view.state.doc.resolve(pos.pos);
+                        const textBefore = $pos.parent.textBetween(Math.max(0, $pos.parentOffset - 20), $pos.parentOffset, undefined, "\ufffc");
+                        const textAfter = $pos.parent.textBetween($pos.parentOffset, Math.min($pos.parent.content.size, $pos.parentOffset + 20), undefined, "\ufffc");
+
+                        const wordBefore = textBefore.split(/[\s,.;:!?]/).pop() || "";
+                        const wordAfter = textAfter.split(/[\s,.;:!?]/).shift() || "";
+                        const fullWord = (wordBefore + wordAfter).replace(/[.,!?;:"'()[\]{}<>]/g, "");
+
+                        if (fullWord.length >= 2) {
+                            word = fullWord;
+                        }
+                    }
+
+                    setContextMenu({
+                        visible: true,
+                        x: event.clientX,
+                        y: event.clientY,
+                        word
+                    });
+                    return true;
+                }
             }
         },
         onUpdate: ({ editor }) => {
@@ -219,42 +307,6 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 
     // --- EXPORT LOGIC ---
     const handleExportPDF = () => {
-        window.print();
-    };
-
-    const handleExportMarkdown = () => {
-        if (!editor) return;
-
-        // Simple HTML to Markdown conversion logic
-        let md = `# ${title}\n\n`;
-        const html = editor.getHTML();
-
-        // Very basic conversion (replace tags with MD equivalents)
-        const contentMd = html
-            .replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n')
-            .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n')
-            .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n')
-            .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
-            .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
-            .replace(/<em>(.*?)<\/em>/gi, '*$1*')
-            .replace(/<ul>(.*?)<\/ul>/gi, '$1\n')
-            .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
-            .replace(/<blockquote>(.*?)<\/blockquote>/gi, '> $1\n\n')
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<[^>]+>/g, ''); // Strip remaining tags
-
-        md += contentMd;
-
-        const blob = new Blob([md], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${title || 'nota'}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
-    const handleExportHTML = () => {
         if (!editor) return;
         const htmlContent = `
             <!DOCTYPE html>
@@ -263,27 +315,99 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 <meta charset="UTF-8">
                 <title>${title}</title>
                 <style>
-                    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; padding: 2rem; max-width: 800px; margin: auto; }
-                    h1 { font-size: 2.5rem; margin-bottom: 2rem; }
-                    img { max-width: 100%; border-radius: 8px; }
+                    @media print { @page { margin: 20mm; } }
+                    * { box-sizing: border-box; }
+                    body { font-family: 'Georgia', serif; line-height: 1.7; color: #1a1a1a; max-width: 800px; margin: auto; padding: 2rem; }
+                    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; border-bottom: 2px solid #1a1a1a; padding-bottom: 0.5rem; }
+                    h2 { font-size: 1.4rem; margin-top: 1.5rem; }
+                    h3 { font-size: 1.1rem; margin-top: 1.2rem; }
+                    p { margin: 0.75rem 0; }
+                    ul, ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+                    li { margin: 0.3rem 0; }
+                    blockquote { border-left: 3px solid #888; padding-left: 1rem; color: #555; margin: 1rem 0; }
+                    code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+                    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow: auto; }
+                    img { max-width: 100%; border-radius: 6px; }
                     table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+                    th { background: #f0f0f0; font-weight: 600; }
                 </style>
             </head>
             <body>
                 <h1>${title}</h1>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 1.5rem 0;">
                 ${editor.getHTML()}
             </body>
-            </html>
-        `;
-        const blob = new Blob([htmlContent], { type: 'text/html' });
+            </html>`;
+
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        if (!printWindow) {
+            showToast('Error', 'El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio.', 'error');
+            return;
+        }
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+        }, 500);
+    };
+
+    const triggerDownload = (content: string, filename: string, mimeType: string) => {
+        const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title || 'nota'}.html`;
+        a.download = filename;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        showToast('Descargado', `${filename} descargado correctamente.`, 'success');
     };
+
+    const handleExportMarkdown = () => {
+        if (!editor) return;
+        const html = editor.getHTML();
+        const contentMd = html
+            .replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n')
+            .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n')
+            .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n')
+            .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
+            .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
+            .replace(/<em>(.*?)<\/em>/gi, '*$1*')
+            .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        triggerDownload(`# ${title}\n\n${contentMd}`, `${title || 'nota'}.md`, 'text/markdown;charset=utf-8');
+    };
+
+    const handleExportHTML = () => {
+        if (!editor) return;
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; padding: 2rem; max-width: 800px; margin: auto; }
+        h1 { font-size: 2.5rem; margin-bottom: 2rem; }
+        img { max-width: 100%; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    ${editor.getHTML()}
+</body>
+</html>`;
+        triggerDownload(htmlContent, `${title || 'nota'}.html`, 'text/html;charset=utf-8');
+    };
+
 
     // --- AUTO-SAVE LOGIC ---
     useEffect(() => {
@@ -455,6 +579,19 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     </div>
 
                     <div className="flex items-center gap-1 border-l border-border pl-4">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                console.log('[UniDocs] Template picker button clicked, opening modal...');
+                                setShowDownloadMenu(false);
+                                setShowTemplatePicker(true);
+                            }}
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                            title="Imprimir con Plantilla UniDocs"
+                        >
+                            <BookMarked className="w-5 h-5" />
+                        </button>
                         <div className="relative">
                             <button
                                 onClick={(e) => {
@@ -621,11 +758,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             "prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground",
                             "prose-blockquote:text-foreground prose-a:text-primary",
                             "prose-code:text-foreground prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md",
-                            "[&_pre]:bg-zinc-950 [&_pre]:text-zinc-50 [&_pre_code]:text-zinc-50 [&_pre_code]:bg-transparent [&_pre_code]:p-0"
+                            "[&_pre]:bg-zinc-950 [&_pre]:text-zinc-50 [&_pre_code]:text-zinc-50 [&_pre_code]:bg-transparent [&_pre_code]:p-0",
+                            // Custom list styles based on data-list-type
+                            "[&_ul[data-list-type='square']]:list-square",
+                            "[&_ul[data-list-type='dash']]:list-none [&_ul[data-list-type='dash']>li]:before:content-['-\\2003'] [&_ul[data-list-type='dash']>li]:before:mr-1",
+                            "[&_ul[data-list-type='arrow']]:list-none [&_ul[data-list-type='arrow']>li]:before:content-['\\2192\\2003'] [&_ul[data-list-type='arrow']>li]:before:mr-1",
+                            "[&_ul[data-list-type='disc']]:list-disc"
                         )}
                     />
 
-                    {/* Spell Check Popover - intercepts right-click on words */}
+                    {/* Spell Check Popover - dictionary on hover */}
                     <SpellCheckPopover
                         editor={editor ?? null}
                         tenantId={currentTenantId ?? null}
@@ -634,8 +776,32 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                         verifiedWords={verifiedWords}
                         onAddToDictionary={handleAddWordToDictionary}
                     />
+
+                    {/* Custom Context Menu - formatting tools on right-click */}
+                    {editor && (
+                        <EditorContextMenu
+                            editor={editor}
+                            visible={contextMenu.visible}
+                            x={contextMenu.x}
+                            y={contextMenu.y}
+                            wordUnderCursor={contextMenu.word}
+                            onClose={() => setContextMenu(prev => ({ ...prev, visible: false }))}
+                            onAddToDictionary={handleAddWordToDictionary}
+                        />
+                    )}
                 </div>
             </div>
+
+            {/* UniDocs Template Picker Modal */}
+            {showTemplatePicker && editor && (
+                <UniDocsTemplatePickerModal
+                    noteTitle={title}
+                    noteHtml={editor.getHTML()}
+                    projectId={note.projectId}
+                    tenantId={note.tenantId || currentTenantId || undefined}
+                    onClose={() => setShowTemplatePicker(false)}
+                />
+            )}
         </div>
     );
 }

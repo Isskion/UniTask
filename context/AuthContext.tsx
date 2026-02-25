@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
-import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { onIdTokenChanged, User, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { RoleLevel, getRoleLevel, UserProfile } from '../types'; // Imported from types.ts (DRY)
 
 // --- DEFINICIÓN DE TIPOS (Strict Typing) ---
@@ -57,6 +57,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const lastRefreshTimeRef = useRef<number>(0);
     const refreshCountRef = useRef<number>(0);
 
+    // [STABILITY] Set explicit persistence for browser sessions
+    useEffect(() => {
+        setPersistence(auth, browserLocalPersistence)
+            .then(() => console.log("[AuthContext] 🔐 Persistence set to LOCAL."))
+            .catch(err => console.error("[AuthContext] Failed to set persistence:", err));
+    }, []);
+
     useEffect(() => {
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
@@ -87,8 +94,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             setUserProfile(null); // Explicit clear
                             return;
                         }
-                        console.warn("[AuthContext] ⛔ User has no Firestore profile. Auto-signing out.");
-                        auth.signOut();
+                        console.warn("[AuthContext] ⚠️ User has no Firestore profile. UI will be restricted.");
+                        // [STABILITY] Don't signOut() yet, let NoTenantBlocker handle the orphan state.
+                        // This prevents "falling out" if the snapshot is just missing momentarily.
+                        setIdentity(prev => prev ? { ...prev, realRole: 0 as RoleLevel, realTenantId: "unknown" } : null);
+                        setViewContext(null); // Triggers loading/blocker
                         return;
                     }
 
@@ -101,8 +111,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             setUserProfile(data as UserProfile);
                             return;
                         }
-                        console.warn("[AuthContext] ⛔ User has invalid tenantId. Auto-signing out.");
-                        auth.signOut();
+                        console.warn("[AuthContext] ⚠️ User has invalid tenantId. UI will be restricted.");
+                        // [STABILITY] Don't signOut(), just restrict identity to trigger blocker
+                        setIdentity(prev => prev ? { ...prev, realTenantId: "unknown" } : null);
+                        setViewContext(null);
                         return;
                     }
 
@@ -111,15 +123,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                     // Logic: If backend says "I updated claims at X" and token says "I have claims from < X", refresh.
                     // Also refresh if roleLevel/tenantId mismatches critically.
-                    // [HARDEN] We only refresh if Firestore syncId is significantly newer (> 500ms) to avoid race conditions
-                    const syncStale = latestSyncId > (currentSyncId + 500);
+                    // [HARDEN] Increase threshold to 2s to allow for propagation skew
+                    const syncStale = latestSyncId > (currentSyncId + 2000);
                     const roleMismatch = Number(data.roleLevel) !== Number(claims.roleLevel);
                     const tenantMismatch = String(data.tenantId) !== String(claims.tenantId);
 
-                    const needsRefresh = syncStale || roleMismatch || tenantMismatch;
+                    // [FIX] syncStale alone should NOT trigger a refresh if role and tenant already match.
+                    // The syncId is a signal that claims *might* have changed, but if the actual data
+                    // (roleLevel, tenantId) already matches, there's nothing to refresh.
+                    // This prevents the infinite loop where syncId keeps advancing but the token can never catch up.
+                    const needsRefresh = roleMismatch || tenantMismatch;
+
+                    if (syncStale && !needsRefresh) {
+                        console.log(`[AuthContext] ℹ️ SyncId stale but role/tenant match — skipping refresh. (FS:${latestSyncId} vs TK:${currentSyncId})`);
+                    }
 
                     if (needsRefresh) {
-                        console.log(`[AuthContext] ⚠️ Refreash Triggered: Stale=${syncStale} (FS:${latestSyncId} vs TK:${currentSyncId}), Role=${roleMismatch} (${data.roleLevel} vs ${claims.roleLevel}), Tenant=${tenantMismatch} (${data.tenantId} vs ${claims.tenantId})`);
+                        console.log(`[AuthContext] ⚠️ Refresh Triggered: Role=${roleMismatch} (${data.roleLevel} vs ${claims.roleLevel}), Tenant=${tenantMismatch} (${data.tenantId} vs ${claims.tenantId}), SyncStale=${syncStale}`);
 
                         // [OPTIMISTIC] Still update the UI profile so the name/photo reflects immediately
                         setUserProfile(data as UserProfile);
@@ -135,18 +155,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                         if (refreshCountRef.current > 3) {
                             console.error("[AuthContext] 🛡️ Refresh loop detected! (More than 3 attempts in 60s). Blocking further refreshes.");
+                            // [STABILITY] If in a loop, DON'T nullify context. Allow app to stay in current state.
+                            if (!viewContext) {
+                                // Fallback: Build context from current claims to avoid infinite loader
+                                setViewContext({
+                                    activeRole: (Number(claims.roleLevel) || 0) as RoleLevel,
+                                    activeTenantId: (claims.tenantId as string) || "unknown",
+                                    isMasquerading: false
+                                });
+                            }
                             setLoading(false);
                             return;
                         }
-                        // -----------------
 
                         console.log(`[AuthContext] ⚠️ Profile mismatch detected (Refreshes in window: ${refreshCountRef.current}). Scheduling forced token refresh...`);
 
-                        // [FIX] Block UI immediately to prevent permission errors with stale token
-                        // This forces 'loading' to true, unmounting the app and stopping failed queries.
+                        // [FIX] Block UI ONLY for the legit refresh window
                         setViewContext(null);
 
-                        // Debounce: Wait 2s to allow Cloud Functions to settle propagation
+                        // Debounce: Wait 3s (increased for latency) to allow Cloud Functions to settle propagation
                         if (refreshTimer) clearTimeout(refreshTimer);
 
                         refreshTimer = setTimeout(async () => {
@@ -163,7 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     console.log("[AuthContext] ⚠️ claims.roleLevel missing, falling back to legacy claims.role mapping.");
                                     newRole = getRoleLevel(claims.role as string);
                                 }
-                                newRole = newRole || 0;
+                                newRole = (newRole || 0) as RoleLevel;
 
                                 const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
 
@@ -184,7 +211,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             } catch (e) {
                                 console.error("[AuthContext] Token refresh failed:", e);
                             }
-                        }, 2000);
+                        }, 3000); // 3 seconds total wait
                     } else {
                         // Optimistic Profile Hydration for UI display ONLY (Not security)
                         setUserProfile(data as UserProfile);
@@ -206,8 +233,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (isRepairPath) {
                         console.log("[AuthContext] 🛠️ Initial load: Missing profile allowed on /repair.");
                     } else {
-                        console.error(`[AuthContext] ⛔ FATAL: UID ${currentUser.uid} authenticated but NO profile exists. Signing out...`);
-                        await auth.signOut();
+                        console.error(`[AuthContext] ⚠️ Initial check: UID ${currentUser.uid} has no profile. Restricting session...`);
+                        setIdentity(prev => prev ? { ...prev, realRole: 0 as RoleLevel, realTenantId: "unknown" } : null);
+                        setViewContext(null);
                         return;
                     }
                 }
@@ -216,8 +244,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     if (isRepairPath) {
                         console.log("[AuthContext] 🛠️ Initial load: Invalid tenant allowed on /repair.");
                     } else {
-                        console.error(`[AuthContext] ⛔ FATAL: User profile ${currentUser.uid} has invalid/denied tenantId: ${profileData?.tenantId}. Check syncUserClaims logs.`);
-                        await auth.signOut();
+                        console.error(`[AuthContext] ⚠️ Initial check: User profile ${currentUser.uid} has invalid tenantId: ${profileData?.tenantId}. Restricting UI.`);
+                        setIdentity(prev => prev ? { ...prev, realTenantId: "unknown" } : null);
+                        setViewContext(null);
                         return;
                     }
                 }

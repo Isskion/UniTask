@@ -42,7 +42,7 @@ async function calculateAndSetClaims(userId: string, userData: any) {
 
     const roleRaw = userData.role;
     const tenantRaw = userData.tenantId;
-    const isActive = userData.isActive;
+    const isActive = userData.isActive !== false; // Default to true if not explicitly false
 
     let roleLevel = 0;
     if (typeof userData.roleLevel === 'number' && !isNaN(userData.roleLevel)) {
@@ -56,35 +56,46 @@ async function calculateAndSetClaims(userId: string, userData: any) {
     }
 
     let finalTenantId = '__DENY__';
-    if (typeof tenantRaw === 'string' && tenantRaw.trim().length > 0) {
-        finalTenantId = tenantRaw.trim();
+    if (tenantRaw !== undefined && tenantRaw !== null && String(tenantRaw).trim().length > 0) {
+        finalTenantId = String(tenantRaw).trim();
     }
 
-    if (isActive === false) {
-        roleLevel = 0;
+    // --- [GUARD] LOOP PREVENTION ---
+    // Solo sincronizar si hay cambios REALES en la identidad o falta el syncId
+    const needsSync =
+        userData.roleLevel !== roleLevel ||
+        userData.tenantId !== finalTenantId ||
+        userData.isActive !== isActive ||
+        !userData.syncId;
+
+    if (!needsSync) {
+        console.log(`[calculateAndSetClaims] User ${userId} is already in sync. Skipping.`);
+        return { success: true, message: "In sync" };
     }
 
+    const newSyncId = Date.now();
     const newClaims = {
         role: roleRaw || 'unknown',
         roleLevel: roleLevel,
         tenantId: finalTenantId,
-        isActive: !!isActive,
-        syncId: Date.now()
+        isActive: isActive,
+        syncId: newSyncId
     };
+
+    console.log(`[calculateAndSetClaims] 🔄 Syncing User ${userId}:`, newClaims);
 
     // A. Update Auth Claims
     await admin.auth().setCustomUserClaims(userId, newClaims);
 
-    // B. Force Token Refresh
+    // B. Force Token Refresh (Only on Identity Change)
     await admin.auth().revokeRefreshTokens(userId);
 
-    // C. Self-Healing Firestore
-    if (userData.roleLevel !== roleLevel || userData.syncId !== newClaims.syncId) {
-        await admin.firestore().collection('users').doc(userId).update({
-            roleLevel: roleLevel,
-            syncId: newClaims.syncId
-        });
-    }
+    // C. Update Firestore with the new syncId and roleLevel (Source of Truth Stabilization)
+    // This will trigger one MORE write, but the guard above will catch it and STOP the loop.
+    await admin.firestore().collection('users').doc(userId).update({
+        roleLevel: roleLevel,
+        syncId: newSyncId
+    });
 
     return { success: true, claims: newClaims };
 }

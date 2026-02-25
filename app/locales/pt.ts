@@ -73,6 +73,7 @@ export const pt: Dictionary = {
         "lessons-learned": "Lições Aprendidas",
         "solution-records": "Registros de Soluções",
         uniflux: "Uniflux Engine",
+        unidocs: "UniDocs",
         unitask_tools: "Ferramentas Unitask",
         unileaks: "UniLeaks"
     },

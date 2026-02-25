@@ -22,7 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
-import { summarizeNotesWithAI } from "@/app/actions/analyze-document";
+import { summarizeNotesWithAI } from "@/app/actions/unidocs";
 import UserManagement from "./UserManagement";
 import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
@@ -37,7 +37,7 @@ import { getRoleLevel, RoleLevel } from "@/types"; // Added import
 import TaskMasterDataManagement from "./TaskMasterDataManagement"; // Master Data Manager // Added import
 import SprintManager from "./SprintManager";
 import { SprintPlanningBoard } from "./SprintPlanningBoard";
-import ReportManagement from "./reports/ReportManagement"; // Added Import
+import UniDocsManagement from "./unidocs/UniDocsManagement"; // Added Import
 import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
@@ -62,7 +62,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -163,7 +163,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = (searchParams.get('mode') || searchParams.get('view')) as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'uniflux'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'uniflux', 'unidocs'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -177,6 +177,13 @@ export default function DailyFollowUp() {
             const savedTab = localStorage.getItem('daily_active_tab');
             if (savedTab && savedTab !== "General") {
                 setActiveTab(savedTab);
+            }
+
+            // 4. Load Active Sub-Tab (Notes/Interfaces/Feed/Tasks)
+            const savedSubTab = localStorage.getItem('daily_active_subtab') as any;
+            const allowedSubTabs = ['notes', 'interfaces', 'feed', 'tasks'];
+            if (savedSubTab && allowedSubTabs.includes(savedSubTab)) {
+                setActiveSubTab(savedSubTab);
             }
 
             setIsHydrated(true);
@@ -254,10 +261,19 @@ export default function DailyFollowUp() {
     // --- UNILeaks: Sub-Tabs for Projects ---
     const [activeSubTab, setActiveSubTab] = useState<'notes' | 'interfaces' | 'feed' | 'tasks'>('notes');
 
-    // Reset sub-tab when switching projects
+    // Persist Sub-Tab
+    useEffect(() => {
+        if (isHydrated && activeSubTab) {
+            localStorage.setItem('daily_active_subtab', activeSubTab);
+        }
+    }, [activeSubTab, isHydrated]);
+
+    // Reset sub-tab when switching projects - [REMOVED] to improve persistence
+    /*
     useEffect(() => {
         setActiveSubTab('notes');
     }, [activeTab]);
+    */
 
 
     // Prevent accidental navigation if unsaved
@@ -2227,7 +2243,7 @@ export default function DailyFollowUp() {
                                 <SprintPlanningBoard />
                             </div>
                         ) : viewMode === 'reports' ? (
-                            <ReportManagement />
+                            <UniDocsManagement />
                         ) : viewMode === 'support-management' ? (
                             <SupportManagement />
                         ) : viewMode === 'user-manual' ? (
@@ -2246,6 +2262,8 @@ export default function DailyFollowUp() {
                             <AvailabilityRegistry />
                         ) : viewMode === 'uniflux' ? (
                             <UnifluxWorkspace />
+                        ) : viewMode === 'unidocs' ? (
+                            <UniDocsManagement />
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}
