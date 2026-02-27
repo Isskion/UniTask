@@ -2072,11 +2072,17 @@ export default function DailyFollowUp() {
                                                 <div className="flex-1 flex flex-col gap-4 min-h-0 relative overflow-hidden">
                                                     {activeSubTab === 'interfaces' ? (
                                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                            <ProjectInterfaces
-                                                                project={activeProject!}
-                                                                tenantId={tenantId || "1"}
-                                                                compact={true}
-                                                            />
+                                                            {activeProject ? (
+                                                                <ProjectInterfaces
+                                                                    project={activeProject}
+                                                                    tenantId={tenantId || "1"}
+                                                                    compact={true}
+                                                                />
+                                                            ) : (
+                                                                <div className="flex-1 flex items-center justify-center opacity-40">
+                                                                    <Loader2 className="w-6 h-6 animate-spin" />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ) : activeSubTab === 'feed' ? (
                                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">

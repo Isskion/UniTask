@@ -33,6 +33,7 @@ interface ProjectInterfacesProps {
 }
 
 export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfacesProps) {
+    if (!project) return null;
     const { t } = useLanguage();
     const { theme } = useTheme();
     const { showToast } = useToast();
