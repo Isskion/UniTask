@@ -432,6 +432,10 @@ export default function DailyFollowUp() {
         lastLoadRef.current = requestId;
 
         setLoading(true);
+        // [FIX] Clear AI state when loading new data to prevent context bleeding
+        setAiSummary("");
+        setAiSuggestions([]);
+
         const dateId = format(dateObj, 'yyyy-MM-dd');
         const currentTenantId = tenantId || "1";
 
@@ -631,17 +635,17 @@ export default function DailyFollowUp() {
     const [isReformattingAI, setIsReformattingAI] = useState<string | null>(null);
 
     const handleReformatProjectNotes = async (projectName: string) => {
+        // 1. Validate existence and content BEFORE calling AI
+        const blocks = getProjectBlocks(projectName);
+        const fullContent = blocks.map(b => b.content).filter(Boolean).join('\n\n');
+
+        if (!fullContent || fullContent.length < 5) {
+            showToast("IA", "No hay contenido suficiente para embellecer.", "info");
+            return;
+        }
+
         setIsReformattingAI(projectName);
         try {
-            // Collect all content from blocks
-            const blocks = getProjectBlocks(projectName);
-            const fullContent = blocks.map(b => b.content).filter(Boolean).join('\n\n');
-
-            if (!fullContent || fullContent.length < 5) {
-                showToast("IA", "No hay contenido suficiente para embellecer.", "info");
-                return;
-            }
-
             showToast("IA", "Embelleciendo notas...", "info");
             const { reformattedText, error } = await reformatNotesWithAI(fullContent);
 
@@ -650,35 +654,44 @@ export default function DailyFollowUp() {
                 return;
             }
 
+            // Check if anything actually changed
+            if (reformattedText.trim() === fullContent.trim()) {
+                showToast("IA", "Tus notas ya están optimizadas y profesionales.", "info");
+                return;
+            }
+
             // Update state: Target the FIRST block and clear/merge others
             setEntry(prev => {
-                const project = prev.projects.find(p => p.name === projectName);
-                if (!project) return prev;
+                // Use robust matching (trimmed name)
+                const projectIndex = prev.projects.findIndex(p => p.name.trim() === projectName.trim());
+                if (projectIndex === -1) {
+                    console.error("Project not found during reformat state update", projectName);
+                    return prev;
+                }
 
                 // Create a single consolidated block with the new content
                 const consolidatedBlocks: NoteBlock[] = [{
                     id: blocks[0]?.id || Date.now().toString(),
-                    title: "Informe Diario (IA)",
+                    title: "Bitácora Profesional (IA)",
                     content: reformattedText,
                     isCollapsed: false
                 }];
 
-                return {
-                    ...prev,
-                    projects: prev.projects.map(p =>
-                        p.name === projectName ? {
-                            ...p,
-                            pmNotes: reformattedText, // Update legacy field too
-                            blocks: consolidatedBlocks
-                        } : p
-                    )
+                const updatedProjects = [...prev.projects];
+                updatedProjects[projectIndex] = {
+                    ...updatedProjects[projectIndex],
+                    pmNotes: reformattedText,
+                    blocks: consolidatedBlocks
                 };
+
+                return { ...prev, projects: updatedProjects };
             });
+
             setIsDirty(true);
-            showToast("Éxito", "Notas optimizadas por IA", "success");
+            showToast("Éxito", "Notas reestructuradas profesionalmente", "success");
         } catch (e) {
             console.error("Reformat error", e);
-            showToast("Error", "No se pudo formatear el texto", "error");
+            showToast("Error", "No se pudo procesar la solicitud con la IA", "error");
         } finally {
             setIsReformattingAI(null);
         }
@@ -2177,7 +2190,7 @@ export default function DailyFollowUp() {
                                                             {aiSuggestions.length > 0 && (
                                                                 <div>
                                                                     <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
-                                                                    <div className="space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+                                                                    <div className="space-y-1 max-h-[400px] overflow-y-auto custom-scrollbar pr-1 pb-4">
                                                                         {aiSuggestions.map((sugg, idx) => (
                                                                             <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
                                                                                 <p className="text-xs text-foreground flex-1">{sugg}</p>

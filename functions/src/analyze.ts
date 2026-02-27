@@ -243,22 +243,25 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
         `;
     } else if (mode === 'reformat') {
         prompt = `
-            Act as a Professional Document Editor.
-            Take the following unstructured notes and restructure them into a beautiful, professional, and well-organized markdown report.
+            Act as a Senior Professional Editor.
+            Task: Transform the provided raw notes into a HIGHLY structured, polished, and professional markdown report.
             
             Notes:
             "${notes}"
             
-            Instructions:
-            1. USE MARKDOWN: Use headers, bold text, and bullet points to create structure.
-            2. DO NOT TRANSLATE: Keep the original language of the notes (e.g., if notes are in Spanish, the report must be in Spanish).
-            3. PRESERVE TECHNICAL DATA: Ensure dates, IDs, and technical mentions are kept intact and clearly highlighted.
-            4. TONE: Professional and concise.
-            5. Return a JSON object with a single field "reformattedText" containing the markdown content.
+            Strict Instructions:
+            1. DEEP RESTRUCTURING: Do not just beautify. Reorganize the content logically. Use clear H2 and H3 headers (##, ###).
+            2. MARKDOWN EXCELLENCE: Use bold text for key terms, bullet points for lists, and horizontal rules (---) between major sections.
+            3. DO NOT TRANSLATE: The output MUST be in the same language as the input notes (usually Spanish or English).
+            4. PRESERVE ALL DATA: Keep all dates, IDs, technical names, and numbers exactly as they are. Highlight them if appropriate.
+            5. TONE: Objective, formal, and concise.
+            6. FORMAT: Return a JSON object with a single field "reformattedText" containing the markdown.
             
-            Format: { "reformattedText": "markdown content here" }
+            Example Output Format:
+            { "reformattedText": "## Report Title\\n### Section\\n- **Key Point**: Detail..." }
         `;
-    } else {
+    }
+    else {
         prompt = `
             Analyze the following Project Management notes and extract key insights.
             Input Notes:
