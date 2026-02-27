@@ -223,7 +223,12 @@ export default function DailyFollowUp() {
         updatedAt: new Date().toISOString()
     });
 
-    const [activeTab, setActiveTab] = useState<string>("General");
+    const [activeTab, setActiveTab] = useState("General");
+    useEffect(() => {
+        // Reset AI state when context changes to prevent context bleeding
+        setAiSummary("");
+        setAiSuggestions([]);
+    }, [activeTab, currentDate]);
     const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
     const [availableTenants, setAvailableTenants] = useState<any[]>([]);
 
@@ -628,24 +633,47 @@ export default function DailyFollowUp() {
     const handleReformatProjectNotes = async (projectName: string) => {
         setIsReformattingAI(projectName);
         try {
-            const project = entry.projects.find(p => p.name === projectName);
-            if (!project || !project.pmNotes) return;
+            // Collect all content from blocks
+            const blocks = getProjectBlocks(projectName);
+            const fullContent = blocks.map(b => b.content).filter(Boolean).join('\n\n');
+
+            if (!fullContent || fullContent.length < 5) {
+                showToast("IA", "No hay contenido suficiente para embellecer.", "info");
+                return;
+            }
 
             showToast("IA", "Embelleciendo notas...", "info");
-            const { reformattedText, error } = await reformatNotesWithAI(project.pmNotes);
+            const { reformattedText, error } = await reformatNotesWithAI(fullContent);
 
             if (error) {
                 showToast("Error", error, "error");
                 return;
             }
 
-            // Update state
-            setEntry(prev => ({
-                ...prev,
-                projects: prev.projects.map(p =>
-                    p.name === projectName ? { ...p, pmNotes: reformattedText } : p
-                )
-            }));
+            // Update state: Target the FIRST block and clear/merge others
+            setEntry(prev => {
+                const project = prev.projects.find(p => p.name === projectName);
+                if (!project) return prev;
+
+                // Create a single consolidated block with the new content
+                const consolidatedBlocks: NoteBlock[] = [{
+                    id: blocks[0]?.id || Date.now().toString(),
+                    title: "Informe Diario (IA)",
+                    content: reformattedText,
+                    isCollapsed: false
+                }];
+
+                return {
+                    ...prev,
+                    projects: prev.projects.map(p =>
+                        p.name === projectName ? {
+                            ...p,
+                            pmNotes: reformattedText, // Update legacy field too
+                            blocks: consolidatedBlocks
+                        } : p
+                    )
+                };
+            });
             setIsDirty(true);
             showToast("Éxito", "Notas optimizadas por IA", "success");
         } catch (e) {
@@ -2149,7 +2177,7 @@ export default function DailyFollowUp() {
                                                             {aiSuggestions.length > 0 && (
                                                                 <div>
                                                                     <h4 className="text-[10px] font-bold text-primary uppercase mb-2">{t('follow_up.suggestions')} ({aiSuggestions.length})</h4>
-                                                                    <div className="space-y-1">
+                                                                    <div className="space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                                                                         {aiSuggestions.map((sugg, idx) => (
                                                                             <div key={idx} className="flex gap-2 items-start bg-card p-2 rounded border border-primary/10">
                                                                                 <p className="text-xs text-foreground flex-1">{sugg}</p>
