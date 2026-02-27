@@ -180,11 +180,7 @@ export default function DailyFollowUp() {
             }
 
             // 4. Load Active Sub-Tab (Notes/Interfaces/Feed/Tasks)
-            const savedSubTab = localStorage.getItem('daily_active_subtab') as any;
-            const allowedSubTabs = ['notes', 'interfaces', 'feed', 'tasks'];
-            if (savedSubTab && allowedSubTabs.includes(savedSubTab)) {
-                setActiveSubTab(savedSubTab);
-            }
+            // Removed localStorage persistence for activeSubTab to fix default tab bug. Default is always 'notes'.
 
             setIsHydrated(true);
             console.log("[DailyFollowUp] Hydration Complete.");
@@ -265,13 +261,6 @@ export default function DailyFollowUp() {
 
     // --- UNILeaks: Sub-Tabs for Projects ---
     const [activeSubTab, setActiveSubTab] = useState<'notes' | 'interfaces' | 'feed' | 'tasks'>('notes');
-
-    // Persist Sub-Tab
-    useEffect(() => {
-        if (isHydrated && activeSubTab) {
-            localStorage.setItem('daily_active_subtab', activeSubTab);
-        }
-    }, [activeSubTab, isHydrated]);
 
     // Reset sub-tab when switching projects - [REMOVED] to improve persistence
     /*
