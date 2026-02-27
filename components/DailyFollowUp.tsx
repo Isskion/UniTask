@@ -584,32 +584,14 @@ export default function DailyFollowUp() {
 
             console.log(`[Save] Saving to ${projectsByTenant.size} tenant(s):`);
 
-            // AI REVISION: Beautify notes before saving
-            // We only do this for the "active" view to avoid mass-processing everything 
-            // but we ensure the current entry is beautified.
-            const updatedProjects = await Promise.all(activeProjects.map(async (p) => {
-                if (p.pmNotes && p.pmNotes.length > 50) { // Only reformat if there's enough content
-                    console.log(`[AI] Reformatting notes for project: ${p.name}`);
-                    const { reformattedText } = await reformatNotesWithAI(p.pmNotes);
-                    return { ...p, pmNotes: reformattedText };
-                }
-                return p;
-            }));
-
             // Save each tenant's portion
             for (const [targetTenantId, projects] of projectsByTenant.entries()) {
-                // Map the updated projects back to the tenant
-                const tenantProjects = updatedProjects.filter(up => {
-                    const info = globalProjects.find(gp => gp.name === up.name);
-                    return (info?.tenantId || tenantId || "1") === targetTenantId;
-                });
-
                 const toSave = {
                     id: entry.date,
                     date: entry.date,
                     tenantId: targetTenantId,
-                    projects: tenantProjects,
-                    generalNotes: tenantProjects.length === 0 ? entry.generalNotes : "",
+                    projects: projects,
+                    generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
                     createdAt: entry.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -637,6 +619,40 @@ export default function DailyFollowUp() {
             // DO NOT clear isDirty here. User should try again.
         } finally {
             setSaving(false);
+        }
+    };
+
+    // --- NEW: Explicit AI Reformatting ---
+    const [isReformattingAI, setIsReformattingAI] = useState<string | null>(null);
+
+    const handleReformatProjectNotes = async (projectName: string) => {
+        setIsReformattingAI(projectName);
+        try {
+            const project = entry.projects.find(p => p.name === projectName);
+            if (!project || !project.pmNotes) return;
+
+            showToast("IA", "Embelleciendo notas...", "info");
+            const { reformattedText, error } = await reformatNotesWithAI(project.pmNotes);
+
+            if (error) {
+                showToast("Error", error, "error");
+                return;
+            }
+
+            // Update state
+            setEntry(prev => ({
+                ...prev,
+                projects: prev.projects.map(p =>
+                    p.name === projectName ? { ...p, pmNotes: reformattedText } : p
+                )
+            }));
+            setIsDirty(true);
+            showToast("Éxito", "Notas optimizadas por IA", "success");
+        } catch (e) {
+            console.error("Reformat error", e);
+            showToast("Error", "No se pudo formatear el texto", "error");
+        } finally {
+            setIsReformattingAI(null);
         }
     };
 
@@ -822,12 +838,11 @@ export default function DailyFollowUp() {
                 projectName
             );
 
-            // [FIX] Auto-save the Journal Entry to prevent "orphaned tasks"
-            // This ensures meaningful notes are saved alongside the task
-            await handleSave();
-            setIsDirty(false); // [FIX] Force clear dirty state after task creation cycle
+            // [FIX] REMOVED handleSave() here to prevent UI hang/collision
+            // The task is created in Firestore anyway.
+            setIsDirty(true);
 
-            // Remove from suggestions
+            // Remove from suggestions IMMEDIATELY
             setAiSuggestions(prev => prev.filter(t => t !== taskDesc));
         } catch (e) {
             console.error("Error creating task", e);
@@ -1922,6 +1937,22 @@ export default function DailyFollowUp() {
                                                             </button>
                                                         </div>
                                                     )}
+
+                                                    {activeTab !== 'General' && (
+                                                        <button
+                                                            onClick={() => handleReformatProjectNotes(activeTab)}
+                                                            disabled={isReformattingAI === activeTab}
+                                                            className={cn("flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-all text-[10px] font-bold shadow-sm ml-auto",
+                                                                isLight
+                                                                    ? "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100"
+                                                                    : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20"
+                                                            )}
+                                                            title="Embellecer notas con IA"
+                                                        >
+                                                            {isReformattingAI === activeTab ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                            {isReformattingAI === activeTab ? 'Procesando...' : 'Embellecer'}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
 
@@ -2142,7 +2173,7 @@ export default function DailyFollowUp() {
                                                                                         className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
                                                                                         title={t('follow_up.dismiss')}
                                                                                     >
-                                                                                        <Activity className="w-3 h-3 rotate-45" />
+                                                                                        <X className="w-3 h-3" />
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
