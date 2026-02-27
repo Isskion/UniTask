@@ -783,17 +783,42 @@ export default function DailyFollowUp() {
             // [DEBUG] Monitor Deduplication Context
             console.log(`[Deduplication] Checking against ${tasksToCheck.length} loaded tasks.`);
 
-            suggestions = suggestions.map(suggestion => {
-                const duplicate = findDuplicate(suggestion, tasksToCheck, 0.75); // 75% threshold
+            // Use robust similarity check
+            const { calculateSimilarity } = await import("@/lib/deduplication");
 
-                if (duplicate) {
-                    return `POSIBLE TAREA EXISTENTE EN ${duplicate.friendlyId} (${duplicate.title}): ${suggestion}`;
+            // [FIX] Filter and Map suggestions
+            const processedSuggestions: string[] = [];
+
+            for (const suggestion of suggestions) {
+                // Find best match manually for more control
+                let maxSim = 0;
+                let bestMatch: Task | null = null;
+
+                for (const t of tasksToCheck) {
+                    const sim = calculateSimilarity(suggestion, t.title || "");
+                    if (sim > maxSim) {
+                        maxSim = sim;
+                        bestMatch = t;
+                    }
                 }
-                return suggestion;
-            });
 
-            setAiSuggestions(suggestions);
+                // 1. Strict Filtering: If it is a 90% match, skip it entirely
+                if (maxSim > 0.90) {
+                    console.log(`[Deduplication] Skipping "${suggestion}" (Matches ${bestMatch?.friendlyId}: ${maxSim.toFixed(2)})`);
+                    continue;
+                }
+
+                // 2. High Similarity warning (0.8 - 0.9)
+                if (maxSim > 0.8) {
+                    processedSuggestions.push(`⚠️ POSIBLE DUPLICADO (Ver ${bestMatch?.friendlyId}): ${suggestion}`);
+                } else {
+                    processedSuggestions.push(suggestion);
+                }
+            }
+
+            setAiSuggestions(processedSuggestions);
             setIsTasksPanelVisible(true); // Auto-open on success
+            showToast("IA", `Extracción completada: ${processedSuggestions.length} tareas detectadas.`, "success");
 
         } catch (e: any) {
             console.error("AI Error Full Details:", e);
@@ -832,6 +857,18 @@ export default function DailyFollowUp() {
                 }
             }
 
+            // [FIX] Double-Check Deduplication before creation (Final Safety)
+            // Even if it was extracted, the user might have created it manually in the meantime or clicked twice.
+            const { calculateSimilarity } = await import("@/lib/deduplication");
+            const existingMatch = projectTasks.find(t => calculateSimilarity(taskDesc, t.title || "") > 0.95);
+
+            if (existingMatch) {
+                showToast("Error", `La tarea ya existe (${existingMatch.friendlyId})`, "error");
+                // Remove from suggestions if present
+                setAiSuggestions(prev => prev.filter(s => s !== taskDesc));
+                return;
+            }
+
             // Verify payload before sending
             const taskData: any = {
                 weekId: entry.date, // Keep Date for legacy weekId
@@ -845,7 +882,8 @@ export default function DailyFollowUp() {
                 isActive: true,
                 createdBy: user.uid,
                 assignedTo: user.uid,
-                creationSource: source
+                creationSource: source,
+                aiGenerated: true // [NEW] Explicit Meta Tag
             };
             console.log("[DailyFollowUp] Creating Task Payload:", taskData);
 
@@ -2174,7 +2212,7 @@ export default function DailyFollowUp() {
 
                                                     {/* AI RESULTS AREA */}
                                                     {(aiSummary || aiSuggestions.length > 0) && (
-                                                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-hidden mb-4">
+                                                        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-3 relative overflow-visible mb-4 z-50 shadow-lg">
                                                             <div className="absolute top-0 left-0 w-1 h-full bg-primary/50" />
                                                             {/* ... rest of the panel ... */}
                                                             {aiSummary && (
