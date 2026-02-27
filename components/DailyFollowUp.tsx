@@ -670,7 +670,7 @@ export default function DailyFollowUp() {
                 }
 
                 // Create a single consolidated block with the new content
-                const consolidatedBlocks: NoteBlock[] = [{
+                const consolidatedBlocks: ContentBlock[] = [{
                     id: blocks[0]?.id || Date.now().toString(),
                     title: "Bitácora Profesional (IA)",
                     content: reformattedText,
