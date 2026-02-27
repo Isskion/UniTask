@@ -49,7 +49,7 @@ import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import AvailabilityManager from "./availability/AvailabilityManager"; // Added DispoPlan import
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
 import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
-import InterfaceManager from "./unileaks/InterfaceManager"; // UniLeaks Interface Manager
+import { ProjectInterfaces } from "./ProjectInterfaces";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
 // Helper to map language string to date-fns locale
@@ -223,7 +223,7 @@ export default function DailyFollowUp() {
         updatedAt: new Date().toISOString()
     });
 
-    const [activeTab, setActiveTab] = useState("General");
+    const [activeTab, setActiveTab] = useState("General"); // Stores "General" or Project ID
     useEffect(() => {
         // Reset AI state when context changes to prevent context bleeding
         setAiSummary("");
@@ -305,7 +305,7 @@ export default function DailyFollowUp() {
     }, [userRole, userProfile, globalProjects]);
 
     // Subscribe to tasks when Active Tab changes
-    const activeProject = globalProjects.find(p => p.name === activeTab);
+    const activeProject = globalProjects.find(p => p.id === activeTab || p.name === activeTab);
     const activeProjectId = activeProject?.id;
 
     useEffect(() => {
@@ -535,13 +535,13 @@ export default function DailyFollowUp() {
             });
         }
 
-        const isValid = activeProjects.some(p => p.name === activeTab);
+        const isValid = activeProjects.some(p => (p.projectId === activeTab) || (p.name === activeTab)) || activeTab === "General";
 
         if (!isValid) {
             // Current tab is invalid for this day (or restricted). Switch context.
             if (activeProjects.length > 0) {
                 // Focus first available/allowed project
-                setActiveTab(activeProjects[0].name);
+                setActiveTab(activeProjects[0].projectId || activeProjects[0].name);
             } else {
                 // Fallback to General
                 setActiveTab("General");
@@ -576,7 +576,7 @@ export default function DailyFollowUp() {
             const projectsByTenant = new Map<string, any[]>();
 
             for (const project of activeProjects) {
-                const projectInfo = globalProjects.find(gp => gp.name === project.name);
+                const projectInfo = globalProjects.find(gp => gp.id === project.projectId || gp.name === project.name);
                 // FIX: Use context tenantId as fallback. If masquerading as T4, we save as T4.
                 const projectTenant = projectInfo?.tenantId || tenantId || "1";
 
@@ -1046,7 +1046,7 @@ export default function DailyFollowUp() {
             }
 
             // 1. Get Source Content
-            const sourceProj = entry.projects.find(p => p.name === projectName);
+            const sourceProj = entry.projects.find(p => p.projectId === projectName || p.name === projectName);
             if (!sourceProj) return;
 
             // 2. Fetch Target Entry
@@ -1066,7 +1066,7 @@ export default function DailyFollowUp() {
             }
 
             // 4. Update Target
-            const existingTargetProjIndex = targetEntry.projects.findIndex(p => p.name === projectName);
+            const existingTargetProjIndex = targetEntry.projects.findIndex(p => p.projectId === projectName || p.name === projectName);
             const auditHeader = `\n\n📅 [MOVIDO] Entrada traída del día ${sourceDate} por ${user.email || user.displayName}:\n----------------------------------------\n`;
 
             if (existingTargetProjIndex !== -1) {
@@ -1102,7 +1102,7 @@ export default function DailyFollowUp() {
             // Replace content with trace
             const traceMessage = `➡ [REGISTRO] Entrada movida al día ${targetDate} por ${user.email || user.displayName}.`;
             const updatedSourceProjects = entry.projects.map(p => {
-                if (p.name === projectName) {
+                if (p.projectId === projectName || p.name === projectName) {
                     return {
                         ...p,
                         pmNotes: traceMessage,
@@ -1145,20 +1145,20 @@ export default function DailyFollowUp() {
         if (!userProfile) return [];
 
         const assignedIds = userProfile.assignedProjectIds || [];
-        const allowedNames = new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.name));
-        return activeOnly.filter(p => allowedNames.has(p.name));
+        const allowedIds = new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.id));
+        return activeOnly.filter(p => allowedIds.has(p.projectId || "") || allowedIds.has(globalProjects.find(gp => gp.name === p.name)?.id || ""));
     };
 
     const addProject = (projectToAdd: { name: string, id: string, code: string }) => {
-        const existing = entry.projects.find(p => p.name === projectToAdd.name);
+        const existing = entry.projects.find(p => p.projectId === projectToAdd.id || p.name === projectToAdd.name);
         if (existing) {
             if (existing.status === 'trash') {
                 setEntry(prev => ({
                     ...prev,
-                    projects: prev.projects.map(p => p.name === projectToAdd.name ? { ...p, status: 'active' } : p)
+                    projects: prev.projects.map(p => (p.projectId === projectToAdd.id || p.name === projectToAdd.name) ? { ...p, status: 'active' } : p)
                 }));
             }
-            setActiveTab(projectToAdd.name);
+            setActiveTab(projectToAdd.id);
         } else {
             setEntry(prev => ({
                 ...prev,
@@ -1171,7 +1171,7 @@ export default function DailyFollowUp() {
                     status: 'active'
                 }]
             }));
-            setActiveTab(projectToAdd.name);
+            setActiveTab(projectToAdd.id);
         }
     };
 
@@ -1179,7 +1179,7 @@ export default function DailyFollowUp() {
         if (activeTab === "General") {
             return { pmNotes: entry.generalNotes || "", conclusions: "", nextSteps: "" };
         }
-        const p = entry.projects.find(p => p.name === activeTab);
+        const p = entry.projects.find(p => p.projectId === activeTab || p.name === activeTab);
         return p || { pmNotes: "", conclusions: "", nextSteps: "" };
     };
 
@@ -1190,19 +1190,19 @@ export default function DailyFollowUp() {
             setEntry(prev => ({ ...prev, generalNotes: value }));
         } else {
             setEntry(prev => {
-                const exists = prev.projects.some(p => p.name === activeTab);
+                const exists = prev.projects.some(p => p.projectId === activeTab || p.name === activeTab);
                 if (exists) {
                     return {
                         ...prev,
-                        projects: prev.projects.map(p => p.name === activeTab ? { ...p, [field]: value } : p)
+                        projects: prev.projects.map(p => (p.projectId === activeTab || p.name === activeTab) ? { ...p, [field]: value } : p)
                     };
                 } else {
-                    const gp = globalProjects.find(g => g.name === activeTab);
+                    const gp = globalProjects.find(g => g.id === activeTab || g.name === activeTab);
                     return {
                         ...prev,
                         projects: [...prev.projects, {
-                            name: activeTab,
-                            projectId: gp?.id || "",
+                            name: gp?.name || activeTab,
+                            projectId: gp?.id || (activeTab !== 'General' ? activeTab : ""),
                             pmNotes: field === 'pmNotes' ? value : "",
                             conclusions: field === 'conclusions' ? value : "",
                             nextSteps: field === 'nextSteps' ? value : "",
@@ -1219,7 +1219,7 @@ export default function DailyFollowUp() {
     const getProjectBlocks = (projectName: string): ContentBlock[] => {
         if (projectName === "General") return []; // General only supports flat notes for now
         const target = projectName.trim().toLowerCase();
-        const p = entry.projects.find(p => (p.name || "").trim().toLowerCase() === target);
+        const p = entry.projects.find(p => (p.projectId === projectName) || (p.name || "").trim().toLowerCase() === target);
         if (!p) return [];
 
         // If no blocks, create a default one merging PM Notes, Conclusions and Next Steps (for legacy data)
@@ -1242,7 +1242,7 @@ export default function DailyFollowUp() {
         setEntry(prev => ({
             ...prev,
             projects: prev.projects.map(p => {
-                if (p.name !== projectName) return p;
+                if (p.projectId !== projectName && p.name !== projectName) return p;
                 const currentBlocks = (p.blocks && p.blocks.length > 0)
                     ? [...p.blocks]
                     : [{ id: 'default', title: t('follow_up.block_title_placeholder'), content: p.pmNotes || "", isCollapsed: false }];
@@ -1266,10 +1266,10 @@ export default function DailyFollowUp() {
             let targetProjects = [...prev.projects];
 
             if (!exists) {
-                const gp = globalProjects.find(g => g.name === projectName);
+                const gp = globalProjects.find(g => g.id === projectName || g.name === projectName);
                 targetProjects.push({
-                    name: projectName,
-                    projectId: gp?.id || "",
+                    name: gp?.name || projectName,
+                    projectId: gp?.id || (projectName !== 'General' ? projectName : ""),
                     pmNotes: "",
                     conclusions: "",
                     nextSteps: "",
@@ -1281,7 +1281,7 @@ export default function DailyFollowUp() {
             return {
                 ...prev,
                 projects: targetProjects.map(p => {
-                    if (p.name !== projectName) return p;
+                    if (p.projectId !== projectName && p.name !== projectName) return p;
 
                     // 1. Get ready state
                     const currentBlocks = (p.blocks && p.blocks.length > 0)
@@ -1308,7 +1308,7 @@ export default function DailyFollowUp() {
         setEntry(prev => ({
             ...prev,
             projects: prev.projects.map(p => {
-                if (p.name !== projectName) return p;
+                if (p.projectId !== projectName && p.name !== projectName) return p;
 
                 // Initialize if needed
                 const currentBlocks = (p.blocks && p.blocks.length > 0)
@@ -1338,7 +1338,7 @@ export default function DailyFollowUp() {
         setEntry(prev => ({
             ...prev,
             projects: prev.projects.map(p => {
-                if (p.name !== projectName) return p;
+                if (p.projectId !== projectName && p.name !== projectName) return p;
 
                 let currentBlocks = (p.blocks && p.blocks.length > 0)
                     ? [...p.blocks]
@@ -1361,7 +1361,7 @@ export default function DailyFollowUp() {
             const assignedIds = userProfile?.assignedProjectIds || [];
             pool = pool.filter(p => assignedIds.includes(p.id));
         }
-        const final = pool.filter(gp => !entry.projects.some(ep => ep.name === gp.name && ep.status !== 'trash'));
+        const final = pool.filter(gp => !entry.projects.some(ep => (ep.projectId === gp.id || ep.name === gp.name) && ep.status !== 'trash'));
         console.log("DEBUG: available to add:", final.length);
         return final;
     };
@@ -1881,10 +1881,10 @@ export default function DailyFollowUp() {
                                             const gp = globalProjects.find(g => g.name === p.name);
                                             return (
                                                 <button
-                                                    key={p.name}
-                                                    onClick={() => setActiveTab(p.name)}
+                                                    key={p.projectId || p.name}
+                                                    onClick={() => setActiveTab(p.projectId || p.name)}
                                                     className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
-                                                        activeTab === p.name
+                                                        (activeTab === p.projectId || activeTab === p.name)
                                                             ? (isLight
                                                                 ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
                                                                 : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
@@ -1968,9 +1968,29 @@ export default function DailyFollowUp() {
                                                         <PenSquare className="w-3 h-3" />
                                                         {activeTab === 'General'
                                                             ? t('follow_up.general_notes')
-                                                            : `${t('follow_up.minute')}: ${globalProjects.find(p => p.name === activeTab)?.code || activeTab.slice(0, 4)}`
+                                                            : `${t('follow_up.minute')}: ${globalProjects.find(p => p.id === activeTab || p.name === activeTab)?.name || activeTab.slice(0, 4)}`
                                                         }
                                                     </label>
+
+                                                    {activeTab !== 'General' && activeProject && (
+                                                        <div className="flex items-center gap-2 px-2 py-0.5 bg-card border rounded-md shadow-sm ring-1 ring-white/5 transition-all hover:border-primary/30">
+                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Code:</span>
+                                                            <span className="text-[10px] font-bold text-primary">{activeProject.code}</span>
+                                                            <div className="w-px h-3 bg-border mx-1" />
+                                                            <div className={cn(
+                                                                "flex items-center gap-1.5 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter text-[9px]",
+                                                                activeProject.status === 'active' ? "bg-emerald-500/10 text-emerald-500" :
+                                                                    activeProject.status === 'on_hold' ? "bg-amber-500/10 text-amber-500" :
+                                                                        "bg-zinc-500/10 text-zinc-500"
+                                                            )}>
+                                                                <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                                    activeProject.status === 'active' ? "bg-emerald-500 animate-pulse" :
+                                                                        activeProject.status === 'on_hold' ? "bg-amber-500" : "bg-zinc-500"
+                                                                )} />
+                                                                {activeProject.status}
+                                                            </div>
+                                                        </div>
+                                                    )}
 
                                                     {/* Sub-Tabs Selector (Project Views) */}
                                                     {activeTab !== 'General' && (
@@ -1979,7 +1999,7 @@ export default function DailyFollowUp() {
                                                                 onClick={() => setActiveSubTab('notes')}
                                                                 className={cn(
                                                                     "px-3 py-1 text-[10px] font-bold rounded-md transition-all",
-                                                                    activeSubTab === 'notes' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                    activeSubTab === 'notes' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
                                                                 )}
                                                             >
                                                                 Bitácora
@@ -1988,7 +2008,7 @@ export default function DailyFollowUp() {
                                                                 onClick={() => setActiveSubTab('feed')}
                                                                 className={cn(
                                                                     "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'feed' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                    activeSubTab === 'feed' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
                                                                 )}
                                                             >
                                                                 <Activity className="w-3 h-3" />
@@ -1998,7 +2018,7 @@ export default function DailyFollowUp() {
                                                                 onClick={() => setActiveSubTab('tasks')}
                                                                 className={cn(
                                                                     "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'tasks' ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                                    activeSubTab === 'tasks' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
                                                                 )}
                                                             >
                                                                 <CheckSquare className="w-3 h-3" />
@@ -2008,7 +2028,7 @@ export default function DailyFollowUp() {
                                                                 onClick={() => setActiveSubTab('interfaces')}
                                                                 className={cn(
                                                                     "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm border border-primary/20" : "text-muted-foreground hover:text-foreground"
+                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
                                                                 )}
                                                             >
                                                                 <History className="w-3 h-3" />
@@ -2052,16 +2072,17 @@ export default function DailyFollowUp() {
                                                 <div className="flex-1 flex flex-col gap-4 min-h-0 relative overflow-hidden">
                                                     {activeSubTab === 'interfaces' ? (
                                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                            <InterfaceManager
-                                                                projectId={globalProjects.find(p => p.name === activeTab)?.id || ""}
-                                                                projectName={activeTab}
+                                                            <ProjectInterfaces
+                                                                project={activeProject!}
+                                                                tenantId={tenantId || "1"}
+                                                                compact={true}
                                                             />
                                                         </div>
                                                     ) : activeSubTab === 'feed' ? (
                                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                             <ProjectActivityFeed
-                                                                projectId={globalProjects.find(p => p.name === activeTab)?.id || ""}
-                                                                projectName={activeTab}
+                                                                projectId={activeProjectId || ""}
+                                                                projectName={activeProject?.name || activeTab}
                                                             />
                                                         </div>
                                                     ) : activeSubTab === 'tasks' ? (
@@ -2173,7 +2194,7 @@ export default function DailyFollowUp() {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <label className={cn("text-xs font-bold uppercase flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
                                                         <ListTodo className={cn("w-3 h-3", isLight ? "text-zinc-900" : "text-white")} />
-                                                        {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeTab}`}
+                                                        {activeTab === 'General' ? t('follow_up.all_active_tasks') : `${t('follow_up.active_tasks')}: ${activeProject?.name || activeTab}`}
                                                     </label>
                                                     <button
                                                         onClick={() => handleAI()}

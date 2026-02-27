@@ -5,7 +5,7 @@ import {
     Search, Plus, ArrowLeft, Code, FileJson, FileText,
     Trash2, ExternalLink, CheckCircle2, MoreVertical,
     Save, X, Loader2, AlertCircle, FileCode, Check,
-    LayoutDashboard, Edit2
+    LayoutDashboard, Edit2, CloudUpload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, InterfaceEntry, InterfaceVersion } from "@/types";
@@ -13,6 +13,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
+import { useFileUploader } from "@/hooks/useFileUploader";
 import { db } from "@/lib/firebase";
 import {
     collection, query, where, getDocs, doc, setDoc
@@ -28,9 +29,10 @@ import { InterfaceReport } from "./InterfaceReport";
 interface ProjectInterfacesProps {
     project: Project;
     tenantId: string;
+    compact?: boolean;
 }
 
-export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps) {
+export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfacesProps) {
     const { t } = useLanguage();
     const { theme } = useTheme();
     const { showToast } = useToast();
@@ -46,6 +48,13 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [showReport, setShowReport] = useState(false);
+
+    // Version Addition States
+    const [isAddingVersion, setIsAddingVersion] = useState(false);
+    const [versionName, setVersionName] = useState("");
+    const [versionNotes, setVersionNotes] = useState("");
+    const { uploadFile, uploading, progress } = useFileUploader();
+
     const [saving, setSaving] = useState(false);
     const [newInterface, setNewInterface] = useState<Partial<InterfaceEntry>>({
         name: "",
@@ -151,6 +160,46 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
         }
     };
 
+    const handleAddVersion = async (file: File) => {
+        if (!selectedInterface || !user) return;
+
+        try {
+            const storagePath = `projects/${project.id}/interfaces/${selectedInterface.id}/${Date.now()}_${file.name}`;
+            const result = await uploadFile(file, storagePath);
+
+            if (result) {
+                const newVersion: InterfaceVersion = {
+                    id: crypto.randomUUID(),
+                    versionName: versionName || `Version ${selectedInterface.versions.length + 1}`,
+                    fileUrl: result.url,
+                    fileName: file.name,
+                    fileType: file.name.split('.').pop() || 'txt',
+                    isProduction: false,
+                    uploadedBy: user.uid,
+                    uploadedAt: new Date().toISOString(),
+                    notes: versionNotes
+                };
+
+                const updatedVersions = [newVersion, ...selectedInterface.versions];
+
+                await updateInterfaceVersions(project.id, selectedInterface.id, updatedVersions);
+
+                // Update Local State
+                const updatedInterface = { ...selectedInterface, versions: updatedVersions };
+                setSelectedInterface(updatedInterface);
+                setInterfaces(prev => prev.map(i => i.id === selectedInterface.id ? updatedInterface : i));
+
+                setVersionName("");
+                setVersionNotes("");
+                setIsAddingVersion(false);
+                showToast("Interfaces", "Versión añadida correctamente", "success");
+            }
+        } catch (error) {
+            console.error("Error adding version:", error);
+            showToast("Interfaces", "Error al añadir la versión", "error");
+        }
+    };
+
     const migrateLegacyData = async () => {
         setLoading(true);
         try {
@@ -197,6 +246,174 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
     const filteredInterfaces = interfaces.filter(i =>
         i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         i.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const renderModals = () => (
+        <>
+            {showCreateModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div
+                        className={cn(
+                            "w-full max-w-xl max-h-[90vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300",
+                            isLight ? "bg-white border-zinc-200" : "bg-zinc-950 border-white/10"
+                        )}
+                    >
+                        <div className="p-6 border-b flex justify-between items-center bg-black/5">
+                            <h3 className="text-lg font-bold">{isEditing ? `Editar: ${newInterface.name}` : "Nueva Interfaz"}</h3>
+                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1 hover:bg-black/5 rounded-full">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre *</label>
+                                <input
+                                    type="text"
+                                    value={newInterface.name}
+                                    onChange={e => setNewInterface({ ...newInterface, name: e.target.value })}
+                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                    placeholder="ej: Syncout Orders v1"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground">URL de la Interfaz</label>
+                                <input
+                                    type="text"
+                                    value={newInterface.url}
+                                    onChange={e => setNewInterface({ ...newInterface, url: e.target.value })}
+                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                    placeholder="https://api.servicios.com/v1"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Client ID</label>
+                                    <input
+                                        type="text"
+                                        value={newInterface.clientId}
+                                        onChange={e => setNewInterface({ ...newInterface, clientId: e.target.value })}
+                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                        placeholder="ID de cliente"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Secret</label>
+                                    <input
+                                        type="password"
+                                        value={newInterface.clientSecret}
+                                        onChange={e => setNewInterface({ ...newInterface, clientSecret: e.target.value })}
+                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Descripción</label>
+                                <textarea
+                                    value={newInterface.description}
+                                    onChange={e => setNewInterface({ ...newInterface, description: e.target.value })}
+                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                    placeholder="Explica qué hace esta interfaz..."
+                                />
+                            </div>
+                        </div>
+                        <div className="p-6 border-t bg-black/5 flex justify-end gap-3">
+                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-6 py-2 text-sm font-bold opacity-60 hover:opacity-100 transition-all">Cancelar</button>
+                            <button
+                                onClick={handleCreate}
+                                disabled={saving}
+                                className="px-8 py-2 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center gap-2"
+                            >
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                {isEditing ? "Guardar Cambios" : "Crear Interfaz"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showReport && (
+                <InterfaceReport
+                    project={project}
+                    interfaces={interfaces}
+                    onClose={() => setShowReport(false)}
+                />
+            )}
+
+            {isAddingVersion && selectedInterface && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className={cn("w-full max-w-md rounded-2xl border shadow-2xl p-6 space-y-4", isLight ? "bg-white" : "bg-zinc-900 border-zinc-800")}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold">Nueva Versión: {selectedInterface.name}</h3>
+                            <button onClick={() => setIsAddingVersion(false)} className="text-zinc-500 hover:text-red-500 transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Nombre de Versión</label>
+                                <input
+                                    type="text"
+                                    value={versionName}
+                                    onChange={(e) => setVersionName(e.target.value)}
+                                    placeholder="ej. v1.2, Release Candidate..."
+                                    className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Notas (Opcional)</label>
+                                <textarea
+                                    value={versionNotes}
+                                    onChange={(e) => setVersionNotes(e.target.value)}
+                                    placeholder="¿Qué incluye esta versión?"
+                                    className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
+                                />
+                            </div>
+
+                            <div className="pt-2">
+                                <input
+                                    type="file"
+                                    id="version-file-upload"
+                                    className="hidden"
+                                    onChange={(e) => e.target.files?.[0] && handleAddVersion(e.target.files[0])}
+                                />
+                                <label
+                                    htmlFor="version-file-upload"
+                                    className={cn(
+                                        "w-full flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all",
+                                        isLight ? "bg-zinc-50 border-zinc-200 hover:border-primary/50" : "bg-black/50 border-zinc-800 hover:border-primary/50",
+                                        uploading ? "opacity-50 pointer-events-none" : ""
+                                    )}
+                                >
+                                    {uploading ? (
+                                        <>
+                                            <Loader2 className="w-8 h-8 animate-spin mb-2 text-primary" />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Subiendo {Math.round(progress)}%...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CloudUpload className="w-8 h-8 mb-2 text-zinc-500" />
+                                            <span className="text-sm font-medium">Click para seleccionar archivo</span>
+                                            <span className="text-[10px] opacity-60 mt-1 uppercase tracking-tighter">JSON, XML, PDF, TXT...</span>
+                                        </>
+                                    )}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <button
+                                onClick={() => setIsAddingVersion(false)}
+                                className={cn("flex-1 py-3 rounded-xl font-bold text-sm transition-colors", isLight ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700")}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 
     if (selectedInterface) {
@@ -283,10 +500,19 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
 
                         {/* Attachments / Versions */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                Adjuntos / Versiones
-                            </h3>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    Adjuntos / Versiones
+                                </h3>
+                                <button
+                                    onClick={() => setIsAddingVersion(true)}
+                                    className="p-1 px-3 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-all text-[10px] font-bold"
+                                >
+                                    <Plus className="w-3 h-3 inline mr-1" />
+                                    Añadir
+                                </button>
+                            </div>
                             <div className="space-y-2">
                                 {selectedInterface.versions.length === 0 ? (
                                     <div className="p-8 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center opacity-40">
@@ -348,6 +574,78 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                         </div>
                     </div>
                 </div>
+                {renderModals()}
+            </div>
+        );
+    }
+    if (compact) {
+        return (
+            <div className="flex flex-col h-full bg-background p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                        <NetworkIcon className="w-4 h-4 text-primary" />
+                        Interfaces del Proyecto
+                    </h3>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowReport(true)}
+                            className={cn(
+                                "p-1.5 rounded-lg border transition-all flex items-center gap-2 px-3 text-[10px] font-bold hover:bg-black/5",
+                                isLight ? "border-zinc-200 text-zinc-600" : "border-white/10 text-zinc-400"
+                            )}
+                            title="Imprimir Informe de Interfaces"
+                        >
+                            <Printer className="w-3.5 h-3.5" /> {t('follow_up.print') || 'Imprimir'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                resetForm();
+                                setShowCreateModal(true);
+                            }}
+                            className="p-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-all flex items-center gap-2 px-3 font-bold text-[10px]"
+                        >
+                            <Plus className="w-3.5 h-3.5" /> Nueva
+                        </button>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="flex-1 flex items-center justify-center opacity-40">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                    </div>
+                ) : filteredInterfaces.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed rounded-xl opacity-30 py-8">
+                        <FileJson className="w-8 h-8 mb-2" />
+                        <p className="text-xs">No hay interfaces</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 overflow-y-auto custom-scrollbar pr-1">
+                        {filteredInterfaces.map(i => (
+                            <button
+                                key={i.id}
+                                onClick={() => handleEdit(i)}
+                                className={cn(
+                                    "group flex flex-col items-center justify-center p-3 rounded-xl border transition-all hover:scale-105 active:scale-95 text-center relative overflow-hidden",
+                                    isLight
+                                        ? "bg-white border-zinc-200 hover:border-primary/50 hover:shadow-md"
+                                        : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-primary/30"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-8 h-8 rounded-lg flex items-center justify-center mb-2 transition-colors",
+                                    isLight ? "bg-zinc-100 text-zinc-500 group-hover:bg-primary/10 group-hover:text-primary" : "bg-white/5 text-zinc-400 group-hover:text-primary"
+                                )}>
+                                    <FileCode className="w-4 h-4" />
+                                </div>
+                                <span className="text-[10px] font-bold truncate w-full px-1">{i.name}</span>
+                                {i.versions.some(v => v.isProduction) && (
+                                    <div className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Producción activa" />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                {renderModals()}
             </div>
         );
     }
@@ -473,122 +771,27 @@ export function ProjectInterfaces({ project, tenantId }: ProjectInterfacesProps)
                     ))}
                 </div>
             )}
-
-            {/* Create Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div
-                        className={cn(
-                            "w-full max-w-xl max-h-[90vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300",
-                            isLight ? "bg-white border-zinc-200" : "bg-zinc-950 border-white/10"
-                        )}
-                    >
-                        <div className="p-6 border-b flex justify-between items-center bg-black/5">
-                            <h3 className="text-lg font-bold">{isEditing ? `Editar: ${newInterface.name}` : "Nueva Interfaz"}</h3>
-                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1 hover:bg-black/5 rounded-full">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre *</label>
-                                <input
-                                    type="text"
-                                    value={newInterface.name}
-                                    onChange={e => setNewInterface({ ...newInterface, name: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="ej: Syncout Orders v1"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">URL de la Interfaz</label>
-                                <input
-                                    type="text"
-                                    value={newInterface.url}
-                                    onChange={e => setNewInterface({ ...newInterface, url: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="https://api.servicios.com/v1"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Client ID</label>
-                                    <input
-                                        type="text"
-                                        value={newInterface.clientId}
-                                        onChange={e => setNewInterface({ ...newInterface, clientId: e.target.value })}
-                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                        placeholder="ID de cliente"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Secret</label>
-                                    <input
-                                        type="password"
-                                        value={newInterface.clientSecret}
-                                        onChange={e => setNewInterface({ ...newInterface, clientSecret: e.target.value })}
-                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Descripción</label>
-                                <textarea
-                                    value={newInterface.description}
-                                    onChange={e => setNewInterface({ ...newInterface, description: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="Explica qué hace esta interfaz..."
-                                />
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-2 space-y-1">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Tipo</label>
-                                    <select
-                                        value={newInterface.formatType}
-                                        onChange={e => setNewInterface({ ...newInterface, formatType: e.target.value as any })}
-                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none appearance-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    >
-                                        <option value="json">JSON</option>
-                                        <option value="xml">XML</option>
-                                        <option value="txt">TXT</option>
-                                        <option value="other">Otro</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Contenido (Snippet)</label>
-                                <textarea
-                                    value={newInterface.formatContent}
-                                    onChange={e => setNewInterface({ ...newInterface, formatContent: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm font-mono outline-none min-h-[150px]", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="Pega aquí el contenido JSON/XML..."
-                                />
-                            </div>
-                        </div>
-                        <div className="p-6 border-t bg-black/5 flex justify-end gap-3">
-                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-6 py-2 text-sm font-bold opacity-60 hover:opacity-100">Cancelar</button>
-                            <button
-                                onClick={handleCreate}
-                                disabled={saving}
-                                className="px-8 py-2 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center gap-2"
-                            >
-                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                {isEditing ? "Guardar Cambios" : "Crear Interfaz"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showReport && (
-                <InterfaceReport
-                    project={project}
-                    interfaces={interfaces}
-                    onClose={() => setShowReport(false)}
-                />
-            )}
+            {renderModals()}
         </div>
+    );
+}
+
+function Printer({ className }: { className?: string }) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+        >
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+        </svg>
     );
 }
 
@@ -610,5 +813,5 @@ function NetworkIcon({ className }: { className?: string }) {
             <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
             <path d="M12 12V8" />
         </svg>
-    )
+    );
 }
