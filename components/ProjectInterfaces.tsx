@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
     Search, Plus, ArrowLeft, Code, FileJson, FileText,
     Trash2, ExternalLink, CheckCircle2, MoreVertical,
@@ -57,6 +58,12 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
     const { uploadFile, uploading, progress } = useFileUploader();
 
     const [saving, setSaving] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     const [newInterface, setNewInterface] = useState<Partial<InterfaceEntry>>({
         name: "",
         description: "",
@@ -249,173 +256,219 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
         i.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const renderModals = () => (
-        <>
-            {showCreateModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div
-                        className={cn(
-                            "w-full max-w-xl max-h-[90vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300",
-                            isLight ? "bg-white border-zinc-200" : "bg-zinc-950 border-white/10"
-                        )}
-                    >
-                        <div className="p-6 border-b flex justify-between items-center bg-black/5">
-                            <h3 className="text-lg font-bold">{isEditing ? `Editar: ${newInterface.name}` : "Nueva Interfaz"}</h3>
-                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1 hover:bg-black/5 rounded-full">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre *</label>
-                                <input
-                                    type="text"
-                                    value={newInterface.name}
-                                    onChange={e => setNewInterface({ ...newInterface, name: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="ej: Syncout Orders v1"
-                                />
+    const renderModals = () => {
+        if (!isClient) return null;
+
+        const modalContent = (
+            <>
+                {showCreateModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div
+                            className={cn(
+                                "w-full flex flex-col rounded-3xl border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300",
+                                compact ? "max-w-md max-h-[80vh]" : "max-w-xl max-h-[90vh]",
+                                isLight ? "bg-white border-zinc-200" : "bg-zinc-950 border-white/10"
+                            )}
+                        >
+                            <div className={cn("p-6 border-b flex justify-between items-center transition-colors", compact ? "bg-primary/5 border-primary/10" : "bg-black/5")}>
+                                <div className="flex items-center gap-3">
+                                    {compact && <NetworkIcon className="w-5 h-5 text-primary" />}
+                                    <h3 className="text-lg font-bold">
+                                        {isEditing ? `Editar: ${newInterface.name}` : "Nueva Interfaz"}
+                                    </h3>
+                                </div>
+                                <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">URL de la Interfaz</label>
-                                <input
-                                    type="text"
-                                    value={newInterface.url}
-                                    onChange={e => setNewInterface({ ...newInterface, url: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="https://api.servicios.com/v1"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Client ID</label>
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre de la Interfaz *</label>
                                     <input
                                         type="text"
-                                        value={newInterface.clientId}
-                                        onChange={e => setNewInterface({ ...newInterface, clientId: e.target.value })}
-                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                        placeholder="ID de cliente"
+                                        value={newInterface.name}
+                                        onChange={e => setNewInterface({ ...newInterface, name: e.target.value })}
+                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                        placeholder="ej: Syncout Orders v1"
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Secret</label>
-                                    <input
-                                        type="password"
-                                        value={newInterface.clientSecret}
-                                        onChange={e => setNewInterface({ ...newInterface, clientSecret: e.target.value })}
-                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                        placeholder="••••••••"
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">URL del Endpoint</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={newInterface.url}
+                                            onChange={e => setNewInterface({ ...newInterface, url: e.target.value })}
+                                            className={cn("w-full border rounded-xl pl-4 pr-10 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                            placeholder="https://api.servicios.com/v1"
+                                        />
+                                        <CloudUpload className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 opacity-20" />
+                                    </div>
+                                </div>
+
+                                {compact ? (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-muted-foreground">Credenciales (ID / Secret)</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newInterface.clientId}
+                                                    onChange={e => setNewInterface({ ...newInterface, clientId: e.target.value })}
+                                                    className={cn("flex-1 border rounded-xl px-4 py-2 text-[10px] outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                                    placeholder="Client ID"
+                                                />
+                                                <input
+                                                    type="password"
+                                                    value={newInterface.clientSecret}
+                                                    onChange={e => setNewInterface({ ...newInterface, clientSecret: e.target.value })}
+                                                    className={cn("flex-1 border rounded-xl px-4 py-2 text-[10px] outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                                    placeholder="Secret Key"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-muted-foreground">Client ID</label>
+                                            <input
+                                                type="text"
+                                                value={newInterface.clientId}
+                                                onChange={e => setNewInterface({ ...newInterface, clientId: e.target.value })}
+                                                className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                                placeholder="ID de cliente"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-muted-foreground">Secret Key</label>
+                                            <input
+                                                type="password"
+                                                value={newInterface.clientSecret}
+                                                onChange={e => setNewInterface({ ...newInterface, clientSecret: e.target.value })}
+                                                className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                                placeholder="••••••••"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground">Descripción de la Integración</label>
+                                    <textarea
+                                        value={newInterface.description}
+                                        onChange={e => setNewInterface({ ...newInterface, description: e.target.value })}
+                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none min-h-[80px] resize-none", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
+                                        placeholder="Explica qué hace esta interfaz..."
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] uppercase font-bold text-muted-foreground">Descripción</label>
-                                <textarea
-                                    value={newInterface.description}
-                                    onChange={e => setNewInterface({ ...newInterface, description: e.target.value })}
-                                    className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-white/5 border-white/10")}
-                                    placeholder="Explica qué hace esta interfaz..."
-                                />
-                            </div>
-                        </div>
-                        <div className="p-6 border-t bg-black/5 flex justify-end gap-3">
-                            <button onClick={() => { setShowCreateModal(false); resetForm(); }} className="px-6 py-2 text-sm font-bold opacity-60 hover:opacity-100 transition-all">Cancelar</button>
-                            <button
-                                onClick={handleCreate}
-                                disabled={saving}
-                                className="px-8 py-2 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/20 flex items-center gap-2"
-                            >
-                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                {isEditing ? "Guardar Cambios" : "Crear Interfaz"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showReport && (
-                <InterfaceReport
-                    project={project}
-                    interfaces={interfaces}
-                    onClose={() => setShowReport(false)}
-                />
-            )}
-
-            {isAddingVersion && selectedInterface && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    <div className={cn("w-full max-w-md rounded-2xl border shadow-2xl p-6 space-y-4", isLight ? "bg-white" : "bg-zinc-900 border-zinc-800")}>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Nueva Versión: {selectedInterface.name}</h3>
-                            <button onClick={() => setIsAddingVersion(false)} className="text-zinc-500 hover:text-red-500 transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Nombre de Versión</label>
-                                <input
-                                    type="text"
-                                    value={versionName}
-                                    onChange={(e) => setVersionName(e.target.value)}
-                                    placeholder="ej. v1.2, Release Candidate..."
-                                    className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
-                                />
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Notas (Opcional)</label>
-                                <textarea
-                                    value={versionNotes}
-                                    onChange={(e) => setVersionNotes(e.target.value)}
-                                    placeholder="¿Qué incluye esta versión?"
-                                    className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
-                                />
-                            </div>
-
-                            <div className="pt-2">
-                                <input
-                                    type="file"
-                                    id="version-file-upload"
-                                    className="hidden"
-                                    onChange={(e) => e.target.files?.[0] && handleAddVersion(e.target.files[0])}
-                                />
-                                <label
-                                    htmlFor="version-file-upload"
-                                    className={cn(
-                                        "w-full flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all",
-                                        isLight ? "bg-zinc-50 border-zinc-200 hover:border-primary/50" : "bg-black/50 border-zinc-800 hover:border-primary/50",
-                                        uploading ? "opacity-50 pointer-events-none" : ""
-                                    )}
+                            <div className={cn("p-6 border-t flex gap-3 transition-colors", compact ? "bg-primary/5" : "bg-black/5")}>
+                                <button
+                                    onClick={() => { setShowCreateModal(false); resetForm(); }}
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-bold opacity-60 hover:opacity-100 transition-all"
                                 >
-                                    {uploading ? (
-                                        <>
-                                            <Loader2 className="w-8 h-8 animate-spin mb-2 text-primary" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Subiendo {Math.round(progress)}%...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CloudUpload className="w-8 h-8 mb-2 text-zinc-500" />
-                                            <span className="text-sm font-medium">Click para seleccionar archivo</span>
-                                            <span className="text-[10px] opacity-60 mt-1 uppercase tracking-tighter">JSON, XML, PDF, TXT...</span>
-                                        </>
-                                    )}
-                                </label>
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleCreate}
+                                    disabled={saving || !newInterface.name}
+                                    className="flex-[2] px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold shadow-lg shadow-primary/20 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                >
+                                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEditing ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />)}
+                                    {isEditing ? "Actualizar" : "Crear Interfaz"}
+                                </button>
                             </div>
                         </div>
+                    </div>
+                )}
 
-                        <div className="flex gap-2 pt-2">
-                            <button
-                                onClick={() => setIsAddingVersion(false)}
-                                className={cn("flex-1 py-3 rounded-xl font-bold text-sm transition-colors", isLight ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700")}
-                            >
-                                Cancelar
-                            </button>
+                {showReport && (
+                    <InterfaceReport
+                        project={project}
+                        interfaces={interfaces}
+                        onClose={() => setShowReport(false)}
+                    />
+                )}
+
+                {isAddingVersion && selectedInterface && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className={cn("w-full max-w-md rounded-2xl border shadow-2xl p-6 space-y-4", isLight ? "bg-white" : "bg-zinc-900 border-zinc-800")}>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold">Nueva Versión: {selectedInterface.name}</h3>
+                                <button onClick={() => setIsAddingVersion(false)} className="text-zinc-500 hover:text-red-500 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Nombre de Versión</label>
+                                    <input
+                                        type="text"
+                                        value={versionName}
+                                        onChange={(e) => setVersionName(e.target.value)}
+                                        placeholder="ej. v1.2, Release Candidate..."
+                                        className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5 block">Notas (Opcional)</label>
+                                    <textarea
+                                        value={versionNotes}
+                                        onChange={(e) => setVersionNotes(e.target.value)}
+                                        placeholder="¿Qué incluye esta versión?"
+                                        className={cn("w-full border rounded-xl px-4 py-2.5 text-sm outline-none min-h-[80px]", isLight ? "bg-zinc-50" : "bg-black border-zinc-800")}
+                                    />
+                                </div>
+
+                                <div className="pt-2">
+                                    <input
+                                        type="file"
+                                        id="version-file-upload"
+                                        className="hidden"
+                                        onChange={(e) => e.target.files?.[0] && handleAddVersion(e.target.files[0])}
+                                    />
+                                    <label
+                                        htmlFor="version-file-upload"
+                                        className={cn(
+                                            "w-full flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-all",
+                                            isLight ? "bg-zinc-50 border-zinc-200 hover:border-primary/50" : "bg-black/50 border-zinc-800 hover:border-primary/50",
+                                            uploading ? "opacity-50 pointer-events-none" : ""
+                                        )}
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <Loader2 className="w-8 h-8 animate-spin mb-2 text-primary" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Subiendo {Math.round(progress)}%...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CloudUpload className="w-8 h-8 mb-2 text-zinc-500" />
+                                                <span className="text-sm font-medium">Click para seleccionar archivo</span>
+                                                <span className="text-[10px] opacity-60 mt-1 uppercase tracking-tighter">JSON, XML, PDF, TXT...</span>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    onClick={() => setIsAddingVersion(false)}
+                                    className={cn("flex-1 py-3 rounded-xl font-bold text-sm transition-colors", isLight ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700")}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </>
-    );
+                )}
+            </>
+        );
+
+        return createPortal(modalContent, document.body);
+    };
 
     if (selectedInterface) {
         return (

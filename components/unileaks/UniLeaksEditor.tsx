@@ -24,7 +24,9 @@ import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { PaintRoller, ClipboardCopy } from "lucide-react";
 import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
+import { FontSize, FontFamily } from "@/lib/tiptap-extensions/Typography";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
 import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePickerModal";
 import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
@@ -69,6 +71,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
     const [showTemplatePicker, setShowTemplatePicker] = useState(false);
     const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
+
+    // Format Painter State
+    const [storedFormat, setStoredFormat] = useState<{ marks: any[], attributes: any } | null>(null);
+    const [painterMode, setPainterMode] = useState<'none' | 'single' | 'multiple'>('none');
 
     // --- LOAD TENANT DICTIONARY ON MOUNT ---
     useEffect(() => {
@@ -137,6 +143,8 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     }
                 },
             }),
+            FontSize,
+            FontFamily,
         ],
         content: note.content || "",
         editorProps: {
@@ -207,7 +215,46 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 setAutoSaveStatus('dirty');
             }
         },
+        onSelectionUpdate: ({ editor }) => {
+            if (painterMode !== 'none' && !editor.state.selection.empty) {
+                handleApplyFormat();
+            }
+        },
     });
+
+    const handleCopyFormat = useCallback(() => {
+        if (!editor) return;
+        const { from, to } = editor.state.selection;
+        const marks = editor.state.doc.slice(from, to).content.firstChild?.marks || [];
+        setStoredFormat({
+            marks: marks.map(m => ({ type: m.type.name, attrs: m.attrs })),
+            attributes: {} // Could expand to node attributes if needed
+        });
+        showToast("Formato Copiado", "Haz clic en otro texto para aplicarlo.", "info");
+    }, [editor, showToast]);
+
+    const handleApplyFormat = useCallback(() => {
+        if (!editor || !storedFormat) return;
+
+        let chain = editor.chain().focus();
+        storedFormat.marks.forEach(m => {
+            chain = chain.setMark(m.type, m.attrs);
+        });
+        chain.run();
+
+        if (painterMode === 'single') {
+            setPainterMode('none');
+        }
+    }, [editor, storedFormat, painterMode]);
+
+    const togglePainterMode = useCallback((mode: 'single' | 'multiple') => {
+        if (painterMode === mode) {
+            setPainterMode('none');
+        } else {
+            handleCopyFormat();
+            setPainterMode(mode);
+        }
+    }, [painterMode, handleCopyFormat]);
 
     // Update local state when a new note prop comes in
     useEffect(() => {
@@ -748,6 +795,17 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             >
                                 <BookMarked className="w-4 h-4" />
                             </button>
+                            <button
+                                onClick={() => togglePainterMode('single')}
+                                onDoubleClick={() => togglePainterMode('multiple')}
+                                title="Copiar Formato (Doble clic para modo múltiple)"
+                                className={cn(
+                                    "px-3 py-2 text-sm hover:bg-muted transition-colors",
+                                    painterMode !== 'none' ? "bg-amber-500 text-white" : "text-amber-600"
+                                )}
+                            >
+                                <PaintRoller className="w-4 h-4" />
+                            </button>
                         </BubbleMenu>
                     )}
                     <EditorContent
@@ -787,6 +845,9 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             wordUnderCursor={contextMenu.word}
                             onClose={() => setContextMenu(prev => ({ ...prev, visible: false }))}
                             onAddToDictionary={handleAddWordToDictionary}
+                            canPasteFormat={!!storedFormat}
+                            onCopyFormat={handleCopyFormat}
+                            onPasteFormat={handleApplyFormat}
                         />
                     )}
                 </div>

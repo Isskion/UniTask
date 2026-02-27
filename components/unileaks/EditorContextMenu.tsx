@@ -6,7 +6,9 @@ import {
     Bold, Italic, Strikethrough, Heading2,
     Quote, List, Code, BookMarked,
     Highlighter, ChevronRight, X,
-    Circle, Square, Minus, MoveRight
+    Circle, Square, Minus, MoveRight,
+    PaintRoller, ClipboardCopy,
+    Type, ChevronDown, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +20,9 @@ interface EditorContextMenuProps {
     wordUnderCursor: string | null;
     onClose: () => void;
     onAddToDictionary: (word: string) => Promise<void>;
+    canPasteFormat: boolean;
+    onCopyFormat: () => void;
+    onPasteFormat: () => void;
 }
 
 export default function EditorContextMenu({
@@ -28,6 +33,9 @@ export default function EditorContextMenu({
     wordUnderCursor,
     onClose,
     onAddToDictionary,
+    canPasteFormat,
+    onCopyFormat,
+    onPasteFormat,
 }: EditorContextMenuProps) {
     const menuRef = useRef<HTMLDivElement>(null);
     const [adjustedPos, setAdjustedPos] = useState({ top: y, left: x });
@@ -195,6 +203,71 @@ export default function EditorContextMenu({
                 </div>
             </div>
 
+            {/* Typography Group */}
+            <div className="px-2 pb-1.5 mb-1.5 border-b border-border">
+                <p className="px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-muted-foreground flex items-center gap-1.5">
+                    <Type className="w-3 h-3" /> Tipografía
+                </p>
+                <div className="space-y-2 px-1">
+                    {/* Font Family Selector */}
+                    <div className="relative group/font">
+                        <select
+                            onChange={(e) => {
+                                (editor.chain().focus() as any).setFontFamily(e.target.value).run();
+                                onClose();
+                            }}
+                            value={editor.getAttributes('fontFamily').font || 'Inter'}
+                            className="w-full bg-muted/50 hover:bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none appearance-none cursor-pointer transition-colors"
+                        >
+                            <option value="Inter">Inter (Estándar)</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New (Mono)</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
+                    </div>
+
+                    {/* Font Size Selector */}
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => {
+                                const current = parseInt(editor.getAttributes('fontSize').size || '16');
+                                (editor.chain().focus() as any).setFontSize(`${Math.max(8, current - 2)}px`).run();
+                            }}
+                            className="p-1 px-2 hover:bg-muted border border-border rounded-lg transition-colors"
+                            title="Reducir tamaño"
+                        >
+                            <Minus className="w-3 h-3" />
+                        </button>
+
+                        <div className="flex-1 min-w-0 relative">
+                            <input
+                                type="number"
+                                value={parseInt(editor.getAttributes('fontSize').size || '16')}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    if (val > 0) (editor.chain().focus() as any).setFontSize(`${val}px`).run();
+                                }}
+                                className="w-full bg-muted/50 border border-border rounded-lg px-2 py-1 text-xs text-center font-bold focus:outline-none focus:border-primary transition-all"
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-30 pointer-events-none">pt</span>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                const current = parseInt(editor.getAttributes('fontSize').size || '16');
+                                (editor.chain().focus() as any).setFontSize(`${Math.min(72, current + 2)}px`).run();
+                            }}
+                            className="p-1 px-2 hover:bg-muted border border-border rounded-lg transition-colors"
+                            title="Aumentar tamaño"
+                        >
+                            <Plus className="w-3 h-3" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Blocks & Lists Group */}
             <div className="px-2 pb-1.5 mb-1.5 border-b border-border">
                 <p className="px-2 py-1 text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Listas y Bloques</p>
@@ -248,6 +321,25 @@ export default function EditorContextMenu({
                 >
                     <ChevronRight className="w-4 h-4 opacity-50" />
                     <span>Limpiar formato</span>
+                </button>
+            </div>
+
+            {/* Format Painter Group */}
+            <div className="px-1 pt-1.5 mt-1.5 border-t border-border space-y-0.5">
+                <button
+                    onClick={() => { onCopyFormat(); onClose(); }}
+                    className="w-full flex items-center gap-3 px-3 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors text-foreground"
+                >
+                    <ClipboardCopy className="w-4 h-4 text-muted-foreground" />
+                    <span>Copiar formato</span>
+                </button>
+                <button
+                    disabled={!canPasteFormat}
+                    onClick={() => { onPasteFormat(); onClose(); }}
+                    className="w-full flex items-center gap-3 px-3 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                    <PaintRoller className="w-4 h-4 text-amber-600" />
+                    <span>Pegar formato</span>
                 </button>
             </div>
         </div>

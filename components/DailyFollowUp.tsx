@@ -1791,6 +1791,23 @@ export default function DailyFollowUp() {
                                         <div className="flex items-center gap-2">
                                             {/* --- HEADER ACTIONS --- */}
 
+                                            {/* 0. EMBELLECER */}
+                                            {activeTab !== 'General' && (
+                                                <button
+                                                    onClick={() => handleReformatProjectNotes(activeTab)}
+                                                    disabled={isReformattingAI === activeTab}
+                                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-[10px] font-bold shadow-sm",
+                                                        isLight
+                                                            ? "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100"
+                                                            : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20"
+                                                    )}
+                                                    title="Embellecer notas con IA"
+                                                >
+                                                    {isReformattingAI === activeTab ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                                    {isReformattingAI === activeTab ? 'Procesando...' : 'Embellecer'}
+                                                </button>
+                                            )}
+
                                             {/* 1. TASKS TOGGLE */}
                                             <button
                                                 onClick={() => setIsTasksPanelVisible(!isTasksPanelVisible)}
@@ -1992,66 +2009,7 @@ export default function DailyFollowUp() {
                                                         </div>
                                                     )}
 
-                                                    {/* Sub-Tabs Selector (Project Views) */}
-                                                    {activeTab !== 'General' && (
-                                                        <div className="flex bg-muted/30 p-0.5 rounded-lg border border-border/50">
-                                                            <button
-                                                                onClick={() => setActiveSubTab('notes')}
-                                                                className={cn(
-                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all",
-                                                                    activeSubTab === 'notes' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
-                                                                )}
-                                                            >
-                                                                Bitácora
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveSubTab('feed')}
-                                                                className={cn(
-                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'feed' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
-                                                                )}
-                                                            >
-                                                                <Activity className="w-3 h-3" />
-                                                                Feed
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveSubTab('tasks')}
-                                                                className={cn(
-                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'tasks' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
-                                                                )}
-                                                            >
-                                                                <CheckSquare className="w-3 h-3" />
-                                                                Tareas
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setActiveSubTab('interfaces')}
-                                                                className={cn(
-                                                                    "px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1.5",
-                                                                    activeSubTab === 'interfaces' ? "bg-card text-primary shadow-sm ring-1 ring-primary/10 scale-105" : (isLight ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100" : "text-muted-foreground hover:text-foreground hover:bg-white/5")
-                                                                )}
-                                                            >
-                                                                <History className="w-3 h-3" />
-                                                                Interfaces
-                                                            </button>
-                                                        </div>
-                                                    )}
 
-                                                    {activeTab !== 'General' && (
-                                                        <button
-                                                            onClick={() => handleReformatProjectNotes(activeTab)}
-                                                            disabled={isReformattingAI === activeTab}
-                                                            className={cn("flex items-center gap-1.5 px-3 py-1 rounded-lg border transition-all text-[10px] font-bold shadow-sm ml-auto",
-                                                                isLight
-                                                                    ? "bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-100"
-                                                                    : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20"
-                                                            )}
-                                                            title="Embellecer notas con IA"
-                                                        >
-                                                            {isReformattingAI === activeTab ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                                                            {isReformattingAI === activeTab ? 'Procesando...' : 'Embellecer'}
-                                                        </button>
-                                                    )}
                                                 </div>
                                             </div>
 
