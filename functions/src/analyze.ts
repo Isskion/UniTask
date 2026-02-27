@@ -241,6 +241,23 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
             
             Format: { "mapping": { "Zone Label": "Content", ... } }
         `;
+    } else if (mode === 'reformat') {
+        prompt = `
+            Act as a Professional Document Editor.
+            Take the following unstructured notes and restructure them into a beautiful, professional, and well-organized markdown report.
+            
+            Notes:
+            "${notes}"
+            
+            Instructions:
+            1. USE MARKDOWN: Use headers, bold text, and bullet points to create structure.
+            2. DO NOT TRANSLATE: Keep the original language of the notes (e.g., if notes are in Spanish, the report must be in Spanish).
+            3. PRESERVE TECHNICAL DATA: Ensure dates, IDs, and technical mentions are kept intact and clearly highlighted.
+            4. TONE: Professional and concise.
+            5. Return a JSON object with a single field "reformattedText" containing the markdown content.
+            
+            Format: { "reformattedText": "markdown content here" }
+        `;
     } else {
         prompt = `
             Analyze the following Project Management notes and extract key insights.

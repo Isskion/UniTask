@@ -22,7 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore"; // Security Hook
 import { useToast } from "@/context/ToastContext";
-import { summarizeNotesWithAI } from "@/app/actions/unidocs";
+import { summarizeNotesWithAI, reformatNotesWithAI } from "@/app/actions/unidocs";
 import UserManagement from "./UserManagement";
 import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
@@ -584,14 +584,32 @@ export default function DailyFollowUp() {
 
             console.log(`[Save] Saving to ${projectsByTenant.size} tenant(s):`);
 
+            // AI REVISION: Beautify notes before saving
+            // We only do this for the "active" view to avoid mass-processing everything 
+            // but we ensure the current entry is beautified.
+            const updatedProjects = await Promise.all(activeProjects.map(async (p) => {
+                if (p.pmNotes && p.pmNotes.length > 50) { // Only reformat if there's enough content
+                    console.log(`[AI] Reformatting notes for project: ${p.name}`);
+                    const { reformattedText } = await reformatNotesWithAI(p.pmNotes);
+                    return { ...p, pmNotes: reformattedText };
+                }
+                return p;
+            }));
+
             // Save each tenant's portion
             for (const [targetTenantId, projects] of projectsByTenant.entries()) {
+                // Map the updated projects back to the tenant
+                const tenantProjects = updatedProjects.filter(up => {
+                    const info = globalProjects.find(gp => gp.name === up.name);
+                    return (info?.tenantId || tenantId || "1") === targetTenantId;
+                });
+
                 const toSave = {
                     id: entry.date,
                     date: entry.date,
                     tenantId: targetTenantId,
-                    projects: projects,
-                    generalNotes: projects.length === 0 ? entry.generalNotes : "", // Only save general notes if no projects
+                    projects: tenantProjects,
+                    generalNotes: tenantProjects.length === 0 ? entry.generalNotes : "",
                     createdAt: entry.createdAt || new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };

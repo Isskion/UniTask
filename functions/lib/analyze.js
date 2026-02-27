@@ -179,6 +179,8 @@ exports.summarizeNotes = functions.region("europe-west1").runWith({
     if (!status.enabled)
         throw new functions.https.HttpsError('permission-denied', status.reason);
     const notes = data.notes;
+    const mode = data.mode || 'summarize'; // 'summarize' or 'layout_optimization'
+    const zones = data.zones || [];
     if (!notes)
         throw new functions.https.HttpsError('invalid-argument', 'No notes provided');
     const apiKey = process.env.GEMINI_API_KEY || ((_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.key) || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -192,18 +194,62 @@ exports.summarizeNotes = functions.region("europe-west1").runWith({
         model: "gemini-2.0-flash",
         generationConfig: { responseMimeType: "application/json" }
     });
-    const prompt = `
-        Analyze the following Project Management notes and extract key insights.
-        Input Notes:
-        "${notes}"
+    let prompt = "";
+    if (mode === 'layout_optimization') {
+        prompt = `
+            Act as a Document Layout Specialist.
+            Take the following notes and DISTRIBUTE them across the available document zones in a COHESIVE and PROFESSIONAL way.
+            
+            Notes:
+            "${notes}"
+            
+            Target Zones:
+            ${JSON.stringify(zones)}
+            
+            Instructions:
+            1. Keep related information TOGETHER. Do not fragment paragraphs unless necessary.
+            2. Prioritize zones labeled "Párrafo", "Main Content", or "Body" for the bulk of the text.
+            3. For a "Title" zone, provide a single concise headline.
+            4. For a "Summary" or "Executive Summary" zone, provide a 1-2 sentence high-level overview.
+            5. If there are multiple "Párrafo" zones, distribute the content chronologically or by topic.
+            6. Ensure the tone is professional and the result looks like a well-formatted business document, NOT a fragmented list.
+            7. Return a JSON object where keys are the zone labels and values are the content for that zone.
+            
+            Format: { "mapping": { "Zone Label": "Content", ... } }
+        `;
+    }
+    else if (mode === 'reformat') {
+        prompt = `
+            Act as a Professional Document Editor.
+            Take the following unstructured notes and restructure them into a beautiful, professional, and well-organized markdown report.
+            
+            Notes:
+            "${notes}"
+            
+            Instructions:
+            1. USE MARKDOWN: Use headers, bold text, and bullet points to create structure.
+            2. DO NOT TRANSLATE: Keep the original language of the notes (e.g., if notes are in Spanish, the report must be in Spanish).
+            3. PRESERVE TECHNICAL DATA: Ensure dates, IDs, and technical mentions are kept intact and clearly highlighted.
+            4. TONE: Professional and concise.
+            5. Return a JSON object with a single field "reformattedText" containing the markdown content.
+            
+            Format: { "reformattedText": "markdown content here" }
+        `;
+    }
+    else {
+        prompt = `
+            Analyze the following Project Management notes and extract key insights.
+            Input Notes:
+            "${notes}"
 
-        Return a JSON object with:
-        - "resumenEjecutivo": A concise executive summary (max 3 sentences).
-        - "tareasExtraidas": An array of actionable tasks detected.
-        - "proximosPasos": An array of next steps or recommendations.
-        
-        Language: Detect language of input (Spanish/English) and match output language.
-    `;
+            Return a JSON object with:
+            - "resumenEjecutivo": A concise executive summary (max 3 sentences).
+            - "tareasExtraidas": An array of actionable tasks detected.
+            - "proximosPasos": An array of next steps or recommendations.
+            
+            Language: Detect language of input (Spanish/English) and match output language.
+        `;
+    }
     try {
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();

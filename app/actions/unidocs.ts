@@ -147,3 +147,16 @@ export async function optimizeDocumentContent(notes: string, zones: BoundingBox[
         return { mapping: {}, error: e.message || "Failed to optimize layout" };
     }
 }
+
+export async function reformatNotesWithAI(notes: string): Promise<{ reformattedText: string, error?: string }> {
+    try {
+        const result = await callFunction('summarizeNotes', {
+            notes,
+            mode: 'reformat'
+        });
+        return { reformattedText: result.data.reformattedText || notes };
+    } catch (e: any) {
+        console.error("Reformat Error:", e);
+        return { reformattedText: notes, error: e.message || "Failed to reformat notes" };
+    }
+}
