@@ -467,11 +467,23 @@ export default function DailyFollowUp() {
 
                 if (allEntries.length > 0) {
                     const mergedProjects = allEntries.flatMap(e => e.projects || []);
+
+                    // [FIX] Deduplicate projects by name/projectId to avoid visual clutter
+                    const uniqueProjects: any[] = [];
+                    const seen = new Set();
+                    for (const p of mergedProjects) {
+                        const key = p.projectId || p.name;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            uniqueProjects.push(p);
+                        }
+                    }
+
                     setEntry({
                         id: dateId, // Global view still uses date ID for now
                         date: dateId,
                         tenantId: "MULTI",
-                        projects: mergedProjects,
+                        projects: uniqueProjects,
                         createdAt: allEntries[0].createdAt,
                         updatedAt: new Date().toISOString()
                     });
@@ -565,6 +577,16 @@ export default function DailyFollowUp() {
             const projectsByTenant = new Map<string, any[]>();
 
             for (const project of activeProjects) {
+                // [FIX] Auto-cleanup: Skip projects with no content (no notes and no meaningful blocks)
+                const blocks = project.blocks || [];
+                const hasContent = (project.pmNotes && project.pmNotes.trim().length > 0) ||
+                    (blocks.some(b => b.content && b.content.trim().length > 0));
+
+                if (!hasContent) {
+                    console.log(`[Save] Skipping empty project: ${project.name}`);
+                    continue;
+                }
+
                 const projectInfo = globalProjects.find(gp => gp.id === project.projectId || gp.name === project.name);
                 // FIX: Use context tenantId as fallback. If masquerading as T4, we save as T4.
                 const projectTenant = projectInfo?.tenantId || tenantId || "1";
@@ -1127,15 +1149,29 @@ export default function DailyFollowUp() {
     const getVisibleProjects = () => {
         const activeOnly = entry.projects.filter(p => p.status !== 'trash');
 
+        let result: any[] = [];
+
         // [FIX] Use RoleLevel for case-insensitive check (Global_pm vs global_pm)
         const currentLevel = getRoleLevel(userRole);
-        if (currentLevel >= RoleLevel.PM) return activeOnly; // Admin/PM see all
+        if (currentLevel >= RoleLevel.PM) {
+            result = activeOnly; // Admin/PM see all
+        } else if (userProfile) {
+            const assignedIds = userProfile.assignedProjectIds || [];
+            const allowedIds = new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.id));
+            result = activeOnly.filter(p => allowedIds.has(p.projectId || "") || allowedIds.has(globalProjects.find(gp => gp.name === p.name)?.id || ""));
+        }
 
-        if (!userProfile) return [];
-
-        const assignedIds = userProfile.assignedProjectIds || [];
-        const allowedIds = new Set(globalProjects.filter(gp => assignedIds.includes(gp.id)).map(gp => gp.id));
-        return activeOnly.filter(p => allowedIds.has(p.projectId || "") || allowedIds.has(globalProjects.find(gp => gp.name === p.name)?.id || ""));
+        // [FIX] Final deduplication to avoid React Key Warning if state contains duplicates
+        const unique: any[] = [];
+        const seen = new Set();
+        for (const p of result) {
+            const key = p.projectId || p.name;
+            if (!seen.has(key)) {
+                seen.add(key);
+                unique.push(p);
+            }
+        }
+        return unique;
     };
 
     const addProject = (projectToAdd: { name: string, id: string, code: string }) => {
@@ -1886,22 +1922,39 @@ export default function DailyFollowUp() {
                                         {getVisibleProjects().map(p => {
                                             const gp = globalProjects.find(g => g.name === p.name);
                                             return (
-                                                <button
-                                                    key={p.projectId || p.name}
-                                                    onClick={() => setActiveTab(p.projectId || p.name)}
-                                                    className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border",
-                                                        (activeTab === p.projectId || activeTab === p.name)
-                                                            ? (isLight
-                                                                ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
-                                                                : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
-                                                            : (isLight
-                                                                ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                                                                : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
-                                                    )}
-                                                >
-                                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
-                                                    {p.name || "Sin Nombre"}
-                                                </button>
+                                                <div key={p.projectId || p.name} className="relative group/tab">
+                                                    <button
+                                                        onClick={() => setActiveTab(p.projectId || p.name)}
+                                                        className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 shrink-0 border pr-8",
+                                                            (activeTab === p.projectId || activeTab === p.name)
+                                                                ? (isLight
+                                                                    ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
+                                                                    : "bg-zinc-800 border-zinc-700 text-white shadow-sm ring-1 ring-white/10")
+                                                                : (isLight
+                                                                    ? "bg-white border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                                                                    : "bg-transparent border-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200")
+                                                        )}
+                                                    >
+                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gp?.color || '#71717a' }} />
+                                                        {p.name || "Sin Nombre"}
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (confirm(`¿Quitar ${p.name} del seguimiento de hoy?`)) {
+                                                                setEntry(prev => ({
+                                                                    ...prev,
+                                                                    projects: prev.projects.filter(ep => ep.name !== p.name && ep.projectId !== p.projectId)
+                                                                }));
+                                                                if (activeTab === (p.projectId || p.name)) setActiveTab("General");
+                                                                setIsDirty(true);
+                                                            }
+                                                        }}
+                                                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-red-500 opacity-0 group-hover/tab:opacity-100 transition-opacity"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
                                             );
                                         })}
                                     </div>

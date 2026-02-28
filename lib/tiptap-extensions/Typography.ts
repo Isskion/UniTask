@@ -82,7 +82,7 @@ export const FontFamily = Mark.create({
     addAttributes() {
         return {
             font: {
-                default: null,
+                default: 'Garamond',
                 parseHTML: element => element.style.fontFamily,
                 renderHTML: attributes => {
                     if (!attributes.font) {

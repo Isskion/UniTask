@@ -24,7 +24,7 @@ import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
-import { PaintRoller, ClipboardCopy } from "lucide-react";
+import { PaintRoller, ClipboardCopy, Plus, Minus } from "lucide-react";
 import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
 import { FontSize, FontFamily } from "@/lib/tiptap-extensions/Typography";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
@@ -152,6 +152,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 class: 'focus:outline-none min-h-[50vh]',
                 spellcheck: 'true',
                 lang: language,
+                style: 'font-family: Garamond, serif;',
             },
             handlePaste: (view, event) => {
                 const items = Array.from(event.clipboardData?.items || []);
@@ -336,6 +337,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     lang: browserLang,
                     spellcheck: 'true',
                     class: 'focus:outline-none min-h-[50vh]',
+                    style: 'font-family: Garamond, serif;',
                 },
             },
         });
@@ -806,6 +808,47 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             >
                                 <PaintRoller className="w-4 h-4" />
                             </button>
+
+                            <div className="flex items-center gap-1 px-2 border-l border-border bg-muted/20">
+                                <select
+                                    onChange={(e) => {
+                                        (editor.chain().focus() as any).setFontFamily(e.target.value).run();
+                                    }}
+                                    value={editor.getAttributes('fontFamily').font || 'Garamond'}
+                                    className="bg-transparent text-[11px] font-medium focus:outline-none cursor-pointer h-full py-1 min-w-[80px]"
+                                >
+                                    <option value="Garamond">Garamond</option>
+                                    <option value="Inter">Inter</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Courier New">Courier New</option>
+                                </select>
+                            </div>
+
+                            <div className="flex items-center gap-1 px-2 border-l border-border bg-muted/20">
+                                <button
+                                    onClick={() => {
+                                        const current = parseInt(editor.getAttributes('fontSize').size || '16');
+                                        (editor.chain().focus() as any).setFontSize(`${Math.max(8, current - 2)}px`).run();
+                                    }}
+                                    className="p-1 hover:bg-muted rounded transition-colors"
+                                >
+                                    <Minus className="w-3 h-3 text-muted-foreground" />
+                                </button>
+                                <span className="text-[10px] font-bold min-w-[20px] text-center">
+                                    {parseInt(editor.getAttributes('fontSize').size || '16')}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        const current = parseInt(editor.getAttributes('fontSize').size || '16');
+                                        (editor.chain().focus() as any).setFontSize(`${Math.min(72, current + 2)}px`).run();
+                                    }}
+                                    className="p-1 hover:bg-muted rounded transition-colors"
+                                >
+                                    <Plus className="w-3 h-3 text-muted-foreground" />
+                                </button>
+                            </div>
                         </BubbleMenu>
                     )}
                     <EditorContent

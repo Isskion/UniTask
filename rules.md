@@ -9,3 +9,4 @@
 5. **Next.js Standards (v16+)**: Utilizar estándares v16+ y verificar documentación oficial.
 6. **Token Efficiency (Surgical Ops)**: Intervenciones limitadas estrictamente a los métodos u objetos solicitados.
 7. **Environment Validation (Inicio de Jornada)**: Validar versiones de runtime (Node.js, Flutter) contra requisitos de despliegue antes de iniciar trabajo.
+8. **Delete Confirmation (Seguridad UI)**: Es OBLIGATORIO incluir un diálogo de confirmación (`window.confirm` o similar) antes de cualquier acción de eliminación o borrado de datos.

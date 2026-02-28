@@ -216,9 +216,10 @@ export default function EditorContextMenu({
                                 (editor.chain().focus() as any).setFontFamily(e.target.value).run();
                                 onClose();
                             }}
-                            value={editor.getAttributes('fontFamily').font || 'Inter'}
+                            value={editor.getAttributes('fontFamily').font || 'Garamond'}
                             className="w-full bg-muted/50 hover:bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none appearance-none cursor-pointer transition-colors"
                         >
+                            <option value="Garamond">Garamond (Defecto)</option>
                             <option value="Inter">Inter (Estándar)</option>
                             <option value="Arial">Arial</option>
                             <option value="Times New Roman">Times New Roman</option>

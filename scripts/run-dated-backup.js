@@ -2,33 +2,39 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
-// Initialize Admin SDK using .env.local
-const dotEnvPath = path.join(__dirname, '..', '.env.local');
-if (!fs.existsSync(dotEnvPath)) {
-    console.error('❌ .env.local not found');
-    process.exit(1);
-}
-
-const envContent = fs.readFileSync(dotEnvPath, 'utf8');
+// Initialize Admin SDK using process.env or .env.local
 let serviceAccount;
 const customKeyPath = path.join(__dirname, '..', 'serviceAccountKey.json');
+const dotEnvPath = path.join(__dirname, '..', '.env.local');
 
-if (fs.existsSync(customKeyPath)) {
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    console.log('🌍 Using process.env.FIREBASE_SERVICE_ACCOUNT for authentication');
+    try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (e) {
+        console.error('❌ Error parsing FIREBASE_SERVICE_ACCOUNT from process.env:', e.message);
+        process.exit(1);
+    }
+} else if (fs.existsSync(customKeyPath)) {
     console.log('📂 Using serviceAccountKey.json for authentication');
     serviceAccount = JSON.parse(fs.readFileSync(customKeyPath, 'utf8'));
-} else {
+} else if (fs.existsSync(dotEnvPath)) {
+    console.log('📂 Reading credentials from .env.local');
+    const envContent = fs.readFileSync(dotEnvPath, 'utf8');
     const serviceAccountMatch = envContent.match(/FIREBASE_SERVICE_ACCOUNT=['"](.*?)['"]/);
     if (!serviceAccountMatch) {
-        console.error('❌ FIREBASE_SERVICE_ACCOUNT not found in .env.local and serviceAccountKey.json missing');
+        console.error('❌ FIREBASE_SERVICE_ACCOUNT not found in .env.local');
         process.exit(1);
     }
     try {
         serviceAccount = JSON.parse(serviceAccountMatch[1]);
     } catch (e) {
         console.error('❌ Error parsing FIREBASE_SERVICE_ACCOUNT from .env.local:', e.message);
-        console.log('Match length:', serviceAccountMatch[1].length);
         process.exit(1);
     }
+} else {
+    console.error('❌ No authentication method found (process.env, serviceAccountKey.json or .env.local)');
+    process.exit(1);
 }
 
 if (!admin.apps.length) {
