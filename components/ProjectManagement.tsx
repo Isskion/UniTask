@@ -437,41 +437,11 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {/* Header Actions */}
                             <div className="flex items-center gap-2">
 
-                                {/* UNILEAKS BUTTON */}
-                                {userTab === 'feed' && !isNew && (
-                                    <Link
-                                        href={`/unileaks?projectId=${selectedProject?.id}`}
-                                        target="_blank"
-                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2 border text-xs font-bold shrink-0",
-                                            isLight
-                                                ? "bg-zinc-950 text-white border-zinc-900 hover:bg-black"
-                                                : "bg-white text-black border-white hover:bg-zinc-200"
-                                        )}
-                                        title="Abrir UniLeaks para este proyecto"
-                                    >
-                                        <FileText className="w-4 h-4" /> <span className="hidden sm:inline">UniLeaks</span>
-                                    </Link>
-                                )}
-
-                                {/* MIND MAP BUTTON */}
-                                {userTab === 'feed' && !isNew && (
-                                    <button
-                                        onClick={() => setShowMindMap(true)}
-                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2",
-                                            isLight ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20"
-                                        )}
-                                        title="Abrir Mapa Jerárquico del Proyecto"
-                                    >
-                                        <Network className="w-4 h-4" />
-                                        <span className="text-xs font-bold hidden md:inline">Mapa Jerárquico</span>
-                                    </button>
-                                )}
-
-                                {/* COPY BUTTON (Only when searching) */}
+                                {/* COPY AND SEARCH BUTTONS (Outside carousel) */}
                                 {userTab === 'feed' && !isNew && searchQuery && (
                                     <button
                                         onClick={() => feedRef.current?.copyResults()}
-                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2",
+                                        className={cn("p-2 rounded-full transition-all flex items-center gap-2 mr-2",
                                             isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-600" : "bg-white/5 hover:bg-white/10 text-zinc-400"
                                         )}
                                         title={t('projects.copy_results')}
@@ -509,25 +479,12 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                     </div>
                                 )}
 
-                                {userTab === 'feed' && !isNew && (
-                                    <button
-                                        onClick={() => setShowCompose(!showCompose)}
-                                        className={cn(
-                                            "flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs transition-all",
-                                            showCompose ? "bg-zinc-800 text-zinc-400" : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                        )}
-                                    >
-                                        {showCompose ? <XCircle className="w-4 h-4" /> : <PenSquare className="w-4 h-4" />}
-                                        {showCompose ? t('common.cancel') : t('projects.new_update')}
-                                    </button>
-                                )}
-
-                                {/* DOCUMENT TOGGLE */}
+                                {/* VIEWS & ACTIONS CAROUSEL */}
                                 {!isNew && (
-                                    <div className={cn("flex bg-muted/20 p-1 rounded-full border ml-2", isLight ? "border-zinc-200" : "border-white/10")}>
+                                    <div className={cn("flex bg-muted/20 p-1 rounded-full border overflow-x-auto hide-scrollbar max-w-[50vw] sm:max-w-[60vw] md:max-w-max", isLight ? "border-zinc-200" : "border-white/10")}>
                                         <button
                                             onClick={() => setUserTab('feed')}
-                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
                                                 userTab === 'feed'
                                                     ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
                                                     : "text-muted-foreground hover:text-foreground"
@@ -537,7 +494,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         </button>
                                         <button
                                             onClick={() => setUserTab('documents')}
-                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
                                                 userTab === 'documents'
                                                     ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
                                                     : "text-muted-foreground hover:text-foreground"
@@ -547,7 +504,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         </button>
                                         <button
                                             onClick={() => setUserTab('interfaces')}
-                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
                                                 userTab === 'interfaces'
                                                     ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
                                                     : "text-muted-foreground hover:text-foreground"
@@ -555,6 +512,59 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         >
                                             Interfaces
                                         </button>
+
+                                        {/* Actions Divider */}
+                                        {userTab === 'feed' && (
+                                            <div className={cn("w-px min-h-[1rem] self-center mx-2 shrink-0", isLight ? "bg-zinc-300" : "bg-white/20")} />
+                                        )}
+
+                                        {/* UNILEAKS BUTTON */}
+                                        {userTab === 'feed' && (
+                                            <Link
+                                                href={`/unileaks?projectId=${selectedProject?.id}`}
+                                                target="_blank"
+                                                className={cn("px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold transition-all flex items-center gap-2 shrink-0",
+                                                    isLight
+                                                        ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/50"
+                                                        : "text-zinc-400 hover:text-white hover:bg-white/10"
+                                                )}
+                                                title="Abrir UniLeaks para este proyecto"
+                                            >
+                                                <FileText className="w-3.5 h-3.5" /> <span className="hidden sm:inline">UniLeaks</span>
+                                            </Link>
+                                        )}
+
+                                        {/* MIND MAP BUTTON */}
+                                        {userTab === 'feed' && (
+                                            <button
+                                                onClick={() => setShowMindMap(true)}
+                                                className={cn("px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold transition-all flex items-center gap-2 shrink-0",
+                                                    isLight
+                                                        ? "text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                                        : "text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10"
+                                                )}
+                                                title="Abrir Mapa Jerárquico del Proyecto"
+                                            >
+                                                <Network className="w-3.5 h-3.5" />
+                                                <span className="hidden sm:inline">Jerarquía</span>
+                                            </button>
+                                        )}
+
+                                        {/* NEW UPDATE BUTTON */}
+                                        {userTab === 'feed' && (
+                                            <button
+                                                onClick={() => setShowCompose(!showCompose)}
+                                                className={cn(
+                                                    "px-3 py-1.5 rounded-full font-bold text-[10px] md:text-xs transition-all flex items-center gap-2 shrink-0",
+                                                    showCompose
+                                                        ? (isLight ? "bg-zinc-200 text-zinc-900" : "bg-zinc-800 text-white")
+                                                        : (isLight ? "text-primary hover:bg-primary/10" : "text-primary hover:bg-primary/20")
+                                                )}
+                                            >
+                                                {showCompose ? <XCircle className="w-3.5 h-3.5" /> : <PenSquare className="w-3.5 h-3.5" />}
+                                                {showCompose ? t('common.cancel') : t('projects.new_update')}
+                                            </button>
+                                        )}
                                     </div>
                                 )}
 
