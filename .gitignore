@@ -60,3 +60,4 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 !vercel.json
 !firebase.json
 !firestore.indexes.json
+!app/uniordercreator/_src/i18n/locales/*.json

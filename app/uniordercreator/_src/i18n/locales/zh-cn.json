@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "连接",
+        "connected": "已连接",
+        "notConnected": "未连接"
+    },
+    "login": {
+        "title": "登录",
+        "url": "服务网址",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "用户名",
+        "password": "密码",
+        "domain": "域",
+        "domainPlaceholder": "TEST",
+        "connecting": "连接中...",
+        "loginButton": "连接",
+        "language": "语言"
+    },
+    "buttons": {
+        "loadExcel": "加载 Excel",
+        "sendSelected": "发送已选",
+        "sendAll": "发送全部",
+        "save": "保存",
+        "load": "加载",
+        "close": "关闭"
+    },
+    "header": {
+        "dataPanel": "数据面板",
+        "xmlPreview": "XML 预览",
+        "mapper": "字段映射器"
+    },
+    "mapper": {
+        "title": "字段映射器",
+        "search": "搜索字段...",
+        "noFields": "此部分没有字段",
+        "noResults": "未找到字段",
+        "loadExcelFirst": "请先加载 Excel 文件",
+        "noMapping": "-- 不映射 --",
+        "noForce": "-- 不强制 --"
+    },
+    "tabs": {
+        "order": "全局订单",
+        "customer": "客户",
+        "address": "地址",
+        "items": "项目",
+        "booleans": "布尔值"
+    },
+    "table": {
+        "selectAll": "全选",
+        "noData": "没有数据"
+    },
+    "messages": {
+        "confirmSendAll": "确定要发送所有订单吗？",
+        "confirmSendSelected": "确定要发送 {count} 个已选订单吗？",
+        "sendingOrders": "正在发送订单...",
+        "successSent": "✅ 成功发送 {count} 个订单",
+        "errorsSent": "❌ {total} 个订单中有 {errors} 个错误",
+        "loginSuccess": "连接成功",
+        "loginError": "连接错误",
+        "noSelection": "请至少选择一个订单",
+        "notAuthenticated": "请先连接"
+    },
+    "errors": {
+        "title": "错误日志",
+        "reference": "参考",
+        "error": "错误",
+        "xmlSent": "已发送的 XML",
+        "response": "服务器响应"
+    }
+}

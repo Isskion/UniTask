@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Подключиться",
+        "connected": "Подключено",
+        "notConnected": "Не подключено"
+    },
+    "login": {
+        "title": "Вход",
+        "url": "URL сервиса",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Пользователь",
+        "password": "Пароль",
+        "domain": "Домен",
+        "domainPlaceholder": "TEST",
+        "connecting": "Подключение...",
+        "loginButton": "Подключиться",
+        "language": "Язык"
+    },
+    "buttons": {
+        "loadExcel": "Загрузить Excel",
+        "sendSelected": "Отправить Выбранные",
+        "sendAll": "Отправить Все",
+        "save": "Сохранить",
+        "load": "Загрузить",
+        "close": "Закрыть"
+    },
+    "header": {
+        "dataPanel": "Панель Данных",
+        "xmlPreview": "Просмотр XML",
+        "mapper": "Маппер Полей"
+    },
+    "mapper": {
+        "title": "Маппер Полей",
+        "search": "Поиск поля...",
+        "noFields": "Нет полей в этом разделе",
+        "noResults": "Поля не найдены для",
+        "loadExcelFirst": "Сначала загрузите файл Excel",
+        "noMapping": "-- Не сопоставлять --",
+        "noForce": "-- Не принудительно --"
+    },
+    "tabs": {
+        "order": "Общий Заказ",
+        "customer": "Клиент",
+        "address": "Адрес",
+        "items": "Товары",
+        "booleans": "Булевы"
+    },
+    "table": {
+        "selectAll": "Выбрать все",
+        "noData": "Нет загруженных данных"
+    },
+    "messages": {
+        "confirmSendAll": "Вы уверены, что хотите отправить все заказы?",
+        "confirmSendSelected": "Вы уверены, что хотите отправить {count} выбранных заказов?",
+        "sendingOrders": "Отправка заказов...",
+        "successSent": "✅ {count} заказов успешно отправлено",
+        "errorsSent": "❌ {errors} ошибок из {total} заказов",
+        "loginSuccess": "Успешно подключено",
+        "loginError": "Ошибка подключения",
+        "noSelection": "Выберите хотя бы один заказ",
+        "notAuthenticated": "Сначала нужно подключиться"
+    },
+    "errors": {
+        "title": "Журнал Ошибок",
+        "reference": "Ссылка",
+        "error": "Ошибка",
+        "xmlSent": "Отправленный XML",
+        "response": "Ответ Сервера"
+    }
+}
