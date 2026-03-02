@@ -1,0 +1,87 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import * as XLSX from 'xlsx';
+
+export interface ParsedSheet {
+    headers: string[];
+    rows: Record<string, any>[];
+}
+
+/**
+ * Parse an Excel file (ArrayBuffer) and return the first sheet's data.
+ */
+export function parseExcelFile(data: ArrayBuffer): {
+    workbook: XLSX.WorkBook;
+    sheet: ParsedSheet;
+    sheetNames: string[];
+} {
+    const workbook = XLSX.read(new Uint8Array(data), { type: 'array', cellDates: true });
+    const firstSheetName = workbook.SheetNames[0];
+    const sheet = parseSheet(workbook, firstSheetName);
+    return { workbook, sheet, sheetNames: workbook.SheetNames };
+}
+
+/**
+ * Parse a specific sheet from a workbook.
+ */
+export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSheet {
+    const ws = workbook.Sheets[sheetName];
+    if (!ws) return { headers: [], rows: [] };
+
+    const jsonData = XLSX.utils.sheet_to_json<any>(ws, { defval: '' });
+    const headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+
+    return { headers, rows: jsonData };
+}
+
+/**
+ * Group rows by a key column — merges duplicate rows into one order with
+ * multiple items (the core grouping logic from the original app).
+ */
+export function groupRows(
+    rows: Record<string, any>[],
+    mapping: Record<string, string>,
+): Record<string, any>[] {
+    // Determine the key column (mapped to Orden.RefDocumento)
+    const keyCol = mapping['Orden.RefDocumento'];
+    if (!keyCol) {
+        console.warn('[groupRows] No mapping for Orden.RefDocumento, cannot group');
+        return rows;
+    }
+
+    // Group by key
+    const groups = new Map<string, Record<string, any>>();
+    const itemsMap = new Map<string, Record<string, any>[]>();
+
+    for (const row of rows) {
+        const key = String(row[keyCol] ?? '').trim();
+        if (!key) continue;
+
+        if (!groups.has(key)) {
+            // Use the first row as the "master" row
+            groups.set(key, { ...row });
+            itemsMap.set(key, []);
+        }
+
+        // Each row (including the first one) becomes an item
+        // Store ALL columns so the DetailPanel and XML builder have full data
+        const itemData: Record<string, any> = {};
+        for (const [col, val] of Object.entries(row)) {
+            if (col.startsWith('_')) continue; // skip internal fields
+            itemData[col] = val;
+        }
+        itemsMap.get(key)!.push(itemData);
+    }
+
+    // Build result: each group becomes one row with _items attached
+    const result: Record<string, any>[] = [];
+    for (const [key, masterRow] of groups) {
+        const items = itemsMap.get(key) || [];
+        masterRow._items = items;
+        masterRow._grouped = true;
+        masterRow._itemCount = items.length;
+        result.push(masterRow);
+    }
+
+    return result;
+}
+

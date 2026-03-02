@@ -2506,7 +2506,7 @@ export default function DailyFollowUp() {
 
                                     // 3. Handle Project Tabs (Existing Logic)
                                     setEntry(prev => {
-                                        const currentProject = prev.projects.find(p => p.name === activeTab);
+                                        const currentProject = prev.projects.find(p => p.projectId === activeTab || p.name === activeTab);
                                         // Fallback/Safety: If not found in current daily entry, we can't easily add it without "initializing" the project first.
                                         // But usually if we are ON the tab, it exists or was initialized by DailyFollowUp logic.
                                         if (!currentProject) {
@@ -2515,7 +2515,7 @@ export default function DailyFollowUp() {
                                         }
 
                                         const updatedProjects = prev.projects.map(p => {
-                                            if (p.name !== activeTab) return p;
+                                            if (p.projectId !== activeTab && p.name !== activeTab) return p;
 
                                             const blocks = p.blocks && p.blocks.length > 0 ? p.blocks : [];
 
