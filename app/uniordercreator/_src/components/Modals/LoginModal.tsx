@@ -51,14 +51,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 </soap:Envelope>`;
 
             // Use Next.js API Route instead of soapService
-            const apiRes = await fetch('/api/unigis/soap', {
+            // Use Firebase Cloud Function instead of Next.js static /api route
+            const apiRes = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     url: serviceUrl,
                     action: 'http://unisolutions.com.ar/Login',
                     version: '1.2',
-                    body,
+                    body: body,
                 }),
             });
             const res = await apiRes.json();

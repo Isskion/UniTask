@@ -180,17 +180,17 @@ function UnigisOrderCreatorPageInner() {
             try {
                 const xml = buildXml(row, ctx);
 
-                // MODIFICACIÓN NEXT.JS: Llamar a la API Route local en lugar de soapService
-                const res = await fetch('/api/unigis/soap', {
+                // Use Firebase Cloud Function explicitly because Next.js export disables API Routes
+                const res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        url: orderUrl,
-                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                        version: '1.1',
-                        body: xml,
-                        timeoutMs: 30000,
-                    })
+                        url: orderUrl, // Use the existing orderUrl from the store
+                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido', // Use the existing action
+                        version: '1.1', // Use the existing version
+                        body: xml, // Use the existing xml
+                        timeoutMs: 30000, // Keep the timeout
+                    }),
                 });
 
                 const response = await res.json();

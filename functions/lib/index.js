@@ -32,4 +32,5 @@ __exportStar(require("./tasks"), exports);
 __exportStar(require("./registration"), exports);
 __exportStar(require("./uniflux"), exports);
 __exportStar(require("./syncUserClaims"), exports);
+__exportStar(require("./unigis"), exports);
 //# sourceMappingURL=index.js.map
