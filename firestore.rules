@@ -254,9 +254,13 @@ service cloud.firestore {
 
     // Tasks Rules
     match /tasks/{taskId} {
-      // [SAM] Read: Enforce Scope Intersection
+      // [SAM] Read: Enforce Scope Intersection OR Tenant-Level Access for PMs/Admins querying by Project
       allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && (getRealRole() >= 80 || hasAccess(getUserData(), resource.data)));
+                  (isAuthenticated() && (
+                    getRealRole() >= 80 || 
+                    (docTenantMatches(resource.data) && getRealRole() >= 60) ||
+                    hasAccess(getUserData(), resource.data)
+                  ));
       
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
@@ -301,6 +305,23 @@ service cloud.firestore {
         isSuperAdmin() || 
         docTenantMatches(request.resource.data)
       );
+    }
+
+    // Project Hierarchy (MS Project Import Nodes)
+    match /project_hierarchy/{nodeId} {
+        // READ: Broad tenant access for hierarchy visibility
+        allow read: if isSuperAdmin() || 
+                    (isAuthenticated() && docTenantMatches(resource.data));
+        
+        // WRITE/DELETE: Only Admins or Project Managers (Role >= 60) can import/rollback
+        allow create: if isAuthenticated() && (
+            isSuperAdmin() || 
+            (docTenantMatches(request.resource.data) && getRealRole() >= 60)
+        );
+        allow update, delete: if isAuthenticated() && (
+            isSuperAdmin() || 
+            (docTenantMatches(resource.data) && getRealRole() >= 60)
+        );
     }
 
     // --- [HARDENED] AUDIT LOGS ---

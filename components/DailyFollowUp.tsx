@@ -673,8 +673,8 @@ export default function DailyFollowUp() {
 
             // Update state: Target the FIRST block and clear/merge others
             setEntry(prev => {
-                // Use robust matching (trimmed name)
-                const projectIndex = prev.projects.findIndex(p => p.name.trim() === projectName.trim());
+                // Use robust matching (check projectId or trimmed name)
+                const projectIndex = prev.projects.findIndex(p => p.projectId === projectName || p.name.trim() === projectName.trim());
                 if (projectIndex === -1) {
                     console.error("Project not found during reformat state update", projectName);
                     return prev;
