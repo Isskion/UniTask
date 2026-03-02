@@ -410,13 +410,13 @@ export default function UnigisOrderCreatorPage() {
         return <div className="p-8 text-center text-slate-500">Cargando módulo...</div>;
     }
 
-    if (process.env.NODE_ENV !== 'development' || tenantId !== '3') {
+    if (tenantId !== '3') {
         return (
             <div className="flex flex-col h-screen w-full items-center justify-center bg-slate-50 p-4">
                 <div className="bg-white p-8 rounded-xl shadow-md border border-slate-200 text-center max-w-lg">
                     <div className="text-4xl mb-4">🚫</div>
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">Acceso Restringido</h2>
-                    <p className="text-slate-600">Este módulo se encuentra en fase de pruebas y actualmente está limitado al entorno local de desarrollo para el Tenant Europastry (3).</p>
+                    <p className="text-slate-600">Este módulo se encuentra actualmente limitado en exclusiva para el Tenant 3 (Europastry).</p>
                 </div>
             </div>
         );
