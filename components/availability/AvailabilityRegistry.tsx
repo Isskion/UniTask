@@ -23,6 +23,7 @@ import {
     serverTimestamp
 } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import AvailabilityPrintReport from "./AvailabilityPrintReport";
 
 export default function AvailabilityRegistry() {
     const { user, userRole, tenantId } = useAuth();
@@ -141,15 +142,24 @@ export default function AvailabilityRegistry() {
                     </p>
                 </div>
 
-                <button
-                    onClick={handleCreate}
-                    className={cn(
-                        "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2",
-                        isRed ? "bg-[#D32F2F] text-white shadow-red-900/40" : (isLight ? "bg-black text-white hover:bg-zinc-800" : "bg-white text-black hover:bg-zinc-200")
-                    )}
-                >
-                    <Plus className="w-4 h-4" /> Nueva Entrada
-                </button>
+                <div className="flex items-center gap-3">
+                    <AvailabilityPrintReport
+                        availabilities={filteredAvailabilities}
+                        users={users}
+                        currentUserId={user?.uid || ""}
+                        isAdmin={userLevel >= 60}
+                        isLight={isLight}
+                    />
+                    <button
+                        onClick={handleCreate}
+                        className={cn(
+                            "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2",
+                            isRed ? "bg-[#D32F2F] text-white shadow-red-900/40" : (isLight ? "bg-black text-white hover:bg-zinc-800" : "bg-white text-black hover:bg-zinc-200")
+                        )}
+                    >
+                        <Plus className="w-4 h-4" /> Nueva Entrada
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
