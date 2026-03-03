@@ -67,7 +67,18 @@ export default function ProjectMoscowPrintReport({ requirements, isLight, tenant
             </div>
         `;
 
-        const tableRows = requirements.map(req => {
+        const priorityOrder: Record<MoscowPriority, number> = {
+            must: 1,
+            should: 2,
+            could: 3,
+            wont: 4
+        };
+
+        const sortedRequirements = [...requirements].sort((a, b) => {
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+
+        const tableRows = sortedRequirements.map(req => {
             const pConfig = PRIORITY_CONFIG[req.priority];
             const sConfig = STATUS_CONFIG[req.status];
 
