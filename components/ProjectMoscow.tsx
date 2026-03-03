@@ -10,6 +10,7 @@ import { Plus, Search, Filter, Edit2, Trash2, Save, XCircle, Loader2, ChevronDow
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
+import ProjectMoscowPrintReport from "./ProjectMoscowPrintReport";
 
 interface ProjectMoscowProps {
     projectId: string;
@@ -263,6 +264,7 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
                 >
                     <Plus className="w-4 h-4" /> Nuevo Requisito
                 </button>
+                <ProjectMoscowPrintReport requirements={filtered} isLight={isLight} tenantId={tenantId} projectId={projectId} />
 
                 <div className="flex-1" />
 
@@ -525,7 +527,7 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
                                                 <span className="text-xs text-muted-foreground line-clamp-2">{req.observations || "—"}</span>
                                             </td>
                                             <td className="px-4 py-3 text-right">
-                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center justify-end gap-1 transition-opacity">
                                                     <button
                                                         onClick={() => handleEdit(req)}
                                                         className={cn("p-1.5 rounded-lg transition-colors",
