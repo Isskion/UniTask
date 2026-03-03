@@ -570,3 +570,26 @@ export interface TenantWord {
     addedBy: string;
     createdAt: any;
 }
+
+// --- MoSCoW Requirements ---
+
+export type MoscowPriority = 'must' | 'should' | 'could' | 'wont';
+export type MoscowStatus = 'open' | 'in_progress' | 'implemented' | 'discarded';
+
+export interface MoscowRequirement {
+    id: string;
+    moscowId: string;           // "01-00001"
+    moduleCode: string;         // "01"
+    sequentialNumber: number;   // 1
+    title: string;              // Descripción del requisito
+    priority: MoscowPriority;
+    status: MoscowStatus;
+    requesterName: string;      // Solicitante (texto libre)
+    observations: string;       // Observaciones
+    projectId: string;
+    tenantId: string;
+    createdBy: string;          // UID
+    createdByName: string;      // Snapshot nombre
+    createdAt: any;             // Firestore Timestamp
+    updatedAt: any;
+}

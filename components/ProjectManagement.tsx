@@ -20,6 +20,7 @@ import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
 import { ProjectDocuments } from "./ProjectDocuments";
 import { ProjectInterfaces } from "./ProjectInterfaces";
+import ProjectMoscow from "./ProjectMoscow";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
@@ -38,7 +39,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents' | 'interfaces'>('feed');
+    const [userTab, setUserTab] = useState<'feed' | 'settings' | 'documents' | 'interfaces' | 'moscow'>('feed');
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
@@ -512,6 +513,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         >
                                             Interfaces
                                         </button>
+                                        <button
+                                            onClick={() => setUserTab('moscow')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
+                                                userTab === 'moscow'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            MoSCoW
+                                        </button>
 
                                         {/* Actions Divider */}
                                         {userTab === 'feed' && (
@@ -828,6 +839,14 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         tenantId={selectedProject.tenantId || tenantId || "1"}
                                     />
                                 </div>
+                            )}
+
+                            {/* VIEW 5: MOSCOW REQUIREMENTS */}
+                            {userTab === 'moscow' && !isNew && selectedProject && (
+                                <ProjectMoscow
+                                    projectId={selectedProject.id}
+                                    tenantId={selectedProject.tenantId || tenantId || "1"}
+                                />
                             )}
 
                         </div>
