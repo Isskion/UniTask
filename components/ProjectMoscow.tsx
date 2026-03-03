@@ -14,6 +14,8 @@ import ProjectMoscowPrintReport from "./ProjectMoscowPrintReport";
 
 interface ProjectMoscowProps {
     projectId: string;
+    projectCode?: string;
+    projectName?: string;
     tenantId: string;
 }
 
@@ -42,7 +44,7 @@ const MODULE_PRESETS = [
     { code: "08", name: "Rendimiento" },
 ];
 
-export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProps) {
+export default function ProjectMoscow({ projectId, projectCode, projectName, tenantId }: ProjectMoscowProps) {
     const { user, userProfile } = useAuth();
     const { theme } = useTheme();
     const { showToast } = useToast();
@@ -264,7 +266,7 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
                 >
                     <Plus className="w-4 h-4" /> Nuevo Requisito
                 </button>
-                <ProjectMoscowPrintReport requirements={filtered} isLight={isLight} tenantId={tenantId} projectId={projectId} />
+                <ProjectMoscowPrintReport requirements={filtered} isLight={isLight} tenantId={tenantId} projectId={projectId} projectCode={projectCode} projectName={projectName} />
 
                 <div className="flex-1" />
 

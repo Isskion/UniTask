@@ -12,6 +12,8 @@ interface ProjectMoscowPrintReportProps {
     isLight: boolean;
     tenantId: string;
     projectId: string;
+    projectCode?: string;
+    projectName?: string;
 }
 
 const PRIORITY_CONFIG: Record<MoscowPriority, { label: string; color: string; bg: string }> = {
@@ -28,7 +30,7 @@ const STATUS_CONFIG: Record<MoscowStatus, { label: string; color: string; bg: st
     discarded: { label: "Descartado", color: "#a1a1aa", bg: "#fafafa" },
 };
 
-export default function ProjectMoscowPrintReport({ requirements, isLight, tenantId, projectId }: ProjectMoscowPrintReportProps) {
+export default function ProjectMoscowPrintReport({ requirements, isLight, tenantId, projectId, projectCode, projectName }: ProjectMoscowPrintReportProps) {
     const stats = useMemo(() => {
         return {
             must: requirements.filter(r => r.priority === 'must').length,
@@ -50,7 +52,7 @@ export default function ProjectMoscowPrintReport({ requirements, isLight, tenant
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:2px solid #333;padding-bottom:12px;">
                 <div>
                     <h1 style="font-size:20px;margin:0 0 4px 0;text-transform:uppercase;letter-spacing:1px;color:#111;">Requisitos del Proyecto</h1>
-                    <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Proyecto: <span style="font-weight:bold;color:#333;">${projectId}</span> &nbsp;&mdash;&nbsp; Generado el ${dateStr}</div>
+                    <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Proyecto: <span style="font-weight:bold;color:#333;">${projectCode ? `${projectName} (${projectCode})` : projectId}</span></div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:14px;font-weight:bold;margin-bottom:2px;color:#333;">${stats.total} Requisitos</div>
@@ -147,7 +149,8 @@ export default function ProjectMoscowPrintReport({ requirements, isLight, tenant
             color-adjust: exact !important;
         }
         @media print {
-            body { padding: 12px; }
+            @page { margin: 0; }
+            body { padding: 15mm; }
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;

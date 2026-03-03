@@ -844,6 +844,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                             {userTab === 'moscow' && !isNew && selectedProject && (
                                 <ProjectMoscow
                                     projectId={selectedProject.id}
+                                    projectCode={selectedProject.code}
+                                    projectName={selectedProject.name}
                                     tenantId={selectedProject.tenantId || tenantId || "1"}
                                 />
                             )}
