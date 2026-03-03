@@ -501,6 +501,16 @@ service cloud.firestore {
       );
     }
 
+    // --- [NEW] MOSCOW REQUIREMENTS ---
+    match /moscow_requirements/{reqId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60))
+      );
+    }
+
     // --- [NEW] UNILEAKS: TENANT DICTIONARY ---
     match /tenant_dictionary/{wordId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));

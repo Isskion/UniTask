@@ -40,9 +40,9 @@ function UniLeaksContent() {
                 const targetTenant = tenantId || "1";
                 const projs = await getActiveProjects(targetTenant);
 
-                // Filter strictly by assigned projects (or superadmin/create permissions)
+                // Filter: superadmin/app_admin see all, others see only assigned projects
                 const filteredProjs = projs.filter(p => {
-                    if (userRole === 'superadmin' || canCreateProject) return true;
+                    if (userRole === 'superadmin' || userRole === 'app_admin') return true;
                     if (!userProfile?.assignedProjectIds) return false;
                     return userProfile.assignedProjectIds.includes(p.id);
                 });

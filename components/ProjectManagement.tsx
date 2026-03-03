@@ -63,10 +63,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     }, [autoFocusCreate, canCreate]);
 
     useEffect(() => {
-        // Fetch User Profile if we need it for filtering (Assume Admin/PM doesn't need assignment filtering)
-        const roleLevel = getRoleLevel(userRole);
-
-        if (user && roleLevel < RoleLevel.PM) {
+        // Fetch User Profile for filtering by assignedProjectIds
+        // SuperAdmin and App Admin bypass filters, so they don't need it
+        if (user && userRole !== 'superadmin' && userRole !== 'app_admin') {
             getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)))
                 .then(snap => {
                     if (!snap.empty) {
@@ -140,7 +139,7 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Filtered Projects for List
     const visibleProjects = projects.filter(p => {
-        if (canCreate) return true; // Admins see all
+        if (userRole === 'superadmin' || userRole === 'app_admin') return true; // Only admins see all
         if (!userProfile?.assignedProjectIds) return false;
         return userProfile.assignedProjectIds.includes(p.id);
     });
