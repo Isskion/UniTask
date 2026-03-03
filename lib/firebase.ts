@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 // We won't use analytics server-side for now to avoid errors
@@ -26,7 +26,7 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 // Initialize Firestore (Singleton pattern)
 // Use try-catch: initializeFirestore can only be called once per app.
 // On Next.js hot reloads or when the module is re-imported, fall back to getFirestore.
-let db;
+let db: Firestore;
 try {
     db = initializeFirestore(app, {
         experimentalForceLongPolling: true,
