@@ -148,8 +148,8 @@ export default function ProjectMoscowPrintReport({ requirements, isLight, tenant
     </style>
 </head>
 <body>
-    \${summaryHtml}
-    \${tableHtml}
+    ${summaryHtml}
+    ${tableHtml}
 </body>
 </html>`;
     };
