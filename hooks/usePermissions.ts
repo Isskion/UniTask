@@ -169,8 +169,19 @@ export function usePermissions() {
             if (action === 'edit') return permissions.taskAccess?.edit || false;
             if (action === 'view') return permissions.taskAccess?.viewAll || permissions.taskAccess?.assignedProjectsOnly || false;
         }
+        if (context === 'project') {
+            if (action === 'create') return permissions.projectAccess?.create || false;
+            if (action === 'edit') return permissions.projectAccess?.edit || false;
+            if (action === 'view') return permissions.projectAccess?.viewAll || permissions.projectAccess?.assignedOnly || false;
+            if (action === 'archive') return permissions.projectAccess?.archive || false;
+            if (action === 'viewAll') return permissions.projectAccess?.viewAll || false;
+        }
         if (context === 'projects') {
-            // Add project logic
+            if (action === 'create') return permissions.projectAccess?.create || false;
+            if (action === 'edit') return permissions.projectAccess?.edit || false;
+            if (action === 'view') return permissions.projectAccess?.viewAll || permissions.projectAccess?.assignedOnly || false;
+            if (action === 'archive') return permissions.projectAccess?.archive || false;
+            if (action === 'viewAll') return permissions.projectAccess?.viewAll || false;
         }
 
         if (context === 'views') {
