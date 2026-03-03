@@ -504,6 +504,7 @@ export interface DocumentType {
     isProjectChecklist: boolean; // "Cheq Proyecto"
     isImage: boolean;          // "Información es Imagen"
     tenantId: string;
+    order?: number;         // For sorting
     isActive: boolean;
     createdAt: any;
 }

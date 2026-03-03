@@ -61,7 +61,7 @@ export function ProjectDocuments({ project, tenantId }: ProjectDocumentsProps) {
             );
             const typesSnap = await getDocs(typesQ);
             const loadedTypes = typesSnap.docs.map(d => ({ id: d.id, ...d.data() } as DocumentType));
-            setDocTypes(loadedTypes.sort((a, b) => a.code.localeCompare(b.code)));
+            setDocTypes(loadedTypes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
 
             // 2. Fetch Project Documents
             const docsQ = query(

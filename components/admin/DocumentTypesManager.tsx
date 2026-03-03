@@ -37,7 +37,8 @@ export default function DocumentTypesManager() {
         name: '',
         description: '',
         isProjectChecklist: false,
-        isImage: false
+        isImage: false,
+        order: 0
     });
 
     // Load Data
@@ -53,10 +54,10 @@ export default function DocumentTypesManager() {
                 collection(db, 'document_types'),
                 where('tenantId', '==', tenantId),
                 where('isActive', '==', true)
-                // orderBy('code', 'asc') // Temporarily removed to rule out Index issues
             );
             const snap = await getDocs(q);
-            setTypes(snap.docs.map(d => ({ id: d.id, ...d.data() } as DocumentType)));
+            const loadedTypes = snap.docs.map(d => ({ id: d.id, ...d.data() } as DocumentType));
+            setTypes(loadedTypes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
         } catch (error) {
             console.error("Error loading document types:", error);
             showToast("UniTask", "Error loading types", "error");
@@ -73,7 +74,8 @@ export default function DocumentTypesManager() {
             name: type.name,
             description: type.description,
             isProjectChecklist: type.isProjectChecklist,
-            isImage: type.isImage || false
+            isImage: type.isImage || false,
+            order: type.order || 0
         });
         setIsCreating(false);
     };
@@ -85,7 +87,8 @@ export default function DocumentTypesManager() {
             name: '',
             description: '',
             isProjectChecklist: false,
-            isImage: false
+            isImage: false,
+            order: (types.length + 1) * 10
         });
         setIsCreating(true);
     };
@@ -193,6 +196,7 @@ export default function DocumentTypesManager() {
                                 <thead className="text-xs uppercase text-muted-foreground bg-muted/50">
                                     <tr>
                                         <th className="px-4 py-3">Código</th>
+                                        <th className="px-4 py-3">Orden</th>
                                         <th className="px-4 py-3">Nombre</th>
                                         <th className="px-4 py-3 text-center">Proyecto?</th>
                                         <th className="px-4 py-3 text-center">Imagen?</th>
@@ -203,6 +207,7 @@ export default function DocumentTypesManager() {
                                     {filteredTypes.map(type => (
                                         <tr key={type.id} className={cn("border-b last:border-0 hover:bg-muted/50 transition-colors", borderColor)}>
                                             <td className="px-4 py-3 font-mono text-xs">{type.code}</td>
+                                            <td className="px-4 py-3 text-xs">{type.order ?? 0}</td>
                                             <td className="px-4 py-3 font-medium">{type.name}</td>
                                             <td className="px-4 py-3 text-center">
                                                 {type.isProjectChecklist && (
@@ -239,15 +244,26 @@ export default function DocumentTypesManager() {
                         </h3>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold uppercase text-muted-foreground mb-1 block">Código</label>
-                                <input
-                                    type="text"
-                                    value={formData.code}
-                                    onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                                    placeholder="ej. SCOPE"
-                                    className={cn("w-full px-3 py-2 rounded-lg border text-sm", isLight ? "bg-white" : "bg-black/20", borderColor)}
-                                />
+                            <div className="flex gap-4">
+                                <div className="flex-[2]">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-1 block">Código</label>
+                                    <input
+                                        type="text"
+                                        value={formData.code}
+                                        onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                                        placeholder="ej. SCOPE"
+                                        className={cn("w-full px-3 py-2 rounded-lg border text-sm", isLight ? "bg-white" : "bg-black/20", borderColor)}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground mb-1 block">Orden</label>
+                                    <input
+                                        type="number"
+                                        value={formData.order}
+                                        onChange={e => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                                        className={cn("w-full px-3 py-2 rounded-lg border text-sm", isLight ? "bg-white" : "bg-black/20", borderColor)}
+                                    />
+                                </div>
                             </div>
 
                             <div>
