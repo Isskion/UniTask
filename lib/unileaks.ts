@@ -75,3 +75,30 @@ export async function deleteFolder(folderId: string): Promise<void> {
     const ref = doc(db, "unileaks_folders", folderId);
     await deleteDoc(ref);
 }
+
+// --- User Profiles Map (for avatar display) ---
+
+export type NoteOwnerInfo = { displayName: string; photoURL?: string };
+
+export async function getUserProfilesMap(userIds: string[]): Promise<Map<string, NoteOwnerInfo>> {
+    const uniqueIds = [...new Set(userIds)].filter(Boolean);
+    const map = new Map<string, NoteOwnerInfo>();
+    if (uniqueIds.length === 0) return map;
+
+    // Fetch each user doc individually (avoids 'in' query limit of 30)
+    const results = await Promise.all(
+        uniqueIds.map(uid => getDoc(doc(db, "users", uid)))
+    );
+
+    results.forEach(snap => {
+        if (snap.exists()) {
+            const data = snap.data();
+            map.set(snap.id, {
+                displayName: data.displayName || "Usuario",
+                photoURL: data.photoURL || undefined
+            });
+        }
+    });
+
+    return map;
+}

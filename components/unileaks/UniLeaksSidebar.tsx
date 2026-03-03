@@ -4,6 +4,7 @@ import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, MoreVer
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { NoteOwnerInfo } from "@/lib/unileaks";
 
 interface UniLeaksSidebarProps {
     projects: Project[];
@@ -23,6 +24,8 @@ interface UniLeaksSidebarProps {
     onMoveNote: (noteId: string, folderId: string | null) => void;
     onMoveFolder: (folderId: string, parentId: string | null) => void;
     loading: boolean;
+    usersMap?: Map<string, NoteOwnerInfo>;
+    currentUserId?: string;
 }
 
 type ContextMenuState = {
@@ -50,7 +53,9 @@ export default function UniLeaksSidebar({
     onDeleteFolder,
     onMoveNote,
     onMoveFolder,
-    loading
+    loading,
+    usersMap,
+    currentUserId
 }: UniLeaksSidebarProps) {
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, x: 0, y: 0, targetId: null, targetType: 'root' });
@@ -308,6 +313,25 @@ export default function UniLeaksSidebar({
                                         <div className="w-5 h-5 shrink-0 flex items-center justify-center">
                                             <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div> {/* Spacer matching chevron size */}
+                                        {/* Owner Avatar for public notes from other users */}
+                                        {note.isPublic && currentUserId && note.userId !== currentUserId && usersMap?.has(note.userId) && (() => {
+                                            const owner = usersMap.get(note.userId)!;
+                                            return (
+                                                <span title={`Compartido por ${owner.displayName}`} className="shrink-0">
+                                                    {owner.photoURL ? (
+                                                        <img
+                                                            src={owner.photoURL}
+                                                            alt={owner.displayName}
+                                                            className="w-5 h-5 rounded-full object-cover border border-border"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold border border-primary/30">
+                                                            {owner.displayName.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                </span>
+                                            );
+                                        })()}
                                         <FileText className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
 
                                         {isRenaming === note.id ? (

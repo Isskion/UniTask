@@ -7,7 +7,7 @@ import { Project, UniLeakNote, UniLeakFolder } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { getActiveProjects } from "@/lib/projects";
-import { getProjectNotes, getProjectFolders, saveFolder, deleteFolder, deleteNote, saveNote, getNoteById } from "@/lib/unileaks";
+import { getProjectNotes, getProjectFolders, saveFolder, deleteFolder, deleteNote, saveNote, getNoteById, getUserProfilesMap, NoteOwnerInfo } from "@/lib/unileaks";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/context/ToastContext";
@@ -27,6 +27,7 @@ function UniLeaksContent() {
     const [activeNote, setActiveNote] = useState<UniLeakNote | null>(null);
     const [loadingProjects, setLoadingProjects] = useState(true);
     const [loadingNotes, setLoadingNotes] = useState(false);
+    const [usersMap, setUsersMap] = useState<Map<string, NoteOwnerInfo>>(new Map());
 
     // Evaluate create permission outside effect to avoid unstable function reference loops
     const canCreateProject = can('create', 'project');
@@ -86,6 +87,15 @@ function UniLeaksContent() {
                 // Sort notes by updated latest
                 notesData.sort((a, b) => b.updatedAt?.toMillis() - a.updatedAt?.toMillis());
                 setNotes(notesData);
+
+                // Fetch user profiles for avatar display
+                const otherUserIds = notesData
+                    .filter(n => n.isPublic && n.userId !== user.uid)
+                    .map(n => n.userId);
+                if (otherUserIds.length > 0) {
+                    const profiles = await getUserProfilesMap(otherUserIds);
+                    setUsersMap(profiles);
+                }
                 setFolders(foldersData);
 
                 // Si la nota activa no pertenece al nuevo proyecto, resetear
@@ -364,6 +374,8 @@ function UniLeaksContent() {
                     onMoveNote={handleMoveNote}
                     onMoveFolder={handleMoveFolder}
                     loading={loadingNotes}
+                    usersMap={usersMap}
+                    currentUserId={user?.uid || ""}
                 />
             </div>
             <div className="flex-1 overflow-y-auto">
