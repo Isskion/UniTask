@@ -170,9 +170,9 @@ export default function DocumentTypesManager() {
             </div>
 
             {/* List & Form Container */}
-            <div className="flex gap-6 flex-1 overflow-hidden">
+            <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
                 {/* Left: List */}
-                <div className={cn("flex-[2] flex flex-col rounded-xl border overflow-hidden", bgColor, borderColor)}>
+                <div className={cn("flex-1 flex flex-col rounded-xl border overflow-hidden min-w-0", bgColor, borderColor)}>
                     <div className={cn("p-4 border-b", borderColor)}>
                         <div className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border", isLight ? "bg-zinc-50" : "bg-white/5", borderColor)}>
                             <Search className="w-4 h-4 text-muted-foreground" />
@@ -237,7 +237,7 @@ export default function DocumentTypesManager() {
 
                 {/* Right: Form (Overlay or Side Panel when creating/editing) */}
                 {(isCreating || editingId) && (
-                    <div className={cn("flex-1 rounded-xl border p-6 flex flex-col gap-4 h-fit max-h-[85vh] overflow-y-auto", bgColor, borderColor)}>
+                    <div className={cn("w-full md:w-[450px] shrink-0 rounded-xl border p-5 flex flex-col gap-4 overflow-y-auto shadow-sm h-full", bgColor, borderColor)}>
                         <h3 className={cn("font-bold text-lg flex items-center gap-2", textColor)}>
                             {isCreating ? <Plus className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
                             {isCreating ? "Crear Nuevo Tipo" : "Editar Tipo"}
@@ -335,7 +335,7 @@ export default function DocumentTypesManager() {
                 )}
 
                 {(!isCreating && !editingId) && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground opacity-50 border-2 border-dashed rounded-xl p-8">
+                    <div className={cn("hidden md:flex w-[450px] shrink-0 flex-col items-center justify-center text-muted-foreground opacity-50 border-2 border-dashed rounded-xl p-8", borderColor)}>
                         <FileText className="w-12 h-12 mb-4" />
                         <p className="text-center">Selecciona un tipo para editar o crea uno nuevo.</p>
                     </div>
