@@ -24,12 +24,20 @@ console.log("🔥 Firebase Config Loaded:", {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 // Initialize Firestore (Singleton pattern)
-const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-    localCache: typeof window !== 'undefined'
-        ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-        : undefined
-});
+// Use try-catch: initializeFirestore can only be called once per app.
+// On Next.js hot reloads or when the module is re-imported, fall back to getFirestore.
+let db;
+try {
+    db = initializeFirestore(app, {
+        experimentalForceLongPolling: true,
+        localCache: typeof window !== 'undefined'
+            ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+            : undefined
+    });
+} catch {
+    // Already initialized — reuse existing instance
+    db = getFirestore(app);
+}
 const auth = getAuth(app);
 const storage = getStorage(app);
 import { getFunctions } from "firebase/functions";

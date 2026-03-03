@@ -27,10 +27,37 @@ export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSh
     const ws = workbook.Sheets[sheetName];
     if (!ws) return { headers: [], rows: [] };
 
-    const jsonData = XLSX.utils.sheet_to_json<any>(ws, { defval: '' });
-    const headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+    // Get all data as an array of arrays to extract headers robustly
+    const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: '' });
+    if (data.length === 0) return { headers: [], rows: [] };
 
-    return { headers, rows: jsonData };
+    // First row is the header
+    const rawHeaders = data[0] as any[];
+    const headers = rawHeaders
+        .map(h => String(h || '').trim())
+        .filter(h => h !== '');
+
+    // The rest are rows — convert to objects using headers
+    const rows: Record<string, any>[] = [];
+    for (let i = 1; i < data.length; i++) {
+        const rowData = data[i];
+        if (!rowData || rowData.length === 0) continue;
+
+        const rowObj: Record<string, any> = {};
+        let hasValue = false;
+
+        headers.forEach((h, index) => {
+            const val = rowData[index] ?? '';
+            rowObj[h] = val;
+            if (val !== '') hasValue = true;
+        });
+
+        if (hasValue) {
+            rows.push(rowObj);
+        }
+    }
+
+    return { headers, rows };
 }
 
 /**

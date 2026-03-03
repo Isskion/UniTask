@@ -12,6 +12,7 @@ interface HeaderProps {
     onRetryFailed: () => void;
     onLogout: () => void;
     onManageUsers: () => void;
+    isLoadingExcel?: boolean;
 }
 
 export default function Header({
@@ -25,6 +26,7 @@ export default function Header({
     onRetryFailed,
     onLogout,
     onManageUsers,
+    isLoadingExcel,
 }: HeaderProps) {
     const { t } = useTranslation();
     const token = useAppStore((s) => s.token);
@@ -36,81 +38,77 @@ export default function Header({
     const hasData = rows.length > 0;
 
     return (
-        <header className="flex h-[72px] items-center px-6 justify-between shrink-0 sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 shadow-xl shadow-slate-900/20">
-            {/* Logo Section */}
-            <div className="flex items-center gap-4">
-                <div className="relative">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl blur opacity-30 animate-pulse" />
-                    <img src="/LogoApp.jpg" alt="UNIGIS" className="relative h-10 w-auto object-contain rounded-lg ring-1 ring-white/20" />
-                </div>
-                <div className="flex flex-col">
-                    <h1 className="text-lg font-bold text-white tracking-tight leading-tight">Order Creator</h1>
-                    <span className="text-[10px] font-semibold text-red-400/80 uppercase tracking-[0.2em]">UniTask Platinum</span>
+        <header className="flex h-[44px] items-center px-3 justify-between shrink-0 sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 shadow-md">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+                <img src="/LogoApp.jpg" alt="UNIGIS" className="h-7 w-auto object-contain rounded ring-1 ring-white/20" />
+                <div className="flex flex-col leading-none">
+                    <span className="text-sm font-bold text-white tracking-tight">Order Creator</span>
+                    <span className="text-[8px] font-semibold text-red-400/80 uppercase tracking-[0.15em]">UniTask Platinum</span>
                 </div>
             </div>
 
-            {/* Actions Section */}
-            <div className="flex items-center gap-3">
-                {/* Connection Status Badge */}
-                <span className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border backdrop-blur-sm transition-all duration-300 ${token
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-lg shadow-emerald-500/10'
+            {/* Actions */}
+            <div className="flex items-center gap-1.5">
+                <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap border ${token
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                     : 'bg-white/5 text-slate-400 border-white/10'
                     }`}>
-                    <span className={`w-2 h-2 rounded-full ${token ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50' : 'bg-slate-500'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${token ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
                     {token ? t('app.connected') : t('app.notConnected')}
                 </span>
 
-                <div className="w-px h-8 bg-white/10" />
+                <div className="w-px h-5 bg-white/10" />
 
-                {/* Primary Actions Group */}
-                <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 backdrop-blur-sm">
+                <div className="flex items-center gap-1 bg-white/5 px-1 py-0.5 rounded-lg border border-white/10">
                     <button
-                        className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium bg-white/10 text-white/90 rounded-lg hover:bg-white/20 hover:text-white transition-all duration-200 hover:shadow-lg hover:shadow-white/5"
+                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-white/10 text-white/90 rounded hover:bg-white/20 transition-all disabled:opacity-50"
                         onClick={onLoadExcel}
+                        disabled={isLoadingExcel}
                     >
-                        📂 <span className="hidden sm:inline">{t('buttons.loadExcel')}</span>
+                        {isLoadingExcel ? (
+                            <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Cargando...</>
+                        ) : (
+                            <>📂 <span className="hidden sm:inline">{t('buttons.loadExcel')}</span></>
+                        )}
                     </button>
                     <button
-                        className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium bg-white/10 text-white/90 rounded-lg hover:bg-amber-500/20 hover:text-amber-300 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/10 disabled:hover:text-white/90"
+                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-white/10 text-white/90 rounded hover:bg-amber-500/20 hover:text-amber-300 transition-all disabled:opacity-30"
                         onClick={onGroupRows}
                         disabled={!hasData}
                     >
-                        ⚡ <span className="hidden md:inline">Agrupar</span>
+                        ⚡ Agrupar
                     </button>
                 </div>
 
-                {/* Mass Edit Contextual */}
                 {selectedIndices.size > 0 && (
                     <button
-                        className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-xl hover:bg-indigo-500/30 hover:text-indigo-200 transition-all duration-200 shadow-lg shadow-indigo-500/10 animate-in fade-in zoom-in"
+                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-all"
                         onClick={onMassEdit}
                     >
                         ✏️ Editar ({selectedIndices.size})
                     </button>
                 )}
 
-                <div className="w-px h-8 bg-white/10" />
+                <div className="w-px h-5 bg-white/10" />
 
-                {/* Execution Group */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <button
-                        className="px-4 py-2 text-sm font-semibold bg-white/10 text-white/90 rounded-xl hover:bg-white/20 transition-all duration-200 border border-white/10 disabled:opacity-30"
+                        className="px-2.5 py-1 text-[11px] font-semibold bg-white/10 text-white/90 rounded-lg hover:bg-white/20 transition-all border border-white/10 disabled:opacity-30"
                         onClick={onValidate}
                         disabled={!hasData || !token}
                     >
                         ✓ Validar
                     </button>
-
                     <button
-                        className="px-4 py-2 text-sm font-semibold bg-indigo-600/80 text-white rounded-xl hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 border border-indigo-500/50 disabled:opacity-30 disabled:hover:shadow-none"
+                        className="px-2.5 py-1 text-[11px] font-semibold bg-indigo-600/80 text-white rounded-lg hover:bg-indigo-500 transition-all border border-indigo-500/50 disabled:opacity-30"
                         onClick={onSendSelected}
                         disabled={selectedIndices.size === 0 || !token}
                     >
-                        📨 Seleccionado
+                        📨 Selección
                     </button>
-
                     <button
-                        className="px-5 py-2 text-sm font-bold bg-gradient-to-r from-red-600 to-red-500 text-white rounded-xl hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/40 transition-all duration-200 border border-red-400/30 disabled:opacity-30 disabled:hover:shadow-lg disabled:hover:from-red-600 disabled:hover:to-red-500"
+                        className="px-3 py-1 text-[11px] font-bold bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-400 shadow-sm shadow-red-500/25 transition-all border border-red-400/30 disabled:opacity-30"
                         onClick={onSendAll}
                         disabled={!hasData || !token}
                     >
@@ -118,43 +116,23 @@ export default function Header({
                     </button>
                 </div>
 
-                {/* Error Recovery */}
                 {failedCount > 0 && (
                     <button
-                        className="ml-1 flex items-center gap-1.5 px-3.5 py-2 font-bold text-sm bg-red-500/15 text-red-300 border border-red-500/30 rounded-xl hover:bg-red-500/25 transition-all duration-200 shadow-lg shadow-red-500/10 animate-pulse"
+                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold bg-red-500/15 text-red-300 border border-red-500/30 rounded-lg hover:bg-red-500/25 transition-all"
                         onClick={onRetryFailed}
                     >
                         🔄 Reintentar ({failedCount})
                     </button>
                 )}
 
-                {/* Settings / Auth */}
-                <div className="flex items-center gap-1 ml-2">
+                <div className="flex items-center gap-0.5 ml-1">
                     {role === 'admin' && token && (
-                        <button
-                            className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/15 rounded-xl transition-all duration-200"
-                            onClick={onManageUsers}
-                            title="Usuarios"
-                        >
-                            👥
-                        </button>
+                        <button className="p-1 text-slate-400 hover:text-indigo-300 rounded transition-all text-xs" onClick={onManageUsers} title="Usuarios">👥</button>
                     )}
                     {token ? (
-                        <button
-                            className="p-2 text-slate-400 hover:text-red-300 hover:bg-red-500/15 rounded-xl transition-all duration-200"
-                            onClick={onLogout}
-                            title="Desconectar"
-                        >
-                            🚪
-                        </button>
+                        <button className="p-1 text-slate-400 hover:text-red-300 rounded transition-all text-xs" onClick={onLogout} title="Desconectar">🚪</button>
                     ) : (
-                        <button
-                            className="p-2 text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/15 rounded-xl transition-all duration-200"
-                            onClick={onShowLogin}
-                            title={t('app.connect')}
-                        >
-                            🔗
-                        </button>
+                        <button className="p-1 text-slate-400 hover:text-indigo-300 rounded transition-all text-xs" onClick={onShowLogin} title={t('app.connect')}>🔗</button>
                     )}
                 </div>
             </div>

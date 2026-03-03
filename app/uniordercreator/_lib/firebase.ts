@@ -1,56 +1,38 @@
 "use client";
 /**
- * Firebase Configuration — Singleton initialization
+ * Firebase Configuration — Reuses UniTask's main Firebase instance
  *
- * This file initializes Firebase once and exports the Firestore instance.
- * All Firebase env vars use the NEXT_PUBLIC_ prefix so they are available client-side.
- *
- * SETUP: Copy `.env.example` to `.env.local` and fill in your Firebase credentials.
+ * Instead of initializing a separate Firebase app (which competes for
+ * Firestore leases and causes timeouts), this module reuses the
+ * already-initialized Firebase app from the main UniTask application.
  */
 
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getApps, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
 /**
- * Check if Firebase is properly configured.
- * Returns false when env vars are missing (e.g. dev without Firebase).
+ * Check if Firebase is properly configured (any app is already initialized).
  */
 export function isFirebaseConfigured(): boolean {
-    return !!(firebaseConfig.apiKey && firebaseConfig.projectId);
+    return getApps().length > 0;
 }
 
-// Lazy singleton — only initialize when actually needed
-let _app: FirebaseApp | null = null;
+// Lazy singleton
 let _db: Firestore | null = null;
 
-function getApp(): FirebaseApp {
-    if (!_app) {
-        if (!isFirebaseConfigured()) {
-            throw new Error(
-                'Firebase not configured. Copy .env.example to .env.local and add your Firebase credentials.'
-            );
-        }
-        _app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
-    }
-    return _app;
-}
-
 /**
- * Get Firestore instance — lazy initialized.
- * Throws if Firebase is not configured.
+ * Get Firestore instance — reuses the already-initialized Firebase app from UniTask.
+ * Throws if no Firebase app is initialized.
  */
 export function getDb(): Firestore {
     if (!_db) {
-        _db = getFirestore(getApp());
+        const apps = getApps();
+        if (apps.length === 0) {
+            throw new Error(
+                'Firebase no inicializado. El módulo UniOrderManager requiere que UniTask tenga Firebase configurado.'
+            );
+        }
+        _db = getFirestore(apps[0] as FirebaseApp);
     }
     return _db;
 }

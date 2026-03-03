@@ -33,6 +33,7 @@ import '@/app/uniordercreator/_src/App.css';
 
 function UnigisOrderCreatorPageInner() {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isLoadingExcel, setIsLoadingExcel] = useState(false);
 
     // Modals / Wizards state
     const [loginOpen, setLoginOpen] = useState(true);
@@ -80,34 +81,50 @@ function UnigisOrderCreatorPageInner() {
             const file = e.target.files?.[0];
             if (!file) return;
             const reader = new FileReader();
+            setIsLoadingExcel(true);
             reader.onload = (evt) => {
-                const data = evt.target?.result as ArrayBuffer;
-                const { sheet, workbook } = parseExcelFile(data);
-                setHeaders(sheet.headers);
-                setRows(sheet.rows);
+                // Use rAF to let the loading overlay paint before blocking parse
+                requestAnimationFrame(() => {
+                    try {
+                        const data = evt.target?.result as ArrayBuffer;
+                        const { sheet, workbook } = parseExcelFile(data);
 
-                // Store workbook for multi-sheet
-                useAppStore.getState().setMultiSheet({ workbook });
-
-                // Auto-mapping
-                const allFields = getAllFields();
-                const newMapping: Record<string, string> = {};
-                for (const field of allFields) {
-                    const shortName = field.split('.').pop()?.toLowerCase() || '';
-                    let bestMatch = '';
-                    let bestDist = Infinity;
-                    for (const header of sheet.headers) {
-                        const dist = levenshtein(shortName, header.toLowerCase());
-                        if (dist < bestDist) {
-                            bestDist = dist;
-                            bestMatch = header;
+                        if (sheet.headers.length === 0) {
+                            throw new Error('El archivo Excel no parece tener cabeceras válidas.');
                         }
+
+                        setHeaders(sheet.headers);
+                        setRows(sheet.rows);
+
+                        // Store workbook for multi-sheet
+                        useAppStore.getState().setMultiSheet({ workbook });
+
+                        // Auto-mapping
+                        const allFields = getAllFields();
+                        const newMapping: Record<string, string> = {};
+                        for (const field of allFields) {
+                            const shortName = field.split('.').pop()?.toLowerCase() || '';
+                            let bestMatch = '';
+                            let bestDist = Infinity;
+                            for (const header of sheet.headers) {
+                                const dist = levenshtein(shortName, header.toLowerCase());
+                                if (dist < bestDist) {
+                                    bestDist = dist;
+                                    bestMatch = header;
+                                }
+                            }
+                            if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
+                                newMapping[field] = bestMatch;
+                            }
+                        }
+                        setMapping(newMapping);
+                    } catch (err: any) {
+                        console.error('[ExcelLoadError]', err);
+                        alert(`Error cargando el archivo: ${err.message}`);
+                    } finally {
+                        setIsLoadingExcel(false);
                     }
-                    if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
-                        newMapping[field] = bestMatch;
-                    }
-                }
-                setMapping(newMapping);
+                });
             };
             reader.readAsArrayBuffer(file);
             e.target.value = '';
@@ -254,7 +271,7 @@ function UnigisOrderCreatorPageInner() {
     // ─── Resizable layout state ──────────────────────────────────────
     const [leftWidth, setLeftWidth] = useState(75); // % of horizontal space
     const [detailHeight, setDetailHeight] = useState(35); // % of left panel for DetailPanel
-    const [mapperHeight, setMapperHeight] = useState(380); // px for bottom mapper
+    const [mapperHeight, setMapperHeight] = useState(260); // px for bottom mapper
     const dragging = useRef<'h' | 'v' | 'm' | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -274,8 +291,8 @@ function UnigisOrderCreatorPageInner() {
                 setLeftWidth(Math.min(85, Math.max(25, pct)));
             } else if (dragging.current === 'v') {
                 // relative to the left panel
-                const headerH = 72; // header height px
-                const leftPanelTop = headerH + 16; // p-4
+                const headerH = 44; // header height px
+                const leftPanelTop = headerH + 8; // p-2
                 const leftPanelBottom = rect.bottom - mapperHeight - 16;
                 const leftPanelH = leftPanelBottom - leftPanelTop;
                 const relY = e.clientY - leftPanelTop;
@@ -303,6 +320,17 @@ function UnigisOrderCreatorPageInner() {
         <div ref={containerRef} className="flex flex-col h-screen w-full bg-slate-50 overflow-hidden font-sans">
             <input ref={fileInputRef} type="file" accept=".xlsx,.xls" hidden onChange={handleFileChange} />
 
+            {/* Loading Overlay */}
+            {isLoadingExcel && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-3">
+                        <div className="w-8 h-8 border-3 border-slate-200 border-t-indigo-500 rounded-full animate-spin" />
+                        <span className="text-sm font-semibold text-slate-700">Procesando Excel...</span>
+                        <span className="text-[10px] text-slate-400">Leyendo cabeceras y filas</span>
+                    </div>
+                </div>
+            )}
+
             {/* HEADER */}
             <Header
                 onShowLogin={() => setLoginOpen(true)}
@@ -315,25 +343,26 @@ function UnigisOrderCreatorPageInner() {
                 onRetryFailed={handleRetryFailed}
                 onLogout={() => useAppStore.getState().setToken(null)}
                 onManageUsers={() => { }}
+                isLoadingExcel={isLoadingExcel}
             />
 
             {/* MAIN CONTENT — Resizable horizontal split */}
-            <div className="flex flex-1 overflow-hidden p-4 gap-0" style={{ paddingBottom: 0 }}>
+            <div className="flex flex-1 overflow-hidden p-2 gap-0" style={{ paddingBottom: 0 }}>
                 {/* Panel izquierdo: DataPanel */}
-                <div className="flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" style={{ width: `${leftWidth}%` }}>
-                    <div className="flex justify-between items-center p-3 border-b border-slate-100 bg-slate-50/50">
-                        <span className="font-semibold text-slate-800">📦 Pedidos (Maestro)</span>
-                        <div className="flex gap-2 items-center">
-                            <button className="p-1.5 hover:bg-slate-200 rounded transition-colors" onClick={() => setDynWizardOpen(true)} title="Campos Dinámicos">🔧</button>
-                            <button className="p-1.5 hover:bg-slate-200 rounded transition-colors" onClick={() => setMultiSheetWizOpen(true)} title="Multi-Hoja">📊</button>
-                            <button className="p-1.5 hover:bg-slate-200 rounded transition-colors" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
-                            <button className="p-1.5 hover:bg-amber-100 rounded transition-colors text-amber-600" onClick={() => setSavedMappingsOpen(true)} title="Plantillas en la Nube">☁️</button>
+                <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden" style={{ width: `${leftWidth}%` }}>
+                    <div className="flex justify-between items-center px-2 py-1 border-b border-slate-100 bg-slate-50/50">
+                        <span className="text-xs font-semibold text-slate-700">📦 Pedidos</span>
+                        <div className="flex gap-1 items-center">
+                            <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setDynWizardOpen(true)} title="Campos Dinámicos">🔧</button>
+                            <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMultiSheetWizOpen(true)} title="Multi-Hoja">📊</button>
+                            <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
+                            <button className="p-0.5 hover:bg-amber-100 rounded transition-colors text-amber-600 text-xs" onClick={() => setSavedMappingsOpen(true)} title="Plantillas en la Nube">☁️</button>
                             <button
-                                className="p-1.5 hover:bg-red-100 rounded transition-colors text-red-500"
+                                className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs"
                                 onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }}
                                 title="Limpiar Mapeo"
                             >🧹</button>
-                            <span className="text-sm text-slate-500 font-medium bg-slate-100 px-2 py-1 rounded-full">{rows.length} filas</span>
+                            <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-full">{rows.length} filas</span>
                         </div>
                     </div>
                     {/* MasterTable — fills remaining space above detail */}

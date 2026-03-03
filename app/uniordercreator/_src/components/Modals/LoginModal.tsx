@@ -14,9 +14,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     const setRole = useAppStore((s) => s.setRole);
     const setCurrentUser = useAppStore((s) => s.setCurrentUser);
 
-    const [url, setUrl] = useState(() => localStorage.getItem('unigis_url') || 'https://');
-    const [user, setUser] = useState(() => localStorage.getItem('unigis_user') || '');
-    const [pass, setPass] = useState(() => localStorage.getItem('unigis_pass') || '');
+    const [url, setUrl] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('unigis_url') || 'https://') : 'https://'
+    );
+    const [user, setUser] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('unigis_user') || '') : ''
+    );
+    const [pass, setPass] = useState(() =>
+        typeof window !== 'undefined' ? (localStorage.getItem('unigis_pass') || '') : ''
+    );
     const [remember, setRemember] = useState(true);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
