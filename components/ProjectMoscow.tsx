@@ -6,7 +6,7 @@ import { getProjectRequirements, saveRequirement, deleteRequirement, getNextSequ
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Filter, Edit2, Trash2, Save, XCircle, Loader2, ChevronDown } from "lucide-react";
+import { Plus, Search, Filter, Edit2, Trash2, Save, XCircle, Loader2, ChevronDown, Check } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
@@ -179,6 +179,23 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
         } catch (error) {
             console.error("Error deleting:", error);
             showToast("Error", "No se pudo eliminar", "error");
+        }
+    };
+
+    const handleToggleTreated = async (req: MoscowRequirement) => {
+        const newValue = !req.treated;
+        if (newValue) {
+            if (!confirm(`¿Marcar el requisito ${req.moscowId} como TRATADO?`)) return;
+        } else {
+            if (!confirm(`⚠️ Estás reabriendo el requisito ${req.moscowId}. ¿Continuar?`)) return;
+        }
+        try {
+            await saveRequirement({ id: req.id, treated: newValue });
+            setRequirements(prev => prev.map(r => r.id === req.id ? { ...r, treated: newValue } : r));
+            showToast(newValue ? "Tratado" : "Reabierto", `Requisito ${req.moscowId} ${newValue ? "marcado como tratado" : "reabierto"}`, "success");
+        } catch (error) {
+            console.error("Error toggling treated:", error);
+            showToast("Error", "No se pudo actualizar", "error");
         }
     };
 
@@ -427,6 +444,7 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
                                 <tr className={cn("text-[10px] uppercase tracking-wider font-bold",
                                     isLight ? "bg-zinc-100 text-zinc-600" : "bg-white/[0.03] text-zinc-400"
                                 )}>
+                                    <th className="text-center px-3 py-3 w-16">Tratado</th>
                                     <th className="text-left px-4 py-3">ID</th>
                                     <th className="text-left px-4 py-3 min-w-[200px]">Requisito</th>
                                     <th className="text-left px-4 py-3">Prioridad</th>
@@ -446,14 +464,33 @@ export default function ProjectMoscow({ projectId, tenantId }: ProjectMoscowProp
                                         <tr
                                             key={req.id}
                                             className={cn("group transition-colors",
-                                                isLight
-                                                    ? (idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50")
-                                                    : (idx % 2 === 0 ? "bg-transparent" : "bg-white/[0.01]"),
-                                                isLight ? "hover:bg-zinc-100/50" : "hover:bg-white/[0.03]"
+                                                req.treated
+                                                    ? (isLight ? "bg-emerald-50/80" : "bg-emerald-950/20")
+                                                    : (isLight
+                                                        ? (idx % 2 === 0 ? "bg-white" : "bg-zinc-50/50")
+                                                        : (idx % 2 === 0 ? "bg-transparent" : "bg-white/[0.01]")),
+                                                req.treated
+                                                    ? (isLight ? "hover:bg-emerald-100/60" : "hover:bg-emerald-950/30")
+                                                    : (isLight ? "hover:bg-zinc-100/50" : "hover:bg-white/[0.03]")
                                             )}
                                         >
+                                            {/* Tratado Checkbox */}
+                                            <td className="px-3 py-3 text-center">
+                                                <button
+                                                    onClick={() => handleToggleTreated(req)}
+                                                    className={cn(
+                                                        "w-5 h-5 rounded border-2 flex items-center justify-center transition-all mx-auto cursor-pointer",
+                                                        req.treated
+                                                            ? "bg-emerald-500 border-emerald-500 text-white"
+                                                            : (isLight ? "border-zinc-300 hover:border-zinc-400" : "border-zinc-600 hover:border-zinc-400")
+                                                    )}
+                                                    title={req.treated ? "Desmarcar tratado" : "Marcar como tratado"}
+                                                >
+                                                    {req.treated && <Check className="w-3 h-3" />}
+                                                </button>
+                                            </td>
                                             <td className="px-4 py-3">
-                                                <span className={cn("font-mono font-bold text-xs", isLight ? "text-zinc-900" : "text-zinc-200")}>{req.moscowId}</span>
+                                                <span className={cn("font-mono font-bold text-xs", req.treated ? "text-emerald-700 dark:text-emerald-400" : (isLight ? "text-zinc-900" : "text-zinc-200"))}>{req.moscowId}</span>
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className={cn("font-medium", isLight ? "text-zinc-800" : "text-zinc-100")}>{req.title}</span>

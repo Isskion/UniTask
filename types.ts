@@ -592,4 +592,5 @@ export interface MoscowRequirement {
     createdByName: string;      // Snapshot nombre
     createdAt: any;             // Firestore Timestamp
     updatedAt: any;
+    treated?: boolean;          // Marcado como "Tratado"
 }
