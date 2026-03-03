@@ -192,8 +192,13 @@ service cloud.firestore {
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
     match /projects/{document=**} {
       // [SAM] Read: Uses hasAccess() which checks Intersect(UserScope, ResourceData)
+      // [FIX] PMs (Level >= 60) can LIST all tenant projects (client filters by assignedProjectIds)
       allow read: if isSuperAdmin() || 
-                  (isAuthenticated() && (getRealRole() >= 80 || hasAccess(getUserData(), resource.data)));
+                  (isAuthenticated() && (
+                    getRealRole() >= 80 || 
+                    (docTenantMatches(resource.data) && getRealRole() >= 60) ||
+                    hasAccess(getUserData(), resource.data)
+                  ));
       
       // [SAM] Create: Must have access to target scope + Maintain Key Integrity
       allow create: if isAuthenticated() && (
