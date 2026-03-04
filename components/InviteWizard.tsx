@@ -8,7 +8,7 @@ import { createInviteActionV3 } from "@/app/actions/invites"; // Secure Server A
 import { createTenant } from "@/lib/tenants";
 import { createProject } from "@/lib/projects"; // Added import
 import { getActiveProjects } from "@/lib/projects";
-import { Tenant, RoleLevel, getRoleLevel } from "@/types";
+import { Tenant, RoleLevel, getRoleLevel, PermissionGroup } from "@/types";
 import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Check, Clipboard, Loader2, X, Building, Shield, Crown, Briefcase, ExternalLink, ArrowRight, ArrowLeft, Info } from "lucide-react";
@@ -44,10 +44,12 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
     // Data
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [projects, setProjects] = useState<{ id: string, name: string, code: string }[]>([]);
+    const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([]);
 
     // Selection
     const [selectedTenant, setSelectedTenant] = useState<string>(tenantId || "1");
     const [selectedRole, setSelectedRole] = useState<string>("client");
+    const [selectedPermissionGroup, setSelectedPermissionGroup] = useState<string | null>(null);
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
     // New Tenant State
@@ -78,6 +80,8 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             }
             loadTenants();
         }
+
+        loadPermissionGroups(tenantId || "1");
     }, [isOpen]);
 
     // Load projects whenever Tenant changes (AND we are not creating a new one)
@@ -86,6 +90,20 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
             loadProjects();
         }
     }, [selectedTenant, step, isNewTenant]);
+
+    const loadPermissionGroups = async (currentTenantId: string) => {
+        try {
+            const q = query(
+                collection(db, "permission_groups"),
+                where("tenantId", "==", currentTenantId)
+            );
+            const snapshot = await getDocs(q);
+            const groups = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PermissionGroup));
+            setPermissionGroups(groups);
+        } catch (error) {
+            console.error("Error loading permission groups", error);
+        }
+    };
 
     const loadTenants = async () => {
         try {
@@ -143,7 +161,8 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                 targetTenantId,
                 selectedRole,
                 finalSelectedProjects,
-                isNewTenant ? newTenantName : undefined // Pass name for server-side creation
+                isNewTenant ? newTenantName : undefined, // Pass name for server-side creation
+                selectedPermissionGroup || undefined
             );
 
             if (!result.success) {
@@ -250,12 +269,13 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                         return true;
                                     }).map(role => {
                                         const Icon = role.icon;
-                                        const isSelected = selectedRole === role.value;
+                                        const isSelected = selectedRole === role.value && !selectedPermissionGroup;
                                         return (
                                             <button
                                                 key={role.value}
                                                 onClick={() => {
                                                     setSelectedRole(role.value);
+                                                    setSelectedPermissionGroup(null);
                                                     // Reset new tenant state if they switch away from admin
                                                 }}
                                                 className={cn(
@@ -274,6 +294,36 @@ export default function InviteWizard({ isOpen, onClose, onSuccess }: InviteWizar
                                                 <div>
                                                     <div className={cn("font-bold text-lg", textBase)}>{role.label}</div>
                                                     <div className="text-sm text-zinc-500 mt-1">{role.desc}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                    {permissionGroups.map(group => {
+                                        const isSelected = selectedPermissionGroup === group.id;
+                                        return (
+                                            <button
+                                                key={group.id}
+                                                onClick={() => {
+                                                    setSelectedPermissionGroup(group.id);
+                                                    // Map custom roles to consultant level by default for base permissions
+                                                    setSelectedRole('consultant');
+                                                }}
+                                                className={cn(
+                                                    "p-6 rounded-lg border text-left flex flex-col gap-4 transition-all hover:scale-[1.02]",
+                                                    isSelected
+                                                        ? (isRed ? "bg-red-900/20 border-[#D32F2F]" : "bg-zinc-800 border-white")
+                                                        : (isLight ? "bg-white border-zinc-200 hover:shadow-lg" : "bg-black/20 border-white/10 hover:bg-white/5")
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-full flex items-center justify-center",
+                                                    isSelected ? (isRed ? "bg-[#D32F2F] text-white" : "bg-white text-black") : "bg-zinc-800 text-zinc-400"
+                                                )}>
+                                                    <Shield className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <div className={cn("font-bold text-lg", textBase)}>{group.name}</div>
+                                                    <div className="text-sm text-zinc-500 mt-1">Custom Role ({group.description.substring(0, 30)}...)</div>
                                                 </div>
                                             </button>
                                         );

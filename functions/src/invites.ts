@@ -202,10 +202,10 @@ export const inviteUser = functions
         }
 
         const { uid, token } = context.auth;
-        const { tenantId, targetRole, assignedProjectIds = [], newTenantName } = data;
+        const { tenantId, targetRole, assignedProjectIds = [], newTenantName, targetPermissionGroupId } = data;
 
         console.log(`[inviteUser V2 DEBUG] Type of newTenantName: ${typeof newTenantName}, IsArray: ${Array.isArray(newTenantName)}`);
-        console.log(`[inviteUser V2 DEBUG] Data:`, { tenantId, targetRole, assignedProjectIds, newTenantName });
+        console.log(`[inviteUser V2 DEBUG] Data:`, { tenantId, targetRole, assignedProjectIds, newTenantName, targetPermissionGroupId });
 
         if (newTenantName && typeof newTenantName !== 'string') {
             throw new functions.https.HttpsError('invalid-argument', `Invalid newTenantName: Expected string, got ${typeof newTenantName} (${Array.isArray(newTenantName) ? 'Array' : 'Object'})`);
@@ -305,7 +305,7 @@ export const inviteUser = functions
                         }
 
                         // C. Create Invite
-                        t.set(inviteRef, {
+                        const inviteData: any = {
                             code,
                             createdBy: uid,
                             createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -314,7 +314,13 @@ export const inviteUser = functions
                             tenantId: finalTenantId,
                             role: targetRole,
                             assignedProjectIds: finalProjectIds
-                        });
+                        };
+
+                        if (targetPermissionGroupId) {
+                            inviteData.permissionGroupId = targetPermissionGroupId;
+                        }
+
+                        t.set(inviteRef, inviteData);
                     });
 
                     transactionSuccess = true;

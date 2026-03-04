@@ -64,7 +64,7 @@ export const requestRegistration = functions.region(REGION).https.onCall(async (
     // Hash password before storing (never store plaintext in Firestore)
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-    await requestRef.set({
+    const requestData: any = {
         email,
         name,
         passwordHash: hashedPassword,
@@ -75,7 +75,13 @@ export const requestRegistration = functions.region(REGION).https.onCall(async (
         assignedProjectIds: inviteData?.assignedProjectIds,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-    });
+    };
+
+    if (inviteData?.permissionGroupId) {
+        requestData.permissionGroupId = inviteData.permissionGroupId;
+    }
+
+    await requestRef.set(requestData);
 
     // 4. Send Verification Email
     const smtpEmail = process.env.SMTP_USER;
@@ -169,7 +175,7 @@ export const completeRegistration = functions.region(REGION).https.onCall(async 
         await db.runTransaction(async (transaction) => {
             // A. Create Profile
             const userRef = db.collection('users').doc(userRecord.uid);
-            transaction.set(userRef, {
+            const userData: any = {
                 uid: userRecord.uid,
                 email: userRecord.email,
                 displayName: regData?.name,
@@ -181,7 +187,13 @@ export const completeRegistration = functions.region(REGION).https.onCall(async 
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
                 lastLogin: admin.firestore.FieldValue.serverTimestamp()
-            });
+            };
+
+            if (regData?.permissionGroupId) {
+                userData.permissionGroupId = regData.permissionGroupId;
+            }
+
+            transaction.set(userRef, userData);
 
             // B. Consume Invite
             const inviteRef = db.collection('invites').doc(regData?.inviteCode);
@@ -198,11 +210,17 @@ export const completeRegistration = functions.region(REGION).https.onCall(async 
         // 3. Set Custom Claims (Trigger Background logic if exists, otherwise do it here)
         // Based on other functions, there's a syncUserClaims function.
         // We'll trust the sync logic or set them manually.
-        await admin.auth().setCustomUserClaims(userRecord.uid, {
+        const claims: any = {
             role: regData?.role,
             roleLevel: getRoleLevelNum(regData?.role),
             tenantId: regData?.tenantId
-        });
+        };
+
+        if (regData?.permissionGroupId) {
+            claims.permissionGroupId = regData.permissionGroupId;
+        }
+
+        await admin.auth().setCustomUserClaims(userRecord.uid, claims);
 
         return { success: true, message: "Registro completado con éxito" };
 

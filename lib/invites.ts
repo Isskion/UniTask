@@ -12,6 +12,7 @@ export interface InviteCode {
     expiresAt?: any; // Optional expiration
     tenantId: string; // Target Tenant for the new user
     role: string;    // [NEW] Target Role
+    permissionGroupId?: string; // [NEW] Target Custom Role
     assignedProjectIds: string[]; // [NEW] Target Projects
 }
 
@@ -63,7 +64,8 @@ export async function createInvite(
     tenantId: string = "1",
     role: string = "client",
     assignedProjectIds: string[] = [],
-    creatorRole: string // Pass creator role to validate permissions
+    creatorRole: string, // Pass creator role to validate permissions
+    permissionGroupId?: string // [NEW] Optional Custom Role ID
 ): Promise<string> {
 
     const creatorLevel = getRoleLevelNum(creatorRole);
@@ -91,7 +93,7 @@ export async function createInvite(
     // Ensure uniqueness (extremely unlikely to collide, but good practice)
     const existing = await getDoc(inviteRef);
     if (existing.exists()) {
-        return createInvite(adminUid, tenantId, role, assignedProjectIds, creatorRole); // Retry if exists
+        return createInvite(adminUid, tenantId, role, assignedProjectIds, creatorRole, permissionGroupId); // Retry if exists
     }
 
     const inviteData: InviteCode = {
@@ -103,6 +105,10 @@ export async function createInvite(
         role,
         assignedProjectIds
     };
+
+    if (permissionGroupId) {
+        inviteData.permissionGroupId = permissionGroupId;
+    }
 
     await setDoc(inviteRef, inviteData);
     return code;

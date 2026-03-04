@@ -192,6 +192,13 @@
   outline: none;
 }
 
+/* Ensure highlighted text is readable (black) on dark and red themes */
+:root[data-theme="dark"] .ProseMirror mark,
+:root[data-theme="red"] .ProseMirror mark,
+:root:not([data-theme]) .ProseMirror mark {
+  color: #000000 !important;
+}
+
 /* Tiptap Table Base Styles for Editor View */
 .ProseMirror table {
   border-collapse: collapse;

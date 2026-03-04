@@ -248,11 +248,17 @@ export default function UserManagement() {
             // This ensures the JWT token is refreshed with the new role/tenant
             if (payload.role || payload.tenantId) {
                 console.log("[UserManagement] Triggering claims update for:", editingUser.uid);
-                const claimsParams = {
+                const claimsParams: any = {
                     targetUserId: editingUser.uid,
                     newRole: payload.role || editingUser.role,
                     newTenantId: payload.tenantId || editingUser.tenantId
                 };
+
+                if (payload.permissionGroupId !== undefined) {
+                    claimsParams.newPermissionGroupId = payload.permissionGroupId;
+                } else if (editingUser.permissionGroupId) {
+                    claimsParams.newPermissionGroupId = editingUser.permissionGroupId;
+                }
 
                 // Primary Regional Call (EU)
                 updateUserClaimsFunction(claimsParams)
@@ -627,10 +633,29 @@ export default function UserManagement() {
                                                 ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500"
                                                 : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
                                         )}
-                                        value={formData.role || ""}
-                                        onChange={e => setFormData({ ...formData, role: e.target.value as any })}
+                                        value={formData.permissionGroupId ? `custom:${formData.permissionGroupId}` : (formData.role || "")}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val.startsWith('custom:')) {
+                                                const groupId = val.replace('custom:', '');
+                                                setFormData({ ...formData, role: 'consultant', permissionGroupId: groupId });
+                                            } else {
+                                                setFormData({ ...formData, role: val as any, permissionGroupId: null });
+                                            }
+                                        }}
                                     >
-                                        {ROLES.map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
+                                        <optgroup label="System Roles">
+                                            {ROLES.map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
+                                        </optgroup>
+                                        {availableGroups.length > 0 && (
+                                            <optgroup label="Custom Roles">
+                                                {availableGroups.map(group => (
+                                                    <option key={`custom:${group.id}`} value={`custom:${group.id}`} className={isLight ? "text-black" : "text-white"}>
+                                                        {group.name}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                        )}
                                     </select>
                                 </div>
 
@@ -795,26 +820,17 @@ export default function UserManagement() {
                             </div>
 
                             <div className="space-y-2 pt-4 border-t border-white/5">
-                                <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
-                                    <ShieldCheck className="w-3 h-3" /> Permission Group
-                                </label>
-                                <select
-                                    className={cn(
-                                        "w-full border rounded px-3 py-2 text-sm outline-none appearance-none transition-colors",
-                                        isLight
-                                            ? "bg-zinc-50 border-zinc-200 text-zinc-900 focus:border-red-500"
-                                            : "bg-black/40 border-white/10 text-zinc-200 focus:border-[#D32F2F]"
-                                    )}
-                                    value={formData.permissionGroupId || ""}
-                                    onChange={e => setFormData({ ...formData, permissionGroupId: e.target.value || "" })}
-                                >
-                                    <option value="">No group assigned (Legacy Role)</option>
-                                    {availableGroups.map(group => (
-                                        <option key={group.id} value={group.id}>
-                                            {group.name} - {group.description}
-                                        </option>
-                                    ))}
-                                </select>
+                                {formData.permissionGroupId && (
+                                    <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 rounded border border-indigo-200 dark:border-indigo-800">
+                                        <ShieldCheck className="w-4 h-4" />
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-bold">Custom Privileges Assigned</span>
+                                            <span className="text-[10px] opacity-70">
+                                                {availableGroups.find(g => g.id === formData.permissionGroupId)?.name || 'Unknown Group'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2 pt-4 border-t border-white/5">

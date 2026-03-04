@@ -20,20 +20,22 @@ export async function createInviteActionV3(
     tenantId: string,
     targetRole: string,
     assignedProjectIds: string[] = [],
-    newTenantName?: string
+    newTenantName?: string,
+    targetPermissionGroupId?: string
 ): Promise<CreateInviteResult> {
     try {
         // Explicitly target europe-west1 to match deployment and solve IAM/403 issues
         const functionsEU = getFunctions(app, 'europe-west1');
         const inviteFn = httpsCallable(functionsEU, 'inviteUser');
 
-        console.log("[Client] createInviteActionV3 calling:", { tenantId, targetRole, assignedProjectIds, newTenantName });
+        console.log("[Client] createInviteActionV3 calling:", { tenantId, targetRole, assignedProjectIds, newTenantName, targetPermissionGroupId });
 
         const result = await inviteFn({
             tenantId,
             targetRole,
             assignedProjectIds,
-            newTenantName
+            newTenantName,
+            targetPermissionGroupId
         });
 
         return result.data as CreateInviteResult;
