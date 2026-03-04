@@ -34,6 +34,8 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     const [url, setUrl] = useState("");
     const [clientId, setClientId] = useState("");
     const [clientSecret, setClientSecret] = useState("");
+    const [formatContent, setFormatContent] = useState("");
+    const [formatType, setFormatType] = useState<"json" | "xml" | "text">("json");
 
     const [selectedInterface, setSelectedInterface] = useState<InterfaceEntry | null>(null);
     const [isAddingVersion, setIsAddingVersion] = useState(false);
@@ -47,6 +49,8 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
         setUrl("");
         setClientId("");
         setClientSecret("");
+        setFormatContent("");
+        setFormatType("json");
         setIsCreating(false);
         setEditingInterface(null);
     };
@@ -91,6 +95,8 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                 url: url,
                 clientId: clientId,
                 clientSecret: clientSecret,
+                formatContent: formatContent,
+                formatType: formatType,
                 updatedAt: serverTimestamp()
             };
 
@@ -104,9 +110,7 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                     tenantId: tenantId || "1",
                     versions: [],
                     isActive: true,
-                    createdAt: serverTimestamp(),
-                    formatContent: "", // Default if needed
-                    formatType: 'json'  // Default if needed
+                    createdAt: serverTimestamp()
                 });
                 showToast("Éxito", "Interfaz creada correctamente", "success");
             }
@@ -124,6 +128,8 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
         setUrl(intf.url || "");
         setClientId(intf.clientId || "");
         setClientSecret(intf.clientSecret || "");
+        setFormatContent(intf.formatContent || "");
+        setFormatType((intf.formatType as any) || "json");
         setIsCreating(true);
     };
 
@@ -308,6 +314,28 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                                 onChange={(e) => setClientSecret(e.target.value)}
                                 placeholder="••••••••••••"
                                 className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                            <div className="flex items-center justify-between ml-1 mb-1">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Especificación Técnica / JSON</label>
+                                <select
+                                    value={formatType}
+                                    onChange={(e) => setFormatType(e.target.value as any)}
+                                    className="text-[10px] bg-black border border-zinc-800 text-zinc-300 rounded-md px-2 py-1 outline-none"
+                                >
+                                    <option value="json">JSON</option>
+                                    <option value="xml">XML</option>
+                                    <option value="text">TEXT</option>
+                                </select>
+                            </div>
+                            <textarea
+                                value={formatContent}
+                                onChange={(e) => setFormatContent(e.target.value)}
+                                placeholder='{&#10;  "ejemplo": "datos"&#10;}'
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm font-mono ring-primary focus:ring-1 outline-none min-h-[150px] resize-y custom-scrollbar"
+                                spellCheck={false}
                             />
                         </div>
                     </div>

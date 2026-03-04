@@ -362,6 +362,28 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                         placeholder="Explica qué hace esta interfaz..."
                                     />
                                 </div>
+
+                                <div className="space-y-1">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Especificación Técnica / JSON</label>
+                                        <select
+                                            value={newInterface.formatType || 'json'}
+                                            onChange={e => setNewInterface({ ...newInterface, formatType: e.target.value as 'json' | 'xml' | 'text' })}
+                                            className={cn("text-[10px] border rounded-md px-2 py-1 outline-none", isLight ? "bg-zinc-50 text-zinc-700" : "bg-black border-white/10 text-zinc-300")}
+                                        >
+                                            <option value="json">JSON</option>
+                                            <option value="xml">XML</option>
+                                            <option value="text">TEXT</option>
+                                        </select>
+                                    </div>
+                                    <textarea
+                                        value={newInterface.formatContent || ''}
+                                        onChange={e => setNewInterface({ ...newInterface, formatContent: e.target.value })}
+                                        className={cn("w-full border rounded-xl px-4 py-2 text-sm font-mono outline-none min-h-[150px] resize-y custom-scrollbar", isLight ? "bg-zinc-50" : "bg-black border-white/10")}
+                                        placeholder='{&#10;  "ejemplo": "datos"&#10;}'
+                                        spellCheck={false}
+                                    />
+                                </div>
                             </div>
                             <div className={cn("p-6 border-t flex gap-3 transition-colors", compact ? "bg-primary/5" : "bg-black/5")}>
                                 <button
