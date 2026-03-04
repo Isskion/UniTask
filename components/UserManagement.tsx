@@ -640,7 +640,7 @@ export default function UserManagement() {
                                                 const groupId = val.replace('custom:', '');
                                                 setFormData({ ...formData, role: 'consultant', permissionGroupId: groupId });
                                             } else {
-                                                setFormData({ ...formData, role: val as any, permissionGroupId: null });
+                                                setFormData({ ...formData, role: val as any, permissionGroupId: "" });
                                             }
                                         }}
                                     >
