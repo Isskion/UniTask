@@ -66,6 +66,22 @@
   .ProseMirror {
     font-family: Garamond, Georgia, serif;
   }
+
+  /* Tighter paragraph spacing for UniLeaks editor */
+  .ProseMirror p {
+    margin-top: 0.15em;
+    margin-bottom: 0.15em;
+    white-space: pre-wrap;
+    /* Preserve tabs, multiple spaces, and line structure */
+  }
+
+  /* Keep headings with a bit more breathing room */
+  .ProseMirror h1,
+  .ProseMirror h2,
+  .ProseMirror h3 {
+    margin-top: 0.8em;
+    margin-bottom: 0.3em;
+  }
 }
 
 /* --- THEMES --- */

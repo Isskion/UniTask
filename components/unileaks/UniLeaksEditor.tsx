@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useEditor, EditorContent, Extension } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
+import { DOMParser as PMDOMParser } from '@tiptap/pm/model';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
@@ -159,13 +160,50 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 const imageItem = items.find(item => item.type.startsWith('image'));
 
                 if (imageItem) {
-                    event.preventDefault(); // [ADD] Explicitly prevent default paste
+                    event.preventDefault();
                     const file = imageItem.getAsFile();
                     if (file) {
                         handleImageUpload(file);
-                        return true; // handled
+                        return true;
                     }
                 }
+
+                // Check if clipboard has HTML content — if so, let TipTap handle it natively
+                const htmlData = event.clipboardData?.getData('text/html');
+                if (htmlData && htmlData.trim().length > 0) {
+                    return false; // Let TipTap handle rich paste
+                }
+
+                // Plain text paste: preserve tabs, multiple spaces, and blank lines
+                const plainText = event.clipboardData?.getData('text/plain');
+                if (plainText && (plainText.includes('\t') || /\n\s*\n/.test(plainText))) {
+                    event.preventDefault();
+
+                    // Split by newlines, convert each line to a <p> preserving whitespace
+                    const lines = plainText.split(/\r?\n/);
+                    const htmlLines = lines.map(line => {
+                        if (line.trim() === '') {
+                            return '<p><br></p>';
+                        }
+                        const escaped = line
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;');
+                        return `<p>${escaped}</p>`;
+                    });
+
+                    const htmlContent = htmlLines.join('');
+
+                    // Use ProseMirror's DOMParser to convert HTML to a Slice and insert it
+                    const domParser = new DOMParser();
+                    const domDoc = domParser.parseFromString(`<body>${htmlContent}</body>`, 'text/html');
+                    const pmParser = PMDOMParser.fromSchema(view.state.schema);
+                    const slice = pmParser.parseSlice(domDoc.body);
+                    view.dispatch(view.state.tr.replaceSelection(slice));
+
+                    return true;
+                }
+
                 return false;
             },
             handleDrop: (view, event) => {
