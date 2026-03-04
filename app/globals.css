@@ -69,16 +69,17 @@
 
   /* Tighter paragraph spacing for UniLeaks editor */
   .ProseMirror p {
-    margin-top: 0.15em;
-    margin-bottom: 0.15em;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.4;
   }
 
   /* Keep headings with a bit more breathing room */
   .ProseMirror h1,
   .ProseMirror h2,
   .ProseMirror h3 {
-    margin-top: 0.8em;
-    margin-bottom: 0.3em;
+    margin-top: 0.5em;
+    margin-bottom: 0.15em;
   }
 }
 
