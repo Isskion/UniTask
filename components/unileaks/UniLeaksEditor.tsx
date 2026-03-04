@@ -190,25 +190,22 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     event.preventDefault();
 
                     const lines = plainText.split(/\r?\n/);
-                    const htmlLines = lines.map(line => {
+                    const processedLines = lines.map(line => {
                         if (line.trim() === '') {
-                            return '<p><br></p>';
+                            return '<br>';
                         }
-                        // Escape HTML entities first
                         let escaped = line
                             .replace(/&/g, '&amp;')
                             .replace(/</g, '&lt;')
                             .replace(/>/g, '&gt;');
-                        // Convert tabs to 4 non-breaking spaces (\u00a0) — these survive ProseMirror normalization
                         escaped = escaped.replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0');
-                        // Convert leading regular spaces to non-breaking spaces to preserve indentation
                         escaped = escaped.replace(/^( +)/, (match) => '\u00a0'.repeat(match.length));
-                        // Also convert consecutive spaces (2+) inside text to alternating nbsp+space
                         escaped = escaped.replace(/  /g, '\u00a0 ');
-                        return `<p>${escaped}</p>`;
+                        return escaped;
                     });
 
-                    const htmlContent = htmlLines.join('');
+                    // Join all lines with <br> inside a single <p> — matches Enter=hardBreak behavior
+                    const htmlContent = `<p>${processedLines.join('<br>')}</p>`;
                     const domParser = new DOMParser();
                     const domDoc = domParser.parseFromString(`<body>${htmlContent}</body>`, 'text/html');
                     const pmParser = PMDOMParser.fromSchema(view.state.schema);
