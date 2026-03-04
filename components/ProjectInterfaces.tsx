@@ -368,12 +368,12 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                         <label className="text-[10px] uppercase font-bold text-muted-foreground">Especificación Técnica / JSON</label>
                                         <select
                                             value={newInterface.formatType || 'json'}
-                                            onChange={e => setNewInterface({ ...newInterface, formatType: e.target.value as 'json' | 'xml' | 'text' })}
+                                            onChange={e => setNewInterface({ ...newInterface, formatType: e.target.value as 'json' | 'xml' | 'txt' })}
                                             className={cn("text-[10px] border rounded-md px-2 py-1 outline-none", isLight ? "bg-zinc-50 text-zinc-700" : "bg-black border-white/10 text-zinc-300")}
                                         >
                                             <option value="json">JSON</option>
                                             <option value="xml">XML</option>
-                                            <option value="text">TEXT</option>
+                                            <option value="txt">TEXT</option>
                                         </select>
                                     </div>
                                     <textarea

@@ -35,7 +35,7 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     const [clientId, setClientId] = useState("");
     const [clientSecret, setClientSecret] = useState("");
     const [formatContent, setFormatContent] = useState("");
-    const [formatType, setFormatType] = useState<"json" | "xml" | "text">("json");
+    const [formatType, setFormatType] = useState<"json" | "xml" | "txt">("json");
 
     const [selectedInterface, setSelectedInterface] = useState<InterfaceEntry | null>(null);
     const [isAddingVersion, setIsAddingVersion] = useState(false);
@@ -327,7 +327,7 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                                 >
                                     <option value="json">JSON</option>
                                     <option value="xml">XML</option>
-                                    <option value="text">TEXT</option>
+                                    <option value="txt">TEXT</option>
                                 </select>
                             </div>
                             <textarea
