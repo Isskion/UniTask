@@ -279,6 +279,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         {/* Unitask Tools (NEW) */}
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                            {can('dispoPlan', 'views') && (
+                                <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                            )}
+                            {can('unavailabilityRegistry', 'views') && (
+                                <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                            )}
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                             <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
@@ -305,12 +311,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             )}
                             {canManagePermissions && (
                                 <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                            )}
-                            {can('dispoPlan', 'views') && (
-                                <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                            )}
-                            {can('unavailabilityRegistry', 'views') && (
-                                <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                             )}
 
                             {userRole === 'superadmin' && (
@@ -482,6 +482,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                             <div className="mt-4 space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                                {can('dispoPlan', 'views') && (
+                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                )}
+                                {can('unavailabilityRegistry', 'views') && (
+                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                )}
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />

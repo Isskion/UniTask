@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { UserAvailability, AVAILABILITY_TYPES, AvailabilityType } from "@/types/availability";
 import { UserProfile } from "@/types";
 import { format, startOfMonth, getDay, getDaysInMonth } from "date-fns";
@@ -33,12 +33,24 @@ export default function AvailabilityPrintReport({ availabilities, users, current
         return u?.displayName || u?.email || "Usuario";
     };
 
+    const [showModal, setShowModal] = useState(false);
+    const [selectedTypes, setSelectedTypes] = useState<Set<AvailabilityType>>(new Set(Object.keys(AVAILABILITY_TYPES) as AvailabilityType[]));
+
+    // Reset selected types if AVAILABILITY_TYPES change (rare, but good practice)
+    useEffect(() => {
+        setSelectedTypes(new Set(Object.keys(AVAILABILITY_TYPES) as AvailabilityType[]));
+    }, []);
+
+    const filteredAvailabilities = useMemo(() => {
+        return availabilities.filter(a => selectedTypes.has(a.type));
+    }, [availabilities, selectedTypes]);
+
     // Build user blocks
     const userBlocks = useMemo<UserBlock[]>(() => {
         const userEntries = new Map<string, UserAvailability[]>();
         const relevantEntries = isAdmin
-            ? availabilities
-            : availabilities.filter(a => a.userId === currentUserId);
+            ? filteredAvailabilities
+            : filteredAvailabilities.filter(a => a.userId === currentUserId);
 
         relevantEntries.forEach(a => {
             if (!userEntries.has(a.userId)) userEntries.set(a.userId, []);
@@ -97,9 +109,9 @@ export default function AvailabilityPrintReport({ availabilities, users, current
 
     const usedTypes = useMemo(() => {
         const types = new Set<AvailabilityType>();
-        availabilities.forEach(a => types.add(a.type));
+        filteredAvailabilities.forEach(a => types.add(a.type));
         return Array.from(types);
-    }, [availabilities]);
+    }, [filteredAvailabilities]);
 
     // --- PURE HTML STRING GENERATION ---
 
@@ -265,14 +277,89 @@ export default function AvailabilityPrintReport({ availabilities, users, current
     };
 
     return (
-        <button
-            onClick={handlePrint}
-            className={cn(
-                "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2",
-                isLight ? "bg-zinc-800 text-white hover:bg-zinc-700" : "bg-zinc-200 text-black hover:bg-zinc-300"
+        <>
+            <button
+                onClick={() => setShowModal(true)}
+                className={cn(
+                    "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2",
+                    isLight ? "bg-zinc-800 text-white hover:bg-zinc-700" : "bg-zinc-200 text-black hover:bg-zinc-300"
+                )}
+            >
+                <Printer className="w-4 h-4" /> Imprimir PDF
+            </button>
+
+            {showModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className={cn(
+                        "w-full max-w-sm rounded-2xl shadow-2xl p-6 border animate-in zoom-in-95 duration-200",
+                        isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/10"
+                    )}>
+                        <h3 className={cn("text-lg font-black mb-4", isLight ? "text-zinc-900" : "text-white")}>Opciones de Impresión</h3>
+
+                        <div className="space-y-4 mb-8">
+                            <p className="text-xs font-bold text-zinc-500 uppercase">Tipos a incluir en el PDF</p>
+                            <div className="space-y-3">
+                                {Object.entries(AVAILABILITY_TYPES).map(([key, config]) => {
+                                    const typeKey = key as AvailabilityType;
+                                    const isChecked = selectedTypes.has(typeKey);
+                                    return (
+                                        <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                                            <div className={cn(
+                                                "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
+                                                isChecked
+                                                    ? "bg-primary border-primary"
+                                                    : (isLight ? "border-zinc-300 bg-white" : "border-zinc-600 bg-black/50")
+                                            )}>
+                                                {isChecked && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3 text-primary-foreground"><path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" /></svg>}
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={isChecked}
+                                                onChange={(e) => {
+                                                    const newSet = new Set(selectedTypes);
+                                                    if (e.target.checked) newSet.add(typeKey);
+                                                    else newSet.delete(typeKey);
+                                                    setSelectedTypes(newSet);
+                                                }}
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: config.color }} />
+                                                <span className={cn("text-sm font-medium transition-colors",
+                                                    isChecked ? (isLight ? "text-zinc-900" : "text-white") : "text-muted-foreground"
+                                                )}>
+                                                    {config.label}
+                                                </span>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-white/10">
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className={cn("px-4 py-2 rounded-xl text-xs font-bold transition-colors",
+                                    isLight ? "text-zinc-600 hover:bg-zinc-100" : "text-zinc-400 hover:bg-white/5"
+                                )}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => { setShowModal(false); handlePrint(); }}
+                                disabled={selectedTypes.size === 0}
+                                className={cn(
+                                    "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2",
+                                    isLight ? "bg-zinc-800 text-white hover:bg-zinc-700 disabled:bg-zinc-400" : "bg-zinc-200 text-black hover:bg-zinc-300 disabled:bg-zinc-700"
+                                )}
+                            >
+                                <Printer className="w-3.5 h-3.5" /> Generar PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
-        >
-            <Printer className="w-4 h-4" /> Imprimir PDF
-        </button>
+        </>
     );
 }
