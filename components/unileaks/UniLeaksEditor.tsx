@@ -136,10 +136,20 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             }),
             TenantDictionary,
             Extension.create({
-                name: 'listIndentation',
+                name: 'customKeyboardBehavior',
                 addKeyboardShortcuts() {
                     return {
-                        Tab: () => this.editor.commands.sinkListItem('listItem'),
+                        // Enter → hard break (like Shift+Enter) instead of new paragraph
+                        Enter: () => this.editor.commands.setHardBreak(),
+                        // Tab inside list → indent, outside list → insert 4 non-breaking spaces
+                        Tab: () => {
+                            if (this.editor.isActive('listItem')) {
+                                return this.editor.commands.sinkListItem('listItem');
+                            }
+                            // Insert 4 non-breaking spaces as tab indentation
+                            this.editor.commands.insertContent('\u00a0\u00a0\u00a0\u00a0');
+                            return true;
+                        },
                         'Shift-Tab': () => this.editor.commands.liftListItem('listItem'),
                     }
                 },
