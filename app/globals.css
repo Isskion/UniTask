@@ -71,8 +71,6 @@
   .ProseMirror p {
     margin-top: 0.15em;
     margin-bottom: 0.15em;
-    white-space: pre-wrap;
-    /* Preserve tabs, multiple spaces, and line structure */
   }
 
   /* Keep headings with a bit more breathing room */

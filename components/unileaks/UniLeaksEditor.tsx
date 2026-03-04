@@ -176,25 +176,29 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 
                 // Plain text paste: preserve tabs, multiple spaces, and blank lines
                 const plainText = event.clipboardData?.getData('text/plain');
-                if (plainText && (plainText.includes('\t') || /\n\s*\n/.test(plainText))) {
+                if (plainText && plainText.length > 0) {
                     event.preventDefault();
 
-                    // Split by newlines, convert each line to a <p> preserving whitespace
                     const lines = plainText.split(/\r?\n/);
                     const htmlLines = lines.map(line => {
                         if (line.trim() === '') {
                             return '<p><br></p>';
                         }
-                        const escaped = line
+                        // Escape HTML entities first
+                        let escaped = line
                             .replace(/&/g, '&amp;')
                             .replace(/</g, '&lt;')
                             .replace(/>/g, '&gt;');
+                        // Convert tabs to 4 non-breaking spaces (\u00a0) — these survive ProseMirror normalization
+                        escaped = escaped.replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0');
+                        // Convert leading regular spaces to non-breaking spaces to preserve indentation
+                        escaped = escaped.replace(/^( +)/, (match) => '\u00a0'.repeat(match.length));
+                        // Also convert consecutive spaces (2+) inside text to alternating nbsp+space
+                        escaped = escaped.replace(/  /g, '\u00a0 ');
                         return `<p>${escaped}</p>`;
                     });
 
                     const htmlContent = htmlLines.join('');
-
-                    // Use ProseMirror's DOMParser to convert HTML to a Slice and insert it
                     const domParser = new DOMParser();
                     const domDoc = domParser.parseFromString(`<body>${htmlContent}</body>`, 'text/html');
                     const pmParser = PMDOMParser.fromSchema(view.state.schema);
