@@ -118,6 +118,7 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
         4. E006: All nodes must reach a TERMINAL.
         5. Position nodes logically: START at left (x:0, y:250), TERMINAL at right (x: 1000, y: 250).
         6. Node IDs MUST be strictly sequential numeric strings starting from "1" (e.g., "1", "2", "3"). Do NOT use UUIDs or string names for Node IDs.
+        7. The generated flow labels and output MUST strictly be in the same language as the user's prompt. Do NOT translate to English if the prompt is in Spanish or another language.
 
         OUTPUT ONLY VALID JSON. No conversational text.
 

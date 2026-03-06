@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
 import { FlowGraph, FlowNode } from '@/app/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
+import { useAuth } from '@/context/AuthContext';
+import { saveFlowDraft } from '@/app/actions/uniflux';
+import { Save, Loader2, CheckCircle2 } from 'lucide-react';
 
 // Initial placeholder graph
 const INITIAL_GRAPH: FlowGraph = {
@@ -21,7 +24,10 @@ const INITIAL_GRAPH: FlowGraph = {
 };
 
 export default function UnifluxWorkspace() {
+    const { user, userDoc } = useAuth();
     const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
     // Wizard State
     const [showWizard, setShowWizard] = useState(true);
@@ -103,17 +109,59 @@ export default function UnifluxWorkspace() {
         }
     };
 
+    // Handle manual save
+    const handleSave = async () => {
+        if (!user || (!userDoc?.company && !user.tenantId)) return;
+        const tenantId = userDoc?.company || user.tenantId || 'demo';
+
+        setIsSaving(true);
+        setSaveStatus('saving');
+
+        try {
+            await saveFlowDraft(tenantId, graph);
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        } catch (e) {
+            console.error("Failed to save draft", e);
+            setSaveStatus('idle');
+            // Basic error handling - could connect to a global toast system later
+            alert("Error al guardar el flujo");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <div className="w-full h-screen bg-gray-50 flex flex-col">
             <header className="h-14 bg-white border-b px-6 flex items-center justify-between z-10">
-                <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
-                        Uniflux Engine
-                    </span>
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0.1 Alpha</span>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+                            Uniflux Engine
+                        </span>
+                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">v0.1 Alpha</span>
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
+                        {graph.name}
+                    </div>
                 </div>
-                <div className="text-sm text-gray-500">
-                    Draft: {graph.name}
+
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || showWizard}
+                        className="flex items-center gap-2 px-4 py-1.5 text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                    >
+                        {saveStatus === 'saving' ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                        ) : saveStatus === 'saved' ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        ) : (
+                            <Save className="w-4 h-4" />
+                        )}
+                        {saveStatus === 'saving' ? 'Guardando...' : saveStatus === 'saved' ? 'Guardado' : 'Guardar Borrador'}
+                    </button>
+                    {/* Placeholder for project selection if needed in the future */}
                 </div>
             </header>
 
