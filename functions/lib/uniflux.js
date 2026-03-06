@@ -110,6 +110,7 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
         3. E004: START cannot have inputs. TERMINAL cannot have outputs.
         4. E006: All nodes must reach a TERMINAL.
         5. Position nodes logically: START at left (x:0, y:250), TERMINAL at right (x: 1000, y: 250).
+        6. Node IDs MUST be strictly sequential numeric strings starting from "1" (e.g., "1", "2", "3"). Do NOT use UUIDs or string names for Node IDs.
 
         OUTPUT ONLY VALID JSON. No conversational text.
 

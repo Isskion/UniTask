@@ -26,6 +26,7 @@ export interface FlowEdge {
 export interface FlowGraph {
     id: string;
     tenantId: string;
+    projectId?: string;
     name: string;
     description?: string;
     nodes: FlowNode[];

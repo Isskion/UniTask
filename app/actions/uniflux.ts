@@ -20,12 +20,18 @@ export async function saveFlowDraft(tenantId: string, flowData: Partial<FlowGrap
 
     const flowRef = doc(db, FLOWS_COLLECTION, flowData.id);
 
-    await setDoc(flowRef, {
+    // Ensure we only save the projectId if it's provided
+    const updateData: any = {
         ...flowData,
         tenantId,
         updatedAt: serverTimestamp(),
-        // We pulse the updated date but keep the draft state
-    }, { merge: true });
+    };
+
+    if (flowData.projectId !== undefined) {
+        updateData.projectId = flowData.projectId;
+    }
+
+    await setDoc(flowRef, updateData, { merge: true });
 
     return { success: true };
 }
@@ -79,12 +85,27 @@ export async function getFlow(flowId: string) {
 }
 
 /**
- * Lists flows for a tenant.
+ * Lists all flows for a tenant (ignoring project).
  */
 export async function listTenantFlows(tenantId: string) {
     const q = query(
         collection(db, FLOWS_COLLECTION),
         where("tenantId", "==", tenantId),
+        orderBy("updatedAt", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+/**
+ * Lists flows for a specific project within a tenant.
+ */
+export async function listProjectFlows(tenantId: string, projectId: string) {
+    const q = query(
+        collection(db, FLOWS_COLLECTION),
+        where("tenantId", "==", tenantId),
+        where("projectId", "==", projectId),
         orderBy("updatedAt", "desc")
     );
 
