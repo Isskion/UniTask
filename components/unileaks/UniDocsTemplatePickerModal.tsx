@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { X, FileText, Loader2, Printer, Sparkles } from "lucide-react";
-import { UniDocsLayout } from "@/types/unidocs";
-import { optimizeDocumentContent } from "@/app/actions/unidocs";
+import { X, FileText, Loader2, Printer } from "lucide-react";
+import { UniDocsTemplate, TemplateBlock } from "@/types/unidocs";
 
 interface UniDocsTemplatePickerModalProps {
     noteTitle: string;
@@ -16,28 +15,16 @@ interface UniDocsTemplatePickerModalProps {
     onClose: () => void;
 }
 
-interface Template {
-    id: string;
-    name: string;
-    type: string;
-    description?: string;
-    layout?: UniDocsLayout;
-    config?: any;
-}
-
 export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projectId, tenantId, onClose }: UniDocsTemplatePickerModalProps) {
     const { tenantId: authTenantId } = useAuth();
     const effectiveTenantId = tenantId || authTenantId;
 
-    const [templates, setTemplates] = useState<Template[]>([]);
+    const [templates, setTemplates] = useState<UniDocsTemplate[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [printing, setPrinting] = useState<string | null>(null);
-    const [projectLogo, setProjectLogo] = useState<string | null>(null);
     const [tenantLogo, setTenantLogo] = useState<string | null>(null);
     const [clientLogo, setClientLogo] = useState<string | null>(null);
-    const [aiMapping, setAiMapping] = useState<Record<string, string>>({});
-    const [optimizing, setOptimizing] = useState(false);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -47,400 +34,203 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
             try {
                 const q = query(collection(db, "unidocs_templates"), where("tenantId", "==", effectiveTenantId));
                 const snap = await getDocs(q);
-                setTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as Template)));
+                setTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as UniDocsTemplate)));
             } catch (e) {
-                console.error("[UniDocsTemplatePicker] Error loading templates:", e);
-                setLoadError("No se pudieron cargar las plantillas. Si tienes varias pestañas abiertas, cierra las demás.");
+                console.error("[UniDocs] Error loading templates:", e);
+                setLoadError("No se pudieron cargar las plantillas.");
             } finally {
                 setLoading(false);
             }
         };
 
-        const fetchProjectLogo = async () => {
-            if (!projectId) return;
-            try {
-                const projectDoc = await getDoc(doc(db, "projects", projectId));
-                if (projectDoc.exists()) {
-                    const data = projectDoc.data();
-                    if (data.logo) setProjectLogo(data.logo);
-                }
-            } catch (err) {
-                console.error("Error fetching project logo:", err);
-            }
-        };
-
+        let isMounted = true;
         const fetchTenantLogo = async () => {
-            if (!effectiveTenantId) return;
+            if (!effectiveTenantId || effectiveTenantId === "unknown" || effectiveTenantId === "__DENY__") return;
             try {
                 const tenantDoc = await getDoc(doc(db, "tenants", effectiveTenantId));
-                if (tenantDoc.exists()) {
+                if (isMounted && tenantDoc.exists()) {
                     const data = tenantDoc.data();
-                    if (data.logoUrl) setTenantLogo(data.logoUrl);
+                    // 1. Try new logos array (prefer label "Logo Principal", fallback to first logo)
+                    if (data.logos && data.logos.length > 0) {
+                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes('principal'));
+                        setTenantLogo(principal?.url || data.logos[0].url);
+                    }
+                    // 2. Fallback to legacy logoUrl
+                    else if (data.logoUrl) {
+                        setTenantLogo(data.logoUrl);
+                    }
                 }
-            } catch (err) {
-                console.error("Error fetching tenant logo:", err);
+            } catch (err: any) {
+                if (isMounted && err.code !== 'permission-denied') {
+                    console.error("Error fetching tenant logo in UniDocs:", err);
+                }
             }
         };
 
         const fetchClientLogo = async () => {
             if (!projectId) return;
             try {
-                // Fetch all documents for the project to handle variations in casing/naming
                 const docsQ = query(collection(db, "projects", projectId, "documents"));
                 const docsSnap = await getDocs(docsQ);
 
-                console.log(`[UniDocs] Project ${projectId} has ${docsSnap.size} documents`);
-                docsSnap.docs.forEach(d => {
-                    const data = d.data();
-                    console.log(`[UniDocs] Doc: name=${data.name}, typeCode=${data.typeCode}, url=${data.url ? 'YES' : 'NO'}, type=${data.type}`);
-                });
-
-                // 1. Try to find by typeCode (case-insensitive)
-                let logoDoc = docsSnap.docs.find(d => {
-                    const data = d.data();
-                    return data.typeCode?.toUpperCase() === 'LOGO';
-                });
-
-                // 2. Fallback: Try to find by name containing 'LOGO'
-                if (!logoDoc) {
-                    logoDoc = docsSnap.docs.find(d => {
-                        const data = d.data();
-                        return data.name?.toUpperCase().includes('LOGO');
-                    });
-                }
-
-                // 3. Fallback: Try to find image files (common logo formats)
-                if (!logoDoc) {
-                    logoDoc = docsSnap.docs.find(d => {
-                        const data = d.data();
-                        const mimeType = (data.type || '').toLowerCase();
-                        return mimeType.startsWith('image/') && data.url;
-                    });
-                }
+                // 1. Try typeCode LOGO
+                let logoDoc = docsSnap.docs.find(d => d.data().typeCode?.toUpperCase() === 'LOGO');
+                // 2. Fallback by name
+                if (!logoDoc) logoDoc = docsSnap.docs.find(d => d.data().name?.toUpperCase().includes('LOGO'));
+                // 3. Fallback any image
+                if (!logoDoc) logoDoc = docsSnap.docs.find(d => (d.data().type || '').toLowerCase().startsWith('image/') && d.data().url);
 
                 if (logoDoc) {
                     const data = logoDoc.data();
-                    // Check multiple possible URL fields
                     const logoUrl = data.url || data.fileUrl || data.downloadURL;
-                    console.log(`[UniDocs] Found logo doc: name=${data.name}, url=${logoUrl ? 'YES' : 'NO'}`);
                     if (logoUrl) setClientLogo(logoUrl);
-                } else {
-                    console.log(`[UniDocs] No logo document found for project ${projectId}`);
                 }
             } catch (err) {
-                console.error("Error fetching client logo from project documents:", err);
+                console.error("Error fetching client logo:", err);
             }
         };
 
         fetchTemplates();
-        fetchProjectLogo();
         fetchTenantLogo();
         fetchClientLogo();
+        return () => { isMounted = false; };
     }, [effectiveTenantId, projectId]);
 
-    const buildHtml = (template: Template): string => {
-        const l = template.layout;
-        const vz = template.config?.visualZones as any[];
-        const hasZones = vz && vz.length > 0;
+    const buildHtml = (template: UniDocsTemplate): string => {
+        const blocks = template.blocks || [];
+        const margins = template.pageMargins || { top: 15, right: 15, bottom: 15, left: 15 };
         const today = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-        const now = new Date().toLocaleString('es-ES');
 
-        // Styles
-        let dynamicStyles = `
-            body { font-family: 'Inter', sans-serif; line-height: 1.5; color: #1a1a1a; margin: 0; padding: 0; }
-            * { box-sizing: border-box; }
-            .page-break { page-break-after: always; break-after: page; }
-        `;
-
-        if (hasZones) {
-            // === PHASE 1: Categorize zones into header, body, and footer ===
-            const headerMarginMm = l?.headerMarginMm ?? 25;
-            const footerMarginMm = l?.footerMarginMm ?? 20;
-
-            const headerZones: any[] = [];
-            const bodyZones: any[] = [];
-            const footerZones: any[] = [];
-
-            vz.forEach(zone => {
-                const label = (zone.label || '').toLowerCase();
-                // Logos and header items → fixed in margin-top area
-                if (label.includes('logo') || label === 'título' || label === 'fecha' || label === 'referencia') {
-                    headerZones.push(zone);
-                }
-                // Footer zone → fixed in margin-bottom area
-                else if (label.includes('pie')) {
-                    footerZones.push(zone);
-                }
-                // Everything else → flowing body content
-                else {
-                    bodyZones.push(zone);
-                }
-            });
-
-            // === PHASE 2: Build CSS ===
-            dynamicStyles += `
-                @page {
-                    size: A4;
-                    margin-top: ${headerMarginMm}mm;
-                    margin-bottom: ${footerMarginMm}mm;
-                    margin-left: 15mm;
-                    margin-right: 15mm;
-                }
-
-                /* Fixed zone: painted on every page at exact coordinates */
-                .fixed-zone {
+        // Build CSS for each block
+        const blockStyles = blocks.map(block => {
+            if (block.type === 'cuerpo') {
+                // The body text must flow with natural pagination.
+                // It offsets its start based on visual Y, but does NOT constrain height or use absolute position.
+                const topOffset = Math.max(0, block.y - margins.top);
+                const leftOffset = Math.max(0, block.x - margins.left);
+                return `
+                #block-${block.id} {
+                    margin-top: ${topOffset}mm;
+                    margin-left: ${leftOffset}mm;
+                    width: ${block.width}mm;
+                    box-sizing: border-box;
+                    padding-bottom: ${margins.bottom}mm;
+                }`;
+            } else {
+                // Headers, footers, logos repeat on every page using fixed position.
+                // In print media, fixed position coords are relative to the page area (inside the @page margins)!
+                const fixedLeft = block.x - margins.left;
+                const fixedTop = block.y - margins.top;
+                return `
+                #block-${block.id} { 
                     position: fixed;
-                    z-index: 100;
+                    left: ${fixedLeft}mm;
+                    top: ${fixedTop}mm;
+                    width: ${block.width}mm;
+                    height: ${block.height}mm;
                     overflow: hidden;
-                }
-                .fixed-zone img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                    display: block;
-                }
+                    box-sizing: border-box;
+                    z-index: 50;
+                }`;
+            }
+        }).join('\n');
 
-                .fallback-logo {
-                    border: 1px dashed #ccc;
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 8px;
-                    color: #999;
-                    background: #f9f9f9;
-                }
+        // Build block HTML
+        const blockHtmls = blocks.map(block => {
+            const cfg = block.config;
+            const textStyle = [
+                cfg.fontFamily ? `font-family: '${cfg.fontFamily}', serif` : '',
+                cfg.fontSize ? `font-size: ${cfg.fontSize}pt` : '',
+                cfg.fontWeight ? `font-weight: ${cfg.fontWeight}` : '',
+                cfg.fontStyle ? `font-style: ${cfg.fontStyle}` : '',
+                cfg.color ? `color: ${cfg.color}` : '',
+                cfg.textAlign ? `text-align: ${cfg.textAlign}` : '',
+            ].filter(Boolean).join('; ');
 
-                /* Body: flows naturally within @page margins */
-                .doc-body {
-                    font-size: 10pt;
-                    color: #333;
-                    line-height: 1.6;
-                }
-                .doc-body h1, .doc-body h2, .doc-body h3 { margin-top: 1em; }
-                .doc-body table { width: 100%; border-collapse: collapse; margin: 0.5em 0; }
-                .doc-body th, .doc-body td { border: 1px solid #ccc; padding: 5px 8px; text-align: left; font-size: 9pt; }
-                .doc-body th { background: #f5f5f5; font-weight: bold; }
+            let content = '';
 
-                /* Text overlays */
-                .text-overlay { position: fixed; z-index: 200; white-space: nowrap; }
-
-                @media print {
-                    body { background: none; margin: 0; padding: 0; }
-                }
-            `;
-
-            // === PHASE 3: Build fixed header zones ===
-            // Each zone renders as a position:fixed div at its ORIGINAL coordinates from the designer
-            // In CSS print, position:fixed coords are relative to the page box (full A4)
-            // Since @page margins define the content area, fixed elements in the top/bottom sit in the margins
-            const fixedHeaderHtml = headerZones.map(zone => {
-                let content = "";
-                const label = (zone.label || '');
-
-                if (label === 'Título') {
-                    content = `<span style="font-size: 1.4rem; font-weight: 800; color: #000;">${aiMapping['Título'] || noteTitle}</span>`;
-                } else if (label === 'Fecha') {
-                    content = `<span style="font-size: 9pt; color: #666; font-style: italic;">${today}</span>`;
-                } else if (label === 'Referencia') {
-                    content = `<span style="font-size: 9pt; font-family: monospace; color: #555;">REF-${Math.random().toString(36).substr(2, 6).toUpperCase()}</span>`;
-                } else if (label.toLowerCase().includes('logo')) {
-                    const isCompanyLogo = label.toLowerCase().includes('empresa');
-                    const isClientLogo = label.toLowerCase().includes('cliente');
-                    let logoSrc = null;
-                    if (isCompanyLogo) {
-                        logoSrc = zone.staticValue || tenantLogo;
-                    } else if (isClientLogo) {
-                        logoSrc = clientLogo || projectLogo;
-                    } else {
-                        logoSrc = zone.sourceType === 'static' ? (zone.staticValue || tenantLogo) : (clientLogo || projectLogo);
-                    }
-                    content = logoSrc
-                        ? `<img src="${logoSrc}" alt="${label}" />`
-                        : `<div class="fallback-logo">${label || 'Logo'}</div>`;
-                } else {
-                    content = aiMapping[label] || label;
-                }
-
-                // Use original designer coordinates (0-1000 → 0-100%)
-                return `<div class="fixed-zone" style="left: ${zone.xmin / 10}%; top: ${zone.ymin / 10}%; width: ${(zone.xmax - zone.xmin) / 10}%; height: ${(zone.ymax - zone.ymin) / 10}%;">${content}</div>`;
-            }).join('');
-
-            // === PHASE 4: Build fixed footer zones ===
-            const fixedFooterHtml = footerZones.map(zone => {
-                let content = "";
-                const label = (zone.label || '');
-                if (zone.staticValue) {
-                    content = `<img src="${zone.staticValue}" alt="Pie de página" />`;
-                } else if (label.toLowerCase().includes('pie')) {
-                    content = aiMapping['Pie'] || aiMapping['Footer'] || l?.footerHtml || label;
-                } else {
-                    content = aiMapping[label] || label;
-                }
-                return `<div class="fixed-zone" style="left: ${zone.xmin / 10}%; top: ${zone.ymin / 10}%; width: ${(zone.xmax - zone.xmin) / 10}%; height: ${(zone.ymax - zone.ymin) / 10}%; font-size: 8pt; color: #777;">${content}</div>`;
-            }).join('');
-
-            // Add footerHtml from layout if set and no pie zone exists
-            let layoutFooterHtml = '';
-            if (l?.footerHtml && footerZones.length === 0) {
-                layoutFooterHtml = `<div class="fixed-zone" style="position: fixed; bottom: 3mm; left: 15mm; right: 15mm; font-size: 8pt; color: #777; border-top: 0.5px solid #ddd; padding-top: 2px;">${l.footerHtml}</div>`;
+            switch (block.type) {
+                case 'logo_empresa':
+                    content = tenantLogo
+                        ? `<img src="${tenantLogo}" alt="Logo Empresa" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`
+                        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed #ccc;font-size:8px;color:#999;">Logo Empresa</div>`;
+                    break;
+                case 'logo_cliente':
+                    content = clientLogo
+                        ? `<img src="${clientLogo}" alt="Logo Cliente" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`
+                        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;border:1px dashed #ccc;font-size:8px;color:#999;">Logo Cliente</div>`;
+                    break;
+                case 'titulo':
+                    content = `<div style="${textStyle}">${noteTitle}</div>`;
+                    break;
+                case 'fecha':
+                    content = `<div style="${textStyle}">${today}</div>`;
+                    break;
+                case 'cuerpo':
+                    // THE MOST IMPORTANT BLOCK: always injects the actual content
+                    content = `<div class="doc-body" style="${textStyle}">${noteHtml}</div>`;
+                    break;
+                case 'pie':
+                    content = `<div style="${textStyle}">${cfg.staticText || ''}</div>`;
+                    break;
+                case 'texto_libre':
+                    content = `<div style="${textStyle}">${cfg.staticText || ''}</div>`;
+                    break;
+                case 'separador':
+                    content = `<hr style="border: none; border-top: 1px solid ${cfg.borderColor || '#ddd'}; margin: 0;" />`;
+                    break;
             }
 
-            // === PHASE 5: Build body HTML (flows naturally) ===
-            let bodyContentHtml = '';
-            bodyZones.forEach(zone => {
-                const label = (zone.label || '');
-                if (label === 'Párrafo' || label.toLowerCase().includes('párrafo')) {
-                    bodyContentHtml += aiMapping['Párrafo'] || aiMapping['Body'] || aiMapping['Contenido'] || noteHtml;
-                } else if (aiMapping[label]) {
-                    bodyContentHtml += `<div style="margin-bottom: 1em;">${aiMapping[label]}</div>`;
-                } else {
-                    bodyContentHtml += `<div style="margin-bottom: 1em;">${label}</div>`;
-                }
-            });
-            if (!bodyContentHtml) {
-                bodyContentHtml = noteHtml;
-            }
+            return `<div id="block-${block.id}">${content}</div>`;
+        }).join('\n');
 
-            // === PHASE 6: Build text overlays ===
-            let overlaysHtml = '';
-            if (l?.textOverlays && l.textOverlays.length > 0) {
-                overlaysHtml = l.textOverlays
-                    .filter(o => o.pageScope === 'all')
-                    .map(o => {
-                        const style = [
-                            `position: fixed`,
-                            `left: ${o.position.x}%`,
-                            `top: ${o.position.y}%`,
-                            `font-family: '${o.fontFamily}', sans-serif`,
-                            `font-size: ${o.fontSize}pt`,
-                            `font-weight: ${o.fontWeight}`,
-                            `font-style: ${o.fontStyle}`,
-                            `text-decoration: ${o.textDecoration}`,
-                            `color: ${o.color}`,
-                            `z-index: 200`,
-                            `white-space: nowrap`,
-                        ].join('; ');
-                        return `<div class="text-overlay" style="${style}">${o.text}</div>`;
-                    }).join('');
-            }
-
-            // === PHASE 7: Assemble final HTML ===
-            return `<!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>${dynamicStyles}</style>
-            </head>
-            <body>
-                <!-- Fixed header elements (logos, title, date) — painted inside @page margin-top -->
-                ${fixedHeaderHtml}
-
-                <!-- Fixed footer elements (Pie) — painted inside @page margin-bottom -->
-                ${fixedFooterHtml}
-                ${layoutFooterHtml}
-
-                <!-- Text overlays -->
-                ${overlaysHtml}
-
-                <!-- Body content (flows in content area, auto-paginated) -->
-                <div class="doc-body">
-                    ${bodyContentHtml}
-                </div>
-            </body>
-            </html>`;
-        } else {
-            // Non-zone templates: standard document styling
-            dynamicStyles += `
-                body { padding: 2rem; max-width: 820px; margin: auto; }
-                .running-header { border-bottom: 2px solid #1a1a1a; padding-bottom: 0.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
-                .running-footer { margin-top: 2.5rem; padding-top: 0.6rem; border-top: 1px solid #ddd; font-size: 0.68rem; color: #999; display: flex; justify-content: space-between; }
-                h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.5rem 0; }
-                p { margin: 0.6rem 0; }
-                table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-                th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; }
-                th { background: #f0f0f0; }
-            `;
-        }
-
-        // --- Standard Logic (Old) ---
-        const firstPageBlock = l?.firstPageEnabled ? `
-        <div class="first-page-block">
-            ${l.firstPageHeaderHtml ? `<div class="first-header">${l.firstPageHeaderHtml}</div>` : ''}
-            <h1 class="doc-title">${noteTitle}</h1>
-            <p class="doc-date">${today}</p>
-            ${l.firstPageAssistants && l.firstPageAssistants.length > 0 ? `
-            <div class="assistants-block">
-                <h3>Asistentes</h3>
-                <table class="assistants-table">
-                    <thead><tr><th>Nombre</th><th>Firma</th></tr></thead>
-                    <tbody>
-                        ${l.firstPageAssistants.map(a => `<tr><td>${a}</td><td class="sig-cell"></td></tr>`).join('')}
-                    </tbody>
-                </table>
-            </div>` : ''}
-            ${l.firstPageExtraHtml ? `<div class="first-extra">${l.firstPageExtraHtml}</div>` : ''}
-            <div class="page-break"></div>
-        </div>` : '';
-
-        const lastPageBlock = l?.lastPageEnabled && l.lastPageFooterHtml ? `
-        <div class="last-page-block">
-            <div class="page-break"></div>
-            <div class="closing-block">${l.lastPageFooterHtml}</div>
-        </div>` : '';
-
-        const runningHeader = l?.headerHtml
-            ? `<div class="running-header">${l.headerHtml}</div>`
-            : `<div class="running-header default-header"><span class="brand">UniTask</span><span class="doc-meta">${template.name} · ${today}</span></div>`;
-
-        const runningFooter = l?.footerHtml
-            ? `<div class="running-footer">${l.footerHtml}</div>`
-            : `<div class="running-footer default-footer"><span>Generado con UniTask · ${template.name}</span><span>${now}</span></div>`;
+        // Check if there's a 'cuerpo' block — if not, inject content directly in the body
+        const hasCuerpo = blocks.some(b => b.type === 'cuerpo');
+        const fallbackBody = !hasCuerpo
+            ? `<div style="position: relative; margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm; font-family: 'Garamond', serif; font-size: 11pt; line-height: 1.6;">${noteHtml}</div>`
+            : '';
 
         return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${template.name} – ${noteTitle}</title>
-    <style>${dynamicStyles}</style>
+    <title>${noteTitle}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        .doc-body { line-height: 1.6; }
+        .doc-body h1, .doc-body h2, .doc-body h3 { margin-top: 0.8em; margin-bottom: 0.4em; }
+        .doc-body p { margin: 0.4em 0; }
+        .doc-body ul, .doc-body ol { margin: 0.5em 0; padding-left: 1.5em; }
+        .doc-body li { margin: 0.2em 0; }
+        .doc-body table { width: 100%; border-collapse: collapse; margin: 0.5em 0; }
+        .doc-body th, .doc-body td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; font-size: 9pt; }
+        .doc-body th { background: #f5f5f5; font-weight: bold; }
+        .doc-body img { max-width: 100%; height: auto; page-break-inside: avoid; break-inside: avoid; }
+        .doc-body blockquote { border-left: 3px solid #888; padding-left: 1rem; color: #555; margin: 0.5em 0; }
+        @media print {
+            body { background: none; }
+            /* Hide URL, Date & Pagination headers/footers the browser generates if possible */
+            @page {
+                size: A4;
+                margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm;
+            }
+        }
+        ${blockStyles}
+    </style>
 </head>
 <body>
-    ${firstPageBlock}
-    ${runningHeader}
-    ${!l?.firstPageEnabled ? `<h1>${noteTitle}</h1><hr>` : ''}
-    ${noteHtml}
-    ${lastPageBlock}
-    ${runningFooter}
+    ${blockHtmls}
+    ${fallbackBody}
 </body>
 </html>`;
     };
 
-    const handleSmartLayout = async () => {
-        // Find a template with zones
-        const templateWithZones = templates.find(t => t.config?.visualZones && t.config.visualZones.length > 0);
-        if (!templateWithZones) {
-            alert("No hay plantillas con zonas visuales disponibles para optimizar.");
-            return;
-        }
-
-        setOptimizing(true);
-        try {
-            const result = await optimizeDocumentContent(noteHtml, templateWithZones.config.visualZones);
-            if (result.mapping) {
-                setAiMapping(result.mapping);
-                // Optionally auto-print or just show feedback
-            } else if (result.error) {
-                alert("Error de IA: " + result.error);
-            }
-        } catch (err) {
-            console.error("Smart Layout Error:", err);
-        } finally {
-            setOptimizing(false);
-        }
-    };
-
-    const handlePrint = (template: Template) => {
+    const handlePrint = (template: UniDocsTemplate) => {
         setPrinting(template.id);
         const htmlContent = buildHtml(template);
 
@@ -448,14 +238,12 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
         if (printWindow) {
             printWindow.document.write(htmlContent);
             printWindow.document.close();
-
-            // Wait for images to load
             setTimeout(() => {
                 printWindow.print();
                 setPrinting(null);
             }, 1000);
         } else {
-            alert("El navegador bloqueó la ventana emergente. Por favor, permítelas e intenta de nuevo.");
+            alert("El navegador bloqueó la ventana emergente. Permite popups para este sitio.");
             setPrinting(null);
         }
     };
@@ -469,7 +257,7 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
                             <FileText className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold">Imprimir Nota</h2>
+                            <h2 className="text-xl font-bold">Imprimir con Plantilla</h2>
                             <p className="text-sm text-muted-foreground">Selecciona una plantilla para generar el documento</p>
                         </div>
                     </div>
@@ -488,13 +276,14 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
                         <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-xl text-center space-y-4">
                             <p className="text-sm text-destructive font-medium">{loadError}</p>
                             <button onClick={() => window.location.reload()} className="px-4 py-2 bg-destructive text-white rounded-lg text-xs font-bold hover:bg-destructive/90 transition-all">
-                                Recargar Aplicación
+                                Recargar
                             </button>
                         </div>
                     ) : templates.length === 0 ? (
                         <div className="text-center py-16 opacity-50">
                             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                            <p className="text-muted-foreground">No hay plantillas disponibles para este tenant.</p>
+                            <p className="text-muted-foreground">No hay plantillas disponibles.</p>
+                            <p className="text-xs text-muted-foreground mt-2">Crea una desde el módulo UniDocs en Ajustes.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
@@ -511,7 +300,7 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-foreground">{t.name}</h3>
-                                            <p className="text-sm text-muted-foreground">{t.description || t.type}</p>
+                                            <p className="text-sm text-muted-foreground">{t.description || `${(t.blocks || []).length} bloques`}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -528,26 +317,9 @@ export default function UniDocsTemplatePickerModal({ noteTitle, noteHtml, projec
                 </div>
 
                 <div className="p-4 border-t bg-muted/50 flex justify-end gap-3 shrink-0">
-                    <button onClick={onClose} className="px-6 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground">
-                        Cancelar
-                    </button>
                     <button onClick={onClose} className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold hover:bg-secondary/80 transition-all">
                         Cerrar
                     </button>
-                    {templates.some(t => t.config?.visualZones?.length > 0) && (
-                        <button
-                            onClick={handleSmartLayout}
-                            disabled={optimizing}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
-                        >
-                            {optimizing ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Sparkles className="w-4 h-4" />
-                            )}
-                            {Object.keys(aiMapping).length > 0 ? "Layout Optimizado" : "Distribución Inteligente (IA)"}
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { FlowGraph, FlowNode } from '@/app/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
 

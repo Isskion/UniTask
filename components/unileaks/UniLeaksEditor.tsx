@@ -17,7 +17,7 @@ import { saveNote } from "@/lib/unileaks";
 import { addTenantWord, getTenantWords } from "@/lib/dictionary";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Globe, Lock, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2 } from "lucide-react";
+import { Check, Loader2, Globe, Lock, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -25,9 +25,9 @@ import { useFileUploader } from "@/hooks/useFileUploader";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
-import { PaintRoller, ClipboardCopy, Plus, Minus } from "lucide-react";
 import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
 import { FontSize, FontFamily } from "@/lib/tiptap-extensions/Typography";
+import { FoldableHeading } from "@/lib/tiptap-extensions/FoldableHeading";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
 import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePickerModal";
 import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
@@ -111,7 +111,9 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         extensions: [
             StarterKit.configure({
                 bulletList: false, // Disable default to use our custom one
+                heading: false,    // Disable default to use our FoldableHeading
             }),
+            FoldableHeading,
             CustomBulletList,
             Table.configure({
                 resizable: true,
@@ -136,20 +138,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             }),
             TenantDictionary,
             Extension.create({
-                name: 'customKeyboardBehavior',
+                name: 'listIndentation',
                 addKeyboardShortcuts() {
                     return {
-                        // Enter → hard break (like Shift+Enter) instead of new paragraph
-                        Enter: () => this.editor.commands.setHardBreak(),
-                        // Tab inside list → indent, outside list → insert 4 non-breaking spaces
-                        Tab: () => {
-                            if (this.editor.isActive('listItem')) {
-                                return this.editor.commands.sinkListItem('listItem');
-                            }
-                            // Insert 4 non-breaking spaces as tab indentation
-                            this.editor.commands.insertContent('\u00a0\u00a0\u00a0\u00a0');
-                            return true;
-                        },
+                        Tab: () => this.editor.commands.sinkListItem('listItem'),
                         'Shift-Tab': () => this.editor.commands.liftListItem('listItem'),
                     }
                 },
@@ -810,6 +802,13 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                                 title="Tachado"
                             >
                                 S
+                            </button>
+                            <button
+                                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                                className={cn("px-3 py-1.5 text-sm font-bold hover:bg-muted transition-colors", editor.isActive('heading', { level: 1 }) ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+                                title="Título 1"
+                            >
+                                H1
                             </button>
                             <button
                                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}

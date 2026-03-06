@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { NoteOwnerInfo } from "@/lib/unileaks";
+import { useAuth } from "@/context/AuthContext";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface UniLeaksSidebarProps {
     projects: Project[];
@@ -64,6 +67,36 @@ export default function UniLeaksSidebar({
     const [dragOverFolder, setDragOverFolder] = useState<string | null>(null);
     const renameInputRef = useRef<HTMLInputElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const { tenantId } = useAuth();
+    const [tenantLogo, setTenantLogo] = useState<string | null>(null);
+
+    // Fetch Tenant Logo
+    useEffect(() => {
+        let isMounted = true;
+        const fetchTenantLogo = async () => {
+            if (!tenantId || tenantId === "unknown" || tenantId === "__DENY__") return;
+            try {
+                const tenantDoc = await getDoc(doc(db, 'tenants', tenantId));
+                if (isMounted && tenantDoc.exists()) {
+                    const data = tenantDoc.data();
+                    if (data.logos && data.logos.length > 0) {
+                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes('principal'));
+                        setTenantLogo(principal?.url || data.logos[0].url);
+                    } else if (data.logoUrl) {
+                        setTenantLogo(data.logoUrl);
+                    }
+                }
+            } catch (err: any) {
+                if (isMounted) {
+                    if (err.code !== 'permission-denied') {
+                        console.error("Error fetching tenant logo in UniLeaksSidebar:", err);
+                    }
+                }
+            }
+        };
+        fetchTenantLogo();
+        return () => { isMounted = false; };
+    }, [tenantId]);
 
     // Context Menu Handling
     useEffect(() => {
@@ -391,26 +424,37 @@ export default function UniLeaksSidebar({
             </div>
 
             {/* Header Toolbar */}
-            <div className="p-4 flex items-center justify-between shrink-0">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Base de Conocimiento</span>
-                <div className="flex gap-1">
-                    <button
-                        onClick={() => {
-                            const name = prompt("Nombre de la nueva carpeta:");
-                            if (name) onCreateFolder(name, null);
-                        }}
-                        className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors"
-                        title="Nueva Carpeta Raíz"
-                    >
-                        <Folder className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => onNewNote(null)}
-                        className="p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded-lg transition-colors"
-                        title="Nueva Nota Raíz"
-                    >
-                        <Plus className="w-4 h-4" />
-                    </button>
+            <div className="p-4 flex flex-col gap-3 shrink-0 border-b border-border/40">
+                <div className="flex items-center gap-3">
+                    {tenantLogo ? (
+                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-sm shrink-0 border border-border">
+                            <img src={tenantLogo} alt="Tenant Logo" className="max-w-full max-h-full object-contain" />
+                        </div>
+                    ) : (
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                            <FileText className="w-4 h-4 text-primary" />
+                        </div>
+                    )}
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">Base de<br />Conocimiento</span>
+                    <div className="flex gap-1 ml-auto">
+                        <button
+                            onClick={() => {
+                                const name = prompt("Nombre de la nueva carpeta:");
+                                if (name) onCreateFolder(name, null);
+                            }}
+                            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+                            title="Nueva Carpeta Raíz"
+                        >
+                            <Folder className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onNewNote(null)}
+                            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded-lg transition-colors"
+                            title="Nueva Nota Raíz"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
 

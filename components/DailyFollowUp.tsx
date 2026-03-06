@@ -42,6 +42,7 @@ import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
 import DocumentTypesManager from "./admin/DocumentTypesManager"; // Added import
+import TenantLogoManager from "./admin/TenantLogoManager";
 import { KnowledgeBase } from "./KnowledgeBase";
 import { ProductProposals } from "./ProductProposals";
 import { useLanguage } from "@/context/LanguageContext";
@@ -2388,7 +2389,11 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'admin-task-master' ? (
                             <TaskMasterDataManagement />
                         ) : viewMode === 'admin-document-types' ? (
-                            <DocumentTypesManager />
+                            <div className="p-6 h-full overflow-y-auto space-y-8">
+                                <TenantLogoManager />
+                                <hr className="border-border" />
+                                <DocumentTypesManager />
+                            </div>
                         ) : viewMode === 'sprint-cycles' ? (
                             <div className="p-6 h-full overflow-y-auto">
                                 <SprintManager />

@@ -40,11 +40,20 @@ export interface Project {
     lastUpdate?: any; // New: Timestamp of last activity
 }
 
+export interface TenantLogo {
+    id: string;
+    label: string;      // e.g., "Logo Principal", "Logo Secundario", "ISO"
+    url: string;         // Firebase Storage URL
+    storagePath: string; // Firebase Storage path for deletion
+    uploadedAt: any;
+}
+
 export interface Tenant {
     id: string; // "client-code" or auto-generated
     name: string; // "Empresa Cliente A"
     code?: string; // Optional short code
-    logoUrl?: string; // Optional branding
+    logoUrl?: string; // Optional branding (legacy, kept for backward compat)
+    logos?: TenantLogo[]; // Multiple logos with labels
     isActive: boolean;
     aiEnabled?: boolean; // New: Superadmin auth for AI billing
     createdAt?: any;

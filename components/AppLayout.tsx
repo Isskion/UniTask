@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { SuperadminGodBar } from "@/components/SuperadminGodBar"; // Import God Bar at Top Level
 import {
@@ -74,11 +74,35 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { t } = useLanguage();
+    const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
 
-
-    // const { theme } = useTheme(); 
-    const logoSrc = '/brand-white.png';
-    // console.log(`[LogoDebug] Current theme: ${theme}, loading: ${logoSrc}`);
+    useEffect(() => {
+        let isMounted = true;
+        const fetchTenantLogo = async () => {
+            if (!tenantId || tenantId === "unknown" || tenantId === "__DENY__") return;
+            try {
+                const { doc, getDoc } = await import('firebase/firestore');
+                const tenantDoc = await getDoc(doc(db, 'tenants', tenantId));
+                if (isMounted && tenantDoc.exists()) {
+                    const data = tenantDoc.data();
+                    if (data.logos && data.logos.length > 0) {
+                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes('principal'));
+                        setDynamicLogoSrc(principal?.url || data.logos[0].url);
+                    } else if (data.logoUrl) {
+                        setDynamicLogoSrc(data.logoUrl);
+                    }
+                }
+            } catch (err: any) {
+                if (isMounted) {
+                    if (err.code !== 'permission-denied') {
+                        console.error("Error fetching tenant logo in AppLayout:", err);
+                    }
+                }
+            }
+        };
+        fetchTenantLogo();
+        return () => { isMounted = false; };
+    }, [tenantId]);
 
     // Check if user can manage permissions (with legacy role fallback)
     const canManagePermissions = can('managePermissions', 'special') ||
@@ -224,7 +248,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     {/* Header / Logo */}
                     <div className="h-14 flex items-center px-4 border-b border-border/40 gap-3">
                         <img
-                            src={logoSrc}
+                            src={dynamicLogoSrc}
                             alt="Unitask"
                             className="h-8 w-auto object-contain rounded-lg transition-all duration-300 hover:scale-105 origin-left"
                             style={{
