@@ -1,4 +1,9 @@
-// UniDocs V2 — Block-based template types
+// UniDocs V2.3.0 — Block-based template types
+// Changelog:
+//   V2.3 (2026-03-08): Motor de impresión migrado a tabla thead/tbody/tfoot — pie no solapa cuerpo en ninguna página
+//   V2.2: Preview-first con iframe blob URL + botones Imprimir/PDF y Word (.doc)
+//   V2.1: Firestore rules fix — App Admins pueden subir logos de tenant
+//   V2.0: Block-based con coordenadas x/y/width/height en mm (reemplaza V1 rich text)
 
 export type BlockType =
     | 'logo_empresa'

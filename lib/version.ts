@@ -1,6 +1,17 @@
-export const APP_VERSION = "14.0.0";
+export const APP_VERSION = "14.0.1";
 
 export const CHANGELOG = [
+    {
+        version: "14.0.1",
+        date: "2026-03-08",
+        features: [
+            "UniDocs V2.3: Motor de impresión rediseñado con arquitectura tabla thead/tbody/tfoot — el pie de página ya no puede solapar el cuerpo en ninguna página intermedia",
+            "UniDocs: Vista previa antes de imprimir con iframe blob URL — sin bucles ni auto-print",
+            "UniDocs: Exportación a Word (.doc) sin dependencias externas desde el previsualizador",
+            "UniDocs: Eliminados headers del navegador (fecha, URL, nº página) en todos los documentos impresos",
+            "Knowledge Base: Creado brain/UniDocs_Project_Knowledge.md con guía de arquitectura y reglas de versionado"
+        ]
+    },
     {
         version: "14.0.0",
         date: "2026-02-24",
