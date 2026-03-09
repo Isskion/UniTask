@@ -24,8 +24,16 @@ export default function UnifluxToolbar({ currentGraph, onGraphUpdate }: UnifluxT
         setStatus(null);
 
         try {
-            const systemRefinement = currentGraph.nodes.length > 0
-                ? "IMPORTANTE: Tienes un flujo ya en marcha. Respeta los nodos y IDs actuales. No borres lo que ya existe si no te lo piden específicamente. Puedes añadir nuevos nodos (usa IDs secuenciales), cambiar conexiones o renombrar, pero mantén la coherencia con el grafo actual. "
+            const hasExistingNodes = currentGraph.nodes.length > 0;
+            const systemRefinement = hasExistingNodes
+                ? `INSTRUCCIONES CRÍTICAS — FLUJO EXISTENTE EN MARCHA:
+(1) NO elimines ningún nodo sin instrucción explícita del usuario.
+(2) Mantén los IDs de nodos existentes tal cual; solo modifica label/type si se pide.
+(3) Para nodos nuevos, continúa la numeración desde el ID más alto existente (actual máximo: ${Math.max(...currentGraph.nodes.map(n => parseInt(n.id) || 0), 0)}).
+(4) Devuelve SIEMPRE el grafo COMPLETO: nodos existentes + nuevos cambios.
+(5) Mantén todas las conexiones existentes a menos que el usuario pida explícitamente borrarlas.
+(6) Si el usuario pide "añadir", "conectar" o "modificar", opera sobre el grafo actual. Si pide "crear desde cero" o "resetear", puedes reemplazar.
+SOLICITUD DEL USUARIO: `
                 : "";
 
             const result = await generateFlowWithAI(systemRefinement + prompt, currentGraph);

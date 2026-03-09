@@ -27,14 +27,21 @@ export interface FlowEdge {
     condition?: string; // Step logic (e.g., "status === 'damaged'")
 }
 
+export type MermaidEngine = 'sequence' | 'flowchart';
+
 export interface FlowGraph {
     id: string;
     tenantId: string;
     projectId?: string;
     name: string;
     description?: string;
+    // Visual flow fields
     nodes: FlowNode[];
     edges: FlowEdge[];
+    // V2: Mermaid DSL mode (additive — does not break existing visual flows)
+    docType?: 'visual' | 'mermaid';
+    mermaidCode?: string;
+    mermaidEngine?: MermaidEngine;
     metadata: {
         version: string;
         authorId: string;

@@ -1,17 +1,18 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
-import { FlowGraph, FlowNode, FlowEdge, NodeType } from '@/app/uniflux/core/types';
+import { FlowGraph, FlowNode, FlowEdge, NodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Settings2, Pencil } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch } from 'lucide-react';
 import UnifluxNodePalette from './UnifluxNodePalette';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
 import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
+import UnifluxMermaidEditor from './UnifluxMermaidEditor';
 
 const nodeTypes = {
     ENVIRONMENT: UnifluxEnvironmentNode,
@@ -33,7 +34,7 @@ const INITIAL_GRAPH: FlowGraph = {
 };
 
 export default function UnifluxWorkspace() {
-    const { user, tenantId, userRole } = useAuth();
+    const { user, tenantId } = useAuth();
     const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -61,21 +62,25 @@ export default function UnifluxWorkspace() {
     // History State (Undo/Redo)
     const [history, setHistory] = useState<{ nodes: Node[], edges: Edge[] }[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
+    // Ref avoids stale closure: takeSnapshot always reads the latest historyIndex
+    const historyIndexRef = useRef(-1);
+    useEffect(() => { historyIndexRef.current = historyIndex; }, [historyIndex]);
 
     const takeSnapshot = useCallback(() => {
         setNodes(nds => {
             setEdges(eds => {
                 const snapshot = { nodes: JSON.parse(JSON.stringify(nds)), edges: JSON.parse(JSON.stringify(eds)) };
+                const currentIndex = historyIndexRef.current;
                 setHistory(prev => {
-                    const newHistory = prev.slice(0, historyIndex + 1);
-                    return [...newHistory, snapshot].slice(-50); // Keep last 50 states
+                    const newHistory = prev.slice(0, currentIndex + 1);
+                    return [...newHistory, snapshot].slice(-50);
                 });
                 setHistoryIndex(prev => prev + 1);
                 return eds;
             });
             return nds;
         });
-    }, [historyIndex, setNodes, setEdges]);
+    }, [setNodes, setEdges]); // historyIndex removed — read via ref
 
     const undo = useCallback(() => {
         if (historyIndex > 0) {
@@ -115,6 +120,16 @@ export default function UnifluxWorkspace() {
 
     // Editor State
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+    // Inline edge-label editor (replaces window.prompt)
+    const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
+    const [edgeEditValue, setEdgeEditValue] = useState('');
+
+    // Save toast
+    const [showSaveToast, setShowSaveToast] = useState(false);
+
+    // Post-AI banner — reminds user they can undo
+    const [showAiBanner, setShowAiBanner] = useState(false);
 
     // Sync Graph -> React Flow ONLY on load or AI update
     useEffect(() => {
@@ -179,7 +194,13 @@ export default function UnifluxWorkspace() {
         const tenantToUse = tenantId || '1';
         setIsLoadingFlows(true);
         listProjectFlows(tenantToUse, selectedProjectId)
-            .then(flows => setSavedFlows(flows as FlowGraph[]))
+            .then(flows => {
+                setSavedFlows(flows as FlowGraph[]);
+                // Auto-open sidebar if canvas is empty and user has existing flows
+                if (flows.length > 0 && graph.nodes.length === 0) {
+                    setIsSidebarOpen(true);
+                }
+            })
             .catch(err => console.error("Failed to load flows", err))
             .finally(() => setIsLoadingFlows(false));
     }, [selectedProjectId, user, tenantId]);
@@ -209,6 +230,31 @@ export default function UnifluxWorkspace() {
         setEdges([]);
         setShowWizard(true);
     };
+
+    const handleNewMermaidFlow = () => {
+        const newTemplate: FlowGraph = {
+            ...INITIAL_GRAPH,
+            id: `draft-${Date.now()}`,
+            projectId: selectedProjectId,
+            name: 'Nuevo Diagrama Mermaid',
+            docType: 'mermaid',
+            mermaidCode: 'sequenceDiagram\n    Alice->>Bob: Hola!\n    Bob-->>Alice: Hola!',
+            mermaidEngine: 'sequence',
+        };
+        setGraph(newTemplate);
+        setIsSidebarOpen(false);
+        setNodes([]);
+        setEdges([]);
+        setShowWizard(false);
+    };
+
+    const handleMermaidChange = useCallback((code: string) => {
+        setGraph(prev => ({ ...prev, mermaidCode: code }));
+    }, []);
+
+    const handleMermaidEngineChange = useCallback((engine: MermaidEngine) => {
+        setGraph(prev => ({ ...prev, mermaidEngine: engine }));
+    }, []);
 
     const handleNameRename = () => {
         if (!editNameValue.trim()) {
@@ -255,6 +301,11 @@ export default function UnifluxWorkspace() {
             }
             return node;
         }));
+        // Persist lock state in abstract graph so it survives any re-sync from setGraph
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, isLocked: locked } : n)
+        }));
         setTimeout(takeSnapshot, 0);
     }, [setNodes, takeSnapshot]);
 
@@ -275,20 +326,25 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     }, [setEdges]);
 
-    // Handle Edge Selection (for comments/labels)
+    // Inline edge label editor handlers
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
         event.stopPropagation();
-        const action = window.prompt(
-            "Opciones de la línea:\n\n1. Escribe el nuevo texto (o déjalo vacío para quitar la etiqueta).\n2. Escribe exactamente BORRAR para eliminar esta línea.\n\nTexto actual:",
-            edge.label as string || ""
-        );
-        if (action === "BORRAR") {
-            setEdges((eds) => eds.filter(e => e.id !== edge.id));
-            setTimeout(takeSnapshot, 0);
-        } else if (action !== null) {
-            setEdges((eds) => eds.map((e) => (e.id === edge.id ? { ...e, label: action } : e)));
-            setTimeout(takeSnapshot, 0);
-        }
+        setEditingEdge(edge);
+        setEdgeEditValue((edge.label as string) || '');
+    };
+
+    const handleEdgeLabelSave = () => {
+        if (!editingEdge) return;
+        setEdges(eds => eds.map(e => e.id === editingEdge.id ? { ...e, label: edgeEditValue } : e));
+        setEditingEdge(null);
+        setTimeout(takeSnapshot, 0);
+    };
+
+    const handleEdgeDelete = () => {
+        if (!editingEdge) return;
+        setEdges(eds => eds.filter(e => e.id !== editingEdge.id));
+        setEditingEdge(null);
+        setTimeout(takeSnapshot, 0);
     };
 
     // Drag and Drop Logic
@@ -335,7 +391,7 @@ export default function UnifluxWorkspace() {
         [reactFlowInstance, setNodes, nodes],
     );
 
-    const onNodeDragStop = useCallback((event: any, draggedNode: Node) => {
+    const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
         if (draggedNode.data.type === 'ENVIRONMENT') return;
 
         // Check if dropped inside an environment
@@ -387,10 +443,21 @@ export default function UnifluxWorkspace() {
         }
     }, [nodes, setNodes]);
 
-    // Handle AI Updates
+    // Handle AI Updates — preserve work when AI would wipe existing nodes
     const handleGraphUpdate = (newGraph: FlowGraph) => {
-        console.log("Graph updated by AI:", newGraph);
-        // Ensure we preserve the original ID and projectId if the AI removed them
+        // Guard: if we already have nodes and the AI response would delete most of them,
+        // ask for confirmation before replacing (prevents accidental full overwrites).
+        if (graph.nodes.length > 0 && newGraph.nodes.length > 0) {
+            const existingIds = new Set(graph.nodes.map(n => n.id));
+            const keptCount = newGraph.nodes.filter(n => existingIds.has(n.id)).length;
+            const deletedCount = graph.nodes.length - keptCount;
+            if (deletedCount > 0 && deletedCount >= Math.ceil(graph.nodes.length * 0.5)) {
+                const ok = window.confirm(
+                    `La IA va a eliminar ${deletedCount} de los ${graph.nodes.length} nodos existentes.\n¿Continuar? (Pulsa Cancelar para deshacer con Ctrl+Z si ya aplicaste el cambio)`
+                );
+                if (!ok) return;
+            }
+        }
         const mergedGraph = {
             ...newGraph,
             id: graph.id || newGraph.id || `draft-${Date.now()}`,
@@ -399,6 +466,9 @@ export default function UnifluxWorkspace() {
         setGraph(mergedGraph);
         setShowWizard(false);
         setTimeout(takeSnapshot, 0);
+        // Show undo banner so user knows they can revert the AI change
+        setShowAiBanner(true);
+        setTimeout(() => setShowAiBanner(false), 6000);
     };
 
     // Handle Wizard Submit
@@ -442,37 +512,49 @@ export default function UnifluxWorkspace() {
         setSaveStatus('saving');
 
         try {
-            // Re-sync React Flow visually into the abstract FlowGraph
-            const updatedGraphNodes: FlowNode[] = nodes.map(n => ({
-                id: n.id,
-                type: n.data.type as NodeType || 'OPERATION',
-                label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''), // Strip prefix
-                position: n.position,
-                parentId: n.parentId,
-                isLocked: n.data.isLocked as boolean | undefined,
-                width: n.style?.width as number | undefined,
-                height: n.style?.height as number | undefined
-            }));
+            let finalGraph: FlowGraph;
 
-            const updatedGraphEdges: FlowEdge[] = edges.map(e => ({
-                id: e.id,
-                source: e.source,
-                target: e.target,
-                label: e.label as string | undefined
-            }));
+            if (graph.docType === 'mermaid') {
+                // Mermaid flows: persist code directly, no RF serialization
+                finalGraph = {
+                    ...graph,
+                    projectId: selectedProjectId,
+                };
+            } else {
+                // Re-sync React Flow visually into the abstract FlowGraph
+                const updatedGraphNodes: FlowNode[] = nodes.map(n => ({
+                    id: n.id,
+                    type: n.data.type as NodeType || 'OPERATION',
+                    label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''), // Strip prefix
+                    position: n.position,
+                    parentId: n.parentId,
+                    isLocked: n.data.isLocked as boolean | undefined,
+                    width: n.style?.width as number | undefined,
+                    height: n.style?.height as number | undefined
+                }));
 
-            const finalGraph = {
-                ...graph,
-                projectId: selectedProjectId,
-                nodes: updatedGraphNodes,
-                edges: updatedGraphEdges
-            };
+                const updatedGraphEdges: FlowEdge[] = edges.map(e => ({
+                    id: e.id,
+                    source: e.source,
+                    target: e.target,
+                    label: e.label as string | undefined
+                }));
+
+                finalGraph = {
+                    ...graph,
+                    projectId: selectedProjectId,
+                    nodes: updatedGraphNodes,
+                    edges: updatedGraphEdges
+                };
+            }
 
             await saveFlowDraft(tenantToUse, finalGraph);
             setGraph(finalGraph);
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 3000);
+            setShowSaveToast(true);
+            setTimeout(() => setShowSaveToast(false), 4000);
 
             // Refresh sidebar flows
             listProjectFlows(tenantToUse, selectedProjectId).then(f => setSavedFlows(f as FlowGraph[]));
@@ -485,6 +567,28 @@ export default function UnifluxWorkspace() {
             setIsSaving(false);
         }
     };
+
+    // Always-fresh graph that reflects the current canvas state (not just last save).
+    // Passed to UnifluxToolbar so the AI always sees unsaved node moves/additions.
+    const liveGraph = useMemo<FlowGraph>(() => ({
+        ...graph,
+        nodes: nodes.map(n => ({
+            id: n.id,
+            type: (n.data.type as NodeType) || 'OPERATION',
+            label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
+            position: n.position,
+            parentId: n.parentId,
+            isLocked: n.data.isLocked as boolean | undefined,
+            width: n.style?.width as number | undefined,
+            height: n.style?.height as number | undefined,
+        })),
+        edges: edges.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            label: e.label as string | undefined,
+        })),
+    }), [graph, nodes, edges]);
 
     return (
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
@@ -606,33 +710,49 @@ export default function UnifluxWorkspace() {
                             </div>
                         ) : (
                             <div className="space-y-2">
-                                {savedFlows.map(flow => (
-                                    <button
-                                        key={flow.id}
-                                        onClick={() => handleLoadFlow(flow.id)}
-                                        className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 group ${graph.id === flow.id
-                                            ? 'bg-purple-50 border-purple-200 ring-1 ring-purple-100'
-                                            : 'bg-white border-gray-100 hover:border-purple-200 hover:shadow-sm'
-                                            }`}
-                                    >
-                                        <div className={`p-2 rounded-lg ${graph.id === flow.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
-                                            <ListTree className="w-4 h-4" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className={`text-sm font-bold truncate ${graph.id === flow.id ? 'text-purple-900' : 'text-gray-700'}`}>
-                                                {flow.name || 'Sin título'}
+                                {savedFlows.map(flow => {
+                                    const rawDate = flow.metadata?.updatedAt;
+                                    const updatedAt = rawDate?.toDate ? rawDate.toDate()
+                                        : rawDate instanceof Date ? rawDate : null;
+                                    const dateStr = updatedAt
+                                        ? updatedAt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                                        : null;
+                                    const isMermaid = flow.docType === 'mermaid';
+                                    const nodeCount = isMermaid ? null : (flow.nodes?.length ?? 0);
+                                    const isActive = graph.id === flow.id;
+                                    return (
+                                        <button
+                                            key={flow.id}
+                                            onClick={() => handleLoadFlow(flow.id)}
+                                            className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 group ${isActive
+                                                ? 'bg-purple-50 border-purple-200 ring-1 ring-purple-100'
+                                                : 'bg-white border-gray-100 hover:border-purple-200 hover:shadow-sm'
+                                                }`}
+                                        >
+                                            <div className={`p-2 rounded-lg shrink-0 ${isActive ? 'bg-purple-100 text-purple-700' : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
+                                                {isMermaid ? <GitBranch className="w-4 h-4" /> : <ListTree className="w-4 h-4" />}
                                             </div>
-                                            <div className="text-[10px] text-gray-400 truncate mt-0.5">
-                                                ID: {flow.id.substring(0, 8)}...
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`text-sm font-bold truncate ${isActive ? 'text-purple-900' : 'text-gray-700'}`}>
+                                                    {flow.name || 'Sin título'}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                    {isMermaid
+                                                        ? <span className="text-[10px] text-teal-500 font-medium">Mermaid DSL</span>
+                                                        : <span className="text-[10px] text-gray-400">{nodeCount} nodos</span>
+                                                    }
+                                                    {dateStr && <><span className="text-[10px] text-gray-300">·</span><span className="text-[10px] text-gray-400">{dateStr}</span></>}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                            {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
 
-                    <div className="p-4 border-t bg-gray-50 shrink-0">
+                    <div className="p-4 border-t bg-gray-50 shrink-0 flex flex-col gap-2">
                         <button
                             onClick={handleNewFlow}
                             className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-gray-200 hover:border-purple-300 hover:text-purple-700 text-gray-700 rounded-xl font-bold text-sm transition-all shadow-sm"
@@ -640,14 +760,21 @@ export default function UnifluxWorkspace() {
                             <Plus className="w-4 h-4" />
                             Crear Nuevo Flujo
                         </button>
+                        <button
+                            onClick={handleNewMermaidFlow}
+                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-teal-200 hover:border-teal-400 hover:text-teal-700 text-teal-600 rounded-xl font-bold text-sm transition-all shadow-sm"
+                        >
+                            <GitBranch className="w-4 h-4" />
+                            Nuevo Diagrama Mermaid
+                        </button>
                     </div>
                 </div>
 
-                {/* AI Interaction Layer */}
-                {!showWizard && <UnifluxToolbar currentGraph={graph} onGraphUpdate={handleGraphUpdate} />}
+                {/* AI Interaction Layer — hidden in Mermaid mode */}
+                {!showWizard && graph.docType !== 'mermaid' && <UnifluxToolbar currentGraph={liveGraph} onGraphUpdate={handleGraphUpdate} />}
 
-                {/* Initial Wizard Overlay */}
-                {showWizard && (
+                {/* Initial Wizard Overlay — hidden in Mermaid mode */}
+                {showWizard && graph.docType !== 'mermaid' && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-50/80 backdrop-blur-sm">
                         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-gray-100">
                             <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
@@ -704,11 +831,11 @@ export default function UnifluxWorkspace() {
                     </div>
                 )}
 
-                {/* Node Palette */}
-                {!showWizard && <UnifluxNodePalette />}
+                {/* Node Palette — hidden in Mermaid mode */}
+                {!showWizard && graph.docType !== 'mermaid' && <UnifluxNodePalette />}
 
-                {/* Node Editor */}
-                {selectedNode && (
+                {/* Node Editor — hidden in Mermaid mode */}
+                {selectedNode && graph.docType !== 'mermaid' && (
                     <UnifluxNodeEditor
                         nodeId={selectedNode.id}
                         initialLabel={(selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')}
@@ -719,8 +846,80 @@ export default function UnifluxWorkspace() {
                     />
                 )}
 
+                {/* Inline Edge Label Editor */}
+                {editingEdge && (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-80">
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Editar etiqueta de conexión</p>
+                        <input
+                            autoFocus
+                            value={edgeEditValue}
+                            onChange={e => setEdgeEditValue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
+                            placeholder="Texto de la conexión (vacío = sin etiqueta)"
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
+                        />
+                        <div className="flex gap-2">
+                            <button onClick={handleEdgeLabelSave} className="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity">
+                                Guardar
+                            </button>
+                            <button onClick={handleEdgeDelete} className="px-3 py-1.5 text-red-500 hover:bg-red-50 text-sm font-medium rounded-lg transition-colors border border-red-100">
+                                Eliminar
+                            </button>
+                            <button onClick={() => setEditingEdge(null)} className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 text-sm font-medium rounded-lg transition-colors">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Post-AI undo banner */}
+                {showAiBanner && (
+                    <div className="absolute bottom-6 left-6 z-50 flex items-center gap-3 bg-purple-900 text-white shadow-xl rounded-xl px-4 py-3">
+                        <RotateCcw className="w-4 h-4 text-purple-300 shrink-0" />
+                        <div>
+                            <p className="text-sm font-semibold">IA aplicó cambios</p>
+                            <p className="text-xs text-purple-300">Ctrl+Z para deshacer si no es lo que buscabas</p>
+                        </div>
+                        <button onClick={() => { undo(); setShowAiBanner(false); }} className="ml-2 px-2 py-1 text-xs bg-purple-700 hover:bg-purple-600 rounded-lg font-medium transition-colors">
+                            Deshacer
+                        </button>
+                        <button onClick={() => setShowAiBanner(false)} className="p-1 text-purple-400 hover:text-white">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Save Toast */}
+                {showSaveToast && (
+                    <div className="absolute bottom-6 right-6 z-50 flex items-center gap-3 bg-white border border-green-100 shadow-xl rounded-xl px-4 py-3 animate-fade-in">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                        <div>
+                            <p className="text-sm font-semibold text-gray-800">Flujo guardado</p>
+                            <button onClick={() => { setShowSaveToast(false); setIsSidebarOpen(true); }} className="text-xs text-purple-600 hover:underline font-medium">
+                                Ver en Mis Flujos →
+                            </button>
+                        </div>
+                        <button onClick={() => setShowSaveToast(false)} className="p-1 text-gray-300 hover:text-gray-500 ml-1">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Mermaid DSL Editor */}
+                {graph.docType === 'mermaid' && (
+                    <div className="flex-1 h-full">
+                        <UnifluxMermaidEditor
+                            key={graph.id}
+                            initialCode={graph.mermaidCode || ''}
+                            initialEngine={graph.mermaidEngine || 'sequence'}
+                            onChange={handleMermaidChange}
+                            onEngineChange={handleMermaidEngineChange}
+                        />
+                    </div>
+                )}
+
                 {/* Visual Canvas */}
-                <ReactFlow
+                {graph.docType !== 'mermaid' && <ReactFlow
                     nodes={nodes}
                     edges={edges}
                     nodeTypes={nodeTypes}
@@ -733,12 +932,12 @@ export default function UnifluxWorkspace() {
                     onNodeDragStop={onNodeDragStop}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
-                    onPaneClick={() => setSelectedNode(null)}
+                    onPaneClick={() => { setSelectedNode(null); setEditingEdge(null); }}
                     fitView
                 >
                     <Background color="#ccc" gap={20} />
                     <Controls />
-                </ReactFlow>
+                </ReactFlow>}
             </div>
         </div>
     );
