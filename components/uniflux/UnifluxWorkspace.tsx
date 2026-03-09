@@ -2,13 +2,20 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
-import { FlowGraph, FlowNode } from '@/app/uniflux/core/types';
+import { FlowGraph, FlowNode, FlowEdge, NodeType } from '@/app/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Settings2, Pencil } from 'lucide-react';
+import UnifluxNodePalette from './UnifluxNodePalette';
+import UnifluxNodeEditor from './UnifluxNodeEditor';
+import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
+
+const nodeTypes = {
+    ENVIRONMENT: UnifluxEnvironmentNode,
+};
 
 // Initial placeholder graph
 const INITIAL_GRAPH: FlowGraph = {
@@ -49,15 +56,83 @@ export default function UnifluxWorkspace() {
     // React Flow State
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
-    // Sync Graph -> React Flow
+    // History State (Undo/Redo)
+    const [history, setHistory] = useState<{ nodes: Node[], edges: Edge[] }[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+
+    const takeSnapshot = useCallback(() => {
+        setNodes(nds => {
+            setEdges(eds => {
+                const snapshot = { nodes: JSON.parse(JSON.stringify(nds)), edges: JSON.parse(JSON.stringify(eds)) };
+                setHistory(prev => {
+                    const newHistory = prev.slice(0, historyIndex + 1);
+                    return [...newHistory, snapshot].slice(-50); // Keep last 50 states
+                });
+                setHistoryIndex(prev => prev + 1);
+                return eds;
+            });
+            return nds;
+        });
+    }, [historyIndex, setNodes, setEdges]);
+
+    const undo = useCallback(() => {
+        if (historyIndex > 0) {
+            const prevState = history[historyIndex - 1];
+            if (prevState && prevState.nodes) {
+                setNodes(prevState.nodes);
+                setEdges(prevState.edges);
+                setHistoryIndex(historyIndex - 1);
+            }
+        }
+    }, [history, historyIndex, setNodes, setEdges]);
+
+    const redo = useCallback(() => {
+        if (historyIndex < history.length - 1) {
+            const nextState = history[historyIndex + 1];
+            if (nextState && nextState.nodes) {
+                setNodes(nextState.nodes);
+                setEdges(nextState.edges);
+                setHistoryIndex(historyIndex + 1);
+            }
+        }
+    }, [history, historyIndex, setNodes, setEdges]);
+
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                if (e.shiftKey) redo();
+                else undo();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                redo();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo, redo]);
+
+    // Editor State
+    const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+    // Sync Graph -> React Flow ONLY on load or AI update
     useEffect(() => {
         const rfNodes: Node[] = graph.nodes.map(n => ({
             id: n.id,
-            type: 'default',
+            type: n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
             position: n.position,
-            data: { label: `${n.id}. ${n.label}`, type: n.type },
-            style: getNodeStyle(n.type),
+            data: {
+                label: `${n.id}. ${n.label}`,
+                type: n.type,
+                isLocked: n.isLocked,
+                onToggleLock: (id: string, locked: boolean) => handleToggleLock(id, locked)
+            },
+            style: { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 },
+            parentId: n.parentId,
+            extent: n.parentId ? 'parent' : undefined,
+            draggable: !n.isLocked,
+            selectable: true,
             sourcePosition: Position.Right,
             targetPosition: Position.Left,
         }));
@@ -68,7 +143,11 @@ export default function UnifluxWorkspace() {
             target: e.target,
             label: e.label,
             type: 'straight',
-            animated: true
+            animated: true,
+            labelStyle: { fill: '#4b5563', fontWeight: 600, fontSize: 12, fontFamily: 'inherit' },
+            labelBgStyle: { fill: '#ffffff', stroke: '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
+            labelBgPadding: [12, 6],
+            labelBgBorderRadius: 8,
         }));
 
         setNodes(rfNodes);
@@ -113,6 +192,7 @@ export default function UnifluxWorkspace() {
             setSelectedProjectId(flowInfo.projectId || selectedProjectId);
             setIsSidebarOpen(false);
             setShowWizard(false);
+            setTimeout(takeSnapshot, 0);
         }
     };
 
@@ -139,17 +219,186 @@ export default function UnifluxWorkspace() {
         setIsEditingName(false);
     };
 
-    // Handle Manual Connections
+    // Node Editor Save Handlers
+    const handleNodeSave = (nodeId: string, newLabel: string, newType: NodeType) => {
+        setNodes(nds => nds.map(node => {
+            if (node.id === nodeId) {
+                return {
+                    ...node,
+                    data: { ...node.data, label: `${node.id}. ${newLabel}`, type: newType },
+                    style: getNodeStyle(newType)
+                };
+            }
+            return node;
+        }));
+        setSelectedNode(null);
+        setTimeout(takeSnapshot, 0);
+    };
+
+    const handleNodeDelete = (nodeId: string) => {
+        setNodes(nds => nds.filter(node => node.id !== nodeId));
+        setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+        setSelectedNode(null);
+        setTimeout(takeSnapshot, 0);
+    };
+
+    const handleToggleLock = useCallback((nodeId: string, locked: boolean) => {
+        setNodes(nds => nds.map(node => {
+            if (node.id === nodeId) {
+                return {
+                    ...node,
+                    draggable: !locked,
+                    selectable: true,
+                    data: { ...node.data, isLocked: locked },
+                    style: { ...node.style, opacity: locked ? 0.8 : 1 }
+                };
+            }
+            return node;
+        }));
+        setTimeout(takeSnapshot, 0);
+    }, [setNodes, takeSnapshot]);
+
+    // Handle Manual Connections & Edge Updates
     const onConnect = useCallback((params: Connection) => {
-        setEdges((eds) => addEdge(params, eds));
-        // TODO: Update 'graph' state to reflect manual connection
+        // Automatically add an empty label or default animated edge
+        const newEdge: Edge = {
+            ...params,
+            id: `e-${params.source}-${params.target}-${Date.now()}`,
+            type: 'straight',
+            animated: true,
+            labelStyle: { fill: '#4b5563', fontWeight: 600, fontSize: 12, fontFamily: 'inherit' },
+            labelBgStyle: { fill: '#ffffff', stroke: '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
+            labelBgPadding: [12, 6],
+            labelBgBorderRadius: 8,
+        };
+        setEdges((eds) => addEdge(newEdge, eds));
+        setTimeout(takeSnapshot, 0);
     }, [setEdges]);
+
+    // Handle Edge Selection (for comments/labels)
+    const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
+        event.stopPropagation();
+        const action = window.prompt(
+            "Opciones de la línea:\n\n1. Escribe el nuevo texto (o déjalo vacío para quitar la etiqueta).\n2. Escribe exactamente BORRAR para eliminar esta línea.\n\nTexto actual:",
+            edge.label as string || ""
+        );
+        if (action === "BORRAR") {
+            setEdges((eds) => eds.filter(e => e.id !== edge.id));
+            setTimeout(takeSnapshot, 0);
+        } else if (action !== null) {
+            setEdges((eds) => eds.map((e) => (e.id === edge.id ? { ...e, label: action } : e)));
+            setTimeout(takeSnapshot, 0);
+        }
+    };
+
+    // Drag and Drop Logic
+    const onDragOver = useCallback((event: React.DragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const onDrop = useCallback(
+        (event: React.DragEvent) => {
+            event.preventDefault();
+
+            const type = event.dataTransfer.getData('application/reactflow/type') as NodeType;
+            const label = event.dataTransfer.getData('application/reactflow/label');
+
+            if (!type || !label || !reactFlowInstance) {
+                return;
+            }
+
+            const position = reactFlowInstance.screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            // Use sequential numeric ID
+            let newIdNum = 1;
+            while (nodes.some(n => n.id === newIdNum.toString())) {
+                newIdNum++;
+            }
+            const newNodeId = newIdNum.toString();
+            const newNode: Node = {
+                id: newNodeId,
+                type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
+                position,
+                data: { label: `${newNodeId}. ${label}`, type: type },
+                style: type === 'ENVIRONMENT' ? { ...getNodeStyle(type), width: 300, height: 200 } : getNodeStyle(type),
+                sourcePosition: Position.Right,
+                targetPosition: Position.Left,
+            };
+
+            setNodes((nds) => nds.concat(newNode));
+            setTimeout(takeSnapshot, 0);
+        },
+        [reactFlowInstance, setNodes, nodes],
+    );
+
+    const onNodeDragStop = useCallback((event: any, draggedNode: Node) => {
+        if (draggedNode.data.type === 'ENVIRONMENT') return;
+
+        // Check if dropped inside an environment
+        const targetEnv = nodes.find(n =>
+            n.data.type === 'ENVIRONMENT' &&
+            n.id !== draggedNode.id &&
+            draggedNode.position.x >= n.position.x &&
+            draggedNode.position.y >= n.position.y &&
+            draggedNode.position.x <= n.position.x + (n.style?.width as number || 0) &&
+            draggedNode.position.y <= n.position.y + (n.style?.height as number || 0)
+        );
+
+        if (targetEnv && draggedNode.parentId !== targetEnv.id) {
+            setNodes(nds => nds.map(node => {
+                if (node.id === draggedNode.id) {
+                    return {
+                        ...node,
+                        parentId: targetEnv.id,
+                        extent: 'parent',
+                        // Re-calculate position relative to parent
+                        position: {
+                            x: draggedNode.position.x - targetEnv.position.x,
+                            y: draggedNode.position.y - targetEnv.position.y
+                        }
+                    };
+                }
+                return node;
+            }));
+            setTimeout(takeSnapshot, 0);
+        } else if (!targetEnv && draggedNode.parentId) {
+            // Dragged out of parent
+            setNodes(nds => nds.map(node => {
+                if (node.id === draggedNode.id) {
+                    // Find old parent to calculate absolute position
+                    const oldParent = nds.find(p => p.id === node.parentId);
+                    return {
+                        ...node,
+                        parentId: undefined,
+                        extent: undefined,
+                        position: {
+                            x: draggedNode.position.x + (oldParent?.position.x || 0),
+                            y: draggedNode.position.y + (oldParent?.position.y || 0)
+                        }
+                    };
+                }
+                return node;
+            }));
+            setTimeout(takeSnapshot, 0);
+        }
+    }, [nodes, setNodes]);
 
     // Handle AI Updates
     const handleGraphUpdate = (newGraph: FlowGraph) => {
         console.log("Graph updated by AI:", newGraph);
-        setGraph(newGraph);
+        // Ensure we preserve the original ID and projectId if the AI removed them
+        const mergedGraph = {
+            ...newGraph,
+            id: graph.id || newGraph.id || `draft-${Date.now()}`,
+            projectId: graph.projectId || newGraph.projectId
+        };
+        setGraph(mergedGraph);
         setShowWizard(false);
+        setTimeout(takeSnapshot, 0);
     };
 
     // Handle Wizard Submit
@@ -193,7 +442,32 @@ export default function UnifluxWorkspace() {
         setSaveStatus('saving');
 
         try {
-            const finalGraph = { ...graph, projectId: selectedProjectId };
+            // Re-sync React Flow visually into the abstract FlowGraph
+            const updatedGraphNodes: FlowNode[] = nodes.map(n => ({
+                id: n.id,
+                type: n.data.type as NodeType || 'OPERATION',
+                label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''), // Strip prefix
+                position: n.position,
+                parentId: n.parentId,
+                isLocked: n.data.isLocked as boolean | undefined,
+                width: n.style?.width as number | undefined,
+                height: n.style?.height as number | undefined
+            }));
+
+            const updatedGraphEdges: FlowEdge[] = edges.map(e => ({
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                label: e.label as string | undefined
+            }));
+
+            const finalGraph = {
+                ...graph,
+                projectId: selectedProjectId,
+                nodes: updatedGraphNodes,
+                edges: updatedGraphEdges
+            };
+
             await saveFlowDraft(tenantToUse, finalGraph);
             setGraph(finalGraph);
 
@@ -430,13 +704,36 @@ export default function UnifluxWorkspace() {
                     </div>
                 )}
 
+                {/* Node Palette */}
+                {!showWizard && <UnifluxNodePalette />}
+
+                {/* Node Editor */}
+                {selectedNode && (
+                    <UnifluxNodeEditor
+                        nodeId={selectedNode.id}
+                        initialLabel={(selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')}
+                        initialType={selectedNode.data.type as NodeType || 'OPERATION'}
+                        onSave={handleNodeSave}
+                        onClose={() => setSelectedNode(null)}
+                        onDelete={handleNodeDelete}
+                    />
+                )}
+
                 {/* Visual Canvas */}
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
+                    nodeTypes={nodeTypes}
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
+                    onInit={setReactFlowInstance}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    onNodeDragStop={onNodeDragStop}
+                    onNodeDoubleClick={(_, node) => setSelectedNode(node)}
+                    onEdgeDoubleClick={onEdgeDoubleClick}
+                    onPaneClick={() => setSelectedNode(null)}
                     fitView
                 >
                     <Background color="#ccc" gap={20} />
@@ -485,14 +782,24 @@ function getNodeStyle(type: string) {
                 ...base,
                 background: '#FFFDE7',
                 borderColor: '#FBC02D',
-                transform: 'rotate(0deg)', // Simplified from diamond for better text alignment
-                borderWidth: '2px'
+                // Removed transform as it can interfere with React Flow's drag matrix calculation
+                borderWidth: '2px',
+                pointerEvents: 'all' as const // Ensure drag events pass through
             };
         case 'OPERATION':
             return {
                 ...base,
                 background: '#E3F2FD',
                 borderColor: '#2196F3'
+            };
+        case 'ENVIRONMENT':
+            return {
+                ...base,
+                background: 'rgba(241, 245, 249, 0.4)',
+                borderColor: '#94a3b8',
+                borderStyle: 'dashed',
+                borderWidth: '2px',
+                borderRadius: '12px'
             };
         default:
             return {

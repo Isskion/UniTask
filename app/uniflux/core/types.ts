@@ -3,7 +3,7 @@
  * Essential ontology for visual and semantic logistics flows.
  */
 
-export type NodeType = "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR";
+export type NodeType = "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR" | "ENVIRONMENT";
 
 export interface FlowNode {
     id: string;
@@ -12,6 +12,10 @@ export interface FlowNode {
     actorId?: string; // Link to UniTask roles
     meta?: Record<string, any>;
     position: { x: number; y: number }; // React Flow position
+    parentId?: string; // For grouping/nesting
+    width?: number; // For resizable environments
+    height?: number; // For resizable environments
+    isLocked?: boolean; // For preventing drag/delete
 }
 
 export interface FlowEdge {

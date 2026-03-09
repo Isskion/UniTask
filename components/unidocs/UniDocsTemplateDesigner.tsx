@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { TemplateBlock, BlockType, BlockConfig, PageMargins, BLOCK_CATALOG, DEFAULT_PAGE_MARGINS } from '@/types/unidocs';
-import { X, Save, Trash2, GripVertical, Plus } from 'lucide-react';
+import { X, Save, Trash2, GripVertical, Plus, Layout, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // A4 dimensions in mm
@@ -12,12 +12,18 @@ const A4_HEIGHT_MM = 297;
 // Scale factor: how many pixels per mm on screen
 const SCALE = 2.5;
 
+type TemplateType = 'body' | 'cover';
+
+// Blocks not allowed on cover templates (cover has no repeating header/footer, just free layout)
+const COVER_EXCLUDED_BLOCKS: BlockType[] = ['cuerpo', 'pie'];
+
 interface UniDocsTemplateDesignerProps {
     initialBlocks?: TemplateBlock[];
     initialMargins?: PageMargins;
+    initialTemplateType?: TemplateType;
     templateName?: string;
     templateDescription?: string;
-    onSave: (data: { name: string; description: string; blocks: TemplateBlock[]; pageMargins: PageMargins }) => void;
+    onSave: (data: { name: string; description: string; blocks: TemplateBlock[]; pageMargins: PageMargins; templateType: TemplateType }) => void;
     onClose: () => void;
 }
 
@@ -28,6 +34,7 @@ function generateId() {
 export default function UniDocsTemplateDesigner({
     initialBlocks = [],
     initialMargins,
+    initialTemplateType = 'body',
     templateName = '',
     templateDescription = '',
     onSave,
@@ -38,12 +45,33 @@ export default function UniDocsTemplateDesigner({
     const [name, setName] = useState(templateName);
     const [description, setDescription] = useState(templateDescription);
     const [margins, setMargins] = useState<PageMargins>(initialMargins || DEFAULT_PAGE_MARGINS);
+    const [templateType, setTemplateType] = useState<TemplateType>(initialTemplateType);
 
     // Drag state
     const [dragging, setDragging] = useState<{ blockId: string; offsetX: number; offsetY: number } | null>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
 
     const selectedBlock = blocks.find(b => b.id === selectedBlockId) || null;
+
+    // Filter block catalog based on template type
+    const availableBlocks = BLOCK_CATALOG.filter(cat =>
+        templateType === 'cover' ? !COVER_EXCLUDED_BLOCKS.includes(cat.type) : true
+    );
+
+    const handleTemplateTypeChange = (type: TemplateType) => {
+        setTemplateType(type);
+        // Remove incompatible blocks if switching to cover
+        if (type === 'cover') {
+            setBlocks(prev => {
+                const filtered = prev.filter(b => !COVER_EXCLUDED_BLOCKS.includes(b.type));
+                if (filtered.length !== prev.length && selectedBlockId) {
+                    const removedIds = prev.filter(b => COVER_EXCLUDED_BLOCKS.includes(b.type)).map(b => b.id);
+                    if (removedIds.includes(selectedBlockId)) setSelectedBlockId(null);
+                }
+                return filtered;
+            });
+        }
+    };
 
     const addBlock = (type: BlockType) => {
         const catalog = BLOCK_CATALOG.find(c => c.type === type);
@@ -112,7 +140,7 @@ export default function UniDocsTemplateDesigner({
 
     const handleSave = () => {
         if (!name.trim()) return;
-        onSave({ name, description, blocks, pageMargins: margins });
+        onSave({ name, description, blocks, pageMargins: margins, templateType });
     };
 
     // --- Render block content preview ---
@@ -162,7 +190,7 @@ export default function UniDocsTemplateDesigner({
                     <p className="text-xs text-muted-foreground">Clic para añadir al diseño</p>
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                    {BLOCK_CATALOG.map(cat => (
+                    {availableBlocks.map(cat => (
                         <button
                             key={cat.type}
                             onClick={() => addBlock(cat.type)}
@@ -176,10 +204,50 @@ export default function UniDocsTemplateDesigner({
                             <Plus className="w-3.5 h-3.5 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ))}
+
+                    {/* Cover hint: variables */}
+                    {templateType === 'cover' && (
+                        <div className="mt-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+                            <p className="text-[10px] font-bold text-indigo-400 mb-1">Variables disponibles</p>
+                            <p className="text-[9px] text-muted-foreground leading-relaxed">
+                                En bloques Título y Texto Libre puedes usar:<br />
+                                <code className="text-indigo-400">@titulo</code> · <code className="text-indigo-400">@fecha</code> · <code className="text-indigo-400">@proyecto</code> · <code className="text-indigo-400">@cliente</code> · <code className="text-indigo-400">@codigo</code> · <code className="text-indigo-400">@email</code> · <code className="text-indigo-400">@telefono</code>
+                            </p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Template info */}
+                {/* Template type selector + info */}
                 <div className="p-4 border-t border-border space-y-3">
+                    {/* Type toggle */}
+                    <div>
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de plantilla</label>
+                        <div className="mt-1 flex gap-1 bg-secondary/50 p-0.5 rounded-lg">
+                            <button
+                                onClick={() => handleTemplateTypeChange('body')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-bold transition-all",
+                                    templateType === 'body'
+                                        ? "bg-card text-foreground shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <Layout className="w-3 h-3" /> Cuerpo
+                            </button>
+                            <button
+                                onClick={() => handleTemplateTypeChange('cover')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-bold transition-all",
+                                    templateType === 'cover'
+                                        ? "bg-card text-foreground shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <BookOpen className="w-3 h-3" /> Portada
+                            </button>
+                        </div>
+                    </div>
+
                     <div>
                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nombre</label>
                         <input
@@ -203,51 +271,60 @@ export default function UniDocsTemplateDesigner({
 
             {/* Center: A4 Canvas */}
             <div className="flex-1 overflow-auto flex items-start justify-center p-8 bg-neutral-900/50">
-                <div
-                    ref={canvasRef}
-                    className="relative bg-white shadow-2xl"
-                    style={{
-                        width: A4_WIDTH_MM * SCALE,
-                        height: A4_HEIGHT_MM * SCALE,
-                        cursor: dragging ? 'grabbing' : 'default',
-                    }}
-                    onMouseMove={handleCanvasMouseMove}
-                    onMouseUp={handleCanvasMouseUp}
-                    onMouseLeave={handleCanvasMouseUp}
-                    onClick={() => setSelectedBlockId(null)}
-                >
-                    {/* Margin guides */}
+                <div>
+                    {/* Canvas label */}
+                    <div className="flex items-center gap-2 mb-3">
+                        {templateType === 'cover'
+                            ? <><BookOpen className="w-4 h-4 text-indigo-400" /><span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Portada — página única A4</span></>
+                            : <><Layout className="w-4 h-4 text-muted-foreground" /><span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Cuerpo — cabecera y pie que se repiten</span></>
+                        }
+                    </div>
                     <div
-                        className="absolute border border-dashed border-blue-200 pointer-events-none"
+                        ref={canvasRef}
+                        className="relative bg-white shadow-2xl"
                         style={{
-                            left: margins.left * SCALE,
-                            top: margins.top * SCALE,
-                            width: (A4_WIDTH_MM - margins.left - margins.right) * SCALE,
-                            height: (A4_HEIGHT_MM - margins.top - margins.bottom) * SCALE,
+                            width: A4_WIDTH_MM * SCALE,
+                            height: A4_HEIGHT_MM * SCALE,
+                            cursor: dragging ? 'grabbing' : 'default',
                         }}
-                    />
-
-                    {/* Blocks */}
-                    {blocks.map(block => (
+                        onMouseMove={handleCanvasMouseMove}
+                        onMouseUp={handleCanvasMouseUp}
+                        onMouseLeave={handleCanvasMouseUp}
+                        onClick={() => setSelectedBlockId(null)}
+                    >
+                        {/* Margin guides */}
                         <div
-                            key={block.id}
-                            className={cn(
-                                "absolute cursor-grab select-none transition-shadow",
-                                selectedBlockId === block.id ? "ring-2 ring-primary shadow-lg z-20" : "hover:ring-1 hover:ring-primary/50 z-10"
-                            )}
+                            className="absolute border border-dashed border-blue-200 pointer-events-none"
                             style={{
-                                left: block.x * SCALE,
-                                top: block.y * SCALE,
-                                width: block.width * SCALE,
-                                height: block.height * SCALE,
-                                borderLeft: `3px solid ${getBlockBorderColor(block.type)}`,
+                                left: margins.left * SCALE,
+                                top: margins.top * SCALE,
+                                width: (A4_WIDTH_MM - margins.left - margins.right) * SCALE,
+                                height: (A4_HEIGHT_MM - margins.top - margins.bottom) * SCALE,
                             }}
-                            onMouseDown={e => handleCanvasMouseDown(e, block.id)}
-                            onClick={e => { e.stopPropagation(); setSelectedBlockId(block.id); }}
-                        >
-                            {renderBlockPreview(block)}
-                        </div>
-                    ))}
+                        />
+
+                        {/* Blocks */}
+                        {blocks.map(block => (
+                            <div
+                                key={block.id}
+                                className={cn(
+                                    "absolute cursor-grab select-none transition-shadow",
+                                    selectedBlockId === block.id ? "ring-2 ring-primary shadow-lg z-20" : "hover:ring-1 hover:ring-primary/50 z-10"
+                                )}
+                                style={{
+                                    left: block.x * SCALE,
+                                    top: block.y * SCALE,
+                                    width: block.width * SCALE,
+                                    height: block.height * SCALE,
+                                    borderLeft: `3px solid ${getBlockBorderColor(block.type)}`,
+                                }}
+                                onMouseDown={e => handleCanvasMouseDown(e, block.id)}
+                                onClick={e => { e.stopPropagation(); setSelectedBlockId(block.id); }}
+                            >
+                                {renderBlockPreview(block)}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -348,12 +425,15 @@ export default function UniDocsTemplateDesigner({
                             </>
                         )}
 
-                        {/* Static text (for texto_libre and pie) */}
-                        {['texto_libre', 'pie'].includes(selectedBlock.type) && (
+                        {/* Static text (for texto_libre, pie, and titulo in cover mode) */}
+                        {(['texto_libre', 'pie'].includes(selectedBlock.type) || (selectedBlock.type === 'titulo' && templateType === 'cover')) && (
                             <>
                                 <hr className="border-border" />
                                 <div>
                                     <label className="text-[10px] font-bold text-muted-foreground">Texto</label>
+                                    {templateType === 'cover' && (
+                                        <p className="text-[9px] text-muted-foreground mt-0.5 mb-1">Puedes usar <code className="text-indigo-400">@titulo</code>, <code className="text-indigo-400">@proyecto</code>, etc.</p>
+                                    )}
                                     <textarea
                                         value={selectedBlock.config.staticText || ''}
                                         onChange={e => updateBlockConfig(selectedBlock.id, { staticText: e.target.value })}

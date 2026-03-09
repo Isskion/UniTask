@@ -574,7 +574,7 @@ export default function DailyFollowUp() {
         try {
             const activeProjects = entry.projects.filter(p => p.status !== 'trash');
 
-            // Group projects by tenant
+            // Group projects by tenant and deduplicate within each tenant
             const projectsByTenant = new Map<string, any[]>();
 
             for (const project of activeProjects) {
@@ -595,7 +595,16 @@ export default function DailyFollowUp() {
                 if (!projectsByTenant.has(projectTenant)) {
                     projectsByTenant.set(projectTenant, []);
                 }
-                projectsByTenant.get(projectTenant)!.push(project);
+
+                // [DEDUPLICATION] Ensure project isn't already added for this tenant
+                const tenantProjects = projectsByTenant.get(projectTenant)!;
+                const isDuplicate = tenantProjects.some(tp => (tp.projectId && tp.projectId === project.projectId) || tp.name === project.name);
+
+                if (!isDuplicate) {
+                    tenantProjects.push(project);
+                } else {
+                    console.warn(`[Save] Skipping duplicate project in tenant ${projectTenant}: ${project.name}`);
+                }
             }
 
             // If no projects, save to user's tenant (active context)
@@ -1701,10 +1710,21 @@ export default function DailyFollowUp() {
                                                 (!allowedProjectNames || allowedProjectNames.has(p.name))
                                             );
 
-                                            const recordedProjects = (dayEntry?.projects || []).filter(p =>
+                                            const recordedProjectsRaw = (dayEntry?.projects || []).filter(p =>
                                                 p.status !== 'trash' &&
                                                 (!allowedProjectNames || allowedProjectNames.has(p.name))
                                             );
+
+                                            // [FIX] Deduplicate projects for the visual indicators (dots)
+                                            const recordedProjects: any[] = [];
+                                            const seenProjects = new Set();
+                                            for (const p of recordedProjectsRaw) {
+                                                const key = p.projectId || p.name;
+                                                if (!seenProjects.has(key)) {
+                                                    seenProjects.add(key);
+                                                    recordedProjects.push(p);
+                                                }
+                                            }
 
                                             return (
                                                 <button

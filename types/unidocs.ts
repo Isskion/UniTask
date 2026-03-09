@@ -1,5 +1,6 @@
-// UniDocs V2.3.0 — Block-based template types
+// UniDocs V2.4.0 — Block-based template types
 // Changelog:
+//   V2.4 (2026-03-09): Wizard de Minutas — portadas, selección múltiple de notas, revisión Gemini, editor y exportación
 //   V2.3 (2026-03-08): Motor de impresión migrado a tabla thead/tbody/tfoot — pie no solapa cuerpo en ninguna página
 //   V2.2: Preview-first con iframe blob URL + botones Imprimir/PDF y Word (.doc)
 //   V2.1: Firestore rules fix — App Admins pueden subir logos de tenant
@@ -53,8 +54,47 @@ export interface UniDocsTemplate {
     description?: string;
     blocks: TemplateBlock[];
     pageMargins: PageMargins;
+    templateType?: 'body' | 'cover'; // V2.4: 'body' = plantilla con cabecera/pie (default), 'cover' = portada página única
     createdAt: any;
     updatedAt: any;
+}
+
+// V2.4 — Estado interno del wizard de minutas (no se persiste en Firestore)
+export interface UniDocsMinuta {
+    title: string;                  // título de la minuta
+    meetingDate: string;            // fecha de la reunión (ISO o texto legible)
+    notes: UniLeakNote[];           // notas seleccionadas
+    orderedNoteIds: string[];       // orden drag & drop
+    coverTemplateId: string | null; // null = sin portada
+    bodyTemplateId: string;
+    pageBreakBetweenNotes: boolean;
+    rawHtml: string;                // notas combinadas sin IA
+    aiHtml: string | null;          // output de Gemini (null si se saltó)
+    editedHtml: string;             // contenido final del editor TipTap
+}
+
+// V2.4 — Contexto de variables para sustitución en portadas
+export interface MinutaContext {
+    minutaTitle: string;        // @titulo
+    meetingDate: string;        // @fecha
+    projectName: string;        // @proyecto
+    clientName: string;         // @cliente
+    projectCode: string;        // @codigo
+    projectEmail?: string;      // @email
+    projectPhone?: string;      // @telefono
+}
+
+// V2.4 — Tipo auxiliar para notas (referencia local, no importa de types.ts)
+export interface UniLeakNote {
+    id: string;
+    title: string;
+    content: string;            // HTML de TipTap
+    projectId: string;
+    folderId?: string | null;
+    tenantId: string;
+    userId: string;
+    createdAt?: any;
+    updatedAt?: any;
 }
 
 // Default page margins (A4 standard)

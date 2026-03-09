@@ -1,6 +1,20 @@
-export const APP_VERSION = "14.0.1";
+export const APP_VERSION = "14.1.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.1.0",
+        date: "2026-03-09",
+        features: [
+            "UniDocs V2.4: Wizard de Minutas — generación de minutas de cliente desde múltiples notas UniLeaks",
+            "UniDocs V2.4: Plantillas de Portada — nuevo tipo 'cover' con posicionamiento libre y variables dinámicas (@titulo, @proyecto, @cliente, @fecha...)",
+            "UniDocs V2.4: Pestañas 'Plantillas de Cuerpo' / 'Plantillas de Portada' en el gestor de UniDocs",
+            "UniDocs V2.4: Revisión opcional con Gemini AI — redacción profesional de minutas en un clic",
+            "UniDocs V2.4: Editor TipTap ligero para revisar y editar el contenido antes de exportar",
+            "UniDocs V2.4: Exportación a PDF/Word desde el wizard con portada + cuerpo combinados",
+            "UniDocs V2.4: Motor de impresión compartido (lib/unidocs-print.ts) con soporte de portada y sustitución de variables",
+            "UniLeaks: Botón 'Nueva Minuta' en el editor de notas para acceder al wizard desde cualquier nota"
+        ]
+    },
     {
         version: "14.0.1",
         date: "2026-03-08",

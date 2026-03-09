@@ -24,7 +24,11 @@ export default function UnifluxToolbar({ currentGraph, onGraphUpdate }: UnifluxT
         setStatus(null);
 
         try {
-            const result = await generateFlowWithAI(prompt, currentGraph);
+            const systemRefinement = currentGraph.nodes.length > 0
+                ? "IMPORTANTE: Tienes un flujo ya en marcha. Respeta los nodos y IDs actuales. No borres lo que ya existe si no te lo piden específicamente. Puedes añadir nuevos nodos (usa IDs secuenciales), cambiar conexiones o renombrar, pero mantén la coherencia con el grafo actual. "
+                : "";
+
+            const result = await generateFlowWithAI(systemRefinement + prompt, currentGraph);
 
             if (result.success && result.graph) {
                 onGraphUpdate(result.graph);

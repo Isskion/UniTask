@@ -30,6 +30,7 @@ import { FontSize, FontFamily } from "@/lib/tiptap-extensions/Typography";
 import { FoldableHeading } from "@/lib/tiptap-extensions/FoldableHeading";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
 import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePickerModal";
+import UniDocsMinutaWizard from "@/components/unidocs/UniDocsMinutaWizard";
 import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
 import BulletList from '@tiptap/extension-bullet-list';
 
@@ -71,6 +72,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
     const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+    const [showMinutaWizard, setShowMinutaWizard] = useState(false);
     const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
 
     // Format Painter State
@@ -669,6 +671,22 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     </div>
 
                     <div className="flex items-center gap-1 border-l border-border pl-4">
+                        {/* Nueva Minuta — wizard multi-nota */}
+                        {note.projectId && (note.tenantId || currentTenantId) && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setShowDownloadMenu(false);
+                                    setShowMinutaWizard(true);
+                                }}
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                                title="Nueva Minuta de Cliente"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                Minuta
+                            </button>
+                        )}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -952,6 +970,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     projectId={note.projectId}
                     tenantId={note.tenantId || currentTenantId || undefined}
                     onClose={() => setShowTemplatePicker(false)}
+                />
+            )}
+
+            {/* UniDocs Minuta Wizard */}
+            {showMinutaWizard && note.projectId && (note.tenantId || currentTenantId) && (
+                <UniDocsMinutaWizard
+                    projectId={note.projectId}
+                    folderId={note.folderId ?? null}
+                    tenantId={(note.tenantId || currentTenantId)!}
+                    onClose={() => setShowMinutaWizard(false)}
                 />
             )}
         </div>

@@ -56,6 +56,10 @@ export interface Tenant {
     logos?: TenantLogo[]; // Multiple logos with labels
     isActive: boolean;
     aiEnabled?: boolean; // New: Superadmin auth for AI billing
+    minutasConfig?: {         // V2.4: UniDocs Minuta limits
+        monthlyLimitPerUser: number; // default: 20
+        enabled: boolean;            // default: true
+    };
     createdAt?: any;
     updatedAt?: any;
 }

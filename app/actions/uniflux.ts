@@ -1,4 +1,4 @@
-'use server'
+// Removed 'use server' because this uses Firebase client SDK and should run on the client.
 
 import { db } from "@/lib/firebase"; // Assuming this exists or using admin
 import { collection, doc, setDoc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "firebase/firestore";
