@@ -251,10 +251,12 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
         }
     };
 
-    const filteredInterfaces = interfaces.filter(i =>
-        i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        i.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredInterfaces = interfaces
+        .filter(i =>
+            i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => b.name.localeCompare(a.name));
 
     const renderModals = () => {
         if (!isClient) return null;

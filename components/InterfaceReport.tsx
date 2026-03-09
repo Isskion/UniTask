@@ -34,7 +34,9 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
         );
     };
 
-    const selectedInterfaces = interfaces.filter(i => selectedIds.includes(i.id));
+    const selectedInterfaces = interfaces
+        .filter(i => selectedIds.includes(i.id))
+        .sort((a, b) => b.name.localeCompare(a.name));
 
     const handlePrint = () => {
         window.print();
@@ -279,7 +281,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                             <div className="grid grid-cols-1 gap-2">
-                                {interfaces.map(iface => (
+                                {[...interfaces].sort((a, b) => b.name.localeCompare(a.name)).map(iface => (
                                     <button
                                         key={iface.id}
                                         onClick={() => toggleInterface(iface.id)}
