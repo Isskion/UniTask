@@ -256,7 +256,7 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
             i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.description?.toLowerCase().includes(searchQuery.toLowerCase())
         )
-        .sort((a, b) => b.name.localeCompare(a.name));
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
     const renderModals = () => {
         if (!isClient) return null;
