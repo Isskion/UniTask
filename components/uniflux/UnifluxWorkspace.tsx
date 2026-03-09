@@ -9,9 +9,9 @@ import { saveFlowDraft, listProjectFlows, getFlow } from '@/app/actions/uniflux'
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Settings2, Pencil } from 'lucide-react';
-import UnifluxNodePalette from './UnifluxNodePalette.tsx';
-import UnifluxNodeEditor from './UnifluxNodeEditor.tsx';
-import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode.tsx';
+import UnifluxNodePalette from './UnifluxNodePalette';
+import UnifluxNodeEditor from './UnifluxNodeEditor';
+import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
 
 const nodeTypes = {
     ENVIRONMENT: UnifluxEnvironmentNode,
