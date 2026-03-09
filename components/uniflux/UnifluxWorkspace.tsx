@@ -295,7 +295,7 @@ export default function UnifluxWorkspace() {
                 return {
                     ...node,
                     draggable: !locked,
-                    selectable: true,
+                    selectable: !locked,
                     data: { ...node.data, isLocked: locked },
                     style: { ...node.style, opacity: locked ? 0.8 : 1 }
                 };
@@ -307,6 +307,12 @@ export default function UnifluxWorkspace() {
             ...prev,
             nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, isLocked: locked } : n)
         }));
+        // Keep NodeEditor open with updated lock state (setGraph triggers useEffect which
+        // resets nodes, potentially causing RF to clear selection and close the panel)
+        setSelectedNode(prev => prev?.id === nodeId
+            ? { ...prev, data: { ...prev.data, isLocked: locked } }
+            : prev
+        );
         setTimeout(takeSnapshot, 0);
     }, [setNodes, takeSnapshot]);
 
