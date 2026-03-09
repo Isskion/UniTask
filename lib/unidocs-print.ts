@@ -137,7 +137,14 @@ export function buildPrintHtml(
 
     const cuerpoBlock = blocks.find(b => b.type === 'cuerpo');
     const footerBlocks = blocks.filter(b => b.type === 'pie');
-    const headerBlocks = blocks.filter(b => b.type !== 'cuerpo' && b.type !== 'pie');
+    // When a cover template is present, logos must NOT repeat on interior pages —
+    // they live exclusively on the cover. Filter them from the repeating thead.
+    const LOGO_BLOCK_TYPES = ['logo_empresa', 'logo_cliente'];
+    const headerBlocks = blocks.filter(b =>
+        b.type !== 'cuerpo' &&
+        b.type !== 'pie' &&
+        !(coverTemplate && LOGO_BLOCK_TYPES.includes(b.type))
+    );
 
     // thead height = paper y where body starts (= cuerpo block's y coordinate)
     const theadHeight = cuerpoBlock ? (cuerpoBlock.y ?? margins.top) : margins.top;
@@ -315,8 +322,14 @@ ${coverItems}
     }
 
     // --- Body header (repeating in Word via normal flow) ---
+    // When a cover template is present, logos must NOT repeat in the body header.
+    const LOGO_BLOCK_TYPES_WORD = ['logo_empresa', 'logo_cliente'];
     const headerContent = blocks
-        .filter(b => b.type !== 'cuerpo' && b.type !== 'pie')
+        .filter(b =>
+            b.type !== 'cuerpo' &&
+            b.type !== 'pie' &&
+            !(coverTemplate && LOGO_BLOCK_TYPES_WORD.includes(b.type))
+        )
         .sort((a, b) => (a.y ?? 0) - (b.y ?? 0))
         .map(block => {
             const cfg = block.config;
