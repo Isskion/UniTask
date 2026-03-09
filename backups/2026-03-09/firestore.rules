@@ -167,7 +167,9 @@ service cloud.firestore {
     // Tenants Collection: Only SuperAdmins view the list
     match /tenants/{tenantId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && string(tenantId) == getRealTenantId());
-      allow write: if isSuperAdmin();
+      // App Admins (>= 80) pueden actualizar SU PROPIO tenant (logos, branding, etc.)
+      // SuperAdmins pueden actualizar cualquier tenant
+      allow write: if isSuperAdmin() || (isAuthenticated() && string(tenantId) == getRealTenantId() && getRealRole() >= 80);
     }
 
     // AI Performance Logs: SuperAdmins see all, users see their own
@@ -537,6 +539,24 @@ service cloud.firestore {
         isSuperAdmin() || 
         (string(resource.data.tenantId) == string(request.auth.token.tenantId) && getRealRole() >= 60)
       );
+    }
+
+    // --- [NEW] UNIFLUX FLOWS ---
+    match /uniflux_flows/{flowId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Allow updates by anyone in the tenant with level >= 60, or by the actual author (if we stored author). We use broad tenant write for now.
+        docTenantMatches(resource.data)
+      );
+      
+      // Subcollection for published flow versions
+      match /snapshots/{snapshotId} {
+        allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(get(/databases/$(database)/documents/uniflux_flows/$(flowId)).data));
+        allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(get(/databases/$(database)/documents/uniflux_flows/$(flowId)).data));
+        allow update, delete: if isSuperAdmin();
+      }
     }
 
     // --- KNOWLEDGE AREA (Lessons Learned & Solution Records) ---
