@@ -1,18 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check } from 'lucide-react';
+import { X, Check, Lock, Unlock } from 'lucide-react';
 
 interface UnifluxNodeEditorProps {
     nodeId: string;
     initialLabel: string;
     initialType: NodeType;
+    isLocked?: boolean;
     onSave: (nodeId: string, label: string, type: NodeType) => void;
     onClose: () => void;
     onDelete: (nodeId: string) => void;
+    onToggleLock?: (nodeId: string, locked: boolean) => void;
 }
 
-export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, onSave, onClose, onDelete }: UnifluxNodeEditorProps) {
+export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, isLocked, onSave, onClose, onDelete, onToggleLock }: UnifluxNodeEditorProps) {
     const [label, setLabel] = useState(initialLabel);
     const [type, setType] = useState<NodeType>(initialType);
 
@@ -74,6 +76,20 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, o
                         ))}
                     </select>
                 </div>
+
+                {/* Lock toggle — only shown when onToggleLock is provided (e.g. ENVIRONMENT nodes) */}
+                {onToggleLock && (
+                    <button
+                        onClick={() => onToggleLock(nodeId, !isLocked)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${isLocked
+                            ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                    >
+                        {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                        {isLocked ? 'Entorno bloqueado — click para desbloquear' : 'Bloquear entorno'}
+                    </button>
+                )}
             </div>
 
             <div className="p-3 border-t bg-gray-50 flex items-center justify-between">

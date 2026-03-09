@@ -2,18 +2,9 @@
 
 import React, { memo } from 'react';
 import { NodeResizer } from '@xyflow/react';
-import { Lock, Unlock } from 'lucide-react';
 
-const UnifluxEnvironmentNode = ({ data, selected, id }: any) => {
+const UnifluxEnvironmentNode = ({ data, selected }: any) => {
     const isLocked = data.isLocked || false;
-
-    const toggleLock = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        // This will be handled via data update in the workspace
-        if (data.onToggleLock) {
-            data.onToggleLock(id, !isLocked);
-        }
-    };
 
     return (
         <>
@@ -21,21 +12,20 @@ const UnifluxEnvironmentNode = ({ data, selected, id }: any) => {
                 <NodeResizer
                     color="#94a3b8"
                     isVisible={selected}
-                    minWidth={100}
-                    minHeight={100}
+                    minWidth={150}
+                    minHeight={120}
                 />
             )}
-            <div className="p-3 flex items-center justify-between pointer-events-none">
-                <div className="font-bold text-slate-500 uppercase tracking-tighter text-xs">
+            {/* Label fixed at top — pointer-events-none so clicks pass through to contained nodes */}
+            <div className="absolute top-2 left-3 right-3 pointer-events-none select-none flex items-center gap-1.5">
+                <span className="font-bold text-slate-500 uppercase tracking-tighter text-[10px] bg-white/70 backdrop-blur-sm px-1.5 py-0.5 rounded border border-slate-200/60">
                     {data.label}
-                </div>
-                <button
-                    onClick={toggleLock}
-                    className="pointer-events-auto p-1 hover:bg-slate-200 rounded transition-colors text-slate-400 hover:text-slate-600"
-                    title={isLocked ? "Desbloquear Entorno" : "Bloquear Entorno"}
-                >
-                    {isLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                </button>
+                </span>
+                {isLocked && (
+                    <span className="text-[9px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
+                        Bloqueado
+                    </span>
+                )}
             </div>
         </>
     );

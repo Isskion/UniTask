@@ -138,16 +138,17 @@ export default function UnifluxWorkspace() {
             type: n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
             position: n.position,
             data: {
-                label: `${n.id}. ${n.label}`,
+                label: n.type === 'ENVIRONMENT' ? n.label : `${n.id}. ${n.label}`,
                 type: n.type,
                 isLocked: n.isLocked,
-                onToggleLock: (id: string, locked: boolean) => handleToggleLock(id, locked)
             },
+            // ENVIRONMENT nodes go to the back so contained nodes are always clickable
+            zIndex: n.type === 'ENVIRONMENT' ? -1 : 1,
             style: { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 },
             parentId: n.parentId,
             extent: n.parentId ? 'parent' : undefined,
             draggable: !n.isLocked,
-            selectable: true,
+            selectable: !n.isLocked,
             sourcePosition: Position.Right,
             targetPosition: Position.Left,
         }));
@@ -525,7 +526,9 @@ export default function UnifluxWorkspace() {
                 const updatedGraphNodes: FlowNode[] = nodes.map(n => ({
                     id: n.id,
                     type: n.data.type as NodeType || 'OPERATION',
-                    label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''), // Strip prefix
+                    label: n.data.type === 'ENVIRONMENT'
+                        ? (n.data.label as string)
+                        : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
                     position: n.position,
                     parentId: n.parentId,
                     isLocked: n.data.isLocked as boolean | undefined,
@@ -575,7 +578,9 @@ export default function UnifluxWorkspace() {
         nodes: nodes.map(n => ({
             id: n.id,
             type: (n.data.type as NodeType) || 'OPERATION',
-            label: (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
+            label: n.data.type === 'ENVIRONMENT'
+                ? (n.data.label as string)
+                : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
             position: n.position,
             parentId: n.parentId,
             isLocked: n.data.isLocked as boolean | undefined,
@@ -838,11 +843,17 @@ export default function UnifluxWorkspace() {
                 {selectedNode && graph.docType !== 'mermaid' && (
                     <UnifluxNodeEditor
                         nodeId={selectedNode.id}
-                        initialLabel={(selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')}
+                        initialLabel={
+                            selectedNode.data.type === 'ENVIRONMENT'
+                                ? (selectedNode.data.label as string)
+                                : (selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')
+                        }
                         initialType={selectedNode.data.type as NodeType || 'OPERATION'}
+                        isLocked={selectedNode.data.isLocked as boolean | undefined}
                         onSave={handleNodeSave}
                         onClose={() => setSelectedNode(null)}
                         onDelete={handleNodeDelete}
+                        onToggleLock={selectedNode.data.type === 'ENVIRONMENT' ? handleToggleLock : undefined}
                     />
                 )}
 
