@@ -35,8 +35,10 @@ function detectNodeType(label: string): NodeType {
 }
 
 // ─────────────────────────────────────────────
-// SEQUENCE DIAGRAM PARSER
-// Layout: main path center (x=400), alt branch left (x=160), else branch right (x=680)
+// SEQUENCE DIAGRAM PARSER — Swimlane layout
+// Each participant gets its own X column.
+// Nodes appear at the receiver's column; time flows downward (shared Y axis).
+// alt/else branches offset ±120px around the decision column.
 // ─────────────────────────────────────────────
 function parseSequence(code: string): ConversionResult {
     const nodes: FlowNode[] = [];
@@ -47,42 +49,73 @@ function parseSequence(code: string): ConversionResult {
     const nid = () => `sq${++nIdx}`;
     const eid = () => `se${++eIdx}`;
 
-    const X_CENTER = 400;
-    const X_LEFT   = 160;
-    const X_RIGHT  = 680;
-    const Y_STEP   = 130;
+    const COL_WIDTH   = 280;   // pixels between participant columns
+    const Y_STEP      = 130;   // vertical gap between nodes
+    const BRANCH_OFF  = 120;   // horizontal offset for alt/else branches
 
-    // Global Y cursor
-    let globalY = 80;
+    // ─── Pass 1: collect participants in order of appearance ───────────────
+    const participantList: string[] = [];
+    const partIdx = new Map<string, number>();
 
-    // "Tails" — nodes we need to connect to the NEXT node
-    let tails: string[] = [];
+    function registerPart(raw: string) {
+        const n = raw.trim();
+        if (!partIdx.has(n)) { partIdx.set(n, participantList.length); participantList.push(n); }
+    }
 
-    // Branch stack for alt/opt/loop blocks
+    const rawLines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%%'));
+
+    // Explicit participant/actor declarations first (preserve intended order)
+    for (const line of rawLines) {
+        const m = line.match(/^(?:participant|actor)\s+(.+)/);
+        if (m) registerPart(m[1]);
+    }
+    // Auto-detect from message arrows
+    for (const line of rawLines) {
+        const m = line.match(/^([^-:>\n]+?)\s*(?:-->>|->>|-->|->)\s*([^:\n]+?)\s*:/);
+        if (m) { registerPart(m[1]); registerPart(m[2]); }
+    }
+    if (participantList.length === 0) participantList.push('Sistema');
+
+    // ─── Column X helper (centered at x=400) ───────────────────────────────
+    const totalW = (participantList.length - 1) * COL_WIDTH;
+    const getColX = (name: string): number => {
+        const i = partIdx.get(name.trim()) ?? 0;
+        return 400 - totalW / 2 + i * COL_WIDTH;
+    };
+
+    // ─── Runtime state ──────────────────────────────────────────────────────
+    let globalY   = 100;           // global Y cursor
+    let tails: string[] = [];      // nodes that connect to the NEXT node
+    let activePart = participantList[0] ?? 'Sistema';  // currently active participant
+
     interface BranchBlock {
         type: 'alt' | 'opt' | 'loop';
         decisionId: string;
-        branchBaseY: number;   // Y where branches start (decision Y + Y_STEP)
-        // Per-branch tracking (0 = alt/first, 1 = else/second)
+        decisionX: number;
+        branchBaseY: number;
         perBranch: { y: number; tails: string[] }[];
         activeBranch: number;
-        loopTailBeforeBlock: string[]; // for loop: save tails before block
     }
     const stack: BranchBlock[] = [];
 
-    // Current x based on branch depth
-    function currentX(): number {
-        if (stack.length === 0) return X_CENTER;
-        const top = stack[stack.length - 1];
-        if (top.type === 'loop') return X_CENTER;
-        return top.activeBranch === 0 ? X_LEFT : X_RIGHT;
-    }
-
-    // Current Y based on branch depth
     function currentY(): number {
         if (stack.length === 0) return globalY;
         const top = stack[stack.length - 1];
         return top.perBranch[top.activeBranch].y;
+    }
+
+    // X of the next node to place:
+    // – Inside loop: always use activePart column
+    // – Inside alt branch 0: decision column – BRANCH_OFF
+    // – Inside alt branch 1: decision column + BRANCH_OFF
+    // – Outside: activePart column
+    function currentX(): number {
+        if (stack.length === 0) return getColX(activePart);
+        const top = stack[stack.length - 1];
+        if (top.type === 'loop') return getColX(activePart);
+        return top.activeBranch === 0
+            ? top.decisionX - BRANCH_OFF
+            : top.decisionX + BRANCH_OFF;
     }
 
     function advanceY(amount = Y_STEP) {
@@ -95,115 +128,104 @@ function parseSequence(code: string): ConversionResult {
     }
 
     function addNode(label: string, type: NodeType): string {
-        const id = nid();
-        const x = currentX();
-        const y = currentY();
-        nodes.push({ id, label, type, position: { x, y } });
+        const id  = nid();
+        const x   = currentX();
+        const y   = currentY();
+        nodes.push({ id, label: cleanLabel(label), type, position: { x, y } });
         advanceY();
-
-        // Connect from current tails
-        for (const t of tails) {
-            edges.push({ id: eid(), source: t, target: id });
-        }
+        for (const t of tails) edges.push({ id: eid(), source: t, target: id });
         tails = [id];
-
-        // Update branch tails if in a block
         if (stack.length > 0) {
             const top = stack[stack.length - 1];
             top.perBranch[top.activeBranch].tails = [id];
         }
-
         return id;
     }
 
-    // ── START node ──
+    // ─── Participant label nodes (appear above the flow, one per column) ───
+    for (const p of participantList) {
+        nodes.push({
+            id: `label_${partIdx.get(p)}`,
+            label: p,
+            type: 'STATE',
+            position: { x: getColX(p), y: 0 },
+        });
+    }
+
+    // ─── START node ──────────────────────────────────────────────────────────
     const startId = nid();
-    nodes.push({ id: startId, label: 'Inicio', type: 'START', position: { x: X_CENTER, y: globalY } });
+    nodes.push({ id: startId, label: 'Inicio', type: 'START', position: { x: 400, y: globalY } });
     tails = [startId];
     globalY += Y_STEP;
 
-    const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%%'));
-
-    for (const line of lines) {
+    // ─── Main line parser ────────────────────────────────────────────────────
+    for (const line of rawLines) {
         if (line === 'sequenceDiagram') continue;
-        if (/^(participant|actor|activate|deactivate)\s/.test(line)) continue;
+        if (/^(?:participant|actor|activate|deactivate)\s/.test(line)) continue;
 
-        // ── alt / opt ──
+        // ── alt / opt ──────────────────────────────────────────────────────
         const altMatch = line.match(/^(alt|opt)\s*(.*)/);
         if (altMatch) {
             const [, blockType, rawCond] = altMatch;
-            const condition = rawCond.trim() || (blockType === 'opt' ? 'Opcional' : 'Decisión');
+            const cond  = rawCond.trim() || (blockType === 'opt' ? 'Opcional' : 'Decisión');
             const decId = nid();
-            const decY = stack.length === 0 ? globalY : stack[stack.length - 1].perBranch[stack[stack.length - 1].activeBranch].y;
-            nodes.push({ id: decId, label: condition, type: 'DECISION', position: { x: X_CENTER, y: decY } });
+            const decX  = getColX(activePart);
+            const y     = currentY();
+            nodes.push({ id: decId, label: cond, type: 'DECISION', position: { x: decX, y } });
             for (const t of tails) edges.push({ id: eid(), source: t, target: decId });
             tails = [];
-
-            if (stack.length === 0) globalY += Y_STEP;
-            else {
-                const top = stack[stack.length - 1];
-                top.perBranch[top.activeBranch].y += Y_STEP;
-            }
-
-            const branchBaseY = stack.length === 0 ? globalY : stack[stack.length - 1].perBranch[stack[stack.length - 1].activeBranch].y;
-
+            advanceY();
+            const branchBaseY = currentY();
             stack.push({
                 type: blockType as 'alt' | 'opt',
                 decisionId: decId,
+                decisionX: decX,
                 branchBaseY,
                 perBranch: [
                     { y: branchBaseY, tails: [decId] },
                     { y: branchBaseY, tails: [decId] },
                 ],
                 activeBranch: 0,
-                loopTailBeforeBlock: [],
             });
             tails = [decId];
             continue;
         }
 
-        // ── loop ──
+        // ── loop ──────────────────────────────────────────────────────────
         const loopMatch = line.match(/^loop\s*(.*)/);
         if (loopMatch) {
-            const label = loopMatch[1].trim() || 'Repetición';
+            const label  = loopMatch[1].trim() || 'Repetición';
             const loopId = addNode(`↺ ${label}`, 'OPERATION');
-            const loopBaseY = stack.length === 0 ? globalY : stack[stack.length - 1].perBranch[stack[stack.length - 1].activeBranch].y;
+            const loopBaseY = currentY();
             stack.push({
                 type: 'loop',
                 decisionId: loopId,
+                decisionX: getColX(activePart),
                 branchBaseY: loopBaseY,
                 perBranch: [{ y: loopBaseY, tails: [loopId] }],
                 activeBranch: 0,
-                loopTailBeforeBlock: [loopId],
             });
             continue;
         }
 
-        // ── else ──
+        // ── else ──────────────────────────────────────────────────────────
         if (/^else(\s|$)/.test(line)) {
             if (stack.length > 0) {
                 const top = stack[stack.length - 1];
-                // Save current branch tails
                 top.perBranch[top.activeBranch].tails = [...tails];
-                // Switch to branch 1
                 top.activeBranch = 1;
                 tails = [top.decisionId];
             }
             continue;
         }
 
-        // ── end ──
+        // ── end ───────────────────────────────────────────────────────────
         if (line === 'end') {
             if (stack.length > 0) {
                 const block = stack.pop()!;
-                // Save current branch tails
                 block.perBranch[block.activeBranch].tails = [...tails];
-
-                // Collect all branch end tails as next tails
                 const allTails = block.perBranch.flatMap(b => b.tails).filter(Boolean);
                 tails = [...new Set(allTails)];
-
-                // Advance globalY (or parent branch Y) to max of all branches
                 const maxBranchY = Math.max(...block.perBranch.map(b => b.y));
                 if (stack.length === 0) {
                     globalY = maxBranchY;
@@ -215,25 +237,27 @@ function parseSequence(code: string): ConversionResult {
             continue;
         }
 
-        // ── Note ──
+        // ── Note ──────────────────────────────────────────────────────────
         const noteMatch = line.match(/^Note\s+[^:]+:\s*(.+)/i);
         if (noteMatch) {
             addNode(cleanLabel(noteMatch[1]), 'OPERATION');
             continue;
         }
 
-        // ── Message arrow ──
-        const msgMatch = line.match(/^[^-:>]+\s*(?:-->>|->>|-->|->)\s*[^:]+\s*:\s*(.+)/);
+        // ── Message arrow: From -->> To : label ───────────────────────────
+        const msgMatch = line.match(/^([^-:>\n]+?)\s*(?:-->>|->>|-->|->)\s*([^:\n]+?)\s*:\s*(.+)/);
         if (msgMatch) {
-            const label = cleanLabel(msgMatch[1]);
+            const to    = msgMatch[2].trim();
+            const label = cleanLabel(msgMatch[3]);
+            activePart  = to;   // move active column to the receiver
             addNode(label, detectNodeType(label));
         }
     }
 
-    // ── TERMINAL node ──
-    const termY = stack.length === 0 ? globalY : stack[stack.length - 1].perBranch[stack[stack.length - 1].activeBranch].y;
+    // ─── TERMINAL node ────────────────────────────────────────────────────────
+    const termY  = stack.length === 0 ? globalY : stack[stack.length - 1].perBranch[stack[stack.length - 1].activeBranch].y;
     const termId = nid();
-    nodes.push({ id: termId, label: 'Fin', type: 'TERMINAL', position: { x: X_CENTER, y: termY } });
+    nodes.push({ id: termId, label: 'Fin', type: 'TERMINAL', position: { x: 400, y: termY } });
     for (const t of tails) edges.push({ id: eid(), source: t, target: termId });
 
     return { nodes, edges };
@@ -278,8 +302,6 @@ function parseFlowchart(code: string): ConversionResult {
         return null;
     }
 
-    const EDGE_RX = /(-->>?|->|===|==|-.->)(\|([^|]+)\|)?/;
-
     for (const line of lines) {
         // Skip diagram declaration and subgraph wrappers
         if (/^(flowchart|graph)\s/.test(line)) continue;
@@ -290,10 +312,10 @@ function parseFlowchart(code: string): ConversionResult {
         if (edgeMatch) {
             const [, leftPart, , , edgeLabel, rightPart] = edgeMatch;
 
-            const left = parseNodeDef(leftPart.trim());
+            const left  = parseNodeDef(leftPart.trim());
             const right = parseNodeDef(rightPart.trim());
 
-            if (left) nodeMap.set(left.id, { label: left.label, type: left.type });
+            if (left)  nodeMap.set(left.id,  { label: left.label,  type: left.type });
             if (right) nodeMap.set(right.id, { label: right.label, type: right.type });
 
             if (left && right) {
@@ -310,12 +332,10 @@ function parseFlowchart(code: string): ConversionResult {
     }
 
     // ── BFS layout ──
-    // Find root nodes (no incoming edges)
     const hasIncoming = new Set(edgeList.map(e => e.to));
     const roots = [...nodeMap.keys()].filter(id => !hasIncoming.has(id));
     if (roots.length === 0 && nodeMap.size > 0) roots.push(nodeMap.keys().next().value!);
 
-    // Assign levels via BFS
     const levelMap = new Map<string, number>();
     const queue = roots.map(r => ({ id: r, level: 0 }));
     while (queue.length > 0) {
@@ -325,10 +345,8 @@ function parseFlowchart(code: string): ConversionResult {
         edgeList.filter(e => e.from === id).forEach(e => queue.push({ id: e.to, level: level + 1 }));
     }
 
-    // Nodes without BFS reach (disconnected)
     nodeMap.forEach((_, id) => { if (!levelMap.has(id)) levelMap.set(id, 0); });
 
-    // Group by level, position
     const byLevel = new Map<number, string[]>();
     levelMap.forEach((lvl, id) => {
         const arr = byLevel.get(lvl) ?? [];
@@ -338,24 +356,20 @@ function parseFlowchart(code: string): ConversionResult {
 
     const X_SPACING = 220;
     const Y_SPACING = 140;
-    const Y_START = 80;
+    const Y_START   = 80;
 
     byLevel.forEach((ids, level) => {
         const totalW = (ids.length - 1) * X_SPACING;
         ids.forEach((id, i) => {
             const info = nodeMap.get(id)!;
-            const x = 400 - totalW / 2 + i * X_SPACING;
-            const y = Y_START + level * Y_SPACING;
-
-            // Heuristic: first node at level 0 with no def shape → START
-            let type = info.type;
+            const x    = 400 - totalW / 2 + i * X_SPACING;
+            const y    = Y_START + level * Y_SPACING;
+            let type   = info.type;
             if (level === 0 && roots.includes(id) && type === 'OPERATION') type = 'START';
-
             nodes.push({ id, label: info.label, type, position: { x, y } });
         });
     });
 
-    // Build edges
     edgeList.forEach(e => {
         if (nodeMap.has(e.from) && nodeMap.has(e.to)) {
             edges.push({ id: eid(), source: e.from, target: e.to, ...(e.label ? { label: e.label } : {}) });

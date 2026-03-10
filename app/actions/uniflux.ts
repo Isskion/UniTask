@@ -1,7 +1,7 @@
 // Removed 'use server' because this uses Firebase client SDK and should run on the client.
 
 import { db } from "@/lib/firebase"; // Assuming this exists or using admin
-import { collection, doc, setDoc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, doc, setDoc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs, orderBy, FieldValue } from "firebase/firestore";
 import { FlowGraph, ValidationResult } from "@/app/uniflux/core/types";
 import { UnifluxValidator } from "@/app/uniflux/core/validator";
 
@@ -13,6 +13,27 @@ import { UnifluxValidator } from "@/app/uniflux/core/validator";
 const FLOWS_COLLECTION = "uniflux_flows";
 
 /**
+ * Recursively removes undefined values from an object so Firestore doesn't reject it.
+ */
+function cleanForFirestore<T>(obj: T): T {
+    if (Array.isArray(obj)) {
+        return obj.map(cleanForFirestore) as unknown as T;
+    }
+    // Pass through Firestore sentinels (serverTimestamp, deleteField, etc.) and Dates untouched
+    if (obj instanceof FieldValue || obj instanceof Date) {
+        return obj;
+    }
+    if (obj !== null && typeof obj === 'object') {
+        return Object.fromEntries(
+            Object.entries(obj)
+                .filter(([, v]) => v !== undefined)
+                .map(([k, v]) => [k, cleanForFirestore(v)])
+        ) as T;
+    }
+    return obj;
+}
+
+/**
  * Saves a flow draft. Does not require validation.
  */
 export async function saveFlowDraft(tenantId: string, flowData: Partial<FlowGraph>) {
@@ -20,16 +41,11 @@ export async function saveFlowDraft(tenantId: string, flowData: Partial<FlowGrap
 
     const flowRef = doc(db, FLOWS_COLLECTION, flowData.id);
 
-    // Ensure we only save the projectId if it's provided
-    const updateData: any = {
+    const updateData = cleanForFirestore({
         ...flowData,
         tenantId,
         updatedAt: serverTimestamp(),
-    };
-
-    if (flowData.projectId !== undefined) {
-        updateData.projectId = flowData.projectId;
-    }
+    });
 
     await setDoc(flowRef, updateData, { merge: true });
 

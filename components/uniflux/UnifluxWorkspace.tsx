@@ -546,7 +546,7 @@ export default function UnifluxWorkspace() {
                 // Mermaid flows: persist code directly, no RF serialization
                 finalGraph = {
                     ...graph,
-                    projectId: selectedProjectId,
+                    ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
                 };
             } else {
                 // Re-sync React Flow visually into the abstract FlowGraph
@@ -557,22 +557,22 @@ export default function UnifluxWorkspace() {
                         ? (n.data.label as string)
                         : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
                     position: n.position,
-                    parentId: n.parentId,
-                    isLocked: n.data.isLocked as boolean | undefined,
-                    width: n.style?.width as number | undefined,
-                    height: n.style?.height as number | undefined
+                    ...(n.parentId ? { parentId: n.parentId } : {}),
+                    ...(n.data.isLocked !== undefined ? { isLocked: n.data.isLocked as boolean } : {}),
+                    ...(n.style?.width !== undefined ? { width: n.style.width as number } : {}),
+                    ...(n.style?.height !== undefined ? { height: n.style.height as number } : {}),
                 }));
 
                 const updatedGraphEdges: FlowEdge[] = edges.map(e => ({
                     id: e.id,
                     source: e.source,
                     target: e.target,
-                    label: e.label as string | undefined
+                    ...(e.label ? { label: e.label as string } : {}),
                 }));
 
                 finalGraph = {
                     ...graph,
-                    projectId: selectedProjectId,
+                    ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
                     nodes: updatedGraphNodes,
                     edges: updatedGraphEdges
                 };
