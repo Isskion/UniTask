@@ -3,11 +3,47 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { MermaidEngine } from '@/app/uniflux/core/types';
 
-// ---------------------------------------------------------------------------
-// Mermaid CDN loader — light theme
-// ---------------------------------------------------------------------------
 const MERMAID_CDN = "https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js";
 
+// ---------------------------------------------------------------------------
+// Themes
+// ---------------------------------------------------------------------------
+type ThemeKey = 'uniflux' | 'default' | 'forest' | 'dark' | 'neutral' | 'base';
+
+interface ThemeDef {
+    key: ThemeKey;
+    label: string;
+    swatch: string;
+    mermaidTheme: string;
+    themeVariables?: Record<string, string>;
+    diagramBg: string;
+    isDark?: boolean;
+}
+
+const UNIFLUX_VARS: Record<string, string> = {
+    primaryColor: '#e9d5ff', primaryTextColor: '#1e1b4b', primaryBorderColor: '#7c3aed',
+    lineColor: '#6366f1', secondaryColor: '#dbeafe', tertiaryColor: '#f0fdf4',
+    noteBkgColor: '#fef9c3', noteTextColor: '#713f12', noteBorderColor: '#fbbf24',
+    actorBkg: '#e9d5ff', actorBorder: '#7c3aed', actorTextColor: '#3b0764',
+    signalColor: '#6366f1', signalTextColor: '#1e1b4b',
+    activationBkgColor: '#ddd6fe', activationBorderColor: '#7c3aed',
+    labelBoxBkgColor: '#dbeafe', labelBoxBorderColor: '#3b82f6',
+    labelTextColor: '#1e3a8a', loopTextColor: '#1d4ed8',
+    fontFamily: "'Inter', 'Segoe UI', sans-serif", fontSize: '14px',
+};
+
+const THEMES: ThemeDef[] = [
+    { key: 'uniflux', label: 'Uniflux', swatch: 'linear-gradient(135deg,#7c3aed,#6366f1)', mermaidTheme: 'base', themeVariables: UNIFLUX_VARS, diagramBg: '#ffffff' },
+    { key: 'default', label: 'Default', swatch: '#fbbf24', mermaidTheme: 'default', diagramBg: '#ffffff' },
+    { key: 'forest', label: 'Forest', swatch: '#16a34a', mermaidTheme: 'forest', diagramBg: '#ffffff' },
+    { key: 'dark', label: 'Dark', swatch: '#1e293b', mermaidTheme: 'dark', diagramBg: '#1e293b', isDark: true },
+    { key: 'neutral', label: 'Neutral', swatch: '#9ca3af', mermaidTheme: 'neutral', diagramBg: '#f9fafb' },
+    { key: 'base', label: 'Base', swatch: '#3b82f6', mermaidTheme: 'base', diagramBg: '#ffffff' },
+];
+
+// ---------------------------------------------------------------------------
+// CDN loader
+// ---------------------------------------------------------------------------
 function useMermaid(): boolean {
     const [ready, setReady] = useState(false);
     useEffect(() => {
@@ -17,31 +53,8 @@ function useMermaid(): boolean {
         s.onload = () => {
             (window as any).mermaid.initialize({
                 startOnLoad: false,
-                theme: 'default',
-                themeVariables: {
-                    primaryColor: '#e9d5ff',
-                    primaryTextColor: '#1e1b4b',
-                    primaryBorderColor: '#7c3aed',
-                    lineColor: '#6366f1',
-                    secondaryColor: '#dbeafe',
-                    tertiaryColor: '#f0fdf4',
-                    noteBkgColor: '#fef9c3',
-                    noteTextColor: '#713f12',
-                    noteBorderColor: '#fbbf24',
-                    actorBkg: '#e9d5ff',
-                    actorBorder: '#7c3aed',
-                    actorTextColor: '#3b0764',
-                    signalColor: '#6366f1',
-                    signalTextColor: '#1e1b4b',
-                    activationBkgColor: '#ddd6fe',
-                    activationBorderColor: '#7c3aed',
-                    labelBoxBkgColor: '#dbeafe',
-                    labelBoxBorderColor: '#3b82f6',
-                    labelTextColor: '#1e3a8a',
-                    loopTextColor: '#1d4ed8',
-                    fontFamily: "'Inter', 'Segoe UI', sans-serif",
-                    fontSize: '14px',
-                },
+                theme: 'base',
+                themeVariables: UNIFLUX_VARS,
                 sequence: { mirrorActors: false, messageMargin: 40, actorMargin: 80 },
                 flowchart: { curve: 'basis', padding: 20 },
             });
@@ -53,7 +66,7 @@ function useMermaid(): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Syntax highlighter — light palette
+// Syntax highlighter
 // ---------------------------------------------------------------------------
 function highlightMermaid(code: string): string {
     return code.split('\n').map(line => {
@@ -74,8 +87,10 @@ function highlightMermaid(code: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Line numbers — light
+// Line numbers
 // ---------------------------------------------------------------------------
+const MONO = "'JetBrains Mono', 'Fira Code', monospace";
+
 function LineNumbers({ count }: { count: number }) {
     return (
         <div style={{
@@ -84,7 +99,7 @@ function LineNumbers({ count }: { count: number }) {
             padding: '16px 0', textAlign: 'right', userSelect: 'none', zIndex: 2,
         }}>
             {Array.from({ length: count }, (_, i) => (
-                <div key={i} style={{ height: 22, lineHeight: '22px', paddingRight: 12, fontSize: 12, color: '#94a3b8', fontFamily: "'JetBrains Mono', 'Fira Code', monospace" }}>
+                <div key={i} style={{ height: 22, lineHeight: '22px', paddingRight: 12, fontSize: 12, color: '#94a3b8', fontFamily: MONO }}>
                     {i + 1}
                 </div>
             ))}
@@ -93,25 +108,41 @@ function LineNumbers({ count }: { count: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// Diagram preview with zoom + pan
+// Diagram preview with zoom + pan + edit mode
 // ---------------------------------------------------------------------------
-function DiagramPanel({ code, mermaidReady }: { code: string; mermaidReady: boolean }) {
+interface DiagramPanelProps {
+    code: string;
+    mermaidReady: boolean;
+    activeTheme: ThemeDef;
+    handMode: boolean;
+    engine: MermaidEngine;
+    onInsertSnippet: (snippet: string) => void;
+}
+
+function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onInsertSnippet }: DiagramPanelProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
     const [svg, setSvg] = useState('');
     const renderIdRef = useRef(0);
-
-    // Zoom / pan state
     const [zoom, setZoom] = useState(1);
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const isPanningRef = useRef(false);
+    const didMoveRef = useRef(false);
     const lastPosRef = useRef({ x: 0, y: 0 });
+    const dk = activeTheme.isDark;
 
     useEffect(() => {
         if (!mermaidReady || !code.trim()) { setSvg(''); setError(null); return; }
         const id = ++renderIdRef.current;
         (async () => {
             try {
+                (window as any).mermaid.initialize({
+                    startOnLoad: false,
+                    theme: activeTheme.mermaidTheme,
+                    ...(activeTheme.themeVariables ? { themeVariables: activeTheme.themeVariables } : {}),
+                    sequence: { mirrorActors: false, messageMargin: 40, actorMargin: 80 },
+                    flowchart: { curve: 'basis', padding: 20 },
+                });
                 const elId = `mermaid-render-${id}-${Date.now()}`;
                 const { svg: rendered } = await (window as any).mermaid.render(elId, code.trim());
                 if (id === renderIdRef.current) { setSvg(rendered); setError(null); }
@@ -122,50 +153,100 @@ function DiagramPanel({ code, mermaidReady }: { code: string; mermaidReady: bool
                 });
             }
         })();
-    }, [code, mermaidReady]);
+    }, [code, mermaidReady, activeTheme]);
 
-    // Reset zoom/pan when diagram changes
     useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [svg]);
 
     const handleWheel = useCallback((e: React.WheelEvent) => {
+        if (!handMode) return;
         e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setZoom(z => Math.max(0.2, Math.min(5, z * delta)));
-    }, []);
+        setZoom(z => Math.max(0.2, Math.min(5, z * (e.deltaY > 0 ? 0.9 : 1.1))));
+    }, [handMode]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (e.button !== 0) return;
+        if (!handMode || e.button !== 0) return;
         isPanningRef.current = true;
+        didMoveRef.current = false;
         lastPosRef.current = { x: e.clientX, y: e.clientY };
-    }, []);
+    }, [handMode]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isPanningRef.current) return;
         const dx = e.clientX - lastPosRef.current.x;
         const dy = e.clientY - lastPosRef.current.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didMoveRef.current = true;
         lastPosRef.current = { x: e.clientX, y: e.clientY };
         setPan(p => ({ x: p.x + dx, y: p.y + dy }));
     }, []);
 
     const handleMouseUp = useCallback(() => { isPanningRef.current = false; }, []);
 
+    const handleClick = useCallback((e: React.MouseEvent) => {
+        if (handMode || didMoveRef.current) return;
+        const target = e.target as Element;
+        // Sequence: actor
+        const actorGroup = target.closest('g.actor');
+        if (actorGroup) {
+            const name = actorGroup.querySelector('text')?.textContent?.trim() ?? 'Actor';
+            onInsertSnippet(`${name}->>${name}: `);
+            return;
+        }
+        // Flowchart: node
+        const nodeGroup = target.closest('g.node, .flowchart-label');
+        if (nodeGroup) {
+            const label = nodeGroup.querySelector('.label, text')?.textContent?.trim()?.replace(/\s+/g, '') ?? 'Nodo';
+            onInsertSnippet(`${label} --> `);
+            return;
+        }
+        // Generic fallback
+        onInsertSnippet(engine === 'sequence' ? `Actor1->>Actor2: ` : `NuevoNodo[Etiqueta]`);
+    }, [handMode, engine, onInsertSnippet]);
+
     const resetView = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, []);
 
+    const zoomBtnBase = {
+        width: 26, height: 26, borderRadius: 5, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600,
+        border: `1px solid ${dk ? '#475569' : '#e2e8f0'}`,
+        background: dk ? '#0f172a' : 'white',
+        color: dk ? '#94a3b8' : '#374151',
+    } as const;
+
     return (
-        <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: activeTheme.diagramBg }}>
+            {/* Grid */}
+            <div style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                backgroundImage: `linear-gradient(${dk ? 'rgba(148,163,184,0.05)' : 'rgba(99,102,241,0.04)'} 1px,transparent 1px),linear-gradient(90deg,${dk ? 'rgba(148,163,184,0.05)' : 'rgba(99,102,241,0.04)'} 1px,transparent 1px)`,
+                backgroundSize: '32px 32px',
+            }} />
+
             {/* Zoom controls */}
-            <div style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 20, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-                <button onClick={() => setZoom(z => Math.min(5, z * 1.2))} style={{ width: 26, height: 26, borderRadius: 5, border: '1px solid #e2e8f0', background: 'white', color: '#374151', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>+</button>
-                <span onClick={resetView} style={{ fontSize: 11, color: '#6b7280', width: 40, textAlign: 'center', cursor: 'pointer', fontWeight: 500, userSelect: 'none' }} title="Click para resetear">{Math.round(zoom * 100)}%</span>
-                <button onClick={() => setZoom(z => Math.max(0.2, z * 0.8))} style={{ width: 26, height: 26, borderRadius: 5, border: '1px solid #e2e8f0', background: 'white', color: '#374151', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>−</button>
-                <div style={{ width: 1, height: 16, background: '#e2e8f0', margin: '0 2px' }} />
-                <button onClick={resetView} style={{ width: 26, height: 26, borderRadius: 5, border: '1px solid #e2e8f0', background: 'white', color: '#6b7280', fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }} title="Resetear vista">⊙</button>
+            <div style={{
+                position: 'absolute', bottom: 12, right: 12, zIndex: 20,
+                display: 'flex', alignItems: 'center', gap: 4,
+                background: dk ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(8px)', border: `1px solid ${dk ? '#334155' : '#e2e8f0'}`,
+                borderRadius: 8, padding: '4px 6px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+            }}>
+                <button onClick={() => setZoom(z => Math.min(5, z * 1.2))} style={{ ...zoomBtnBase, fontSize: 16 }}>+</button>
+                <span onClick={resetView} style={{ fontSize: 11, color: dk ? '#64748b' : '#6b7280', width: 40, textAlign: 'center', cursor: 'pointer', fontWeight: 500, userSelect: 'none' }} title="Click para resetear">
+                    {Math.round(zoom * 100)}%
+                </span>
+                <button onClick={() => setZoom(z => Math.max(0.2, z * 0.8))} style={{ ...zoomBtnBase, fontSize: 16 }}>−</button>
+                <div style={{ width: 1, height: 16, background: dk ? '#334155' : '#e2e8f0', margin: '0 2px' }} />
+                <button onClick={resetView} style={{ ...zoomBtnBase, fontSize: 11 }} title="Resetear vista">⊙</button>
             </div>
 
-            {/* Hint when there's a diagram */}
+            {/* Mode hint */}
             {svg && !error && (
-                <div style={{ position: 'absolute', top: 8, right: 12, zIndex: 20, fontSize: 10, color: '#94a3b8', background: 'rgba(255,255,255,0.8)', borderRadius: 4, padding: '2px 6px', pointerEvents: 'none' }}>
-                    Rueda = zoom · Arrastrar = mover
+                <div style={{
+                    position: 'absolute', top: 8, right: 12, zIndex: 20, fontSize: 10,
+                    color: dk ? '#475569' : '#94a3b8',
+                    background: dk ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.8)',
+                    borderRadius: 4, padding: '2px 6px', pointerEvents: 'none',
+                }}>
+                    {handMode ? 'Rueda = zoom · Arrastrar = mover' : '✏ Click en el diagrama para insertar código'}
                 </div>
             )}
 
@@ -177,23 +258,29 @@ function DiagramPanel({ code, mermaidReady }: { code: string; mermaidReady: bool
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                style={{ width: '100%', height: '100%', cursor: isPanningRef.current ? 'grabbing' : 'grab', userSelect: 'none' }}
+                onClick={handleClick}
+                style={{ width: '100%', height: '100%', cursor: !handMode ? 'crosshair' : 'grab', userSelect: 'none' }}
             >
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center', transition: isPanningRef.current ? 'none' : 'transform 0.05s ease' }}>
+                <div style={{
+                    width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                    transformOrigin: 'center center',
+                    transition: isPanningRef.current ? 'none' : 'transform 0.05s ease',
+                }}>
                     {error ? (
                         <div style={{ maxWidth: 440, padding: '16px 20px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#ef4444' }} />
                                 <span style={{ color: '#b91c1c', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>Syntax Error</span>
                             </div>
-                            <pre style={{ color: '#991b1b', fontSize: 12, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: "'JetBrains Mono', monospace" }}>
+                            <pre style={{ color: '#991b1b', fontSize: 12, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: MONO }}>
                                 {error.replace(/ParseError:?\s*/i, '').substring(0, 300)}
                             </pre>
                         </div>
                     ) : svg ? (
                         <div dangerouslySetInnerHTML={{ __html: svg }} style={{ maxWidth: '100%', maxHeight: '100%' }} />
                     ) : (
-                        <div style={{ color: '#94a3b8', fontSize: 14, textAlign: 'center' }}>
+                        <div style={{ color: dk ? '#475569' : '#94a3b8', fontSize: 14, textAlign: 'center' }}>
                             <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.3 }}>◇</div>
                             Empieza a escribir para ver el diagrama
                         </div>
@@ -225,12 +312,16 @@ export default function UnifluxMermaidEditor({
     const [debouncedCode, setDebouncedCode] = useState(initialCode);
     const [splitRatio, setSplitRatio] = useState(0.42);
     const [isDragging, setIsDragging] = useState(false);
+    const [activeThemeKey, setActiveThemeKey] = useState<ThemeKey>('uniflux');
+    const [showThemePicker, setShowThemePicker] = useState(false);
+    const [handMode, setHandMode] = useState(true);
+    const [copiedMMD, setCopiedMMD] = useState(false);
     const mermaidReady = useMermaid();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLPreElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const mono = "'JetBrains Mono', 'Fira Code', monospace";
+    const activeTheme = THEMES.find(t => t.key === activeThemeKey) ?? THEMES[0];
 
     useEffect(() => {
         const t = setTimeout(() => { setDebouncedCode(code); onChange(code); }, 300);
@@ -290,7 +381,7 @@ export default function UnifluxMermaidEditor({
         a.click();
     }, [engine]);
 
-    // Export PNG (2x)
+    // Export PNG ×2
     const handleExportPNG = useCallback(() => {
         const svgEl = document.querySelector('[id^="mermaid-render-"]') as SVGSVGElement | null;
         if (!svgEl) return;
@@ -302,7 +393,7 @@ export default function UnifluxMermaidEditor({
             canvas.width = img.width * 2; canvas.height = img.height * 2;
             const ctx = canvas.getContext('2d')!;
             ctx.scale(2, 2);
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = activeTheme.diagramBg;
             ctx.fillRect(0, 0, img.width, img.height);
             ctx.drawImage(img, 0, 0);
             canvas.toBlob(blob => {
@@ -316,7 +407,30 @@ export default function UnifluxMermaidEditor({
             URL.revokeObjectURL(url);
         };
         img.src = url;
-    }, [engine]);
+    }, [engine, activeTheme]);
+
+    // Export MMD — download + copy to clipboard
+    const handleExportMMD = useCallback(async () => {
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(new Blob([code], { type: 'text/plain;charset=utf-8' })),
+            download: `uniflux-${engine}.mmd`,
+        });
+        a.click();
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopiedMMD(true);
+            setTimeout(() => setCopiedMMD(false), 2000);
+        } catch { /* clipboard may be restricted */ }
+    }, [code, engine]);
+
+    // Insert snippet from edit-mode diagram click
+    const insertSnippet = useCallback((snippet: string) => {
+        setCode(prev => prev.trimEnd() + '\n' + snippet);
+        requestAnimationFrame(() => {
+            const ta = textareaRef.current;
+            if (ta) { ta.selectionStart = ta.selectionEnd = ta.value.length; ta.focus(); }
+        });
+    }, []);
 
     const lineCount = code.split('\n').length;
 
@@ -339,11 +453,11 @@ export default function UnifluxMermaidEditor({
                             key={eng.key}
                             onClick={() => handleEngineSwitch(eng.key)}
                             style={{
-                                padding: '4px 14px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                                padding: '4px 14px', borderRadius: 6, cursor: 'pointer',
                                 fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
                                 display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.15s',
                                 ...(engine === eng.key
-                                    ? { background: '#ffffff', color: '#7c3aed', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderColor: '#e9d5ff' }
+                                    ? { background: '#ffffff', color: '#7c3aed', border: '1px solid #e9d5ff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }
                                     : { background: 'transparent', color: '#94a3b8', border: '1px solid transparent' }),
                             }}
                         >
@@ -354,17 +468,101 @@ export default function UnifluxMermaidEditor({
                 </div>
 
                 {/* Title */}
-                <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>
+                <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, flexShrink: 0 }}>
                     Uniflux · Mermaid DSL
                 </span>
 
-                {/* Export buttons */}
-                <div style={{ display: 'flex', gap: 6 }}>
+                {/* Right controls */}
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+
+                    {/* Theme picker */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setShowThemePicker(v => !v)}
+                            title="Cambiar tema"
+                            style={{
+                                width: 30, height: 30, borderRadius: 6, cursor: 'pointer',
+                                border: `1px solid ${showThemePicker ? '#ddd6fe' : '#e2e8f0'}`,
+                                background: showThemePicker ? '#f5f3ff' : 'white',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                            }}
+                        >
+                            <span style={{ width: 16, height: 16, borderRadius: 3, display: 'block', background: activeTheme.swatch, border: '1px solid rgba(0,0,0,0.1)', flexShrink: 0 }} />
+                        </button>
+                        {showThemePicker && (
+                            <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setShowThemePicker(false)} />
+                                <div style={{
+                                    position: 'absolute', top: 34, right: 0, zIndex: 50,
+                                    background: 'white', border: '1px solid #e2e8f0', borderRadius: 10,
+                                    padding: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', minWidth: 170,
+                                }}>
+                                    <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 6, padding: '0 4px' }}>
+                                        Tema del diagrama
+                                    </div>
+                                    {THEMES.map(t => (
+                                        <button
+                                            key={t.key}
+                                            onClick={() => { setActiveThemeKey(t.key); setShowThemePicker(false); }}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                                                padding: '6px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                                                textAlign: 'left', background: activeThemeKey === t.key ? '#f5f3ff' : 'transparent',
+                                            }}
+                                        >
+                                            <span style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, display: 'block', background: t.swatch, border: '1px solid rgba(0,0,0,0.1)' }} />
+                                            <span style={{ fontSize: 12, fontWeight: activeThemeKey === t.key ? 600 : 400, color: activeThemeKey === t.key ? '#7c3aed' : '#374151' }}>
+                                                {t.label}
+                                            </span>
+                                            {activeThemeKey === t.key && <span style={{ marginLeft: 'auto', color: '#7c3aed', fontSize: 12 }}>✓</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Hand / Edit mode toggle */}
+                    <button
+                        onClick={() => setHandMode(v => !v)}
+                        title={handMode ? 'Modo mano activo · Click para edición' : 'Modo edición · Click en diagrama inserta código'}
+                        style={{
+                            width: 30, height: 30, borderRadius: 6, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
+                            border: handMode ? '1.5px solid #ddd6fe' : '1.5px solid #bbf7d0',
+                            background: handMode ? '#f5f3ff' : '#f0fdf4',
+                            transition: 'all 0.15s',
+                        }}
+                    >
+                        {handMode ? '✋' : '✏️'}
+                    </button>
+
+                    {/* Separator */}
+                    <div style={{ width: 1, height: 20, background: '#e2e8f0', margin: '0 2px' }} />
+
+                    {/* SVG */}
                     <button onClick={handleExportSVG} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: 11, fontWeight: 500, cursor: 'pointer' }}>
                         SVG
                     </button>
+
+                    {/* PNG */}
                     <button onClick={handleExportPNG} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #ddd6fe', background: 'linear-gradient(135deg,#7c3aed,#6366f1)', color: 'white', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                         PNG ×2
+                    </button>
+
+                    {/* MMD */}
+                    <button
+                        onClick={handleExportMMD}
+                        title="Descargar .mmd y copiar al portapapeles"
+                        style={{
+                            padding: '5px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                            border: `1px solid ${copiedMMD ? '#bbf7d0' : '#bfdbfe'}`,
+                            background: copiedMMD ? '#f0fdf4' : 'white',
+                            color: copiedMMD ? '#16a34a' : '#3b82f6',
+                            transition: 'all 0.3s',
+                        }}
+                    >
+                        {copiedMMD ? '✓ Copiado' : 'MMD'}
                     </button>
                 </div>
             </div>
@@ -374,27 +572,23 @@ export default function UnifluxMermaidEditor({
 
                 {/* Code editor panel */}
                 <div style={{ width: `${splitRatio * 100}%`, display: 'flex', flexDirection: 'column', background: '#fafafa', borderRight: '1px solid #e2e8f0' }}>
-                    {/* Panel header */}
                     <div style={{ height: 30, padding: '0 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7c3aed' }} />
-                            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: mono }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: MONO }}>
                                 {engine}.mmd
                             </span>
                         </div>
-                        <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: mono }}>{lineCount} líneas</span>
+                        <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: MONO }}>{lineCount} líneas</span>
                     </div>
 
-                    {/* Editor area */}
                     <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                         <LineNumbers count={lineCount} />
-                        {/* Highlighted overlay */}
                         <pre
                             ref={highlightRef}
-                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: mono, fontSize: 13, lineHeight: '22px', color: '#374151', overflow: 'auto', whiteSpace: 'pre', pointerEvents: 'none', background: 'transparent', zIndex: 1 }}
+                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: MONO, fontSize: 13, lineHeight: '22px', color: '#374151', overflow: 'auto', whiteSpace: 'pre', pointerEvents: 'none', background: 'transparent', zIndex: 1 }}
                             dangerouslySetInnerHTML={{ __html: highlightMermaid(code) }}
                         />
-                        {/* Editable textarea */}
                         <textarea
                             ref={textareaRef}
                             value={code}
@@ -402,7 +596,7 @@ export default function UnifluxMermaidEditor({
                             onScroll={handleScroll}
                             onKeyDown={handleKeyDown}
                             spellCheck={false}
-                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: mono, fontSize: 13, lineHeight: '22px', color: 'transparent', caretColor: '#7c3aed', background: 'transparent', border: 'none', outline: 'none', resize: 'none', overflow: 'auto', whiteSpace: 'pre', zIndex: 3 }}
+                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: MONO, fontSize: 13, lineHeight: '22px', color: 'transparent', caretColor: '#7c3aed', background: 'transparent', border: 'none', outline: 'none', resize: 'none', overflow: 'auto', whiteSpace: 'pre', zIndex: 3 }}
                         />
                     </div>
                 </div>
@@ -416,22 +610,27 @@ export default function UnifluxMermaidEditor({
                 </div>
 
                 {/* Diagram preview panel */}
-                <div style={{ flex: 1, background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
-                    {/* Light grid background */}
-                    <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(99,102,241,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,0.04) 1px,transparent 1px)', backgroundSize: '32px 32px', pointerEvents: 'none' }} />
-                    {/* Panel header */}
+                <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ height: 30, padding: '0 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', position: 'relative', zIndex: 5 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: mermaidReady ? '#10b981' : '#f59e0b' }} />
-                            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: mono }}>Preview</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: MONO }}>
+                                Preview · {activeTheme.label}
+                            </span>
                         </div>
-                        <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: mono }}>{mermaidReady ? 'live' : 'cargando…'}</span>
+                        <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: MONO }}>{mermaidReady ? 'live' : 'cargando…'}</span>
                     </div>
-                    {/* Diagram */}
                     <div style={{ position: 'absolute', inset: 0, top: 30, overflow: 'hidden' }}>
                         {mermaidReady
-                            ? <DiagramPanel code={debouncedCode} mermaidReady={mermaidReady} />
-                            : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13, fontFamily: mono }}>Inicializando motor Mermaid…</div>
+                            ? <DiagramPanel
+                                code={debouncedCode}
+                                mermaidReady={mermaidReady}
+                                activeTheme={activeTheme}
+                                handMode={handMode}
+                                engine={engine}
+                                onInsertSnippet={insertSnippet}
+                              />
+                            : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13, fontFamily: MONO }}>Inicializando motor Mermaid…</div>
                         }
                     </div>
                 </div>
@@ -439,8 +638,10 @@ export default function UnifluxMermaidEditor({
 
             {/* Status bar */}
             <div style={{ height: 24, background: '#f1f5f9', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', flexShrink: 0 }}>
-                <span style={{ fontSize: 10, color: '#94a3b8', fontFamily: mono }}>Engine: {engine}</span>
-                <span style={{ fontSize: 10, color: '#c4b5fd', fontFamily: mono }}>Mermaid v10.9 · Uniflux DSL</span>
+                <span style={{ fontSize: 10, color: '#94a3b8', fontFamily: MONO }}>
+                    Engine: {engine} · Tema: {activeTheme.label} · {handMode ? '✋ Mano' : '✏ Edición'}
+                </span>
+                <span style={{ fontSize: 10, color: '#c4b5fd', fontFamily: MONO }}>Mermaid v10.9 · Uniflux DSL</span>
             </div>
 
             <style>{`
