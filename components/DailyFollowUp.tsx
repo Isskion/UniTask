@@ -49,7 +49,6 @@ import { useLanguage } from "@/context/LanguageContext";
 import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import AvailabilityManager from "./availability/AvailabilityManager"; // Added DispoPlan import
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
-import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
 import { ProjectInterfaces } from "./ProjectInterfaces";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
@@ -2440,8 +2439,6 @@ export default function DailyFollowUp() {
                             <AvailabilityManager />
                         ) : viewMode === 'availability-registry' ? (
                             <AvailabilityRegistry />
-                        ) : viewMode === 'uniflux' ? (
-                            <UnifluxWorkspace />
                         ) : viewMode === 'unidocs' ? (
                             <UniDocsManagement />
                         ) : (
