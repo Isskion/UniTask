@@ -5,10 +5,10 @@ import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesSta
 import { FlowGraph, FlowNode, FlowEdge, NodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
-import { saveFlowDraft, listProjectFlows, getFlow } from '@/app/actions/uniflux';
+import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2 } from 'lucide-react';
 import UnifluxNodePalette from './UnifluxNodePalette';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
 import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
@@ -47,6 +47,8 @@ export default function UnifluxWorkspace() {
     const [isLoadingFlows, setIsLoadingFlows] = useState(false);
     const [isEditingName, setIsEditingName] = useState(false);
     const [editNameValue, setEditNameValue] = useState('');
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [isDeletingFlow, setIsDeletingFlow] = useState(false);
 
     // Wizard State
     const [showWizard, setShowWizard] = useState(true);
@@ -247,6 +249,28 @@ export default function UnifluxWorkspace() {
         setNodes([]);
         setEdges([]);
         setShowWizard(false);
+    };
+
+    const handleDeleteFlow = async (flowId: string) => {
+        if (!tenantId) return;
+        setIsDeletingFlow(true);
+        try {
+            await deleteFlow(tenantId, flowId);
+            setSavedFlows(prev => prev.filter(f => f.id !== flowId));
+            // If the deleted flow is the active one, reset to a new blank flow
+            if (graph.id === flowId) {
+                setGraph({ ...INITIAL_GRAPH, id: `draft-${Date.now()}`, projectId: selectedProjectId });
+                setNodes([]);
+                setEdges([]);
+                setShowWizard(true);
+            }
+        } catch (e) {
+            console.error("Failed to delete flow", e);
+            alert("Error al borrar el flujo");
+        } finally {
+            setIsDeletingFlow(false);
+            setConfirmDeleteId(null);
+        }
     };
 
     const handleMermaidChange = useCallback((code: string) => {
@@ -753,31 +777,69 @@ export default function UnifluxWorkspace() {
                                     const nodeCount = isMermaid ? null : (flow.nodes?.length ?? 0);
                                     const isActive = graph.id === flow.id;
                                     return (
-                                        <button
+                                        <div
                                             key={flow.id}
-                                            onClick={() => handleLoadFlow(flow.id)}
-                                            className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 group ${isActive
+                                            className={`w-full text-left rounded-xl border transition-all group ${isActive
                                                 ? 'bg-purple-50 border-purple-200 ring-1 ring-purple-100'
                                                 : 'bg-white border-gray-100 hover:border-purple-200 hover:shadow-sm'
                                                 }`}
                                         >
-                                            <div className={`p-2 rounded-lg shrink-0 ${isActive ? 'bg-purple-100 text-purple-700' : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
-                                                {isMermaid ? <GitBranch className="w-4 h-4" /> : <ListTree className="w-4 h-4" />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className={`text-sm font-bold truncate ${isActive ? 'text-purple-900' : 'text-gray-700'}`}>
-                                                    {flow.name || 'Sin título'}
+                                            {confirmDeleteId === flow.id ? (
+                                                // ── Confirm delete state ──
+                                                <div className="flex items-center gap-2 p-3">
+                                                    <Trash2 className="w-4 h-4 text-red-500 shrink-0" />
+                                                    <span className="text-xs font-bold text-red-600 flex-1">¿Borrar "{flow.name || 'Sin título'}"?</span>
+                                                    <button
+                                                        onClick={() => handleDeleteFlow(flow.id)}
+                                                        disabled={isDeletingFlow}
+                                                        className="px-2 py-1 text-xs font-bold bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50"
+                                                    >
+                                                        {isDeletingFlow ? '...' : 'Borrar'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setConfirmDeleteId(null)}
+                                                        disabled={isDeletingFlow}
+                                                        className="px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                                                    >
+                                                        Cancelar
+                                                    </button>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                                    {isMermaid
-                                                        ? <span className="text-[10px] text-teal-500 font-medium">Mermaid DSL</span>
-                                                        : <span className="text-[10px] text-gray-400">{nodeCount} nodos</span>
-                                                    }
-                                                    {dateStr && <><span className="text-[10px] text-gray-300">·</span><span className="text-[10px] text-gray-400">{dateStr}</span></>}
+                                            ) : (
+                                                // ── Normal flow item ──
+                                                <div className="flex items-center gap-3 p-3">
+                                                    <button
+                                                        onClick={() => handleLoadFlow(flow.id)}
+                                                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                                                    >
+                                                        <div className={`p-2 rounded-lg shrink-0 ${isActive ? 'bg-purple-100 text-purple-700' : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
+                                                            {isMermaid ? <GitBranch className="w-4 h-4" /> : <ListTree className="w-4 h-4" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className={`text-sm font-bold truncate ${isActive ? 'text-purple-900' : 'text-gray-700'}`}>
+                                                                {flow.name || 'Sin título'}
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                                {isMermaid
+                                                                    ? <span className="text-[10px] text-teal-500 font-medium">Mermaid DSL</span>
+                                                                    : <span className="text-[10px] text-gray-400">{nodeCount} nodos</span>
+                                                                }
+                                                                {dateStr && <><span className="text-[10px] text-gray-300">·</span><span className="text-[10px] text-gray-400">{dateStr}</span></>}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(flow.id); }}
+                                                            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                            title="Borrar flujo"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />}
-                                        </button>
+                                            )}
+                                        </div>
                                     );
                                 })}
                             </div>

@@ -1,7 +1,7 @@
 // Removed 'use server' because this uses Firebase client SDK and should run on the client.
 
 import { db } from "@/lib/firebase"; // Assuming this exists or using admin
-import { collection, doc, setDoc, getDoc, updateDoc, addDoc, serverTimestamp, query, where, getDocs, orderBy, FieldValue } from "firebase/firestore";
+import { collection, doc, setDoc, getDoc, updateDoc, addDoc, deleteDoc, serverTimestamp, query, where, getDocs, orderBy, FieldValue } from "firebase/firestore";
 import { FlowGraph, ValidationResult } from "@/app/uniflux/core/types";
 import { UnifluxValidator } from "@/app/uniflux/core/validator";
 
@@ -112,6 +112,24 @@ export async function listTenantFlows(tenantId: string) {
 
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+/**
+ * Deletes a flow draft. Only deletes if tenantId matches (guard against cross-tenant).
+ */
+export async function deleteFlow(tenantId: string, flowId: string) {
+    const flowRef = doc(db, FLOWS_COLLECTION, flowId);
+    const flowSnap = await getDoc(flowRef);
+
+    if (!flowSnap.exists()) throw new Error("Flow not found");
+
+    const flowData = flowSnap.data();
+    if (flowData.tenantId !== tenantId) {
+        throw new Error("Unauthorized: flow does not belong to this tenant");
+    }
+
+    await deleteDoc(flowRef);
+    return { success: true };
 }
 
 /**
