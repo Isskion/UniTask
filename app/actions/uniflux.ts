@@ -120,7 +120,7 @@ export async function getFlow(tenantId: string, flowId: string) {
         return null;
     }
 
-    return { id: flowSnap.id, ...data } as FlowGraph;
+    return { ...data, id: flowSnap.id } as FlowGraph;
 }
 
 /**
