@@ -34,7 +34,8 @@ const INITIAL_GRAPH: FlowGraph = {
 };
 
 export default function UnifluxWorkspace() {
-    const { user, tenantId } = useAuth();
+    const { user, tenantId, viewContext } = useAuth();
+    const roleLevel = viewContext?.activeRole ?? 0;
     const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -210,7 +211,8 @@ export default function UnifluxWorkspace() {
 
     // Flow Loading & Reset Handlers
     const handleLoadFlow = async (flowId: string) => {
-        const flowInfo = await getFlow(flowId);
+        const tenantToUse = tenantId || '1';
+        const flowInfo = await getFlow(tenantToUse, flowId);
         if (flowInfo) {
             setGraph(flowInfo);
             setSelectedProjectId(flowInfo.projectId || selectedProjectId);
@@ -252,10 +254,10 @@ export default function UnifluxWorkspace() {
     };
 
     const handleDeleteFlow = async (flowId: string) => {
-        if (!tenantId) return;
+        if (!tenantId || !user) return;
         setIsDeletingFlow(true);
         try {
-            await deleteFlow(tenantId, flowId);
+            await deleteFlow(tenantId, flowId, user.uid, roleLevel);
             setSavedFlows(prev => prev.filter(f => f.id !== flowId));
             // If the deleted flow is the active one, reset to a new blank flow
             if (graph.id === flowId) {
@@ -602,7 +604,7 @@ export default function UnifluxWorkspace() {
                 };
             }
 
-            await saveFlowDraft(tenantToUse, finalGraph);
+            await saveFlowDraft(tenantToUse, finalGraph, user.uid);
             setGraph(finalGraph);
 
             setSaveStatus('saved');
@@ -829,13 +831,16 @@ export default function UnifluxWorkspace() {
                                                     </button>
                                                     <div className="flex items-center gap-1 shrink-0">
                                                         {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(flow.id); }}
-                                                            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                            title="Borrar flujo"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </button>
+                                                        {/* Visible solo si admin (≥80) o creador del flujo */}
+                                                        {(roleLevel >= 80 || (flow as any).createdBy === user?.uid) && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(flow.id); }}
+                                                                className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                title="Borrar flujo"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
