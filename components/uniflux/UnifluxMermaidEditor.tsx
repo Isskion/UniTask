@@ -42,6 +42,30 @@ const THEMES: ThemeDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Insert actions palette (edit mode)
+// ---------------------------------------------------------------------------
+const INSERT_ACTIONS: Record<MermaidEngine, { icon: string; label: string; snippet: string; hint: string }[]> = {
+    sequence: [
+        { icon: '→', label: 'Mensaje', hint: 'A envía a B', snippet: 'Actor1->>Actor2: descripción' },
+        { icon: '↩', label: 'Respuesta', hint: 'B responde a A', snippet: 'Actor2-->>Actor1: respuesta' },
+        { icon: '▶', label: 'Loop', hint: 'Repetición', snippet: 'loop Condición\n    Actor1->>Actor2: acción\nend' },
+        { icon: '?', label: 'Alt / Else', hint: 'Bifurcación', snippet: 'alt Caso OK\n    Actor1->>Actor2: éxito\nelse Caso KO\n    Actor1->>Actor2: error\nend' },
+        { icon: '◎', label: 'Opt', hint: 'Opcional', snippet: 'opt Condición opcional\n    Actor1->>Actor2: acción\nend' },
+        { icon: '📝', label: 'Nota', hint: 'Comentario', snippet: 'Note over Actor1: texto de nota' },
+        { icon: '+', label: 'Participante', hint: 'Nuevo actor', snippet: 'participant NuevoActor as Nombre' },
+        { icon: '⚡', label: 'Activación', hint: 'Bloque activo', snippet: 'activate Actor1\n    Actor1->>Actor2: procesando\ndeactivate Actor1' },
+    ],
+    flowchart: [
+        { icon: '→', label: 'Conexión', hint: 'Enlace entre nodos', snippet: 'NodoA --> NodoB' },
+        { icon: '◻', label: 'Nodo', hint: 'Rectángulo', snippet: 'NuevoNodo[Etiqueta]' },
+        { icon: '◆', label: 'Decisión', hint: 'Rombo if/else', snippet: 'decision{¿Condición?}' },
+        { icon: '○', label: 'Redondeado', hint: 'Nodo pill', snippet: 'inicio([Inicio])' },
+        { icon: '⊡', label: 'Subgraph', hint: 'Agrupación', snippet: 'subgraph Grupo\n    NodoA --> NodoB\nend' },
+        { icon: '✎', label: 'Etiqueta en enlace', hint: 'Texto en flecha', snippet: 'NodoA -->|condición| NodoB' },
+    ],
+};
+
+// ---------------------------------------------------------------------------
 // CDN loader
 // ---------------------------------------------------------------------------
 function useMermaid(): boolean {
@@ -184,21 +208,24 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
     const handleClick = useCallback((e: React.MouseEvent) => {
         if (handMode || didMoveRef.current) return;
         const target = e.target as Element;
-        // Sequence: actor
-        const actorGroup = target.closest('g.actor');
-        if (actorGroup) {
-            const name = actorGroup.querySelector('text')?.textContent?.trim() ?? 'Actor';
-            onInsertSnippet(`${name}->>${name}: `);
+
+        // Detect by SVG text element (works across all Mermaid SVG structures)
+        const textEl = target.tagName === 'text' ? target
+            : target.closest('text')
+            ?? target.closest('g')?.querySelector('text')
+            ?? null;
+
+        if (textEl?.textContent?.trim()) {
+            const name = textEl.textContent.trim().replace(/\n/g, ' ').trim();
+            if (engine === 'sequence') {
+                onInsertSnippet(`${name}->>${name}: `);
+            } else {
+                onInsertSnippet(`${name.replace(/\s+/g, '')} --> `);
+            }
             return;
         }
-        // Flowchart: node
-        const nodeGroup = target.closest('g.node, .flowchart-label');
-        if (nodeGroup) {
-            const label = nodeGroup.querySelector('.label, text')?.textContent?.trim()?.replace(/\s+/g, '') ?? 'Nodo';
-            onInsertSnippet(`${label} --> `);
-            return;
-        }
-        // Generic fallback
+
+        // Fallback: click in empty area — insert generic template
         onInsertSnippet(engine === 'sequence' ? `Actor1->>Actor2: ` : `NuevoNodo[Etiqueta]`);
     }, [handMode, engine, onInsertSnippet]);
 
@@ -213,13 +240,72 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
     } as const;
 
     return (
-        <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: activeTheme.diagramBg }}>
+        <div
+            className={!handMode ? 'uniflux-edit-mode' : undefined}
+            style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: activeTheme.diagramBg }}
+        >
             {/* Grid */}
             <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
                 backgroundImage: `linear-gradient(${dk ? 'rgba(148,163,184,0.05)' : 'rgba(99,102,241,0.04)'} 1px,transparent 1px),linear-gradient(90deg,${dk ? 'rgba(148,163,184,0.05)' : 'rgba(99,102,241,0.04)'} 1px,transparent 1px)`,
                 backgroundSize: '32px 32px',
             }} />
+
+            {/* Edit mode — floating insert palette */}
+            {!handMode && (
+                <div style={{
+                    position: 'absolute', top: 10, left: 10, zIndex: 25,
+                    background: dk ? '#0f172a' : 'white',
+                    border: `1px solid ${dk ? '#334155' : '#e9d5ff'}`,
+                    borderRadius: 12, boxShadow: '0 4px 20px rgba(124,58,237,0.15)',
+                    padding: '10px 10px 8px', width: 196,
+                }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 7, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span>✏</span> Insertar en código
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {INSERT_ACTIONS[engine].map(action => (
+                            <button
+                                key={action.label}
+                                onClick={(e) => { e.stopPropagation(); onInsertSnippet(action.snippet); }}
+                                title={action.hint}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 8,
+                                    padding: '5px 8px', borderRadius: 6, cursor: 'pointer', textAlign: 'left',
+                                    border: `1px solid ${dk ? '#1e293b' : '#f3f4f6'}`,
+                                    background: dk ? '#1e293b' : '#fafafa',
+                                    fontSize: 12, color: dk ? '#cbd5e1' : '#374151', fontWeight: 500,
+                                    transition: 'all 0.1s',
+                                }}
+                                onMouseEnter={e => {
+                                    (e.currentTarget as HTMLElement).style.background = dk ? '#1e3a5f' : '#f5f3ff';
+                                    (e.currentTarget as HTMLElement).style.borderColor = '#ddd6fe';
+                                    (e.currentTarget as HTMLElement).style.color = '#7c3aed';
+                                }}
+                                onMouseLeave={e => {
+                                    (e.currentTarget as HTMLElement).style.background = dk ? '#1e293b' : '#fafafa';
+                                    (e.currentTarget as HTMLElement).style.borderColor = dk ? '#1e293b' : '#f3f4f6';
+                                    (e.currentTarget as HTMLElement).style.color = dk ? '#cbd5e1' : '#374151';
+                                }}
+                            >
+                                <span style={{
+                                    width: 22, height: 22, borderRadius: 5, flexShrink: 0,
+                                    background: 'linear-gradient(135deg,#7c3aed,#6366f1)',
+                                    color: 'white', fontSize: 11, fontWeight: 700,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                    {action.icon}
+                                </span>
+                                <span style={{ flex: 1 }}>{action.label}</span>
+                                <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>{action.hint}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div style={{ marginTop: 8, paddingTop: 6, borderTop: `1px solid ${dk ? '#1e293b' : '#f3f4f6'}`, fontSize: 9, color: '#94a3b8', textAlign: 'center' }}>
+                        O haz click en el diagrama
+                    </div>
+                </div>
+            )}
 
             {/* Zoom controls */}
             <div style={{
@@ -650,6 +736,25 @@ export default function UnifluxMermaidEditor({
                 ::-webkit-scrollbar-track { background: transparent; }
                 ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
                 ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+                /* Edit mode — SVG element hover highlighting */
+                .uniflux-edit-mode svg { pointer-events: all; }
+                .uniflux-edit-mode svg text {
+                    cursor: pointer !important;
+                    transition: opacity 0.15s;
+                }
+                .uniflux-edit-mode svg text:hover {
+                    opacity: 0.6;
+                    fill: #7c3aed !important;
+                }
+                .uniflux-edit-mode svg rect:not([style*="fill:none"]):hover,
+                .uniflux-edit-mode svg polygon:hover,
+                .uniflux-edit-mode svg circle:hover {
+                    stroke: #7c3aed !important;
+                    stroke-width: 2.5px !important;
+                    cursor: pointer !important;
+                    opacity: 0.85;
+                }
             `}</style>
         </div>
     );
