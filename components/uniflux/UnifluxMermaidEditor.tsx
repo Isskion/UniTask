@@ -79,7 +79,7 @@ function useMermaid(): boolean {
                 startOnLoad: false,
                 theme: 'base',
                 themeVariables: UNIFLUX_VARS,
-                sequence: { mirrorActors: false, messageMargin: 40, actorMargin: 80 },
+                sequence: { mirrorActors: true, messageMargin: 35, actorMargin: 60, height: 60, useMaxWidth: false },
                 flowchart: { curve: 'basis', padding: 20 },
             });
             setReady(true);
@@ -164,7 +164,7 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                     startOnLoad: false,
                     theme: activeTheme.mermaidTheme,
                     ...(activeTheme.themeVariables ? { themeVariables: activeTheme.themeVariables } : {}),
-                    sequence: { mirrorActors: false, messageMargin: 40, actorMargin: 80 },
+                    sequence: { mirrorActors: true, messageMargin: 35, actorMargin: 60, height: 60, useMaxWidth: false },
                     flowchart: { curve: 'basis', padding: 20 },
                 });
                 const elId = `mermaid-render-${id}-${Date.now()}`;
