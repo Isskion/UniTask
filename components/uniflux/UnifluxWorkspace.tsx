@@ -51,6 +51,10 @@ export default function UnifluxWorkspace() {
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [isDeletingFlow, setIsDeletingFlow] = useState(false);
 
+    // Tracks the source Mermaid flow ID when a conversion draft is active.
+    // Cleared on explicit save or when loading a different flow.
+    const [sourceMermaidFlowId, setSourceMermaidFlowId] = useState<string | null>(null);
+
     // Wizard State
     const [showWizard, setShowWizard] = useState(true);
     const [wizardInput, setWizardInput] = useState('');
@@ -218,6 +222,7 @@ export default function UnifluxWorkspace() {
             setSelectedProjectId(flowInfo.projectId || selectedProjectId);
             setIsSidebarOpen(false);
             setShowWizard(false);
+            setSourceMermaidFlowId(null); // discard any active conversion draft
             setTimeout(takeSnapshot, 0);
         }
     };
@@ -234,6 +239,7 @@ export default function UnifluxWorkspace() {
         setNodes([]);
         setEdges([]);
         setShowWizard(true);
+        setSourceMermaidFlowId(null);
     };
 
     const handleNewMermaidFlow = () => {
@@ -251,6 +257,7 @@ export default function UnifluxWorkspace() {
         setNodes([]);
         setEdges([]);
         setShowWizard(false);
+        setSourceMermaidFlowId(null);
     };
 
     const handleDeleteFlow = async (flowId: string) => {
@@ -284,6 +291,8 @@ export default function UnifluxWorkspace() {
     }, []);
 
     const handleConvertMermaidToVisual = useCallback((vNodes: FlowNode[], vEdges: FlowEdge[]) => {
+        // Store the source Mermaid flow ID so the user can reconvert later
+        setSourceMermaidFlowId(graph.id);
         const newGraph: FlowGraph = {
             id: `draft-${Date.now()}`,
             tenantId: tenantId || '',
@@ -302,7 +311,7 @@ export default function UnifluxWorkspace() {
         setGraph(newGraph);
         setIsSidebarOpen(false);
         setShowWizard(false);
-    }, [graph.name, selectedProjectId, tenantId, user]);
+    }, [graph.id, graph.name, selectedProjectId, tenantId, user]);
 
     const handleNameRename = () => {
         if (!editNameValue.trim()) {
@@ -606,6 +615,7 @@ export default function UnifluxWorkspace() {
 
             await saveFlowDraft(tenantToUse, finalGraph, user.uid);
             setGraph(finalGraph);
+            setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
 
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 3000);
@@ -974,6 +984,27 @@ export default function UnifluxWorkspace() {
                                 Cancelar
                             </button>
                         </div>
+                    </div>
+                )}
+
+                {/* Conversion draft banner — shown when current visual is an unsaved conversion */}
+                {sourceMermaidFlowId && graph.docType !== 'mermaid' && (
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-amber-50 border border-amber-200 shadow-lg rounded-xl px-4 py-2.5 text-sm">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0 animate-pulse" />
+                        <span className="text-amber-800 font-medium">Borrador de conversión — no guardado</span>
+                        <button
+                            onClick={() => handleLoadFlow(sourceMermaidFlowId)}
+                            className="ml-1 px-3 py-1 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+                        >
+                            Reconvertir desde Mermaid
+                        </button>
+                        <button
+                            onClick={() => setSourceMermaidFlowId(null)}
+                            className="p-1 text-amber-400 hover:text-amber-700"
+                            title="Descartar aviso"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
                     </div>
                 )}
 
