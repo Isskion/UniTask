@@ -297,7 +297,7 @@ function parseFlowchart(code: string): ConversionResult {
             if (right) nodeMap.set(right.id, { label: right.label, type: right.type });
 
             if (left && right) {
-                edgeList.push({ from: left.id, to: right.id, label: edgeLabel });
+                edgeList.push({ from: left.id, to: right.id, ...(edgeLabel ? { label: edgeLabel } : {}) });
             }
             continue;
         }
@@ -358,7 +358,7 @@ function parseFlowchart(code: string): ConversionResult {
     // Build edges
     edgeList.forEach(e => {
         if (nodeMap.has(e.from) && nodeMap.has(e.to)) {
-            edges.push({ id: eid(), source: e.from, target: e.to, label: e.label });
+            edges.push({ id: eid(), source: e.from, target: e.to, ...(e.label ? { label: e.label } : {}) });
         }
     });
 

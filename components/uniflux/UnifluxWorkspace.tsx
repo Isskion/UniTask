@@ -259,18 +259,24 @@ export default function UnifluxWorkspace() {
 
     const handleConvertMermaidToVisual = useCallback((vNodes: FlowNode[], vEdges: FlowEdge[]) => {
         const newGraph: FlowGraph = {
-            ...INITIAL_GRAPH,
             id: `draft-${Date.now()}`,
-            projectId: selectedProjectId,
+            tenantId: tenantId || '',
+            ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
             name: `${graph.name} (Visual)`,
             docType: 'visual',
             nodes: vNodes,
             edges: vEdges,
+            metadata: {
+                version: '0.1',
+                authorId: user?.uid || 'user',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
         };
         setGraph(newGraph);
         setIsSidebarOpen(false);
         setShowWizard(false);
-    }, [graph.name, selectedProjectId]);
+    }, [graph.name, selectedProjectId, tenantId, user]);
 
     const handleNameRename = () => {
         if (!editNameValue.trim()) {
