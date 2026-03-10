@@ -209,18 +209,31 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
         if (handMode || didMoveRef.current) return;
         const target = e.target as Element;
 
-        // Detect by SVG text element (works across all Mermaid SVG structures)
+        // Detect by SVG text element or htmlLabels (foreignObject > div.nodeLabel)
         const textEl = target.tagName === 'text' ? target
-            : target.closest('text')
+            : target.closest('.nodeLabel')
+            ?? target.closest('text')
+            ?? target.closest('.edgeLabel')
+            ?? target.closest('span.edgeLabel')
             ?? target.closest('g')?.querySelector('text')
+            ?? target.closest('g.node')
             ?? null;
 
         if (textEl?.textContent?.trim()) {
-            const name = textEl.textContent.trim().replace(/\n/g, ' ').trim();
+            const rawText = textEl.textContent.trim().replace(/\n/g, ' ').trim();
             if (engine === 'sequence') {
-                onInsertSnippet(`${name}->>${name}: `);
+                onInsertSnippet(`${rawText}->>${rawText}: `);
             } else {
-                onInsertSnippet(`${name.replace(/\s+/g, '')} --> `);
+                // Try to extract the true Node ID from the mermaid SVG group <g id="flowchart-myNodeId-123">
+                const nodeGroup = target.closest('.node');
+                let nodeId = rawText.replace(/\s+/g, '');
+                if (nodeGroup && nodeGroup.id) {
+                    const match = nodeGroup.id.match(/^(?:flowchart|node)-(.+?)-\d+$/);
+                    if (match && match[1]) {
+                        nodeId = match[1];
+                    }
+                }
+                onInsertSnippet(`${nodeId} --> `);
             }
             return;
         }
@@ -748,7 +761,7 @@ export default function UnifluxMermaidEditor({
                                 handMode={handMode}
                                 engine={engine}
                                 onInsertSnippet={insertSnippet}
-                              />
+                            />
                             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', fontSize: 13, fontFamily: MONO }}>Inicializando motor Mermaid…</div>
                         }
                     </div>
@@ -772,13 +785,18 @@ export default function UnifluxMermaidEditor({
 
                 /* Edit mode — SVG element hover highlighting */
                 .uniflux-edit-mode svg { pointer-events: all; }
-                .uniflux-edit-mode svg text {
+                .uniflux-edit-mode svg text,
+                .uniflux-edit-mode svg .nodeLabel,
+                .uniflux-edit-mode svg .edgeLabel {
                     cursor: pointer !important;
-                    transition: opacity 0.15s;
+                    transition: all 0.15s;
                 }
-                .uniflux-edit-mode svg text:hover {
+                .uniflux-edit-mode svg text:hover,
+                .uniflux-edit-mode svg .nodeLabel:hover,
+                .uniflux-edit-mode svg .edgeLabel:hover {
                     opacity: 0.6;
                     fill: #7c3aed !important;
+                    color: #7c3aed !important;
                 }
                 .uniflux-edit-mode svg rect:not([style*="fill:none"]):hover,
                 .uniflux-edit-mode svg polygon:hover,
