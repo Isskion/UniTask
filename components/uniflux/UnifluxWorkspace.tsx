@@ -257,6 +257,21 @@ export default function UnifluxWorkspace() {
         setGraph(prev => ({ ...prev, mermaidEngine: engine }));
     }, []);
 
+    const handleConvertMermaidToVisual = useCallback((vNodes: FlowNode[], vEdges: FlowEdge[]) => {
+        const newGraph: FlowGraph = {
+            ...INITIAL_GRAPH,
+            id: `draft-${Date.now()}`,
+            projectId: selectedProjectId,
+            name: `${graph.name} (Visual)`,
+            docType: 'visual',
+            nodes: vNodes,
+            edges: vEdges,
+        };
+        setGraph(newGraph);
+        setIsSidebarOpen(false);
+        setShowWizard(false);
+    }, [graph.name, selectedProjectId]);
+
     const handleNameRename = () => {
         if (!editNameValue.trim()) {
             setIsEditingName(false);
@@ -931,6 +946,7 @@ export default function UnifluxWorkspace() {
                             initialEngine={graph.mermaidEngine || 'sequence'}
                             onChange={handleMermaidChange}
                             onEngineChange={handleMermaidEngineChange}
+                            onConvertToVisual={handleConvertMermaidToVisual}
                         />
                     </div>
                 )}

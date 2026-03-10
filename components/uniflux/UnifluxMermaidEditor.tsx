@@ -385,13 +385,14 @@ export interface UnifluxMermaidEditorProps {
     initialEngine: MermaidEngine;
     onChange: (code: string) => void;
     onEngineChange: (engine: MermaidEngine) => void;
+    onConvertToVisual?: (nodes: import('@/app/uniflux/core/types').FlowNode[], edges: import('@/app/uniflux/core/types').FlowEdge[]) => void;
 }
 
 // ---------------------------------------------------------------------------
 // Main editor
 // ---------------------------------------------------------------------------
 export default function UnifluxMermaidEditor({
-    initialCode, initialEngine, onChange, onEngineChange,
+    initialCode, initialEngine, onChange, onEngineChange, onConvertToVisual,
 }: UnifluxMermaidEditorProps) {
     const [code, setCode] = useState(initialCode);
     const [engine, setEngine] = useState<MermaidEngine>(initialEngine);
@@ -402,6 +403,7 @@ export default function UnifluxMermaidEditor({
     const [showThemePicker, setShowThemePicker] = useState(false);
     const [handMode, setHandMode] = useState(true);
     const [copiedMMD, setCopiedMMD] = useState(false);
+    const [convertFeedback, setConvertFeedback] = useState<'idle' | 'ok' | 'empty'>('idle');
     const mermaidReady = useMermaid();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLPreElement>(null);
@@ -508,6 +510,17 @@ export default function UnifluxMermaidEditor({
             setTimeout(() => setCopiedMMD(false), 2000);
         } catch { /* clipboard may be restricted */ }
     }, [code, engine]);
+
+    // Convert Mermaid → Visual flow
+    const handleConvert = useCallback(async () => {
+        if (!onConvertToVisual) return;
+        const { parseMermaidToVisual } = await import('@/app/uniflux/core/mermaidToVisual');
+        const { nodes: vNodes, edges: vEdges } = parseMermaidToVisual(code);
+        if (vNodes.length === 0) { setConvertFeedback('empty'); setTimeout(() => setConvertFeedback('idle'), 2500); return; }
+        onConvertToVisual(vNodes, vEdges);
+        setConvertFeedback('ok');
+        setTimeout(() => setConvertFeedback('idle'), 2500);
+    }, [code, onConvertToVisual]);
 
     // Insert snippet from edit-mode diagram click
     const insertSnippet = useCallback((snippet: string) => {
@@ -625,6 +638,26 @@ export default function UnifluxMermaidEditor({
 
                     {/* Separator */}
                     <div style={{ width: 1, height: 20, background: '#e2e8f0', margin: '0 2px' }} />
+
+                    {/* Convert to visual flow */}
+                    {onConvertToVisual && (
+                        <button
+                            onClick={handleConvert}
+                            title="Convertir este diagrama a flujo visual editable"
+                            style={{
+                                padding: '5px 11px', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                border: `1px solid ${convertFeedback === 'ok' ? '#bbf7d0' : convertFeedback === 'empty' ? '#fecaca' : '#d1fae5'}`,
+                                background: convertFeedback === 'ok' ? '#f0fdf4' : convertFeedback === 'empty' ? '#fef2f2' : '#f0fdf4',
+                                color: convertFeedback === 'ok' ? '#16a34a' : convertFeedback === 'empty' ? '#dc2626' : '#059669',
+                                display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.3s',
+                            }}
+                        >
+                            <span style={{ fontSize: 13 }}>
+                                {convertFeedback === 'ok' ? '✓' : convertFeedback === 'empty' ? '!' : '⇄'}
+                            </span>
+                            {convertFeedback === 'ok' ? 'Creado' : convertFeedback === 'empty' ? 'Sin contenido' : 'Convertir'}
+                        </button>
+                    )}
 
                     {/* SVG */}
                     <button onClick={handleExportSVG} style={{ padding: '5px 12px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontSize: 11, fontWeight: 500, cursor: 'pointer' }}>
