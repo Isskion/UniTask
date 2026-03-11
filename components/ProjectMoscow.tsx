@@ -6,11 +6,12 @@ import { getProjectRequirements, saveRequirement, deleteRequirement, getNextSequ
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
-import { Plus, Search, Filter, Edit2, Trash2, Save, XCircle, Loader2, ChevronDown, Check } from "lucide-react";
+import { Plus, Search, Filter, Edit2, Trash2, Save, XCircle, Loader2, ChevronDown, Check, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/context/ToastContext";
 import ProjectMoscowPrintReport from "./ProjectMoscowPrintReport";
+import MoscowBulkImportModal, { ParsedMoscowData } from "./MoscowBulkImportModal";
 
 interface ProjectMoscowProps {
     projectId: string;
@@ -60,6 +61,7 @@ export default function ProjectMoscow({ projectId, projectCode, projectName, ten
 
     // Form
     const [showForm, setShowForm] = useState(false);
+    const [showBulkImport, setShowBulkImport] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         moduleCode: "01",
@@ -173,6 +175,63 @@ export default function ProjectMoscow({ projectId, projectCode, projectName, ten
         }
     };
 
+    const handleBulkSave = async (parsedReqs: ParsedMoscowData[]) => {
+        if (!user) return;
+        setSaving(true);
+        try {
+            // Group by moduleCode to fetch max sequences efficiently
+            const byModule: Record<string, ParsedMoscowData[]> = {};
+            parsedReqs.forEach(r => {
+                if (!byModule[r.moduleCode]) byModule[r.moduleCode] = [];
+                byModule[r.moduleCode].push(r);
+            });
+
+            const newRequirements: MoscowRequirement[] = [];
+
+            for (const [modCode, reqs] of Object.entries(byModule)) {
+                let currentSeq = await getNextSequentialNumber(tenantId, projectId, modCode);
+                
+                for (const req of reqs) {
+                    const moscowId = formatMoscowId(modCode, currentSeq);
+                    
+                    const newReq: Partial<MoscowRequirement> = {
+                        moscowId,
+                        moduleCode: modCode,
+                        sequentialNumber: currentSeq,
+                        title: req.title,
+                        priority: req.priority,
+                        status: "open",
+                        requesterName: userProfile?.displayName || user.email || "Usuario (Importación)",
+                        observations: req.observations,
+                        projectId,
+                        tenantId,
+                        createdBy: user.uid,
+                        createdByName: userProfile?.displayName || user.email || "Usuario",
+                    };
+
+                    const savedId = await saveRequirement(newReq);
+                    newRequirements.push({
+                        ...newReq,
+                        id: savedId,
+                        createdAt: { toMillis: () => Date.now() },
+                        updatedAt: { toMillis: () => Date.now() },
+                    } as MoscowRequirement);
+                    
+                    currentSeq++;
+                }
+            }
+
+            setRequirements(prev => [...newRequirements, ...prev]);
+            showToast("Importación masiva", `Se han importado ${newRequirements.length} requisitos`, "success");
+            setShowBulkImport(false);
+        } catch (error) {
+            console.error("Error bulk saving:", error);
+            showToast("Error", "No se pudieron importar todos los requisitos", "error");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleDelete = async (req: MoscowRequirement) => {
         if (!confirm(`¿Eliminar requisito ${req.moscowId}?`)) return;
         try {
@@ -265,6 +324,15 @@ export default function ProjectMoscow({ projectId, projectCode, projectName, ten
                     className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95"
                 >
                     <Plus className="w-4 h-4" /> Nuevo Requisito
+                </button>
+                <button
+                    onClick={() => setShowBulkImport(true)}
+                    className={cn("px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 transition-all active:scale-95 border",
+                        isLight ? "bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-100" : "bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10"
+                    )}
+                    title="Importar requisitos desde un Excel (Copiar/Pegar)"
+                >
+                    <Upload className="w-4 h-4" /> Importar Masivo
                 </button>
                 <ProjectMoscowPrintReport requirements={filtered} isLight={isLight} tenantId={tenantId} projectId={projectId} projectCode={projectCode} projectName={projectName} />
 
@@ -564,6 +632,12 @@ export default function ProjectMoscow({ projectId, projectCode, projectName, ten
                 <span>{filtered.length} de {requirements.length} requisitos</span>
                 <span>Total: {stats.must}M · {stats.should}S · {stats.could}C · {stats.wont}W</span>
             </div>
+
+            <MoscowBulkImportModal 
+                isOpen={showBulkImport} 
+                onClose={() => setShowBulkImport(false)} 
+                onSave={handleBulkSave} 
+            />
         </div>
     );
 }
