@@ -867,7 +867,7 @@ export default function DailyFollowUp() {
             let taskTenantId: string = tenantId || "1"; // Default fallback
 
             if (activeTab !== 'General') {
-                const project = globalProjects.find(p => p.name === activeTab);
+                const project = globalProjects.find(p => p.id === activeTab || p.name === activeTab);
                 if (project) {
                     projectId = project.id;
                     projectName = project.name;
@@ -893,7 +893,7 @@ export default function DailyFollowUp() {
             const taskData: any = {
                 weekId: entry.date, // Keep Date for legacy weekId
                 relatedDailyStatusId: entry.id, // [FIX] Link to specific entry instance
-                projectId: projectId,
+                projectId: projectId ?? null,
                 tenantId: taskTenantId,
                 title: taskDesc,
                 description: taskDesc,
