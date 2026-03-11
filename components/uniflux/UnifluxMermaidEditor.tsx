@@ -143,6 +143,21 @@ interface DiagramPanelProps {
     onInsertSnippet: (snippet: string) => void;
 }
 
+function getStableId(element: Element): string | null {
+    if (!element.id) {
+        if (element.classList.contains('cluster')) {
+            const text = element.querySelector('.cluster-label text')?.textContent;
+            if (text) return `cluster-${text.trim()}`;
+        }
+        return null;
+    }
+    const match = element.id.match(/^(?:flowchart|node|cluster)-(.+?)-\d+$/);
+    if (match && match[1]) {
+        return `${element.id.split('-')[0]}-${match[1]}`;
+    }
+    return element.id.replace(/-\d+$/, '');
+}
+
 function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onInsertSnippet }: DiagramPanelProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
@@ -154,6 +169,10 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
     const didMoveRef = useRef(false);
     const lastPosRef = useRef({ x: 0, y: 0 });
     const dk = activeTheme.isDark;
+
+    const nodeOffsetsRef = useRef<Record<string, {x: number, y: number}>>({});
+    const lockedStableIdsRef = useRef<Set<string>>(new Set());
+    const dragContext = useRef<{ element: SVGGElement; stableId: string; startX: number; startY: number; initialDx: number; initialDy: number } | null>(null);
 
     useEffect(() => {
         if (!mermaidReady || !code.trim()) { setSvg(''); setError(null); return; }
@@ -179,6 +198,28 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
         })();
     }, [code, mermaidReady, activeTheme]);
 
+    useEffect(() => {
+        if (!svg || !containerRef.current) return;
+        const els = containerRef.current.querySelectorAll('g.node, g.cluster');
+        els.forEach(el => {
+            const stable = getStableId(el);
+            if (!stable) return;
+            
+            if (lockedStableIdsRef.current.has(stable)) {
+                el.setAttribute('data-locked', 'true');
+            }
+            
+            const offset = nodeOffsetsRef.current[stable];
+            if (offset) {
+                if (!el.hasAttribute('data-base-transform')) {
+                    el.setAttribute('data-base-transform', el.getAttribute('transform') || '');
+                }
+                const base = el.getAttribute('data-base-transform') || '';
+                el.setAttribute('transform', `${base} translate(${offset.x}, ${offset.y})`.trim());
+            }
+        });
+    }, [svg]);
+
     useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [svg]);
 
     const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -187,23 +228,92 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
         setZoom(z => Math.max(0.2, Math.min(5, z * (e.deltaY > 0 ? 0.9 : 1.1))));
     }, [handMode]);
 
+    const handleContextMenu = useCallback((e: React.MouseEvent) => {
+        if (handMode) return;
+        const target = e.target as Element;
+        const group = target.closest('g.node, g.cluster');
+        if (group) {
+            e.preventDefault();
+            const stable = getStableId(group);
+            if (!stable) return;
+            if (lockedStableIdsRef.current.has(stable)) {
+                lockedStableIdsRef.current.delete(stable);
+                group.removeAttribute('data-locked');
+            } else {
+                lockedStableIdsRef.current.add(stable);
+                group.setAttribute('data-locked', 'true');
+            }
+        }
+    }, [handMode]);
+
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (!handMode || e.button !== 0) return;
-        isPanningRef.current = true;
-        didMoveRef.current = false;
-        lastPosRef.current = { x: e.clientX, y: e.clientY };
+        if (e.button !== 0) return;
+        if (handMode) {
+            isPanningRef.current = true;
+            didMoveRef.current = false;
+            lastPosRef.current = { x: e.clientX, y: e.clientY };
+            return;
+        }
+
+        const target = e.target as Element;
+        const group = target.closest('g.node, g.cluster');
+        if (group) {
+            const stable = getStableId(group);
+            if (stable && !lockedStableIdsRef.current.has(stable)) {
+                e.stopPropagation();
+                e.preventDefault();
+                didMoveRef.current = false;
+                if (!group.hasAttribute('data-base-transform')) {
+                    group.setAttribute('data-base-transform', group.getAttribute('transform') || '');
+                }
+                const offset = nodeOffsetsRef.current[stable] || { x: 0, y: 0 };
+                dragContext.current = {
+                    element: group as SVGGElement,
+                    stableId: stable,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    initialDx: offset.x,
+                    initialDy: offset.y
+                };
+            }
+        }
     }, [handMode]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
-        if (!isPanningRef.current) return;
-        const dx = e.clientX - lastPosRef.current.x;
-        const dy = e.clientY - lastPosRef.current.y;
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didMoveRef.current = true;
-        lastPosRef.current = { x: e.clientX, y: e.clientY };
-        setPan(p => ({ x: p.x + dx, y: p.y + dy }));
-    }, []);
+        if (isPanningRef.current) {
+            const dx = e.clientX - lastPosRef.current.x;
+            const dy = e.clientY - lastPosRef.current.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didMoveRef.current = true;
+            lastPosRef.current = { x: e.clientX, y: e.clientY };
+            setPan(p => ({ x: p.x + dx, y: p.y + dy }));
+        } else if (dragContext.current) {
+            const ctx = dragContext.current;
+            const dx = (e.clientX - ctx.startX) / zoom;
+            const dy = (e.clientY - ctx.startY) / zoom;
+            if (Math.abs(dx * zoom) > 3 || Math.abs(dy * zoom) > 3) didMoveRef.current = true;
+            const nx = ctx.initialDx + dx;
+            const ny = ctx.initialDy + dy;
+            const base = ctx.element.getAttribute('data-base-transform') || '';
+            ctx.element.setAttribute('transform', `${base} translate(${nx}, ${ny})`.trim());
+        }
+    }, [zoom]);
 
-    const handleMouseUp = useCallback(() => { isPanningRef.current = false; }, []);
+    const handleMouseUp = useCallback(() => { 
+        isPanningRef.current = false; 
+        if (dragContext.current) {
+            const ctx = dragContext.current;
+            const base = ctx.element.getAttribute('data-base-transform') || '';
+            const current = ctx.element.getAttribute('transform') || '';
+            const idx = current.lastIndexOf('translate(');
+            if (idx > -1 && current !== base) {
+                const match = current.substring(idx).match(/translate\(([-\d.]+),\s*([^)]+)\)/);
+                if (match) {
+                    nodeOffsetsRef.current[ctx.stableId] = { x: parseFloat(match[1]), y: parseFloat(match[2]) };
+                }
+            }
+            dragContext.current = null;
+        }
+    }, []);
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         if (handMode || didMoveRef.current) return;
@@ -335,6 +445,15 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                 <button onClick={() => setZoom(z => Math.max(0.2, z * 0.8))} style={{ ...zoomBtnBase, fontSize: 16 }}>−</button>
                 <div style={{ width: 1, height: 16, background: dk ? '#334155' : '#e2e8f0', margin: '0 2px' }} />
                 <button onClick={resetView} style={{ ...zoomBtnBase, fontSize: 11 }} title="Resetear vista">⊙</button>
+                <div style={{ width: 1, height: 16, background: dk ? '#334155' : '#e2e8f0', margin: '0 2px' }} />
+                <button onClick={() => { 
+                    nodeOffsetsRef.current = {}; 
+                    lockedStableIdsRef.current.clear(); 
+                    containerRef.current?.querySelectorAll('[data-locked]').forEach(el => el.removeAttribute('data-locked'));
+                    containerRef.current?.querySelectorAll('[data-base-transform]').forEach(el => {
+                        el.setAttribute('transform', el.getAttribute('data-base-transform') || '');
+                    });
+                }} style={{ ...zoomBtnBase, fontSize: 12, width: 34 }} title="Restablecer posiciones y bloqueos">🔃</button>
             </div>
 
             {/* Mode hint */}
@@ -345,7 +464,7 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                     background: dk ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.8)',
                     borderRadius: 4, padding: '2px 6px', pointerEvents: 'none',
                 }}>
-                    {handMode ? 'Rueda = zoom · Arrastrar = mover' : '✏ Click en el diagrama para insertar código'}
+                    {handMode ? 'Rueda = zoom · Arrastrar = mover vista' : '✏️ Clic: Insertar · Arrastrar: Mover · Clic derecho: Bloquear pieza'}
                 </div>
             )}
 
@@ -357,6 +476,7 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onContextMenu={handleContextMenu}
                 onClick={handleClick}
                 style={{ width: '100%', height: '100%', cursor: !handMode ? 'crosshair' : 'grab', userSelect: 'none' }}
             >
@@ -806,6 +926,22 @@ export default function UnifluxMermaidEditor({
                     cursor: pointer !important;
                     opacity: 0.85;
                 }
+
+                /* Edit mode — dragging & locking */
+                .uniflux-edit-mode svg g.node,
+                .uniflux-edit-mode svg g.cluster { cursor: grab; }
+                .uniflux-edit-mode svg g.node:active,
+                .uniflux-edit-mode svg g.cluster:active { cursor: grabbing; }
+                
+                .uniflux-edit-mode svg [data-locked] *,
+                .uniflux-edit-mode svg [data-locked] { cursor: not-allowed !important; }
+                .uniflux-edit-mode svg [data-locked] rect,
+                .uniflux-edit-mode svg [data-locked] polygon,
+                .uniflux-edit-mode svg [data-locked] circle {
+                    stroke-dasharray: 4;
+                    pointer-events: none !important;
+                }
+                .uniflux-edit-mode svg .cluster[data-locked] { opacity: 0.7; }
             `}</style>
         </div>
     );
