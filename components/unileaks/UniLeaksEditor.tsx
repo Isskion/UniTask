@@ -140,6 +140,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [isDragging, setIsDragging] = useState(false);
     const lightboxRef = useRef<HTMLDivElement>(null);
     const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+    const hasDragged = useRef(false);
 
     // --- LOAD TENANT DICTIONARY ON MOUNT ---
     useEffect(() => {
@@ -1077,7 +1078,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     ref={lightboxRef}
                     className="fixed inset-0 z-[9999] bg-black/85 overflow-hidden"
                     style={{ cursor: isDragging ? 'grabbing' : zoomScale > 1 ? 'grab' : 'zoom-in' }}
-                    onClick={(e) => { if (e.target === lightboxRef.current) { setZoomedImage(null); } }}
+                    onClick={() => { if (!hasDragged.current) setZoomedImage(null); hasDragged.current = false; }}
                     onWheel={(e) => {
                         e.preventDefault();
                         const rect = lightboxRef.current!.getBoundingClientRect();
@@ -1094,11 +1095,13 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     }}
                     onMouseDown={(e) => {
                         if (e.button !== 0) return;
+                        hasDragged.current = false;
                         setIsDragging(true);
                         dragStart.current = { x: e.clientX, y: e.clientY, ox: panOffset.x, oy: panOffset.y };
                     }}
                     onMouseMove={(e) => {
                         if (!isDragging || !dragStart.current) return;
+                        hasDragged.current = true;
                         setPanOffset({
                             x: dragStart.current.ox + (e.clientX - dragStart.current.x),
                             y: dragStart.current.oy + (e.clientY - dragStart.current.y),
