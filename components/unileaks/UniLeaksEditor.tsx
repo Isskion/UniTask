@@ -135,6 +135,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     // Image Zoom State
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
     const [zoomScale, setZoomScale] = useState(1);
+    const [nativeSize, setNativeSize] = useState<{ w: number; h: number } | null>(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const lightboxRef = useRef<HTMLDivElement>(null);
@@ -174,9 +175,20 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         const handleImageClick = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             if (target.tagName === 'IMG') {
-                setZoomedImage((target as HTMLImageElement).src);
-                setZoomScale(1);
-                setPanOffset({ x: 0, y: 0 });
+                const imgEl = target as HTMLImageElement;
+                const src = imgEl.src;
+                // Load image to get native dimensions and compute fit-to-viewport scale
+                const tmpImg = new window.Image();
+                tmpImg.onload = () => {
+                    const vw = window.innerWidth * 0.95;
+                    const vh = window.innerHeight * 0.95;
+                    const fitScale = Math.min(vw / tmpImg.naturalWidth, vh / tmpImg.naturalHeight, 1);
+                    setNativeSize({ w: tmpImg.naturalWidth, h: tmpImg.naturalHeight });
+                    setZoomScale(fitScale);
+                    setPanOffset({ x: 0, y: 0 });
+                    setZoomedImage(src);
+                };
+                tmpImg.src = src;
             }
         };
         document.addEventListener('click', handleImageClick);
@@ -1099,12 +1111,17 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                         <img
                             src={zoomedImage}
                             alt="Imagen ampliada"
-                            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                            className="rounded-xl shadow-2xl"
                             style={{
+                                width: nativeSize ? nativeSize.w : 'auto',
+                                height: nativeSize ? nativeSize.h : 'auto',
+                                maxWidth: 'none',
+                                maxHeight: 'none',
                                 transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
                                 transformOrigin: 'center center',
                                 transition: isDragging ? 'none' : 'transform 0.06s ease-out',
                                 userSelect: 'none',
+                                imageRendering: zoomScale > 2 ? 'pixelated' : 'auto',
                             }}
                             draggable={false}
                         />

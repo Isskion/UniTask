@@ -36,29 +36,27 @@ export function useFileUploader(): UseFileUploaderReturn {
                     return;
                 }
 
-                // Max dimensions
-                const MAX_WIDTH = 1920;
-                const MAX_HEIGHT = 1080;
+                // Max dimensions — higher cap for screenshots with dense text
+                const MAX_WIDTH = 4096;
+                const MAX_HEIGHT = 4096;
                 let width = img.width;
                 let height = img.height;
 
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
                 }
 
                 canvas.width = width;
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Compress to JPEG with 0.8 quality
+                // PNG for screenshots/text (lossless) — JPEG destroys text readability
+                const isPng = file.type === 'image/png' || file.type === '';
                 canvas.toBlob(
                     (blob) => {
                         if (blob) {
@@ -67,8 +65,8 @@ export function useFileUploader(): UseFileUploaderReturn {
                             reject(new Error('Compression failed'));
                         }
                     },
-                    'image/jpeg',
-                    0.8
+                    isPng ? 'image/png' : 'image/jpeg',
+                    isPng ? undefined : 0.9
                 );
             };
             img.onerror = (err) => reject(err);
