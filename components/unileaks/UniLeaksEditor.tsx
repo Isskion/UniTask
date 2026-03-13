@@ -178,8 +178,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             },
             handlePaste: (view, event) => {
                 const items = Array.from(event.clipboardData?.items || []);
-                const imageItem = items.find(item => item.type.startsWith('image'));
 
+                // Excel/Sheets paste: clipboard carries both image AND HTML with a real <table>
+                // Prioritize the HTML table over the image so the result is editable
+                const htmlData = event.clipboardData?.getData('text/html');
+                if (htmlData && /<table[\s>]/i.test(htmlData)) {
+                    // Strip Excel wrapper noise, keep the table — let TipTap parse it natively
+                    return false;
+                }
+
+                const imageItem = items.find(item => item.type.startsWith('image'));
                 if (imageItem) {
                     event.preventDefault();
                     const file = imageItem.getAsFile();
@@ -189,10 +197,9 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     }
                 }
 
-                // Check if clipboard has HTML content — if so, let TipTap handle it natively
-                const htmlData = event.clipboardData?.getData('text/html');
+                // Check if clipboard has other HTML content — let TipTap handle it natively
                 if (htmlData && htmlData.trim().length > 0) {
-                    return false; // Let TipTap handle rich paste
+                    return false;
                 }
 
                 // Plain text paste: preserve tabs, multiple spaces, and blank lines
