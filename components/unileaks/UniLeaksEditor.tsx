@@ -728,11 +728,11 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
         if (!rows.length) return;
 
-        const escape = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escape = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') || '&nbsp;';
         const [headerRow, ...dataRows] = rows;
-        const thead = `<thead><tr>${headerRow.map(c => `<th>${escape(c)}</th>`).join('')}</tr></thead>`;
+        const thead = `<thead><tr>${headerRow.map(c => `<th><p>${escape(c)}</p></th>`).join('')}</tr></thead>`;
         const tbody = dataRows.map(row =>
-            `<tr>${headerRow.map((_, i) => `<td>${escape(row[i])}</td>`).join('')}</tr>`
+            `<tr>${headerRow.map((_, i) => `<td><p>${escape(row[i])}</p></td>`).join('')}</tr>`
         ).join('');
         const html = `<table>${thead}<tbody>${tbody}</tbody></table>`;
 
