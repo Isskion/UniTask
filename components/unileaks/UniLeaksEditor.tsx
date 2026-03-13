@@ -135,6 +135,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     // Image Zoom State
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
     const [zoomScale, setZoomScale] = useState(1);
+    const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const lightboxRef = useRef<HTMLDivElement>(null);
+    const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
     // --- LOAD TENANT DICTIONARY ON MOUNT ---
     useEffect(() => {
@@ -172,6 +176,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             if (target.tagName === 'IMG') {
                 setZoomedImage((target as HTMLImageElement).src);
                 setZoomScale(1);
+                setPanOffset({ x: 0, y: 0 });
             }
         };
         document.addEventListener('click', handleImageClick);
@@ -232,14 +237,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             handlePaste: (view, event) => {
                 const items = Array.from(event.clipboardData?.items || []);
 
-                // Excel/Sheets paste: clipboard carries both image AND HTML with a real <table>
-                // Prioritize the HTML table over the image so the result is editable
-                const htmlData = event.clipboardData?.getData('text/html');
-                if (htmlData && /<table[\s>]/i.test(htmlData)) {
-                    // Strip Excel wrapper noise, keep the table — let TipTap parse it natively
-                    return false;
-                }
-
+                // Image paste (from Excel, screenshot, etc.) — always takes priority
                 const imageItem = items.find(item => item.type.startsWith('image'));
                 if (imageItem) {
                     event.preventDefault();
@@ -250,7 +248,8 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     }
                 }
 
-                // Check if clipboard has other HTML content — let TipTap handle it natively
+                // HTML content — let TipTap handle natively
+                const htmlData = event.clipboardData?.getData('text/html');
                 if (htmlData && htmlData.trim().length > 0) {
                     return false;
                 }
@@ -1063,23 +1062,65 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             {/* Image Lightbox */}
             {zoomedImage && (
                 <div
-                    className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden"
-                    style={{ cursor: zoomScale > 1 ? 'grab' : 'zoom-out' }}
-                    onClick={() => setZoomedImage(null)}
+                    ref={lightboxRef}
+                    className="fixed inset-0 z-[9999] bg-black/85 overflow-hidden"
+                    style={{ cursor: isDragging ? 'grabbing' : zoomScale > 1 ? 'grab' : 'zoom-in' }}
+                    onClick={(e) => { if (e.target === lightboxRef.current) { setZoomedImage(null); } }}
                     onWheel={(e) => {
                         e.preventDefault();
-                        setZoomScale(prev => Math.min(10, Math.max(0.5, prev - e.deltaY * 0.001)));
+                        const rect = lightboxRef.current!.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left - rect.width / 2;
+                        const mouseY = e.clientY - rect.top - rect.height / 2;
+                        const factor = e.deltaY < 0 ? 1.12 : 0.9;
+                        const newScale = Math.min(30, Math.max(0.5, zoomScale * factor));
+                        const ratio = newScale / zoomScale;
+                        setPanOffset(prev => ({
+                            x: mouseX + ratio * (prev.x - mouseX),
+                            y: mouseY + ratio * (prev.y - mouseY),
+                        }));
+                        setZoomScale(newScale);
                     }}
+                    onMouseDown={(e) => {
+                        if (e.button !== 0) return;
+                        setIsDragging(true);
+                        dragStart.current = { x: e.clientX, y: e.clientY, ox: panOffset.x, oy: panOffset.y };
+                    }}
+                    onMouseMove={(e) => {
+                        if (!isDragging || !dragStart.current) return;
+                        setPanOffset({
+                            x: dragStart.current.ox + (e.clientX - dragStart.current.x),
+                            y: dragStart.current.oy + (e.clientY - dragStart.current.y),
+                        });
+                    }}
+                    onMouseUp={() => { setIsDragging(false); dragStart.current = null; }}
+                    onMouseLeave={() => { setIsDragging(false); dragStart.current = null; }}
                 >
-                    <img
-                        src={zoomedImage}
-                        alt="Imagen ampliada"
-                        className="max-w-[95vw] max-h-[95vh] object-contain rounded-xl shadow-2xl transition-transform duration-100"
-                        style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
-                        onClick={(e) => e.stopPropagation()}
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <img
+                            src={zoomedImage}
+                            alt="Imagen ampliada"
+                            className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                            style={{
+                                transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
+                                transformOrigin: 'center center',
+                                transition: isDragging ? 'none' : 'transform 0.06s ease-out',
+                                userSelect: 'none',
+                            }}
+                            draggable={false}
+                        />
+                    </div>
+                    <div className="absolute top-4 right-4 flex gap-2">
+                        <button
+                            className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
+                            onClick={() => { setZoomScale(1); setPanOffset({ x: 0, y: 0 }); }}
+                        >Reset</button>
+                        <button
+                            className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
+                            onClick={() => setZoomedImage(null)}
+                        >✕ Cerrar</button>
+                    </div>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full pointer-events-none">
-                        {Math.round(zoomScale * 100)}% · Rueda para zoom · Click fuera para cerrar
+                        {Math.round(zoomScale * 100)}% · Rueda = zoom · Drag = mover
                     </div>
                 </div>
             )}
