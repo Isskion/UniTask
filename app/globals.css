@@ -218,20 +218,24 @@
 /* Tiptap Table Base Styles for Editor View */
 .ProseMirror table {
   border-collapse: collapse;
-  table-layout: fixed;
-  width: 100%;
-  margin: 0;
-  overflow: hidden;
+  table-layout: auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  display: block;
+  overflow-x: auto;
 }
 
 .ProseMirror table td,
 .ProseMirror table th {
-  min-width: 1em;
+  min-width: 2em;
   border: 1px solid theme('colors.border');
-  padding: 8px 12px;
-  vertical-align: top;
+  padding: 3px 7px;
+  vertical-align: middle;
   box-sizing: border-box;
   position: relative;
+  font-size: 0.85em;
+  white-space: nowrap;
 }
 
 .ProseMirror table th {

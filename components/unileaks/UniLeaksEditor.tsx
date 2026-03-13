@@ -10,6 +10,59 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+
+// Preserve background-color and text color from Excel/Sheets paste
+const StyledTableCell = TableCell.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            backgroundColor: {
+                default: null,
+                parseHTML: el => el.style.backgroundColor || el.getAttribute('bgcolor') || null,
+                renderHTML: attrs => attrs.backgroundColor ? { style: `background-color: ${attrs.backgroundColor}` } : {},
+            },
+            textColor: {
+                default: null,
+                parseHTML: el => el.style.color || null,
+                renderHTML: attrs => attrs.textColor ? { style: `color: ${attrs.textColor}` } : {},
+            },
+        };
+    },
+    renderHTML({ HTMLAttributes }) {
+        const { backgroundColor, textColor, ...rest } = HTMLAttributes;
+        const style = [
+            backgroundColor ? `background-color: ${backgroundColor}` : '',
+            textColor ? `color: ${textColor}` : '',
+        ].filter(Boolean).join('; ');
+        return ['td', { ...rest, ...(style ? { style } : {}) }, 0];
+    },
+});
+
+const StyledTableHeader = TableHeader.extend({
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            backgroundColor: {
+                default: null,
+                parseHTML: el => el.style.backgroundColor || el.getAttribute('bgcolor') || null,
+                renderHTML: attrs => attrs.backgroundColor ? { style: `background-color: ${attrs.backgroundColor}` } : {},
+            },
+            textColor: {
+                default: null,
+                parseHTML: el => el.style.color || null,
+                renderHTML: attrs => attrs.textColor ? { style: `color: ${attrs.textColor}` } : {},
+            },
+        };
+    },
+    renderHTML({ HTMLAttributes }) {
+        const { backgroundColor, textColor, ...rest } = HTMLAttributes;
+        const style = [
+            backgroundColor ? `background-color: ${backgroundColor}` : '',
+            textColor ? `color: ${textColor}` : '',
+        ].filter(Boolean).join('; ');
+        return ['th', { ...rest, ...(style ? { style } : {}) }, 0];
+    },
+});
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import { UniLeakNote } from "@/types";
@@ -137,12 +190,12 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             Table.configure({
                 resizable: true,
                 HTMLAttributes: {
-                    class: 'w-full text-left border-collapse table-auto',
+                    class: 'text-left border-collapse table-auto',
                 },
             }),
             TableRow,
-            TableHeader,
-            TableCell,
+            StyledTableHeader,
+            StyledTableCell,
             Highlight.configure({
                 multicolor: true,
             }),
