@@ -512,7 +512,11 @@ service cloud.firestore {
     match /moscow_requirements/{reqId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
-      allow update, delete: if isAuthenticated() && (
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && docTenantMatches(request.resource.data))
+      );
+      allow delete: if isAuthenticated() && (
         isSuperAdmin() || 
         (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60))
       );
