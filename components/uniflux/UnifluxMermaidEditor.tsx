@@ -173,6 +173,57 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
     const nodeOffsetsRef = useRef<Record<string, {x: number, y: number}>>({});
     const lockedStableIdsRef = useRef<Set<string>>(new Set());
     const dragContext = useRef<{ element: SVGGElement; stableId: string; startX: number; startY: number; initialDx: number; initialDy: number } | null>(null);
+    const edgesMetaRef = useRef<any[]>([]);
+
+    const applyEdges = useCallback(() => {
+        edgesMetaRef.current.forEach(edge => {
+            const sOff = nodeOffsetsRef.current[edge.sourceId] || {x: 0, y: 0};
+            const tOff = nodeOffsetsRef.current[edge.targetId] || {x: 0, y: 0};
+            
+            if (sOff.x === 0 && sOff.y === 0 && tOff.x === 0 && tOff.y === 0) {
+                if (edge.path.getAttribute('d') !== edge.baseD) edge.path.setAttribute('d', edge.baseD);
+                if (edge.label) edge.label.setAttribute('transform', edge.baseLabelTransform);
+                return;
+            }
+            
+            const parts = [...(edge.baseD.match(/[a-zA-Z]+|-?[\d.]+/g) || [])];
+            if (parts.length < 3) return;
+            
+            if (sOff.x !== 0 || sOff.y !== 0) {
+                if (parts[0].toUpperCase() === 'M') {
+                     parts[1] = (parseFloat(parts[1]) + sOff.x).toFixed(2);
+                     parts[2] = (parseFloat(parts[2]) + sOff.y).toFixed(2);
+                     if (parts[3] && parts[3].toUpperCase() === 'C') {
+                          parts[4] = (parseFloat(parts[4]) + sOff.x).toFixed(2);
+                          parts[5] = (parseFloat(parts[5]) + sOff.y).toFixed(2);
+                     }
+                }
+            }
+            
+            if (tOff.x !== 0 || tOff.y !== 0) {
+                const len = parts.length;
+                parts[len-2] = (parseFloat(parts[len-2]) + tOff.x).toFixed(2);
+                parts[len-1] = (parseFloat(parts[len-1]) + tOff.y).toFixed(2);
+                
+                let cIdx = -1;
+                for (let i = len - 1; i >= 0; i--) {
+                    if (parts[i].toUpperCase() === 'C') { cIdx = i; break; }
+                }
+                if (cIdx !== -1 && cIdx === len - 7) {
+                    parts[cIdx + 3] = (parseFloat(parts[cIdx+3]) + tOff.x).toFixed(2);
+                    parts[cIdx + 4] = (parseFloat(parts[cIdx+4]) + tOff.y).toFixed(2);
+                }
+            }
+            
+            edge.path.setAttribute('d', parts.join(' '));
+            
+            if (edge.label) {
+                 const mx = (sOff.x + tOff.x) / 2;
+                 const my = (sOff.y + tOff.y) / 2;
+                 edge.label.setAttribute('transform', `${edge.baseLabelTransform} translate(${mx}, ${my})`.trim());
+            }
+        });
+    }, []);
 
     useEffect(() => {
         if (!mermaidReady || !code.trim()) { setSvg(''); setError(null); return; }
@@ -201,6 +252,8 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
     useEffect(() => {
         if (!svg || !containerRef.current) return;
         const els = containerRef.current.querySelectorAll('g.node, g.cluster');
+        
+        const nodeBBoxes: any[] = [];
         els.forEach(el => {
             const stable = getStableId(el);
             if (!stable) return;
@@ -208,17 +261,60 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
             if (lockedStableIdsRef.current.has(stable)) {
                 el.setAttribute('data-locked', 'true');
             }
+            if (!el.hasAttribute('data-base-transform')) {
+                el.setAttribute('data-base-transform', el.getAttribute('transform') || '');
+            }
+            
+            try {
+                const bbox = (el as SVGGElement).getBBox();
+                nodeBBoxes.push({ stableId: stable, el, x: bbox.x, y: bbox.y, w: bbox.width, h: bbox.height });
+            } catch(e) {}
             
             const offset = nodeOffsetsRef.current[stable];
             if (offset) {
-                if (!el.hasAttribute('data-base-transform')) {
-                    el.setAttribute('data-base-transform', el.getAttribute('transform') || '');
-                }
                 const base = el.getAttribute('data-base-transform') || '';
                 el.setAttribute('transform', `${base} translate(${offset.x}, ${offset.y})`.trim());
             }
         });
-    }, [svg]);
+
+        const paths = Array.from(containerRef.current.querySelectorAll('.edgePaths path'));
+        const labels = Array.from(containerRef.current.querySelectorAll('.edgeLabels > g'));
+        
+        edgesMetaRef.current = paths.map((path, idx) => {
+            const baseD = path.getAttribute('data-base-d') || path.getAttribute('d');
+            if (!baseD) return null;
+            if (!path.hasAttribute('data-base-d')) path.setAttribute('data-base-d', baseD);
+            
+            const parts = baseD.match(/[a-zA-Z]+|-?[\d.]+/g);
+            if (!parts || parts.length < 3) return null;
+            
+            let sx = parseFloat(parts[1]), sy = parseFloat(parts[2]);
+            let lx = parseFloat(parts[parts.length-2]), ly = parseFloat(parts[parts.length-1]);
+            
+            let sourceId = null, targetId = null;
+            let sMinD = Infinity, tMinD = Infinity;
+            
+            nodeBBoxes.forEach(n => {
+                const cx = n.x + n.w/2;
+                const cy = n.y + n.h/2;
+                const distS = Math.hypot(cx - sx, cy - sy);
+                const distT = Math.hypot(cx - lx, cy - ly);
+                if (distS < sMinD) { sMinD = distS; sourceId = n.stableId; }
+                if (distT < tMinD) { tMinD = distT; targetId = n.stableId; }
+            });
+            
+            const label = labels[idx];
+            let baseT = '';
+            if (label) {
+                baseT = label.getAttribute('data-base-transform') ?? (label.getAttribute('transform') || '');
+                if (!label.hasAttribute('data-base-transform')) label.setAttribute('data-base-transform', baseT);
+            }
+            
+            return { path, sourceId, targetId, baseD, label, baseLabelTransform: baseT };
+        }).filter(Boolean);
+        
+        applyEdges();
+    }, [svg, applyEdges]);
 
     useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [svg]);
 
@@ -295,22 +391,14 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
             const ny = ctx.initialDy + dy;
             const base = ctx.element.getAttribute('data-base-transform') || '';
             ctx.element.setAttribute('transform', `${base} translate(${nx}, ${ny})`.trim());
+            nodeOffsetsRef.current[ctx.stableId] = { x: nx, y: ny };
+            applyEdges();
         }
-    }, [zoom]);
+    }, [zoom, applyEdges]);
 
     const handleMouseUp = useCallback(() => { 
         isPanningRef.current = false; 
         if (dragContext.current) {
-            const ctx = dragContext.current;
-            const base = ctx.element.getAttribute('data-base-transform') || '';
-            const current = ctx.element.getAttribute('transform') || '';
-            const idx = current.lastIndexOf('translate(');
-            if (idx > -1 && current !== base) {
-                const match = current.substring(idx).match(/translate\(([-\d.]+),\s*([^)]+)\)/);
-                if (match) {
-                    nodeOffsetsRef.current[ctx.stableId] = { x: parseFloat(match[1]), y: parseFloat(match[2]) };
-                }
-            }
             dragContext.current = null;
         }
     }, []);
@@ -453,6 +541,7 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                     containerRef.current?.querySelectorAll('[data-base-transform]').forEach(el => {
                         el.setAttribute('transform', el.getAttribute('data-base-transform') || '');
                     });
+                    applyEdges();
                 }} style={{ ...zoomBtnBase, fontSize: 12, width: 34 }} title="Restablecer posiciones y bloqueos">🔃</button>
             </div>
 

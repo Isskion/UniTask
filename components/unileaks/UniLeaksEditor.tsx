@@ -79,6 +79,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [storedFormat, setStoredFormat] = useState<{ marks: any[], attributes: any } | null>(null);
     const [painterMode, setPainterMode] = useState<'none' | 'single' | 'multiple'>('none');
 
+    // Image Zoom State
+    const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+    const [zoomScale, setZoomScale] = useState(1);
+
     // --- LOAD TENANT DICTIONARY ON MOUNT ---
     useEffect(() => {
         if (!currentTenantId) return;
@@ -108,6 +112,19 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const isSettingContentRef = useRef<boolean>(false);
     const downloadMenuRef = useRef<HTMLDivElement>(null);
 
+    // Image zoom: click on any img inside the editor opens the lightbox
+    useEffect(() => {
+        const handleImageClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'IMG') {
+                setZoomedImage((target as HTMLImageElement).src);
+                setZoomScale(1);
+            }
+        };
+        document.addEventListener('click', handleImageClick);
+        return () => document.removeEventListener('click', handleImageClick);
+    }, []);
+
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -131,7 +148,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             }),
             Image.configure({
                 HTMLAttributes: {
-                    class: 'rounded-xl border border-border max-w-full h-auto my-4 shadow-lg',
+                    class: 'rounded-xl border border-border max-w-full h-auto my-4 shadow-lg cursor-zoom-in',
                 },
             }),
             Placeholder.configure({
@@ -981,6 +998,30 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     tenantId={(note.tenantId || currentTenantId)!}
                     onClose={() => setShowMinutaWizard(false)}
                 />
+            )}
+
+            {/* Image Lightbox */}
+            {zoomedImage && (
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center overflow-hidden"
+                    style={{ cursor: zoomScale > 1 ? 'grab' : 'zoom-out' }}
+                    onClick={() => setZoomedImage(null)}
+                    onWheel={(e) => {
+                        e.preventDefault();
+                        setZoomScale(prev => Math.min(10, Math.max(0.5, prev - e.deltaY * 0.001)));
+                    }}
+                >
+                    <img
+                        src={zoomedImage}
+                        alt="Imagen ampliada"
+                        className="max-w-[95vw] max-h-[95vh] object-contain rounded-xl shadow-2xl transition-transform duration-100"
+                        style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center center' }}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full pointer-events-none">
+                        {Math.round(zoomScale * 100)}% · Rueda para zoom · Click fuera para cerrar
+                    </div>
+                </div>
             )}
         </div>
     );
