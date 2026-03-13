@@ -82,6 +82,7 @@ import { cn } from "@/lib/utils";
 import { TenantDictionary } from "@/lib/tiptap-extensions/TenantDictionary";
 import { FontSize, FontFamily } from "@/lib/tiptap-extensions/Typography";
 import { FoldableHeading } from "@/lib/tiptap-extensions/FoldableHeading";
+import { DataTable } from "@/lib/tiptap-extensions/DataTable";
 import SpellCheckPopover from "@/components/unileaks/SpellCheckPopover";
 import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePickerModal";
 import UniDocsMinutaWizard from "@/components/unidocs/UniDocsMinutaWizard";
@@ -245,6 +246,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             }),
             FontSize,
             FontFamily,
+            DataTable,
         ],
         content: note.content || "",
         editorProps: {
@@ -725,18 +727,17 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const importSheetToEditor = useCallback((workbook: XLSX.WorkBook, sheetName: string) => {
         if (!editor) return;
         const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
-        if (!rows.length) return;
+        const allRows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
+        if (!allRows.length) return;
 
-        const escape = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') || '&nbsp;';
-        const [headerRow, ...dataRows] = rows;
-        const thead = `<thead><tr>${headerRow.map(c => `<th><p>${escape(c)}</p></th>`).join('')}</tr></thead>`;
-        const tbody = dataRows.map(row =>
-            `<tr>${headerRow.map((_, i) => `<td><p>${escape(row[i])}</p></td>`).join('')}</tr>`
-        ).join('');
-        const html = `<table>${thead}<tbody>${tbody}</tbody></table>`;
+        const [headerRow, ...dataRows] = allRows;
+        const headers = headerRow.map(c => String(c ?? ''));
+        const rows = dataRows.map(row => headers.map((_, i) => String(row[i] ?? '')));
 
-        editor.chain().focus().insertContent(html).run();
+        editor.chain().focus().insertContent({
+            type: 'dataTable',
+            attrs: { headers, rows },
+        }).run();
         setAutoSaveStatus('dirty');
         setShowSheetModal(false);
         setPendingWorkbook(null);
