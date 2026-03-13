@@ -65,12 +65,13 @@ const StyledTableHeader = TableHeader.extend({
 });
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
+import * as XLSX from 'xlsx';
 import { UniLeakNote } from "@/types";
 import { saveNote } from "@/lib/unileaks";
 import { addTenantWord, getTenantWords } from "@/lib/dictionary";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Globe, Lock, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus } from "lucide-react";
+import { Check, Loader2, Globe, Lock, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus, FileSpreadsheet } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -127,6 +128,12 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [showTemplatePicker, setShowTemplatePicker] = useState(false);
     const [showMinutaWizard, setShowMinutaWizard] = useState(false);
     const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
+
+    // Excel Importer State
+    const [xlsxSheets, setXlsxSheets] = useState<string[]>([]);
+    const [showSheetModal, setShowSheetModal] = useState(false);
+    const [pendingWorkbook, setPendingWorkbook] = useState<XLSX.WorkBook | null>(null);
+    const excelInputRef = useRef<HTMLInputElement>(null);
 
     // Format Painter State
     const [storedFormat, setStoredFormat] = useState<{ marks: any[], attributes: any } | null>(null);
@@ -714,6 +721,49 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         }
     }, [currentTenantId, user, editor, showToast]);
 
+    // --- EXCEL IMPORTER ---
+    const importSheetToEditor = useCallback((workbook: XLSX.WorkBook, sheetName: string) => {
+        if (!editor) return;
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
+        if (!rows.length) return;
+
+        const escape = (v: unknown) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const [headerRow, ...dataRows] = rows;
+        const thead = `<thead><tr>${headerRow.map(c => `<th>${escape(c)}</th>`).join('')}</tr></thead>`;
+        const tbody = dataRows.map(row =>
+            `<tr>${headerRow.map((_, i) => `<td>${escape(row[i])}</td>`).join('')}</tr>`
+        ).join('');
+        const html = `<table>${thead}<tbody>${tbody}</tbody></table>`;
+
+        editor.chain().focus().insertContent(html).run();
+        setAutoSaveStatus('dirty');
+        setShowSheetModal(false);
+        setPendingWorkbook(null);
+        setXlsxSheets([]);
+    }, [editor]);
+
+    const handleExcelFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        e.target.value = '';
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const data = ev.target?.result;
+            if (!data) return;
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheets = workbook.SheetNames;
+            if (sheets.length === 1) {
+                importSheetToEditor(workbook, sheets[0]);
+            } else {
+                setPendingWorkbook(workbook);
+                setXlsxSheets(sheets);
+                setShowSheetModal(true);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }, [importSheetToEditor]);
+
     return (
         <div className="flex flex-col h-full max-w-5xl mx-auto">
             {/* Header Toolbar */}
@@ -851,6 +901,23 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                             title="Insertar Imagen"
                         >
                             {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                        </label>
+
+                        {/* Excel Importer */}
+                        <input
+                            ref={excelInputRef}
+                            type="file"
+                            id="unileaks-excel-upload"
+                            className="hidden"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleExcelFile}
+                        />
+                        <label
+                            htmlFor="unileaks-excel-upload"
+                            className="p-2 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
+                            title="Importar tabla desde Excel"
+                        >
+                            <FileSpreadsheet className="w-5 h-5" />
                         </label>
 
                         {note.id && (
@@ -1073,6 +1140,42 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             )}
 
             {/* Image Lightbox */}
+            {/* Sheet Selector Modal */}
+            {showSheetModal && pendingWorkbook && (
+                <div
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+                    onClick={() => { setShowSheetModal(false); setPendingWorkbook(null); setXlsxSheets([]); }}
+                >
+                    <div
+                        className="bg-card border border-border rounded-2xl shadow-2xl p-6 w-80 flex flex-col gap-4"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
+                            <h3 className="font-bold text-sm">Selecciona una hoja</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground">El archivo tiene varias hojas. ¿Cuál quieres importar?</p>
+                        <div className="flex flex-col gap-2">
+                            {xlsxSheets.map((sheet) => (
+                                <button
+                                    key={sheet}
+                                    onClick={() => importSheetToEditor(pendingWorkbook, sheet)}
+                                    className="w-full text-left px-4 py-2.5 rounded-xl border border-border hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-colors text-sm font-medium"
+                                >
+                                    {sheet}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => { setShowSheetModal(false); setPendingWorkbook(null); setXlsxSheets([]); }}
+                            className="text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {zoomedImage && (
                 <div
                     ref={lightboxRef}
