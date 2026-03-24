@@ -505,7 +505,16 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 setTimeout(() => {
                     const sel = window.getSelection();
                     if (sel) sel.removeAllRanges();
-                    (window as any).find(query, false, false, true, false, false, false);
+                    
+                    const found = (window as any).find(query, false, false, true, false, false, false);
+                    
+                    if (found && sel && sel.rangeCount > 0) {
+                        const range = sel.getRangeAt(0);
+                        const element = range.startContainer.parentElement;
+                        if (element) {
+                            element.scrollIntoView({ block: "center", behavior: "smooth" });
+                        }
+                    }
                 }, 400);
             }
         };
