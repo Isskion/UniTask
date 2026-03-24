@@ -28,20 +28,14 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
             return;
         }
         
+        // Evitar que busque en el formulario cada vez que se teclea una letra (evita robar el foco)
+        if (scope === "form") {
+            return;
+        }
+
         const timer = setTimeout(() => {
             setIsSearching(true);
             
-            // Logic for form search (in-page text highlight)
-            if (scope === "form") {
-                setIsSearching(false);
-                // Simple DOM search. Resets selection to start, then finds next.
-                // Works perfectly to jump through a document.
-                if (typeof window !== "undefined" && (window as any).find) {
-                    (window as any).find(query, false, false, true, false, false, false);
-                }
-                return;
-            }
-
             // Logic for folder or global search
             const q = query.toLowerCase();
             const filtered = notesToSearch.filter(n => {
@@ -106,9 +100,9 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
             ) : (
                 <div className={cn(
                     "flex items-center bg-background border border-primary/50 shadow-sm rounded overflow-hidden animate-in fade-in slide-in-from-right-2",
-                    scope === "form" ? "w-64" : "absolute right-0 top-0 bottom-0 z-50 min-w-[200px]"
+                    scope === "form" ? "w-64 h-8" : "absolute right-0 z-50 min-w-[200px] h-7 -mt-[2px]"
                 )}>
-                    <div className="pl-2 flex items-center justify-center text-muted-foreground">
+                    <div className="pl-2 flex items-center justify-center text-muted-foreground shrink-0">
                         {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                     </div>
                     <input
@@ -116,7 +110,17 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder={placeholder}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && scope === "form" && query.trim()) {
+                                e.preventDefault();
+                                if (typeof window !== "undefined" && (window as any).find) {
+                                    (window as any).find(query, false, false, true, false, false, false);
+                                    // Devolver el foco al input para que no se sobreescriba el documento si el usuario sigue tecleando
+                                    setTimeout(() => inputRef.current?.focus(), 10);
+                                }
+                            }
+                        }}
+                        placeholder={placeholder + (scope === "form" ? " (Enter p/ buscar)" : "")}
                         className="w-full bg-transparent border-none text-xs text-foreground placeholder:text-muted-foreground px-2 py-1 outline-none h-full"
                         onClick={(e) => e.stopPropagation()}
                     />
