@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, X, Loader2 } from "lucide-react";
+import { Search, X, Loader2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UniLeakNote } from "@/types";
 
@@ -21,14 +21,23 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Escape regex helpers
+    const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     useEffect(() => {
+        if (!isOpen) {
+            setQuery("");
+            setResults([]);
+            return;
+        }
+
         if (!query.trim()) {
             setResults([]);
             setIsSearching(false);
             return;
         }
         
-        // Evitar que busque en el formulario cada vez que se teclea una letra (evita robar el foco)
+        // Evitar busqueda continua en el form
         if (scope === "form") {
             return;
         }
@@ -36,7 +45,6 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
         const timer = setTimeout(() => {
             setIsSearching(true);
             
-            // Logic for folder or global search
             const q = query.toLowerCase();
             const newResults: {note: UniLeakNote, snippets: string[]}[] = [];
 
@@ -44,7 +52,9 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                 if (scope === "folder" && typeof contextId === "string" && n.folderId !== contextId) continue;
                 
                 const titleMatch = (n.title || "").toLowerCase().includes(q);
-                const plainContent = (n.content || "").replace(/<[^>]+>/g, ' ');
+                // Si la nota no tiene contenido por alguna razón, usamos string vacío
+                const safeContent = n.content || "";
+                const plainContent = safeContent.replace(/<[^>]+>/g, ' ');
                 const contentMatch = plainContent.toLowerCase().includes(q);
                 
                 if (titleMatch || contentMatch) {
@@ -62,6 +72,8 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                             );
                             lastIdx = idx;
                         }
+                        // Evitar loop infinito si q es vacío (aunque ya validamos trim arriba)
+                        if (q.length === 0) break;
                         idx = lowerText.indexOf(q, idx + q.length);
                     }
                     
@@ -72,112 +84,162 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                 }
             }
 
-            setResults(newResults.slice(0, 15)); // Max 15 results for UI performance
+            setResults(newResults.slice(0, 20)); // Max 20 results in modal
             setIsSearching(false);
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [query, scope, contextId, notesToSearch]);
+    }, [query, scope, contextId, notesToSearch, isOpen]);
 
-    // Cerrar al clickear afuera
+    // Cerrar con Escape
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isOpen) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen]);
+
+    // Cerrar form search al clickear fuera
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (scope === "form" && isOpen && containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [isOpen, scope]);
 
+    // Auto focus
     useEffect(() => {
         if (isOpen && inputRef.current) {
             inputRef.current.focus();
-        } else {
-            setQuery("");
         }
     }, [isOpen]);
 
     let placeholder = "Buscar...";
-    if (scope === "global") placeholder = "Buscar en Base de Conocimiento...";
+    if (scope === "global") placeholder = "Buscar en toda la Base de Conocimiento...";
     if (scope === "folder") placeholder = "Buscar en esta carpeta...";
-    if (scope === "form") placeholder = "Buscar en este documento...";
+    if (scope === "form") placeholder = "Escribe y pulsa Enter para buscar...";
 
-    return (
-        <div ref={containerRef} className={cn("relative flex items-center", className)} onClick={(e) => e.stopPropagation()}>
-            {!isOpen ? (
+    // Render del botón disparador ("Lupa")
+    if (!isOpen) {
+        return (
+            <button
+                onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
+                className={cn(
+                    "p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded transition-colors flex items-center justify-center",
+                    scope === "form" && "p-2 border border-border bg-background shadow-sm hover:bg-muted",
+                    className
+                )}
+                title={placeholder}
+            >
+                <Search className={scope === "form" ? "w-4 h-4" : "w-3.5 h-3.5"} />
+            </button>
+        );
+    }
+
+    // Modal Style: Formulario (Pequeño, inline)
+    if (scope === "form") {
+        return (
+            <div ref={containerRef} className={cn("flex items-center bg-background border border-primary/50 shadow-sm rounded overflow-hidden animate-in fade-in slide-in-from-right-2 h-8 w-64", className)} onClick={(e) => e.stopPropagation()}>
+                <div className="pl-2 flex items-center justify-center text-muted-foreground shrink-0">
+                    <Search className="w-4 h-4" />
+                </div>
+                <input
+                    ref={inputRef}
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && query.trim()) {
+                            e.preventDefault();
+                            if (typeof window !== "undefined" && (window as any).find) {
+                                (window as any).find(query, false, false, true, false, false, false);
+                            }
+                        }
+                    }}
+                    placeholder={placeholder}
+                    className="w-full bg-transparent border-none text-xs text-foreground placeholder:text-muted-foreground px-2 py-1 outline-none h-full"
+                />
                 <button
-                    onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
-                    className={cn(
-                        "p-1 hover:bg-muted text-muted-foreground hover:text-primary rounded transition-colors flex items-center justify-center",
-                        scope === "form" && "p-2 border border-border bg-background shadow-sm hover:bg-muted"
-                    )}
-                    title={placeholder}
+                    onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+                    className="p-1.5 text-muted-foreground hover:text-foreground shrink-0"
                 >
-                    <Search className={scope === "form" ? "w-4 h-4" : "w-3.5 h-3.5"} />
+                    <X className="w-3.5 h-3.5" />
                 </button>
-            ) : (
-                <div className={cn(
-                    "flex items-center bg-background border border-primary/50 shadow-sm rounded overflow-hidden animate-in fade-in slide-in-from-right-2",
-                    scope === "form" ? "w-64 h-8" : "absolute right-0 z-50 min-w-[200px] h-7 -mt-[2px]"
-                )}>
-                    <div className="pl-2 flex items-center justify-center text-muted-foreground shrink-0">
-                        {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    </div>
+            </div>
+        );
+    }
+
+    // Modal Style: Global y Carpetas (Obsidian/Notion CMD+K palette gigante en el centro de la pantalla)
+    return (
+        <div 
+            className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-background/60 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+        >
+            <div 
+                className="w-full max-w-2xl bg-card border border-border shadow-2xl rounded-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 mx-4"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Cabecera del Buscador */}
+                <div className="flex items-center border-b border-border/50 px-4 py-3 bg-muted/30">
+                    {isSearching ? <Loader2 className="w-5 h-5 text-muted-foreground animate-spin mr-3 shrink-0" /> : <Search className="w-5 h-5 text-muted-foreground mr-3 shrink-0" />}
                     <input
                         ref={inputRef}
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && scope === "form" && query.trim()) {
-                                e.preventDefault();
-                                if (typeof window !== "undefined" && (window as any).find) {
-                                    (window as any).find(query, false, false, true, false, false, false);
-                                    // Ya no devolvemos el foco al input. Al dejar el foco en el editor, el navegador
-                                    // mantiene vivo el color de "selección" azul/primario sobre la palabra encontrada.
-                                }
-                            }
-                        }}
-                        placeholder={placeholder + (scope === "form" ? " (Enter p/ buscar)" : "")}
-                        className="w-full bg-transparent border-none text-xs text-foreground placeholder:text-muted-foreground px-2 py-1 outline-none h-full"
-                        onClick={(e) => e.stopPropagation()}
+                        placeholder={placeholder}
+                        className="w-full bg-transparent border-none text-base md:text-lg text-foreground placeholder:text-muted-foreground outline-none"
                     />
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
-                        className="p-1 text-muted-foreground hover:text-foreground"
-                    >
-                        <X className="w-3 h-3" />
+                    <button onClick={() => setIsOpen(false)} className="p-1 rounded hover:bg-muted text-muted-foreground">
+                        <X className="w-5 h-5" />
                     </button>
-                    
-                    {/* Resultados interactivos */}
-                    {isOpen && query.trim() && !isSearching && scope !== "form" && (
-                        <div className="absolute top-full right-0 mt-1 bg-popover border border-border shadow-2xl rounded-lg max-h-96 overflow-y-auto z-50 flex flex-col w-[300px] sm:w-[360px] origin-top-right">
-                            {results.length === 0 ? (
-                                <div className="p-3 text-center text-xs text-muted-foreground">
-                                    No se encontraron notas
-                                </div>
-                            ) : (
-                                results.map((r, idx) => (
-                                    <div key={`${r.note.id}-${idx}`} className="border-b border-border/40 last:border-0 flex flex-col">
-                                        <div className="px-3 py-1.5 text-xs font-semibold text-foreground bg-muted/30 truncate border-b border-border/20 flex items-center gap-2 sticky top-0">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0"></span> {r.note.title || "Nota sin título"}
-                                        </div>
+                </div>
+
+                {/* Área de Resultados */}
+                {query.trim().length > 0 && (
+                    <div className="max-h-[60vh] overflow-y-auto w-full pb-2">
+                        {results.length === 0 && !isSearching ? (
+                            <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                                <FileText className="w-10 h-10 mb-3 opacity-20" />
+                                <p>No se encontraron resultados para "{query}"</p>
+                            </div>
+                        ) : (
+                            results.map((r, idx) => (
+                                <div key={`${r.note.id}-${idx}`} className="flex flex-col border-b border-border/40 last:border-0 hover:bg-muted/10 transition-colors group">
+                                    <button 
+                                        className="px-4 py-2 flex items-center text-left text-sm font-semibold text-foreground bg-muted/20"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (onResultClick) onResultClick(r.note);
+                                            setIsOpen(false);
+                                        }}
+                                    >
+                                        <FileText className="w-4 h-4 mr-2 text-primary/70" />
+                                        <span>{r.note.title || "Nota sin título"}</span>
+                                    </button>
+                                    
+                                    <div className="flex flex-col py-1">
                                         {r.snippets.map((snip, sIdx) => (
                                             <button 
                                                 key={sIdx}
-                                                className="text-left px-4 py-2 text-xs text-muted-foreground hover:bg-muted/80 hover:text-foreground cursor-pointer transition-colors"
+                                                className="text-left px-10 py-1.5 text-[13px] text-muted-foreground cursor-pointer transition-colors hover:bg-primary/5 hover:text-foreground"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (onResultClick) onResultClick(r.note);
                                                     setIsOpen(false);
-                                                    // Emit event for the editor to highlight text
+                                                    // Disparar evento global para auto-scroll y resaltado
                                                     window.dispatchEvent(new CustomEvent('unileaks-focus-search', { detail: query }));
                                                 }}
                                             >
-                                                {/* Hilight Match logic inline */}
+                                                {/* Resaltador In-line escapado */}
                                                 {(() => {
-                                                    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                                    const escapedQuery = escapeRegExp(query);
                                                     const parts = snip.split(new RegExp(`(${escapedQuery})`, 'gi'));
                                                     return (
                                                         <span className="break-words line-clamp-2 leading-relaxed">
@@ -192,12 +254,12 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                                             </button>
                                         ))}
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
