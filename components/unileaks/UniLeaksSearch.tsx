@@ -36,8 +36,8 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                 setIsSearching(false);
                 // Simple DOM search. Resets selection to start, then finds next.
                 // Works perfectly to jump through a document.
-                if (typeof window !== "undefined" && window.find) {
-                    window.find(query, false, false, true, false, false, false);
+                if (typeof window !== "undefined" && (window as any).find) {
+                    (window as any).find(query, false, false, true, false, false, false);
                 }
                 return;
             }
