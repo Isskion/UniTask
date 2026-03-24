@@ -134,8 +134,8 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                                 e.preventDefault();
                                 if (typeof window !== "undefined" && (window as any).find) {
                                     (window as any).find(query, false, false, true, false, false, false);
-                                    // Devolver el foco al input para que no se sobreescriba el documento si el usuario sigue tecleando
-                                    setTimeout(() => inputRef.current?.focus(), 10);
+                                    // Ya no devolvemos el foco al input. Al dejar el foco en el editor, el navegador
+                                    // mantiene vivo el color de "selección" azul/primario sobre la palabra encontrada.
                                 }
                             }
                         }}
@@ -152,7 +152,7 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                     
                     {/* Resultados interactivos */}
                     {isOpen && query.trim() && !isSearching && scope !== "form" && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border shadow-2xl rounded-lg max-h-96 overflow-y-auto z-50 flex flex-col w-[350px]">
+                        <div className="absolute top-full right-0 mt-1 bg-popover border border-border shadow-2xl rounded-lg max-h-96 overflow-y-auto z-50 flex flex-col w-[300px] sm:w-[360px] origin-top-right">
                             {results.length === 0 ? (
                                 <div className="p-3 text-center text-xs text-muted-foreground">
                                     No se encontraron notas
@@ -177,7 +177,8 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                                             >
                                                 {/* Hilight Match logic inline */}
                                                 {(() => {
-                                                    const parts = snip.split(new RegExp(`(${query})`, 'gi'));
+                                                    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                                                    const parts = snip.split(new RegExp(`(${escapedQuery})`, 'gi'));
                                                     return (
                                                         <span className="break-words line-clamp-2 leading-relaxed">
                                                             {parts.map((part, i) => 
