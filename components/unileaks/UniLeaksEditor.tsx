@@ -88,6 +88,7 @@ import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePic
 import UniDocsMinutaWizard from "@/components/unidocs/UniDocsMinutaWizard";
 import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
 import BulletList from '@tiptap/extension-bullet-list';
+import UniLeaksSearch from "./UniLeaksSearch";
 
 const CustomBulletList = BulletList.extend({
     addAttributes() {
@@ -789,6 +790,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 </div>
 
                 <div className="flex items-center gap-6 print:hidden">
+                    <UniLeaksSearch scope="form" contextId={note.id} />
                     {/* Auto-save Status Indicator */}
                     <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
                         {autoSaveStatus === 'saving' ? (

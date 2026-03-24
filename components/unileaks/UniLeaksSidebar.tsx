@@ -8,6 +8,7 @@ import { NoteOwnerInfo } from "@/lib/unileaks";
 import { useAuth } from "@/context/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import UniLeaksSearch from "./UniLeaksSearch";
 
 interface UniLeaksSidebarProps {
     projects: Project[];
@@ -279,6 +280,9 @@ export default function UniLeaksSidebar({
                                         <span className="text-foreground font-medium truncate flex-1 select-none">{folder.name}</span>
                                     )}
                                     <div className="opacity-0 group-hover:opacity-100 flex items-center shrink-0">
+                                        <div className="mr-1 h-5 flex items-center">
+                                            <UniLeaksSearch scope="folder" contextId={folder.id} notesToSearch={notes} onResultClick={onNoteSelect} />
+                                        </div>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -436,6 +440,9 @@ export default function UniLeaksSidebar({
                         </div>
                     )}
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">Base de<br />Conocimiento</span>
+                    <div className="ml-2 flex-1 h-8 flex items-center">
+                        <UniLeaksSearch scope="global" contextId={null} notesToSearch={notes} onResultClick={onNoteSelect} />
+                    </div>
                     <div className="flex gap-1 ml-auto">
                         <button
                             onClick={() => {
