@@ -496,6 +496,24 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showDownloadMenu]);
 
+    // Listen to global unileaks-focus-search events from Obsidian-like snippets
+    useEffect(() => {
+        const handleFocusSearch = (e: any) => {
+            const query = e.detail;
+            if (query && typeof window !== 'undefined' && (window as any).find) {
+                // Wait for TipTap to mount the new note content
+                setTimeout(() => {
+                    const sel = window.getSelection();
+                    if (sel) sel.removeAllRanges();
+                    (window as any).find(query, false, false, true, false, false, false);
+                }, 400);
+            }
+        };
+
+        window.addEventListener('unileaks-focus-search', handleFocusSearch);
+        return () => window.removeEventListener('unileaks-focus-search', handleFocusSearch);
+    }, []);
+
     // --- EXPORT LOGIC ---
     const handleExportPDF = () => {
         if (!editor) return;

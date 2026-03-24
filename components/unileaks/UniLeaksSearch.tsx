@@ -17,7 +17,7 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
-    const [results, setResults] = useState<UniLeakNote[]>([]);
+    const [results, setResults] = useState<{note: UniLeakNote, snippets: string[]}[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,22 +38,41 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
             
             // Logic for folder or global search
             const q = query.toLowerCase();
-            const filtered = notesToSearch.filter(n => {
-                // If folder scope, must match folderId
-                if (scope === "folder" && typeof contextId === "string" && n.folderId !== contextId) {
-                    return false;
-                }
-                
-                // Match title or content
-                const titleMatch = (n.title || "").toLowerCase().includes(q);
-                // Strip HTML tags roughly for content search
-                const plainContent = (n.content || "").replace(/<[^>]+>/g, '').toLowerCase();
-                const contentMatch = plainContent.includes(q);
-                
-                return titleMatch || contentMatch;
-            });
+            const newResults: {note: UniLeakNote, snippets: string[]}[] = [];
 
-            setResults(filtered.slice(0, 10)); // Max 10 results for UI performance
+            for (const n of notesToSearch) {
+                if (scope === "folder" && typeof contextId === "string" && n.folderId !== contextId) continue;
+                
+                const titleMatch = (n.title || "").toLowerCase().includes(q);
+                const plainContent = (n.content || "").replace(/<[^>]+>/g, ' ');
+                const contentMatch = plainContent.toLowerCase().includes(q);
+                
+                if (titleMatch || contentMatch) {
+                    let snippets: string[] = [];
+                    let lowerText = plainContent.toLowerCase();
+                    let idx = lowerText.indexOf(q);
+                    let lastIdx = -1;
+                    
+                    while (idx !== -1 && snippets.length < 4) {
+                        if (lastIdx === -1 || idx > lastIdx + 50) {
+                            const s = Math.max(0, idx - 50);
+                            const e = Math.min(plainContent.length, idx + q.length + 50);
+                            snippets.push(
+                                (s > 0 ? "..." : "") + plainContent.substring(s, e).trim() + (e < plainContent.length ? "..." : "")
+                            );
+                            lastIdx = idx;
+                        }
+                        idx = lowerText.indexOf(q, idx + q.length);
+                    }
+                    
+                    if (snippets.length === 0 && titleMatch) {
+                        snippets.push("Coincidencia en el título...");
+                    }
+                    newResults.push({ note: n, snippets });
+                }
+            }
+
+            setResults(newResults.slice(0, 15)); // Max 15 results for UI performance
             setIsSearching(false);
         }, 200);
 
@@ -133,25 +152,45 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
                     
                     {/* Resultados interactivos */}
                     {isOpen && query.trim() && !isSearching && scope !== "form" && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border shadow-lg rounded-lg max-h-64 overflow-y-auto z-50 flex flex-col">
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-border shadow-2xl rounded-lg max-h-96 overflow-y-auto z-50 flex flex-col w-[350px]">
                             {results.length === 0 ? (
                                 <div className="p-3 text-center text-xs text-muted-foreground">
                                     No se encontraron notas
                                 </div>
                             ) : (
                                 results.map((r, idx) => (
-                                    <button 
-                                        key={`${r.id}-${idx}`}
-                                        className="text-left px-3 py-2 text-xs hover:bg-muted border-b border-border/50 last:border-0 truncate"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (onResultClick) onResultClick(r);
-                                            setIsOpen(false);
-                                            setQuery("");
-                                        }}
-                                    >
-                                        <span className="font-medium text-primary">{r.title || "Nota sin título"}</span>
-                                    </button>
+                                    <div key={`${r.note.id}-${idx}`} className="border-b border-border/40 last:border-0 flex flex-col">
+                                        <div className="px-3 py-1.5 text-xs font-semibold text-foreground bg-muted/30 truncate border-b border-border/20 flex items-center gap-2 sticky top-0">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0"></span> {r.note.title || "Nota sin título"}
+                                        </div>
+                                        {r.snippets.map((snip, sIdx) => (
+                                            <button 
+                                                key={sIdx}
+                                                className="text-left px-4 py-2 text-xs text-muted-foreground hover:bg-muted/80 hover:text-foreground cursor-pointer transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (onResultClick) onResultClick(r.note);
+                                                    setIsOpen(false);
+                                                    // Emit event for the editor to highlight text
+                                                    window.dispatchEvent(new CustomEvent('unileaks-focus-search', { detail: query }));
+                                                }}
+                                            >
+                                                {/* Hilight Match logic inline */}
+                                                {(() => {
+                                                    const parts = snip.split(new RegExp(`(${query})`, 'gi'));
+                                                    return (
+                                                        <span className="break-words line-clamp-2 leading-relaxed">
+                                                            {parts.map((part, i) => 
+                                                                part.toLowerCase() === query.toLowerCase() 
+                                                                    ? <span key={i} className="bg-primary/20 text-primary font-bold rounded-sm px-0.5">{part}</span> 
+                                                                    : <span key={i}>{part}</span>
+                                                            )}
+                                                        </span>
+                                                    );
+                                                })()}
+                                            </button>
+                                        ))}
+                                    </div>
                                 ))
                             )}
                         </div>
