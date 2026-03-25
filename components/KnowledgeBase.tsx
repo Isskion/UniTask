@@ -317,6 +317,68 @@ export function KnowledgeBase({ type, initialId }: KnowledgeBaseProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    // Clone entry
+    const handleClone = async () => {
+        if (!selectedEntry) return;
+
+        try {
+            const cloneTitle = `${formData.title} (${t('common.copy') || 'Copia'})`;
+            const changeLogEntry: ChangeLogEntry = {
+                userId: user?.uid || '',
+                userName: user?.displayName || 'Unknown',
+                timestamp: new Date().toISOString(),
+                action: 'created',
+                changes: `Entrada clonada de ${selectedEntry.id}`
+            };
+
+            const newEntry: Omit<KnowledgeEntry, 'id'> = {
+                type,
+                title: cloneTitle,
+                content: formData.content,
+                projectId: formData.projectId || null,
+                tags: formData.tags,
+                attachments: formData.attachments,
+                createdBy: user?.uid || '',
+                createdByName: user?.displayName || 'Unknown',
+                createdAt: serverTimestamp(),
+                changelog: [changeLogEntry],
+                tenantId: tenantId!,
+                isActive: true
+            };
+
+            const docRef = await addDoc(collection(db, 'knowledge_entries'), newEntry);
+            showToast("UniTask", t('common.success') || "Entrada clonada", "success");
+
+            await loadEntries();
+
+            // Select the newly created entry
+            const created = { ...newEntry, id: docRef.id } as KnowledgeEntry;
+            setSelectedEntry(created);
+            setFormData({
+                title: created.title,
+                content: created.content,
+                projectId: created.projectId || '',
+                tags: created.tags || [],
+                attachments: created.attachments || []
+            });
+            setIsNew(false);
+        } catch (error: any) {
+            console.error('Error cloning:', error);
+            showToast("UniTask", error.message || t('common.error'), "error");
+        }
+    };
+
+    // Share link
+    const handleShareLink = async () => {
+        if (!selectedEntry) return;
+        // Using kb module as defined in lib/share.ts
+        const url = getShareUrl('kb', selectedEntry.id, { type });
+        const success = await copyToClipboard(url);
+        if (success) {
+            showToast("UniTask", t('common.link_copied') || "Enlace copiado", "success");
+        }
+    };
+
     const title = type === 'lesson_learned'
         ? (t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas')
         : (t('knowledge_base.solution_records') || 'Registros de Soluciones');
@@ -469,6 +531,24 @@ export function KnowledgeBase({ type, initialId }: KnowledgeBaseProps) {
                                 {isNew ? (t('knowledge_base.new_entry') || 'Nueva Entrada') : formData.title}
                             </span>
                             <div className="flex items-center gap-2">
+                                {!isNew && selectedEntry && (
+                                    <>
+                                        <button
+                                            onClick={handleShareLink}
+                                            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                            title={t('common.share_link') || "Compartir Enlace"}
+                                        >
+                                            <Share2 className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={handleClone}
+                                            className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                                            title={t('common.copy') || "Clonar Entrada"}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </>
+                                )}
                                 <button
                                     onClick={handleCopy}
                                     className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"

@@ -75,7 +75,7 @@ export const es: Dictionary = {
         appManagement: "Gestión Unitask",
         "knowledge-area": "Área de Conocimiento",
         "lessons-learned": "Lecciones Aprendidas",
-        "solution-records": "Registros de Soluciones",
+        "solution-records": "Biblioteca de Conocimiento",
         uniflux: "Motor Uniflux",
         "uni-order-manager": "UniOrderManager",
         unidocs: "UniDocs",
@@ -579,7 +579,7 @@ export const es: Dictionary = {
     knowledge_base: {
         title: "Bases de Conocimiento",
         lessons_learned: "Lecciones Aprendidas",
-        solution_records: "Registros de Soluciones",
+        solution_records: "Biblioteca de Conocimiento",
         product_proposals: "Propuestas de Producto",
         new_entry: "Nueva Entrada",
         search_placeholder: "Buscar...",

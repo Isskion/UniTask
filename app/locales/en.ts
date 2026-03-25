@@ -73,7 +73,7 @@ export const en = {
         appManagement: "Unitask Management",
         "knowledge-area": "Knowledge Area",
         "lessons-learned": "Lessons Learned",
-        "solution-records": "Solution Records",
+        "solution-records": "Knowledge Library",
         uniflux: "Uniflux Engine",
         "uni-order-manager": "UniOrderManager",
         unidocs: "UniDocs",
@@ -577,7 +577,7 @@ export const en = {
     knowledge_base: {
         title: "Knowledge Area",
         lessons_learned: "Lessons Learned",
-        solution_records: "Solution Records",
+        solution_records: "Knowledge Library",
         product_proposals: "Product Proposals",
         new_entry: "New Entry",
         search_placeholder: "Search...",
