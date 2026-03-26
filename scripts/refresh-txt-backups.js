@@ -125,11 +125,23 @@ async function main() {
     console.warn("sites_list.txt not found; skipping marker refresh for it.");
   }
 
+  // 5) projects.txt: preserve current content and only update the marker.
+  const projectsTxtPath = path.join(rootDir, "projects.txt");
+  if (fs.existsSync(projectsTxtPath)) {
+    const current = fs.readFileSync(projectsTxtPath, "utf8");
+    const withoutMarker = stripMarker(current);
+    const updated = withoutMarker.replace(/\s*$/, "") + "\n" + markerValue + "\n";
+    fs.writeFileSync(projectsTxtPath, updated, "utf8");
+  } else {
+    console.warn("projects.txt not found; skipping marker refresh for it.");
+  }
+
   console.log("TXT backups refreshed:");
   console.log("- users_list.txt");
   console.log("- all_projects.txt");
   console.log("- project_ids.txt");
   console.log("- sites_list.txt (marker refresh)");
+  console.log("- projects.txt (marker refresh)");
 }
 
 main().catch((err) => {
