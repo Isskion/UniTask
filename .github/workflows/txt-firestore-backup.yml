@@ -1,0 +1,53 @@
+name: 📝 TXT Firestore Backup (GitHub)
+
+on:
+  schedule:
+    # Runs hourly; the job itself decides whether to run at 00:00 or 17:00 local.
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 📦 Install Dependencies
+        run: npm install firebase-admin
+
+      - name: 🕒 Run only at 00:00 and 17:00 local
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TZ: Europe/Madrid
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+            local_hour="$(date +%H)"
+            if [ "$local_hour" != "00" ] && [ "$local_hour" != "17" ]; then
+              echo "Skipping TXT backup; local hour is $local_hour"
+              exit 0
+            fi
+          fi
+
+          node scripts/refresh-txt-backups.js
+
+      - name: 💾 Commit and Push TXT backups
+        run: |
+          set -euo pipefail
+          git config --global user.name "UniTask Backup Bot"
+          git config --global user.email "backup-bot@unitask.ai"
+          git add users_list.txt all_projects.txt project_ids.txt || true
+          git commit -m "📝 TXT backup: $(date +'%Y-%m-%d %H:%M %Z')" || echo "No changes to commit"
+          git push origin main
+
