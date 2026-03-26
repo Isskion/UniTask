@@ -63,6 +63,16 @@ async function main() {
 
   const db = admin.firestore();
 
+  const now = new Date();
+  const markerPrefix = "# TXT_BACKUP_SNAPSHOT:";
+  // Under CI we set TZ=Europe/Madrid, so "local" time matches your requirement.
+  const markerValue = `${markerPrefix} ${now.toLocaleString("es-ES")}`;
+  const stripMarker = (text) =>
+    text
+      .split(/\r?\n/g)
+      .filter((line) => !line.startsWith(markerPrefix))
+      .join("\n");
+
   // 1) users_list.txt: `${email} -> ${uid}`
   const usersSnap = await db.collection("users").get();
   const usersLines = [];
@@ -74,7 +84,8 @@ async function main() {
     }
   });
   usersLines.sort((a, b) => a.localeCompare(b));
-  fs.writeFileSync(path.join(rootDir, "users_list.txt"), usersLines.join("\n") + (usersLines.length ? "\n" : ""), "utf8");
+  const usersContent = usersLines.join("\n") + "\n" + markerValue + "\n";
+  fs.writeFileSync(path.join(rootDir, "users_list.txt"), usersContent, "utf8");
 
   // 2) all_projects.txt: `P|${projectId}|${name}|${tenantId}`
   const projectsSnap = await db.collection("projects").get();
@@ -91,24 +102,34 @@ async function main() {
   const allProjectsLines = projects.map(
     (p) => `P|${p.id}|${p.name.replace(/\r?\n/g, " ").trim()}|${p.tenantId}`
   );
-  fs.writeFileSync(
-    path.join(rootDir, "all_projects.txt"),
-    allProjectsLines.join("\n") + (allProjectsLines.length ? "\n" : ""),
-    "utf8"
-  );
+  const allProjectsContent =
+    allProjectsLines.join("\n") + "\n" + markerValue + "\n";
+  fs.writeFileSync(path.join(rootDir, "all_projects.txt"), allProjectsContent, "utf8");
 
   // 3) project_ids.txt: `${index}: ${projectId} | ${name} | ${tenantId}`
   const projectIdsLines = projects.map((p, idx) => `${idx}: ${p.id} | ${p.name.replace(/\r?\n/g, " ").trim()} | ${p.tenantId}`);
   fs.writeFileSync(
     path.join(rootDir, "project_ids.txt"),
-    projectIdsLines.join("\n") + (projectIdsLines.length ? "\n" : ""),
+    projectIdsLines.join("\n") + "\n" + markerValue + "\n",
     "utf8"
   );
+
+  // 4) sites_list.txt: no Firestore source found; we preserve current content and only update the marker.
+  const sitesListPath = path.join(rootDir, "sites_list.txt");
+  if (fs.existsSync(sitesListPath)) {
+    const current = fs.readFileSync(sitesListPath, "utf8");
+    const withoutMarker = stripMarker(current);
+    const updated = withoutMarker.replace(/\s*$/, "") + "\n" + markerValue + "\n";
+    fs.writeFileSync(sitesListPath, updated, "utf8");
+  } else {
+    console.warn("sites_list.txt not found; skipping marker refresh for it.");
+  }
 
   console.log("TXT backups refreshed:");
   console.log("- users_list.txt");
   console.log("- all_projects.txt");
   console.log("- project_ids.txt");
+  console.log("- sites_list.txt (marker refresh)");
 }
 
 main().catch((err) => {
