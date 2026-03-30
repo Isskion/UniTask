@@ -311,6 +311,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             )}
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                             <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                            <NavLink href="http://localhost:50156" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                            <NavLink href="http://localhost:50157" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                         </div>
