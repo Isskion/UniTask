@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIGIS | Logistic Service Integrator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="dark-mode">
+    <!-- Login Screen -->
+    <div id="loginScreenWrapper" class="login-wrapper">
+        <div class="login-modal glass">
+            <div class="logo" style="text-align: center; margin-bottom: 20px; font-size: 32px;">UNIGIS</div>
+            <h2 style="text-align: center; margin-bottom: 15px; color: var(--text);">Inicio de Sesión</h2>
+            <div class="form-group">
+                <label>URL Base (ej. https://dominio.unigis.com)</label>
+                <input type="text" id="loginUrl" placeholder="https://..." value="https://">
+            </div>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="loginUser" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPass" autocomplete="current-password">
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="loginRemember" style="width: auto;">
+                <label for="loginRemember" style="margin: 0; cursor: pointer;">Recuérdame</label>
+            </div>
+            <button id="loginBtn" class="btn-primary w-100"
+                style="margin-top: 10px; padding: 12px; font-size: 16px;">Ingresar</button>
+            <div id="loginError" class="login-error hidden"></div>
+            <!-- Spinner -->
+            <div id="loginSpinner" class="loading-spinner hidden" style="text-align: center; margin-top: 10px;">
+                Autenticando...</div>
+        </div>
+    </div>
+
+    <div class="app-container hidden" id="appContainer">
+        <!-- Sidebar: Methods and Navigation -->
+        <aside class="sidebar glass">
+            <div class="sidebar-header">
+                <div class="logo">UNIGIS</div>
+                <div class="app-title">Logistic Service</div>
+            </div>
+            <div class="search-box">
+                <input type="text" id="methodSearch" placeholder="Buscar método...">
+            </div>
+            <nav class="method-list" id="methodList">
+                <div class="loading-spinner">Cargando Swagger...</div>
+            </nav>
+        </aside>
+
+        <!-- Main Content: Configuration and Forms -->
+        <main class="main-content">
+            <header class="top-nav glass" style="justify-content: space-between; align-items: center;">
+                <!-- Container for old config inputs, hidden by default if we want, but managed by JS -->
+                <div class="url-config hidden" id="topConfigBar">
+                    <div class="config-group">
+                        <input type="text" id="swaggerUrl" placeholder="Swagger JSON URL">
+                        <input type="text" id="apiKey" placeholder="ApiKey (e.g. 67-92...)" class="api-key-input"
+                            style="display: none;">
+                    </div>
+                    <div class="action-group">
+                        <button id="loadSwagger" class="btn-primary">Cargar</button>
+                    </div>
+                </div>
+
+                <!-- Container for Logged-In User Status -->
+                <div class="user-info-bar hidden" id="userInfoBar"
+                    style="display: flex; align-items: center; gap: 15px; width: 100%; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="welcomeMessage"
+                            style="font-weight: 600; color: var(--text); font-size: 1.1rem;">Bienvenido</span>
+                        <span id="systemStatus" class="status-badge"
+                            style="background: rgba(46, 213, 115, 0.2); color: #2ed573; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid rgba(46, 213, 115, 0.4);">Online</span>
+                    </div>
+                    <button id="logoutBtn" class="btn-secondary"
+                        style="border-color: #ff4757; color: #ff4757; background: transparent; transition: all 0.3s;"
+                        onmouseover="this.style.background='rgba(255, 71, 87, 0.1)'"
+                        onmouseout="this.style.background='transparent'">Cerrar Sesión</button>
+                </div>
+            </header>
+
+            <section class="content-area">
+                <div id="welcomeScreen" class="welcome-screen">
+                    <h1>Bienvenido al Integrador UNIGIS</h1>
+                    <p>Busca el metodo que deseas trabajar para generar un request.</p>
+                </div>
+
+                <div id="methodDetail" class="method-detail hidden">
+                    <div class="method-header">
+                        <div class="method-name-container">
+                            <h2 id="currentMethodName">Nombre del Método</h2>
+                            <label class="toggle-switch hidden" id="asyncToggleContainer"
+                                title="Enviar como petición Asíncrona" style="display: none !important;">
+                                <input type="checkbox" id="asyncToggle">
+                                <span class="slider round"></span>
+                                <span class="toggle-label">Asíncrono</span>
+                            </label>
+                        </div>
+                        <div class="method-tabs">
+                            <button class="tab-btn active" data-tab="unitary">Unitario</button>
+                            <button class="tab-btn" data-tab="mass">Masivo (Excel)</button>
+                            <button class="tab-btn" data-tab="example">Ejemplos</button>
+                        </div>
+                    </div>
+
+                    <div class="tab-content glass" id="unitaryTab">
+                        <div class="form-grid">
+                            <div class="form-column">
+                                <div class="form-header">
+                                    <input type="text" id="formSearch" placeholder="Filtrar campos de este método..."
+                                        class="glass">
+                                </div>
+                                <div id="dynamicForm" class="request-form">
+                                    <!-- Formulario generado dinámicamente -->
+                                </div>
+                            </div>
+                            <div class="json-preview">
+                                <h3>JSON Request</h3>
+                                <pre id="jsonOutput">{}</pre>
+                                <div class="unitary-actions">
+                                    <button id="sendUnitary" class="btn-success">Enviar Request</button>
+                                    <button id="openTemplateModal" class="btn-secondary">Cargar JSON</button>
+                                    <button id="btnDownloadTemplate" class="btn-info">Descargar Plantilla</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content glass hidden" id="massTab">
+                        <div class="mass-upload-area">
+                            <div class="file-drop-zone" id="dropZone">
+                                <span>Arrastra tu archivo Excel aquí o haz clic para subir</span>
+                                <input type="file" id="excelFile" hidden accept=".xlsx, .xls">
+                            </div>
+                            <div id="mappingSection" class="mapping-section hidden">
+                                <h3>Mapeo de Campos</h3>
+                                <div class="mapping-filters">
+                                    <input type="text" id="mappingSearch" placeholder="Buscar campo en Swagger..."
+                                        class="glass">
+                                </div>
+                                <div id="mappingTable"></div>
+                                <div id="progressContainer" class="progress-container hidden">
+                                    <div class="progress-stats">
+                                        Procesando: <span id="progressCount">0</span> / <span
+                                            id="progressTotal">0</span> (<span id="progressPercent">0</span>%)
+                                    </div>
+                                    <div class="progress-track">
+                                        <div id="progressBar" class="progress-bar"></div>
+                                    </div>
+                                </div>
+                                <div class="batch-actions">
+                                    <button id="startBatch" class="btn-success">Iniciar Integración</button>
+                                    <button id="cancelBatch" class="btn-danger hidden">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content glass hidden" id="exampleTab">
+                        <pre id="exampleOutput">Cargando ejemplo...</pre>
+                    </div>
+                </div>
+            </section>
+
+            <footer id="responseLog" class="response-log glass">
+                <div class="log-header">
+                    <span>Log de Respuestas</span>
+                    <button id="clearLogBtn" class="btn-clear" title="Limpiar Consola">🗑️ Limpiar</button>
+                </div>
+                <div id="logContent" class="log-content"></div>
+            </footer>
+        </main>
+    </div>
+
+    <div id="pasteModal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h3>Pegar JSON de Swagger</h3>
+            <p>Si la carga por URL falla (por CORS), descarga el JSON de Swagger y pégalo aquí.</p>
+            <textarea id="jsonInputArea" placeholder='{"swagger": "2.0", ...}'></textarea>
+            <div class="modal-actions">
+                <button id="closePaste" class="btn-secondary">Cancelar</button>
+                <button id="processPaste" class="btn-primary">Procesar JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="templateModal" class="modal-overlay hidden">
+        <div class="modal-content glass">
+            <h3>Cargar JSON Preformado</h3>
+            <p>Pega aquí un ejemplo de JSON para este método y los campos se autocompletarán.</p>
+            <textarea id="templateJsonInput" placeholder='{ "campo": "valor", ... }'></textarea>
+            <div class="modal-actions">
+                <button id="closeTemplate" class="btn-secondary">Cancelar</button>
+                <button id="processTemplate" class="btn-primary">Aplicar JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.18.5/package/dist/xlsx.full.min.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>
