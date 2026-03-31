@@ -498,7 +498,7 @@ async function loadSwagger(url) {
     toggleLoading(true);
     try {
         // Use local proxy to bypass CORS automatically
-        const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
+        const proxyUrl = `/proxy?url=${encodeURIComponent(finalUrl)}`;
         const response = await fetch(proxyUrl);
 
         if (!response.ok) throw new Error('No se pudo obtener el Swagger');

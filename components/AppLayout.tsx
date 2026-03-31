@@ -515,7 +515,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                 )}
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                                <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                                <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             </div>
