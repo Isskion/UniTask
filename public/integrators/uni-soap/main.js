@@ -498,13 +498,19 @@ async function loadSwagger(url) {
     toggleLoading(true);
     try {
         // Use local proxy to bypass CORS automatically
-        const proxyUrl = `/proxy?url=${encodeURIComponent(finalUrl)}`;
-        const response = await fetch(proxyUrl);
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
+        let response = await fetch(proxyUrl);
 
-        if (!response.ok) throw new Error('No se pudo obtener el Swagger');
+        if (!response.ok) {
+            console.warn('Proxy load failed, trying local swagger_dump.json');
+            response = await fetch('./swagger_dump.json');
+        }
+
+        if (!response.ok) throw new Error('No se pudo obtener el Swagger (Remoto ni Local)');
+        
         state.swagger = await response.json();
         renderMethods();
-        notify('Swagger cargado automáticamente (vía Proxy local)', 'success');
+        notify('Swagger cargado (vía Proxy o Local)', 'success');
     } catch (err) {
         console.error(err);
         notify('Fallo carga automática. Intenta con "Pegar JSON".', 'error');
