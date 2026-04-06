@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import {
     X, Printer, Check, Copy, ChevronRight, FileText,
     Link, Shield, Code, Download, FileJson, Share2,
-    CheckCircle2
+    CheckCircle2, ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InterfaceEntry, Project } from "@/types";
@@ -244,6 +244,36 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                                 <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed text-zinc-400">
                                                     {iface.formatContent}
                                                 </pre>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {iface.mapping && iface.mapping.length > 0 && (
+                                        <div className="space-y-3 pt-4 break-inside-avoid">
+                                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-1">
+                                                <ArrowRightLeft className="w-3 h-3" /> Mapeo Lógico de Datos
+                                            </div>
+                                            <div className={cn("rounded-2xl border overflow-hidden shadow-sm", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/5")}>
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className={cn("border-b text-[9px] uppercase font-black tracking-widest", isLight ? "bg-zinc-50 text-zinc-500" : "bg-white/10 text-zinc-400")}>
+                                                            <th className="px-4 py-3">Campo Origen</th>
+                                                            <th className="px-4 py-3">Campo Destino</th>
+                                                            <th className="px-4 py-3">Tipo</th>
+                                                            <th className="px-4 py-3">Observaciones / Lógica</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-zinc-100 dark:divide-white/5">
+                                                        {iface.mapping.map(row => (
+                                                            <tr key={row.id}>
+                                                                <td className="px-4 py-3 font-mono text-[11px] text-primary font-bold">{row.sourceField || "-"}</td>
+                                                                <td className="px-4 py-3 font-mono text-[11px]">{row.targetField || "-"}</td>
+                                                                <td className="px-4 py-3"><span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono">{row.dataType || "string"}</span></td>
+                                                                <td className="px-4 py-3 text-[11px] opacity-70">{row.description || "-"}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     )}

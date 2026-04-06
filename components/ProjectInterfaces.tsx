@@ -6,7 +6,7 @@ import {
     Search, Plus, ArrowLeft, Code, FileJson, FileText,
     Trash2, ExternalLink, CheckCircle2, MoreVertical,
     Save, X, Loader2, AlertCircle, FileCode, Check,
-    LayoutDashboard, Edit2, CloudUpload
+    LayoutDashboard, Edit2, CloudUpload, ArrowRightLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, InterfaceEntry, InterfaceVersion } from "@/types";
@@ -75,8 +75,39 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
         projectId: project.id,
         tenantId: tenantId,
         isActive: true,
-        versions: []
+        versions: [],
+        mapping: []
     });
+
+    const handleAddMappingRow = () => {
+        const newRow = {
+            id: crypto.randomUUID(),
+            sourceField: "",
+            targetField: "",
+            dataType: "string",
+            description: ""
+        };
+        setNewInterface(prev => ({
+            ...prev,
+            mapping: [...(prev.mapping || []), newRow]
+        }));
+    };
+
+    const handleRemoveMappingRow = (id: string) => {
+        setNewInterface(prev => ({
+            ...prev,
+            mapping: (prev.mapping || []).filter(row => row.id !== id)
+        }));
+    };
+
+    const handleUpdateMappingRow = (id: string, field: string, value: string) => {
+        setNewInterface(prev => ({
+            ...prev,
+            mapping: (prev.mapping || []).map(row => 
+                row.id === id ? { ...row, [field]: value } : row
+            )
+        }));
+    };
 
     const loadInterfaces = useCallback(async () => {
         setLoading(true);
@@ -108,7 +139,8 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
             projectId: project.id,
             tenantId: tenantId,
             isActive: true,
-            versions: []
+            versions: [],
+            mapping: []
         });
         setIsEditing(false);
     };
@@ -386,6 +418,72 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                         spellCheck={false}
                                     />
                                 </div>
+
+                                {/* Field Mapping Section */}
+                                <div className="space-y-3 pt-2">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
+                                            <ArrowRightLeft className="w-3 h-3" /> Mapeo de Campos (Origen → Destino)
+                                        </label>
+                                        <button 
+                                            onClick={handleAddMappingRow}
+                                            className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-md font-bold hover:bg-primary/20 transition-all"
+                                        >
+                                            + Añadir Fila
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        {(newInterface.mapping || []).length === 0 ? (
+                                            <div className="py-8 border border-dashed rounded-xl flex flex-col items-center justify-center opacity-30">
+                                                <ArrowRightLeft className="w-6 h-6 mb-1" />
+                                                <span className="text-[10px] font-bold uppercase">Sin mapeo definido</span>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {(newInterface.mapping || []).map((row) => (
+                                                    <div key={row.id} className={cn("p-3 rounded-xl border flex flex-col gap-3 group relative", isLight ? "bg-zinc-50" : "bg-white/5 border-white/5")}>
+                                                        <div className="flex items-center gap-2">
+                                                            <input 
+                                                                value={row.sourceField}
+                                                                onChange={e => handleUpdateMappingRow(row.id, 'sourceField', e.target.value)}
+                                                                className={cn("flex-1 text-[11px] bg-transparent border rounded-md px-2 py-1 outline-none", isLight ? "border-zinc-200" : "border-white/10")}
+                                                                placeholder="Campo Origen"
+                                                            />
+                                                            <ArrowRightLeft className="w-3 h-3 opacity-30" />
+                                                            <input 
+                                                                value={row.targetField}
+                                                                onChange={e => handleUpdateMappingRow(row.id, 'targetField', e.target.value)}
+                                                                className={cn("flex-1 text-[11px] bg-transparent border rounded-md px-2 py-1 outline-none", isLight ? "border-zinc-200" : "border-white/10")}
+                                                                placeholder="Campo Destino"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <input 
+                                                                value={row.dataType}
+                                                                onChange={e => handleUpdateMappingRow(row.id, 'dataType', e.target.value)}
+                                                                className={cn("w-24 text-[10px] bg-transparent border rounded-md px-2 py-1 outline-none", isLight ? "border-zinc-200" : "border-white/10")}
+                                                                placeholder="Tipo (string...)"
+                                                            />
+                                                            <input 
+                                                                value={row.description}
+                                                                onChange={e => handleUpdateMappingRow(row.id, 'description', e.target.value)}
+                                                                className={cn("flex-1 text-[10px] bg-transparent border rounded-md px-2 py-1 outline-none", isLight ? "border-zinc-200" : "border-white/10")}
+                                                                placeholder="Descripción del mapeo..."
+                                                            />
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleRemoveMappingRow(row.id)}
+                                                            className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <div className={cn("p-6 border-t flex gap-3 transition-colors", compact ? "bg-primary/5" : "bg-black/5")}>
                                 <button
@@ -572,6 +670,46 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                     <pre className="text-sm font-mono whitespace-pre-wrap break-all opacity-80 max-h-[500px] overflow-y-auto custom-scrollbar">
                                         {selectedInterface.formatContent || "// Sin contenido definido"}
                                     </pre>
+                                </div>
+                            </div>
+
+                            {/* Field Mapping Display */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-bold flex items-center gap-2">
+                                        <ArrowRightLeft className="w-4 h-4 text-primary" />
+                                        Mapeo Lógico de Datos
+                                    </h3>
+                                </div>
+                                <div className={cn("rounded-2xl border overflow-hidden", isLight ? "bg-white border-zinc-200 shadow-sm" : "bg-zinc-900 border-zinc-800")}>
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className={cn("border-b text-[10px] uppercase font-black tracking-widest", isLight ? "bg-zinc-50 text-zinc-500" : "bg-white/5 text-zinc-400")}>
+                                                <th className="px-4 py-3">Origen</th>
+                                                <th className="px-4 py-3">Destino</th>
+                                                <th className="px-4 py-3">Tipo</th>
+                                                <th className="px-4 py-3">Descripción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {(!selectedInterface.mapping || selectedInterface.mapping.length === 0) ? (
+                                                <tr>
+                                                    <td colSpan={4} className="px-4 py-8 text-center text-xs opacity-40 italic">
+                                                        No se ha definido un mapeo de campos para esta interfaz.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                selectedInterface.mapping.map(row => (
+                                                    <tr key={row.id} className="hover:bg-primary/5 transition-colors">
+                                                        <td className="px-4 py-3 font-mono text-xs text-primary font-bold">{row.sourceField || "-"}</td>
+                                                        <td className="px-4 py-3 font-mono text-xs">{row.targetField || "-"}</td>
+                                                        <td className="px-4 py-3"><span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono">{row.dataType || "string"}</span></td>
+                                                        <td className="px-4 py-3 text-xs opacity-70">{row.description || "-"}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>

@@ -559,6 +559,14 @@ export interface InterfaceVersion {
     notes?: string;           // Optional changelog for this version
 }
 
+export interface InterfaceMappingRow {
+    id: string;
+    sourceField: string;
+    targetField: string;
+    dataType?: string;
+    description?: string;
+}
+
 export interface InterfaceEntry {
     id: string;
     name: string;             // e.g. "SAP Inventory Sync", "Client XML Feed"
@@ -571,6 +579,7 @@ export interface InterfaceEntry {
     projectId: string;        // Parent project link
     tenantId: string;
     versions: InterfaceVersion[];
+    mapping?: InterfaceMappingRow[];
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
