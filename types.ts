@@ -9,6 +9,16 @@ export interface ExportTemplate {
     createdAt: any; // Firestore Timestamp
 }
 
+export interface ProjectEnvironment {
+    id: string;
+    name: string;
+    ip?: string;
+    user?: string;
+    pass?: string;
+    url?: string;
+    isProduction?: boolean;
+}
+
 export interface Project {
     id: string; // Firestore ID
     code: string; // Business Code (e.g. "PRJ-001")
@@ -43,6 +53,7 @@ export interface Project {
         testPass?: string;
         testUrl?: string;
     };
+    environments?: ProjectEnvironment[];
 
     // Security & Metadata
     tenantId: string; // Multi-tenant isolation

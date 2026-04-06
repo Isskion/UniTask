@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Project } from "@/types";
+import { Project, ProjectEnvironment } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useTheme } from "@/hooks/useTheme";
 import { db } from "@/lib/firebase";
@@ -18,31 +20,86 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     const [saving, setSaving] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
     
-    const [formData, setFormData] = useState({
-        prodIP: project.connections?.prodIP || "",
-        prodUser: project.connections?.prodUser || "",
-        prodPass: project.connections?.prodPass || "",
-        prodUrl: project.connections?.prodUrl || "",
-        testIP: project.connections?.testIP || "",
-        testUser: project.connections?.testUser || "",
-        testPass: project.connections?.testPass || "",
-        testUrl: project.connections?.testUrl || "",
-    });
+    // Initialize environments from existing data or legacy connections
+    const [environments, setEnvironments] = useState<ProjectEnvironment[]>([]);
+
+    useEffect(() => {
+        if (project.environments && project.environments.length > 0) {
+            setEnvironments(project.environments);
+        } else if (project.connections) {
+            // Legacy Migration
+            const legacyEnvironments: ProjectEnvironment[] = [
+                {
+                    id: "prod",
+                    name: "Producción",
+                    isProduction: true,
+                    ip: project.connections.prodIP || "",
+                    user: project.connections.prodUser || "",
+                    pass: project.connections.prodPass || "",
+                    url: project.connections.prodUrl || "",
+                },
+                {
+                    id: "test",
+                    name: "Test",
+                    isProduction: false,
+                    ip: project.connections.testIP || "",
+                    user: project.connections.testUser || "",
+                    pass: project.connections.testPass || "",
+                    url: project.connections.testUrl || "",
+                }
+            ];
+            setEnvironments(legacyEnvironments);
+        } else {
+            // New defaults
+            setEnvironments([
+                { id: "prod", name: "Producción", isProduction: true, ip: "", user: "", pass: "", url: "" },
+                { id: "test", name: "Test", isProduction: false, ip: "", user: "", pass: "", url: "" }
+            ]);
+        }
+    }, [project.environments, project.connections]);
 
     const handleSave = async () => {
         setSaving(true);
         try {
             const projectRef = doc(db, "projects", project.id);
             await updateDoc(projectRef, {
-                connections: formData
+                environments: environments
             });
-            showToast("Conexión", "Datos de conexión actualizados correctamente", "success");
+            showToast("Conexión", "Entornos actualizados correctamente", "success");
         } catch (error) {
-            console.error("Error saving connections:", error);
-            showToast("Conexión", "Error al guardar los datos", "error");
+            console.error("Error saving environments:", error);
+            showToast("Conexión", "Error al guardar los entornos", "error");
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleAddEnvironment = () => {
+        const newEnv: ProjectEnvironment = {
+            id: crypto.randomUUID(),
+            name: "Nuevo Entorno",
+            isProduction: false,
+            ip: "",
+            user: "",
+            pass: "",
+            url: ""
+        };
+        setEnvironments([...environments, newEnv]);
+        showToast("Entorno", "Nuevo entorno de pruebas añadido", "success");
+    };
+
+    const handleRemoveEnvironment = (id: string) => {
+        const envToRemove = environments.find(e => e.id === id);
+        if (envToRemove?.isProduction) return;
+        
+        setEnvironments(environments.filter(e => e.id !== id));
+        showToast("Entorno", "Entorno eliminado", "info");
+    };
+
+    const handleUpdateField = (id: string, field: keyof ProjectEnvironment, value: any) => {
+        setEnvironments(prev => prev.map(env => 
+            env.id === id ? { ...env, [field]: value } : env
+        ));
     };
 
     const handleCopy = (text: string, fieldId: string) => {
@@ -78,176 +135,174 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     ? "text-green-500 bg-green-500/10" 
                     : "text-zinc-500 hover:bg-primary/10 hover:text-primary opacity-40 hover:opacity-100"
             )}
-            title="Copiar al portapapeles"
+            title="Copiar"
         >
             {copiedField === fieldId ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
         </button>
     );
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header section with Save Button */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Header section with Actions */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10 sticky top-0 bg-background/80 backdrop-blur-md z-10">
                 <div>
                     <h2 className={cn("text-2xl font-bold tracking-tight", isLight ? "text-zinc-900" : "text-foreground")}>
-                        Datos de Conexión
+                        Entornos del Proyecto
                     </h2>
-                    <p className="text-sm text-muted-foreground">Credenciales y accesos directos para entornos del proyecto</p>
+                    <p className="text-sm text-muted-foreground">Configuración de servidores y accesos para producción y pruebas</p>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl flex items-center gap-2 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 shrink-0"
-                >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Guardar Cambios
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleAddEnvironment}
+                        className="px-4 py-2.5 bg-zinc-800 text-white rounded-xl flex items-center gap-2 font-bold hover:bg-zinc-700 transition-all border border-zinc-700 shadow-lg"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Añadir Entorno
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl flex items-center gap-2 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 shrink-0"
+                    >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Guardar Cambios
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* PROD SECTION */}
-                <div className={cn("p-6 rounded-2xl border space-y-6 transition-all", isLight ? "bg-white border-zinc-200 shadow-sm" : "bg-white/5 border-white/10")}>
-                    <div className={cn("flex items-center gap-3 border-b pb-4", isLight ? "border-zinc-100" : "border-white/5")}>
-                        <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
-                            <Database className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className={cn("font-bold text-lg", isLight ? "text-zinc-900" : "text-foreground")}>Entorno: Producción</h3>
-                            <p className="text-[10px] text-orange-500 uppercase font-black tracking-wider">Crítico / Live</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div>
-                            <label className={labelClasses}><Server className="w-3 h-3" /> Host / IP Producción</label>
-                            <div className="relative">
-                                <input 
-                                    className={inputClasses}
-                                    value={formData.prodIP}
-                                    onChange={e => setFormData({...formData, prodIP: e.target.value})}
-                                    placeholder="p.ej. 192.168.1.10"
-                                />
-                                <CopyButton text={formData.prodIP} fieldId="prodIP" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
+                {environments.map((env) => (
+                    <div 
+                        key={env.id} 
+                        className={cn(
+                            "p-6 rounded-2xl border space-y-6 transition-all relative group",
+                            isLight ? "bg-white border-zinc-200 shadow-sm" : "bg-white/5 border-white/10",
+                            env.isProduction && (isLight ? "ring-2 ring-orange-500/20" : "ring-1 ring-orange-500/30")
+                        )}
+                    >
+                        {/* Header Context */}
+                        <div className={cn("flex items-center justify-between border-b pb-4", isLight ? "border-zinc-100" : "border-white/5")}>
+                            <div className="flex items-center gap-3">
+                                <div className={cn(
+                                    "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                    env.isProduction ? "bg-orange-500/20 text-orange-500" : "bg-blue-500/20 text-blue-500"
+                                )}>
+                                    {env.isProduction ? <Database className="w-6 h-6" /> : <Server className="w-6 h-6" />}
+                                </div>
+                                <div>
+                                    <input 
+                                        className={cn(
+                                            "font-bold text-lg bg-transparent border-none outline-none focus:ring-2 focus:ring-primary/20 rounded px-1 -ml-1 transition-all",
+                                            isLight ? "text-zinc-900" : "text-foreground",
+                                            env.isProduction && "pointer-events-none"
+                                        )}
+                                        value={env.name}
+                                        onChange={e => handleUpdateField(env.id, 'name', e.target.value)}
+                                        placeholder="Nombre del entorno..."
+                                        disabled={env.isProduction}
+                                    />
+                                    <p className={cn(
+                                        "text-[10px] uppercase font-black tracking-wider",
+                                        env.isProduction ? "text-orange-500" : "text-blue-500"
+                                    )}>
+                                        {env.isProduction ? "Crítico / Live" : "Sandbox / Pruebas"}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                            <label className={labelClasses}><User className="w-3 h-3" /> Usuario Producción</label>
-                            <div className="relative">
-                                <input 
-                                    className={inputClasses}
-                                    value={formData.prodUser}
-                                    onChange={e => setFormData({...formData, prodUser: e.target.value})}
-                                    placeholder="root, admin..."
-                                />
-                                <CopyButton text={formData.prodUser} fieldId="prodUser" />
-                            </div>
-                        </div>
-                        <div>
-                            <label className={labelClasses}><Key className="w-3 h-3" /> Clave / SSH Key</label>
-                            <div className="relative">
-                                <input 
-                                    type="password"
-                                    className={inputClasses}
-                                    value={formData.prodPass}
-                                    onChange={e => setFormData({...formData, prodPass: e.target.value})}
-                                    placeholder="••••••••"
-                                />
-                                <CopyButton text={formData.prodPass} fieldId="prodPass" />
-                            </div>
-                        </div>
-                        <div className="pt-2">
-                            <label className={labelClasses}><Globe className="w-3 h-3" /> URL de Producción</label>
-                            <div className="relative group">
-                                <input 
-                                    className={cn(inputClasses, "pr-12")}
-                                    value={formData.prodUrl}
-                                    onChange={e => setFormData({...formData, prodUrl: e.target.value})}
-                                    placeholder="https://..."
-                                />
+                            
+                            {!env.isProduction && (
                                 <button 
-                                    onClick={() => handleOpenUrl(formData.prodUrl)}
-                                    disabled={!formData.prodUrl}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-primary/20 text-primary rounded-lg transition-all opacity-40 group-hover:opacity-100 disabled:opacity-0"
-                                    title="Abrir URL"
+                                    onClick={() => handleRemoveEnvironment(env.id)}
+                                    className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                    title="Eliminar entorno"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <Trash2 className="w-4 h-4" />
                                 </button>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                </div>
 
-                {/* TEST SECTION */}
-                <div className={cn("p-6 rounded-2xl border space-y-6 transition-all", isLight ? "bg-white border-zinc-200 shadow-sm" : "bg-white/5 border-white/10")}>
-                    <div className={cn("flex items-center gap-3 border-b pb-4", isLight ? "border-zinc-100" : "border-white/5")}>
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
-                            <Server className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className={cn("font-bold text-lg", isLight ? "text-zinc-900" : "text-foreground")}>Entorno: Test</h3>
-                            <p className="text-[10px] text-blue-500 uppercase font-black tracking-wider">Sandbox / Testing</p>
+                        {/* Fields */}
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClasses}><Server className="w-3 h-3" /> Host / IP</label>
+                                    <div className="relative">
+                                        <input 
+                                            className={inputClasses}
+                                            value={env.ip}
+                                            onChange={e => handleUpdateField(env.id, 'ip', e.target.value)}
+                                            placeholder="p.ej. 192.168.1.1"
+                                        />
+                                        <CopyButton text={env.ip || ""} fieldId={`${env.id}-ip`} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className={labelClasses}><User className="w-3 h-3" /> Usuario</label>
+                                    <div className="relative">
+                                        <input 
+                                            className={inputClasses}
+                                            value={env.user}
+                                            onChange={e => handleUpdateField(env.id, 'user', e.target.value)}
+                                            placeholder="root, admin..."
+                                        />
+                                        <CopyButton text={env.user || ""} fieldId={`${env.id}-user`} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className={labelClasses}><Key className="w-3 h-3" /> Clave / SSH Key</label>
+                                <div className="relative">
+                                    <input 
+                                        type="password"
+                                        className={inputClasses}
+                                        value={env.pass}
+                                        onChange={e => handleUpdateField(env.id, 'pass', e.target.value)}
+                                        placeholder="••••••••"
+                                    />
+                                    <CopyButton text={env.pass || ""} fieldId={`${env.id}-pass`} />
+                                </div>
+                            </div>
+                            <div className="pt-2">
+                                <label className={labelClasses}><Globe className="w-3 h-3" /> URL del Entorno</label>
+                                <div className="relative group/url">
+                                    <input 
+                                        className={cn(inputClasses, "pr-12")}
+                                        value={env.url}
+                                        onChange={e => handleUpdateField(env.id, 'url', e.target.value)}
+                                        placeholder="https://..."
+                                    />
+                                    <button 
+                                        onClick={() => handleOpenUrl(env.url || "")}
+                                        disabled={!env.url}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-primary/20 text-primary rounded-lg transition-all opacity-40 group-hover/url:opacity-100 disabled:opacity-0"
+                                        title="Abrir URL"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                ))}
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className={labelClasses}><Server className="w-3 h-3" /> Host / IP Test</label>
-                            <div className="relative">
-                                <input 
-                                    className={inputClasses}
-                                    value={formData.testIP}
-                                    onChange={e => setFormData({...formData, testIP: e.target.value})}
-                                    placeholder="p.ej. 10.0.0.5"
-                                />
-                                <CopyButton text={formData.testIP} fieldId="testIP" />
-                            </div>
-                        </div>
-                        <div>
-                            <label className={labelClasses}><User className="w-3 h-3" /> Usuario Test</label>
-                            <div className="relative">
-                                <input 
-                                    className={inputClasses}
-                                    value={formData.testUser}
-                                    onChange={e => setFormData({...formData, testUser: e.target.value})}
-                                    placeholder="testuser, dev..."
-                                />
-                                <CopyButton text={formData.testUser} fieldId="testUser" />
-                            </div>
-                        </div>
-                        <div>
-                            <label className={labelClasses}><Key className="w-3 h-3" /> Clave / SSH Key</label>
-                            <div className="relative">
-                                <input 
-                                    type="password"
-                                    className={inputClasses}
-                                    value={formData.testPass}
-                                    onChange={e => setFormData({...formData, testPass: e.target.value})}
-                                    placeholder="••••••••"
-                                />
-                                <CopyButton text={formData.testPass} fieldId="testPass" />
-                            </div>
-                        </div>
-                        <div className="pt-2">
-                            <label className={labelClasses}><Globe className="w-3 h-3" /> URL de Test</label>
-                            <div className="relative group">
-                                <input 
-                                    className={cn(inputClasses, "pr-12")}
-                                    value={formData.testUrl}
-                                    onChange={e => setFormData({...formData, testUrl: e.target.value})}
-                                    placeholder="https://test..."
-                                />
-                                <button 
-                                    onClick={() => handleOpenUrl(formData.testUrl)}
-                                    disabled={!formData.testUrl}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-primary/20 text-primary rounded-lg transition-all opacity-40 group-hover:opacity-100 disabled:opacity-0"
-                                    title="Abrir URL"
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
+                {/* ADD BUTTON AS CARD */}
+                <button 
+                    onClick={handleAddEnvironment}
+                    className={cn(
+                        "p-6 rounded-2xl border border-dashed flex flex-col items-center justify-center gap-4 group transition-all h-[340px]",
+                        isLight 
+                            ? "bg-zinc-50/50 border-zinc-200 hover:bg-white hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5" 
+                            : "bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-primary/50"
+                    )}
+                >
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
+                        <Plus className="w-8 h-8" />
                     </div>
-                </div>
+                    <div className="text-center">
+                        <p className={cn("font-bold text-lg", isLight ? "text-zinc-900" : "text-foreground")}>Añadir más Entornos</p>
+                        <p className="text-sm text-muted-foreground">Homologación, Staging, QA...</p>
+                    </div>
+                </button>
             </div>
         </div>
     );
