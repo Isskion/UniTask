@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database } from "lucide-react";
+import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project } from "@/types";
 import { useToast } from "@/context/ToastContext";
@@ -18,6 +16,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     const { theme } = useTheme();
     const isLight = theme === "light";
     const [saving, setSaving] = useState(false);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
     
     const [formData, setFormData] = useState({
         prodIP: project.connections?.prodIP || "",
@@ -46,6 +45,14 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
         }
     };
 
+    const handleCopy = (text: string, fieldId: string) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text);
+        setCopiedField(fieldId);
+        setTimeout(() => setCopiedField(null), 2000);
+        showToast("Copiado", "Copiado al portapapeles", "success");
+    };
+
     const handleOpenUrl = (url: string) => {
         if (!url) return;
         const finalUrl = url.startsWith("http") ? url : `https://${url}`;
@@ -53,13 +60,29 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     };
 
     const inputClasses = cn(
-        "w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all",
+        "w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all pr-10",
         isLight 
             ? "bg-zinc-50 focus:bg-white focus:border-primary/50" 
             : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50 text-zinc-200"
     );
 
     const labelClasses = "text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5 mb-1.5";
+
+    const CopyButton = ({ text, fieldId }: { text: string, fieldId: string }) => (
+        <button 
+            onClick={() => handleCopy(text, fieldId)}
+            disabled={!text}
+            className={cn(
+                "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all",
+                copiedField === fieldId 
+                    ? "text-green-500 bg-green-500/10" 
+                    : "text-zinc-500 hover:bg-primary/10 hover:text-primary opacity-40 hover:opacity-100"
+            )}
+            title="Copiar al portapapeles"
+        >
+            {copiedField === fieldId ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+    );
 
     return (
         <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -97,31 +120,40 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     <div className="space-y-4">
                         <div>
                             <label className={labelClasses}><Server className="w-3 h-3" /> Host / IP Producción</label>
-                            <input 
-                                className={inputClasses}
-                                value={formData.prodIP}
-                                onChange={e => setFormData({...formData, prodIP: e.target.value})}
-                                placeholder="p.ej. 192.168.1.10"
-                            />
+                            <div className="relative">
+                                <input 
+                                    className={inputClasses}
+                                    value={formData.prodIP}
+                                    onChange={e => setFormData({...formData, prodIP: e.target.value})}
+                                    placeholder="p.ej. 192.168.1.10"
+                                />
+                                <CopyButton text={formData.prodIP} fieldId="prodIP" />
+                            </div>
                         </div>
                         <div>
                             <label className={labelClasses}><User className="w-3 h-3" /> Usuario Producción</label>
-                            <input 
-                                className={inputClasses}
-                                value={formData.prodUser}
-                                onChange={e => setFormData({...formData, prodUser: e.target.value})}
-                                placeholder="root, admin..."
-                            />
+                            <div className="relative">
+                                <input 
+                                    className={inputClasses}
+                                    value={formData.prodUser}
+                                    onChange={e => setFormData({...formData, prodUser: e.target.value})}
+                                    placeholder="root, admin..."
+                                />
+                                <CopyButton text={formData.prodUser} fieldId="prodUser" />
+                            </div>
                         </div>
                         <div>
                             <label className={labelClasses}><Key className="w-3 h-3" /> Clave / SSH Key</label>
-                            <input 
-                                type="password"
-                                className={inputClasses}
-                                value={formData.prodPass}
-                                onChange={e => setFormData({...formData, prodPass: e.target.value})}
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input 
+                                    type="password"
+                                    className={inputClasses}
+                                    value={formData.prodPass}
+                                    onChange={e => setFormData({...formData, prodPass: e.target.value})}
+                                    placeholder="••••••••"
+                                />
+                                <CopyButton text={formData.prodPass} fieldId="prodPass" />
+                            </div>
                         </div>
                         <div className="pt-2">
                             <label className={labelClasses}><Globe className="w-3 h-3" /> URL de Producción</label>
@@ -160,31 +192,40 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     <div className="space-y-4">
                         <div>
                             <label className={labelClasses}><Server className="w-3 h-3" /> Host / IP Test</label>
-                            <input 
-                                className={inputClasses}
-                                value={formData.testIP}
-                                onChange={e => setFormData({...formData, testIP: e.target.value})}
-                                placeholder="p.ej. 10.0.0.5"
-                            />
+                            <div className="relative">
+                                <input 
+                                    className={inputClasses}
+                                    value={formData.testIP}
+                                    onChange={e => setFormData({...formData, testIP: e.target.value})}
+                                    placeholder="p.ej. 10.0.0.5"
+                                />
+                                <CopyButton text={formData.testIP} fieldId="testIP" />
+                            </div>
                         </div>
                         <div>
                             <label className={labelClasses}><User className="w-3 h-3" /> Usuario Test</label>
-                            <input 
-                                className={inputClasses}
-                                value={formData.testUser}
-                                onChange={e => setFormData({...formData, testUser: e.target.value})}
-                                placeholder="testuser, dev..."
-                            />
+                            <div className="relative">
+                                <input 
+                                    className={inputClasses}
+                                    value={formData.testUser}
+                                    onChange={e => setFormData({...formData, testUser: e.target.value})}
+                                    placeholder="testuser, dev..."
+                                />
+                                <CopyButton text={formData.testUser} fieldId="testUser" />
+                            </div>
                         </div>
                         <div>
                             <label className={labelClasses}><Key className="w-3 h-3" /> Clave / SSH Key</label>
-                            <input 
-                                type="password"
-                                className={inputClasses}
-                                value={formData.testPass}
-                                onChange={e => setFormData({...formData, testPass: e.target.value})}
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input 
+                                    type="password"
+                                    className={inputClasses}
+                                    value={formData.testPass}
+                                    onChange={e => setFormData({...formData, testPass: e.target.value})}
+                                    placeholder="••••••••"
+                                />
+                                <CopyButton text={formData.testPass} fieldId="testPass" />
+                            </div>
                         </div>
                         <div className="pt-2">
                             <label className={labelClasses}><Globe className="w-3 h-3" /> URL de Test</label>
