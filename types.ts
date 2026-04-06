@@ -32,6 +32,18 @@ export interface Project {
     _tenantAccessKey?: string; // "TENANT:REGION:DIVISION"
     _migrated?: boolean;
 
+    // Connections
+    connections?: {
+        prodIP?: string;
+        prodUser?: string;
+        prodPass?: string;
+        prodUrl?: string;
+        testIP?: string;
+        testUser?: string;
+        testPass?: string;
+        testUrl?: string;
+    };
+
     // Security & Metadata
     tenantId: string; // Multi-tenant isolation
     teamIds: string[]; // New: UIDs of allowed consultants
