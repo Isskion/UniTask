@@ -13,6 +13,7 @@ federico.debrito@unigis.com -> hWXayiILtLPRzXnn27pIrB1mHTZ2
 gabiarcos@gmail.com -> 9k4a329sfZNC8AdR9XJETxbXjXU2
 gonzalo.castro@unigis.com -> rgwBllGD8ehaXJyXfEQbJCTerMR2
 inaki.iraburu@unigis.com -> lE4z434rFRUSaGo4uQw2Guspo1j2
+jaime.armas@unigis.com -> kUZXUUXtufZdvDAG8lCuAw7J1Ez1
 jesus.marquez@unigis.com -> 0DCFYVAhLESUwaeacY6Hanotrta2
 jesusmanuel.marquez89@gmail.com -> P2ouXNOxWDeJ5YdliRVE0p5cAp42
 jorge.martinez@unigis.com -> spXyzUi0NUZXRlqUOrMep8bv0gf2
@@ -22,4 +23,4 @@ maria.isasa@unigis.com -> UsuqceJ4ylTflrGmgHQfhOLnCy13
 pilumm@gmail.com -> g1bMbjOkwoZCbIvhbivtwVuTGjA3
 siscojimenez@hotmail.com -> pt24Ktl3JQfYQgmIn2QuG7Tt3yC3
 unitaskcontroller.noreply@gmail.com -> 3avBlnAV7pOc2V0Lmrwew6PLUT72
-# TXT_BACKUP_SNAPSHOT: 8/4/2026, 0:26:29
+# TXT_BACKUP_SNAPSHOT: 9/4/2026, 0:28:11
