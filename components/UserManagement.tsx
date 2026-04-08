@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
@@ -60,6 +60,8 @@ export default function UserManagement() {
     const [availableProjects, setAvailableProjects] = useState<{ id: string, name: string, code: string }[]>([]);
     const [availableGroups, setAvailableGroups] = useState<PermissionGroup[]>([]);
     const [availableTenants, setAvailableTenants] = useState<Tenant[]>([]);
+    const [availableRegions, setAvailableRegions] = useState<{ id: string, name: string }[]>([]);
+    const [availableDivisions, setAvailableDivisions] = useState<{ id: string, name: string }[]>([]);
 
     useEffect(() => {
         if (getRoleLevel(userRole) < 70) {
@@ -71,7 +73,20 @@ export default function UserManagement() {
         loadProjectsForSelect();
         loadPermissionGroups();
         loadTenants();
+        loadSAMMasters();
     }, [activeTab, userRole, tenantId]);
+
+    const loadSAMMasters = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "global_data"));
+            querySnapshot.forEach((doc) => {
+                if (doc.id === 'regions') setAvailableRegions(doc.data().items || []);
+                if (doc.id === 'divisions') setAvailableDivisions(doc.data().items || []);
+            });
+        } catch (error) {
+            console.error("Error loading SAM masters:", error);
+        }
+    };
 
     const loadTenants = async () => {
         try {
@@ -230,7 +245,8 @@ export default function UserManagement() {
             permissionGroupId: user.permissionGroupId || "",
             isConsultant: user.isConsultant || false,
             worksOnWeekends: user.worksOnWeekends || false,
-            aiEnabled: user.aiEnabled || false
+            aiEnabled: user.aiEnabled || false,
+            accessScopes: user.accessScopes || { regionIds: [], divisionIds: [] }
         });
     };
 
@@ -755,6 +771,121 @@ export default function UserManagement() {
                                         placeholder="Company name"
                                     />
                                 </div>
+
+                                {/* [NEW] SAM Access Scopes Section */}
+                                <div className={cn(
+                                    "col-span-2 p-4 rounded-xl space-y-4 border",
+                                    isLight ? "bg-zinc-50 border-zinc-200" : "bg-white/5 border-white/10"
+                                )}>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Globe className="w-4 h-4 text-primary" />
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-foreground">Escopos de Acceso (SAM)</h4>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Regions Scope */}
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-[10px] font-black uppercase text-zinc-500">Regiones Permitidas</label>
+                                                <button 
+                                                    onClick={() => setFormData(prev => ({ 
+                                                        ...prev, 
+                                                        accessScopes: { 
+                                                            ...prev.accessScopes!, 
+                                                            regionIds: prev.accessScopes?.regionIds?.includes('*') ? [] : ['*'] 
+                                                        } 
+                                                    }))}
+                                                    className={cn(
+                                                        "text-[9px] font-black uppercase px-2 py-0.5 rounded",
+                                                        formData.accessScopes?.regionIds?.includes('*') 
+                                                            ? "bg-primary text-white" 
+                                                            : "bg-secondary text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {formData.accessScopes?.regionIds?.includes('*') ? "FULL ACCESS" : "SET GLOBAL"}
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto p-1">
+                                                {availableRegions.map(r => (
+                                                    <button
+                                                        key={r.id}
+                                                        disabled={formData.accessScopes?.regionIds?.includes('*')}
+                                                        onClick={() => {
+                                                            const current = formData.accessScopes?.regionIds || [];
+                                                            const next = current.includes(r.id) 
+                                                                ? current.filter(id => id !== r.id)
+                                                                : [...current, r.id];
+                                                            setFormData(prev => ({ ...prev, accessScopes: { ...prev.accessScopes!, regionIds: next } }));
+                                                        }}
+                                                        className={cn(
+                                                            "px-2 py-1 rounded-md text-[10px] font-bold border transition-all",
+                                                            formData.accessScopes?.regionIds?.includes(r.id)
+                                                                ? "bg-primary/20 border-primary text-primary"
+                                                                : "bg-secondary/20 border-border text-muted-foreground hover:border-primary/40",
+                                                            formData.accessScopes?.regionIds?.includes('*') && "opacity-50 cursor-not-allowed"
+                                                        )}
+                                                    >
+                                                        {r.name}
+                                                    </button>
+                                                ))}
+                                                {availableRegions.length === 0 && <p className="text-[10px] italic text-muted-foreground">No hay regiones configuradas.</p>}
+                                            </div>
+                                        </div>
+
+                                        {/* Divisions Scope */}
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-[10px] font-black uppercase text-zinc-500">Divisiones Permitidas</label>
+                                                <button 
+                                                    onClick={() => setFormData(prev => ({ 
+                                                        ...prev, 
+                                                        accessScopes: { 
+                                                            ...prev.accessScopes!, 
+                                                            divisionIds: prev.accessScopes?.divisionIds?.includes('*') ? [] : ['*'] 
+                                                        } 
+                                                    }))}
+                                                    className={cn(
+                                                        "text-[9px] font-black uppercase px-2 py-0.5 rounded",
+                                                        formData.accessScopes?.divisionIds?.includes('*') 
+                                                            ? "bg-primary text-white" 
+                                                            : "bg-secondary text-muted-foreground"
+                                                    )}
+                                                >
+                                                    {formData.accessScopes?.divisionIds?.includes('*') ? "FULL ACCESS" : "SET GLOBAL"}
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto p-1">
+                                                {availableDivisions.map(d => (
+                                                    <button
+                                                        key={d.id}
+                                                        disabled={formData.accessScopes?.divisionIds?.includes('*')}
+                                                        onClick={() => {
+                                                            const current = formData.accessScopes?.divisionIds || [];
+                                                            const next = current.includes(d.id) 
+                                                                ? current.filter(id => id !== d.id)
+                                                                : [...current, d.id];
+                                                            setFormData(prev => ({ ...prev, accessScopes: { ...prev.accessScopes!, divisionIds: next } }));
+                                                        }}
+                                                        className={cn(
+                                                            "px-2 py-1 rounded-md text-[10px] font-bold border transition-all",
+                                                            formData.accessScopes?.divisionIds?.includes(d.id)
+                                                                ? "bg-primary/20 border-primary text-primary"
+                                                                : "bg-secondary/20 border-border text-muted-foreground hover:border-primary/40",
+                                                            formData.accessScopes?.divisionIds?.includes('*') && "opacity-50 cursor-not-allowed"
+                                                        )}
+                                                    >
+                                                        {d.name}
+                                                    </button>
+                                                ))}
+                                                {availableDivisions.length === 0 && <p className="text-[10px] italic text-muted-foreground">No hay divisiones configuradas.</p>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground font-medium italic">
+                                        * El acceso Global (*) permite ver documentos sin scope asignado y de todas las categorías.
+                                    </p>
+                                </div>
+
                                 <div className="space-y-1">
                                     <label className="text-[10px] uppercase font-bold text-zinc-500 flex items-center gap-1">
                                         <Briefcase className="w-3 h-3" /> Job Title

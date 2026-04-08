@@ -43,12 +43,14 @@ service cloud.firestore {
 
     // [SAM] Isolation Check: User Scope vs Resource Data
     function hasAccess(userData, docData) {
+      let rId = docData.get('regionId', '');
+      let dId = docData.get('divisionId', '');
       return string(docData.get('tenantId', '1')) == userData.tenantId && 
              (
                userData.get('roleLevel', 0) >= 80 || 
                (
-                 (userData.accessScopes.regionIds.hasAny(['*']) || userData.accessScopes.regionIds.hasAny([docData.regionId])) &&
-                 (userData.accessScopes.divisionIds.hasAny(['*']) || userData.accessScopes.divisionIds.hasAny([docData.divisionId]))
+                 (rId == '' || userData.accessScopes.regionIds.hasAny(['*', rId])) &&
+                 (dId == '' || userData.accessScopes.divisionIds.hasAny(['*', dId]))
                )
              );
     }

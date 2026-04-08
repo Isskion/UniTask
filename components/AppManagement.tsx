@@ -40,11 +40,12 @@ import {
     getDocs,
     where,
     doc,
-    getDoc,
     updateDoc,
     serverTimestamp,
     onSnapshot,
-    addDoc // Added addDoc as per the provided snippet, assuming it's needed later
+    addDoc,
+    setDoc,
+    deleteDoc as firestoreDeleteDoc
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { safeParseDate } from "@/lib/date-utils"; // Added safeParseDate
@@ -91,6 +92,11 @@ export default function AppManagement() {
     const [timeRange, setTimeRange] = useState(7); // Days
     const [activeMetric, setActiveMetric] = useState<'chars' | 'docs' | 'users' | 'calls' | 'questions'>('chars');
     const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+    const [regions, setRegions] = useState<{ id: string, name: string }[]>([]);
+    const [divisions, setDivisions] = useState<{ id: string, name: string }[]>([]);
+    const [newRegion, setNewRegion] = useState({ id: '', name: '' });
+    const [newDivision, setNewDivision] = useState({ id: '', name: '' });
+    const [isSavingSAM, setIsSavingSAM] = useState(false);
 
     useEffect(() => {
         setIsHydrated(true);
@@ -274,11 +280,20 @@ export default function AppManagement() {
             setAllUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         });
 
+        // 5. Global Data (SAM)
+        const unsubGlobal = onSnapshot(collection(db, "global_data"), (snap) => {
+            snap.forEach(doc => {
+                if (doc.id === 'regions') setRegions(doc.data().items || []);
+                if (doc.id === 'divisions') setDivisions(doc.data().items || []);
+            });
+        });
+
         return () => {
             unsubConfig();
             unsubTenants();
             unsubLogs();
             unsubUsers();
+            unsubGlobal();
         };
     }, [userRole, timeRange]);
 
@@ -327,6 +342,55 @@ export default function AppManagement() {
         } catch (e) {
             console.error(e);
             showToast("Error", "No se pudo actualizar el límite.", "error");
+        }
+    };
+
+    // [SAM] Handlers
+    const handleAddSAMItem = async (type: 'regions' | 'divisions') => {
+        const item = type === 'regions' ? newRegion : newDivision;
+        if (!item.id || !item.name) {
+            showToast("SAM Admin", "ID y Nombre son obligatorios", "error");
+            return;
+        }
+
+        setIsSavingSAM(true);
+        try {
+            const currentItems = type === 'regions' ? regions : divisions;
+            // Check for duplicates
+            if (currentItems.some(i => i.id === item.id)) {
+                showToast("SAM Admin", "El ID ya existe", "error");
+                return;
+            }
+
+            const updatedItems = [...currentItems, item];
+            await setDoc(doc(db, "global_data", type), { items: updatedItems }, { merge: true });
+            
+            if (type === 'regions') setNewRegion({ id: '', name: '' });
+            else setNewDivision({ id: '', name: '' });
+            
+            showToast("SAM Admin", `${type === 'regions' ? 'Región' : 'División'} añadida correctamente`, "success");
+        } catch (e) {
+            console.error(e);
+            showToast("Error", "Fallo al actualizar SAM", "error");
+        } finally {
+            setIsSavingSAM(false);
+        }
+    };
+
+    const handleRemoveSAMItem = async (type: 'regions' | 'divisions', itemId: string) => {
+        if (!confirm(`¿Seguro que quieres eliminar esta ${type === 'regions' ? 'región' : 'división'}?`)) return;
+
+        setIsSavingSAM(true);
+        try {
+            const currentItems = type === 'regions' ? regions : divisions;
+            const updatedItems = currentItems.filter(i => i.id !== itemId);
+            await setDoc(doc(db, "global_data", type), { items: updatedItems }, { merge: true });
+            showToast("SAM Admin", "Elemento eliminado", "info");
+        } catch (e) {
+            console.error(e);
+            showToast("Error", "Fallo al eliminar", "error");
+        } finally {
+            setIsSavingSAM(false);
         }
     };
 
@@ -481,6 +545,119 @@ export default function AppManagement() {
                     <div className="flex flex-col">
                         <span className="text-lg font-black text-foreground leading-none">{stats.activeAIUsers}</span>
                         <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Activos Hoy</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* [NEW] SAM Governance Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Regions Management */}
+                <div className="bg-card/40 border border-border rounded-3xl p-6 shadow-xl backdrop-blur-md relative min-h-[400px]">
+                    <div className="absolute -top-3.5 left-8 bg-primary text-white px-4 py-1 rounded-lg text-[9px] font-black tracking-[0.2em] shadow-lg">
+                        SAM: REGIONES
+                    </div>
+                    <div className="mb-6">
+                        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                            Define las zonas geográficas para la segmentación de datos.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-4 mb-8">
+                        <div className="grid grid-cols-2 gap-2">
+                            <input 
+                                type="text"
+                                placeholder="ID (ej: ES)"
+                                value={newRegion.id}
+                                onChange={e => setNewRegion(prev => ({ ...prev, id: e.target.value.toUpperCase() }))}
+                                className="bg-secondary/50 border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary font-bold"
+                            />
+                            <input 
+                                type="text"
+                                placeholder="Nombre (ej: España)"
+                                value={newRegion.name}
+                                onChange={e => setNewRegion(prev => ({ ...prev, name: e.target.value }))}
+                                className="bg-secondary/50 border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary font-bold"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => handleAddSAMItem('regions')}
+                            disabled={isSavingSAM}
+                            className="bg-primary hover:bg-primary/90 text-white rounded-xl py-2 px-6 font-bold text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                        >
+                            Añadir Región
+                        </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                        {regions.map(r => (
+                            <div key={r.id} className="flex items-center justify-between p-3 bg-secondary/30 border border-border rounded-xl group hover:border-primary/40 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black">{r.id}</span>
+                                    <span className="text-sm font-bold text-foreground">{r.name}</span>
+                                </div>
+                                <button 
+                                    onClick={() => handleRemoveSAMItem('regions', r.id)}
+                                    className="p-1.5 hover:bg-primary/10 hover:text-primary rounded-lg text-muted-foreground transition-all flex items-center justify-center"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Divisions Management */}
+                <div className="bg-card/40 border border-border rounded-3xl p-6 shadow-xl backdrop-blur-md relative min-h-[400px]">
+                    <div className="absolute -top-3.5 left-8 bg-primary text-white px-4 py-1 rounded-lg text-[9px] font-black tracking-[0.2em] shadow-lg">
+                        SAM: DIVISIONES
+                    </div>
+                    <div className="mb-6">
+                        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                            Define los departamentos o unidades funcionales.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col gap-4 mb-8">
+                        <div className="grid grid-cols-2 gap-2">
+                            <input 
+                                type="text"
+                                placeholder="ID (ej: LOG)"
+                                value={newDivision.id}
+                                onChange={e => setNewDivision(prev => ({ ...prev, id: e.target.value.toUpperCase() }))}
+                                className="bg-secondary/50 border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary font-bold"
+                            />
+                            <input 
+                                type="text"
+                                placeholder="Nombre (ej: Logística)"
+                                value={newDivision.name}
+                                onChange={e => setNewDivision(prev => ({ ...prev, name: e.target.value }))}
+                                className="bg-secondary/50 border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary font-bold"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => handleAddSAMItem('divisions')}
+                            disabled={isSavingSAM}
+                            className="bg-primary hover:bg-primary/90 text-white rounded-xl py-2 px-6 font-bold text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                        >
+                            Añadir División
+                        </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                        {divisions.map(d => (
+                            <div key={d.id} className="flex items-center justify-between p-3 bg-secondary/30 border border-border rounded-xl group hover:border-primary/40 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-black">{d.id}</span>
+                                    <span className="text-sm font-bold text-foreground">{d.name}</span>
+                                </div>
+                                <button 
+                                    onClick={() => handleRemoveSAMItem('divisions', d.id)}
+                                    className="p-1.5 hover:bg-primary/10 hover:text-primary rounded-lg text-muted-foreground transition-all flex items-center justify-center"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

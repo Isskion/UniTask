@@ -196,10 +196,13 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
         if (!formData.name || !formData.code) return showToast("UniTaskController", t('projects.validation.required'), "error");
 
-        // Strict Scopes Check (Zero-Risk Pattern)
+        /* [SAM Architecture] Removing mandatory validation to unblock project creation. 
+           If regions/divisions are not provided, the project will be treated as global/general. */
+        /*
         if (!formData.regionId || !formData.divisionId) {
             return showToast("UniTaskController", "Región y División son obligatorias", "error");
         }
+        */
 
         setSaving(true);
         try {
@@ -218,7 +221,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                     teamIds: formData.teamIds || [],
                     email: formData.email || "",
                     phone: formData.phone || "",
-                    address: formData.address || ""
+                    address: formData.address || "",
+                    // [SAM] Access Key calculation
+                    _accessKey: `${formData.regionId || ""}:${formData.divisionId || ""}`
                 });
 
                 // Reload
@@ -235,11 +240,18 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                 // Update
                 if (selectedProject?.id) {
                     const { id, ...data } = formData; // Exclude ID
-                    await updateDoc(doc(db, "projects", selectedProject.id), data as any);
+                    
+                    // [SAM] Recalculate Access Key on update
+                    const updatedData = {
+                        ...data,
+                        _accessKey: `${data.regionId || ""}:${data.divisionId || ""}`
+                    };
+
+                    await updateDoc(doc(db, "projects", selectedProject.id), updatedData as any);
 
                     // Update Local State
-                    setSelectedProject({ ...selectedProject, ...data } as Project);
-                    setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...data } as Project : p));
+                    setSelectedProject({ ...selectedProject, ...updatedData } as Project);
+                    setProjects(prev => prev.map(p => p.id === selectedProject.id ? { ...p, ...updatedData } as Project : p));
 
                     showToast("UniTaskController", t('projects.validation.saved'), "success");
                     setUserTab('feed'); // Close form
