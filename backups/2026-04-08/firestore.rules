@@ -42,13 +42,18 @@ service cloud.firestore {
     }
 
     // [SAM] Isolation Check: User Scope vs Resource Data
+    // null-safe: usuarios sin accessScopes (legacy) tienen acceso completo a su tenant
     function hasAccess(userData, docData) {
-      return string(docData.get('tenantId', '1')) == userData.tenantId && 
+      let rId = docData.get('regionId', '');
+      let dId = docData.get('divisionId', '');
+      let scopes = userData.get('accessScopes', null);
+      return string(docData.get('tenantId', '1')) == userData.tenantId &&
              (
-               userData.get('roleLevel', 0) >= 80 || 
+               userData.get('roleLevel', 0) >= 80 ||
+               scopes == null ||
                (
-                 (userData.accessScopes.regionIds.hasAny(['*']) || userData.accessScopes.regionIds.hasAny([docData.regionId])) &&
-                 (userData.accessScopes.divisionIds.hasAny(['*']) || userData.accessScopes.divisionIds.hasAny([docData.divisionId]))
+                 (rId == '' || scopes.get('regionIds', []).hasAny(['*', rId])) &&
+                 (dId == '' || scopes.get('divisionIds', []).hasAny(['*', dId]))
                )
              );
     }
@@ -185,10 +190,11 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
-    // Master Data (Regions, Divisions, etc - Global Scope)
+    // Master Data (Regions, Divisions, etc - Tenant Scoped)
+    // Admins (>= 80) can manage their own tenant's SAM masters
     match /global_data/{docId} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperAdmin();
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getRealTenantId());
+      allow write: if isSuperAdmin() || (isAuthenticated() && request.resource.data.tenantId == getRealTenantId() && getRealRole() >= 80);
     }
 
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
