@@ -315,7 +315,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                 )}
                                 
-                                {(userRole === 'superadmin' || enabledTools.includes('availability-registry')) && can('unavailabilityRegistry', 'views') && (
+                                {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                 )}
                                 
@@ -335,7 +335,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
                                 )}
 
-                                {(userRole === 'superadmin' || enabledTools.includes('unidocs')) && (
+                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                     <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 )}
 
@@ -542,7 +542,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
                                         <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                     )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('availability-registry')) && can('unavailabilityRegistry', 'views') && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
                                         <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                     )}
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && (
@@ -557,7 +557,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
                                         <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
                                     )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('unidocs')) && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                         <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                     )}
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && (

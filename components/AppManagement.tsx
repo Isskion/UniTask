@@ -121,11 +121,9 @@ export default function AppManagement() {
     };
 
     const AVAILABLE_TOOLS = [
-        { id: 'availability-registry', name: 'Registro Indisponibilidades', icon: <ClipboardList className="w-3.5 h-3.5" /> },
         { id: 'uniordercreator', name: 'UniOrderManager', icon: <ClipboardList className="w-3.5 h-3.5" /> },
         { id: 'swagger', name: 'UNIGIS Swagger', icon: <Sparkles className="w-3.5 h-3.5" /> },
         { id: 'soap', name: 'UNIGIS SOAP', icon: <FileText className="w-3.5 h-3.5" /> },
-        { id: 'unidocs', name: 'UniDocs', icon: <LayoutTemplate className="w-3.5 h-3.5" /> },
     ];
 
     const filteredUsers = useMemo(() => {
