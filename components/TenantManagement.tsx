@@ -28,7 +28,8 @@ export default function TenantManagement() {
         name: "",
         code: "",
         isActive: true,
-        aiEnabled: false
+        aiEnabled: false,
+        unitaskToolsEnabled: false
     });
 
     useEffect(() => {
@@ -65,7 +66,8 @@ export default function TenantManagement() {
             name: tenant.name,
             code: tenant.code || tenant.id,
             isActive: tenant.isActive,
-            aiEnabled: tenant.aiEnabled || false
+            aiEnabled: tenant.aiEnabled || false,
+            unitaskToolsEnabled: tenant.unitaskToolsEnabled || false
         });
         setShowModal(true);
     };
@@ -85,6 +87,7 @@ export default function TenantManagement() {
                     code: formData.code || formData.name.toLowerCase().replace(/\s+/g, '-'),
                     isActive: formData.isActive,
                     aiEnabled: formData.aiEnabled || false,
+                    unitaskToolsEnabled: formData.unitaskToolsEnabled || false,
                     updatedAt: serverTimestamp()
                 });
             } else {
@@ -93,7 +96,8 @@ export default function TenantManagement() {
                     name: formData.name,
                     code: formData.name.toLowerCase().replace(/\s+/g, '-'),
                     isActive: formData.isActive ?? true,
-                    aiEnabled: formData.aiEnabled || false
+                    aiEnabled: formData.aiEnabled || false,
+                    unitaskToolsEnabled: formData.unitaskToolsEnabled || false
                 });
             }
             await loadTenants();
@@ -267,6 +271,19 @@ export default function TenantManagement() {
                                     <div className="flex flex-col">
                                         <span className="font-bold text-indigo-700 dark:text-indigo-300">Habilitar IA (UniLeaks Premium)</span>
                                         <span className="text-[10px] text-indigo-500/70 uppercase font-black">Autorización Superadmin para Cobros</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-2 text-sm cursor-pointer select-none p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/50 rounded-lg group">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.unitaskToolsEnabled}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, unitaskToolsEnabled: e.target.checked }))}
+                                        className="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-emerald-700 dark:text-emerald-300">Habilitar Herramientas Unitask</span>
+                                        <span className="text-[10px] text-emerald-500/70 uppercase font-black">DispoPlan, UniLeaks, UniDocs, Uniflux</span>
                                     </div>
                                 </label>
                             </div>

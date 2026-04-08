@@ -75,6 +75,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { t } = useLanguage();
     const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
+    const [unitaskToolsEnabled, setUnitaskToolsEnabled] = useState<boolean>(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -91,6 +92,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     } else if (data.logoUrl) {
                         setDynamicLogoSrc(data.logoUrl);
                     }
+                    // Fetch tool activation
+                    setUnitaskToolsEnabled(data.unitaskToolsEnabled || false);
                 }
             } catch (err: any) {
                 if (isMounted) {
@@ -301,21 +304,30 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         )}
 
                         {/* Unitask Tools (NEW) */}
-                        <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                            {can('dispoPlan', 'views') && (
-                                <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                            )}
-                            {can('unavailabilityRegistry', 'views') && (
-                                <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                            )}
-                            <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                            <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                            <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                            <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                            <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                            <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                        </div>
+                        {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                            <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                                {can('dispoPlan', 'views') && (
+                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                )}
+                                {can('unavailabilityRegistry', 'views') && (
+                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                )}
+                                <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+
+                                {/* UNIGIS Exclusive Tools (Tenant 3 Only) */}
+                                {tenantId === '3' && (
+                                    <>
+                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
+                                    </>
+                                )}
+
+                                <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                            </div>
+                        )}
 
                         {/* Secondary */}
                         {/* ADMINISTRATION */}
@@ -506,20 +518,30 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                             </div>
 
-                            <div className="mt-4 space-y-1">
-                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                                {can('dispoPlan', 'views') && (
-                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                )}
-                                {can('unavailabilityRegistry', 'views') && (
-                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                )}
-                                <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                                <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                                <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                                <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                            </div>
+                            {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                <div className="mt-4 space-y-1">
+                                    <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                                    {can('dispoPlan', 'views') && (
+                                        <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                    )}
+                                    {can('unavailabilityRegistry', 'views') && (
+                                        <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                    )}
+                                    <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+
+                                    {/* UNIGIS Exclusive Tools (Tenant 3 Only) */}
+                                    {tenantId === '3' && (
+                                        <>
+                                            <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                            <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                                            <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
+                                        </>
+                                    )}
+
+                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                </div>
+                            )}
 
                             {can('knowledgeBase', 'views') && (
                                 <div className="mt-4 space-y-1">
