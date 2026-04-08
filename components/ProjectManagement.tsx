@@ -140,9 +140,24 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Filtered Projects for List
     const visibleProjects = projects.filter(p => {
-        if (userRole === 'superadmin' || userRole === 'app_admin') return true; // Only admins see all
-        if (!userProfile?.assignedProjectIds) return false;
-        return userProfile.assignedProjectIds.includes(p.id);
+        // Superadmin y app_admin ven todo
+        if (userRole === 'superadmin' || userRole === 'app_admin') return true;
+
+        // Admins (>= 80) ven todos los proyectos del tenant, sin filtro de scope ni asignación
+        if (getRoleLevel(userRole) >= 80) return true;
+
+        // El resto: debe estar asignado al proyecto
+        if (!userProfile?.assignedProjectIds?.includes(p.id)) return false;
+
+        // [SAM] Filtro de scope: si el proyecto tiene región/división, debe coincidir con el scope del usuario
+        const scopes = userProfile?.accessScopes;
+        if (scopes) {
+            const regionOk = !p.regionId || scopes.regionIds?.includes('*') || scopes.regionIds?.includes(p.regionId);
+            const divisionOk = !p.divisionId || scopes.divisionIds?.includes('*') || scopes.divisionIds?.includes(p.divisionId);
+            if (!regionOk || !divisionOk) return false;
+        }
+
+        return true;
     });
 
 
