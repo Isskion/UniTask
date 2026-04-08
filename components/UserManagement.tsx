@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, where, setDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, orderBy, where, setDoc } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
@@ -82,11 +82,12 @@ export default function UserManagement() {
     const loadSAMMasters = async () => {
         const tid = tenantId || "1";
         try {
-            const querySnapshot = await getDocs(collection(db, "global_data"));
-            querySnapshot.forEach((d) => {
-                if (d.id === `regions_${tid}`) setAvailableRegions(d.data().items || []);
-                if (d.id === `divisions_${tid}`) setAvailableDivisions(d.data().items || []);
-            });
+            const [regSnap, divSnap] = await Promise.all([
+                getDoc(doc(db, "global_data", `regions_${tid}`)),
+                getDoc(doc(db, "global_data", `divisions_${tid}`)),
+            ]);
+            setAvailableRegions(regSnap.exists() ? regSnap.data()?.items || [] : []);
+            setAvailableDivisions(divSnap.exists() ? divSnap.data()?.items || [] : []);
         } catch (error) {
             console.error("Error loading SAM masters:", error);
         }

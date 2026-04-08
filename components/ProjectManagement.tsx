@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, where, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, query, orderBy, where, updateDoc } from "firebase/firestore";
 import { getActiveProjects, createProject } from "@/lib/projects";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -78,20 +78,19 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
             loadTenants();
         }
         loadProjects();
-        loadUsers(); // NEW: Load users for team avatars
-        loadGlobalData();
-    }, [user, userRole]);
+        loadUsers();
+        if (tenantId) loadGlobalData(tenantId);
+    }, [user, userRole, tenantId]);
 
-    const loadGlobalData = async () => {
-        const tid = tenantId || "1";
+    const loadGlobalData = async (tid?: string) => {
+        const resolvedTid = tid || tenantId || "1";
         try {
-            const snap = await getDocs(collection(db, "global_data"));
-            const data: any = {};
-            snap.forEach(doc => {
-                data[doc.id] = doc.data().items || [];
-            });
-            setRegions(data[`regions_${tid}`] || []);
-            setDivisions(data[`divisions_${tid}`] || []);
+            const [regSnap, divSnap] = await Promise.all([
+                getDoc(doc(db, "global_data", `regions_${resolvedTid}`)),
+                getDoc(doc(db, "global_data", `divisions_${resolvedTid}`)),
+            ]);
+            setRegions(regSnap.exists() ? regSnap.data()?.items || [] : []);
+            setDivisions(divSnap.exists() ? divSnap.data()?.items || [] : []);
         } catch (e) {
             console.error("Error loading global data", e);
         }
