@@ -42,15 +42,18 @@ service cloud.firestore {
     }
 
     // [SAM] Isolation Check: User Scope vs Resource Data
+    // null-safe: usuarios sin accessScopes (legacy) tienen acceso completo a su tenant
     function hasAccess(userData, docData) {
       let rId = docData.get('regionId', '');
       let dId = docData.get('divisionId', '');
-      return string(docData.get('tenantId', '1')) == userData.tenantId && 
+      let scopes = userData.get('accessScopes', null);
+      return string(docData.get('tenantId', '1')) == userData.tenantId &&
              (
-               userData.get('roleLevel', 0) >= 80 || 
+               userData.get('roleLevel', 0) >= 80 ||
+               scopes == null ||
                (
-                 (rId == '' || userData.accessScopes.regionIds.hasAny(['*', rId])) &&
-                 (dId == '' || userData.accessScopes.divisionIds.hasAny(['*', dId]))
+                 (rId == '' || scopes.get('regionIds', []).hasAny(['*', rId])) &&
+                 (dId == '' || scopes.get('divisionIds', []).hasAny(['*', dId]))
                )
              );
     }

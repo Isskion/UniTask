@@ -738,8 +738,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                         ?.filter(r => {
                                                             const roleLvl = getRoleLevel(userRole);
                                                             if (roleLvl >= RoleLevel.SUPERADMIN) return true;
-                                                            if (userProfile?.accessScopes?.regionIds?.includes('*')) return true;
-                                                            return userProfile?.accessScopes?.regionIds?.includes(r.id);
+                                                            if (!userProfile?.accessScopes) return true; // legacy: sin scopes ve todo
+                                                            if (userProfile.accessScopes.regionIds?.includes('*')) return true;
+                                                            return userProfile.accessScopes.regionIds?.includes(r.id);
                                                         })
                                                         .map(r => (
                                                             <option key={r.id} value={r.id}>{r.name}</option>
@@ -766,8 +767,9 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                         ?.filter(d => {
                                                             const roleLvl = getRoleLevel(userRole);
                                                             if (roleLvl >= RoleLevel.SUPERADMIN) return true;
-                                                            if (userProfile?.accessScopes?.divisionIds?.includes('*')) return true;
-                                                            return userProfile?.accessScopes?.divisionIds?.includes(d.id);
+                                                            if (!userProfile?.accessScopes) return true; // legacy: sin scopes ve todo
+                                                            if (userProfile.accessScopes.divisionIds?.includes('*')) return true;
+                                                            return userProfile.accessScopes.divisionIds?.includes(d.id);
                                                         })
                                                         .map(d => (
                                                             <option key={d.id} value={d.id}>{d.name}</option>
