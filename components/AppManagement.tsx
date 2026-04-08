@@ -280,13 +280,15 @@ export default function AppManagement() {
             setAllUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         });
 
-        // 5. Global Data (SAM)
-        const unsubGlobal = onSnapshot(collection(db, "global_data"), (snap) => {
-            snap.forEach(doc => {
-                if (doc.id === 'regions') setRegions(doc.data().items || []);
-                if (doc.id === 'divisions') setDivisions(doc.data().items || []);
-            });
+        // 5. Global Data (SAM) — scoped by selected tenant
+        const samTenantId = selectedTenantId || identity?.realTenantId || "1";
+        const unsubGlobalRegions = onSnapshot(doc(db, "global_data", `regions_${samTenantId}`), (snap) => {
+            setRegions(snap.exists() ? snap.data().items || [] : []);
         });
+        const unsubGlobalDivisions = onSnapshot(doc(db, "global_data", `divisions_${samTenantId}`), (snap) => {
+            setDivisions(snap.exists() ? snap.data().items || [] : []);
+        });
+        const unsubGlobal = () => { unsubGlobalRegions(); unsubGlobalDivisions(); };
 
         return () => {
             unsubConfig();
@@ -295,7 +297,7 @@ export default function AppManagement() {
             unsubUsers();
             unsubGlobal();
         };
-    }, [userRole, timeRange]);
+    }, [userRole, timeRange, selectedTenantId]);
 
     // Handlers
     const toggleGlobalAI = async () => {
@@ -345,7 +347,7 @@ export default function AppManagement() {
         }
     };
 
-    // [SAM] Handlers
+    // [SAM] Handlers — tenant-scoped
     const handleAddSAMItem = async (type: 'regions' | 'divisions') => {
         const item = type === 'regions' ? newRegion : newDivision;
         if (!item.id || !item.name) {
@@ -353,21 +355,21 @@ export default function AppManagement() {
             return;
         }
 
+        const samTenantId = selectedTenantId || identity?.realTenantId || "1";
         setIsSavingSAM(true);
         try {
             const currentItems = type === 'regions' ? regions : divisions;
-            // Check for duplicates
             if (currentItems.some(i => i.id === item.id)) {
                 showToast("SAM Admin", "El ID ya existe", "error");
                 return;
             }
 
             const updatedItems = [...currentItems, item];
-            await setDoc(doc(db, "global_data", type), { items: updatedItems }, { merge: true });
-            
+            await setDoc(doc(db, "global_data", `${type}_${samTenantId}`), { tenantId: samTenantId, items: updatedItems });
+
             if (type === 'regions') setNewRegion({ id: '', name: '' });
             else setNewDivision({ id: '', name: '' });
-            
+
             showToast("SAM Admin", `${type === 'regions' ? 'Región' : 'División'} añadida correctamente`, "success");
         } catch (e) {
             console.error(e);
@@ -380,11 +382,12 @@ export default function AppManagement() {
     const handleRemoveSAMItem = async (type: 'regions' | 'divisions', itemId: string) => {
         if (!confirm(`¿Seguro que quieres eliminar esta ${type === 'regions' ? 'región' : 'división'}?`)) return;
 
+        const samTenantId = selectedTenantId || identity?.realTenantId || "1";
         setIsSavingSAM(true);
         try {
             const currentItems = type === 'regions' ? regions : divisions;
             const updatedItems = currentItems.filter(i => i.id !== itemId);
-            await setDoc(doc(db, "global_data", type), { items: updatedItems }, { merge: true });
+            await setDoc(doc(db, "global_data", `${type}_${samTenantId}`), { tenantId: samTenantId, items: updatedItems });
             showToast("SAM Admin", "Elemento eliminado", "info");
         } catch (e) {
             console.error(e);

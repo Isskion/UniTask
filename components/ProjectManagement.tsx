@@ -83,14 +83,15 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
     }, [user, userRole]);
 
     const loadGlobalData = async () => {
+        const tid = tenantId || "1";
         try {
             const snap = await getDocs(collection(db, "global_data"));
             const data: any = {};
             snap.forEach(doc => {
                 data[doc.id] = doc.data().items || [];
             });
-            setRegions(data['regions'] || []);
-            setDivisions(data['divisions'] || []);
+            setRegions(data[`regions_${tid}`] || []);
+            setDivisions(data[`divisions_${tid}`] || []);
         } catch (e) {
             console.error("Error loading global data", e);
         }

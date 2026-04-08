@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, query, orderBy, where } from "firebase/firestore";
+import { collection, getDocs, doc, query, orderBy, where, setDoc } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { PermissionGroup, Tenant } from "@/types";
@@ -43,7 +43,7 @@ export default function UserManagement() {
     const [invites, setInvites] = useState<InviteCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'users' | 'invites'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'invites' | 'sam'>('users');
     const [showInviteWizard, setShowInviteWizard] = useState(false);
 
     const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -62,6 +62,9 @@ export default function UserManagement() {
     const [availableTenants, setAvailableTenants] = useState<Tenant[]>([]);
     const [availableRegions, setAvailableRegions] = useState<{ id: string, name: string }[]>([]);
     const [availableDivisions, setAvailableDivisions] = useState<{ id: string, name: string }[]>([]);
+    const [newSAMRegion, setNewSAMRegion] = useState({ id: '', name: '' });
+    const [newSAMDivision, setNewSAMDivision] = useState({ id: '', name: '' });
+    const [isSavingSAM, setIsSavingSAM] = useState(false);
 
     useEffect(() => {
         if (getRoleLevel(userRole) < 70) {
@@ -77,15 +80,48 @@ export default function UserManagement() {
     }, [activeTab, userRole, tenantId]);
 
     const loadSAMMasters = async () => {
+        const tid = tenantId || "1";
         try {
             const querySnapshot = await getDocs(collection(db, "global_data"));
-            querySnapshot.forEach((doc) => {
-                if (doc.id === 'regions') setAvailableRegions(doc.data().items || []);
-                if (doc.id === 'divisions') setAvailableDivisions(doc.data().items || []);
+            querySnapshot.forEach((d) => {
+                if (d.id === `regions_${tid}`) setAvailableRegions(d.data().items || []);
+                if (d.id === `divisions_${tid}`) setAvailableDivisions(d.data().items || []);
             });
         } catch (error) {
             console.error("Error loading SAM masters:", error);
         }
+    };
+
+    const handleAddSAMItem = async (type: 'regions' | 'divisions') => {
+        const item = type === 'regions' ? newSAMRegion : newSAMDivision;
+        if (!item.id || !item.name) { showToast("SAM", "ID y Nombre son obligatorios", "error"); return; }
+        const tid = tenantId || "1";
+        const currentItems = type === 'regions' ? availableRegions : availableDivisions;
+        if (currentItems.some(i => i.id === item.id)) { showToast("SAM", "El ID ya existe", "error"); return; }
+        setIsSavingSAM(true);
+        try {
+            const updatedItems = [...currentItems, item];
+            await setDoc(doc(db, "global_data", `${type}_${tid}`), { tenantId: tid, items: updatedItems });
+            if (type === 'regions') { setAvailableRegions(updatedItems); setNewSAMRegion({ id: '', name: '' }); }
+            else { setAvailableDivisions(updatedItems); setNewSAMDivision({ id: '', name: '' }); }
+            showToast("SAM", `${type === 'regions' ? 'Región' : 'División'} añadida`, "success");
+        } catch (e) { showToast("SAM", "Error al guardar", "error"); }
+        finally { setIsSavingSAM(false); }
+    };
+
+    const handleRemoveSAMItem = async (type: 'regions' | 'divisions', itemId: string) => {
+        if (!confirm(`¿Eliminar este elemento SAM?`)) return;
+        const tid = tenantId || "1";
+        const currentItems = type === 'regions' ? availableRegions : availableDivisions;
+        const updatedItems = currentItems.filter(i => i.id !== itemId);
+        setIsSavingSAM(true);
+        try {
+            await setDoc(doc(db, "global_data", `${type}_${tid}`), { tenantId: tid, items: updatedItems });
+            if (type === 'regions') setAvailableRegions(updatedItems);
+            else setAvailableDivisions(updatedItems);
+            showToast("SAM", "Eliminado", "info");
+        } catch (e) { showToast("SAM", "Error al eliminar", "error"); }
+        finally { setIsSavingSAM(false); }
     };
 
     const loadTenants = async () => {
@@ -396,6 +432,20 @@ export default function UserManagement() {
                             <Ticket className="w-3.5 h-3.5" />
                             Invites
                         </button>
+                        {getRoleLevel(userRole) >= 80 && (
+                            <button
+                                onClick={() => setActiveTab('sam')}
+                                className={cn(
+                                    "px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                                    activeTab === 'sam'
+                                        ? "bg-[#D32F2F] text-white shadow-lg shadow-red-900/30"
+                                        : (isLight ? "text-zinc-500 hover:text-zinc-900" : "text-zinc-400 hover:text-white")
+                                )}
+                            >
+                                <Globe className="w-3.5 h-3.5" />
+                                SAM
+                            </button>
+                        )}
                     </div>
 
                     {activeTab === 'invites' && (
@@ -562,6 +612,88 @@ export default function UserManagement() {
                     </div>
                 )}
             </div>
+
+            {/* SAM Management Tab — visible for admins (>= 80) */}
+            {activeTab === 'sam' && getRoleLevel(userRole) >= 80 && (
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-2">
+                        {/* Regions */}
+                        <div className={cn("border rounded-2xl p-5", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-[#D32F2F] mb-4">Regiones SAM</h3>
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    placeholder="ID (ej. LATAM)"
+                                    value={newSAMRegion.id}
+                                    onChange={e => setNewSAMRegion(p => ({ ...p, id: e.target.value.toUpperCase() }))}
+                                    className={cn("flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none", isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/30 border-white/10 text-zinc-200")}
+                                />
+                                <input
+                                    placeholder="Nombre"
+                                    value={newSAMRegion.name}
+                                    onChange={e => setNewSAMRegion(p => ({ ...p, name: e.target.value }))}
+                                    className={cn("flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none", isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/30 border-white/10 text-zinc-200")}
+                                />
+                                <button
+                                    onClick={() => handleAddSAMItem('regions')}
+                                    disabled={isSavingSAM}
+                                    className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                                >
+                                    <Plus className="w-3 h-3" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-1">
+                                {availableRegions.length === 0 && <p className="text-xs text-zinc-400 italic">Sin regiones. Añade la primera.</p>}
+                                {availableRegions.map(r => (
+                                    <div key={r.id} className={cn("flex justify-between items-center px-3 py-2 rounded-lg text-xs", isLight ? "bg-zinc-50" : "bg-white/5")}>
+                                        <span className="font-mono font-bold text-[#D32F2F]">{r.id}</span>
+                                        <span className={isLight ? "text-zinc-700" : "text-zinc-300"}>{r.name}</span>
+                                        <button onClick={() => handleRemoveSAMItem('regions', r.id)} disabled={isSavingSAM} className="text-zinc-400 hover:text-red-500 transition-colors">
+                                            <XCircle className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        {/* Divisions */}
+                        <div className={cn("border rounded-2xl p-5", isLight ? "bg-white border-zinc-200" : "bg-white/5 border-white/10")}>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-[#D32F2F] mb-4">Divisiones SAM</h3>
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    placeholder="ID (ej. LOG)"
+                                    value={newSAMDivision.id}
+                                    onChange={e => setNewSAMDivision(p => ({ ...p, id: e.target.value.toUpperCase() }))}
+                                    className={cn("flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none", isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/30 border-white/10 text-zinc-200")}
+                                />
+                                <input
+                                    placeholder="Nombre"
+                                    value={newSAMDivision.name}
+                                    onChange={e => setNewSAMDivision(p => ({ ...p, name: e.target.value }))}
+                                    className={cn("flex-1 border rounded-lg px-3 py-1.5 text-xs outline-none", isLight ? "bg-white border-zinc-300 text-zinc-900" : "bg-black/30 border-white/10 text-zinc-200")}
+                                />
+                                <button
+                                    onClick={() => handleAddSAMItem('divisions')}
+                                    disabled={isSavingSAM}
+                                    className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 disabled:opacity-50"
+                                >
+                                    <Plus className="w-3 h-3" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-1">
+                                {availableDivisions.length === 0 && <p className="text-xs text-zinc-400 italic">Sin divisiones. Añade la primera.</p>}
+                                {availableDivisions.map(d => (
+                                    <div key={d.id} className={cn("flex justify-between items-center px-3 py-2 rounded-lg text-xs", isLight ? "bg-zinc-50" : "bg-white/5")}>
+                                        <span className="font-mono font-bold text-[#D32F2F]">{d.id}</span>
+                                        <span className={isLight ? "text-zinc-700" : "text-zinc-300"}>{d.name}</span>
+                                        <button onClick={() => handleRemoveSAMItem('divisions', d.id)} disabled={isSavingSAM} className="text-zinc-400 hover:text-red-500 transition-colors">
+                                            <XCircle className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Invite Wizard Overlay */}
             <InviteWizard

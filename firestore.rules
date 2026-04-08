@@ -190,10 +190,11 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
-    // Master Data (Regions, Divisions, etc - Global Scope)
+    // Master Data (Regions, Divisions, etc - Tenant Scoped)
+    // Admins (>= 80) can manage their own tenant's SAM masters
     match /global_data/{docId} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperAdmin();
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getRealTenantId());
+      allow write: if isSuperAdmin() || (isAuthenticated() && request.resource.data.tenantId == getRealTenantId() && getRealRole() >= 80);
     }
 
     // Projects & Subcollections (Recursive): Strict Multi-tenancy
