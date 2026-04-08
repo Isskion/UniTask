@@ -7,7 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
 import { useRouter } from "next/navigation";
 import { Project, Task } from "@/types";
-import { getActiveProjects } from "@/lib/projects";
+import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { cn } from "@/lib/utils";
 import { getAllOpenTasks } from "@/lib/tasks";
 import { doc, getDoc } from "firebase/firestore"; // Standard import
@@ -15,6 +16,7 @@ import { db } from "@/lib/firebase"; // Standard import
 
 export function CommandMenu() {
     const { userRole, user, tenantId } = useAuth();
+    const accessScopes = useAccessScopes();
     // Use Context for open state
     const { toggleCommandMenu, isCommandMenuOpen } = useUI();
 
@@ -101,7 +103,7 @@ export function CommandMenu() {
         return allowedIds.includes(p.id);
     };
 
-    const visibleProjects = projects.filter(canSeeProject);
+    const visibleProjects = filterBySAMScope(projects.filter(canSeeProject), accessScopes);
 
     // Task Filter: Show tasks for visible projects OR if project is missing (Orphans)
     // "Must search also in tasks" -> User wants to find THEIR tasks.

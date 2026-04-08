@@ -12,7 +12,8 @@ import { Task, Project, UserProfile, RoleLevel } from "@/types";
 import { Timer, AlertTriangle, TrendingUp, Users, Search, Filter, Briefcase, BarChart } from "lucide-react";
 import { collection, query, where, onSnapshot, doc, updateDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { getActiveProjects } from "@/lib/projects";
+import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { SprintBurndown } from "@/components/SprintBurndown"; // Import Burndown component
 import {
     DndContext,
@@ -35,6 +36,7 @@ export function SprintPlanningBoard() {
     const isLight = theme === 'light';
     const { sprints, loading: sprintsLoading } = useSprints();
     const { t } = useLanguage();
+    const accessScopes = useAccessScopes();
 
     const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null);
     const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]); // [NEW] Resource Filter
@@ -71,7 +73,7 @@ export function SprintPlanningBoard() {
 
             // Projects
             const projs = await getActiveProjects(tenantId);
-            setProjects(projs);
+            setProjects(filterBySAMScope(projs, accessScopes));
 
             // Users (for Workload)
             try {

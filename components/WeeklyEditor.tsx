@@ -35,7 +35,8 @@ import { useToast } from "@/context/ToastContext";
 import ProjectActivityFeed from "./ProjectActivityFeed";
 import TodaysWorkbench from "./TodaysWorkbench";
 import { createTask } from "@/lib/tasks";
-import { syncShadowProjects } from "@/lib/projects"; // Phase 2: Shadow Writes
+import { syncShadowProjects, filterBySAMScope } from "@/lib/projects"; // Phase 2: Shadow Writes
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 import RichTextEditor from "@/components/RichTextEditor"; // Phase 4: Tiptap
 import { useSearchParams } from "next/navigation";
 
@@ -56,6 +57,7 @@ export default function WeeklyEditor() {
     const { userRole, user, loading: authLoading, tenantId, viewContext, userProfile } = useAuth(); // [FIX] Use centralized userProfile
     const { addDoc } = useSafeFirestore(); // Safe Hook
     const { showToast } = useToast();
+    const accessScopes = useAccessScopes();
     const [profileLoading, setProfileLoading] = useState(false); // No longer strictly needed but kept to avoid breaking refs if any
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]); // Cache for global projects (Full Type)
     const [weeklyProjectMap, setWeeklyProjectMap] = useState<Record<string, { code: string, color: string }[]>>({}); // WeekID -> Active Projects Codes
@@ -156,7 +158,7 @@ export default function WeeklyEditor() {
                     id: d.id,
                     ...d.data()
                 })) as Project[];
-                setGlobalProjects(loaded);
+                setGlobalProjects(filterBySAMScope(loaded, accessScopes));
             } catch (e) {
                 console.error("Error fetching global projects", e);
             }

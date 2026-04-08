@@ -7,6 +7,8 @@ import { collection, getDocs, doc, getDoc, query, orderBy, serverTimestamp, wher
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
+import { filterBySAMScope } from "@/lib/projects";
 import { useTheme } from "@/hooks/useTheme";
 import { Loader2, Plus, Edit2, Save, XCircle, Search, Trash2, CheckSquare, ListTodo, AlertTriangle, ArrowLeft, LayoutTemplate, Calendar as CalendarIcon, Link as LinkIcon, Users, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, X, User as UserIcon, FolderGit2, Sparkles, FileText, History, Clock, List, Timer, Share2, Fingerprint } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
@@ -45,6 +47,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     const { t, language } = useLanguage();
     const dateLocale = { en: enUS, es, de, fr, ca, pt }[language] || enUS;
     const { isAdmin: checkIsAdmin, can, permissions } = usePermissions();
+    const accessScopes = useAccessScopes();
     const { getLabel } = useMasterDataLabels();
     const { sprints, activeSprint } = useSprints();
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -451,12 +454,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
 
     // Computed Lists
-    const visibleProjects = projects.filter(p => {
-        if (isAdmin) return true; // Admins see all
-        if (permissions.projectAccess?.viewAll) return true; // Permission Bypass (Global PM)
-        if (!userProfile?.assignedProjectIds) return false;
-        return userProfile.assignedProjectIds.includes(p.id);
-    });
+    const visibleProjects = filterBySAMScope(
+        projects.filter(p => {
+            if (isAdmin) return true;
+            if (permissions.projectAccess?.viewAll) return true;
+            if (!userProfile?.assignedProjectIds) return false;
+            return userProfile.assignedProjectIds.includes(p.id);
+        }),
+        accessScopes
+    );
 
     const visibleTasks = tasks.filter(t => {
         // FILTER BY SIMULATED ROLE

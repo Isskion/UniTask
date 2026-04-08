@@ -16,6 +16,27 @@ import { Project, WeeklyEntry } from "@/types";
 
 const PROJECTS_COLLECTION = "projects";
 
+// --- SAM Scope Filtering ---
+
+export type AccessScopes = { regionIds: string[]; divisionIds: string[] } | null;
+
+/**
+ * Filters any list of items that have regionId/divisionId by the user's SAM access scopes.
+ * - null scopes → no filter (admins, legacy users)
+ * - Items without regionId/divisionId (legacy projects) → always visible
+ */
+export function filterBySAMScope<T extends { regionId?: string; divisionId?: string }>(
+    items: T[],
+    accessScopes: AccessScopes
+): T[] {
+    if (!accessScopes) return items;
+    return items.filter(item => {
+        const regionOk = !item.regionId || accessScopes.regionIds.includes('*') || accessScopes.regionIds.includes(item.regionId);
+        const divisionOk = !item.divisionId || accessScopes.divisionIds.includes('*') || accessScopes.divisionIds.includes(item.divisionId);
+        return regionOk && divisionOk;
+    });
+}
+
 // --- CRUD Operations ---
 
 /**

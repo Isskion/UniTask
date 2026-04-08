@@ -6,7 +6,8 @@ import UniLeaksEditor from "@/components/unileaks/UniLeaksEditor";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
-import { getActiveProjects } from "@/lib/projects";
+import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { getProjectNotes, getProjectFolders, saveFolder, deleteFolder, deleteNote, saveNote, getNoteById, getUserProfilesMap, NoteOwnerInfo } from "@/lib/unileaks";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -18,6 +19,7 @@ function UniLeaksContent() {
     const queryNoteId = searchParams.get("noteId");
     const { user, tenantId, userRole, userProfile } = useAuth();
     const { can } = usePermissions();
+    const accessScopes = useAccessScopes();
     const { showToast } = useToast();
     const [projects, setProjects] = useState<Project[]>([]);
     const [activeProjectId, setActiveProjectId] = useState<string>("");
@@ -41,11 +43,14 @@ function UniLeaksContent() {
                 const projs = await getActiveProjects(targetTenant);
 
                 // Filter: superadmin/app_admin see all, others see only assigned projects
-                const filteredProjs = projs.filter(p => {
-                    if (userRole === 'superadmin' || userRole === 'app_admin') return true;
-                    if (!userProfile?.assignedProjectIds) return false;
-                    return userProfile.assignedProjectIds.includes(p.id);
-                });
+                const filteredProjs = filterBySAMScope(
+                    projs.filter(p => {
+                        if (userRole === 'superadmin' || userRole === 'app_admin') return true;
+                        if (!userProfile?.assignedProjectIds) return false;
+                        return userProfile.assignedProjectIds.includes(p.id);
+                    }),
+                    accessScopes
+                );
 
                 // Prevents infinite re-renders if the array content hasn't changed (since object references differ)
                 setProjects(prev => {

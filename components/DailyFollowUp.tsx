@@ -28,7 +28,8 @@ import UserRoleManagement from "./UserRoleManagement";
 import Dashboard from "./Dashboard";
 import FirebaseDiagnostic from "./FirebaseDiagnostic";
 import { subscribeToProjectTasks, subscribeToOpenTasks, toggleTaskBlock, updateTaskStatus, createTask } from "@/lib/tasks";
-import { getActiveProjects } from "@/lib/projects";
+import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 
 import TenantManagement from "./TenantManagement";
 import { useTheme } from "@/hooks/useTheme";
@@ -91,6 +92,7 @@ export default function DailyFollowUp() {
     const { addDoc, updateDoc } = useSafeFirestore(); // Use Safe Hook
     const { showToast } = useToast();
     const { canUseAI } = usePermissions();
+    const accessScopes = useAccessScopes();
 
 
     const handleToggleBlock = async (task: Task) => {
@@ -395,7 +397,7 @@ export default function DailyFollowUp() {
             try {
                 const targetTenant = (userRole === 'superadmin' && tenantId === "1") ? "ALL" : (tenantId || "1");
                 const projs = await getActiveProjects(targetTenant);
-                setGlobalProjects(projs);
+                setGlobalProjects(filterBySAMScope(projs, accessScopes));
             } catch (e) { console.error("Projects Load Error", e); }
 
             // Recent History
