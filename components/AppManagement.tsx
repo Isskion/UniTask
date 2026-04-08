@@ -18,7 +18,8 @@ import {
     ChevronRight,
     Search,
     MessageSquare,
-    Filter
+    Filter,
+    Sparkles
 } from 'lucide-react';
 import {
     BarChart,
@@ -32,6 +33,13 @@ import {
     AreaChart,
     Area
 } from 'recharts';
+import { 
+    Calendar, 
+    LayoutTemplate, 
+    ClipboardList,
+    Globe,
+    Briefcase
+} from 'lucide-react';
 import {
     collection,
     query,
@@ -74,6 +82,7 @@ interface TenantConfig {
     aiDailyLimit?: number;
     dailyFileLimit?: number;
     userCount?: number;
+    enabledTools?: string[];
 }
 
 export default function AppManagement() {
@@ -110,6 +119,17 @@ export default function AppManagement() {
         calls: { label: "Llamadas IA", color: "#991b1b", icon: <Zap className="w-4 h-4" /> },
         questions: { label: "Consultas Chat", color: "#7f1d1d", icon: <MessageSquare className="w-4 h-4" /> },
     };
+
+    const AVAILABLE_TOOLS = [
+        { id: 'dispoplan', name: 'DispoPlan', icon: <Calendar className="w-3.5 h-3.5" /> },
+        { id: 'availability-registry', name: 'Registro Indisponibilidades', icon: <ClipboardList className="w-3.5 h-3.5" /> },
+        { id: 'unileaks', name: 'UniLeaks', icon: <FileText className="w-3.5 h-3.5" /> },
+        { id: 'uniordercreator', name: 'UniOrderManager', icon: <ClipboardList className="w-3.5 h-3.5" /> },
+        { id: 'swagger', name: 'UNIGIS Swagger', icon: <Sparkles className="w-3.5 h-3.5" /> },
+        { id: 'soap', name: 'UNIGIS SOAP', icon: <FileText className="w-3.5 h-3.5" /> },
+        { id: 'unidocs', name: 'UniDocs', icon: <LayoutTemplate className="w-3.5 h-3.5" /> },
+        { id: 'uniflux', name: 'Uniflux Engine', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    ];
 
     const filteredUsers = useMemo(() => {
         // [Refinement] Exclude superadmins from population counts (as per user request)
@@ -344,6 +364,24 @@ export default function AppManagement() {
         } catch (e) {
             console.error(e);
             showToast("Error", "No se pudo actualizar el límite.", "error");
+        }
+    };
+
+    const toggleTool = async (tenantId: string, toolId: string, currentEnabledTools: string[] = []) => {
+        try {
+            const isEnabled = currentEnabledTools.includes(toolId);
+            const updatedTools = isEnabled
+                ? currentEnabledTools.filter(id => id !== toolId)
+                : [...currentEnabledTools, toolId];
+
+            await updateDoc(doc(db, "tenants", tenantId), {
+                enabledTools: updatedTools,
+                updatedAt: serverTimestamp()
+            });
+            showToast("Tools Management", `Herramienta ${isEnabled ? 'desactivada' : 'activada'}`, "success");
+        } catch (e) {
+            console.error(e);
+            showToast("Error", "No se pudo actualizar la herramienta.", "error");
         }
     };
 
@@ -827,7 +865,7 @@ export default function AppManagement() {
                                 <th className="px-6 py-4">ID Sistema</th>
                                 <th className="px-6 py-4 text-center">Estado IA</th>
                                 <th className="px-6 py-4">Cuota Diaria (IA)</th>
-                                <th className="px-6 py-4">Límite Docs</th>
+                                <th className="px-6 py-4">Herramientas Activas</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
                         </thead>
@@ -905,50 +943,26 @@ export default function AppManagement() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-6 bg-card/60 border-y border-border group-hover:bg-accent transition-colors">
-                                        <div className="flex flex-col gap-3 min-w-[150px]">
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="number"
-                                                    defaultValue={tenant.dailyFileLimit || 5}
-                                                    onBlur={async (e) => {
-                                                        const val = parseInt(e.target.value) || 0;
-                                                        await updateDoc(doc(db, "tenants", tenant.id), {
-                                                            dailyFileLimit: val,
-                                                            updatedAt: serverTimestamp()
-                                                        });
-                                                    }}
-                                                    className="w-16 bg-background border border-border rounded-lg px-2 py-1 text-sm text-foreground focus:outline-none focus:border-primary transition-all text-center font-black shadow-inner"
-                                                />
-                                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Archivos</span>
-                                            </div>
-                                            {(() => {
-                                                const normalizedTenantId = String(tenant.id).toLowerCase();
-                                                const fileUsageCount = logs.filter(l =>
-                                                    String(l.tenantId).toLowerCase() === normalizedTenantId &&
-                                                    (l.action.includes('analyze') || l.action.includes('pdf') || l.action.includes('document')) &&
-                                                    l.timestamp && isAfter(l.timestamp.toDate(), startOfDay(new Date()))
-                                                ).length;
-                                                const limit = tenant.dailyFileLimit || 5;
-                                                const percent = Math.min((fileUsageCount / limit) * 100, 100);
-
+                                        <div className="flex flex-wrap gap-1.5 max-w-[300px]">
+                                            {AVAILABLE_TOOLS.map(tool => {
+                                                const isEnabled = (tenant.enabledTools || []).includes(tool.id);
                                                 return (
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden border border-border/10">
-                                                            <div
-                                                                className={cn(
-                                                                    "h-full transition-all duration-1000",
-                                                                    percent >= 100 ? "bg-primary" : percent >= 70 ? "bg-amber-500" : "bg-emerald-500"
-                                                                )}
-                                                                style={{ width: `${percent}%` }}
-                                                            />
-                                                        </div>
-                                                        <div className="flex justify-between items-center text-[7px] uppercase font-black px-0.5">
-                                                            <span className="text-muted-foreground">Uso Docs</span>
-                                                            <span className="text-foreground">{fileUsageCount}/{limit}</span>
-                                                        </div>
-                                                    </div>
+                                                    <button
+                                                        key={tool.id}
+                                                        onClick={() => toggleTool(tenant.id, tool.id, tenant.enabledTools)}
+                                                        className={cn(
+                                                            "flex items-center gap-1.5 px-2 py-1 rounded-md text-[8px] font-black tracking-tight transition-all border",
+                                                            isEnabled 
+                                                                ? "bg-primary/20 text-primary border-primary/30 shadow-sm" 
+                                                                : "bg-secondary text-muted-foreground border-border/50 opacity-40 hover:opacity-100"
+                                                        )}
+                                                        title={`${isEnabled ? 'Desactivar' : 'Activar'} ${tool.name}`}
+                                                    >
+                                                        {tool.icon}
+                                                        {tool.name}
+                                                    </button>
                                                 );
-                                            })()}
+                                            })}
                                         </div>
                                     </td>
                                     <td className="px-6 py-6 bg-card/60 rounded-r-2xl border-r border-y border-border group-hover:bg-accent transition-colors text-right">

@@ -76,6 +76,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const { t } = useLanguage();
     const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
     const [unitaskToolsEnabled, setUnitaskToolsEnabled] = useState<boolean>(false);
+    const [enabledTools, setEnabledTools] = useState<string[]>([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -94,6 +95,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     }
                     // Fetch tool activation
                     setUnitaskToolsEnabled(data.unitaskToolsEnabled || false);
+                    setEnabledTools(data.enabledTools || []);
                 }
             } catch (err: any) {
                 if (isMounted) {
@@ -303,29 +305,43 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             </div>
                         )}
 
-                        {/* Unitask Tools (NEW) */}
+                        {/* Unitask Tools (Dynamic Activation) */}
                         {(unitaskToolsEnabled || userRole === 'superadmin') && (
                             <div className="space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                                {can('dispoPlan', 'views') && (
+                                
+                                {/* Always visible for Superadmin, otherwise check enabledTools */}
+                                {(userRole === 'superadmin' || enabledTools.includes('dispoplan')) && can('dispoPlan', 'views') && (
                                     <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                 )}
-                                {can('unavailabilityRegistry', 'views') && (
+                                
+                                {(userRole === 'superadmin' || enabledTools.includes('availability-registry')) && can('unavailabilityRegistry', 'views') && (
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                 )}
-                                <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-
-                                {/* UNIGIS Exclusive Tools (Tenant 3 Only) */}
-                                {tenantId === '3' && (
-                                    <>
-                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                                    </>
+                                
+                                {(userRole === 'superadmin' || enabledTools.includes('unileaks')) && (
+                                    <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 )}
 
-                                <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
+                                    <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                )}
+
+                                {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
+                                    <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                                )}
+
+                                {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
+                                    <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
+                                )}
+
+                                {(userRole === 'superadmin' || enabledTools.includes('unidocs')) && (
+                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                )}
+
+                                {(userRole === 'superadmin' || enabledTools.includes('uniflux')) && (
+                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                )}
                             </div>
                         )}
 
@@ -521,25 +537,31 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                 <div className="mt-4 space-y-1">
                                     <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                                    {can('dispoPlan', 'views') && (
+                                    
+                                    {(userRole === 'superadmin' || enabledTools.includes('dispoplan')) && can('dispoPlan', 'views') && (
                                         <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                     )}
-                                    {can('unavailabilityRegistry', 'views') && (
+                                    {(userRole === 'superadmin' || enabledTools.includes('availability-registry')) && can('unavailabilityRegistry', 'views') && (
                                         <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                     )}
-                                    <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-
-                                    {/* UNIGIS Exclusive Tools (Tenant 3 Only) */}
-                                    {tenantId === '3' && (
-                                        <>
-                                            <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                            <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                                            <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                                        </>
+                                    {(userRole === 'superadmin' || enabledTools.includes('unileaks')) && (
+                                        <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                     )}
-
-                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
+                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                    )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
+                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
+                                    )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
+                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
+                                    )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('unidocs')) && (
+                                        <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                    )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniflux')) && (
+                                        <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                    )}
                                 </div>
                             )}
 
