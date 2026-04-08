@@ -310,8 +310,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <div className="space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
                                 
-                                {/* Always visible for Superadmin, otherwise check enabledTools */}
-                                {(userRole === 'superadmin' || enabledTools.includes('dispoplan')) && can('dispoPlan', 'views') && (
+                                {/* Global Tools (Always visible if section enabled) */}
+                                {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
                                     <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                 )}
                                 
@@ -319,7 +319,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                 )}
                                 
-                                {(userRole === 'superadmin' || enabledTools.includes('unileaks')) && (
+                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                     <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 )}
 
@@ -339,7 +339,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 )}
 
-                                {(userRole === 'superadmin' || enabledTools.includes('uniflux')) && (
+                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                     <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                 )}
                             </div>
@@ -538,13 +538,14 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <div className="mt-4 space-y-1">
                                     <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
                                     
-                                    {(userRole === 'superadmin' || enabledTools.includes('dispoplan')) && can('dispoPlan', 'views') && (
+                                    {/* Global Tools */}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
                                         <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                     )}
                                     {(userRole === 'superadmin' || enabledTools.includes('availability-registry')) && can('unavailabilityRegistry', 'views') && (
                                         <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                     )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('unileaks')) && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                         <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                     )}
                                     {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
@@ -559,7 +560,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {(userRole === 'superadmin' || enabledTools.includes('unidocs')) && (
                                         <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                     )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('uniflux')) && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                         <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                     )}
                                 </div>
