@@ -211,14 +211,6 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
         if (!formData.name || !formData.code) return showToast("UniTaskController", t('projects.validation.required'), "error");
 
-        /* [SAM Architecture] Removing mandatory validation to unblock project creation. 
-           If regions/divisions are not provided, the project will be treated as global/general. */
-        /*
-        if (!formData.regionId || !formData.divisionId) {
-            return showToast("UniTaskController", "Región y División son obligatorias", "error");
-        }
-        */
-
         setSaving(true);
         try {
             if (isNew) {
