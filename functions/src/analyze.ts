@@ -280,11 +280,21 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
-        // Robust JSON Extraction
-        const jsonStart = responseText.indexOf('{');
-        const jsonEnd = responseText.lastIndexOf('}');
-        if (jsonStart === -1 || jsonEnd === -1) throw new Error("No valid JSON found in response");
-        const jsonStr = responseText.substring(jsonStart, jsonEnd + 1);
+        // [Robust Refinement] Handle markdown backticks and extra text
+        const cleanJson = (text: string) => {
+            // Remove markdown code blocks if present
+            let cleaned = text.replace(/```json\s?|```/g, "").trim();
+            const start = cleaned.indexOf('{');
+            const end = cleaned.lastIndexOf('}');
+            if (start === -1 || end === -1) return null;
+            return cleaned.substring(start, end + 1);
+        };
+
+        const jsonStr = cleanJson(responseText);
+        if (!jsonStr) {
+            functions.logger.error("AI Response non-JSON", { text: responseText });
+            throw new Error("No valid JSON found in response");
+        }
 
         const parsedData = JSON.parse(jsonStr);
 
@@ -297,6 +307,7 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
 
         return parsedData;
     } catch (e: any) {
+        functions.logger.error("SummarizeNotes Error", { error: e.message, stack: e.stack });
         throw new functions.https.HttpsError('internal', "AI Summarization failed: " + e.message);
     }
 });
