@@ -8,13 +8,52 @@
  * Convert an Excel serial date number to an ISO 8601 string.
  * Excel dates start from 1900-01-01 (serial = 1).
  */
+/**
+ * Convert an Excel serial date number to an ISO 8601 string (YYYY-MM-DD).
+ * Excel dates start from 1900-01-01 (serial = 1).
+ */
 export function excelSerialToISO(serial: number): string {
-    if (typeof serial !== 'number' || isNaN(serial)) return '';
+    if (typeof serial !== 'number' || isNaN(serial) || serial <= 0) return '';
     // Excel epoch: 1899-12-30 (accounting for the 1900 leap year bug)
     const excelEpoch = new Date(Date.UTC(1899, 11, 30));
     const msPerDay = 86400000;
     const date = new Date(excelEpoch.getTime() + serial * msPerDay);
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    return date.toISOString().split('T')[0];
+}
+
+/**
+ * Robustly format any value (Date, serial, string) into dd-mm-aaaa.
+ */
+export function formatToUnigisDate(value: any): string {
+    if (value === null || value === undefined || value === '') return '';
+    
+    let date: Date;
+    
+    if (value instanceof Date) {
+        date = value;
+    } else if (typeof value === 'number') {
+        // Handle Excel serials (up to year 9999, approx 3.000.000)
+        if (value > 0 && value < 3000000) {
+            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+            date = new Date(excelEpoch.getTime() + value * 86400000);
+        } else {
+            // Assume timestamp in ms
+            date = new Date(value);
+        }
+    } else {
+        const str = String(value).trim();
+        if (!str) return '';
+        // Try common formats
+        date = new Date(str);
+    }
+    
+    if (isNaN(date.getTime())) return String(value);
+    
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const year = date.getUTCFullYear();
+    
+    return `${day}-${month}-${year}`;
 }
 
 /**

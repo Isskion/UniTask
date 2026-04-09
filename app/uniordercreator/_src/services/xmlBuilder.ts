@@ -5,6 +5,7 @@
  */
 
 import { SCHEMA } from '../data/schema';
+import { formatToUnigisDate, excelTimeToHHMM } from '../utils/dateHelpers';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -14,56 +15,7 @@ function escapeXml(str: string): string {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function excelSerialToISO(serial: number): string {
-    if (!serial || serial === 0) return '';
-    const utcDays = Math.floor(serial - 25569);
-    const utcValue = utcDays * 86400;
-    const dateInfo = new Date(utcValue * 1000);
-    const fractionalDay = serial - Math.floor(serial) + 0.0000001;
-    let totalSeconds = Math.floor(86400 * fractionalDay);
-    const seconds = totalSeconds % 60;
-    totalSeconds -= seconds;
-    const hours = Math.floor(totalSeconds / (60 * 60));
-    const minutes = Math.floor(totalSeconds / 60) % 60;
-    const d = new Date(dateInfo.getFullYear(), dateInfo.getMonth(), dateInfo.getDate(), hours, minutes, seconds);
-    return d.toISOString();
-}
-
-function excelTimeToHHMM(value: any): string {
-    if (value === undefined || value === null || value === '') return '';
-    if (typeof value === 'number' && value >= 0 && value <= 2400 && value >= 1) {
-        return String(Math.round(value));
-    }
-    if (typeof value === 'number' && value < 1) {
-        const totalMinutes = Math.round(value * 24 * 60);
-        const h = Math.floor(totalMinutes / 60);
-        const m = totalMinutes % 60;
-        return String(h * 100 + m);
-    }
-    if (typeof value === 'number' && value > 1) {
-        const fractional = value - Math.floor(value);
-        const totalMinutes = Math.round(fractional * 24 * 60);
-        const h = Math.floor(totalMinutes / 60);
-        const m = totalMinutes % 60;
-        return String(h * 100 + m);
-    }
-    if (value instanceof Date) {
-        return String(value.getHours() * 100 + value.getMinutes());
-    }
-    if (typeof value === 'string' && value.includes('T')) {
-        try {
-            const d = new Date(value);
-            return String(d.getHours() * 100 + d.getMinutes());
-        } catch { return String(value).trim(); }
-    }
-    if (typeof value === 'string' && value.includes(':')) {
-        const parts = value.split(':');
-        const h = parseInt(parts[0]) || 0;
-        const m = parseInt(parts[1]) || 0;
-        return String(h * 100 + m);
-    }
-    return String(value).trim();
-}
+// Internal helpers excelSerialToISO and excelTimeToHHMM have been moved to ../utils/dateHelpers.
 
 // ─── detectArrayIndices ───────────────────────────────────────────────────────
 
@@ -472,12 +424,9 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
                     key.toLowerCase().startsWith('is');
 
                 if (isTimeField) {
-                    content = excelTimeToHHMM(cellValue);
-                } else if (cellValue instanceof Date) {
-                    content = cellValue.toISOString();
-                } else if (isDateField && typeof cellValue === 'number') {
-                    try { content = cellValue === 0 ? '' : excelSerialToISO(cellValue); }
-                    catch { content = String(cellValue).trim(); }
+                    content = String(excelTimeToHHMM(cellValue));
+                } else if (isDateField) {
+                    content = formatToUnigisDate(cellValue);
                 } else if (isBooleanField) {
                     if (cellValue === true || cellValue === 1) content = 'true';
                     else if (cellValue === false || cellValue === 0) content = 'false';
