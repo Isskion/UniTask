@@ -194,47 +194,109 @@ function UnigisOrderCreatorPageInner() {
             const refCol = mapping['Orden.RefDocumento'];
             const ref = row[refCol] || `Fila ${index + 1}`;
 
+            let lastRawResponse = '';
             try {
+                // ── 1. Construir XML ─────────────────────────────────────────
                 const xml = buildXml(row, ctx);
+                logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
+                setProgressLogs([...logs]);
 
-                // Use Firebase Cloud Function explicitly because Next.js export disables API Routes
+                // ── 2. Llamada SOAP via Cloud Function ───────────────────────
                 const res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        url: orderUrl, // Use the existing orderUrl from the store
-                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido', // Use the existing action
-                        version: '1.1', // Use the existing version
-                        body: xml, // Use the existing xml
-                        timeoutMs: 30000, // Keep the timeout
+                        url: orderUrl,
+                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                        version: '1.1',
+                        body: xml,
+                        timeoutMs: 30000,
                     }),
                 });
 
                 const response = await res.json();
+                lastRawResponse = response.text || '';
+
+                logs.push({ ref, status: 'info', msg: `HTTP ${response.status} · ${lastRawResponse.length} bytes` });
+                setProgressLogs([...logs]);
 
                 if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
-                const codeMatch = /CrearOrdenesPedidoResult>(-?\d+)<\/CrearOrdenesPedidoResult/i.exec(response.text);
-                const code = codeMatch ? parseInt(codeMatch[1]) : null;
+                // ── 3. Parsear respuesta XML ─────────────────────────────────
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(lastRawResponse, 'text/xml');
 
-                if (code === null) {
-                    if (response.text.includes('fault') || response.text.includes('error')) {
-                        throw new Error('Error en respuesta del servidor');
-                    }
-                    success++;
-                    setRowStatus(index, 'success', undefined, response.text);
-                    logs.push({ ref, status: 'success', msg: 'OK' });
-                } else if (code > 0) {
-                    success++;
-                    setRowStatus(index, 'success', undefined, response.text);
-                    logs.push({ ref, status: 'success', msg: `Código ${code}` });
+                // 3 intentos para encontrar el nodo resultado (con/sin namespace)
+                const resultNode =
+                    doc.getElementsByTagName('CrearOrdenesPedidoResult')[0] ||
+                    doc.getElementsByTagName('unis:CrearOrdenesPedidoResult')[0] ||
+                    doc.getElementsByTagName('Result')[0];
+
+                const resultText  = resultNode ? (resultNode.textContent ?? '') : '';
+                const isIntSuccess = /^\d+$/.test(resultText) && parseInt(resultText) > 0;
+                const isBoolSuccess = resultText.toLowerCase() === 'true';
+
+                const nodeInfo = resultNode
+                    ? `Nodo: ${resultNode.nodeName} = "${resultText}"`
+                    : 'Nodo resultado no encontrado → fallback texto';
+                logs.push({ ref, status: 'info', msg: nodeInfo });
+                setProgressLogs([...logs]);
+
+                let isValid = response.ok;
+
+                if (resultNode) {
+                    isValid = isIntSuccess || isBoolSuccess;
                 } else {
-                    throw new Error(UNIGIS_ERROR_CODES[String(code)] || `Código ${code}`);
+                    isValid = isValid &&
+                        !lastRawResponse.includes('false') &&
+                        !lastRawResponse.includes('Error') &&
+                        !lastRawResponse.includes('Exception') &&
+                        !lastRawResponse.includes('Fallo');
+                }
+
+                // ── 4. Éxito / Error ─────────────────────────────────────────
+                if (isValid) {
+                    success++;
+                    setRowStatus(index, 'success', undefined, lastRawResponse);
+                    logs.push({ ref, status: 'success', msg: `Creado (ID: ${resultText || 'OK'})` });
+                } else {
+                    let msg = '';
+
+                    if (resultNode && !isValid) {
+                        msg = UNIGIS_ERROR_CODES[resultText]
+                            ? `${resultText}: ${UNIGIS_ERROR_CODES[resultText]}`
+                            : `Fallo lógico: respuesta "${resultText}"`;
+                    }
+
+                    if (!msg && lastRawResponse) {
+                        const errorPatterns = [
+                            /<soap:Reason[^>]*>([\s\S]*?)<\/soap:Reason>/i,
+                            /<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i,
+                            /<unis:Descripcion[^>]*>([\s\S]*?)<\/unis:Descripcion>/i,
+                            /<unis:Description[^>]*>([\s\S]*?)<\/unis:Description>/i,
+                            /<unis:Mensaje[^>]*>([\s\S]*?)<\/unis:Mensaje>/i,
+                            /<unis:Error[^>]*>([\s\S]*?)<\/unis:Error>/i,
+                            /Mensaje>([\s\S]*?)<\//i,
+                            /Error>([\s\S]*?)<\//i,
+                        ];
+                        for (const pattern of errorPatterns) {
+                            const match = lastRawResponse.match(pattern);
+                            if (match) { msg = match[1].trim(); break; }
+                        }
+                    }
+
+                    if (!msg) msg = '(Error desconocido)';
+                    throw new Error(msg);
                 }
             } catch (err: any) {
                 errors++;
                 setRowStatus(index, 'error', err.message);
-                logs.push({ ref, status: 'error', msg: err.message });
+                logs.push({
+                    ref,
+                    status: 'error',
+                    msg: err.message,
+                    detail: lastRawResponse ? lastRawResponse.slice(0, 2000) : undefined,
+                });
             }
 
             setProgressSuccess(success);

@@ -4,6 +4,7 @@ export interface ProgressLog {
     ref: string;
     status: 'success' | 'error' | 'warn' | 'info';
     msg: string;
+    detail?: string;  // respuesta SOAP raw / contexto extra, expandible
 }
 
 interface ProgressModalProps {
@@ -16,6 +17,40 @@ interface ProgressModalProps {
     logs: ProgressLog[];
     onCancel: () => void;
     onClose: () => void;
+}
+
+function LogRow({ log }: { log: ProgressLog }) {
+    const [open, setOpen] = useState(false);
+    const colors = {
+        success: { badge: 'bg-emerald-500/20 text-emerald-400', text: 'text-emerald-300' },
+        error:   { badge: 'bg-red-500/20 text-red-400',         text: 'text-red-300'     },
+        warn:    { badge: 'bg-amber-500/20 text-amber-400',      text: 'text-amber-300'   },
+        info:    { badge: 'bg-slate-500/20 text-slate-400',      text: 'text-slate-400'   },
+    }[log.status];
+
+    return (
+        <div>
+            <div className="flex items-start gap-2 text-xs font-mono">
+                <span className={`shrink-0 px-1.5 py-0.5 rounded font-bold ${colors.badge}`}>
+                    {log.ref}
+                </span>
+                <span className={`flex-1 ${colors.text}`}>{log.msg}</span>
+                {log.detail && (
+                    <button
+                        onClick={() => setOpen(o => !o)}
+                        className="shrink-0 text-[10px] px-1 py-0.5 rounded bg-slate-700 text-slate-400 hover:bg-slate-600"
+                    >
+                        {open ? '▲' : '▼'}
+                    </button>
+                )}
+            </div>
+            {open && log.detail && (
+                <pre className="mt-1 ml-2 text-[10px] text-slate-400 bg-slate-800 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all">
+                    {log.detail}
+                </pre>
+            )}
+        </div>
+    );
 }
 
 export default function ProgressModal({
@@ -97,22 +132,7 @@ export default function ProgressModal({
                     {/* Logs */}
                     <div className="max-h-48 overflow-auto rounded-xl bg-slate-900 p-3 space-y-1 border border-slate-700">
                         {logs.map((log, i) => (
-                            <div key={i} className="flex items-start gap-2 text-xs font-mono">
-                                <span className={`shrink-0 px-1.5 py-0.5 rounded font-bold ${log.status === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
-                                        log.status === 'error' ? 'bg-red-500/20 text-red-400' :
-                                            log.status === 'warn' ? 'bg-amber-500/20 text-amber-400' :
-                                                'bg-slate-500/20 text-slate-400'
-                                    }`}>
-                                    {log.ref}
-                                </span>
-                                <span className={`${log.status === 'success' ? 'text-emerald-300' :
-                                        log.status === 'error' ? 'text-red-300' :
-                                            log.status === 'warn' ? 'text-amber-300' :
-                                                'text-slate-400'
-                                    }`}>
-                                    {log.msg}
-                                </span>
-                            </div>
+                            <LogRow key={i} log={log} />
                         ))}
                         <div ref={logsEndRef} />
                     </div>

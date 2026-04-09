@@ -416,7 +416,7 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
                 const excelCol = ctx.mapping[currentPath];
                 const cellValue = row[excelCol];
 
-                const isDateField = /(Fecha|Vigencia)/i.test(key) && !key.toLowerCase().includes('horario');
+                const isDateField = /(Fecha|Vigencia|Datetime)/i.test(key) && !key.toLowerCase().includes('horario');
                 const isTimeField = /(InicioHorario|FinHorario)/i.test(key);
                 const isBooleanField =
                     val === 'bool' ||

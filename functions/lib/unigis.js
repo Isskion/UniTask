@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.unigisSoapProxy = void 0;
 const functions = require("firebase-functions");
 const cors = require("cors");
+// UNIGIS usa certificados autofirmados — necesario para que Node 18 global fetch no los rechace
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
 exports.unigisSoapProxy = functions.region("europe-west1").runWith({

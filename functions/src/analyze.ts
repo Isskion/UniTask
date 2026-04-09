@@ -198,7 +198,10 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
     const status = await isAiEnabled(tenantId);
     if (!status.enabled) throw new functions.https.HttpsError('permission-denied', status.reason!);
 
-    const notes = data.notes;
+    // [Fix] Truncate notes to prevent token/memory issues
+    const rawNotes = data.notes || "";
+    const notes = rawNotes.length > 12000 ? rawNotes.slice(0, 12000) + "... (truncated)" : rawNotes;
+    
     const mode = data.mode || 'summarize'; // 'summarize' or 'layout_optimization'
     const zones = data.zones || [];
 
@@ -224,8 +227,9 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
             Act as a Document Layout Specialist.
             Take the following notes and DISTRIBUTE them across the available document zones in a COHESIVE and PROFESSIONAL way.
             
-            Notes:
-            "${notes}"
+            <RAW_NOTES_START>
+            ${notes}
+            <RAW_NOTES_END>
             
             Target Zones:
             ${JSON.stringify(zones)}
@@ -246,8 +250,9 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
             Act as a Senior Professional Editor.
             Task: Transform the provided raw notes into a HIGHLY structured, polished, and professional markdown report.
             
-            Notes:
-            "${notes}"
+            <RAW_NOTES_START>
+            ${notes}
+            <RAW_NOTES_END>
             
             Strict Instructions:
             1. DEEP RESTRUCTURING: Do not just beautify. Reorganize the content logically. Use clear H2 and H3 headers (##, ###).
@@ -264,8 +269,10 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
     else {
         prompt = `
             Analyze the following Project Management notes and extract key insights.
-            Input Notes:
-            "${notes}"
+            
+            <RAW_NOTES_START>
+            ${notes}
+            <RAW_NOTES_END>
 
             Return a JSON object with:
             - "resumenEjecutivo": A concise executive summary (max 3 sentences).
@@ -282,6 +289,7 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
 
         // [Robust Refinement] Handle markdown backticks and extra text
         const cleanJson = (text: string) => {
+            if (!text) return null;
             // Remove markdown code blocks if present
             let cleaned = text.replace(/```json\s?|```/g, "").trim();
             const start = cleaned.indexOf('{');
@@ -292,8 +300,12 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
 
         const jsonStr = cleanJson(responseText);
         if (!jsonStr) {
-            functions.logger.error("AI Response non-JSON", { text: responseText });
-            throw new Error("No valid JSON found in response");
+            functions.logger.error("AI Response non-JSON", { 
+                snippet: responseText.slice(0, 500),
+                fullLength: responseText.length,
+                mode 
+            });
+            throw new Error("No valid JSON found in response. Response might be empty or safety-filtered.");
         }
 
         const parsedData = JSON.parse(jsonStr);
@@ -307,7 +319,7 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
 
         return parsedData;
     } catch (e: any) {
-        functions.logger.error("SummarizeNotes Error", { error: e.message, stack: e.stack });
+        functions.logger.error("SummarizeNotes Error", { error: e.message, stack: e.stack, mode });
         throw new functions.https.HttpsError('internal', "AI Summarization failed: " + e.message);
     }
 });

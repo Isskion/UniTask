@@ -15,10 +15,15 @@
 export function excelSerialToISO(serial: number): string {
     if (typeof serial !== 'number' || isNaN(serial) || serial <= 0) return '';
     // Excel epoch: 1899-12-30 (accounting for the 1900 leap year bug)
-    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    const excelEpoch = new Date(1899, 11, 30);
     const msPerDay = 86400000;
     const date = new Date(excelEpoch.getTime() + serial * msPerDay);
-    return date.toISOString().split('T')[0];
+    
+    // Return YYYY-MM-DD using local methods
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 }
 
 /**
@@ -26,34 +31,52 @@ export function excelSerialToISO(serial: number): string {
  */
 export function formatToUnigisDate(value: any): string {
     if (value === null || value === undefined || value === '') return '';
-    
+
     let date: Date;
-    
+
     if (value instanceof Date) {
         date = value;
     } else if (typeof value === 'number') {
-        // Handle Excel serials (up to year 9999, approx 3.000.000)
-        if (value > 0 && value < 3000000) {
-            const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        // Handle Excel serials
+        // Range check: approx year 1990 (32874) to 2100 (73413)
+        if (value >= 30000 && value < 100000) {
+            const excelEpoch = new Date(1899, 11, 30);
             date = new Date(excelEpoch.getTime() + value * 86400000);
-        } else {
-            // Assume timestamp in ms
+        } else if (value > 1e12) {
+            // Assume timestamp in ms (e.g. 1712668040000)
             date = new Date(value);
+        } else {
+            // Too small for timestamp, out of range for Excel serial
+            return String(value);
         }
     } else {
         const str = String(value).trim();
         if (!str) return '';
-        // Try common formats
-        date = new Date(str);
+
+        // Explicitly handle DD/MM/YYYY or DD-MM-YYYY (Common in Spain)
+        const dmyMatch = str.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+        if (dmyMatch) {
+            const day = parseInt(dmyMatch[1]);
+            const month = parseInt(dmyMatch[2]) - 1;
+            const year = parseInt(dmyMatch[3]);
+            date = new Date(year, month, day);
+        } else {
+            // Fallback to standard parsing
+            date = new Date(str);
+        }
     }
-    
+
     if (isNaN(date.getTime())) return String(value);
-    
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const year = date.getUTCFullYear();
-    
-    return `${day}-${month}-${year}`;
+
+    // Filter out unreasonable years (e.g. 2245) resulting from misinterpreting IDs
+    const y = date.getFullYear();
+    if (y < 1900 || y > 2100) return String(value);
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(y);
+
+    return `${year}-${month}-${day}`;
 }
 
 /**

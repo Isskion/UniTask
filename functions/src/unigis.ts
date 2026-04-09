@@ -2,6 +2,9 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as cors from "cors";
 
+// UNIGIS usa certificados autofirmados — necesario para que Node 18 global fetch no los rechace
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
 
