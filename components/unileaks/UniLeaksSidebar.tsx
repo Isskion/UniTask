@@ -467,28 +467,41 @@ export default function UniLeaksSidebar({
 
             {/* Tree Content */}
             <div
-                className="flex-1 overflow-y-auto px-2 pt-2 pb-6 space-y-1 relative"
+                className="flex-1 overflow-y-auto px-1.5 pt-2 pb-6 relative group/sidebar-content"
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, null)}
                 onContextMenu={(e) => {
-                    // Si hacen click derecho en el espacio vacío, es raíz
                     if (e.target === e.currentTarget) handleContextMenu(e, 'root', null);
                 }}
             >
-                {loading ? (
-                    <div className="text-center py-8 text-muted-foreground text-sm">Cargando...</div>
-                ) : folders.length === 0 && notes.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground text-xs italic">
-                        Este proyecto no tiene contenido aún
-                    </div>
-                ) : (
-                    renderTree(null, 0)
-                )}
-                {/* Visual indicator for drop at root */}
-                {dragOverFolder === null && (
-                    <div className="absolute inset-0 pointer-events-none border-2 border-primary/20 bg-primary/5 rounded-lg m-2 opacity-0 animate-in fade-in fill-none" style={{ opacity: dragOverFolder === null ? 1 : 0 }} />
-                )}
+                {/* 
+                    Dynamic Frame: This replaces the previous absolute inset-0 div.
+                    It wraps the entire list and grows with it.
+                */}
+                <div 
+                    className={cn(
+                        "min-h-full w-full rounded-xl border-2 transition-all duration-200 p-1.5 space-y-1 relative",
+                        dragOverFolder === null 
+                            ? "bg-primary/10 border-primary/40 ring-4 ring-primary/10" 
+                            : "bg-primary/5 border-primary/20",
+                        loading && "border-transparent bg-transparent"
+                    )}
+                >
+                    {loading ? (
+                        <div className="text-center py-12 text-muted-foreground text-sm flex flex-col items-center gap-2">
+                            <Loader2 className="w-5 h-5 animate-spin text-primary/50" />
+                            <span>Cargando conocimiento...</span>
+                        </div>
+                    ) : folders.length === 0 && notes.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground text-xs italic flex flex-col items-center gap-3">
+                            <BookMarked className="w-8 h-8 opacity-20" />
+                            <div className="max-w-[12rem]">Este proyecto no tiene contenido aún. Comienza creando una nota o carpeta.</div>
+                        </div>
+                    ) : (
+                        renderTree(null, 0)
+                    )}
+                </div>
             </div>
 
             {/* Context Menu Overlay */}
