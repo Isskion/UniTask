@@ -14,16 +14,13 @@
  */
 export function excelSerialToISO(serial: number): string {
     if (typeof serial !== 'number' || isNaN(serial) || serial <= 0) return '';
-    // Excel epoch: 1899-12-30 (accounting for the 1900 leap year bug)
-    const excelEpoch = new Date(1899, 11, 30);
-    const msPerDay = 86400000;
-    const date = new Date(excelEpoch.getTime() + serial * msPerDay);
-    
-    // Return YYYY-MM-DD using local methods
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    const utcDays = Math.floor(serial - 25569);
+    // Use UTC methods on the exact epoch shift to avoid local timezone displacement.
+    const dateInfo = new Date(utcDays * 86400 * 1000);
+    const year = dateInfo.getUTCFullYear();
+    const month = String(dateInfo.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(dateInfo.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 /**
@@ -40,8 +37,7 @@ export function formatToUnigisDate(value: any): string {
         // Handle Excel serials
         // Range check: approx year 1990 (32874) to 2100 (73413)
         if (value >= 30000 && value < 100000) {
-            const excelEpoch = new Date(1899, 11, 30);
-            date = new Date(excelEpoch.getTime() + value * 86400000);
+            return excelSerialToISO(value);
         } else if (value > 1e12) {
             // Assume timestamp in ms (e.g. 1712668040000)
             date = new Date(value);

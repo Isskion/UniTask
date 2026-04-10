@@ -5,7 +5,7 @@
  */
 
 import { SCHEMA } from '../data/schema';
-import { formatToUnigisDate, excelTimeToHHMM } from '../utils/dateHelpers';
+import { formatToUnigisDate, excelTimeToHHMM, excelSerialToISO } from '../utils/dateHelpers';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -425,6 +425,14 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
 
                 if (isTimeField) {
                     content = String(excelTimeToHHMM(cellValue));
+                } else if (cellValue instanceof Date) {
+                    const year = cellValue.getFullYear();
+                    const month = String(cellValue.getMonth() + 1).padStart(2, '0');
+                    const day = String(cellValue.getDate()).padStart(2, '0');
+                    content = `${year}-${month}-${day}`;
+                } else if (isDateField && typeof cellValue === 'number') {
+                    try { content = cellValue === 0 ? '' : excelSerialToISO(cellValue); }
+                    catch { content = String(cellValue).trim(); }
                 } else if (isDateField) {
                     content = formatToUnigisDate(cellValue);
                 } else if (isBooleanField) {
