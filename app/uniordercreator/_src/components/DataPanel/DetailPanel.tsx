@@ -12,9 +12,10 @@ export default function DetailPanel() {
         const map: Record<string, { short: string; full: string }[]> = {};
         for (const [field, col] of Object.entries(mapping)) {
             if (!col) continue;
-            if (!map[col]) map[col] = [];
+            const key = String(col).trim().toLowerCase();
+            if (!map[key]) map[key] = [];
             const short = field.split('.').pop() || field;
-            map[col].push({ short, full: field });
+            map[key].push({ short, full: field });
         }
         return map;
     }, [mapping]);
@@ -63,7 +64,9 @@ export default function DetailPanel() {
                             <tr className="bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200/50">
                                 <th className="w-10 p-2 text-center text-xs font-bold text-amber-700 uppercase">#</th>
                                 {itemHeaders.map((h) => {
-                                    const isMapped = !!reverseMap[h];
+                                    const matchKey = String(h).trim().toLowerCase();
+                                    const mappedList = reverseMap[matchKey];
+                                    const isMapped = !!mappedList;
                                     return (
                                         <th
                                             key={h}
@@ -72,8 +75,8 @@ export default function DetailPanel() {
                                                     ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
                                                     : 'font-bold text-amber-700/70 hover:bg-amber-100/50'
                                             }`}
-                                            onClick={isMapped ? () => navigateToField(reverseMap[h][0].full) : undefined}
-                                            title={isMapped ? `Mapeado a: ${reverseMap[h].map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
+                                            onClick={isMapped && mappedList?.length ? () => navigateToField(mappedList[0].full) : undefined}
+                                            title={isMapped && mappedList?.length ? `Mapeado a: ${mappedList.map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
                                         >
                                             <div className="flex items-center gap-1.5">
                                                 {h}

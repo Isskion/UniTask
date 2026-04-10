@@ -85,9 +85,10 @@ export default function MasterTable() {
         const map: Record<string, { short: string; full: string }[]> = {};
         for (const [field, col] of Object.entries(mapping)) {
             if (!col) continue;
-            if (!map[col]) map[col] = [];
+            const key = String(col).trim().toLowerCase();
+            if (!map[key]) map[key] = [];
             const short = field.split('.').pop() || field;
-            map[col].push({ short, full: field });
+            map[key].push({ short, full: field });
         }
         return map;
     }, [mapping]);
@@ -148,7 +149,9 @@ export default function MasterTable() {
                         </th>
                         <th className="w-8 px-1 py-1 text-center text-[10px] font-bold text-slate-400">#</th>
                         {headers.map((h) => {
-                            const isMapped = !!reverseMap[h];
+                            const matchKey = String(h).trim().toLowerCase();
+                            const mappedList = reverseMap[matchKey];
+                            const isMapped = !!mappedList;
                             return (
                                 <th
                                     key={h}
@@ -157,8 +160,8 @@ export default function MasterTable() {
                                             ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
                                             : 'font-bold text-slate-500 hover:bg-slate-100'
                                     }`}
-                                    onClick={isMapped ? () => navigateToField(reverseMap[h][0].full) : undefined}
-                                    title={isMapped ? `Mapeado a: ${reverseMap[h].map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
+                                    onClick={isMapped && mappedList?.length ? () => navigateToField(mappedList[0].full) : undefined}
+                                    title={isMapped && mappedList?.length ? `Mapeado a: ${mappedList.map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
                                 >
                                     <div className="flex items-center gap-1.5">
                                         {h}
