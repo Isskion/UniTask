@@ -49,16 +49,26 @@ export async function saveFlowDraft(tenantId: string, flowData: Partial<FlowGrap
     if (!flowData.id) throw new Error("Flow ID is required to save draft");
     if (!userId) throw new Error("userId is required to save draft");
 
+    // Ensure tenantId is a string to match Firestore rules expectations
+    const safeTenantId = String(tenantId);
+
     const flowRef = doc(db, FLOWS_COLLECTION, flowData.id);
-    const existingSnap = await getDoc(flowRef);
+    let existingSnap;
+    
+    try {
+        existingSnap = await getDoc(flowRef);
+    } catch (e: any) {
+        console.warn("[uniflux-actions] getDoc failed before save, assuming doc doesn't exist or permission deferred.", e);
+        // We continue because setDoc will either create (if permitted) or fail with permission error
+    }
 
     // Build update payload — never overwrite createdBy if already set
     const updateData = cleanForFirestore({
         ...flowData,
-        tenantId,
+        tenantId: safeTenantId,
         updatedAt: serverTimestamp(),
-        // Stamp createdBy only on first creation
-        ...(!existingSnap.exists() ? { createdBy: userId } : {}),
+        // Stamp createdBy only if we confirmed it doesn't exist
+        ...((existingSnap && !existingSnap.exists()) ? { createdBy: userId } : {}),
     });
 
     await setDoc(flowRef, updateData, { merge: true });
