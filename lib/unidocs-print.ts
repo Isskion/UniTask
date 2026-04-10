@@ -160,6 +160,9 @@ export function buildPrintHtml(
     const cuerpoWidth = cuerpoBlock ? (cuerpoBlock.width ?? (210 - margins.left - margins.right)) : (210 - margins.left - margins.right);
     const cuerpoRight = Math.max(0, 210 - cuerpoLeft - cuerpoWidth);
 
+    // Calculate the remaining space for the body to push footer to bottom
+    const bodySpace = A4_HEIGHT_MM - theadHeight - tfootHeight;
+
     // Cuerpo text style
     const cfg0 = cuerpoBlock?.config ?? {};
     const cuerpoStyle = [
@@ -239,7 +242,7 @@ export function buildPrintHtml(
             <tr><td style="height:${theadHeight}mm;position:relative;">${headerHtml}</td></tr>
         </thead>
         <tbody>
-            <tr><td><div class="doc-body">${noteHtml}</div></td></tr>
+            <tr><td style="height:${bodySpace}mm;vertical-align:top;"><div class="doc-body">${noteHtml}</div></td></tr>
         </tbody>
         ${tfootHeight > 0 ? `<tfoot><tr><td style="height:${tfootHeight}mm;position:relative;">${footerHtml}</td></tr></tfoot>` : ''}
     </table>
