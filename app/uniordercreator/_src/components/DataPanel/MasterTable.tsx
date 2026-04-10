@@ -14,6 +14,17 @@ const TableRow = React.memo(function TableRow({
     onToggle: (i: number) => void;
     onDoubleClick: (ri: number, h: string, e: React.MouseEvent) => void;
 }) {
+    const formatCell = (val: any) => {
+        if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
+            const yr = val.getFullYear();
+            if (yr === 1899 || yr === 1900) {
+                return `${String(val.getHours()).padStart(2, '0')}:${String(val.getMinutes()).padStart(2, '0')}`;
+            }
+            return `${yr}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
+        }
+        return String(val ?? '');
+    };
+
     const statusIcon = () => {
         switch (row._status) {
             case 'sending': return <span className="text-[10px] animate-spin-slow">⏳</span>;
@@ -50,7 +61,7 @@ const TableRow = React.memo(function TableRow({
                     className="px-1.5 py-0.5 text-[11px] text-slate-700 whitespace-nowrap max-w-[180px] truncate"
                     onDoubleClick={(e) => onDoubleClick(index, h, e)}
                 >
-                    {String((row as Record<string, any>)[h] ?? '')}
+                    {formatCell((row as Record<string, any>)[h])}
                 </td>
             ))}
         </tr>

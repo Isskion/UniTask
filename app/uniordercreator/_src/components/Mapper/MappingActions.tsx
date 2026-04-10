@@ -32,12 +32,18 @@ export default function MappingActions({ isOpen, onClose }: Props) {
         input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (!file) return;
-            const text = await file.text();
             try {
+                const text = await file.text();
                 const imported = JSON.parse(text);
-                if (typeof imported === 'object') setMapping(imported);
+                if (imported && typeof imported === 'object' && !Array.isArray(imported)) {
+                    setMapping(imported);
+                    onClose(); // Cerrar modal para que el usuario vea la UI principal actualizada
+                    setTimeout(() => alert('Mapeo importado correctamente!'), 100);
+                } else {
+                    alert('El archivo JSON no coincide con el formato esperado (se esperaba un objeto de mapeo).');
+                }
             } catch {
-                alert('Archivo JSON inválido');
+                alert('Archivo JSON inválido o corrupto. Asegúrese de que sea un archivo .json válido.');
             }
         };
         input.click();

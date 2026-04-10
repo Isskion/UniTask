@@ -32,6 +32,17 @@ export default function DetailPanel() {
         ? Array.from(new Set(items.flatMap((item) => Object.keys(item))))
         : [];
 
+    const formatCell = (val: any) => {
+        if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
+            const yr = val.getFullYear();
+            if (yr === 1899 || yr === 1900) {
+                return `${String(val.getHours()).padStart(2, '0')}:${String(val.getMinutes()).padStart(2, '0')}`;
+            }
+            return `${yr}-${String(val.getMonth() + 1).padStart(2, '0')}-${String(val.getDate()).padStart(2, '0')}`;
+        }
+        return String(val ?? '');
+    };
+
     return (
         <div className="flex flex-col backdrop-blur-sm bg-white/60 border-t border-slate-200">
             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-slate-50 to-transparent border-b border-slate-100">
@@ -79,7 +90,7 @@ export default function DetailPanel() {
                                     <td className="w-10 p-2 text-center text-xs font-mono text-slate-500">{i + 1}</td>
                                     {itemHeaders.map((h) => (
                                         <td key={h} className="p-2 text-sm text-slate-700 whitespace-nowrap max-w-[180px] truncate">
-                                            {String(item[h] ?? '')}
+                                            {formatCell(item[h])}
                                         </td>
                                     ))}
                                 </tr>
