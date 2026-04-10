@@ -78,9 +78,22 @@ export default function MasterTable() {
     const toggleSelectAll = useAppStore((s) => s.toggleSelectAll);
     const updateRowData = useAppStore((s) => s.updateRowData);
 
-    // NOTE: reverseMap moved OUT of this component. The MasterTable no longer
-    // subscribes to `mapping`, so it won't re-render when mapping changes.
-    // The header badges are now handled in a separate lightweight component.
+    const mapping = useAppStore((s) => s.mapping);
+    const navigateToField = useAppStore((s) => s.navigateToField);
+
+    const reverseMap = useMemo(() => {
+        const map: Record<string, { short: string; full: string }[]> = {};
+        for (const [field, col] of Object.entries(mapping)) {
+            if (!col) continue;
+            if (!map[col]) map[col] = [];
+            const short = field.split('.').pop() || field;
+            map[col].push({ short, full: field });
+        }
+        return map;
+    }, [mapping]);
+
+    // NOTE: reverseMap and mapping reinstated for interactive colored headers.
+    // TableRow uses React.memo so rows don't re-render redundantly on mapping changes.
 
     const handleRowClick = useCallback((index: number, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).tagName === 'INPUT') return;
@@ -134,14 +147,26 @@ export default function MasterTable() {
                             />
                         </th>
                         <th className="w-8 px-1 py-1 text-center text-[10px] font-bold text-slate-400">#</th>
-                        {headers.map((h) => (
-                            <th
-                                key={h}
-                                className="px-1.5 py-1 text-left text-[10px] font-bold uppercase tracking-wider whitespace-nowrap text-slate-500"
-                            >
-                                {h}
-                            </th>
-                        ))}
+                        {headers.map((h) => {
+                            const isMapped = !!reverseMap[h];
+                            return (
+                                <th
+                                    key={h}
+                                    className={`px-1.5 py-1 text-left text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors ${
+                                        isMapped 
+                                            ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
+                                            : 'font-bold text-slate-500 hover:bg-slate-100'
+                                    }`}
+                                    onClick={isMapped ? () => navigateToField(reverseMap[h][0].full) : undefined}
+                                    title={isMapped ? `Mapeado a: ${reverseMap[h].map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        {h}
+                                        {isMapped && <span className="text-[9px] opacity-70">🔗</span>}
+                                    </div>
+                                </th>
+                            );
+                        })}
                     </tr>
                 </thead>
                 <tbody>

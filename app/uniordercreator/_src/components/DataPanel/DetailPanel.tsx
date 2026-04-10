@@ -62,26 +62,26 @@ export default function DetailPanel() {
                         <thead className="sticky top-0 z-10">
                             <tr className="bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200/50">
                                 <th className="w-10 p-2 text-center text-xs font-bold text-amber-700 uppercase">#</th>
-                                {itemHeaders.map((h) => (
-                                    <th
-                                        key={h}
-                                        className={`p-2 text-left text-xs font-bold uppercase tracking-wider whitespace-nowrap ${reverseMap[h] ? 'text-indigo-700' : 'text-amber-700/70'
+                                {itemHeaders.map((h) => {
+                                    const isMapped = !!reverseMap[h];
+                                    return (
+                                        <th
+                                            key={h}
+                                            className={`p-2 text-left text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors ${
+                                                isMapped 
+                                                    ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
+                                                    : 'font-bold text-amber-700/70 hover:bg-amber-100/50'
                                             }`}
-                                    >
-                                        <div className="flex items-center gap-1.5">
-                                            {h}
-                                            {reverseMap[h] && (
-                                                <button
-                                                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-600 rounded-md hover:bg-indigo-200 transition-colors cursor-pointer"
-                                                    title={reverseMap[h].map(f => f.full).join(', ')}
-                                                    onClick={(e) => { e.stopPropagation(); navigateToField(reverseMap[h][0].full); }}
-                                                >
-                                                    ↗ {reverseMap[h][0].short}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </th>
-                                ))}
+                                            onClick={isMapped ? () => navigateToField(reverseMap[h][0].full) : undefined}
+                                            title={isMapped ? `Mapeado a: ${reverseMap[h].map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
+                                        >
+                                            <div className="flex items-center gap-1.5">
+                                                {h}
+                                                {isMapped && <span className="text-[9px] opacity-70">🔗</span>}
+                                            </div>
+                                        </th>
+                                    );
+                                })}
                             </tr>
                         </thead>
                         <tbody>
