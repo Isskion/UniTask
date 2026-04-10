@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
-import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
