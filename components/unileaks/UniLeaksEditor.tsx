@@ -839,36 +839,42 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                         ) : null}
                     </div>
 
-                    <div className="flex items-center gap-1 border-l border-border pl-4">
-                        {/* Nueva Minuta — wizard multi-nota */}
-                        {note.projectId && (note.tenantId || currentTenantId) && (
+                    <div className="flex items-center gap-1 border-l border-border pl-4 mr-2">
+                        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1 border border-border/50">
+                            {/* Opción 1: Impresión de Minuta (Multi-nota) */}
+                            {note.projectId && (note.tenantId || currentTenantId) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        setShowDownloadMenu(false);
+                                        setShowMinutaWizard(true);
+                                    }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-tight text-muted-foreground hover:text-primary hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-md group"
+                                    title="Crear minuta combinando varias notas con portada"
+                                >
+                                    <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                                    <span>Crear Minuta</span>
+                                </button>
+                            )}
+
+                            <div className="w-px h-4 bg-border/60 mx-0.5" />
+
+                            {/* Opción 2: Impresión de Nota Actual (UniDocs) */}
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
                                     setShowDownloadMenu(false);
-                                    setShowMinutaWizard(true);
+                                    setShowTemplatePicker(true);
                                 }}
-                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                title="Nueva Minuta de Cliente"
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-tight text-muted-foreground hover:text-primary hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-md group"
+                                title="Imprimir esta nota con plantilla y portada UniDocs"
                             >
-                                <Plus className="w-3.5 h-3.5" />
-                                Minuta
+                                <BookMarked className="w-4 h-4 group-hover:rotate-6 transition-transform" />
+                                <span>Imprimir Nota</span>
                             </button>
-                        )}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                console.log('[UniDocs] Template picker button clicked, opening modal...');
-                                setShowDownloadMenu(false);
-                                setShowTemplatePicker(true);
-                            }}
-                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                            title="Imprimir con Plantilla UniDocs"
-                        >
-                            <BookMarked className="w-5 h-5" />
-                        </button>
+                        </div>
                         <div className="relative">
                             <button
                                 onClick={(e) => {
