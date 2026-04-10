@@ -47,7 +47,22 @@ export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSh
         let hasValue = false;
 
         headers.forEach((h, index) => {
-            const val = rowData[index] ?? '';
+            let val = rowData[index] ?? '';
+
+            if (val instanceof Date) {
+                // Time fractions are usually parsed in late 1899/1900
+                if (val.getFullYear() === 1899 || val.getFullYear() === 1900) {
+                    const hrs = String(val.getHours()).padStart(2, '0');
+                    const mins = String(val.getMinutes()).padStart(2, '0');
+                    val = `${hrs}:${mins}`;
+                } else {
+                    const year = val.getFullYear();
+                    const month = String(val.getMonth() + 1).padStart(2, '0');
+                    const day = String(val.getDate()).padStart(2, '0');
+                    val = `${year}-${month}-${day}`;
+                }
+            }
+
             rowObj[h] = val;
             if (val !== '') hasValue = true;
         });
