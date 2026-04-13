@@ -42,19 +42,26 @@ function UniLeaksContent() {
             return;
         }
         const loadProjects = async () => {
+            console.log("🚀 [UniLeaks] Starting projects load. User:", user?.uid, "Tenant:", tenantId);
             try {
                 const targetTenant = tenantId || "1";
                 const projs = await getActiveProjects(targetTenant);
+                console.log("📦 [UniLeaks] Raw projects fetched:", projs.length);
 
                 // Filter: superadmin/app_admin see all, others see only assigned projects
                 const filteredProjs = filterBySAMScope(
                     projs.filter(p => {
                         if (userRole === 'superadmin' || userRole === 'app_admin') return true;
-                        if (!userProfile?.assignedProjectIds) return false;
-                        return userProfile.assignedProjectIds.includes(p.id);
+                        if (!userProfile?.assignedProjectIds) {
+                            console.warn("⚠️ [UniLeaks] User has no assignedProjectIds in profile.");
+                            return false;
+                        }
+                        const isAssigned = userProfile.assignedProjectIds.includes(p.id);
+                        return isAssigned;
                     }),
                     accessScopes
                 );
+                console.log("🎯 [UniLeaks] Filtered projects:", filteredProjs.length);
 
                 // Prevents infinite re-renders if the array content hasn't changed (since object references differ)
                 setProjects(prev => {
@@ -73,7 +80,7 @@ function UniLeaksContent() {
                     }
                 }
             } catch (e) {
-                console.error("Error loading projects", e);
+                console.error("❌ [UniLeaks] Error loading projects", e);
             } finally {
                 setLoadingProjects(false);
             }

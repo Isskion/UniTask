@@ -37,10 +37,14 @@ import {
     Home,
     Network,
     Zap,
-    Database
+    Database,
+    Mail,
+    Table
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
+import UserRoles from './management/UserRoles';
+import CaptureInbox from './capture/CaptureInbox';
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -60,8 +64,8 @@ import ProfileSettingsModal from "@/components/ProfileSettingsModal";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -314,7 +318,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task-manager')} />
-                                <NavItem mode="tasks" icon={Network} label={t('nav.allTasks')} />
+                                <NavItem mode="inbox" icon={Mail} label={t('nav.inbox') || "Buzón Outlook"} />
+                                <NavItem mode="tasks" icon={Table} label={t('nav.allTasks')} />
                             </div>
                         </div>
 

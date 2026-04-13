@@ -20,3 +20,4 @@ export * from "./registration";
 export * from "./uniflux";
 export * from "./syncUserClaims";
 export * from "./unigis";
+export * from "./outlook";

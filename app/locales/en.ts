@@ -1,4 +1,10 @@
 export const en = {
+    inbox: {
+        title: "Capture Inbox",
+        empty: "No pending emails",
+        converted: "Task created successfully",
+        discarded: "Email discarded"
+    },
     common: {
         welcome: "Welcome",
         search: "Search",
@@ -48,6 +54,7 @@ export const en = {
         followUp: "Follow-Up",
         projects: "Projects",
         "task-manager": "Task Manager (ABM)",
+        inbox: "Outlook Inbox",
         "sprint-planning": "Sprint Planning",
         allTasks: "All Tasks (Board)",
         admin: "Administration",

@@ -481,7 +481,7 @@ export default function UniLeaksSidebar({
                 */}
                 <div 
                     className={cn(
-                        "min-h-full w-full rounded-xl border-2 transition-all duration-200 p-2 space-y-1 relative",
+                        "h-fit w-full rounded-xl border-2 transition-all duration-200 p-2 pb-6 space-y-1 relative",
                         dragOverFolder === null 
                             ? "bg-primary/10 border-primary/40 ring-4 ring-primary/10" 
                             : "bg-primary/5 border-primary/20",
