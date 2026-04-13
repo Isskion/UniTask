@@ -467,7 +467,7 @@ export default function UniLeaksSidebar({
 
             {/* Tree Content */}
             <div
-                className="flex-1 overflow-y-auto px-1.5 pt-2 pb-6 relative group/sidebar-content"
+                className="flex-1 overflow-y-auto px-3 pt-2 pb-6 relative group/sidebar-content"
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, null)}
@@ -481,7 +481,7 @@ export default function UniLeaksSidebar({
                 */}
                 <div 
                     className={cn(
-                        "min-h-full w-full rounded-xl border-2 transition-all duration-200 p-1.5 space-y-1 relative",
+                        "min-h-full w-full rounded-xl border-2 transition-all duration-200 p-2 space-y-1 relative",
                         dragOverFolder === null 
                             ? "bg-primary/10 border-primary/40 ring-4 ring-primary/10" 
                             : "bg-primary/5 border-primary/20",

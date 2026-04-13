@@ -28,8 +28,16 @@ import {
     Lightbulb,
     BookMarked,
     Sparkles,
-    Calendar, // Added for DispoPlan
-    LayoutTemplate
+    Calendar,
+    LayoutTemplate,
+    Settings2,
+    HelpCircle,
+    Wrench,
+    FileCode,
+    Home,
+    Network,
+    Zap,
+    Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -293,119 +301,141 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     </div>
 
                     {/* Navigation */}
-                    <div className="flex-1 overflow-y-auto py-6 px-3 space-y-6">
+                    <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar">
 
-                        {/* Primary */}
-                        <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
-                            <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
-                            <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
-                            <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
-                            <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
+                        {/* Primary / Workspace */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 px-1 mb-2">
+                                <Home className="w-3 h-3 text-muted-foreground/60" />
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.workspace')}</p>
+                            </div>
+                            <div className="nav-section-island">
+                                <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                                <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                                <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
+                                <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task_manager') || 'Task Manager'} />
+                                <NavItem mode="tasks" icon={Network} label={t('nav.all_tasks') || 'Global Board'} />
+                            </div>
                         </div>
 
-                        {/* Knowledge Area (NEW) */}
+                        {/* Knowledge Area */}
                         {can('knowledgeBase', 'views') && (
-                            <div className="space-y-1">
-                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
-                                <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
-                                <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
-                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1 mb-2">
+                                    <BookOpen className="w-3 h-3 text-indigo-400" />
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
+                                </div>
+                                <div className="nav-section-island border-indigo-500/10 bg-indigo-500/5">
+                                    <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
+                                    <NavItem mode="solution-records" icon={FileCode} label={t('knowledge_base.solution_records') || 'Registros de Solución'} />
+                                    <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas Producto'} />
+                                </div>
                             </div>
                         )}
 
-                        {/* Sprint Management (NEW) */}
+                        {/* Sprint Management */}
                         {can('sprintManagement', 'views') && (
-                            <div className="space-y-1">
-                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('sprints.menu_title')}</p>
-                                <NavItem mode="sprint-cycles" icon={Timer} label={t('sprints.menu_cycles')} />
-                                <NavItem mode="sprint-planning" icon={Timer} label={t('sprints.menu_simulator')} />
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1 mb-2">
+                                    <Zap className="w-3 h-3 text-amber-500" />
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('sprint_management.title') || 'Sprint Management'}</p>
+                                </div>
+                                <div className="nav-section-island border-amber-500/10 bg-amber-500/5">
+                                    <NavItem mode="sprint-cycles" icon={Timer} label={t('sprint_management.cycles') || 'Ciclos Sprint'} />
+                                    <NavItem mode="sprint-planning" icon={Timer} label={t('sprint_management.simulator') || 'Simulador'} />
+                                </div>
                             </div>
                         )}
 
-                        {/* Unitask Tools (Dynamic Activation) */}
+                        {/* Unitask Tools (The broad entry) */}
                         {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                            <div className="space-y-1">
-                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                                
-                                {/* Global Tools (Always visible if section enabled) */}
-                                {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
-                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                )}
-                                
-                                {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
-                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                )}
-                                
-                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                    <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                                )}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1 mb-2">
+                                    <Wrench className="w-3 h-3 text-rose-500" />
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.unitask_tools') || 'Unitask Tools'}</p>
+                                </div>
+                                <div className="nav-section-island border-rose-500/20 bg-rose-500/5 shadow-[inset_0_0_20px_rgba(225,29,72,0.02)]">
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
+                                        <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                    )}
+                                    
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
+                                        <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                    )}
+                                    
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavLink href="/unileaks" target="_blank" icon={Zap} label={t('nav.unileaks') || 'UniLeaks'} />
+                                    )}
 
-                                {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
-                                    <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
+                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                    )}
 
-                                {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
-                                    <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                                )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
+                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
+                                    )}
 
-                                {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
-                                    <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                                )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
+                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP" />
+                                    )}
 
-                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                )}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                    )}
 
-                                {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                                )}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        {/* Secondary */}
-                        {/* ADMINISTRATION */}
-                        <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
-
-                            {/* UNITASK MANAGEMENT (SuperAdmin only) */}
-                            {userRole === 'superadmin' && (
-                                <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
-                            )}
-
-                            {/* Consolidated Task Master Data (Global PM+) */}
-                            {getRoleLevel(userRole) >= RoleLevel.PM && (
-                                <NavItem mode="admin-task-master" icon={Layout} label={t('nav.taskMaster')} />
-                            )}
-
-                            {can('userManagement', 'views') && (
-                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
-                            )}
-                            {canManagePermissions && (
-                                <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                            )}
-
-                            {userRole === 'superadmin' && (
-                                <>
-                                    <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
-                                    <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
-                                </>
-                            )}
-                            {/* Document Types (Admin) */}
-                            {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
-                                <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types') || "Tipos de Documento"} />
-                            )}
-                        </div>
+                        {/* Secondary / Admin */}
+                        {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1 mb-2">
+                                    <Settings2 className="w-3 h-3 text-zinc-400" />
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.administration') || t('nav.admin')}</p>
+                                </div>
+                                <div className="nav-section-island">
+                                    {userRole === 'superadmin' && (
+                                        <NavItem mode="app-management" icon={Shield} label={t('nav.app-management') || t('nav.app_management') || 'App Management'} />
+                                    )}
+                                    {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                        <NavItem mode="admin-task-master" icon={Database} label={t('nav.task-master') || t('nav.taskMaster') || 'Task Master'} />
+                                    )}
+                                    {can('userManagement', 'views') && (
+                                        <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                                    )}
+                                    {canManagePermissions && (
+                                        <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
+                                    )}
+                                    {userRole === 'superadmin' && (
+                                        <NavItem mode="reports" icon={BarChart3} label={t('nav.reports')} />
+                                    )}
+                                    {userRole === 'superadmin' && (
+                                        <NavItem mode="tenant-management" icon={Layout} label={t('nav.tenants')} />
+                                    )}
+                                    {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
+                                        <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types') || "Tipos de Documento"} />
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* System */}
-                        <div className="space-y-1">
-                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.system')}</p>
-                            <NavItem mode="user-manual" icon={BookOpen} label={t('nav.manual') || "Manual"} />
-                            {userRole === 'superadmin' && (
-                                <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
-                            )}
-                            <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
+                        <div className="space-y-3 pb-8">
+                            <div className="flex items-center gap-2 px-1 mb-2">
+                                <Database className="w-3 h-3 text-zinc-500" />
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.system')}</p>
+                            </div>
+                            <div className="nav-section-island">
+                                <NavItem mode="user-manual" icon={HelpCircle} label={t('nav.manual') || "Manual"} />
+                                {userRole === 'superadmin' && (
+                                    <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
+                                )}
+                                <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
+                            </div>
                         </div>
                     </div>
 

@@ -4,20 +4,27 @@ import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 // We won't use analytics server-side for now to avoid errors
 
-const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+const cleanEnvVar = (val: string | undefined): string | undefined => {
+    if (!val) return val;
+    // Remove quotes that might have been added in .env.local
+    return val.replace(/^["']|["']$/g, '').trim();
 };
 
-console.log("🔥 Firebase Config Loaded:", {
-    apiKey: firebaseConfig.apiKey ? "SET" : "MISSING",
-    projectId: firebaseConfig.projectId, // Show actual ID
-    env: process.env.NODE_ENV
+const firebaseConfig = {
+    apiKey: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+    authDomain: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
+    projectId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID),
+    storageBucket: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
+    messagingSenderId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
+    appId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
+    measurementId: cleanEnvVar(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID)
+};
+
+console.log("🔥 [Firebase] Configuration Status:", {
+    apiKey: firebaseConfig.apiKey ? "PRESENT" : "MISSING",
+    projectId: firebaseConfig.projectId || "UNKNOWN",
+    env: process.env.NODE_ENV,
+    isLocal: typeof window !== 'undefined' ? window.location.hostname === 'localhost' : 'server'
 });
 
 // Initialize Firebase (Singleton pattern to avoid re-initialization errors in Next.js hot reload)

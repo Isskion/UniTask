@@ -544,7 +544,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             await signInWithEmailAndPassword(auth, e, p);
         } catch (error: any) {
-            console.error("[AuthContext] loginWithEmail error:", error);
+            const currentProjectId = auth.app.options.projectId;
+            console.error("[AuthContext] loginWithEmail error:", {
+                code: error.code,
+                message: error.message,
+                projectId: currentProjectId,
+                env: process.env.NODE_ENV
+            });
+            
+            if (error.code === 'auth/wrong-password') {
+                console.warn(`[AuthContext] 🛡️ AUTH FAILED: Check if your local project matches production. CURRENT PROJECT: ${currentProjectId}`);
+            }
+
             if (error.code === 'auth/network-request-failed' || error.message?.includes('404')) {
                 console.error("[AuthContext] 🚨 404 or Network failure detected during sign-in. Check .env.local for quotes or API key validity.");
             }
