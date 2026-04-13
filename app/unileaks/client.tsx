@@ -36,7 +36,11 @@ function UniLeaksContent() {
 
     // Load Projects
     useEffect(() => {
-        if (!user || !tenantId || !userProfile) return;
+        if (!user || !tenantId || !userProfile) {
+            // If auth context is loaded but missing profile/tenant, we must still stop the global loader
+            if (loadingProjects) setLoadingProjects(false);
+            return;
+        }
         const loadProjects = async () => {
             try {
                 const targetTenant = tenantId || "1";

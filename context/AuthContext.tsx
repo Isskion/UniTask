@@ -236,6 +236,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.error(`[AuthContext] ⚠️ Initial check: UID ${currentUser.uid} has no profile. Restricting session...`);
                         setIdentity(prev => prev ? { ...prev, realRole: 0 as RoleLevel, realTenantId: "unknown" } : null);
                         setViewContext(null);
+                        setLoading(false);
                         return;
                     }
                 }
@@ -247,6 +248,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.error(`[AuthContext] ⚠️ Initial check: User profile ${currentUser.uid} has invalid tenantId: ${profileData?.tenantId}. Restricting UI.`);
                         setIdentity(prev => prev ? { ...prev, realTenantId: "unknown" } : null);
                         setViewContext(null);
+                        setLoading(false);
                         return;
                     }
                 }

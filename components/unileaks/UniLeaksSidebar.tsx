@@ -467,7 +467,7 @@ export default function UniLeaksSidebar({
 
             {/* Tree Content */}
             <div
-                className="flex-1 overflow-y-auto px-3 pt-2 pb-6 relative group/sidebar-content"
+                className="flex-1 overflow-y-auto px-4 pt-3 pb-8 relative group/sidebar-content"
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, null)}
