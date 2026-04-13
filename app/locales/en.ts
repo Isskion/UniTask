@@ -607,6 +607,11 @@ export const en = {
             import: "Bulk Import",
             system: "System Automation"
         }
+    },
+    sprint_management: {
+        title: "Sprint Management",
+        cycles: "Execution Cycles",
+        simulator: "Promise Simulation"
     }
 };
 
