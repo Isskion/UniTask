@@ -43,7 +43,6 @@ import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
 import DocumentTypesManager from "./admin/DocumentTypesManager"; // Added import
-import CaptureInbox from "./capture/CaptureInbox"; // Added Inbox
 import TenantLogoManager from "./admin/TenantLogoManager";
 import { KnowledgeBase } from "./KnowledgeBase";
 import { ProductProposals } from "./ProductProposals";
@@ -64,7 +63,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -2444,8 +2443,6 @@ export default function DailyFollowUp() {
                             <AvailabilityRegistry />
                         ) : viewMode === 'unidocs' ? (
                             <UniDocsManagement />
-                        ) : viewMode === 'inbox' ? (
-                            <CaptureInbox />
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}
