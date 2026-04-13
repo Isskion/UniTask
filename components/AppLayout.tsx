@@ -313,8 +313,8 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                                <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task_manager') || 'Task Manager'} />
-                                <NavItem mode="tasks" icon={Network} label={t('nav.all_tasks') || 'Global Board'} />
+                                <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task-manager')} />
+                                <NavItem mode="tasks" icon={Network} label={t('nav.allTasks')} />
                             </div>
                         </div>
 
@@ -399,10 +399,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 </div>
                                 <div className="nav-section-island">
                                     {userRole === 'superadmin' && (
-                                        <NavItem mode="app-management" icon={Shield} label={t('nav.app-management') || t('nav.app_management') || 'App Management'} />
+                                        <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                                     )}
                                     {getRoleLevel(userRole) >= RoleLevel.PM && (
-                                        <NavItem mode="admin-task-master" icon={Database} label={t('nav.task-master') || t('nav.taskMaster') || 'Task Master'} />
+                                        <NavItem mode="admin-task-master" icon={Database} label={t('nav.taskMaster')} />
                                     )}
                                     {can('userManagement', 'views') && (
                                         <NavItem mode="users" icon={Users} label={t('nav.people')} />
@@ -417,7 +417,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                         <NavItem mode="tenant-management" icon={Layout} label={t('nav.tenants')} />
                                     )}
                                     {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
-                                        <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types') || "Tipos de Documento"} />
+                                        <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types')} />
                                     )}
                                 </div>
                             </div>
