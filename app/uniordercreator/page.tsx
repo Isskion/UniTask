@@ -353,7 +353,7 @@ function UnigisOrderCreatorPageInner() {
                         json: async () => ({
                             ok: true,
                             status: 200,
-                            text: `<Envelop><Body><CrearOrdenesPedidoResult>SIMULAC-${Date.now()}</CrearOrdenesPedidoResult></Body></Envelop>`
+                            text: `<Envelop><Body><CrearOrdenesPedidoResult>${99000000 + i}</CrearOrdenesPedidoResult></Body></Envelop>`
                         })
                     } as any;
                 } else {
