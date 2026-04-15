@@ -12,6 +12,7 @@ interface HeaderProps {
     onRetryFailed: () => void;
     onLogout: () => void;
     onManageUsers: () => void;
+    onShowHelp: () => void;
     isLoadingExcel?: boolean;
 }
 
@@ -26,6 +27,7 @@ export default function Header({
     onRetryFailed,
     onLogout,
     onManageUsers,
+    onShowHelp,
     isLoadingExcel,
 }: HeaderProps) {
     const { t } = useTranslation();
@@ -68,168 +70,139 @@ export default function Header({
     ];
 
     return (
-        <header className="flex h-[44px] items-center px-3 justify-between shrink-0 sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 shadow-md">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-                <img src="/LogoApp.jpg" alt="UNIGIS" className="h-7 w-auto object-contain rounded ring-1 ring-white/20" />
-                <div className="flex flex-col leading-none">
-                    <span className="text-sm font-bold text-white tracking-tight">Order Creator</span>
-                    <span className="text-[8px] font-semibold text-red-400/80 uppercase tracking-[0.15em]">UniTask Platinum</span>
+        <header className="flex h-[52px] items-center px-4 justify-between shrink-0 sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 shadow-lg">
+            {/* Logo Section */}
+            <div className="flex items-center gap-3 pr-4 border-r border-white/10 h-full">
+                <img src="/LogoApp.jpg" alt="UNIGIS" className="h-8 w-auto object-contain rounded-lg ring-1 ring-white/20 shadow-lg" />
+                <div className="flex flex-col leading-tight">
+                    <span className="text-sm font-black text-white tracking-tight">Order Creator</span>
+                    <span className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em] opacity-90">UniTask Platinum</span>
                 </div>
             </div>
 
-            {/* ── Stepper ── */}
-            <div className="hidden md:flex items-center gap-0.5">
+            {/* Middle Section: Stepper (Hidden on small screens) */}
+            <div className="hidden xl:flex items-center gap-1 mx-2">
                 {steps.map((step, i) => (
                     <div key={step.label} className="flex items-center">
-                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold transition-all ${
                             step.status === 'done'
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                                 : step.status === 'active'
-                                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 animate-pulse'
-                                    : 'bg-white/5 text-slate-500 border border-white/10'
+                                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 animate-pulse'
+                                    : 'bg-white/5 text-slate-500 border border-white/5'
                         }`}>
                             <span className="text-xs">{step.status === 'done' ? '✅' : step.icon}</span>
-                            <span className="hidden lg:inline">{step.label}</span>
+                            <span>{step.label}</span>
                         </div>
                         {i < steps.length - 1 && (
-                            <div className={`w-3 h-px mx-0.5 ${step.status === 'done' ? 'bg-emerald-500/50' : 'bg-white/10'}`} />
+                            <div className={`w-4 h-px mx-1 ${step.status === 'done' ? 'bg-emerald-500/40' : 'bg-white/5'}`} />
                         )}
                     </div>
                 ))}
             </div>
 
-            {/* ── Live Counters ── */}
-            {hasData && (
-                <div className="hidden sm:flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 text-[9px] font-bold bg-white/10 text-white/70 rounded-md"
-                        title="Filas totales">
-                        {rows.length} filas
-                    </span>
-                    {mappedCount > 0 && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-indigo-500/20 text-indigo-300 rounded-md"
-                            title="Campos mapeados">
-                            🗺️ {mappedCount}
-                        </span>
-                    )}
-                    {groupedCount > 0 && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/20 text-amber-300 rounded-md"
-                            title="Filas agrupadas">
-                            ⚡ {groupedCount} agrup
-                        </span>
-                    )}
-                    {successCount > 0 && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/20 text-emerald-300 rounded-md"
-                            title="Enviados OK">
-                            ✅ {successCount}
-                        </span>
-                    )}
-                    {failedCount > 0 && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-red-500/20 text-red-300 rounded-md"
-                            title="Errores">
-                            ❌ {failedCount}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center gap-1.5">
-                <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap border ${token
-                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                    : 'bg-white/5 text-slate-400 border-white/10'
-                    }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${token ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                    {token ? t('app.connected') : t('app.notConnected')}
-                </span>
-
-                <div className="w-px h-5 bg-white/10" />
-
-                <div className="flex items-center gap-1 bg-white/5 px-1 py-0.5 rounded-lg border border-white/10">
+            {/* Actions Grid (Modular & Sectioned) */}
+            <div className="flex items-center gap-3">
+                
+                {/* GROUP 1: ORIGIN (Source data) */}
+                <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
                     <button
-                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-white/10 text-white/90 rounded hover:bg-white/20 transition-all disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all disabled:opacity-50 border border-white/5 shadow-inner"
                         onClick={onLoadExcel}
                         disabled={isLoadingExcel}
                     >
                         {isLoadingExcel ? (
-                            <><span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Cargando...</>
-                        ) : (
-                            <>📂 <span className="hidden sm:inline">{t('buttons.loadExcel')}</span></>
-                        )}
+                            <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : '📂'} 
+                        <span>{isLoadingExcel ? '...' : t('buttons.loadExcel')}</span>
                     </button>
                     <button
-                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium bg-white/10 text-white/90 rounded hover:bg-amber-500/20 hover:text-amber-300 transition-all disabled:opacity-30"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-amber-500/10 text-amber-300 rounded-lg hover:bg-amber-500/20 transition-all disabled:opacity-20 border border-amber-500/20"
                         onClick={onGroupRows}
                         disabled={!hasData}
+                        title="Agrupar items por Pedido"
                     >
-                        ⚡ Agrupar
+                        ⚡ <span className="hidden lg:inline">Agrupar</span>
                     </button>
                 </div>
 
-                {selectedIndices.size > 0 && (
-                    <button
-                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-all"
-                        onClick={onMassEdit}
-                    >
-                        ✏️ Editar ({selectedIndices.size})
-                    </button>
-                )}
-
-                <div className="w-px h-5 bg-white/10" />
-
-                {/* #72: Modo Simulación Toggle */}
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800/50 rounded-lg border border-white/5 mr-1" title="Modo Simulación (Dry Run)">
-                    <label className="flex items-center cursor-pointer select-none">
-                        <div className="relative">
-                            <input type="checkbox" className="sr-only" checked={useAppStore.getState().isDryRun} onChange={(e) => useAppStore.getState().setIsDryRun(e.target.checked)} />
-                            <div className={`block w-6 h-3.5 rounded-full transition-colors ${useAppStore((s) => s.isDryRun) ? 'bg-amber-500' : 'bg-slate-600'}`}></div>
-                            <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${useAppStore((s) => s.isDryRun) ? 'transform translate-x-2.5' : ''}`}></div>
-                        </div>
-                        <span className={`ml-1.5 text-[9px] font-bold uppercase tracking-wider ${useAppStore((s) => s.isDryRun) ? 'text-amber-400' : 'text-slate-500'}`}>Simulador</span>
-                    </label>
-                </div>
-
+                {/* GROUP 2: PREPARATION (Validation & Edit) */}
                 <div className="flex items-center gap-1">
+                    {selectedIndices.size > 0 && (
+                        <button
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 rounded-lg hover:bg-indigo-500/30 scale-in-center"
+                            onClick={onMassEdit}
+                        >
+                            ✏️ <span className="hidden lg:inline">Editar ({selectedIndices.size})</span>
+                        </button>
+                    )}
                     <button
-                        className="px-2.5 py-1 text-[11px] font-semibold bg-white/10 text-white/90 rounded-lg hover:bg-white/20 transition-all border border-white/10 disabled:opacity-30"
+                        className="px-3 py-1.5 text-[11px] font-bold bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-all border border-white/10 disabled:opacity-30"
                         onClick={onValidate}
                         disabled={!hasData || !token}
                     >
-                        ✓ Validar
-                    </button>
-                    <button
-                        className="px-2.5 py-1 text-[11px] font-semibold bg-indigo-600/80 text-white rounded-lg hover:bg-indigo-500 transition-all border border-indigo-500/50 disabled:opacity-30"
-                        onClick={onSendSelected}
-                        disabled={selectedIndices.size === 0 || !token}
-                    >
-                        📨 Selección
-                    </button>
-                    <button
-                        className="px-3 py-1 text-[11px] font-bold bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-400 shadow-sm shadow-red-500/25 transition-all border border-red-400/30 disabled:opacity-30"
-                        onClick={onSendAll}
-                        disabled={!hasData || !token}
-                    >
-                        ▶ {t('buttons.sendAll')}
+                        ✓ <span className="hidden lg:inline">Validar</span>
                     </button>
                 </div>
 
-                {failedCount > 0 && (
-                    <button
-                        className="flex items-center gap-1 px-2 py-1 text-[11px] font-bold bg-red-500/15 text-red-300 border border-red-500/30 rounded-lg hover:bg-red-500/25 transition-all"
-                        onClick={onRetryFailed}
-                    >
-                        🔄 Reintentar ({failedCount})
-                    </button>
-                )}
+                <div className="w-px h-6 bg-white/10 mx-1" />
 
-                <div className="flex items-center gap-0.5 ml-1">
+                {/* GROUP 3: TRANSMISSION (Simulator & Sending) */}
+                <div className="flex items-center gap-1.5 bg-slate-800/40 p-1 rounded-xl border border-white/5 shadow-inner">
+                    {/* Dry Run Toggle */}
+                    <div className="flex items-center px-2 py-1 rounded-lg border border-white/5 bg-slate-900/40" title="Modo Simulación: No afecta a UNIGIS">
+                        <label className="flex items-center cursor-pointer select-none">
+                            <input type="checkbox" className="sr-only" checked={useAppStore.getState().isDryRun} onChange={(e) => useAppStore.getState().setIsDryRun(e.target.checked)} />
+                            <div className={`relative w-7 h-4 rounded-full transition-colors ${useAppStore((s) => s.isDryRun) ? 'bg-orange-500' : 'bg-slate-700'}`}>
+                                <div className={`absolute top-[2px] left-[2px] bg-white w-3 h-3 rounded-full transition-transform ${useAppStore((s) => s.isDryRun) ? 'translate-x-3' : ''}`}></div>
+                            </div>
+                            <span className={`ml-2 text-[8px] font-black uppercase tracking-widest ${useAppStore((s) => s.isDryRun) ? 'text-orange-400' : 'text-slate-500'}`}>Simulador</span>
+                        </label>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="px-3 py-1.5 text-[11px] font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all shadow-md shadow-indigo-900/20 border border-indigo-400/30 disabled:opacity-30"
+                            onClick={onSendSelected}
+                            disabled={selectedIndices.size === 0 || !token}
+                        >
+                            📨 <span className="hidden xl:inline">Selección</span>
+                        </button>
+                        <button
+                            className="px-4 py-1.5 text-[11px] font-black bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-400 shadow-lg shadow-red-900/30 transition-all border border-red-400/40 disabled:opacity-30"
+                            onClick={onSendAll}
+                            disabled={!hasData || !token}
+                        >
+                            🚀 <span className="hidden xl:inline">{t('buttons.sendAll')}</span>
+                        </button>
+                        
+                        {failedCount > 0 && (
+                            <button
+                                className="flex items-center gap-1 px-3 py-1.5 text-[11px] font-black bg-red-500/20 text-white border border-red-500/40 rounded-lg hover:bg-red-500/30 animate-pulse"
+                                onClick={onRetryFailed}
+                            >
+                                🔄 <span className="hidden xl:inline">Errores ({failedCount})</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* GROUP 4: SYSTEM (Help, Users, Account) */}
+                <div className="flex items-center gap-1 ml-2 pl-3 border-l border-white/10">
+                    <button 
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-all hover:bg-white/5 active:scale-90"
+                        onClick={onShowHelp}
+                        title="Abrir Centro de Ayuda"
+                    >
+                        ❓
+                    </button>
                     {role === 'admin' && token && (
-                        <button className="p-1 text-slate-400 hover:text-indigo-300 rounded transition-all text-xs" onClick={onManageUsers} title="Usuarios">👥</button>
+                        <button className="p-1.5 text-slate-400 hover:text-indigo-400 rounded-lg transition-all hover:bg-white/5" onClick={onManageUsers} title="Gestión de Usuarios">👥</button>
                     )}
                     {token ? (
-                        <button className="p-1 text-slate-400 hover:text-red-300 rounded transition-all text-xs" onClick={onLogout} title="Desconectar">🚪</button>
+                        <button className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg transition-all hover:bg-white/5" onClick={onLogout} title="Cerrar Sesión">🚪</button>
                     ) : (
-                        <button className="p-1 text-slate-400 hover:text-indigo-300 rounded transition-all text-xs" onClick={onShowLogin} title={t('app.connect')}>🔗</button>
+                        <button className="p-1.5 text-indigo-400 hover:text-indigo-300 rounded-lg transition-all bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/20" onClick={onShowLogin} title="Conectar">🔗</button>
                     )}
                 </div>
             </div>

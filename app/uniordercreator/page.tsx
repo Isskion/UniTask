@@ -27,6 +27,7 @@ import MappingWizard from '@/app/uniordercreator/_src/components/Wizards/Mapping
 import MappingActions from '@/app/uniordercreator/_src/components/Mapper/MappingActions';
 import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
 import DataPrepModal from '@/app/uniordercreator/_src/components/Modals/DataPrepModal';
+import HelpModal from '@/app/uniordercreator/_src/components/Modals/HelpModal';
 import { ToastProvider } from '@/app/uniordercreator/_src/components/UI/ToastProvider';
 
 import '@/app/uniordercreator/_src/i18n';
@@ -60,6 +61,7 @@ function UnigisOrderCreatorPageInner() {
 
     // Validation
     const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+    const [helpOpen, setHelpOpen] = useState(false);
 
     // Store
     const setRows = useAppStore((s) => s.setRows);
@@ -591,6 +593,7 @@ function UnigisOrderCreatorPageInner() {
                 onRetryFailed={handleRetryFailed}
                 onLogout={() => useAppStore.getState().setToken(null)}
                 onManageUsers={() => { }}
+                onShowHelp={() => setHelpOpen(true)}
                 isLoadingExcel={isLoadingExcel}
             />
 
@@ -688,6 +691,7 @@ function UnigisOrderCreatorPageInner() {
             />
             <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
             <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} />
+            <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
         </div>
     );
 }
