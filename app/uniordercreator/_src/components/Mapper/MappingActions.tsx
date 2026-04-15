@@ -1,14 +1,13 @@
 import { useAppStore } from '../../store/appStore';
-import { levenshtein } from '../../utils/levenshtein';
-import { getAllFields } from '../../data/schema';
 import { MAPPING_TEMPLATES, type MappingTemplate } from '../../data/mappingTemplates';
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    onOpenWizard?: () => void;
 }
 
-export default function MappingActions({ isOpen, onClose }: Props) {
+export default function MappingActions({ isOpen, onClose, onOpenWizard }: Props) {
     const mapping = useAppStore((s) => s.mapping);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const setMapping = useAppStore((s) => s.setMapping);
@@ -61,24 +60,11 @@ export default function MappingActions({ isOpen, onClose }: Props) {
     };
 
     const handleAutoMap = () => {
-        const allFields = getAllFields();
-        const newMapping: Record<string, string> = {};
-        for (const field of allFields) {
-            const shortName = field.split('.').pop()?.toLowerCase() || '';
-            let bestMatch = '';
-            let bestDist = Infinity;
-            for (const header of headers) {
-                const dist = levenshtein(shortName, header.toLowerCase());
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    bestMatch = header;
-                }
-            }
-            if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
-                newMapping[field] = bestMatch;
-            }
+        // Open mapping wizard instead
+        if (onOpenWizard) {
+            onClose();
+            onOpenWizard();
         }
-        setMapping(newMapping);
     };
 
     const handleClearAll = () => {
@@ -121,11 +107,11 @@ export default function MappingActions({ isOpen, onClose }: Props) {
                     {/* Action Grid */}
                     <div className="grid grid-cols-2 gap-3">
                         <button
-                            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-indigo-50 to-indigo-100/50 border border-indigo-200 rounded-xl hover:shadow-md hover:shadow-indigo-100 hover:border-indigo-300 transition-all duration-200 group"
+                            className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-indigo-50 to-violet-100/50 border border-indigo-200 rounded-xl hover:shadow-md hover:shadow-indigo-100 hover:border-indigo-300 transition-all duration-200 group"
                             onClick={handleAutoMap}
                         >
-                            <span className="text-2xl group-hover:scale-110 transition-transform">🔄</span>
-                            <span className="text-sm font-semibold text-indigo-700">Auto-Mapear</span>
+                            <span className="text-2xl group-hover:scale-110 transition-transform">🗺️</span>
+                            <span className="text-sm font-semibold text-indigo-700">Wizard de Mapeo</span>
                         </button>
                         <button
                             className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200 rounded-xl hover:shadow-md hover:shadow-emerald-100 hover:border-emerald-300 transition-all duration-200 group"

@@ -5,8 +5,6 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useAppStore } from '@/app/uniordercreator/_src/store/appStore';
 import { parseExcelFile, groupRows } from '@/app/uniordercreator/_src/utils/excelParser';
-import { levenshtein } from '@/app/uniordercreator/_src/utils/levenshtein';
-import { getAllFields } from '@/app/uniordercreator/_src/data/schema';
 import { generateValidationReport, type ValidationReport } from '@/app/uniordercreator/_src/utils/validation';
 import { buildXml, type BuildXmlContext } from '@/app/uniordercreator/_src/services/xmlBuilder';
 // IMPORTANTE: Ya no llamamos a soapService (Express), usaremos fetch a nuestra propia API Route Next.js
@@ -25,6 +23,7 @@ import ValidationReportModal from '@/app/uniordercreator/_src/components/Modals/
 import MassEditModal from '@/app/uniordercreator/_src/components/Modals/MassEditModal';
 import DynamicFieldsWizard from '@/app/uniordercreator/_src/components/Wizards/DynamicFieldsWizard';
 import MultiSheetWizard from '@/app/uniordercreator/_src/components/Wizards/MultiSheetWizard';
+import MappingWizard from '@/app/uniordercreator/_src/components/Wizards/MappingWizard';
 import MappingActions from '@/app/uniordercreator/_src/components/Mapper/MappingActions';
 import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
 
@@ -42,6 +41,7 @@ function UnigisOrderCreatorPageInner() {
     const [massEditOpen, setMassEditOpen] = useState(false);
     const [dynWizardOpen, setDynWizardOpen] = useState(false);
     const [multiSheetWizOpen, setMultiSheetWizOpen] = useState(false);
+    const [mappingWizardOpen, setMappingWizardOpen] = useState(false);
     const [mappingActionsOpen, setMappingActionsOpen] = useState(false);
     const [savedMappingsOpen, setSavedMappingsOpen] = useState(false);
 
@@ -62,6 +62,7 @@ function UnigisOrderCreatorPageInner() {
     const rows = useAppStore((s) => s.rows);
     const mapping = useAppStore((s) => s.mapping);
     const setMapping = useAppStore((s) => s.setMapping);
+    const headers = useAppStore((s) => s.headers);
     const token = useAppStore((s) => s.token);
     const orderUrl = useAppStore((s) => s.orderUrl);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
@@ -99,25 +100,8 @@ function UnigisOrderCreatorPageInner() {
                         // Store workbook for multi-sheet
                         useAppStore.getState().setMultiSheet({ workbook });
 
-                        // Auto-mapping
-                        const allFields = getAllFields();
-                        const newMapping: Record<string, string> = {};
-                        for (const field of allFields) {
-                            const shortName = field.split('.').pop()?.toLowerCase() || '';
-                            let bestMatch = '';
-                            let bestDist = Infinity;
-                            for (const header of sheet.headers) {
-                                const dist = levenshtein(shortName, header.toLowerCase());
-                                if (dist < bestDist) {
-                                    bestDist = dist;
-                                    bestMatch = header;
-                                }
-                            }
-                            if (bestDist <= Math.max(2, Math.floor(shortName.length * 0.4))) {
-                                newMapping[field] = bestMatch;
-                            }
-                        }
-                        setMapping(newMapping);
+                        // Open the mapping wizard instead of auto-mapping
+                        setMappingWizardOpen(true);
                     } catch (err: any) {
                         console.error('[ExcelLoadError]', err);
                         alert(`Error cargando el archivo: ${err.message}`);
@@ -129,7 +113,7 @@ function UnigisOrderCreatorPageInner() {
             reader.readAsArrayBuffer(file);
             e.target.value = '';
         },
-        [setHeaders, setRows, setMapping],
+        [setHeaders, setRows],
     );
 
     // ─── Group rows ──────────────────────────────────────────────────────
@@ -488,7 +472,17 @@ function UnigisOrderCreatorPageInner() {
             <MassEditModal isOpen={massEditOpen} onClose={() => setMassEditOpen(false)} />
             <DynamicFieldsWizard isOpen={dynWizardOpen} onClose={() => setDynWizardOpen(false)} />
             <MultiSheetWizard isOpen={multiSheetWizOpen} onClose={() => setMultiSheetWizOpen(false)} />
-            <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} />
+            <MappingWizard
+                isOpen={mappingWizardOpen}
+                headers={headers}
+                onComplete={(newMapping, newBoolOverrides) => {
+                    setMapping(newMapping);
+                    useAppStore.setState({ booleanOverrides: newBoolOverrides });
+                    setMappingWizardOpen(false);
+                }}
+                onClose={() => setMappingWizardOpen(false)}
+            />
+            <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
             <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} />
         </div>
     );
