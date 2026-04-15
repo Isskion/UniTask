@@ -13,9 +13,14 @@ export async function getProjectNotes(tenantId: string, projectId: string, curre
 
     // Filtrar localmente por permisos de lectura:
     // 1. Dueño de la nota siempre ve.
-    // 2. Notas públicas siempre visibles.
-    // 3. Usuarios internos ven TODO en el proyecto asignado.
-    return allNotes.filter(note => note.userId === currentUserId || note.isPublic || isInternal);
+    // 2. Notas públicas siempre visibles para todos.
+    // 3. Notas internas visibles solo para el equipo del tenant (con el permiso viewAllProjectNotes).
+    return allNotes.filter(note => {
+        if (note.userId === currentUserId) return true;
+        if (note.isPublic) return true;
+        if (note.isInternal && isInternal) return true; // isInternal parameter represents user permission
+        return false;
+    });
 }
 
 export async function getNoteById(noteId: string): Promise<UniLeakNote | null> {

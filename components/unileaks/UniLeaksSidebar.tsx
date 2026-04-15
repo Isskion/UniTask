@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
-import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
+import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, Users, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -8,6 +8,7 @@ import { NoteOwnerInfo } from "@/lib/unileaks";
 import { useAuth } from "@/context/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useLanguage } from "@/context/LanguageContext";
 import UniLeaksSearch from "./UniLeaksSearch";
 
 interface UniLeaksSidebarProps {
@@ -61,6 +62,7 @@ export default function UniLeaksSidebar({
     usersMap,
     currentUserId
 }: UniLeaksSidebarProps) {
+    const { t } = useLanguage();
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<ContextMenuState>({ visible: false, x: 0, y: 0, targetId: null, targetType: 'root' });
     const [isRenaming, setIsRenaming] = useState<string | null>(null);
@@ -389,9 +391,11 @@ export default function UniLeaksSidebar({
                                     </div>
                                     {!isRenaming && (
                                         note.isPublic ? (
-                                            <span title="Público"><Globe className="w-3 h-3 text-emerald-500 shrink-0 opacity-70" /></span>
+                                            <span title={t('unileaks.visibility.public')}><Globe className="w-3 h-3 text-emerald-500 shrink-0 opacity-70" /></span>
+                                        ) : note.isInternal ? (
+                                            <span title={t('unileaks.visibility.internal')}><Users className="w-3 h-3 text-amber-500 shrink-0 opacity-70" /></span>
                                         ) : (
-                                            <span title="Privado"><Lock className="w-3 h-3 text-muted-foreground/60 shrink-0" /></span>
+                                            <span title={t('unileaks.visibility.private')}><Lock className="w-3 h-3 text-muted-foreground/60 shrink-0" /></span>
                                         )
                                     )}
                                 </div>

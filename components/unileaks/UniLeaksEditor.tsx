@@ -71,7 +71,7 @@ import { saveNote } from "@/lib/unileaks";
 import { addTenantWord, getTenantWords } from "@/lib/dictionary";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Globe, Lock, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus, FileSpreadsheet } from "lucide-react";
+import { Check, Loader2, Globe, Lock, Users, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus, FileSpreadsheet } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -124,6 +124,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [title, setTitle] = useState(note.title || "");
     const [content, setContent] = useState(note.content || "");
     const [isPublic, setIsPublic] = useState(note.isPublic || false);
+    const [isInternal, setIsInternal] = useState(note.isInternal || false);
     const [isSaving, setIsSaving] = useState(false);
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [showDownloadMenu, setShowDownloadMenu] = useState(false);
@@ -405,6 +406,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         setTitle(note.title || "");
         setContent(note.content || "");
         setIsPublic(note.isPublic || false);
+        setIsInternal(note.isInternal || false);
 
         if (editor && currentNoteIdRef.current !== note.id) {
             // Compare content to avoid redundant updates if only metadata/other fields changed
@@ -656,7 +658,8 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 ...note,
                 title,
                 content,
-                isPublic
+                isPublic,
+                isInternal
             };
 
             // Only send id if it's not a new note (new notes have empty id locally)
@@ -797,23 +800,60 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         <div className="flex flex-col h-full max-w-5xl mx-auto">
             {/* Header Toolbar */}
             <div className="flex items-center justify-between py-6 px-10 border-b border-border bg-background sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <label className={cn(
-                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors text-sm font-medium",
-                        isPublic ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" : "bg-muted border-border text-muted-foreground hover:text-foreground"
-                    )}>
-                        <input
-                            type="checkbox"
-                            checked={isPublic}
-                            onChange={(e) => {
-                                setIsPublic(e.target.checked);
-                                setAutoSaveStatus('dirty');
-                            }}
-                            className="hidden"
-                        />
-                        {isPublic ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        {isPublic ? "Visible para todo el proyecto" : "Nota Privada"}
-                    </label>
+                <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-xl border border-border/50">
+                    <button
+                        onClick={() => {
+                            setIsPublic(false);
+                            setIsInternal(false);
+                            setAutoSaveStatus('dirty');
+                        }}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
+                            (!isPublic && !isInternal) 
+                                ? "bg-background text-foreground shadow-sm ring-1 ring-border" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                        title={t('unileaks.visibility.private_desc')}
+                    >
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>{t('unileaks.visibility.private')}</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setIsPublic(false);
+                            setIsInternal(true);
+                            setAutoSaveStatus('dirty');
+                        }}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
+                            (!isPublic && isInternal) 
+                                ? "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20 shadow-sm" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                        title={t('unileaks.visibility.internal_desc')}
+                    >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{t('unileaks.visibility.internal')}</span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            setIsPublic(true);
+                            setIsInternal(false);
+                            setAutoSaveStatus('dirty');
+                        }}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
+                            (isPublic) 
+                                ? "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20 shadow-sm" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                        )}
+                        title={t('unileaks.visibility.public_desc')}
+                    >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>{t('unileaks.visibility.public')}</span>
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-6 print:hidden">

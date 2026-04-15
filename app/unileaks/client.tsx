@@ -159,6 +159,7 @@ function UniLeaksContent() {
 
     const handleNewNote = (folderId: string | null = null) => {
         if (!user || !tenantId || !activeProjectId) return;
+        const isInternalViewer = can('viewAllProjectNotes', 'special');
         const newNote: UniLeakNote = {
             id: "", // Empty ID means unsaved new note
             title: "",
@@ -167,6 +168,7 @@ function UniLeaksContent() {
             tenantId: tenantId,
             userId: user.uid,
             isPublic: false,
+            isInternal: isInternalViewer, // Team members default to Internal visibility
             folderId: folderId,
             createdAt: null,
             updatedAt: null,
@@ -221,6 +223,7 @@ function UniLeaksContent() {
                 tenantId: tenantId,
                 userId: user.uid,
                 isPublic: noteToDuplicate.isPublic,
+                isInternal: noteToDuplicate.isInternal,
                 folderId: noteToDuplicate.folderId
             };
 

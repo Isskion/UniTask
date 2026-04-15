@@ -626,6 +626,16 @@ export const en = {
         title: "Sprint Management",
         cycles: "Execution Cycles",
         simulator: "Promise Simulation"
+    },
+    unileaks: {
+        visibility: {
+            private: "Private Note",
+            private_desc: "Only you can see it",
+            internal: "Internal Team",
+            internal_desc: "Only team members (Tenant) can see it",
+            public: "Public",
+            public_desc: "Visible to all users with access to the project"
+        }
     }
 };
 

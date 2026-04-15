@@ -628,5 +628,15 @@ export const de: Dictionary = {
         title: "Sprint-Management",
         cycles: "Ausführungszyklen",
         simulator: "Versprechenssimulation"
+    },
+    unileaks: {
+        visibility: {
+            private: "Private Notiz",
+            private_desc: "Nur du kannst sie sehen",
+            internal: "Internes Team",
+            internal_desc: "Nur Teammitglieder (Tenant) können sie sehen",
+            public: "Öffentlich",
+            public_desc: "Sichtbar für alle Benutzer mit Projektzugriff"
+        }
     }
 };

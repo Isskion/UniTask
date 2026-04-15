@@ -628,5 +628,15 @@ export const es: Dictionary = {
         title: "Gestión de Sprint",
         cycles: "Ciclos de Ejecución",
         simulator: "Simulador de Promesa"
+    },
+    unileaks: {
+        visibility: {
+            private: "Nota Privada",
+            private_desc: "Solo tú puedes verla",
+            internal: "Equipo Interno",
+            internal_desc: "Solo los miembros del equipo (Tenant) pueden verla",
+            public: "Público",
+            public_desc: "Visible para todos los usuarios con acceso al proyecto"
+        }
     }
 };

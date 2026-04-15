@@ -605,6 +605,7 @@ export interface UniLeakNote {
     tenantId: string;
     userId: string;
     isPublic: boolean;
+    isInternal?: boolean; // New: Visible only to tenant team members
     folderId?: string | null; // null if it's in the root
     createdAt: any;
     updatedAt: any;
