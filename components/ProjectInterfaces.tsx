@@ -13,6 +13,7 @@ import { Project, InterfaceEntry, InterfaceVersion } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/context/AuthContext";
 import { useFileUploader } from "@/hooks/useFileUploader";
 import { db } from "@/lib/firebase";
@@ -39,6 +40,7 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
     const { theme } = useTheme();
     const { showToast } = useToast();
     const { user } = useAuth();
+    const { can } = usePermissions();
     const isLight = theme === "light";
 
     const [interfaces, setInterfaces] = useState<InterfaceEntry[]>([]);
