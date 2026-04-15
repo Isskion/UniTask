@@ -40,7 +40,7 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
         unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
     },
     exportAccess: { tasks: true, projects: false, reports: false },
-    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false }
+    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false, viewTechnicalInfo: false }
 };
 
 export default function UserRoleManagement() {
@@ -786,7 +786,7 @@ export default function UserRoleManagement() {
                                     <div className="space-y-3">
                                         <h4 className="text-white font-semibold mb-4">{t('roles_page.sections.special')}</h4>
                                         {[
-                                            'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu', 'viewAllProjectNotes'
+                                            'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu', 'viewAllProjectNotes', 'viewTechnicalInfo'
                                         ].map(key => (
                                             <label key={key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
                                                 <input
