@@ -365,6 +365,11 @@ export function buildXml(row: Record<string, any>, ctx: BuildXmlContext): string
                     itemsToProcess = ctx.getRelatedItems(row, relation);
                     useRelatedData = true;
                     scopePrefix = relation.sheet;
+                } else if (tag === 'Items' && row._grouped && Array.isArray(row._items) && row._items.length > 0) {
+                    // ── Grouped rows: use _items from groupRows() as individual items ──
+                    itemsToProcess = row._items;
+                    useRelatedData = true; // each item has its own data
+                    scopePrefix = 'Items';
                 } else if (row[key] && Array.isArray(row[key])) {
                     itemsToProcess = row[key];
                 } else {
