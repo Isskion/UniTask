@@ -68,15 +68,17 @@ const TableRow = React.memo(function TableRow({
                     onChange={() => onToggle(index)}
                 />
             </td>
-            <td className="w-8 px-1 py-0.5 text-center flex items-center justify-center gap-1 my-1">
-                {validationLight()}
-                {statusIcon()}
-                {/* #18: Grouping badge */}
-                {isGrouped && (
-                    <span className="ml-0.5 text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded-full border border-amber-200" title={`${itemCount} items agrupados`}>
-                        {itemCount}
-                    </span>
-                )}
+            <td className="w-8 px-1 py-0.5 text-center">
+                <div className="flex items-center justify-center gap-1">
+                    {validationLight()}
+                    {statusIcon()}
+                    {/* #18: Grouping badge */}
+                    {isGrouped && (
+                        <span className="text-[8px] font-black bg-amber-100 text-amber-700 px-1 rounded-full border border-amber-200" title={`${itemCount} items agrupados`}>
+                            {itemCount}
+                        </span>
+                    )}
+                </div>
             </td>
             {headers.map((h) => (
                 <td
