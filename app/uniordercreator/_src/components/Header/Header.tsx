@@ -13,6 +13,7 @@ interface HeaderProps {
     onLogout: () => void;
     onManageUsers: () => void;
     onShowHelp: () => void;
+    onSaveTemplate: () => void;
     isLoadingExcel?: boolean;
 }
 
@@ -28,6 +29,7 @@ export default function Header({
     onLogout,
     onManageUsers,
     onShowHelp,
+    onSaveTemplate,
     isLoadingExcel,
 }: HeaderProps) {
     const { t } = useTranslation();
@@ -136,6 +138,14 @@ export default function Header({
                             ✏️ <span className="hidden lg:inline">Editar ({selectedIndices.size})</span>
                         </button>
                     )}
+                    <button
+                        className="px-3 py-1.5 text-[11px] font-bold bg-indigo-500/10 text-indigo-300 rounded-lg hover:bg-indigo-500/20 transition-all border border-indigo-500/30 disabled:opacity-30"
+                        onClick={onSaveTemplate}
+                        disabled={!hasData}
+                        title="Guardar Mapeo como Plantilla"
+                    >
+                        💾 <span className="hidden lg:inline">Guardar</span>
+                    </button>
                     <button
                         className="px-3 py-1.5 text-[11px] font-bold bg-slate-700/50 text-slate-300 rounded-lg hover:bg-slate-600/50 transition-all border border-white/10 disabled:opacity-30"
                         onClick={onValidate}

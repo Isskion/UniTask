@@ -12,9 +12,10 @@ import {
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    initialMode?: 'save' | 'list';
 }
 
-export default function SavedMappings({ isOpen, onClose }: Props) {
+export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }: Props) {
     const mapping = useAppStore((s) => s.mapping);
     const headers = useAppStore((s) => s.headers);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
@@ -47,8 +48,12 @@ export default function SavedMappings({ isOpen, onClose }: Props) {
     }, [firebaseReady]);
 
     useEffect(() => {
-        if (isOpen && firebaseReady) refresh();
-    }, [isOpen, firebaseReady, refresh]);
+        if (isOpen && firebaseReady) {
+            refresh();
+            if (initialMode === 'save') setShowSaveForm(true);
+            else setShowSaveForm(false);
+        }
+    }, [isOpen, firebaseReady, refresh, initialMode]);
 
     if (!isOpen) return null;
 

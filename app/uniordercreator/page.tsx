@@ -49,6 +49,7 @@ function UnigisOrderCreatorPageInner() {
     const [mappingWizardOpen, setMappingWizardOpen] = useState(false);
     const [mappingActionsOpen, setMappingActionsOpen] = useState(false);
     const [savedMappingsOpen, setSavedMappingsOpen] = useState(false);
+    const [savedMappingsMode, setSavedMappingsMode] = useState<'save' | 'list'>('list');
     const [dataPrepOpen, setDataPrepOpen] = useState(false);
 
     // Progress state
@@ -594,6 +595,7 @@ function UnigisOrderCreatorPageInner() {
                 onLogout={() => useAppStore.getState().setToken(null)}
                 onManageUsers={() => { }}
                 onShowHelp={() => setHelpOpen(true)}
+                onSaveTemplate={() => { setSavedMappingsMode('save'); setSavedMappingsOpen(true); }}
                 isLoadingExcel={isLoadingExcel}
             />
 
@@ -608,7 +610,7 @@ function UnigisOrderCreatorPageInner() {
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setDynWizardOpen(true)} title="Campos Dinámicos">🔧</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMultiSheetWizOpen(true)} title="Multi-Hoja">📊</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
-                            <button className="p-0.5 hover:bg-amber-100 rounded transition-colors text-amber-600 text-xs" onClick={() => setSavedMappingsOpen(true)} title="Plantillas en la Nube">☁️</button>
+                            <button className="p-0.5 hover:bg-amber-100 rounded transition-colors text-amber-600 text-xs" onClick={() => { setSavedMappingsMode('list'); setSavedMappingsOpen(true); }} title="Plantillas en la Nube">☁️</button>
                             <button
                                 className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs"
                                 onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }}
@@ -690,7 +692,7 @@ function UnigisOrderCreatorPageInner() {
                 onClose={() => setMappingWizardOpen(false)}
             />
             <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
-            <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} />
+            <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} initialMode={savedMappingsMode} />
             <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
         </div>
     );
