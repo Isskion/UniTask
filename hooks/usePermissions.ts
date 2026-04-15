@@ -15,7 +15,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
             unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
         },
         exportAccess: { tasks: true, projects: true, reports: true },
-        specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true, viewAllProjectNotes: true }
+        specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
     },
     'global_pm': {
         name: 'PM Legacy',
@@ -26,7 +26,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
             unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
         },
         exportAccess: { tasks: true, projects: true, reports: true },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
     },
     'usuario_base': {
         name: 'Usuario Legacy',
@@ -37,7 +37,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
             unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
         },
         exportAccess: { tasks: true, projects: false, reports: false },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
     },
     // Add other legacy roles if needed
     'consultor': {
@@ -49,7 +49,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
             unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
         },
         exportAccess: { tasks: true, projects: false, reports: false },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
     },
 };
 
@@ -66,7 +66,7 @@ const DEFAULT_PERMISSIONS: PermissionGroup = {
         unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
     },
     exportAccess: { tasks: false, projects: false, reports: false },
-    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false, viewAllProjectNotes: false },
+    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false, viewAllProjectNotes: false, viewTechnicalInfo: false },
     createdAt: new Date(),
     updatedAt: new Date(),
     createdBy: 'system'
