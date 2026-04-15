@@ -6,6 +6,7 @@ import { InterfaceEntry, InterfaceVersion, Project } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { useToast } from "@/context/ToastContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { db } from "@/lib/firebase";
 import { collection, query, where, onSnapshot, orderBy, serverTimestamp, Timestamp, doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -19,9 +20,12 @@ interface InterfaceManagerProps {
 
 export default function InterfaceManager({ projectId, projectName }: InterfaceManagerProps) {
     const { user, tenantId } = useAuth();
+    const { can } = usePermissions();
     const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { showToast } = useToast();
     const { uploadFile, uploading, progress } = useFileUploader();
+
+    const isTechnical = can('viewTechnicalInfo', 'special');
 
     const [interfaces, setInterfaces] = useState<InterfaceEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -299,8 +303,9 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Client ID / Key</label>
                             <input
                                 type="text"
-                                value={clientId}
-                                onChange={(e) => setClientId(e.target.value)}
+                                value={isTechnical ? clientId : '••••••••'}
+                                onChange={(e) => isTechnical && setClientId(e.target.value)}
+                                disabled={!isTechnical}
                                 placeholder="ID de autenticación"
                                 className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
                             />
@@ -310,8 +315,9 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Client Secret / Pass</label>
                             <input
                                 type="password"
-                                value={clientSecret}
-                                onChange={(e) => setClientSecret(e.target.value)}
+                                value={isTechnical ? clientSecret : '••••••••'}
+                                onChange={(e) => isTechnical && setClientSecret(e.target.value)}
+                                disabled={!isTechnical}
                                 placeholder="••••••••••••"
                                 className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
                             />

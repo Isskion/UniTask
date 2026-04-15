@@ -54,7 +54,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             managePermissions: true,
             accessTrash: true,
             useCommandMenu: true,
-            viewAllProjectNotes: true
+            viewAllProjectNotes: true,
+            viewTechnicalInfo: true
         }
     },
     {
@@ -106,7 +107,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             managePermissions: false,
             accessTrash: false,
             useCommandMenu: true,
-            viewAllProjectNotes: true
+            viewAllProjectNotes: true,
+            viewTechnicalInfo: true
         }
     },
     {
@@ -158,7 +160,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             managePermissions: false,
             accessTrash: false,
             useCommandMenu: true,
-            viewAllProjectNotes: true
+            viewAllProjectNotes: true,
+            viewTechnicalInfo: false
         }
     },
     {
@@ -210,7 +213,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             managePermissions: false,
             accessTrash: false,
             useCommandMenu: true,
-            viewAllProjectNotes: true
+            viewAllProjectNotes: true,
+            viewTechnicalInfo: false
         }
     },
     {
@@ -233,7 +237,7 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             delete: false
         },
         viewAccess: {
-            dashboard: true,
+            dashboard: false,
             taskManager: false,
             taskDashboard: true,
             projectManagement: false,
@@ -262,7 +266,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             managePermissions: false,
             accessTrash: false,
             useCommandMenu: false,
-            viewAllProjectNotes: false
+            viewAllProjectNotes: false,
+            viewTechnicalInfo: false
         }
     }
 ];

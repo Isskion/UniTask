@@ -219,6 +219,7 @@ export interface PermissionGroup {
         accessTrash: boolean;
         useCommandMenu: boolean;
         viewAllProjectNotes: boolean;
+        viewTechnicalInfo: boolean;
     };
 
     tenantId: string; // Multi-tenant isolation

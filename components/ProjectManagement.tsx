@@ -502,16 +502,18 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                 {/* VIEWS & ACTIONS CAROUSEL */}
                                 {!isNew && (
                                     <div className={cn("flex bg-muted/20 p-1 rounded-full border overflow-x-auto hide-scrollbar max-w-[50vw] sm:max-w-[60vw] md:max-w-max", isLight ? "border-zinc-200" : "border-white/10")}>
-                                        <button
-                                            onClick={() => setUserTab('connections')}
-                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
-                                                userTab === 'connections'
-                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
-                                                    : "text-muted-foreground hover:text-foreground"
-                                            )}
-                                        >
-                                            Conexión
-                                        </button>
+                                        {can('viewTechnicalInfo', 'special') && (
+                                            <button
+                                                onClick={() => setUserTab('connections')}
+                                                className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
+                                                    userTab === 'connections'
+                                                        ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                        : "text-muted-foreground hover:text-foreground"
+                                                )}
+                                            >
+                                                Conexión
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => setUserTab('feed')}
                                             className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
@@ -532,16 +534,18 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                         >
                                             Docs
                                         </button>
-                                        <button
-                                            onClick={() => setUserTab('interfaces')}
-                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
-                                                userTab === 'interfaces'
-                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
-                                                    : "text-muted-foreground hover:text-foreground"
-                                            )}
-                                        >
-                                            Interfaces
-                                        </button>
+                                        {can('viewTechnicalInfo', 'special') && (
+                                            <button
+                                                onClick={() => setUserTab('interfaces')}
+                                                className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
+                                                    userTab === 'interfaces'
+                                                        ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                        : "text-muted-foreground hover:text-foreground"
+                                                )}
+                                            >
+                                                Interfaces
+                                            </button>
+                                        )}
                                         <button
                                             onClick={() => setUserTab('moscow')}
                                             className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",

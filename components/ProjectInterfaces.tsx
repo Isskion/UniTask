@@ -559,7 +559,9 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                 {selectedInterface.clientId && (
                                     <div className="space-y-1">
                                         <label className="text-[10px] uppercase font-bold text-muted-foreground">Client ID</label>
-                                        <div className="font-mono text-xs opacity-80 select-all">{selectedInterface.clientId}</div>
+                                        <div className="font-mono text-xs opacity-80 select-all">
+                                            {can('viewTechnicalInfo', 'special') ? selectedInterface.clientId : '••••••••'}
+                                        </div>
                                     </div>
                                 )}
                                 {selectedInterface.clientSecret && (
@@ -586,7 +588,9 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                 </div>
                                 <div className="p-4">
                                     <pre className="text-sm font-mono whitespace-pre-wrap break-all opacity-80 max-h-[500px] overflow-y-auto custom-scrollbar">
-                                        {selectedInterface.formatContent || "// Sin contenido definido"}
+                                        {can('viewTechnicalInfo', 'special') 
+                                            ? (selectedInterface.formatContent || "// Sin contenido definido")
+                                            : "Encrypted Specification (Restricted Access)"}
                                     </pre>
                                 </div>
                             </div>
@@ -601,7 +605,9 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                 </div>
                                 <div className={cn("rounded-2xl border p-6", isLight ? "bg-white border-zinc-200 shadow-sm" : "bg-zinc-900 border-zinc-800")}>
                                     <pre className="text-xs font-mono whitespace-pre-wrap break-all opacity-80 leading-relaxed">
-                                        {selectedInterface.mapping || "No se ha definido un mapeo de campos."}
+                                        {can('viewTechnicalInfo', 'special')
+                                            ? (selectedInterface.mapping || "No se ha definido un mapeo de campos.")
+                                            : "Restricted Mapping Data"}
                                     </pre>
                                 </div>
                             </div>

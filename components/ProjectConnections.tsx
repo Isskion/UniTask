@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Project, ProjectEnvironment } from "@/types";
 import { useToast } from "@/context/ToastContext";
 import { useTheme } from "@/hooks/useTheme";
+import { usePermissions } from "@/hooks/usePermissions";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 
@@ -16,9 +17,11 @@ interface ProjectConnectionsProps {
 export function ProjectConnections({ project }: ProjectConnectionsProps) {
     const { showToast } = useToast();
     const { theme } = useTheme();
+    const { can } = usePermissions();
     const isLight = theme === "light";
     const [saving, setSaving] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
+    const isTechnical = can('viewTechnicalInfo', 'special');
     
     // Initialize environments from existing data or legacy connections
     const [environments, setEnvironments] = useState<ProjectEnvironment[]>([]);
@@ -59,6 +62,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     }, [project.environments, project.connections]);
 
     const handleSave = async () => {
+        if (!isTechnical) return;
         setSaving(true);
         try {
             const projectRef = doc(db, "projects", project.id);
@@ -75,6 +79,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     };
 
     const handleAddEnvironment = () => {
+        if (!isTechnical) return;
         const newEnv: ProjectEnvironment = {
             id: crypto.randomUUID(),
             name: "Nuevo Entorno",
@@ -89,6 +94,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     };
 
     const handleRemoveEnvironment = (id: string) => {
+        if (!isTechnical) return;
         const envToRemove = environments.find(e => e.id === id);
         if (envToRemove?.isProduction) return;
         
@@ -97,13 +103,14 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     };
 
     const handleUpdateField = (id: string, field: keyof ProjectEnvironment, value: any) => {
+        if (!isTechnical) return;
         setEnvironments(prev => prev.map(env => 
             env.id === id ? { ...env, [field]: value } : env
         ));
     };
 
     const handleCopy = (text: string, fieldId: string) => {
-        if (!text) return;
+        if (!text || !isTechnical) return;
         navigator.clipboard.writeText(text);
         setCopiedField(fieldId);
         setTimeout(() => setCopiedField(null), 2000);
@@ -111,7 +118,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     };
 
     const handleOpenUrl = (url: string) => {
-        if (!url) return;
+        if (!url || !isTechnical) return;
         const finalUrl = url.startsWith("http") ? url : `https://${url}`;
         window.open(finalUrl, "_blank");
     };
@@ -128,12 +135,13 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
     const CopyButton = ({ text, fieldId }: { text: string, fieldId: string }) => (
         <button 
             onClick={() => handleCopy(text, fieldId)}
-            disabled={!text}
+            disabled={!text || !isTechnical}
             className={cn(
                 "absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all",
                 copiedField === fieldId 
                     ? "text-green-500 bg-green-500/10" 
-                    : "text-zinc-500 hover:bg-primary/10 hover:text-primary opacity-40 hover:opacity-100"
+                    : "text-zinc-500 hover:bg-primary/10 hover:text-primary opacity-40 hover:opacity-100",
+                !isTechnical && "hidden"
             )}
             title="Copiar"
         >
@@ -151,23 +159,25 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     </h2>
                     <p className="text-sm text-muted-foreground">Configuración de servidores y accesos para producción y pruebas</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleAddEnvironment}
-                        className="px-4 py-2.5 bg-zinc-800 text-white rounded-xl flex items-center gap-2 font-bold hover:bg-zinc-700 transition-all border border-zinc-700 shadow-lg"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Añadir Entorno
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl flex items-center gap-2 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 shrink-0"
-                    >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Guardar Cambios
-                    </button>
-                </div>
+                {isTechnical && (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleAddEnvironment}
+                            className="px-4 py-2.5 bg-zinc-800 text-white rounded-xl flex items-center gap-2 font-bold hover:bg-zinc-700 transition-all border border-zinc-700 shadow-lg"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Añadir Entorno
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-xl flex items-center gap-2 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50 shrink-0"
+                        >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Guardar Cambios
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
@@ -194,12 +204,12 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                         className={cn(
                                             "font-bold text-lg bg-transparent border-none outline-none focus:ring-2 focus:ring-primary/20 rounded px-1 -ml-1 transition-all",
                                             isLight ? "text-zinc-900" : "text-foreground",
-                                            env.isProduction && "pointer-events-none"
+                                            (env.isProduction || !isTechnical) && "pointer-events-none"
                                         )}
                                         value={env.name}
                                         onChange={e => handleUpdateField(env.id, 'name', e.target.value)}
                                         placeholder="Nombre del entorno..."
-                                        disabled={env.isProduction}
+                                        disabled={env.isProduction || !isTechnical}
                                     />
                                     <p className={cn(
                                         "text-[10px] uppercase font-black tracking-wider",
@@ -210,7 +220,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                 </div>
                             </div>
                             
-                            {!env.isProduction && (
+                            {!env.isProduction && isTechnical && (
                                 <button 
                                     onClick={() => handleRemoveEnvironment(env.id)}
                                     className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
@@ -229,9 +239,10 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                     <div className="relative">
                                         <input 
                                             className={inputClasses}
-                                            value={env.ip}
+                                            value={isTechnical ? env.ip : '••••••••'}
                                             onChange={e => handleUpdateField(env.id, 'ip', e.target.value)}
                                             placeholder="p.ej. 192.168.1.1"
+                                            disabled={!isTechnical}
                                         />
                                         <CopyButton text={env.ip || ""} fieldId={`${env.id}-ip`} />
                                     </div>
@@ -241,9 +252,10 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                     <div className="relative">
                                         <input 
                                             className={inputClasses}
-                                            value={env.user}
+                                            value={isTechnical ? env.user : '••••••••'}
                                             onChange={e => handleUpdateField(env.id, 'user', e.target.value)}
                                             placeholder="root, admin..."
+                                            disabled={!isTechnical}
                                         />
                                         <CopyButton text={env.user || ""} fieldId={`${env.id}-user`} />
                                     </div>
@@ -255,9 +267,10 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                     <input 
                                         type="password"
                                         className={inputClasses}
-                                        value={env.pass}
+                                        value={isTechnical ? env.pass : '••••••••'}
                                         onChange={e => handleUpdateField(env.id, 'pass', e.target.value)}
                                         placeholder="••••••••"
+                                        disabled={!isTechnical}
                                     />
                                     <CopyButton text={env.pass || ""} fieldId={`${env.id}-pass`} />
                                 </div>
@@ -267,13 +280,14 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                 <div className="relative group/url">
                                     <input 
                                         className={cn(inputClasses, "pr-12")}
-                                        value={env.url}
+                                        value={isTechnical ? env.url : '••••••••'}
                                         onChange={e => handleUpdateField(env.id, 'url', e.target.value)}
                                         placeholder="https://..."
+                                        disabled={!isTechnical}
                                     />
                                     <button 
                                         onClick={() => handleOpenUrl(env.url || "")}
-                                        disabled={!env.url}
+                                        disabled={!env.url || !isTechnical}
                                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 hover:bg-primary/20 text-primary rounded-lg transition-all opacity-40 group-hover/url:opacity-100 disabled:opacity-0"
                                         title="Abrir URL"
                                     >
@@ -286,23 +300,25 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                 ))}
 
                 {/* ADD BUTTON AS CARD */}
-                <button 
-                    onClick={handleAddEnvironment}
-                    className={cn(
-                        "p-6 rounded-2xl border border-dashed flex flex-col items-center justify-center gap-4 group transition-all h-[340px]",
-                        isLight 
-                            ? "bg-zinc-50/50 border-zinc-200 hover:bg-white hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5" 
-                            : "bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-primary/50"
-                    )}
-                >
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
-                        <Plus className="w-8 h-8" />
-                    </div>
-                    <div className="text-center">
-                        <p className={cn("font-bold text-lg", isLight ? "text-zinc-900" : "text-foreground")}>Añadir más Entornos</p>
-                        <p className="text-sm text-muted-foreground">Homologación, Staging, QA...</p>
-                    </div>
-                </button>
+                {isTechnical && (
+                    <button 
+                        onClick={handleAddEnvironment}
+                        className={cn(
+                            "p-6 rounded-2xl border border-dashed flex flex-col items-center justify-center gap-4 group transition-all h-[340px]",
+                            isLight 
+                                ? "bg-zinc-50/50 border-zinc-200 hover:bg-white hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5" 
+                                : "bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-primary/50"
+                        )}
+                    >
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
+                            <Plus className="w-8 h-8" />
+                        </div>
+                        <div className="text-center">
+                            <p className={cn("font-bold text-lg", isLight ? "text-zinc-900" : "text-foreground")}>Añadir más Entornos</p>
+                            <p className="text-sm text-muted-foreground">Homologación, Staging, QA...</p>
+                        </div>
+                    </button>
+                )}
             </div>
         </div>
     );
