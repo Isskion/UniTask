@@ -10,13 +10,15 @@ interface Props {
 
 export default function MappingActions({ isOpen, onClose }: Props) {
     const mapping = useAppStore((s) => s.mapping);
+    const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const setMapping = useAppStore((s) => s.setMapping);
     const headers = useAppStore((s) => s.headers);
 
     if (!isOpen) return null;
 
     const handleExport = () => {
-        const blob = new Blob([JSON.stringify(mapping, null, 2)], { type: 'application/json' });
+        const exportData = { mapping, booleanOverrides };
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -36,7 +38,16 @@ export default function MappingActions({ isOpen, onClose }: Props) {
                 const text = await file.text();
                 const imported = JSON.parse(text);
                 if (imported && typeof imported === 'object' && !Array.isArray(imported)) {
-                    setMapping(imported);
+                    // Support both new format {mapping, booleanOverrides} and legacy format (plain mapping object)
+                    if (imported.mapping && typeof imported.mapping === 'object') {
+                        setMapping(imported.mapping);
+                        if (imported.booleanOverrides && typeof imported.booleanOverrides === 'object') {
+                            useAppStore.setState({ booleanOverrides: imported.booleanOverrides });
+                        }
+                    } else {
+                        // Legacy: the whole object IS the mapping
+                        setMapping(imported);
+                    }
                     onClose(); // Cerrar modal para que el usuario vea la UI principal actualizada
                     setTimeout(() => alert('Mapeo importado correctamente!'), 100);
                 } else {
@@ -71,7 +82,10 @@ export default function MappingActions({ isOpen, onClose }: Props) {
     };
 
     const handleClearAll = () => {
-        if (confirm('¿Limpiar todo el mapeo?')) setMapping({});
+        if (confirm('¿Limpiar todo el mapeo?')) {
+            setMapping({});
+            useAppStore.setState({ booleanOverrides: {} });
+        }
     };
 
     const handleApplyTemplate = (tpl: MappingTemplate) => {

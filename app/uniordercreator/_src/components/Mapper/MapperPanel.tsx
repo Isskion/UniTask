@@ -1,7 +1,11 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '../../store/appStore';
-import { FIELD_GROUPS } from '../../data/schema';
+import { FIELD_GROUPS, KNOWN_BOOLEAN_PATHS } from '../../data/schema';
 import { FIELD_DESCRIPTIONS } from '../../data/fieldDescriptions';
+
+// Sentinel values for fixed boolean mapping
+const BOOL_TRUE_SENTINEL = '__BOOL_TRUE__';
+const BOOL_FALSE_SENTINEL = '__BOOL_FALSE__';
 
 const TABS = [
     { id: 'pOrdenPedido', label: '🏠 Orden', group: '' },
@@ -22,14 +26,19 @@ const TABS = [
     { id: 'Recursos', label: '🧩 Rec', group: '' },
 ];
 
+// Pre-compute a Set for O(1) lookups
+const BOOLEAN_PATHS_SET = new Set(KNOWN_BOOLEAN_PATHS);
+
 export default function MapperPanel() {
     const headers = useAppStore((s) => s.headers);
     const mapping = useAppStore((s) => s.mapping);
+    const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const currentTab = useAppStore((s) => s.currentTab);
     const searchQuery = useAppStore((s) => s.searchQuery);
     const setCurrentTab = useAppStore((s) => s.setCurrentTab);
     const setSearchQuery = useAppStore((s) => s.setSearchQuery);
     const updateMappingField = useAppStore((s) => s.updateMappingField);
+    const setBooleanOverride = useAppStore((s) => s.setBooleanOverride);
     const highlightedField = useAppStore((s) => s.highlightedField);
     const gridRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +62,51 @@ export default function MapperPanel() {
 
     const totalFields = (FIELD_GROUPS[currentTab] || []).length;
     const progress = totalFields > 0 ? Math.round((mappedCount / totalFields) * 100) : 0;
+
+    /**
+     * Handle field mapping change for boolean fields.
+     * When user selects TRUE/FALSE sentinel, we set a booleanOverride and
+     * mark the mapping with the sentinel so the field appears "mapped".
+     * When user selects an Excel column, we clear the override.
+     * When user selects "Sin mapear", we clear both.
+     */
+    const handleFieldChange = useCallback((field: string, value: string, isBoolField: boolean) => {
+        if (isBoolField) {
+            if (value === BOOL_TRUE_SENTINEL) {
+                setBooleanOverride(field, true);
+                updateMappingField(field, BOOL_TRUE_SENTINEL);
+            } else if (value === BOOL_FALSE_SENTINEL) {
+                setBooleanOverride(field, false);
+                updateMappingField(field, BOOL_FALSE_SENTINEL);
+            } else {
+                // Excel column selected or cleared — remove boolean override
+                // We need to remove the key from booleanOverrides
+                const store = useAppStore.getState();
+                if (store.booleanOverrides[field] !== undefined) {
+                    const next = { ...store.booleanOverrides };
+                    delete next[field];
+                    useAppStore.setState({ booleanOverrides: next });
+                }
+                updateMappingField(field, value);
+            }
+        } else {
+            updateMappingField(field, value);
+        }
+    }, [setBooleanOverride, updateMappingField]);
+
+    /**
+     * Compute the display value for a boolean field's select.
+     * If there's a booleanOverride, show the corresponding sentinel.
+     * Otherwise show the mapped Excel column (or empty).
+     */
+    const getSelectValue = useCallback((field: string, isBoolField: boolean): string => {
+        if (isBoolField) {
+            const override = booleanOverrides[field];
+            if (override === true) return BOOL_TRUE_SENTINEL;
+            if (override === false) return BOOL_FALSE_SENTINEL;
+        }
+        return mapping[field] || '';
+    }, [mapping, booleanOverrides]);
 
     if (headers.length === 0) {
         return (
@@ -111,8 +165,10 @@ export default function MapperPanel() {
             {/* Field grid */}
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 p-1.5 overflow-auto flex-1" ref={gridRef}>
                 {fields.map((field) => {
-                    const mapped = mapping[field] || '';
-                    const isMapped = !!mapped;
+                    const isBoolField = BOOLEAN_PATHS_SET.has(field);
+                    const selectValue = getSelectValue(field, isBoolField);
+                    const isMapped = !!selectValue;
+                    const isBoolMapped = isBoolField && (selectValue === BOOL_TRUE_SENTINEL || selectValue === BOOL_FALSE_SENTINEL);
                     const shortName = field.split('.').pop() || field;
                     const tooltip = FIELD_DESCRIPTIONS[field];
 
@@ -122,32 +178,49 @@ export default function MapperPanel() {
                             data-field={field}
                             className={`flex flex-col gap-0.5 p-1.5 rounded border transition-all ${highlightedField === field
                                 ? 'bg-amber-50 border-amber-400 shadow-md ring-1 ring-amber-400/50 animate-pulse'
-                                : isMapped
-                                    ? 'bg-emerald-50/50 border-emerald-200/80 hover:border-emerald-300'
-                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                                : isBoolMapped
+                                    ? 'bg-violet-50/50 border-violet-200/80 hover:border-violet-300'
+                                    : isMapped
+                                        ? 'bg-emerald-50/50 border-emerald-200/80 hover:border-emerald-300'
+                                        : 'bg-white border-slate-200 hover:border-slate-300'
                                 }`}
                         >
                             <div className="flex items-center gap-0.5">
-                                <span className={`text-[10px] font-bold truncate ${isMapped ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                <span className={`text-[10px] font-bold truncate ${isBoolMapped ? 'text-violet-700' : isMapped ? 'text-emerald-700' : 'text-slate-700'}`}>
                                     {shortName}
                                 </span>
-                                {isMapped && <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />}
+                                {isBoolField && (
+                                    <span className="text-[7px] font-bold bg-violet-600 text-white px-1 rounded shrink-0 leading-tight">
+                                        BOOL
+                                    </span>
+                                )}
+                                {isMapped && !isBoolField && <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0" />}
                                 {tooltip && (
                                     <span className="text-slate-400 cursor-help ml-auto shrink-0 text-[8px]" title={tooltip}>ℹ️</span>
                                 )}
                             </div>
                             <select
-                                className={`w-full px-1 py-0.5 text-[10px] rounded border transition-colors focus:outline-none focus:ring-1 ${isMapped
-                                    ? 'bg-emerald-100/50 border-emerald-200 text-emerald-800 focus:ring-emerald-500/30'
-                                    : 'bg-white border-slate-200 text-slate-600 focus:ring-indigo-500/30'
+                                className={`w-full px-1 py-0.5 text-[10px] rounded border transition-colors focus:outline-none focus:ring-1 ${isBoolMapped
+                                    ? 'bg-violet-100/50 border-violet-200 text-violet-800 focus:ring-violet-500/30'
+                                    : isMapped
+                                        ? 'bg-emerald-100/50 border-emerald-200 text-emerald-800 focus:ring-emerald-500/30'
+                                        : 'bg-white border-slate-200 text-slate-600 focus:ring-indigo-500/30'
                                     }`}
-                                value={mapped}
-                                onChange={(e) => updateMappingField(field, e.target.value)}
+                                value={selectValue}
+                                onChange={(e) => handleFieldChange(field, e.target.value, isBoolField)}
                             >
                                 <option value="">— Sin mapear —</option>
-                                {headers.map((h) => (
-                                    <option key={h} value={h}>{h}</option>
-                                ))}
+                                {isBoolField && (
+                                    <optgroup label="⚡ Valor Fijo">
+                                        <option value={BOOL_TRUE_SENTINEL}>✅ TRUE</option>
+                                        <option value={BOOL_FALSE_SENTINEL}>❌ FALSE</option>
+                                    </optgroup>
+                                )}
+                                <optgroup label={isBoolField ? '📊 Columna Excel' : '📊 Columnas'}>
+                                    {headers.map((h) => (
+                                        <option key={h} value={h}>{h}</option>
+                                    ))}
+                                </optgroup>
                             </select>
                         </div>
                     );
