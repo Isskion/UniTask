@@ -16,6 +16,7 @@ interface Props {
 
 export default function SavedMappings({ isOpen, onClose }: Props) {
     const mapping = useAppStore((s) => s.mapping);
+    const headers = useAppStore((s) => s.headers);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const dynamicFieldCounts = useAppStore((s) => s.dynamicFieldCounts);
     const multiSheet = useAppStore((s) => s.multiSheet);
@@ -210,38 +211,60 @@ export default function SavedMappings({ isOpen, onClose }: Props) {
                             )}
 
                             <div className="space-y-2 max-h-64 overflow-auto">
-                                {templates.map((tpl) => (
-                                    <div key={tpl.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all group">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-bold text-slate-700 truncate">{tpl.name}</div>
-                                            {tpl.description && (
-                                                <div className="text-xs text-slate-500 truncate">{tpl.description}</div>
-                                            )}
-                                            <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
-                                                <span>👤 {tpl.createdBy}</span>
-                                                <span>📅 {formatDate(tpl.updatedAt as { seconds: number } | null)}</span>
-                                                <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded-md font-bold">
-                                                    {Object.values(tpl.mapping || {}).filter(Boolean).length} campos
-                                                </span>
+                                {templates.map((tpl) => {
+                                    // #45: Comparador de plantillas
+                                    const tplHeaders = new Set(Object.values(tpl.mapping || {}).filter(v => v && v !== '__BOOL_TRUE__' && v !== '__BOOL_FALSE__'));
+                                    const currentHeadersSet = new Set(headers);
+                                    let matches = 0;
+                                    let missing = 0;
+                                    for (const h of tplHeaders) {
+                                        if (currentHeadersSet.has(h as string)) matches++;
+                                        else missing++;
+                                    }
+                                    const newHeaders = headers.length - matches;
+
+                                    return (
+                                        <div key={tpl.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all group">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm font-bold text-slate-700 truncate">{tpl.name}</div>
+                                                {tpl.description && (
+                                                    <div className="text-xs text-slate-500 truncate">{tpl.description}</div>
+                                                )}
+                                                <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-400">
+                                                    <span>👤 {tpl.createdBy}</span>
+                                                    <span>📅 {formatDate(tpl.updatedAt as { seconds: number } | null)}</span>
+                                                    <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded-md font-bold">
+                                                        {Object.values(tpl.mapping || {}).filter(Boolean).length} campos
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* #45: Diff visual */}
+                                                {headers.length > 0 && (
+                                                    <div className="flex gap-2 mt-1.5 text-[9px] font-bold">
+                                                        <span className="text-emerald-600 bg-emerald-50 px-1 rounded">✅ {matches} coinciden</span>
+                                                        {missing > 0 && <span className="text-red-500 bg-red-50 px-1 rounded">❌ {missing} faltan</span>}
+                                                        {newHeaders > 0 && <span className="text-amber-600 bg-amber-50 px-1 rounded">⚠️ {newHeaders} nuevos en Excel</span>}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    className="px-3 py-1.5 text-xs font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 shadow-sm transition-colors"
+                                                    onClick={() => handleLoad(tpl)}
+                                                >
+                                                    📂 Cargar
+                                                </button>
+                                                <button
+                                                    className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    onClick={() => handleDelete(tpl.id, tpl.name)}
+                                                    title="Eliminar"
+                                                >
+                                                    🗑️
+                                                </button>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                className="px-3 py-1.5 text-xs font-bold bg-indigo-500 text-white rounded-lg hover:bg-indigo-400 shadow-sm transition-colors"
-                                                onClick={() => handleLoad(tpl)}
-                                            >
-                                                📂 Cargar
-                                            </button>
-                                            <button
-                                                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                onClick={() => handleDelete(tpl.id, tpl.name)}
-                                                title="Eliminar"
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     )}

@@ -26,6 +26,7 @@ import MultiSheetWizard from '@/app/uniordercreator/_src/components/Wizards/Mult
 import MappingWizard from '@/app/uniordercreator/_src/components/Wizards/MappingWizard';
 import MappingActions from '@/app/uniordercreator/_src/components/Mapper/MappingActions';
 import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
+import DataPrepModal from '@/app/uniordercreator/_src/components/Modals/DataPrepModal';
 import { ToastProvider } from '@/app/uniordercreator/_src/components/UI/ToastProvider';
 
 import '@/app/uniordercreator/_src/i18n';
@@ -47,6 +48,7 @@ function UnigisOrderCreatorPageInner() {
     const [mappingWizardOpen, setMappingWizardOpen] = useState(false);
     const [mappingActionsOpen, setMappingActionsOpen] = useState(false);
     const [savedMappingsOpen, setSavedMappingsOpen] = useState(false);
+    const [dataPrepOpen, setDataPrepOpen] = useState(false);
 
     // Progress state
     const [progressTotal, setProgressTotal] = useState(0);
@@ -517,6 +519,7 @@ function UnigisOrderCreatorPageInner() {
                     <div className="flex justify-between items-center px-2 py-1 border-b border-slate-100 bg-slate-50/50">
                         <span className="text-xs font-semibold text-slate-700">📦 Pedidos</span>
                         <div className="flex gap-1 items-center">
+                            <button className="p-0.5 hover:bg-sky-100 rounded transition-colors text-sky-600 text-xs" onClick={() => setDataPrepOpen(true)} title="Preparar Datos (Transformar/Calcular)">🛠️</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setDynWizardOpen(true)} title="Campos Dinámicos">🔧</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMultiSheetWizOpen(true)} title="Multi-Hoja">📊</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
@@ -588,6 +591,7 @@ function UnigisOrderCreatorPageInner() {
                 onClose={() => setValidationOpen(false)}
             />
             <MassEditModal isOpen={massEditOpen} onClose={() => setMassEditOpen(false)} />
+            <DataPrepModal isOpen={dataPrepOpen} onClose={() => setDataPrepOpen(false)} />
             <DynamicFieldsWizard isOpen={dynWizardOpen} onClose={() => setDynWizardOpen(false)} />
             <MultiSheetWizard isOpen={multiSheetWizOpen} onClose={() => setMultiSheetWizOpen(false)} />
             <MappingWizard

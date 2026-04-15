@@ -87,8 +87,15 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose }: 
 
     useEffect(() => {
         if (isOpen && headers.length > 0) {
+            // #31: Read memory
+            let memory: Record<string, string> | undefined;
+            try {
+                const stored = localStorage.getItem('uoc_mapping_memory');
+                if (stored) memory = JSON.parse(stored);
+            } catch { /* ignore */ }
+
             // Run auto-match engine
-            const matches = autoMatchHeaders(headers);
+            const matches = autoMatchHeaders(headers, memory);
             setAutoMatchResults(matches);
 
             // Build initial mappings with auto-match

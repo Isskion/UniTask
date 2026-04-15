@@ -1,11 +1,14 @@
 import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '../../store/appStore';
-import { FIELD_GROUPS, KNOWN_BOOLEAN_PATHS } from '../../data/schema';
+import { FIELD_GROUPS, KNOWN_BOOLEAN_PATHS, REQUIRED_FIELDS } from '../../data/schema';
 import { FIELD_DESCRIPTIONS } from '../../data/fieldDescriptions';
 
 // Sentinel values for fixed boolean mapping
 const BOOL_TRUE_SENTINEL = '__BOOL_TRUE__';
 const BOOL_FALSE_SENTINEL = '__BOOL_FALSE__';
+
+// #31: Mapping memory key
+const MAPPING_MEMORY_KEY = 'uoc_mapping_memory';
 
 const TABS = [
     { id: 'pOrdenPedido', label: '🏠 Orden', group: '' },
@@ -26,15 +29,18 @@ const TABS = [
     { id: 'Recursos', label: '🧩 Rec', group: '' },
 ];
 
-// Pre-compute a Set for O(1) lookups
+// Pre-compute sets for O(1) lookups
 const BOOLEAN_PATHS_SET = new Set(KNOWN_BOOLEAN_PATHS);
+const REQUIRED_FIELDS_SET = new Set(REQUIRED_FIELDS);
 
 export default function MapperPanel() {
     const headers = useAppStore((s) => s.headers);
+    const rows = useAppStore((s) => s.rows);
     const mapping = useAppStore((s) => s.mapping);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const currentTab = useAppStore((s) => s.currentTab);
     const searchQuery = useAppStore((s) => s.searchQuery);
+    const selectedRow = useAppStore((s) => s.selectedRow);
     const setCurrentTab = useAppStore((s) => s.setCurrentTab);
     const setSearchQuery = useAppStore((s) => s.setSearchQuery);
     const updateMappingField = useAppStore((s) => s.updateMappingField);
@@ -55,21 +61,66 @@ export default function MapperPanel() {
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, [highlightedField]);
 
-    const mappedCount = useMemo(() => {
-        const allFields = FIELD_GROUPS[currentTab] || [];
-        return allFields.filter((f) => mapping[f]).length;
-    }, [currentTab, mapping]);
+    // #35: Detect empty columns  
+    const emptyColumnSet = useMemo(() => {
+        const empty = new Set<string>();
+        if (rows.length === 0) return empty;
+        for (const h of headers) {
+            const filledCount = rows.filter(r => {
+                const v = r[h];
+                return v !== undefined && v !== null && String(v).trim() !== '';
+            }).length;
+            if (filledCount / rows.length < 0.05) { // <5% filled = effectively empty
+                empty.add(h);
+            }
+        }
+        return empty;
+    }, [rows, headers]);
 
-    const totalFields = (FIELD_GROUPS[currentTab] || []).length;
-    const progress = totalFields > 0 ? Math.round((mappedCount / totalFields) * 100) : 0;
+    // #20: Preview values for the selected row
+    const previewRow = useMemo(() => {
+        if (selectedRow < 0 || !rows[selectedRow]) return null;
+        return rows[selectedRow];
+    }, [selectedRow, rows]);
 
-    /**
-     * Handle field mapping change for boolean fields.
-     * When user selects TRUE/FALSE sentinel, we set a booleanOverride and
-     * mark the mapping with the sentinel so the field appears "mapped".
-     * When user selects an Excel column, we clear the override.
-     * When user selects "Sin mapear", we clear both.
-     */
+    // #22: Coverage mini-map per tab
+    const tabCoverage = useMemo(() => {
+        const coverage: Record<string, { mapped: number; total: number; pct: number }> = {};
+        for (const tab of TABS) {
+            const tabFields = FIELD_GROUPS[tab.id] || [];
+            const mapped = tabFields.filter(f => mapping[f]).length;
+            const total = tabFields.length;
+            coverage[tab.id] = { mapped, total, pct: total > 0 ? Math.round((mapped / total) * 100) : 0 };
+        }
+        return coverage;
+    }, [mapping]);
+
+    // Current tab stats
+    const currentCoverage = tabCoverage[currentTab] || { mapped: 0, total: 0, pct: 0 };
+
+    // #21: How many required fields are missing
+    const missingRequired = useMemo(() => {
+        return REQUIRED_FIELDS.filter(f => !mapping[f]);
+    }, [mapping]);
+
+    // #31: Save mapping memory on changes
+    useEffect(() => {
+        if (Object.keys(mapping).length === 0 || headers.length === 0) return;
+        const timeout = setTimeout(() => {
+            try {
+                const memory: Record<string, string> = {};
+                // Store header → field associations for learning
+                for (const [field, col] of Object.entries(mapping)) {
+                    if (!col || col === BOOL_TRUE_SENTINEL || col === BOOL_FALSE_SENTINEL) continue;
+                    const key = String(col).trim().toLowerCase();
+                    if (!memory[key]) memory[key] = field;
+                }
+                localStorage.setItem(MAPPING_MEMORY_KEY, JSON.stringify(memory));
+            } catch { /* ignore */ }
+        }, 3000);
+        return () => clearTimeout(timeout);
+    }, [mapping, headers]);
+
     const handleFieldChange = useCallback((field: string, value: string, isBoolField: boolean) => {
         if (isBoolField) {
             if (value === BOOL_TRUE_SENTINEL) {
@@ -79,8 +130,6 @@ export default function MapperPanel() {
                 setBooleanOverride(field, false);
                 updateMappingField(field, BOOL_FALSE_SENTINEL);
             } else {
-                // Excel column selected or cleared — remove boolean override
-                // We need to remove the key from booleanOverrides
                 const store = useAppStore.getState();
                 if (store.booleanOverrides[field] !== undefined) {
                     const next = { ...store.booleanOverrides };
@@ -94,11 +143,6 @@ export default function MapperPanel() {
         }
     }, [setBooleanOverride, updateMappingField]);
 
-    /**
-     * Compute the display value for a boolean field's select.
-     * If there's a booleanOverride, show the corresponding sentinel.
-     * Otherwise show the mapped Excel column (or empty).
-     */
     const getSelectValue = useCallback((field: string, isBoolField: boolean): string => {
         if (isBoolField) {
             const override = booleanOverrides[field];
@@ -130,63 +174,101 @@ export default function MapperPanel() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="flex items-center gap-1.5 ml-auto">
+                    {/* #21: Required fields warning */}
+                    {missingRequired.length > 0 && (
+                        <span
+                            className="px-1.5 py-0.5 text-[9px] font-bold bg-red-500/20 text-red-300 rounded-md border border-red-500/30 animate-pulse cursor-help"
+                            title={`Campos obligatorios sin mapear:\n${missingRequired.join('\n')}`}
+                        >
+                            ⚠️ {missingRequired.length} obligatorios
+                        </span>
+                    )}
                     <div className="w-16 h-1 rounded-full bg-white/10 overflow-hidden">
                         <div
                             className="h-full rounded-full bg-emerald-400 transition-all duration-500"
-                            style={{ width: `${progress}%` }}
+                            style={{ width: `${currentCoverage.pct}%` }}
                         />
                     </div>
-                    <span className="text-[10px] font-semibold text-emerald-300">{mappedCount}/{totalFields}</span>
+                    <span className="text-[10px] font-semibold text-emerald-300">{currentCoverage.mapped}/{currentCoverage.total}</span>
                 </div>
             </div>
 
-            {/* Tabs */}
+            {/* #22: Tab coverage mini-map */}
             <div className="flex items-center gap-px px-1 py-0.5 bg-slate-100 border-b border-slate-200 overflow-x-auto shrink-0">
-                {TABS.map((tab) => (
-                    <span key={tab.id} className="flex items-center shrink-0">
-                        {tab.group && (
-                            <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mx-1 select-none">
-                                {tab.group}
-                            </span>
-                        )}
-                        <button
-                            className={`px-1.5 py-0.5 text-[10px] font-semibold rounded whitespace-nowrap transition-all ${currentTab === tab.id
-                                ? 'bg-white text-indigo-700 shadow-sm border border-indigo-200/50'
-                                : 'text-slate-600 hover:bg-white/60'
-                                }`}
-                            onClick={() => setCurrentTab(tab.id)}
-                        >
-                            {tab.label}
-                        </button>
-                    </span>
-                ))}
+                {TABS.map((tab) => {
+                    const cov = tabCoverage[tab.id];
+                    return (
+                        <span key={tab.id} className="flex items-center shrink-0">
+                            {tab.group && (
+                                <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mx-1 select-none">
+                                    {tab.group}
+                                </span>
+                            )}
+                            <button
+                                className={`relative px-1.5 py-0.5 text-[10px] font-semibold rounded whitespace-nowrap transition-all ${currentTab === tab.id
+                                    ? 'bg-white text-indigo-700 shadow-sm border border-indigo-200/50'
+                                    : 'text-slate-600 hover:bg-white/60'
+                                    }`}
+                                onClick={() => setCurrentTab(tab.id)}
+                            >
+                                {tab.label}
+                                {/* Coverage dot indicator */}
+                                {cov && cov.mapped > 0 && (
+                                    <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white ${
+                                        cov.pct >= 80 ? 'bg-emerald-400' : cov.pct >= 30 ? 'bg-amber-400' : 'bg-indigo-400'
+                                    }`} />
+                                )}
+                            </button>
+                        </span>
+                    );
+                })}
             </div>
 
             {/* Field grid */}
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 p-1.5 overflow-auto flex-1" ref={gridRef}>
                 {fields.map((field) => {
                     const isBoolField = BOOLEAN_PATHS_SET.has(field);
+                    const isRequired = REQUIRED_FIELDS_SET.has(field);
                     const selectValue = getSelectValue(field, isBoolField);
                     const isMapped = !!selectValue;
                     const isBoolMapped = isBoolField && (selectValue === BOOL_TRUE_SENTINEL || selectValue === BOOL_FALSE_SENTINEL);
                     const shortName = field.split('.').pop() || field;
                     const tooltip = FIELD_DESCRIPTIONS[field];
 
+                    // #20: Preview value from selected row
+                    const mappedCol = mapping[field];
+                    const previewVal = previewRow && mappedCol && mappedCol !== BOOL_TRUE_SENTINEL && mappedCol !== BOOL_FALSE_SENTINEL
+                        ? String(previewRow[mappedCol] ?? '')
+                        : null;
+
                     return (
                         <div
                             key={field}
                             data-field={field}
-                            className={`flex flex-col gap-0.5 p-1.5 rounded border transition-all ${highlightedField === field
-                                ? 'bg-amber-50 border-amber-400 shadow-md ring-1 ring-amber-400/50 animate-pulse'
-                                : isBoolMapped
-                                    ? 'bg-violet-50/50 border-violet-200/80 hover:border-violet-300'
-                                    : isMapped
-                                        ? 'bg-emerald-50/50 border-emerald-200/80 hover:border-emerald-300'
-                                        : 'bg-white border-slate-200 hover:border-slate-300'
-                                }`}
+                            className={`flex flex-col gap-0.5 p-1.5 rounded border transition-all ${
+                                highlightedField === field
+                                    ? 'bg-amber-50 border-amber-400 shadow-md ring-1 ring-amber-400/50 animate-pulse'
+                                    : isRequired && !isMapped
+                                        ? 'bg-red-50/60 border-red-300 animate-pulse-required'
+                                        : isBoolMapped
+                                            ? 'bg-violet-50/50 border-violet-200/80 hover:border-violet-300'
+                                            : isMapped
+                                                ? 'bg-emerald-50/50 border-emerald-200/80 hover:border-emerald-300'
+                                                : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}
                         >
                             <div className="flex items-center gap-0.5">
-                                <span className={`text-[10px] font-bold truncate ${isBoolMapped ? 'text-violet-700' : isMapped ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                {/* #21: Required indicator */}
+                                {isRequired && (
+                                    <span className={`text-[7px] font-bold px-0.5 rounded shrink-0 leading-tight ${
+                                        isMapped ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+                                    }`}>
+                                        REQ
+                                    </span>
+                                )}
+                                <span className={`text-[10px] font-bold truncate ${
+                                    isRequired && !isMapped ? 'text-red-700' : isBoolMapped ? 'text-violet-700' : isMapped ? 'text-emerald-700' : 'text-slate-700'
+                                }`}>
                                     {shortName}
                                 </span>
                                 {isBoolField && (
@@ -199,17 +281,21 @@ export default function MapperPanel() {
                                     <span className="text-slate-400 cursor-help ml-auto shrink-0 text-[8px]" title={tooltip}>ℹ️</span>
                                 )}
                             </div>
+
                             <select
-                                className={`w-full px-1 py-0.5 text-[10px] rounded border transition-colors focus:outline-none focus:ring-1 ${isBoolMapped
-                                    ? 'bg-violet-100/50 border-violet-200 text-violet-800 focus:ring-violet-500/30'
-                                    : isMapped
-                                        ? 'bg-emerald-100/50 border-emerald-200 text-emerald-800 focus:ring-emerald-500/30'
-                                        : 'bg-white border-slate-200 text-slate-600 focus:ring-indigo-500/30'
-                                    }`}
+                                className={`w-full px-1 py-0.5 text-[10px] rounded border transition-colors focus:outline-none focus:ring-1 ${
+                                    isRequired && !isMapped
+                                        ? 'bg-red-50 border-red-300 text-red-800 focus:ring-red-500/30'
+                                        : isBoolMapped
+                                            ? 'bg-violet-100/50 border-violet-200 text-violet-800 focus:ring-violet-500/30'
+                                            : isMapped
+                                                ? 'bg-emerald-100/50 border-emerald-200 text-emerald-800 focus:ring-emerald-500/30'
+                                                : 'bg-white border-slate-200 text-slate-600 focus:ring-indigo-500/30'
+                                }`}
                                 value={selectValue}
                                 onChange={(e) => handleFieldChange(field, e.target.value, isBoolField)}
                             >
-                                <option value="">— Sin mapear —</option>
+                                <option value="">{isRequired ? '⚠️ OBLIGATORIO' : '— Sin mapear —'}</option>
                                 {isBoolField && (
                                     <optgroup label="⚡ Valor Fijo">
                                         <option value={BOOL_TRUE_SENTINEL}>✅ TRUE</option>
@@ -218,10 +304,19 @@ export default function MapperPanel() {
                                 )}
                                 <optgroup label={isBoolField ? '📊 Columna Excel' : '📊 Columnas'}>
                                     {headers.map((h) => (
-                                        <option key={h} value={h}>{h}</option>
+                                        <option key={h} value={h}>
+                                            {h}{emptyColumnSet.has(h) ? ' ⚠️ vacía' : ''}
+                                        </option>
                                     ))}
                                 </optgroup>
                             </select>
+
+                            {/* #20: Inline preview of the mapped value */}
+                            {previewVal !== null && previewVal.length > 0 && (
+                                <div className="text-[9px] text-slate-400 truncate font-mono px-0.5" title={previewVal}>
+                                    → {previewVal.length > 30 ? previewVal.slice(0, 30) + '…' : previewVal}
+                                </div>
+                            )}
                         </div>
                     );
                 })}

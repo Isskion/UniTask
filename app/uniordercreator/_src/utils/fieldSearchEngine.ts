@@ -454,7 +454,24 @@ export interface AutoMatchResult {
     alternatives: SearchResult[];
 }
 
-export function autoMatchHeader(header: string, excludeFields?: Set<string>): AutoMatchResult {
+export function autoMatchHeader(header: string, excludeFields?: Set<string>, mappingMemory?: Record<string, string>): AutoMatchResult {
+    // #31: Learning from previous sessions
+    if (mappingMemory) {
+        const memoryMatchPath = mappingMemory[header.toLowerCase().trim()];
+        if (memoryMatchPath) {
+            const memoryField = FIELD_INDEX.find(f => f.path === memoryMatchPath);
+            if (memoryField && (!excludeFields || !excludeFields.has(memoryField.path))) {
+                return {
+                    header,
+                    bestMatch: memoryField,
+                    score: 100,
+                    confidence: 'high',
+                    alternatives: [],
+                };
+            }
+        }
+    }
+
     const results = searchFields(header, {
         limit: 5,
         excludeFields,
@@ -483,11 +500,11 @@ export function autoMatchHeader(header: string, excludeFields?: Set<string>): Au
 
 // ─── Batch Auto-Match (for wizard initialization) ───────────────────────────────
 
-export function autoMatchHeaders(headers: string[]): AutoMatchResult[] {
+export function autoMatchHeaders(headers: string[], mappingMemory?: Record<string, string>): AutoMatchResult[] {
     const results: AutoMatchResult[] = [];
     // Don't exclude already-mapped to allow multi-mapping
     for (const header of headers) {
-        results.push(autoMatchHeader(header));
+        results.push(autoMatchHeader(header, undefined, mappingMemory));
     }
     return results;
 }
