@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-
+import * as XLSX from 'xlsx';
+import { useAppStore } from '../../store/appStore';
 export interface ProgressLog {
     ref: string;
     status: 'success' | 'error' | 'warn' | 'info';
@@ -18,6 +19,34 @@ interface ProgressModalProps {
     logs: ProgressLog[];
     onCancel: () => void;
     onClose: () => void;
+}
+
+// Helper tool to basically format XML/SOAP strings visually
+function formatXml(xmlStr: string) {
+    if (!xmlStr) return '';
+    try {
+        let formatted = '';
+        let pad = 0;
+        const reg = new RegExp('(>)(<)(\\\\/*)', 'g');
+        const xml = xmlStr.replace(reg, '$1\n$2$3');
+        xml.split('\n').forEach((node) => {
+            let indent = 0;
+            if (node.match(/.+<\/\w[^>]*>$/)) {
+                indent = 0;
+            } else if (node.match(/^<\/\w/)) {
+                if (pad !== 0) pad -= 1;
+            } else if (node.match(/^<\w([^>]*[^/])?>.*$/)) {
+                indent = 1;
+            } else {
+                indent = 0;
+            }
+            formatted += '  '.repeat(pad) + node + '\n';
+            pad += indent;
+        });
+        return formatted.trim();
+    } catch {
+        return xmlStr;
+    }
 }
 
 function LogRow({ log }: { log: ProgressLog }) {
@@ -69,8 +98,8 @@ function LogRow({ log }: { log: ProgressLog }) {
                 </div>
             </div>
             {open && log.detail && (
-                <pre className="mt-1 ml-2 text-[10px] text-slate-400 bg-slate-800 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all">
-                    {log.detail}
+                <pre className="mt-1 ml-2 text-[10px] text-slate-400 bg-slate-800 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all border border-slate-700 shadow-inner">
+                    {formatXml(log.detail)}
                 </pre>
             )}
         </div>
@@ -154,27 +183,34 @@ export default function ProgressModal({
         });
     }, [logs, total, successCount, errorCount, elapsed]);
 
-    // #4: Export results to CSV
+    const appRows = useAppStore((s) => s.rows);
+
+    // #4 & #80: Export results to Excel (.xlsx) taking full original rows
     const handleExportResults = useCallback(() => {
-        const csvRows = [
-            ['Referencia', 'Estado', 'Mensaje', 'Detalle'].join(','),
-            ...logs.map(l =>
-                [
-                    `"${l.ref}"`,
-                    l.status,
-                    `"${l.msg.replace(/"/g, '""')}"`,
-                    `"${(l.detail || '').replace(/"/g, '""').substring(0, 500)}"`,
-                ].join(',')
-            ),
-        ];
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `resultados_envio_${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }, [logs]);
+        // Collect all header names including the ones generated dynamically (like _status, _error, _UnigisId)
+        const newRows = appRows.map((r, i) => {
+            const copy = { ...r };
+            
+            // Clean internal un-needed keys
+            delete copy._validationInfo;
+            delete copy._items;
+            delete copy._grouped;
+            delete copy._itemCount;
+
+            // Make error/status pretty
+            copy['Status_Envio'] = r._status === 'success' ? 'OK' : r._status === 'error' ? 'ERROR' : r._status;
+            copy['Detalle_Error'] = r._error || '';
+            copy['Id_Recibido_UNIGIS'] = r._UnigisId || '';
+
+            return copy;
+        });
+
+        const ws = XLSX.utils.json_to_sheet(newRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+
+        XLSX.writeFile(wb, `UniTask_Resultados_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }, [appRows]);
 
     if (!isOpen) return null;
 
@@ -247,33 +283,27 @@ export default function ProgressModal({
 
                 {/* Actions */}
                 <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                    {isComplete && errorCount > 0 && (
+                    {isComplete && (
                         <div className="flex items-center gap-1.5">
+                            {errorCount > 0 && (
+                                <button
+                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                                        copiedReport
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                                    }`}
+                                    onClick={handleCopyReport}
+                                >
+                                    {copiedReport ? '✅ Copiado' : '📋 Copiar errores'}
+                                </button>
+                            )}
                             <button
-                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                                    copiedReport
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-                                }`}
-                                onClick={handleCopyReport}
-                            >
-                                {copiedReport ? '✅ Copiado' : '📋 Copiar errores'}
-                            </button>
-                            <button
-                                className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all"
+                                className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all"
                                 onClick={handleExportResults}
                             >
-                                📥 Export CSV
+                                📊 Export Excel
                             </button>
                         </div>
-                    )}
-                    {isComplete && errorCount === 0 && (
-                        <button
-                            className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all"
-                            onClick={handleExportResults}
-                        >
-                            📥 Export CSV
-                        </button>
                     )}
                     <div className="flex-1" />
                     {!isComplete ? (

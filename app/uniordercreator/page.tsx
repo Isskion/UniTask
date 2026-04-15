@@ -73,6 +73,7 @@ function UnigisOrderCreatorPageInner() {
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const selectedIndices = useAppStore((s) => s.selectedIndices);
     const setRowStatus = useAppStore((s) => s.setRowStatus);
+    const updateRowData = useAppStore((s) => s.updateRowData);
     const setIsSending = useAppStore((s) => s.setIsSending);
     const setSendCancelled = useAppStore((s) => s.setSendCancelled);
     const multiSheet = useAppStore((s) => s.multiSheet);
@@ -345,29 +346,56 @@ function UnigisOrderCreatorPageInner() {
                 logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
                 setProgressLogs([...logs]);
 
-                // ── 2. Llamada SOAP via Cloud Function (o Mock si es Dry Run) ─
+                // ── 2. Llamada SOAP via Cloud Function con Auto-Retry (o Mock si es Dry Run) ─
                 let res;
-                if (isDryRun) {
-                    await new Promise(r => setTimeout(r, 250)); // delay de simulacion
-                    res = {
-                        json: async () => ({
-                            ok: true,
-                            status: 200,
-                            text: `<Envelop><Body><CrearOrdenesPedidoResult>${99000000 + i}</CrearOrdenesPedidoResult></Body></Envelop>`
-                        })
-                    } as any;
-                } else {
-                    res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: orderUrl,
-                            action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                            version: '1.1',
-                            body: xml,
-                            timeoutMs: 30000,
-                        }),
-                    });
+                let fetchError = null;
+                const MAX_RETRIES = 2;
+
+                for (let retry = 0; retry <= MAX_RETRIES; retry++) {
+                    try {
+                        if (isDryRun) {
+                            await new Promise(r => setTimeout(r, 250)); // delay de simulacion
+                            res = {
+                                json: async () => ({
+                                    ok: true,
+                                    status: 200,
+                                    text: `<Envelop><Body><CrearOrdenesPedidoResult>${99000000 + i}</CrearOrdenesPedidoResult></Body></Envelop>`
+                                })
+                            } as any;
+                        } else {
+                            res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    url: orderUrl,
+                                    action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                                    version: '1.1',
+                                    body: xml,
+                                    timeoutMs: 30000,
+                                }),
+                            });
+                        }
+                        
+                        // Si recibimos un Bad Gateway, Gateway Timeout o Service Unavailable, provocamos reintento.
+                        // (Nota: HTTP 500 se considera SOAP Fault en WCF, así que NO lo reintentamos, es un error lógico de UNIGIS).
+                        if (res.status === 502 || res.status === 503 || res.status === 504) {
+                            throw new Error(`Error temporal de infraestructura (HTTP ${res.status})`);
+                        }
+                        
+                        fetchError = null;
+                        break; // Request exitoso a nivel HTTP
+                    } catch (err: any) {
+                        fetchError = err;
+                        if (retry < MAX_RETRIES) {
+                            logs.push({ ref, status: 'warn', msg: `Fallo de red (${err.message}). Auto-retry ${retry+1}/${MAX_RETRIES} en 2s...` });
+                            setProgressLogs([...logs]);
+                            await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, retry))); // exponential backoff
+                        }
+                    }
+                }
+
+                if (fetchError) {
+                    throw new Error(`Fallaron ${MAX_RETRIES + 1} intentos: ${fetchError.message}`);
                 }
 
                 const response = await res.json();
@@ -414,6 +442,7 @@ function UnigisOrderCreatorPageInner() {
                 if (isValid) {
                     success++;
                     setRowStatus(index, 'success', undefined, lastRawResponse);
+                    updateRowData(index, '_UnigisId', resultText); // #78: Capture UNIGIS ID natively into row!
                     logs.push({ ref, status: 'success', msg: `Creado (ID: ${resultText || 'OK'})` });
                 } else {
                     let msg = '';
@@ -463,7 +492,7 @@ function UnigisOrderCreatorPageInner() {
 
         setProgressComplete(true);
         setIsSending(false);
-    }, [mapping, orderUrl, buildContext, setRowStatus, setIsSending, setSendCancelled]);
+    }, [mapping, orderUrl, buildContext, setRowStatus, updateRowData, setIsSending, setSendCancelled]);
 
     // ─── Send all / selected / retry ───────────────────────────────────
     const handleSendAll = useCallback(() => {
