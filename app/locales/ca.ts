@@ -1,6 +1,12 @@
 import { Dictionary } from './en';
 
 export const ca: Dictionary = {
+    inbox: {
+        title: "Bústia de Captura",
+        empty: "No hi ha correus pendents",
+        converted: "Tasca creada correctament",
+        discarded: "Correu descartat"
+    },
     common: {
         welcome: "Benvingut",
         search: "Cercar",
@@ -50,6 +56,7 @@ export const ca: Dictionary = {
         followUp: "Seguiment",
         projects: "Projectes",
         "task-manager": "Gestor de Tasques (ABM)",
+        inbox: "Bústia Outlook",
         "sprint-planning": "Planificació de Sprints",
         allTasks: "Totes les Tasques (Tauler)",
         admin: "Administració",

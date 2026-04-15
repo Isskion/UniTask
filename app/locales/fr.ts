@@ -1,6 +1,12 @@
 import { Dictionary } from './en';
 
 export const fr: Dictionary = {
+    inbox: {
+        title: "Boîte de capture",
+        empty: "Aucun e-mail en attente",
+        converted: "Tâche créée avec succès",
+        discarded: "E-mail rejeté"
+    },
     common: {
         welcome: "Bienvenue",
         search: "Rechercher",
@@ -50,6 +56,7 @@ export const fr: Dictionary = {
         followUp: "Suivi",
         projects: "Projets",
         "task-manager": "Gestionnaire de tâches (ABM)",
+        inbox: "Boîte Outlook",
         "sprint-planning": "Planification de sprint",
         allTasks: "Toutes les tâches (Tableau)",
         admin: "Administration",
