@@ -265,6 +265,7 @@ function UnigisOrderCreatorPageInner() {
 
     // ─── Send batch ─────────────────────────────────────────────────────
     const sendBatch = useCallback(async (batch: { row: any; index: number }[]) => {
+        const isDryRun = useAppStore.getState().isDryRun;
         const total = batch.length;
         setProgressTotal(total);
         setProgressCurrent(0);
@@ -280,6 +281,46 @@ function UnigisOrderCreatorPageInner() {
         let errors = 0;
         const logs: ProgressLog[] = [];
         const ctx = buildContext();
+
+        // ── #40: Ping de salud Pre-envío ─────────────────────────────────────
+        if (!isDryRun) {
+            try {
+                logs.push({ ref: 'UNIGIS', status: 'info', msg: 'Verificando conectividad (Ping de Salud)...' });
+                setProgressLogs([...logs]);
+                const pingRes = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: orderUrl,
+                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                        version: '1.1',
+                        body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>',
+                        timeoutMs: 10000,
+                    }),
+                });
+                
+                if (pingRes.status === 404) {
+                    throw new Error('Servidor o URL no existe (HTTP 404)');
+                }
+                const pingData = await pingRes.json();
+                if (!pingData.ok && pingData.status !== 500) {
+                     // 500 means SOAP Fault which means the service is actually UP but complaining about empty body. That's a good sign!
+                    throw new Error(`Servidor inaccesible: HTTP ${pingData.status}`);
+                }
+                logs.push({ ref: 'UNIGIS', status: 'success', msg: 'Conexión a servidor exitosa.' });
+                setProgressLogs([...logs]);
+            } catch(e: any) {
+                logs.push({ ref: 'UNIGIS', status: 'error', msg: `Abortado por falta de conectividad: ${e.message}` });
+                setProgressError(batch.length);
+                setProgressLogs([...logs]);
+                setIsSending(false);
+                setProgressComplete(true);
+                return;
+            }
+        } else {
+             logs.push({ ref: 'SIMULACIÓN', status: 'warn', msg: 'Iniciando Modo Simulación (Dry Run). No se enviarán datos.' });
+             setProgressLogs([...logs]);
+        }
 
         for (let i = 0; i < batch.length; i++) {
             if (useAppStore.getState().sendCancelled) {
@@ -304,18 +345,30 @@ function UnigisOrderCreatorPageInner() {
                 logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
                 setProgressLogs([...logs]);
 
-                // ── 2. Llamada SOAP via Cloud Function ───────────────────────
-                const res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: orderUrl,
-                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                        version: '1.1',
-                        body: xml,
-                        timeoutMs: 30000,
-                    }),
-                });
+                // ── 2. Llamada SOAP via Cloud Function (o Mock si es Dry Run) ─
+                let res;
+                if (isDryRun) {
+                    await new Promise(r => setTimeout(r, 250)); // delay de simulacion
+                    res = {
+                        json: async () => ({
+                            ok: true,
+                            status: 200,
+                            text: `<Envelop><Body><CrearOrdenesPedidoResult>SIMULAC-${Date.now()}</CrearOrdenesPedidoResult></Body></Envelop>`
+                        })
+                    } as any;
+                } else {
+                    res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: orderUrl,
+                            action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                            version: '1.1',
+                            body: xml,
+                            timeoutMs: 30000,
+                        }),
+                    });
+                }
 
                 const response = await res.json();
                 lastRawResponse = response.text || '';

@@ -177,6 +177,18 @@ export default function Header({
 
                 <div className="w-px h-5 bg-white/10" />
 
+                {/* #72: Modo Simulación Toggle */}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800/50 rounded-lg border border-white/5 mr-1" title="Modo Simulación (Dry Run)">
+                    <label className="flex items-center cursor-pointer select-none">
+                        <div className="relative">
+                            <input type="checkbox" className="sr-only" checked={useAppStore.getState().isDryRun} onChange={(e) => useAppStore.getState().setIsDryRun(e.target.checked)} />
+                            <div className={`block w-6 h-3.5 rounded-full transition-colors ${useAppStore((s) => s.isDryRun) ? 'bg-amber-500' : 'bg-slate-600'}`}></div>
+                            <div className={`dot absolute left-[2px] top-[2px] bg-white w-2.5 h-2.5 rounded-full transition-transform ${useAppStore((s) => s.isDryRun) ? 'transform translate-x-2.5' : ''}`}></div>
+                        </div>
+                        <span className={`ml-1.5 text-[9px] font-bold uppercase tracking-wider ${useAppStore((s) => s.isDryRun) ? 'text-amber-400' : 'text-slate-500'}`}>Simulador</span>
+                    </label>
+                </div>
+
                 <div className="flex items-center gap-1">
                     <button
                         className="px-2.5 py-1 text-[11px] font-semibold bg-white/10 text-white/90 rounded-lg hover:bg-white/20 transition-all border border-white/10 disabled:opacity-30"

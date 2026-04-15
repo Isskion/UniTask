@@ -69,6 +69,7 @@ export interface AppState {
     isSending: boolean;
     sendCancelled: boolean;
     highlightedField: string;
+    isDryRun: boolean; // #72: Modo Simulación
 
     // --- Actions ---
     setToken: (token: string | null) => void;
@@ -98,6 +99,7 @@ export interface AppState {
     setRowStatus: (index: number, status: RowStatus, error?: string, serverResponse?: string) => void;
     setIsSending: (v: boolean) => void;
     setSendCancelled: (v: boolean) => void;
+    setIsDryRun: (v: boolean) => void;
     navigateToField: (fieldPath: string) => void;
 
     // Bulk updates
@@ -156,6 +158,7 @@ export const useAppStore = create<AppState>((set) => ({
     isSending: false,
     sendCancelled: false,
     highlightedField: '',
+    isDryRun: false,
 
     // --- Actions ---
     setToken: (token) => set({ token }),
@@ -215,6 +218,7 @@ export const useAppStore = create<AppState>((set) => ({
         }),
     setIsSending: (isSending) => set({ isSending }),
     setSendCancelled: (sendCancelled) => set({ sendCancelled }),
+    setIsDryRun: (isDryRun) => set({ isDryRun }),
     navigateToField: (fieldPath) => {
         for (const [tabId, fields] of Object.entries(FIELD_GROUPS) as [string, string[]][]) {
             if (fields.includes(fieldPath)) {

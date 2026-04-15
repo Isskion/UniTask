@@ -32,8 +32,17 @@ const TableRow = React.memo(function TableRow({
             case 'sending': return <span className="text-[10px] animate-spin-slow">⏳</span>;
             case 'success': return <span className="text-[10px]">✅</span>;
             case 'error': return <span className="text-[10px]" title={String(row._error || '')}>❌</span>;
-            default: return <span className="text-[8px] text-slate-300">⚪</span>;
+            default: return null;
         }
+    };
+
+    // #23: Traffic light
+    const validationLight = () => {
+        if (!row._validationInfo) return <span className="w-1.5 h-1.5 rounded-full bg-slate-200"></span>;
+        const info = row._validationInfo as any;
+        if (info.isValid && info.warnings === 0) return <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.8)]" title="Fila válida"></span>;
+        if (info.isValid && info.warnings > 0) return <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_rgba(251,191,36,0.8)]" title={`${info.warnings} advertencias`}></span>;
+        return <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_4px_rgba(239,68,68,0.8)] animate-pulse" title={`${info.errors} errores`}></span>;
     };
 
     const isGrouped = row._grouped === true;
@@ -59,7 +68,8 @@ const TableRow = React.memo(function TableRow({
                     onChange={() => onToggle(index)}
                 />
             </td>
-            <td className="w-8 px-1 py-0.5 text-center">
+            <td className="w-8 px-1 py-0.5 text-center flex items-center justify-center gap-1 my-1">
+                {validationLight()}
                 {statusIcon()}
                 {/* #18: Grouping badge */}
                 {isGrouped && (
@@ -80,6 +90,8 @@ const TableRow = React.memo(function TableRow({
         </tr>
     );
 });
+
+import { validateOrderRow, buildDuplicateMap } from '../../utils/validation';
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
@@ -113,16 +125,34 @@ export default function MasterTable() {
         return map;
     }, [mapping]);
 
-    // Filtered rows
+    // #23, #32, #53: Inline row validation
+    const duplicateMap = useMemo(() => buildDuplicateMap(rows as Record<string, string>[], mapping), [rows, mapping]);
+
+    // Filtered rows with injected validation info
     const filteredRows = useMemo(() => {
-        if (!filterQuery.trim()) return rows.map((r, i) => ({ row: r, originalIndex: i }));
+        let baseRows = rows.map((r, i) => {
+            const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
+            const errors = validation.issues.filter(iss => iss.severity === 'error').length;
+            const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
+            
+            // We mutate a shallow copy or inject directly if allowed. To avoid React state mutation issues, we clone IF needed, 
+            // but we can just pass an enriched object to the view logic.
+            return {
+                originalIndex: i,
+                row: {
+                    ...r,
+                    _validationInfo: { isValid: validation.isValid, errors, warnings }
+                }
+            };
+        });
+
+        if (!filterQuery.trim()) return baseRows;
+        
         const q = filterQuery.toLowerCase();
-        return rows
-            .map((r, i) => ({ row: r, originalIndex: i }))
-            .filter(({ row }) =>
-                headers.some((h) => String(row[h] ?? '').toLowerCase().includes(q))
-            );
-    }, [rows, headers, filterQuery]);
+        return baseRows.filter(({ row }) =>
+            headers.some((h) => String((row as Record<string, any>)[h] ?? '').toLowerCase().includes(q))
+        );
+    }, [rows, headers, filterQuery, mapping, duplicateMap]);
 
     const handleRowClick = useCallback((index: number, e: React.MouseEvent) => {
         if ((e.target as HTMLElement).tagName === 'INPUT') return;

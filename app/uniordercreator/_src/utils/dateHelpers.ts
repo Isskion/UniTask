@@ -124,3 +124,54 @@ export function normalizeDate(value: string | number): string {
     if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
     return str;
 }
+
+/**
+ * Validador de Fechas
+ * Comprueba robustamente si un valor se puede interpretar como una fecha válida,
+ * o si es una fecha sospechosa/atípica (ej: Año 1900, Año 2100).
+ */
+
+export function isValidDateString(val: string): boolean {
+    if (!val || val.trim() === '') return false;
+
+    // Reject common bad strings
+    if (val === '0' || val.toLowerCase() === 'null' || val.toLowerCase() === 'undefined') return false;
+
+    const d = new Date(val);
+    if (isNaN(d.getTime())) {
+        // Try other common formats if JS Date parse fails
+        // DD/MM/YYYY
+        const dmyMatch = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (dmyMatch) {
+            const [, dStr, mStr, yStr] = dmyMatch;
+            const parsed = new Date(Number(yStr), Number(mStr) - 1, Number(dStr));
+            return !isNaN(parsed.getTime());
+        }
+        return false;
+    }
+    return true;
+}
+
+export function isSuspiciousDate(val: string): { suspicious: boolean; reason?: string } {
+    if (!val || val.trim() === '') return { suspicious: false };
+
+    let d = new Date(val);
+    if (isNaN(d.getTime())) {
+        const dmyMatch = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (dmyMatch) {
+            const [, dStr, mStr, yStr] = dmyMatch;
+            d = new Date(Number(yStr), Number(mStr) - 1, Number(dStr));
+        } else {
+             return { suspicious: true, reason: 'Formato de fecha irreconocible' };
+        }
+    }
+
+    const year = d.getFullYear();
+    // Excel base date errors or defaults usually end up in 1899 or 1900
+    if (year <= 1900) return { suspicious: true, reason: `Año muy antiguo (${year}) - Probable error de origen` };
+    
+    // Far future error
+    if (year >= 2100) return { suspicious: true, reason: `Año muy futuro (${year}) - Probable error de origen` };
+
+    return { suspicious: false };
+}

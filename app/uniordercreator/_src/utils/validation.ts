@@ -1,4 +1,5 @@
 import { REQUIRED_FIELDS } from '../data/schema';
+import { isSuspiciousDate, isValidDateString } from './dateHelpers';
 
 export interface ValidationIssue {
     field: string;
@@ -20,16 +21,37 @@ export interface ValidationReport {
 }
 
 /**
+ * Helper to pre-calculate duplicates
+ */
+export function buildDuplicateMap(rows: Record<string, string>[], mapping: Record<string, string>) {
+    const counts = new Map<string, number>();
+    const refCol = mapping['Orden.RefDocumento'];
+    if (!refCol) return counts;
+
+    for (const r of rows) {
+        const val = r[refCol];
+        if (val) {
+            const key = String(val).trim().toLowerCase();
+            counts.set(key, (counts.get(key) || 0) + 1);
+        }
+    }
+    return counts;
+}
+
+/**
  * Validate a single order row against the mapping.
  * Checks that required fields are mapped and have data.
+ * Checks anomalies, duplicates and date formats.
  */
 export function validateOrderRow(
     row: Record<string, string>,
     rowIndex: number,
     mapping: Record<string, string>,
+    duplicateMap?: Map<string, number>
 ): RowValidationResult {
     const issues: ValidationIssue[] = [];
 
+    // 1. Campos requeridos
     for (const reqField of REQUIRED_FIELDS) {
         const excelCol = mapping[reqField];
         if (!excelCol) {
@@ -50,6 +72,65 @@ export function validateOrderRow(
         }
     }
 
+    // 2. Duplicados (RefDocumento) - #32
+    if (duplicateMap) {
+        const refCol = mapping['Orden.RefDocumento'];
+        if (refCol) {
+            const val = row[refCol];
+            if (val) {
+                const key = String(val).trim().toLowerCase();
+                const count = duplicateMap.get(key) || 0;
+                if (count > 1) {
+                    issues.push({
+                        field: 'Orden.RefDocumento',
+                        message: `RefDocumento duplicado en el archivo (${count} veces encontradas)`,
+                        severity: 'error' // o warning dependiendo de la logica del negocio
+                    });
+                }
+            }
+        }
+    }
+
+    // 3. Anomalías y Formatos - #33, #53
+    for (const [field, excelCol] of Object.entries(mapping)) {
+        if (!excelCol || excelCol === '__BOOL_TRUE__' || excelCol === '__BOOL_FALSE__') continue;
+        
+        const valueStr = String(row[excelCol] ?? '').trim();
+        if (!valueStr) continue;
+
+        // Fechas
+        if (field.includes('Fecha')) {
+            if (!isValidDateString(valueStr)) {
+                issues.push({ field, message: `Formato de fecha inválido en ${excelCol}: "${valueStr}"`, severity: 'error' });
+            } else {
+                const sus = isSuspiciousDate(valueStr);
+                if (sus.suspicious) {
+                    issues.push({ field, message: `Fecha sospechosa en ${excelCol}: ${sus.reason}`, severity: 'warning' });
+                }
+            }
+        }
+
+        // Coordenadas (Latitud)
+        if (field.endsWith('.Latitud') || field.endsWith('.Latitud2')) {
+            const lat = parseFloat(valueStr);
+            if (isNaN(lat) || lat < -90 || lat > 90) {
+                issues.push({ field, message: `Anomalía: Latitud fuera de rango en ${excelCol} (${valueStr})`, severity: 'error' });
+            } else if (lat === 0) {
+                issues.push({ field, message: `Coordenada 0,0 suele ser inválida (${excelCol})`, severity: 'warning' });
+            }
+        }
+        
+        // Coordenadas (Longitud)
+        if (field.endsWith('.Longitud') || field.endsWith('.Longitud2')) {
+            const lng = parseFloat(valueStr);
+            if (isNaN(lng) || lng < -180 || lng > 180) {
+                issues.push({ field, message: `Anomalía: Longitud fuera de rango en ${excelCol} (${valueStr})`, severity: 'error' });
+            } else if (lng === 0) {
+                issues.push({ field, message: `Coordenada 0,0 suele ser inválida (${excelCol})`, severity: 'warning' });
+            }
+        }
+    }
+
     return {
         rowIndex,
         issues,
@@ -64,7 +145,8 @@ export function generateValidationReport(
     rows: Record<string, string>[],
     mapping: Record<string, string>,
 ): ValidationReport {
-    const results = rows.map((row, idx) => validateOrderRow(row, idx, mapping));
+    const dupMap = buildDuplicateMap(rows, mapping);
+    const results = rows.map((row, idx) => validateOrderRow(row, idx, mapping, dupMap));
     const validRows = results.filter((r) => r.isValid).length;
 
     return {
