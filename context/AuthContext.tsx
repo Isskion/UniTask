@@ -129,9 +129,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     const tenantMismatch = String(data.tenantId) !== String(claims.tenantId);
 
                     // [FIX] syncStale alone should NOT trigger a refresh if role and tenant already match.
-                    // The syncId is a signal that claims *might* have changed, but if the actual data
-                    // (roleLevel, tenantId) already matches, there's nothing to refresh.
-                    // This prevents the infinite loop where syncId keeps advancing but the token can never catch up.
                     const needsRefresh = roleMismatch || tenantMismatch;
 
                     if (syncStale && !needsRefresh) {
@@ -153,25 +150,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             lastRefreshTimeRef.current = now;
                         }
 
-                        if (refreshCountRef.current > 3) {
-                            console.error("[AuthContext] 🛡️ Refresh loop detected! (More than 3 attempts in 60s). Blocking further refreshes.");
-                            // [STABILITY] If in a loop, DON'T nullify context. Allow app to stay in current state.
-                            if (!viewContext) {
-                                // Fallback: Build context from current claims to avoid infinite loader
-                                setViewContext({
-                                    activeRole: (Number(claims.roleLevel) || 0) as RoleLevel,
-                                    activeTenantId: (claims.tenantId as string) || "unknown",
-                                    isMasquerading: false
-                                });
-                            }
+                        if (refreshCountRef.current > 2) {
+                            console.warn("[AuthContext] 🛡️ Refresh loop detected! Using Firestore profile as source of truth instead of looping.");
+                            // [FIX] Instead of blocking/nullifying, use Firestore data directly.
+                            // The Firestore profile IS the source of truth — the token claims
+                            // may be stale because the Cloud Function hasn't synced them yet.
+                            const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
+                            const firestoreTenant = String(data.tenantId) || "unknown";
+
+                            setIdentity({
+                                uid: currentUser.uid,
+                                email: currentUser.email,
+                                realRole: firestoreRole,
+                                realTenantId: firestoreTenant
+                            });
+
+                            setViewContext(prev => prev?.isMasquerading ? prev : {
+                                activeRole: firestoreRole,
+                                activeTenantId: firestoreTenant,
+                                isMasquerading: false
+                            });
+
                             setLoading(false);
                             return;
                         }
 
                         console.log(`[AuthContext] ⚠️ Profile mismatch detected (Refreshes in window: ${refreshCountRef.current}). Scheduling forced token refresh...`);
 
-                        // [FIX] Block UI ONLY for the legit refresh window
-                        setViewContext(null);
+                        // [FIX] Do NOT set viewContext to null — keep the app usable during refresh.
+                        // Only block on the very first load (when viewContext is already null).
 
                         // Debounce: Wait 3s (increased for latency) to allow Cloud Functions to settle propagation
                         if (refreshTimer) clearTimeout(refreshTimer);
@@ -183,33 +190,63 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                 claims = tokenResult.claims;
                                 console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
 
-                                // Re-evaluate identity with NEW token
-                                // [Harden] Mapped roleLevel fallback for legacy claims
-                                let newRole = Number(claims.roleLevel);
-                                if (isNaN(newRole) && claims.role) {
-                                    console.log("[AuthContext] ⚠️ claims.roleLevel missing, falling back to legacy claims.role mapping.");
-                                    newRole = getRoleLevel(claims.role as string);
+                                // Check if mismatch is STILL present after refresh
+                                const stillMismatched = Number(data.roleLevel) !== Number(claims.roleLevel) ||
+                                    String(data.tenantId) !== String(claims.tenantId);
+
+                                if (stillMismatched) {
+                                    // Claims didn't update — Cloud Function hasn't propagated yet.
+                                    // Use Firestore profile directly as source of truth.
+                                    console.warn("[AuthContext] ⚠️ Token claims still mismatched after refresh. Using Firestore profile values.");
+                                    const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
+                                    const firestoreTenant = String(data.tenantId) || "unknown";
+
+                                    setIdentity({
+                                        uid: currentUser.uid,
+                                        email: currentUser.email,
+                                        realRole: firestoreRole,
+                                        realTenantId: firestoreTenant
+                                    });
+                                    setViewContext(prev => prev?.isMasquerading ? prev : {
+                                        activeRole: firestoreRole,
+                                        activeTenantId: firestoreTenant,
+                                        isMasquerading: false
+                                    });
+                                } else {
+                                    // Re-evaluate identity with NEW token
+                                    let newRole = Number(claims.roleLevel);
+                                    if (isNaN(newRole) && claims.role) {
+                                        console.log("[AuthContext] ⚠️ claims.roleLevel missing, falling back to legacy claims.role mapping.");
+                                        newRole = getRoleLevel(claims.role as string);
+                                    }
+                                    newRole = (newRole || 0) as RoleLevel;
+                                    const newTenant = (claims.tenantId as string) || "unknown";
+
+                                    setIdentity({
+                                        uid: currentUser.uid,
+                                        email: currentUser.email,
+                                        realRole: newRole,
+                                        realTenantId: newTenant
+                                    });
+                                    setViewContext(prev => prev?.isMasquerading ? prev : {
+                                        activeRole: newRole,
+                                        activeTenantId: newTenant,
+                                        isMasquerading: false
+                                    });
                                 }
-                                newRole = (newRole || 0) as RoleLevel;
 
-                                const newTenant = (claims.tenantId as string) || "unknown"; // "unknown" maps to DENY in rules
-
-                                setIdentity({
-                                    uid: currentUser.uid,
-                                    email: currentUser.email,
-                                    realRole: newRole,
-                                    realTenantId: newTenant
-                                });
-
-                                // Reset View Context to match reality
-                                setViewContext(prev => prev?.isMasquerading ? prev : {
-                                    activeRole: newRole,
-                                    activeTenantId: newTenant,
-                                    isMasquerading: false
-                                });
-
+                                setLoading(false);
                             } catch (e) {
                                 console.error("[AuthContext] Token refresh failed:", e);
+                                // Fallback: use Firestore profile
+                                const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
+                                const firestoreTenant = String(data.tenantId) || "unknown";
+                                setViewContext(prev => prev?.isMasquerading ? prev : {
+                                    activeRole: firestoreRole,
+                                    activeTenantId: firestoreTenant,
+                                    isMasquerading: false
+                                });
+                                setLoading(false);
                             }
                         }, 3000); // 3 seconds total wait
                     } else {
