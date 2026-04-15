@@ -236,6 +236,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.error(`[AuthContext] ⚠️ Initial check: UID ${currentUser.uid} has no profile. Restricting session...`);
                         setIdentity(prev => prev ? { ...prev, realRole: 0 as RoleLevel, realTenantId: "unknown" } : null);
                         setViewContext(null);
+                        setLoading(false);
                         return;
                     }
                 }
@@ -247,6 +248,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         console.error(`[AuthContext] ⚠️ Initial check: User profile ${currentUser.uid} has invalid tenantId: ${profileData?.tenantId}. Restricting UI.`);
                         setIdentity(prev => prev ? { ...prev, realTenantId: "unknown" } : null);
                         setViewContext(null);
+                        setLoading(false);
                         return;
                     }
                 }
@@ -544,7 +546,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         try {
             await signInWithEmailAndPassword(auth, e, p);
         } catch (error: any) {
-            console.error("[AuthContext] loginWithEmail error:", error);
+            const currentProjectId = auth.app.options.projectId;
+            console.error("[AuthContext] loginWithEmail error:", {
+                code: error.code,
+                message: error.message,
+                projectId: currentProjectId,
+                env: process.env.NODE_ENV
+            });
+            
+            if (error.code === 'auth/wrong-password') {
+                console.warn(`[AuthContext] 🛡️ AUTH FAILED: Check if your local project matches production. CURRENT PROJECT: ${currentProjectId}`);
+            }
+
             if (error.code === 'auth/network-request-failed' || error.message?.includes('404')) {
                 console.error("[AuthContext] 🚨 404 or Network failure detected during sign-in. Check .env.local for quotes or API key validity.");
             }

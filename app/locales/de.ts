@@ -609,5 +609,10 @@ export const de: Dictionary = {
             import: "Massenimport",
             system: "Systemautomatisierung"
         }
+    },
+    sprint_management: {
+        title: "Sprint-Management",
+        cycles: "Ausführungszyklen",
+        simulator: "Versprechenssimulation"
     }
 };

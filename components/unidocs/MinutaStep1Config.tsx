@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UniDocsTemplate, UniDocsMinuta, UniLeakNote } from "@/types/unidocs";
-import { Loader2, GripVertical, ChevronRight, CheckSquare, Square } from "lucide-react";
+import { Loader2, GripVertical, ChevronRight, CheckSquare, Square, FileText, FileType, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MinutaStep1ConfigProps {
@@ -147,37 +147,89 @@ export default function MinutaStep1Config({
                                 />
                             </div>
 
-                            {/* Cover template */}
+                            {/* Body template Section */}
                             <div className="mb-4">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Plantilla de portada</label>
-                                <select
-                                    value={minuta.coverTemplateId ?? ""}
-                                    onChange={e => onChange({ coverTemplateId: e.target.value || null })}
-                                    className="w-full mt-1 px-3 py-2 bg-secondary/50 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary"
-                                >
-                                    <option value="">— Sin portada —</option>
-                                    {coverTemplates.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">1. Plantilla de Cuerpo *</label>
+                                    <span className="text-[10px] text-primary font-bold">OBLIGATORIO</span>
+                                </div>
+                                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                    {bodyTemplates.map(t => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => onChange({ bodyTemplateId: t.id })}
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all",
+                                                minuta.bodyTemplateId === t.id
+                                                    ? "border-primary bg-primary/5 shadow-sm"
+                                                    : "border-border bg-card hover:border-primary/40"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                                                    minuta.bodyTemplateId === t.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                                                )}>
+                                                    <FileText className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-sm font-bold truncate">{t.name}</span>
+                                            </div>
+                                            {minuta.bodyTemplateId === t.id && <Check className="w-4 h-4 text-primary" />}
+                                        </button>
                                     ))}
-                                </select>
-                                {coverTemplates.length === 0 && (
-                                    <p className="text-[10px] text-muted-foreground mt-1">Crea plantillas de portada en UniDocs → Ajustes</p>
-                                )}
+                                    {bodyTemplates.length === 0 && (
+                                        <div className="p-4 text-center border border-dashed rounded-xl">
+                                            <p className="text-xs text-muted-foreground">No hay plantillas de cuerpo.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            {/* Body template */}
+                            {/* Cover template Section */}
                             <div className="mb-4">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Plantilla de cuerpo *</label>
-                                <select
-                                    value={minuta.bodyTemplateId}
-                                    onChange={e => onChange({ bodyTemplateId: e.target.value })}
-                                    className="w-full mt-1 px-3 py-2 bg-secondary/50 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary"
-                                >
-                                    <option value="">— Selecciona una plantilla —</option>
-                                    {bodyTemplates.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name}</option>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">2. Plantilla de Portada</label>
+                                    {minuta.coverTemplateId ? (
+                                        <button 
+                                            onClick={() => onChange({ coverTemplateId: null })}
+                                            className="text-[10px] text-destructive hover:underline font-bold"
+                                        >
+                                            QUITAR PORTADA
+                                        </button>
+                                    ) : (
+                                        <span className="text-[10px] text-muted-foreground font-medium">OPCIONAL</span>
+                                    )}
+                                </div>
+                                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                    {coverTemplates.map(t => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => onChange({ coverTemplateId: t.id })}
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all",
+                                                minuta.coverTemplateId === t.id
+                                                    ? "border-primary bg-primary/5 shadow-sm"
+                                                    : "border-border bg-card hover:border-primary/40"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                                                    minuta.coverTemplateId === t.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                                                )}>
+                                                    <FileType className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-sm font-bold truncate">{t.name}</span>
+                                            </div>
+                                            {minuta.coverTemplateId === t.id && <Check className="w-4 h-4 text-primary" />}
+                                        </button>
                                     ))}
-                                </select>
+                                    {coverTemplates.length === 0 && (
+                                        <div className="p-4 text-center border border-dashed rounded-xl">
+                                            <p className="text-xs text-muted-foreground">No hay plantillas de portada.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Page break toggle */}

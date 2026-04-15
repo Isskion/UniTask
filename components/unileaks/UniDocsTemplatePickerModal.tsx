@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { X, FileText, Loader2, Printer, Download, ArrowLeft } from "lucide-react";
+import { X, FileText, Loader2, Printer, Download, ArrowLeft, Check, FileType } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { UniDocsTemplate } from "@/types/unidocs";
 import { buildPrintHtml, buildWordHtml } from "@/lib/unidocs-print";
 
@@ -34,6 +35,10 @@ export default function UniDocsTemplatePickerModal({
     // Preview state — blob URL avoids iframe sandbox issues with print()
     const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
     const [previewTemplate, setPreviewTemplate] = useState<UniDocsTemplate | null>(null);
+    const [previewCoverTemplate, setPreviewCoverTemplate] = useState<UniDocsTemplate | null>(null);
+    const [projectData, setProjectData] = useState<any>(null);
+    const [selectedBodyId, setSelectedBodyId] = useState<string | null>(null);
+    const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
@@ -46,12 +51,31 @@ export default function UniDocsTemplatePickerModal({
             try {
                 const q = query(collection(db, "unidocs_templates"), where("tenantId", "==", effectiveTenantId));
                 const snap = await getDocs(q);
-                if (isMounted) setTemplates(snap.docs.map(d => ({ id: d.id, ...d.data() } as UniDocsTemplate)));
+                if (isMounted) {
+                    const allTemplates = snap.docs.map(d => ({ id: d.id, ...d.data() } as UniDocsTemplate));
+                    setTemplates(allTemplates);
+                    
+                    // Pre-select first body template
+                    const firstBody = allTemplates.find(t => (t.templateType ?? 'body') === 'body');
+                    if (firstBody) setSelectedBodyId(firstBody.id);
+                }
             } catch (e) {
                 console.error("[UniDocs] Error loading templates:", e);
                 if (isMounted) setLoadError("No se pudieron cargar las plantillas.");
             } finally {
                 if (isMounted) setLoading(false);
+            }
+        };
+
+        const fetchProjectDetails = async () => {
+            if (!projectId) return;
+            try {
+                const projectDoc = await getDoc(doc(db, "projects", projectId));
+                if (isMounted && projectDoc.exists()) {
+                    setProjectData(projectDoc.data());
+                }
+            } catch (err) {
+                console.error("Error fetching project details:", err);
             }
         };
 
@@ -94,24 +118,55 @@ export default function UniDocsTemplatePickerModal({
         };
 
         fetchTemplates();
+        fetchProjectDetails();
         fetchTenantLogo();
         fetchClientLogo();
         return () => { isMounted = false; };
     }, [effectiveTenantId, projectId]);
 
-    const handlePreview = (template: UniDocsTemplate) => {
-        const html = buildPrintHtml(template, noteTitle, noteHtml, tenantLogo, clientLogo);
+    const getMinutaContext = () => {
+        const today = new Date().toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" });
+        return {
+            minutaTitle: noteTitle,
+            meetingDate: today,
+            projectName: projectData?.name || "",
+            clientName: projectData?.clientName || "",
+            projectCode: projectData?.code || "",
+            projectEmail: projectData?.email || undefined,
+            projectPhone: projectData?.phone || undefined,
+        };
+    };
+
+    const handlePreviewComposition = () => {
+        const bodyTemplate = templates.find(t => t.id === selectedBodyId);
+        if (!bodyTemplate) return;
+
+        const coverTemplate = templates.find(t => t.id === selectedCoverId);
+        const minutaContext = getMinutaContext();
+
+        const html = buildPrintHtml(
+            bodyTemplate,
+            noteTitle,
+            noteHtml,
+            tenantLogo,
+            clientLogo,
+            coverTemplate,
+            minutaContext
+        );
+
         const blob = new Blob([html], { type: 'text/html; charset=utf-8' });
         const url = URL.createObjectURL(blob);
         if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
         setPreviewBlobUrl(url);
-        setPreviewTemplate(template);
+        setPreviewTemplate(bodyTemplate);
+        setPreviewCoverTemplate(coverTemplate || null);
     };
 
     const closePreview = () => {
         if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
         setPreviewBlobUrl(null);
         setPreviewTemplate(null);
+        setPreviewCoverTemplate(null);
     };
 
     // Print triggered by user click — no auto-print, no loop.
@@ -121,7 +176,15 @@ export default function UniDocsTemplatePickerModal({
 
     const handleWordDownload = () => {
         if (!previewTemplate) return;
-        const wordHtml = buildWordHtml(previewTemplate, noteTitle, noteHtml, tenantLogo, clientLogo);
+        const wordHtml = buildWordHtml(
+            previewTemplate,
+            noteTitle,
+            noteHtml,
+            tenantLogo,
+            clientLogo,
+            previewCoverTemplate || undefined,
+            getMinutaContext()
+        );
         const blob = new Blob([wordHtml], { type: 'application/msword' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -183,6 +246,9 @@ export default function UniDocsTemplatePickerModal({
     // -----------------------------------------------------------------------
     // Template picker
     // -----------------------------------------------------------------------
+    const bodyTemplates = templates.filter(t => (t.templateType ?? 'body') === 'body');
+    const coverTemplates = templates.filter(t => t.templateType === 'cover');
+
     return (
         <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-background w-full max-w-2xl rounded-2xl flex flex-col shadow-2xl overflow-hidden ring-1 ring-white/10">
@@ -193,7 +259,7 @@ export default function UniDocsTemplatePickerModal({
                         </div>
                         <div>
                             <h2 className="text-xl font-bold">Generar Documento</h2>
-                            <p className="text-sm text-muted-foreground">Selecciona una plantilla para previsualizar</p>
+                            <p className="text-sm text-muted-foreground">Configura la composición del documento</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-muted rounded-full transition-colors">
@@ -201,7 +267,7 @@ export default function UniDocsTemplatePickerModal({
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 max-h-[60vh]">
+                <div className="flex-1 overflow-y-auto p-6 max-h-[60vh] space-y-8">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 grayscale opacity-50">
                             <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
@@ -214,40 +280,129 @@ export default function UniDocsTemplatePickerModal({
                                 Recargar
                             </button>
                         </div>
-                    ) : templates.length === 0 ? (
-                        <div className="text-center py-16 opacity-50">
-                            <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                            <p className="text-muted-foreground">No hay plantillas disponibles.</p>
-                            <p className="text-xs text-muted-foreground mt-2">Crea una desde el módulo UniDocs en Ajustes.</p>
-                        </div>
                     ) : (
-                        <div className="grid grid-cols-1 gap-4">
-                            {templates.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => handlePreview(t)}
-                                    className="group flex items-center justify-between p-5 bg-card border rounded-2xl hover:border-primary hover:bg-primary/5 transition-all text-left shadow-sm hover:shadow-md"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                            <FileText className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
+                        <>
+                            {/* Body Templates Section */}
+                            <section>
+                                <div className="flex items-center justify-between mb-3 px-1">
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">1. Plantilla de Cuerpo (Obligatorio)</h3>
+                                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">1 SELECCIONADA</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {bodyTemplates.map((t) => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setSelectedBodyId(t.id)}
+                                            className={cn(
+                                                "group flex items-center justify-between p-4 border rounded-xl transition-all text-left shadow-sm",
+                                                selectedBodyId === t.id 
+                                                    ? "bg-primary/5 border-primary ring-1 ring-primary/50" 
+                                                    : "bg-card hover:border-primary/40 hover:bg-primary/[0.02]"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                                    selectedBodyId === t.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                                                )}>
+                                                    <FileText className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm text-foreground">{t.name}</h3>
+                                                    <p className="text-xs text-muted-foreground line-clamp-1">{t.description || `${(t.blocks || []).length} bloques`}</p>
+                                                </div>
+                                            </div>
+                                            {selectedBodyId === t.id && (
+                                                <div className="bg-primary text-white p-1 rounded-full">
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {bodyTemplates.length === 0 && (
+                                        <div className="p-8 text-center bg-muted/30 rounded-xl border border-dashed">
+                                            <p className="text-sm text-muted-foreground">No hay plantillas de cuerpo disponibles.</p>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-foreground">{t.name}</h3>
-                                            <p className="text-sm text-muted-foreground">{t.description || `${(t.blocks || []).length} bloques`}</p>
+                                    )}
+                                </div>
+                            </section>
+
+                            {/* Cover Templates Section */}
+                            <section>
+                                <div className="flex items-center justify-between mb-3 px-1">
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">2. Plantilla de Portada (Opcional)</h3>
+                                    {selectedCoverId ? (
+                                        <button 
+                                            onClick={() => setSelectedCoverId(null)}
+                                            className="text-[10px] text-destructive hover:underline font-bold"
+                                        >
+                                            QUITAR PORTADA
+                                        </button>
+                                    ) : (
+                                        <span className="text-[10px] text-muted-foreground font-medium">OPCIONAL</span>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {coverTemplates.map((t) => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setSelectedCoverId(t.id)}
+                                            className={cn(
+                                                "group flex items-center justify-between p-4 border rounded-xl transition-all text-left shadow-sm",
+                                                selectedCoverId === t.id 
+                                                    ? "bg-primary/5 border-primary ring-1 ring-primary/50" 
+                                                    : "bg-card hover:border-primary/40 hover:bg-primary/[0.02]"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                                                    selectedCoverId === t.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+                                                )}>
+                                                    <FileType className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-sm text-foreground">{t.name}</h3>
+                                                    <p className="text-xs text-muted-foreground line-clamp-1">{t.description || "Portada de documento"}</p>
+                                                </div>
+                                            </div>
+                                            {selectedCoverId === t.id && (
+                                                <div className="bg-primary text-white p-1 rounded-full">
+                                                    <Check className="w-3.5 h-3.5" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {coverTemplates.length === 0 && (
+                                        <div className="p-8 text-center bg-muted/30 rounded-xl border border-dashed">
+                                            <p className="text-sm text-muted-foreground">No hay plantillas de portada disponibles.</p>
                                         </div>
-                                    </div>
-                                    <Printer className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                                </button>
-                            ))}
-                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </>
                     )}
                 </div>
 
-                <div className="p-4 border-t bg-muted/50 flex justify-end gap-3 shrink-0">
-                    <button onClick={onClose} className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold hover:bg-secondary/80 transition-all">
-                        Cerrar
-                    </button>
+                <div className="p-6 border-t bg-card flex items-center justify-between gap-3 shrink-0">
+                    <div className="hidden sm:block">
+                        <p className="text-xs text-muted-foreground">
+                            {selectedCoverId ? "Composición con portada seleccionada" : "Composición sin portada"}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button onClick={onClose} className="flex-1 sm:flex-none px-6 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-sm font-bold hover:bg-secondary/80 transition-all">
+                            Cancelar
+                        </button>
+                        <button 
+                            disabled={!selectedBodyId || loading}
+                            onClick={handlePreviewComposition}
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Printer className="w-4 h-4" />
+                            Previsualizar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

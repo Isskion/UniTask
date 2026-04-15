@@ -553,19 +553,12 @@ service cloud.firestore {
 
     // --- [NEW] UNIFLUX FLOWS ---
     match /uniflux_flows/{flowId} {
-      // Allow individual GET if authenticated (to support exists() checks on new drafts)
-      allow get: if isAuthenticated();
-      // Allow LISTING only within the user's tenant
-      allow list: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
-      
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
-      
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
-        // Must belong to the tenant
-        docTenantMatches(resource.data) && 
-        // Cannot change tenantId on update
-        (!('tenantId' in request.resource.data) || request.resource.data.tenantId == resource.data.tenantId)
+        // Allow updates by anyone in the tenant with level >= 60, or by the actual author (if we stored author). We use broad tenant write for now.
+        docTenantMatches(resource.data)
       );
       
       // Subcollection for published flow versions

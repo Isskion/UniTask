@@ -116,7 +116,9 @@ function buildCoverPageHtml(
         return `<div style="position:absolute;left:${bx}mm;top:${by}mm;width:${bw}mm;${sizeStyle}box-sizing:border-box;">${inner}</div>`;
     }).join('\n');
 
-    return `<div style="width:210mm;height:297mm;position:relative;page-break-after:always;overflow:hidden;">\n${blocksHtml}\n</div>`;
+    const maskHtml = `<div style="position:absolute;bottom:0;left:0;width:100%;height:40mm;background:white;z-index:9999;"></div>`;
+
+    return `<div style="width:210mm;height:297mm;position:relative;page-break-after:always;overflow:hidden;background:white;z-index:100;">\n${blocksHtml}\n${maskHtml}\n</div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,13 +139,9 @@ export function buildPrintHtml(
 
     const cuerpoBlock = blocks.find(b => b.type === 'cuerpo');
     const footerBlocks = blocks.filter(b => b.type === 'pie');
-    // When a cover template is present, logos must NOT repeat on interior pages —
-    // they live exclusively on the cover. Filter them from the repeating thead.
-    const LOGO_BLOCK_TYPES = ['logo_empresa', 'logo_cliente'];
     const headerBlocks = blocks.filter(b =>
         b.type !== 'cuerpo' &&
-        b.type !== 'pie' &&
-        !(coverTemplate && LOGO_BLOCK_TYPES.includes(b.type))
+        b.type !== 'pie'
     );
 
     // thead height = paper y where body starts (= cuerpo block's y coordinate)
@@ -159,6 +157,9 @@ export function buildPrintHtml(
     const cuerpoLeft = cuerpoBlock ? (cuerpoBlock.x ?? margins.left) : margins.left;
     const cuerpoWidth = cuerpoBlock ? (cuerpoBlock.width ?? (210 - margins.left - margins.right)) : (210 - margins.left - margins.right);
     const cuerpoRight = Math.max(0, 210 - cuerpoLeft - cuerpoWidth);
+
+    // Calculate the remaining space for the body to push footer to bottom
+    const bodySpace = A4_HEIGHT_MM - theadHeight - tfootHeight;
 
     // Cuerpo text style
     const cfg0 = cuerpoBlock?.config ?? {};
@@ -230,18 +231,32 @@ export function buildPrintHtml(
         .doc-body pre, .doc-body code { font-family: 'Courier New', monospace; background: #f5f5f5; }
         .doc-body pre { padding: 0.5em; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
         .doc-body section { page-break-inside: avoid; }
+
+        /* Robust Fixed Footer */
+        .fixed-footer-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 210mm;
+            z-index: 50;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     ${coverHtml}
+    
+    <!-- Robust Footer Layer -->
+    ${tfootHeight > 0 ? `<div class="fixed-footer-container" style="height:${tfootHeight}mm;">${footerHtml}</div>` : ''}
+
     <table class="doc-layout">
         <thead>
             <tr><td style="height:${theadHeight}mm;position:relative;">${headerHtml}</td></tr>
         </thead>
         <tbody>
-            <tr><td><div class="doc-body">${noteHtml}</div></td></tr>
+            <tr><td style="vertical-align:top;"><div class="doc-body">${noteHtml}</div></td></tr>
         </tbody>
-        ${tfootHeight > 0 ? `<tfoot><tr><td style="height:${tfootHeight}mm;position:relative;">${footerHtml}</td></tr></tfoot>` : ''}
+        ${tfootHeight > 0 ? `<tfoot><tr><td style="height:${tfootHeight}mm;"></td></tr></tfoot>` : ''}
     </table>
 </body>
 </html>`;
@@ -322,13 +337,10 @@ ${coverItems}
     }
 
     // --- Body header (repeating in Word via normal flow) ---
-    // When a cover template is present, logos must NOT repeat in the body header.
-    const LOGO_BLOCK_TYPES_WORD = ['logo_empresa', 'logo_cliente'];
     const headerContent = blocks
         .filter(b =>
             b.type !== 'cuerpo' &&
-            b.type !== 'pie' &&
-            !(coverTemplate && LOGO_BLOCK_TYPES_WORD.includes(b.type))
+            b.type !== 'pie'
         )
         .sort((a, b) => (a.y ?? 0) - (b.y ?? 0))
         .map(block => {

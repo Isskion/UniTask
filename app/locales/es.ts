@@ -1,6 +1,12 @@
 import { Dictionary } from './en';
 
 export const es: Dictionary = {
+    inbox: {
+        title: "Buzón de Capturas",
+        empty: "No hay correos pendientes",
+        converted: "Tarea creada correctamente",
+        discarded: "Correo descartado"
+    },
     common: {
         welcome: "Bienvenido",
         search: "Buscar",
@@ -50,6 +56,7 @@ export const es: Dictionary = {
         followUp: "Seguimiento",
         projects: "Proyectos",
         "task-manager": "Gestor de Tareas (ABM)",
+        inbox: "Buzón Outlook",
         "sprint-planning": "Planificación de Sprints",
         allTasks: "Todas las Tareas (Cuadro)",
         admin: "Administración",
@@ -609,5 +616,10 @@ export const es: Dictionary = {
             import: "Importación Masiva",
             system: "Automatización del Sistema"
         }
+    },
+    sprint_management: {
+        title: "Gestión de Sprint",
+        cycles: "Ciclos de Ejecución",
+        simulator: "Simulador de Promesa"
     }
 };

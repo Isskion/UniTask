@@ -609,5 +609,10 @@ export const ca: Dictionary = {
             import: "Importació Massiva",
             system: "Automatització del Sistema"
         }
+    },
+    sprint_management: {
+        title: "Gestió de Sprint",
+        cycles: "Cicles d'Execució",
+        simulator: "Simulació de Promesa"
     }
 };
