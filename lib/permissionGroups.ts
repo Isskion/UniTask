@@ -35,7 +35,14 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             knowledgeBase: true,
             sprintManagement: true,
             dispoPlan: true,
-            unavailabilityRegistry: true
+            unavailabilityRegistry: true,
+            unileaks: true,
+            uniordercreator: true,
+            swagger: true,
+            soap: true,
+            unidocs: true,
+            uniflux: true,
+            inbox: true
         },
         exportAccess: {
             tasks: true,
@@ -46,7 +53,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             viewAllUserProfiles: true,
             managePermissions: true,
             accessTrash: true,
-            useCommandMenu: true
+            useCommandMenu: true,
+            viewAllProjectNotes: true
         }
     },
     {
@@ -79,7 +87,14 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             knowledgeBase: true,
             sprintManagement: true,
             dispoPlan: true,
-            unavailabilityRegistry: true
+            unavailabilityRegistry: true,
+            unileaks: true,
+            uniordercreator: true,
+            swagger: true,
+            soap: true,
+            unidocs: true,
+            uniflux: true,
+            inbox: true
         },
         exportAccess: {
             tasks: true,
@@ -90,7 +105,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             viewAllUserProfiles: false,
             managePermissions: false,
             accessTrash: false,
-            useCommandMenu: true
+            useCommandMenu: true,
+            viewAllProjectNotes: true
         }
     },
     {
@@ -123,7 +139,14 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             knowledgeBase: true,
             sprintManagement: false,
             dispoPlan: true,
-            unavailabilityRegistry: false
+            unavailabilityRegistry: false,
+            unileaks: false,
+            uniordercreator: false,
+            swagger: false,
+            soap: false,
+            unidocs: false,
+            uniflux: false,
+            inbox: false
         },
         exportAccess: {
             tasks: true,
@@ -134,7 +157,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             viewAllUserProfiles: false,
             managePermissions: false,
             accessTrash: false,
-            useCommandMenu: true
+            useCommandMenu: true,
+            viewAllProjectNotes: true
         }
     },
     {
@@ -167,7 +191,14 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             knowledgeBase: true,
             sprintManagement: false,
             dispoPlan: true,
-            unavailabilityRegistry: false
+            unavailabilityRegistry: false,
+            unileaks: false,
+            uniordercreator: false,
+            swagger: false,
+            soap: false,
+            unidocs: false,
+            uniflux: false,
+            inbox: false
         },
         exportAccess: {
             tasks: true,
@@ -178,7 +209,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             viewAllUserProfiles: false,
             managePermissions: false,
             accessTrash: false,
-            useCommandMenu: true
+            useCommandMenu: true,
+            viewAllProjectNotes: true
         }
     },
     {
@@ -211,7 +243,14 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             knowledgeBase: false,
             sprintManagement: false,
             dispoPlan: false,
-            unavailabilityRegistry: false
+            unavailabilityRegistry: false,
+            unileaks: false,
+            uniordercreator: false,
+            swagger: false,
+            soap: false,
+            unidocs: false,
+            uniflux: false,
+            inbox: false
         },
         exportAccess: {
             tasks: false,
@@ -222,7 +261,8 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             viewAllUserProfiles: false,
             managePermissions: false,
             accessTrash: false,
-            useCommandMenu: false
+            useCommandMenu: false,
+            viewAllProjectNotes: false
         }
     }
 ];

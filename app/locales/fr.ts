@@ -342,13 +342,20 @@ export const fr: Dictionary = {
                 sprintManagement: { label: "Gestion de sprint", desc: "Accès à la planification et à la gestion des sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Accès au calendrier de disponibilité" },
                 unavailabilityRegistry: { label: "Registre des indisponibilités", desc: "Accès au registre des absences" },
-                uniflux: { label: "Moteur Uniflux", desc: "Accès au moteur de conception sémantique Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Accès au système de notes et de documentation rapide UniLeaks" },
+                uniordercreator: { label: "UniOrderManager", desc: "Accès au gestionnaire de commandes UNIGIS" },
+                swagger: { label: "UNIGIS Swagger", desc: "Accès à la documentation interactive des API UNIGIS" },
+                soap: { label: "UNIGIS SOAP", desc: "Accès au navigateur de services SOAP UNIGIS" },
+                unidocs: { label: "UniDocs", desc: "Accès au générateur de documentation technique" },
+                uniflux: { label: "Uniflux Engine", desc: "Accès au moteur de conception sémantique" },
+                inbox: { label: "Boîte Outlook", desc: "Accès à l'intégration de la messagerie Outlook" }
             },
             special: {
                 viewAllUserProfiles: { label: "Voir tous les profils utilisateurs", desc: "Accès aux informations de tous les utilisateurs" },
                 managePermissions: { label: "Gérer les permissions", desc: "Permet de créer et de modifier des groupes de permissions (Admin)" },
                 accessTrash: { label: "Accéder à la corbeille", desc: "Voir et restaurer les éléments supprimés" },
-                useCommandMenu: { label: "Utiliser le menu de commandes", desc: "Accès au menu rapide de navigation" }
+                useCommandMenu: { label: "Utiliser le menu de commandes", desc: "Accès au menu rapide de navigation" },
+                viewAllProjectNotes: { label: "Voir toutes les notes du projet", desc: "Permet de voir toutes les notes internes (collaboratives) dans UniLeaks." }
             }
         }
     },

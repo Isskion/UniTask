@@ -2,7 +2,7 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc, updateDoc, doc, query, where, getDocs, getDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { UniLeakNote, UniLeakFolder } from "@/types";
 
-export async function getProjectNotes(tenantId: string, projectId: string, currentUserId: string): Promise<UniLeakNote[]> {
+export async function getProjectNotes(tenantId: string, projectId: string, currentUserId: string, isInternal: boolean = false): Promise<UniLeakNote[]> {
     const q = query(
         collection(db, "unileaks_notes"),
         where("tenantId", "==", tenantId),
@@ -11,8 +11,11 @@ export async function getProjectNotes(tenantId: string, projectId: string, curre
     const snap = await getDocs(q);
     const allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakNote));
 
-    // Filtrar localmente por permisos de lectura: o es pública, o es del mismo usuario.
-    return allNotes.filter(note => note.userId === currentUserId || note.isPublic);
+    // Filtrar localmente por permisos de lectura:
+    // 1. Dueño de la nota siempre ve.
+    // 2. Notas públicas siempre visibles.
+    // 3. Usuarios internos ven TODO en el proyecto asignado.
+    return allNotes.filter(note => note.userId === currentUserId || note.isPublic || isInternal);
 }
 
 export async function getNoteById(noteId: string): Promise<UniLeakNote | null> {

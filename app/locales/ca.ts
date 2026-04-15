@@ -342,13 +342,20 @@ export const ca: Dictionary = {
                 sprintManagement: { label: "Gestió de Sprint", desc: "Accés a la planificació i gestió de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Accés al calendari de disponibilitat" },
                 unavailabilityRegistry: { label: "Registre d'Indisponibilitats", desc: "Accés al registre d'absències" },
-                uniflux: { label: "Motor Uniflux", desc: "Accés al motor de disseny semàntic Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Accés al sistema de notes i documentació ràpida UniLeaks" },
+                uniordercreator: { label: "UniOrderManager", desc: "Accés al gestor de comandes UNIGIS" },
+                swagger: { label: "UNIGIS Swagger", desc: "Accés a la documentació interactiva d'APIs d'UNIGIS" },
+                soap: { label: "UNIGIS SOAP", desc: "Accés a l'explorador de serveis SOAP d'UNIGIS" },
+                unidocs: { label: "UniDocs", desc: "Accés al generador de documentació tècnica" },
+                uniflux: { label: "Uniflux Engine", desc: "Accés al motor de disseny semàntic" },
+                inbox: { label: "Bústia Outlook", desc: "Accés a la integració amb la bústia de correu d'Outlook" }
             },
             special: {
                 viewAllUserProfiles: { label: "Veure tots els perfils d'usuari", desc: "Accés a informació de tots els usuaris" },
                 managePermissions: { label: "Gestionar permisos", desc: "Permet crear i editar grups de permisos (Admin)" },
                 accessTrash: { label: "Accedir a la paperera", desc: "Veure i restaurar elements eliminats" },
-                useCommandMenu: { label: "Utilitzar menú de comandes", desc: "Accés al menú ràpid de navegació" }
+                useCommandMenu: { label: "Utilitzar menú de comandes", desc: "Accés al menú ràpid de navegació" },
+                viewAllProjectNotes: { label: "Veure totes les notes de projecte", desc: "Permet veure totes les notes internes (col·laboratiu) de UniLeaks." }
             }
         }
     },

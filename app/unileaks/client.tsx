@@ -95,8 +95,9 @@ function UniLeaksContent() {
         const loadData = async () => {
             setLoadingNotes(true);
             try {
+                const isInternalViewer = can('viewAllProjectNotes', 'special');
                 const [notesData, foldersData] = await Promise.all([
-                    getProjectNotes(tenantId, activeProjectId, user.uid),
+                    getProjectNotes(tenantId, activeProjectId, user.uid, isInternalViewer),
                     getProjectFolders(tenantId, activeProjectId)
                 ]);
 

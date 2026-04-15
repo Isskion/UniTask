@@ -18,7 +18,7 @@ import {
 import { PermissionGroup } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeFirestore } from '@/hooks/useSafeFirestore';
-import { Shield, Plus, Edit2, Copy, Trash2, X, Save, FolderGit2, ListTodo, BarChart3, Users, Settings, Sparkles } from 'lucide-react';
+import { Shield, Plus, Edit2, Copy, Trash2, X, Save, FolderGit2, ListTodo, BarChart3, Users, Settings, Sparkles, BookOpen, FileText } from 'lucide-react';
 import { seedPermissionGroups } from '@/lib/permissionGroups';
 import { migrateToMultiTenant } from '@/lib/migration';
 import { cn } from "@/lib/utils";
@@ -35,9 +35,12 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
     color: '#6366f1',
     projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-    viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
+    viewAccess: { 
+        dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
+        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+    },
     exportAccess: { tasks: true, projects: false, reports: false },
-    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
+    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false }
 };
 
 export default function UserRoleManagement() {
@@ -408,6 +411,33 @@ export default function UserRoleManagement() {
                                             <BarChart3 className="w-3 h-3" /> {t('roles_page.permissions.views.dashboard.label')}
                                         </span>
                                     )}
+                                    {group.viewAccess?.unileaks && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-pink-50 text-pink-600 border-pink-200"
+                                                : (isRed ? "bg-pink-500/10 text-pink-200 border-pink-500/20" : "bg-pink-500/10 text-pink-400 border-pink-500/20")
+                                        )}>
+                                            <BookOpen className="w-3 h-3" /> UniLeaks
+                                        </span>
+                                    )}
+                                    {group.viewAccess?.unidocs && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                                                : (isRed ? "bg-indigo-500/10 text-indigo-200 border-indigo-500/20" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20")
+                                        )}>
+                                            <FileText className="w-3 h-3" /> UniDocs
+                                        </span>
+                                    )}
+                                    {group.viewAccess?.inbox && (
+                                        <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
+                                            isLight
+                                                ? "bg-sky-50 text-sky-600 border-sky-200"
+                                                : (isRed ? "bg-sky-500/10 text-sky-200 border-sky-500/20" : "bg-sky-500/10 text-sky-400 border-sky-500/20")
+                                        )}>
+                                            <Mail className="w-3 h-3" /> Inbox
+                                        </span>
+                                    )}
                                     {group.specialPermissions?.managePermissions && (
                                         <span className={cn("text-[10px] uppercase font-bold px-2 py-1 rounded border flex items-center gap-1",
                                             isLight
@@ -725,7 +755,8 @@ export default function UserRoleManagement() {
                                         <h4 className={cn("font-semibold mb-4", isLight ? "text-zinc-900" : "text-white")}>{t('roles_page.sections.views')}</h4>
                                         {[
                                             'dashboard', 'taskManager', 'taskDashboard', 'projectManagement', 'userManagement', 'weeklyEditor', 'dailyFollowUp',
-                                            'knowledgeBase', 'sprintManagement', 'dispoPlan', 'unavailabilityRegistry'
+                                            'knowledgeBase', 'sprintManagement', 'dispoPlan', 'unavailabilityRegistry',
+                                            'unileaks', 'uniordercreator', 'swagger', 'soap', 'unidocs', 'uniflux', 'inbox'
                                         ].map(key => (
                                             <label key={key} className={cn("flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors", isLight ? "hover:bg-zinc-50" : "hover:bg-white/5")}>
                                                 <input
@@ -755,7 +786,7 @@ export default function UserRoleManagement() {
                                     <div className="space-y-3">
                                         <h4 className="text-white font-semibold mb-4">{t('roles_page.sections.special')}</h4>
                                         {[
-                                            'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu'
+                                            'viewAllUserProfiles', 'managePermissions', 'accessTrash', 'useCommandMenu', 'viewAllProjectNotes'
                                         ].map(key => (
                                             <label key={key} className="flex items-start gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer">
                                                 <input
@@ -774,6 +805,7 @@ export default function UserRoleManagement() {
                                                 </div>
                                             </label>
                                         ))}
+                                        {/* New Section for UniLeaks Note Sharing refinement if needed, but for now just the flag */}
                                     </div>
                                 )}
                             </div>

@@ -342,13 +342,20 @@ export const pt: Dictionary = {
                 sprintManagement: { label: "Gestão de Sprint", desc: "Acesso ao planejamento e gestão de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Acesso ao calendário de disponibilidade" },
                 unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acesso ao registro de ausências" },
-                uniflux: { label: "Uniflux Engine", desc: "Acesso ao motor de design semântico Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Acesso ao sistema de notas e documentação rápida UniLeaks" },
+                uniordercreator: { label: "UniOrderManager", desc: "Acesso ao gestor de pedidos UNIGIS" },
+                swagger: { label: "UNIGIS Swagger", desc: "Acesso à documentação interativa de APIs da UNIGIS" },
+                soap: { label: "UNIGIS SOAP", desc: "Acesso ao navegador de serviços SOAP da UNIGIS" },
+                unidocs: { label: "UniDocs", desc: "Acesso ao gerador de documentação técnica" },
+                uniflux: { label: "Uniflux Engine", desc: "Acesso ao motor de design semântico" },
+                inbox: { label: "Buzão Outlook", desc: "Acesso à integração com o buzão de correio do Outlook" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos os perfis de usuário", desc: "Acesso a informações de todos os usuários" },
                 managePermissions: { label: "Gerenciar permissões", desc: "Permite criar e editar grupos de permissões (Admin)" },
                 accessTrash: { label: "Acessar lixeira", desc: "Ver e restaurar elementos excluídos" },
-                useCommandMenu: { label: "Usar menu de comandos", desc: "Acesso ao menu rápido de navegação" }
+                useCommandMenu: { label: "Usar menu de comandos", desc: "Acesso ao menu rápido de navegação" },
+                viewAllProjectNotes: { label: "Ver todas as notas do projeto", desc: "Permite ver todas as notas internas (colaborativas) no UniLeaks." }
             }
         }
     },

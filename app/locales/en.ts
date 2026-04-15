@@ -340,13 +340,20 @@ export const en = {
                 sprintManagement: { label: "Sprint Management", desc: "Access to sprint planning and management" },
                 dispoPlan: { label: "DispoPlan", desc: "Access to availability calendar" },
                 unavailabilityRegistry: { label: "Unavailability Registry", desc: "Access to absence register" },
-                uniflux: { label: "Uniflux Engine", desc: "Access to Uniflux semantic design engine" }
+                unileaks: { label: "UniLeaks", desc: "Access to UniLeaks documentation and quick notes system" },
+                uniordercreator: { label: "UniOrderManager", desc: "Access to UNIGIS order manager" },
+                swagger: { label: "UNIGIS Swagger", desc: "Access to interactive UNIGIS API documentation" },
+                soap: { label: "UNIGIS SOAP", desc: "Access to UNIGIS SOAP service browser" },
+                unidocs: { label: "UniDocs", desc: "Access to technical documentation generator" },
+                uniflux: { label: "Uniflux Engine", desc: "Access to the semantic design engine" },
+                inbox: { label: "Outlook Inbox", desc: "Access to Outlook email integration" }
             },
             special: {
                 viewAllUserProfiles: { label: "View all user profiles", desc: "Access to all users information" },
                 managePermissions: { label: "Manage permissions", desc: "Allows creating and editing permission groups (Admin)" },
                 accessTrash: { label: "Access trash", desc: "See and restore deleted elements" },
-                useCommandMenu: { label: "Use command menu", desc: "Access to navigation quick menu" }
+                useCommandMenu: { label: "Use command menu", desc: "Access to navigation quick menu" },
+                viewAllProjectNotes: { label: "View all project notes", desc: "Allows viewing private notes from all project members in UniLeaks" }
             }
         }
     },

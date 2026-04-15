@@ -10,34 +10,46 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         name: 'Admin Legacy',
         projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: true },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true },
+        viewAccess: { 
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
+        },
         exportAccess: { tasks: true, projects: true, reports: true },
-        specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true }
+        specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true, viewAllProjectNotes: true }
     },
     'global_pm': {
         name: 'PM Legacy',
         projectAccess: { viewAll: true, assignedOnly: false, create: true, edit: true, archive: false },
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true },
+        viewAccess: { 
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
+        },
         exportAccess: { tasks: true, projects: true, reports: true },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
     },
     'usuario_base': {
         name: 'Usuario Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
+        viewAccess: { 
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
+            unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+        },
         exportAccess: { tasks: true, projects: false, reports: false },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
     },
     // Add other legacy roles if needed
     'consultor': {
         name: 'Consultor Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
-        viewAccess: { dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
+        viewAccess: { 
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
+            unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+        },
         exportAccess: { tasks: true, projects: false, reports: false },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true }
     },
 };
 
@@ -49,9 +61,12 @@ const DEFAULT_PERMISSIONS: PermissionGroup = {
     description: 'Default restricted access',
     projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
-    viewAccess: { dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false },
+    viewAccess: { 
+        dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
+        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+    },
     exportAccess: { tasks: false, projects: false, reports: false },
-    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false },
+    specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false, viewAllProjectNotes: false },
     createdAt: new Date(),
     updatedAt: new Date(),
     createdBy: 'system'

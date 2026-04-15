@@ -43,8 +43,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
-import UserRoles from './management/UserRoles';
-import CaptureInbox from './capture/CaptureInbox';
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -368,27 +366,27 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                         <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                     )}
                                     
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unileaks', 'views') && (
                                         <NavLink href="/unileaks" target="_blank" icon={Zap} label={t('nav.unileaks') || 'UniLeaks'} />
                                     )}
 
-                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && can('uniordercreator', 'views') && (
                                         <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                     )}
 
-                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
+                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && can('swagger', 'views') && (
                                         <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
                                     )}
 
-                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
+                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && can('soap', 'views') && (
                                         <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP" />
                                     )}
 
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unidocs', 'views') && (
                                         <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                     )}
 
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('uniflux', 'views') && (
                                         <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                     )}
                                 </div>

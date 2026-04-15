@@ -342,13 +342,20 @@ export const es: Dictionary = {
                 sprintManagement: { label: "Gestión de Sprint", desc: "Acceso a la planificación y gestión de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Acceso al calendario de disponibilidad" },
                 unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acceso al registro de ausencias" },
-                uniflux: { label: "Motor Uniflux", desc: "Acceso al motor de diseño semántico Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Acceso al sistema de notas y documentación rápida UniLeaks" },
+                uniordercreator: { label: "UniOrderManager", desc: "Acceso al gestor de pedidos UNIGIS" },
+                swagger: { label: "UNIGIS Swagger", desc: "Acceso a la documentación interactiva de APIs de UNIGIS" },
+                soap: { label: "UNIGIS SOAP", desc: "Acceso al explorador de servicios SOAP de UNIGIS" },
+                unidocs: { label: "UniDocs", desc: "Acceso al generador de documentación técnica" },
+                uniflux: { label: "Uniflux Engine", desc: "Acceso al motor de diseño semántico" },
+                inbox: { label: "Buzón Outlook", desc: "Acceso a la integración con el buzón de correo de Outlook" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos los perfiles de usuario", desc: "Acceso a información de todos los usuarios" },
                 managePermissions: { label: "Gestionar permisos", desc: "Permite crear y editar grupos de permisos (Admin)" },
                 accessTrash: { label: "Acceder a la papelera", desc: "Ver y restaurar elementos eliminados" },
-                useCommandMenu: { label: "Usar menú de comandos", desc: "Acceso al menú rápido de navegación" }
+                useCommandMenu: { label: "Usar menú de comandos", desc: "Acceso al menú rápido de navegación" },
+                viewAllProjectNotes: { label: "Ver todas las notas de proyecto", desc: "Permite ver todas las notas internas (colaborativo) en UniLeaks." }
             }
         }
     },

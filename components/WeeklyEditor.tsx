@@ -80,7 +80,7 @@ export default function WeeklyEditor() {
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'uniflux' | 'unidocs'>('editor');
+    const [viewMode, setViewMode] = useState<'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox'>('editor');
     const [isHydrated, setIsHydrated] = useState(false);
 
 
@@ -92,7 +92,7 @@ export default function WeeklyEditor() {
             const view = params.get('view');
 
             // 1. URL Param Priority
-            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'uniflux', 'unidocs'].includes(view)) {
+            if (view && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox'].includes(view)) {
                 setViewMode(view as any);
                 setIsHydrated(true);
                 return;
@@ -100,7 +100,7 @@ export default function WeeklyEditor() {
 
             // 2. Local Storage Fallback
             const saved = localStorage.getItem('last_view_mode');
-            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'uniflux', 'unidocs'].includes(saved)) {
+            if (saved && ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'tenant-management', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox'].includes(saved)) {
                 setViewMode(saved as any);
             }
             setIsHydrated(true);
@@ -307,7 +307,7 @@ export default function WeeklyEditor() {
         return activeOnly.filter(p => allowedNames.has(p.name));
     };
 
-    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'uniflux' | 'unidocs') => {
+    const handleViewSwitch = (mode: 'editor' | 'dashboard' | 'projects' | 'users' | 'trash' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'reports' | 'support-management' | 'user-manual' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox') => {
         setViewMode(mode);
         const url = new URL(window.location.href);
         if (mode === 'editor') {

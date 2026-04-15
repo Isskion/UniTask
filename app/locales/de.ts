@@ -342,13 +342,20 @@ export const de: Dictionary = {
                 sprintManagement: { label: "Sprint-Management", desc: "Zugriff auf Sprint-Planung und -Verwaltung" },
                 dispoPlan: { label: "DispoPlan", desc: "Zugriff auf den Verfügbarkeitskalender" },
                 unavailabilityRegistry: { label: "Unverfügbarkeitsregister", desc: "Zugriff auf das Abwesenheitsregister" },
-                uniflux: { label: "Uniflux-Engine", desc: "Zugriff auf die semantische Design-Engine Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Zugriff auf das UniLeaks-System für Notizen und Dokumentation" },
+                uniordercreator: { label: "UniOrderManager", desc: "Zugriff auf den UNIGIS-Bestellmanager" },
+                swagger: { label: "UNIGIS Swagger", desc: "Zugriff auf die interaktive UNIGIS-API-Dokumentation" },
+                soap: { label: "UNIGIS SOAP", desc: "Zugriff auf den UNIGIS-SOAP-Service-Browser" },
+                unidocs: { label: "UniDocs", desc: "Zugriff auf den technischen Dokumentationsgenerator" },
+                uniflux: { label: "Uniflux Engine", desc: "Zugriff auf die semantische Design-Engine" },
+                inbox: { label: "Outlook-Posteingang", desc: "Zugriff auf die Outlook-E-Mail-Integration" }
             },
             special: {
                 viewAllUserProfiles: { label: "Alle Benutzerprofile sehen", desc: "Zugriff auf Informationen aller Benutzer" },
                 managePermissions: { label: "Berechtigungen verwalten", desc: "Ermöglicht das Erstellen und Bearbeiten von Berechtigungsgruppen (Admin)" },
                 accessTrash: { label: "Auf Papierkorb zugreifen", desc: "Gelöschte Elemente sehen und wiederherstellen" },
-                useCommandMenu: { label: "Befehlsmenü verwenden", desc: "Zugriff auf das Navigations-Schnellmenü" }
+                useCommandMenu: { label: "Befehlsmenü verwenden", desc: "Zugriff auf das Navigations-Schnellmenü" },
+                viewAllProjectNotes: { label: "Alle Projektnotizen sehen", desc: "Ermöglicht das Anzeigen aller internen Notizen (kollaborativ) in UniLeaks." }
             }
         }
     },

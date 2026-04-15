@@ -196,6 +196,13 @@ export interface PermissionGroup {
         sprintManagement: boolean;
         dispoPlan: boolean;
         unavailabilityRegistry: boolean;
+        unileaks: boolean;
+        uniordercreator: boolean;
+        swagger: boolean;
+        soap: boolean;
+        unidocs: boolean;
+        uniflux: boolean;
+        inbox: boolean;
     };
 
     // Export Permissions
@@ -211,6 +218,7 @@ export interface PermissionGroup {
         managePermissions: boolean;
         accessTrash: boolean;
         useCommandMenu: boolean;
+        viewAllProjectNotes: boolean;
     };
 
     tenantId: string; // Multi-tenant isolation
