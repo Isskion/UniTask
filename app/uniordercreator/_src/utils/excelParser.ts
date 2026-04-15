@@ -61,6 +61,9 @@ export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSh
                     const day = String(val.getDate()).padStart(2, '0');
                     val = `${year}-${month}-${day}`;
                 }
+            } else if (typeof val === 'string') {
+                // #34: Auto data cleanup
+                val = cleanCellValue(val);
             }
 
             rowObj[h] = val;
@@ -127,3 +130,13 @@ export function groupRows(
     return result;
 }
 
+/**
+ * #34: Clean a cell value — remove invisible characters, normalize whitespace.
+ */
+function cleanCellValue(val: string): string {
+    return val
+        .replace(/[\u200B-\u200D\uFEFF\u00AD]/g, '') // Zero-width chars, BOM, soft hyphen
+        .replace(/\u00A0/g, ' ')                       // Non-breaking space → regular space
+        .replace(/\s{2,}/g, ' ')                       // Multiple spaces → single
+        .trim();
+}

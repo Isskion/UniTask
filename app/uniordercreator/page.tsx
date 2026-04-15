@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useAppStore } from '@/app/uniordercreator/_src/store/appStore';
 import { parseExcelFile, groupRows } from '@/app/uniordercreator/_src/utils/excelParser';
@@ -26,9 +26,12 @@ import MultiSheetWizard from '@/app/uniordercreator/_src/components/Wizards/Mult
 import MappingWizard from '@/app/uniordercreator/_src/components/Wizards/MappingWizard';
 import MappingActions from '@/app/uniordercreator/_src/components/Mapper/MappingActions';
 import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
+import { ToastProvider } from '@/app/uniordercreator/_src/components/UI/ToastProvider';
 
 import '@/app/uniordercreator/_src/i18n';
 import '@/app/uniordercreator/_src/App.css';
+
+const SESSION_KEY = 'uoc_session';
 
 function UnigisOrderCreatorPageInner() {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +74,118 @@ function UnigisOrderCreatorPageInner() {
     const setIsSending = useAppStore((s) => s.setIsSending);
     const setSendCancelled = useAppStore((s) => s.setSendCancelled);
     const multiSheet = useAppStore((s) => s.multiSheet);
+    const setBooleanOverride = useAppStore((s) => s.setBooleanOverride);
+
+    // ─── #27: Auto-save session to localStorage on changes ────────────
+    useEffect(() => {
+        if (rows.length === 0 && Object.keys(mapping).length === 0) return;
+        const timeout = setTimeout(() => {
+            try {
+                const session = {
+                    rows: rows.slice(0, 500), // Limit to prevent quota exceeded
+                    headers,
+                    mapping,
+                    booleanOverrides,
+                    timestamp: Date.now(),
+                };
+                localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            } catch { /* quota exceeded — silently ignore */ }
+        }, 2000); // Debounce 2s
+        return () => clearTimeout(timeout);
+    }, [rows, headers, mapping, booleanOverrides]);
+
+    // Restore session on mount
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(SESSION_KEY);
+            if (!saved) return;
+            const session = JSON.parse(saved);
+            // Only restore if less than 24h old
+            if (Date.now() - session.timestamp > 24 * 60 * 60 * 1000) {
+                localStorage.removeItem(SESSION_KEY);
+                return;
+            }
+            if (session.rows?.length > 0 && rows.length === 0) {
+                setRows(session.rows);
+                setHeaders(session.headers || []);
+                if (session.mapping) setMapping(session.mapping);
+            }
+        } catch { /* ignore parse errors */ }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ─── #28: Confirm before close when there's unsent data ───────────
+    useEffect(() => {
+        const handler = (e: BeforeUnloadEvent) => {
+            const hasPendingData = rows.some(r => !r._status || r._status === 'pending');
+            if (rows.length > 0 && hasPendingData) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handler);
+        return () => window.removeEventListener('beforeunload', handler);
+    }, [rows]);
+
+    // ─── #74: Global keyboard shortcuts ───────────────────────────────
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            // Don't trigger in inputs
+            const tag = (e.target as HTMLElement).tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'o': // Ctrl+O = Open Excel
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                        break;
+                    case 'g': // Ctrl+G = Group rows
+                        e.preventDefault();
+                        if (rows.length > 0) handleGroupRows();
+                        break;
+                    case 'enter': // Ctrl+Enter = Send all
+                        e.preventDefault();
+                        if (rows.length > 0 && token) handleSendAll();
+                        break;
+                }
+                if (e.shiftKey && e.key.toLowerCase() === 'v') {
+                    // Ctrl+Shift+V = Validate
+                    e.preventDefault();
+                    if (rows.length > 0) handleValidate();
+                }
+            }
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [rows, token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ─── #6: Drag & Drop Excel file listener ─────────────────────────
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const file = (e as CustomEvent).detail?.file;
+            if (!file) return;
+            const reader = new FileReader();
+            setIsLoadingExcel(true);
+            reader.onload = (evt) => {
+                requestAnimationFrame(() => {
+                    try {
+                        const data = evt.target?.result as ArrayBuffer;
+                        const { sheet } = parseExcelFile(data);
+                        setHeaders(sheet.headers);
+                        setRows(sheet.rows);
+                        setMappingWizardOpen(true);
+                    } catch (err: any) {
+                        console.error('[ExcelDropError]', err);
+                    } finally {
+                        setIsLoadingExcel(false);
+                    }
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        };
+        window.addEventListener('excel-drop', handler);
+        return () => window.removeEventListener('excel-drop', handler);
+    }, [setHeaders, setRows]);
 
     // ─── Excel loading ──────────────────────────────────────────────────
     const handleLoadExcel = useCallback(() => {
@@ -179,9 +294,11 @@ function UnigisOrderCreatorPageInner() {
             const ref = row[refCol] || `Fila ${index + 1}`;
 
             let lastRawResponse = '';
+            let lastXml = ''; // #36: Store XML for failed download
             try {
                 // ── 1. Construir XML ─────────────────────────────────────────
                 const xml = buildXml(row, ctx);
+                lastXml = xml;
                 logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
                 setProgressLogs([...logs]);
 
@@ -280,6 +397,7 @@ function UnigisOrderCreatorPageInner() {
                     status: 'error',
                     msg: err.message,
                     detail: lastRawResponse ? lastRawResponse.slice(0, 2000) : undefined,
+                    xml: lastXml || undefined, // #36: Attach XML for download
                 });
             }
 
@@ -507,5 +625,9 @@ export default function UnigisOrderCreatorPage() {
         );
     }
 
-    return <UnigisOrderCreatorPageInner />;
+    return (
+        <ToastProvider>
+            <UnigisOrderCreatorPageInner />
+        </ToastProvider>
+    );
 }

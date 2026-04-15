@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface ProgressLog {
     ref: string;
     status: 'success' | 'error' | 'warn' | 'info';
     msg: string;
     detail?: string;  // respuesta SOAP raw / contexto extra, expandible
+    xml?: string;      // #36: XML that was sent (for failed downloads)
 }
 
 interface ProgressModalProps {
@@ -28,6 +29,17 @@ function LogRow({ log }: { log: ProgressLog }) {
         info:    { badge: 'bg-slate-500/20 text-slate-400',      text: 'text-slate-400'   },
     }[log.status];
 
+    const handleDownloadXml = () => {
+        if (!log.xml) return;
+        const blob = new Blob([log.xml], { type: 'application/xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `failed_${log.ref}.xml`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div>
             <div className="flex items-start gap-2 text-xs font-mono">
@@ -35,14 +47,26 @@ function LogRow({ log }: { log: ProgressLog }) {
                     {log.ref}
                 </span>
                 <span className={`flex-1 ${colors.text}`}>{log.msg}</span>
-                {log.detail && (
-                    <button
-                        onClick={() => setOpen(o => !o)}
-                        className="shrink-0 text-[10px] px-1 py-0.5 rounded bg-slate-700 text-slate-400 hover:bg-slate-600"
-                    >
-                        {open ? '▲' : '▼'}
-                    </button>
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                    {/* #36: Download failed XML */}
+                    {log.status === 'error' && log.xml && (
+                        <button
+                            onClick={handleDownloadXml}
+                            className="text-[10px] px-1.5 py-0.5 rounded bg-red-900/50 text-red-300 hover:bg-red-800/50 transition-colors"
+                            title="Descargar XML fallido"
+                        >
+                            💾 XML
+                        </button>
+                    )}
+                    {log.detail && (
+                        <button
+                            onClick={() => setOpen(o => !o)}
+                            className="text-[10px] px-1 py-0.5 rounded bg-slate-700 text-slate-400 hover:bg-slate-600"
+                        >
+                            {open ? '▲' : '▼'}
+                        </button>
+                    )}
+                </div>
             </div>
             {open && log.detail && (
                 <pre className="mt-1 ml-2 text-[10px] text-slate-400 bg-slate-800 rounded p-2 overflow-auto max-h-40 whitespace-pre-wrap break-all">
@@ -66,9 +90,13 @@ export default function ProgressModal({
 }: ProgressModalProps) {
     const logsEndRef = useRef<HTMLDivElement>(null);
     const [elapsed, setElapsed] = useState(0);
+    const [copiedReport, setCopiedReport] = useState(false);
+    const startTimeRef = useRef(0);
 
     useEffect(() => {
-        if (!isOpen || isComplete) return;
+        if (!isOpen) { setElapsed(0); return; }
+        if (isComplete) return;
+        startTimeRef.current = startTimeRef.current || Date.now();
         const t = setInterval(() => setElapsed((e) => e + 1), 1000);
         return () => clearInterval(t);
     }, [isOpen, isComplete]);
@@ -77,10 +105,84 @@ export default function ProgressModal({
         logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [logs]);
 
+    // #41: Play sound on completion
+    useEffect(() => {
+        if (isComplete && isOpen) {
+            try {
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 800;
+                gain.gain.value = 0.1;
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+                setTimeout(() => {
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.frequency.value = 1200;
+                    gain2.gain.value = 0.1;
+                    osc2.start();
+                    osc2.stop(ctx.currentTime + 0.2);
+                }, 150);
+            } catch { /* Audio not available */ }
+        }
+    }, [isComplete, isOpen]);
+
+    // #38: Copy error report
+    const handleCopyReport = useCallback(() => {
+        const errorLogs = logs.filter(l => l.status === 'error');
+        if (errorLogs.length === 0) return;
+
+        const report = [
+            `📋 REPORTE DE ERRORES — UniOrderCreator`,
+            `Fecha: ${new Date().toLocaleString()}`,
+            `Total: ${total} | OK: ${successCount} | Errores: ${errorCount}`,
+            `Tiempo: ${formatTime(elapsed)}`,
+            `${'─'.repeat(50)}`,
+            ...errorLogs.map((l, i) =>
+                `${i + 1}. [${l.ref}] ${l.msg}${l.detail ? `\n   Detalle: ${l.detail.substring(0, 200)}` : ''}`
+            ),
+        ].join('\n');
+
+        navigator.clipboard.writeText(report).then(() => {
+            setCopiedReport(true);
+            setTimeout(() => setCopiedReport(false), 2000);
+        });
+    }, [logs, total, successCount, errorCount, elapsed]);
+
+    // #4: Export results to CSV
+    const handleExportResults = useCallback(() => {
+        const csvRows = [
+            ['Referencia', 'Estado', 'Mensaje', 'Detalle'].join(','),
+            ...logs.map(l =>
+                [
+                    `"${l.ref}"`,
+                    l.status,
+                    `"${l.msg.replace(/"/g, '""')}"`,
+                    `"${(l.detail || '').replace(/"/g, '""').substring(0, 500)}"`,
+                ].join(',')
+            ),
+        ];
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `resultados_envio_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }, [logs]);
+
     if (!isOpen) return null;
 
     const pct = total > 0 ? Math.round((current / total) * 100) : 0;
-    const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+    // #26: Speed stats
+    const speed = elapsed > 0 ? (current / elapsed * 60).toFixed(1) : '—';
+    const eta = elapsed > 0 && current > 0 ? Math.round(((total - current) / (current / elapsed))) : 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
@@ -90,6 +192,11 @@ export default function ProgressModal({
                     <h2 className="text-lg font-bold text-white">
                         {isComplete ? '✅ Envío Completado' : '⏳ Enviando Pedidos'}
                     </h2>
+                    {!isComplete && (
+                        <p className="text-xs text-white/60 mt-0.5">
+                            {speed} pedidos/min · ETA: {formatTime(eta)}
+                        </p>
+                    )}
                 </div>
 
                 <div className="p-6 space-y-5">
@@ -139,7 +246,36 @@ export default function ProgressModal({
                 </div>
 
                 {/* Actions */}
-                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                    {isComplete && errorCount > 0 && (
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                                    copiedReport
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                                }`}
+                                onClick={handleCopyReport}
+                            >
+                                {copiedReport ? '✅ Copiado' : '📋 Copiar errores'}
+                            </button>
+                            <button
+                                className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all"
+                                onClick={handleExportResults}
+                            >
+                                📥 Export CSV
+                            </button>
+                        </div>
+                    )}
+                    {isComplete && errorCount === 0 && (
+                        <button
+                            className="px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-all"
+                            onClick={handleExportResults}
+                        >
+                            📥 Export CSV
+                        </button>
+                    )}
+                    <div className="flex-1" />
                     {!isComplete ? (
                         <button
                             className="px-5 py-2 text-sm font-bold bg-red-600 text-white rounded-xl hover:bg-red-500 transition-colors shadow-lg shadow-red-500/25"
@@ -160,3 +296,5 @@ export default function ProgressModal({
         </div>
     );
 }
+
+const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

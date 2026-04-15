@@ -33,9 +33,39 @@ export default function Header({
     const rows = useAppStore((s) => s.rows);
     const selectedIndices = useAppStore((s) => s.selectedIndices);
     const role = useAppStore((s) => s.role);
+    const mapping = useAppStore((s) => s.mapping);
+    const headers = useAppStore((s) => s.headers);
 
     const failedCount = rows.filter((r) => r._status === 'error').length;
+    const successCount = rows.filter((r) => r._status === 'success').length;
     const hasData = rows.length > 0;
+    const mappedCount = Object.keys(mapping).filter(k => mapping[k]).length;
+    const groupedCount = rows.filter(r => r._grouped).length;
+
+    // ─── Stepper logic ──────────────────────────────────────────────────
+    type StepStatus = 'done' | 'active' | 'pending';
+    const steps: { label: string; icon: string; status: StepStatus }[] = [
+        {
+            label: 'Conexión',
+            icon: '🔗',
+            status: token ? 'done' : 'active',
+        },
+        {
+            label: 'Excel',
+            icon: '📂',
+            status: hasData ? 'done' : token ? 'active' : 'pending',
+        },
+        {
+            label: 'Mapeo',
+            icon: '🗺️',
+            status: mappedCount > 0 && hasData ? (mappedCount >= 3 ? 'done' : 'active') : hasData ? 'active' : 'pending',
+        },
+        {
+            label: 'Envío',
+            icon: '📨',
+            status: successCount > 0 ? 'done' : (hasData && mappedCount > 0 && token) ? 'active' : 'pending',
+        },
+    ];
 
     return (
         <header className="flex h-[44px] items-center px-3 justify-between shrink-0 sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-white/10 shadow-md">
@@ -47,6 +77,61 @@ export default function Header({
                     <span className="text-[8px] font-semibold text-red-400/80 uppercase tracking-[0.15em]">UniTask Platinum</span>
                 </div>
             </div>
+
+            {/* ── Stepper ── */}
+            <div className="hidden md:flex items-center gap-0.5">
+                {steps.map((step, i) => (
+                    <div key={step.label} className="flex items-center">
+                        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                            step.status === 'done'
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : step.status === 'active'
+                                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 animate-pulse'
+                                    : 'bg-white/5 text-slate-500 border border-white/10'
+                        }`}>
+                            <span className="text-xs">{step.status === 'done' ? '✅' : step.icon}</span>
+                            <span className="hidden lg:inline">{step.label}</span>
+                        </div>
+                        {i < steps.length - 1 && (
+                            <div className={`w-3 h-px mx-0.5 ${step.status === 'done' ? 'bg-emerald-500/50' : 'bg-white/10'}`} />
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {/* ── Live Counters ── */}
+            {hasData && (
+                <div className="hidden sm:flex items-center gap-1">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold bg-white/10 text-white/70 rounded-md"
+                        title="Filas totales">
+                        {rows.length} filas
+                    </span>
+                    {mappedCount > 0 && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-indigo-500/20 text-indigo-300 rounded-md"
+                            title="Campos mapeados">
+                            🗺️ {mappedCount}
+                        </span>
+                    )}
+                    {groupedCount > 0 && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/20 text-amber-300 rounded-md"
+                            title="Filas agrupadas">
+                            ⚡ {groupedCount} agrup
+                        </span>
+                    )}
+                    {successCount > 0 && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-500/20 text-emerald-300 rounded-md"
+                            title="Enviados OK">
+                            ✅ {successCount}
+                        </span>
+                    )}
+                    {failedCount > 0 && (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold bg-red-500/20 text-red-300 rounded-md"
+                            title="Errores">
+                            ❌ {failedCount}
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-1.5">
