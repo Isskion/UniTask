@@ -551,6 +551,22 @@ service cloud.firestore {
       );
     }
 
+    // --- [NEW] UNIGIS: TEMPLATES ---
+    match /unigis_templates/{templateId} {
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && getRealRole() >= 60)
+      );
+    }
+
     // --- [NEW] UNIFLUX FLOWS ---
     match /uniflux_flows/{flowId} {
       // Allow individual GET if authenticated (to support exists() checks on new drafts)
