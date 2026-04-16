@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { isFirebaseConfigured } from '@/app/uniordercreator/_lib/firebase';
+import { syncUserClaimsAction } from '@/app/actions/auth-actions';
 import {
     saveTemplate,
     loadTemplates,
@@ -13,9 +14,10 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     initialMode?: 'save' | 'list';
+    tenantId: string;
 }
 
-export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }: Props) {
+export default function SavedMappings({ isOpen, onClose, initialMode = 'list', tenantId }: Props) {
     const mapping = useAppStore((s) => s.mapping);
     const headers = useAppStore((s) => s.headers);
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
@@ -23,14 +25,16 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
     const multiSheet = useAppStore((s) => s.multiSheet);
     const currentUser = useAppStore((s) => s.currentUser);
     const setMapping = useAppStore((s) => s.setMapping);
+    const userUid = useAppStore((s) => s.user?.uid);
 
     const [templates, setTemplates] = useState<SavedTemplate[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [repairing, setRepairing] = useState(false);
     const [showSaveForm, setShowSaveForm] = useState(false);
     const [saveName, setSaveName] = useState('');
     const [saveDesc, setSaveDesc] = useState('');
-    const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+    const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string; isPermission?: boolean } | null>(null);
 
     const firebaseReady = isFirebaseConfigured();
 
@@ -38,14 +42,34 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
         if (!firebaseReady) return;
         setLoading(true);
         try {
-            const list = await loadTemplates();
+            const list = await loadTemplates(tenantId);
             setTemplates(list);
-        } catch (err) {
+            setFeedback(null);
+        } catch (err: any) {
             console.error('[SavedMappings] Error:', err);
+            const isPermission = err.message?.includes('permission') || err.code === 'permission-denied';
+            setFeedback({ 
+                type: 'error', 
+                msg: isPermission ? '🚫 Error de permisos. Tu sesión puede estar desactualizada.' : '❌ Error al cargar plantillas.',
+                isPermission
+            });
         } finally {
             setLoading(false);
         }
-    }, [firebaseReady]);
+    }, [firebaseReady, tenantId]);
+
+    const handleRepair = async () => {
+        if (repairing) return;
+        setRepairing(true);
+        try {
+            await syncUserClaimsAction(userUid || '');
+            setFeedback({ type: 'success', msg: '⏳ Sincronizando permisos... Por favor, recarga la página en unos segundos.' });
+        } catch (err) {
+            setFeedback({ type: 'error', msg: '❌ Error al intentar reparar.' });
+        } finally {
+            setRepairing(false);
+        }
+    };
 
     useEffect(() => {
         if (isOpen && firebaseReady) {
@@ -65,6 +89,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
                 name: saveName.trim(),
                 description: saveDesc.trim(),
                 createdBy: currentUser || 'anonymous',
+                tenantId,
                 mapping,
                 booleanOverrides,
                 dynamicFieldCounts,
@@ -79,11 +104,16 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
             setSaveDesc('');
             setShowSaveForm(false);
             await refresh();
-        } catch (err) {
-            setFeedback({ type: 'error', msg: `❌ ${err instanceof Error ? err.message : 'Error al guardar'}` });
+        } catch (err: any) {
+            const isPermission = err.message?.includes('permission') || err.code === 'permission-denied';
+            setFeedback({ 
+                type: 'error', 
+                msg: isPermission ? '🚫 Permiso denegado al guardar.' : `❌ ${err.message || 'Error al guardar'}`,
+                isPermission
+            });
         } finally {
             setSaving(false);
-            setTimeout(() => setFeedback(null), 3000);
+            setTimeout(() => setFeedback(null), 5000);
         }
     };
 
@@ -100,6 +130,17 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
             for (const [k, v] of Object.entries(tpl.dynamicFieldCounts)) {
                 store.setDynamicFieldCount(k, v as number);
             }
+        }
+        // Restore Multi-Sheet configuration if it exists
+        if (tpl.multiSheetConfig) {
+            store.setMultiSheet({
+                enabled: !!tpl.multiSheetConfig.mainSheet,
+                config: {
+                    mainSheet: tpl.multiSheetConfig.mainSheet || '',
+                    mainKey: tpl.multiSheetConfig.mainKey || '',
+                    relations: tpl.multiSheetConfig.relations || [],
+                }
+            });
         }
         setFeedback({ type: 'success', msg: `✅ Plantilla "${tpl.name}" cargada` });
         setTimeout(() => setFeedback(null), 3000);
@@ -280,7 +321,15 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list' }:
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-red-50 text-red-700 border border-red-200'
                             }`}>
-                            {feedback.msg}
+                            <div>{feedback.msg}</div>
+                            {feedback.isPermission && (
+                                <button
+                                    onClick={handleRepair}
+                                    className="mt-2 text-xs font-bold underline decoration-red-300 hover:text-red-900"
+                                >
+                                    {repairing ? 'Reparando...' : '🛠️ Reparar permisos en el servidor'}
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

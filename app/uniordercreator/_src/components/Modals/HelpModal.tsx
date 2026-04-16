@@ -89,6 +89,38 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             )
         },
         {
+            id: 'cloud',
+            icon: '☁️',
+            title: 'Plantillas en la Nube',
+            description: 'Sincroniza tus configuraciones entre dispositivos y compañeros.',
+            content: (
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-600">Ahora puedes guardar tus mapeos de forma segura en la nube (Firestore).</p>
+                    <ul className="list-disc ml-5 text-sm text-slate-600 space-y-2">
+                        <li><b>Aisalmiento por Tenant:</b> Tus plantillas solo son visibles para tu organización.</li>
+                        <li><b>Comparador Inteligente:</b> Al ver la lista, verás cuántas columnas coinciden con el Excel actual.</li>
+                        <li><b>Guardado Rápido:</b> Usa el botón 💾 en la cabecera para guardar el mapeo actual en un clic.</li>
+                    </ul>
+                </div>
+            )
+        },
+        {
+            id: 'interactive',
+            icon: '🔗',
+            title: 'Cabeceras Interactivas',
+            description: 'Navegación rápida y estado visual de las columnas mapeadas.',
+            content: (
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-600">Las tablas ahora son interactivas:</p>
+                    <ul className="list-disc ml-5 text-sm text-slate-600 space-y-2">
+                        <li><b>Color Azul:</b> Indica que la columna de Excel está mapeada a un campo de UNIGIS.</li>
+                        <li><b>Salto Rápido:</b> Haz clic en una cabecera azul para ir directamente al campo en el panel de mapeo.</li>
+                        <li><b>Edición en Fila:</b> Haz doble clic en cualquier celda para corregir datos rápidamente sin salir de la tabla.</li>
+                    </ul>
+                </div>
+            )
+        },
+        {
             id: 'shortcuts',
             icon: '⌨️',
             title: 'Atajos Pro',

@@ -39,6 +39,7 @@ interface Props {
     headers: string[];
     onComplete: (mapping: Record<string, string>, booleanOverrides: Record<string, boolean>) => void;
     onClose: () => void;
+    tenantId: string;
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────────
@@ -49,7 +50,7 @@ const STEPS = ['Resumen', 'Mapeo', 'Confirmación'] as const;
 
 // ─── Component ──────────────────────────────────────────────────────────────────
 
-export default function MappingWizard({ isOpen, headers, onComplete, onClose }: Props) {
+export default function MappingWizard({ isOpen, headers, onComplete, onClose, tenantId }: Props) {
     const [step, setStep] = useState(0);
     const [currentHeaderIdx, setCurrentHeaderIdx] = useState(0);
     const [headerMappings, setHeaderMappings] = useState<HeaderMapping[]>([]);
@@ -126,7 +127,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose }: 
             // Load templates
             if (isFirebaseConfigured()) {
                 setLoadingTemplates(true);
-                loadTemplates()
+                loadTemplates(tenantId)
                     .then(setTemplates)
                     .catch(console.error)
                     .finally(() => setLoadingTemplates(false));
@@ -336,6 +337,7 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose }: 
                 name: saveName.trim(),
                 description: saveDesc.trim(),
                 createdBy: currentUser || 'anonymous',
+                tenantId,
                 mapping,
                 booleanOverrides,
                 dynamicFieldCounts,

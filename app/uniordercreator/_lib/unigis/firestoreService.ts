@@ -15,6 +15,7 @@ import {
     deleteDoc,
     serverTimestamp,
     query,
+    where,
     orderBy,
     type Timestamp,
 } from 'firebase/firestore';
@@ -28,6 +29,7 @@ export interface MappingTemplateData {
     name: string;
     description: string;
     createdBy: string;
+    tenantId: string;
     createdAt: Timestamp | null;
     updatedAt: Timestamp | null;
     mapping: Record<string, string>;
@@ -88,15 +90,19 @@ export async function saveTemplate(
 }
 
 /**
- * Load all saved templates, ordered by most recently updated.
+ * Load all saved templates for a specific tenant, ordered by most recently updated.
  */
-export async function loadTemplates(): Promise<SavedTemplate[]> {
+export async function loadTemplates(tenantId: string): Promise<SavedTemplate[]> {
     if (!isFirebaseConfigured()) {
         return [];
     }
 
     try {
-        const q = query(getCollection(), orderBy('updatedAt', 'desc'));
+        const q = query(
+            getCollection(),
+            where('tenantId', '==', tenantId),
+            orderBy('updatedAt', 'desc')
+        );
         const snap = await getDocs(q);
         return snap.docs.map((d) => ({
             id: d.id,

@@ -35,7 +35,7 @@ import '@/app/uniordercreator/_src/App.css';
 
 const SESSION_KEY = 'uoc_session';
 
-function UnigisOrderCreatorPageInner() {
+function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLoadingExcel, setIsLoadingExcel] = useState(false);
 
@@ -690,9 +690,10 @@ function UnigisOrderCreatorPageInner() {
                     setMappingWizardOpen(false);
                 }}
                 onClose={() => setMappingWizardOpen(false)}
+                tenantId={tenantId}
             />
             <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
-            <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} initialMode={savedMappingsMode} />
+            <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} initialMode={savedMappingsMode} tenantId={tenantId} />
             <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
         </div>
     );
@@ -719,7 +720,7 @@ export default function UnigisOrderCreatorPage() {
 
     return (
         <ToastProvider>
-            <UnigisOrderCreatorPageInner />
+            <UnigisOrderCreatorPageInner tenantId={tenantId as string} />
         </ToastProvider>
     );
 }

@@ -152,9 +152,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                         if (refreshCountRef.current > 2) {
                             console.warn("[AuthContext] 🛡️ Refresh loop detected! Using Firestore profile as source of truth instead of looping.");
-                            // [FIX] Instead of blocking/nullifying, use Firestore data directly.
-                            // The Firestore profile IS the source of truth — the token claims
-                            // may be stale because the Cloud Function hasn't synced them yet.
+                            
+                            // [HEAL] Attempt to trigger a server-side sync to fix the stale token
+                            import('@/app/actions/auth-actions').then(({ syncUserClaimsAction }) => {
+                                syncUserClaimsAction(currentUser.uid).then(res => {
+                                    if (res.success) console.log("[AuthContext] ✅ Self-healing sync triggered successfully.");
+                                });
+                            });
+
                             const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
                             const firestoreTenant = String(data.tenantId) || "unknown";
 
