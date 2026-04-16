@@ -1,6 +1,9 @@
   "name": "weekly-tracker",
   "version": "14.3.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
