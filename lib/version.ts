@@ -1,6 +1,52 @@
-export const APP_VERSION = "14.1.0";
+export const APP_VERSION = "14.3.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.3.0",
+        date: "2026-04-16",
+        features: [
+            "Security: Platform-wide sanitization of developer credentials from UI and configuration fields.",
+            "UniFlux UX: Resolved 'Full Page Zoom' bug in Mermaid diagrams for smoother navigation.",
+            "UniOrderCreator: Fixed critical build error in Cloud Templates and improved user session integration.",
+            "Maintenance: Resolved production deployment blockers and updated platform versioning."
+        ]
+    },
+    {
+        version: "14.2.0",
+        date: "2026-04-16",
+        features: [
+            "Navigation UX: Shortened sidebar menu labels (Gestor de Tareas, Todas las Tareas, DispoPlan) for better space efficiency in all 6 languages.",
+            "Unified Terminology: Standardized names in error messages and tooltips across the platform.",
+            "Performance: Optimized localization loading in main layout."
+        ]
+    },
+    {
+        version: "14.1.8",
+        date: "2026-04-15",
+        features: [
+            "Security Hardening: Introduced 'viewTechnicalInfo' permission for granular control over sensitive infrastructure data.",
+            "External Roles: Isolation layer for external users, hiding technical configuration strings and backend identifiers.",
+            "Privacy: Conditional rendering of sensitive project management tabs based on role permissions."
+        ]
+    },
+    {
+        version: "14.1.5",
+        date: "2026-04-13",
+        features: [
+            "Infrastructure: Complete removal of Outlook Inbox integration and associated serverless functions.",
+            "System Stability: Resolution of production deployment conflicts in Vercel functions.",
+            "UniLeaks UX: Fixed clipping/overflow issues in the notes sidebar for extensive project structures."
+        ]
+    },
+    {
+        version: "14.1.2",
+        date: "2026-04-10",
+        features: [
+            "UNIGIS Integration: Fixed critical date formatting (dd-mm-aaaa) and JSON schema export in Order Manager.",
+            "AI Intelligence: Enhanced AI note summarization with robust JSON parsing and improved error logging.",
+            "Maintenance: Resolution of 404/500 errors in tenant-specific asset handling."
+        ]
+    },
     {
         version: "14.1.0",
         date: "2026-03-09",

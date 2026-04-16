@@ -17,6 +17,14 @@ interface InterfaceReportProps {
     onClose: () => void;
 }
 
+const FORBIDDEN_EMAIL = "daniel.delamo@unigis.com";
+
+const maskCredential = (val: string | undefined): string => {
+    if (!val) return "";
+    if (val.toLowerCase() === FORBIDDEN_EMAIL.toLowerCase()) return "";
+    return val;
+};
+
 export function InterfaceReport({ project, interfaces, onClose }: InterfaceReportProps) {
     const { theme } = useTheme();
     const isLight = theme === "light";
@@ -190,7 +198,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                                                     <Shield className="w-2.5 h-2.5" /> Client ID
                                                                 </div>
                                                                 <div className="font-mono text-[11px] select-all bg-black/5 p-2 rounded-lg border border-black/5 text-zinc-600 dark:text-zinc-400">
-                                                                    {iface.clientId}
+                                                                    {maskCredential(iface.clientId)}
                                                                 </div>
                                                             </div>
                                                         )}

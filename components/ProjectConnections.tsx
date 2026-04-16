@@ -14,6 +14,14 @@ interface ProjectConnectionsProps {
     project: Project;
 }
 
+const FORBIDDEN_EMAIL = "daniel.delamo@unigis.com";
+
+const maskCredential = (val: string | undefined): string => {
+    if (!val) return "";
+    if (val.toLowerCase() === FORBIDDEN_EMAIL.toLowerCase()) return "";
+    return val;
+};
+
 export function ProjectConnections({ project }: ProjectConnectionsProps) {
     const { showToast } = useToast();
     const { theme } = useTheme();
@@ -28,16 +36,21 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
 
     useEffect(() => {
         if (project.environments && project.environments.length > 0) {
-            setEnvironments(project.environments);
+            // Apply sanitization mask on load
+            const sanitized = project.environments.map(env => ({
+                ...env,
+                user: maskCredential(env.user)
+            }));
+            setEnvironments(sanitized);
         } else if (project.connections) {
-            // Legacy Migration
+            // Legacy Migration with masking
             const legacyEnvironments: ProjectEnvironment[] = [
                 {
                     id: "prod",
                     name: "Producción",
                     isProduction: true,
                     ip: project.connections.prodIP || "",
-                    user: project.connections.prodUser || "",
+                    user: maskCredential(project.connections.prodUser),
                     pass: project.connections.prodPass || "",
                     url: project.connections.prodUrl || "",
                 },
@@ -46,7 +59,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     name: "Test",
                     isProduction: false,
                     ip: project.connections.testIP || "",
-                    user: project.connections.testUser || "",
+                    user: maskCredential(project.connections.testUser),
                     pass: project.connections.testPass || "",
                     url: project.connections.testUrl || "",
                 }
@@ -104,8 +117,14 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
 
     const handleUpdateField = (id: string, field: keyof ProjectEnvironment, value: any) => {
         if (!isTechnical) return;
+        
+        let finalValue = value;
+        if (field === 'user' && typeof value === 'string') {
+            finalValue = maskCredential(value);
+        }
+
         setEnvironments(prev => prev.map(env => 
-            env.id === id ? { ...env, [field]: value } : env
+            env.id === id ? { ...env, [field]: finalValue } : env
         ));
     };
 

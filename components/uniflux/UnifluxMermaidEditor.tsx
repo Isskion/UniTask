@@ -318,10 +318,19 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
 
     useEffect(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, [svg]);
 
-    const handleWheel = useCallback((e: React.WheelEvent) => {
-        if (!handMode) return;
-        e.preventDefault();
-        setZoom(z => Math.max(0.2, Math.min(5, z * (e.deltaY > 0 ? 0.9 : 1.1))));
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const onWheel = (e: WheelEvent) => {
+            if (!handMode) return;
+            // Always prevent default to stop page scroll/zoom
+            e.preventDefault();
+            setZoom(z => Math.max(0.2, Math.min(5, z * (e.deltaY > 0 ? 0.9 : 1.1))));
+        };
+
+        container.addEventListener('wheel', onWheel, { passive: false });
+        return () => container.removeEventListener('wheel', onWheel);
     }, [handMode]);
 
     const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -560,7 +569,6 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
             {/* Pannable / zoomable area */}
             <div
                 ref={containerRef}
-                onWheel={handleWheel}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}

@@ -1,6 +1,5 @@
-{
   "name": "weekly-tracker",
-  "version": "14.0.0",
+  "version": "14.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

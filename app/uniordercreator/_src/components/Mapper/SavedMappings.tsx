@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { isFirebaseConfigured } from '@/app/uniordercreator/_lib/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { syncUserClaimsAction } from '@/app/actions/auth-actions';
 import {
     saveTemplate,
@@ -23,9 +24,12 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
     const booleanOverrides = useAppStore((s) => s.booleanOverrides);
     const dynamicFieldCounts = useAppStore((s) => s.dynamicFieldCounts);
     const multiSheet = useAppStore((s) => s.multiSheet);
-    const currentUser = useAppStore((s) => s.currentUser);
     const setMapping = useAppStore((s) => s.setMapping);
-    const userUid = useAppStore((s) => s.user?.uid);
+    
+    // Auth context for UID and Email (Fixes Store Type Error)
+    const { user } = useAuth();
+    const userUid = user?.uid;
+    const currentUser = user?.email || user?.displayName || 'anonymous';
 
     const [templates, setTemplates] = useState<SavedTemplate[]>([]);
     const [loading, setLoading] = useState(false);
