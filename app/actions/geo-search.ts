@@ -225,13 +225,27 @@ export type IsochroneResult =
     | { ok: true; data: unknown }
     | { ok: false; error: string };
 
+const VALHALLA_COSTING: Record<IsochroneProfile, string> = {
+    driving: 'auto',
+    walking: 'pedestrian',
+    cycling: 'bicycle',
+};
+
 export async function fetchIsochrone(p: IsochroneParams): Promise<IsochroneResult> {
-    const token = process.env.MAPBOX_TOKEN;
-    if (!token) return { ok: false, error: 'MAPBOX_TOKEN no configurado en el servidor.' };
-    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${p.profile}/${p.lng},${p.lat}?contours_minutes=${p.minutes}&polygons=true&access_token=${token}`;
+    const body = JSON.stringify({
+        locations: [{ lat: p.lat, lon: p.lng }],
+        costing: VALHALLA_COSTING[p.profile],
+        contours: [{ time: p.minutes }],
+        polygons: true,
+    });
     try {
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) return { ok: false, error: `Mapbox error ${res.status}: ${res.statusText}` };
+        const res = await fetch('https://valhalla1.openstreetmap.de/isochrone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'User-Agent': 'UniTask-GeoModule/2.0 (contacto@unisolutions.com)' },
+            body,
+            cache: 'no-store',
+        });
+        if (!res.ok) return { ok: false, error: `Valhalla error ${res.status}: ${res.statusText}` };
         return { ok: true, data: await res.json() };
     } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : 'Error de red al calcular isócrona.' };
