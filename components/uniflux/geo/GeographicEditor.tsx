@@ -23,13 +23,12 @@ import {
     saveGeographicZone,
     deleteGeographicZone,
     updateGeographicZoneMetadata,
-    fetchIsochrone,
     exportZonesToKML,
     exportZonesToExcelBase64,
     exportZonesToGeoJSON,
-    searchBoundaries,
 } from '@/app/actions/geo';
-import type { IsochroneProfile, BoundaryFeature } from '@/app/actions/geo';
+import { searchBoundaries, fetchIsochrone } from '@/app/actions/geo-search';
+import type { IsochroneProfile, BoundaryFeature } from '@/app/actions/geo-search';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -296,7 +295,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
             setIsSearching(true);
             try {
-                const results = await searchBoundaries(q, 'es', controller.signal);
+                const results = await searchBoundaries(q, 'es');
                 setSearchResults(results);
             } catch (error: any) {
                 if (error.name === 'AbortError') return;
