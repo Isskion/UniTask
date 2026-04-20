@@ -377,41 +377,13 @@ export async function searchBoundaries(
     const isCP = isPostalCode(q);
 
     if (isCP) {
-        // 1. Nominatim con parámetro postalcode
+        // 1. Nominatim con parámetro postalcode (devuelve polígono si OSM lo tiene)
         try {
             const params = new URLSearchParams({
                 postalcode:      q,
                 countrycodes:    countryCode,
                 format:          'geojson',
                 polygon_geojson: '1',
-                polygon_threshold: '0.001',
-                addressdetails:  '1',
-                limit:           '5',
-            });
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-                headers: NOMINATIM_HEADERS,
-                cache: 'force-cache',
-            });
-            if (res.ok) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const fc: { features: any[] } = await res.json();
-                const hits = nominatimFeaturesToBoundaries(fc.features, q);
-                if (hits.length > 0) return hits;
-            }
-        } catch { /* continúa */ }
-
-        // 2. Overpass API — relaciones boundary=postal_code OSM España
-        const overpassHits = await searchPostalCodeViaOverpass(q, countryCode);
-        if (overpassHits.length > 0) return overpassHits;
-
-        // 3. Fallback: municipio asociado al CP
-        try {
-            const params = new URLSearchParams({
-                q,
-                countrycodes:    countryCode,
-                format:          'geojson',
-                polygon_geojson: '1',
-                polygon_threshold: '0.003',
                 addressdetails:  '1',
                 limit:           '5',
             });
@@ -422,8 +394,66 @@ export async function searchBoundaries(
             if (res.ok) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const fc: { features: any[] } = await res.json();
-                return nominatimFeaturesToBoundaries(fc.features, q)
-                    .map(b => ({ ...b, addressType: `Municipio (CP ${q})` }));
+                const hits = nominatimFeaturesToBoundaries(fc.features, q);
+                if (hits.length > 0) return hits;
+            }
+        } catch { /* continúa */ }
+
+        // 2. Overpass API — relaciones boundary=postal_code de OSM España
+        const overpassHits = await searchPostalCodeViaOverpass(q, countryCode);
+        if (overpassHits.length > 0) return overpassHits;
+
+        // 3. Reverse geocoding desde centroide del CP:
+        //    Muchos CPs españoles no tienen polígono propio en OSM.
+        //    Obtenemos la ubicación del CP y hacemos reverse geocoding para
+        //    devolver el barrio/distrito más próximo con polígono disponible.
+        try {
+            // 3a. Obtener coordenadas del CP (resultado puntual)
+            const pointParams = new URLSearchParams({
+                postalcode:   q,
+                countrycodes: countryCode,
+                format:       'json',
+                limit:        '1',
+            });
+            const pointRes = await fetch(`https://nominatim.openstreetmap.org/search?${pointParams}`, {
+                headers: NOMINATIM_HEADERS,
+                cache: 'no-store',
+            });
+            if (pointRes.ok) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const points: any[] = await pointRes.json();
+                if (points.length > 0) {
+                    const { lat, lon, display_name } = points[0];
+
+                    // 3b. Reverse en nivel barrio/distrito (zoom 14)
+                    for (const zoom of ['14', '12', '10']) {
+                        const revParams = new URLSearchParams({
+                            lat, lon,
+                            format:          'geojson',
+                            polygon_geojson: '1',
+                            zoom,
+                            addressdetails:  '1',
+                        });
+                        const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?${revParams}`, {
+                            headers: NOMINATIM_HEADERS,
+                            cache: 'no-store',
+                        });
+                        if (!revRes.ok) continue;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const feature: any = await revRes.json();
+                        const geomType = feature?.geometry?.type;
+                        if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
+                            const props = feature.properties ?? {};
+                            return [{
+                                osmId:       `rev_${q}_z${zoom}`,
+                                displayName: props.display_name ?? display_name ?? `CP ${q}`,
+                                shortName:   props.name ?? props.address?.suburb ?? props.address?.town ?? props.address?.city ?? `CP ${q}`,
+                                addressType: `Zona aproximada (CP ${q})`,
+                                geometry:    feature.geometry,
+                            }];
+                        }
+                    }
+                }
             }
         } catch { /* sin resultados */ }
 
