@@ -204,7 +204,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         zones.forEach(z => {
             const fillId = `${sid(z.id)}-fill`;
             if (!map.current?.getLayer(fillId)) return;
-            map.current.setPaintProperty(fillId, 'fill-color', codes.has(z.zoneCode) ? '#ef4444' : (ZONE_COLORS[z.type] ?? '#6366f1'));
+            map.current.setPaintProperty(fillId, 'fill-color', codes.has(z.zoneCode) ? '#ef4444' : (z.color || ZONE_COLORS[z.type] || '#6366f1'));
             map.current.setPaintProperty(fillId, 'fill-opacity', codes.has(z.zoneCode) ? 0.55 : 0.3);
         });
     }, [zones]);
@@ -405,7 +405,6 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
 
         await loadZones();
-        clearHighlights();
         clearSelectionLayer();
         setSelectedBoundaries([]);
         setPendingZone(null);
