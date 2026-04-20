@@ -300,10 +300,10 @@ const NOMINATIM_HEADERS = {
 };
 
 const OVERPASS_ENDPOINTS = [
-    'https://overpass-api.de/api/interpreter',
-    'https://lz4.overpass-api.de/api/interpreter',
-    'https://z.overpass-api.de/api/interpreter',
     'https://overpass.kumi.systems/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
+    'https://overpass-api.de/api/interpreter',
+    'https://z.overpass-api.de/api/interpreter',
 ];
 
 // Bbox de España (aproximado, incluyendo islas) para optimizar búsquedas globales
@@ -343,7 +343,11 @@ function nominatimFeaturesToBoundaries(features: any[], fallbackQuery: string, i
         });
 }
 
-async function searchPostalCodeViaOverpass(postalCode: string, countryCode: string): Promise<BoundaryFeature[]> {
+async function searchPostalCodeViaOverpass(
+    postalCode: string, 
+    countryCode: string, 
+    signal?: AbortSignal
+): Promise<BoundaryFeature[]> {
     const overpassQuery = `
 [out:json][timeout:30];
 (
@@ -361,8 +365,8 @@ out geom;`.trim();
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': NOMINATIM_HEADERS['User-Agent'] },
                 body:    `data=${encodeURIComponent(overpassQuery)}`,
                 cache:   'no-cache',
-                // Usamos un timeout corto de fetch para saltar al siguiente mirror si este no responde
-                signal:  AbortSignal.timeout(15000), 
+                // Fail-fast: 5s por mirror. Si está lento hoy, pasamos al siguiente.
+                signal:  AbortSignal.any([AbortSignal.timeout(5000), ...(signal ? [signal] : [])]), 
             });
             if (!res.ok) continue;
 
@@ -417,7 +421,8 @@ out geom;`.trim();
 
 export async function searchBoundaries(
     query: string,
-    countryCode = 'es'
+    countryCode = 'es',
+    signal?: AbortSignal
 ): Promise<BoundaryFeature[]> {
     if (!query || query.trim().length < 2) return [];
 
@@ -438,6 +443,7 @@ export async function searchBoundaries(
             const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
                 headers: NOMINATIM_HEADERS,
                 cache: 'no-store',
+                signal,
             });
             if (res.ok) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -448,7 +454,7 @@ export async function searchBoundaries(
         } catch { /* continúa */ }
 
         // 2. Overpass API — relaciones boundary=postal_code de OSM España
-        const overpassHits = await searchPostalCodeViaOverpass(q, countryCode);
+        const overpassHits = await searchPostalCodeViaOverpass(q, countryCode, signal);
         if (overpassHits.length > 0) return overpassHits;
 
         // 3. Reverse geocoding desde centroide del CP:
@@ -465,6 +471,7 @@ export async function searchBoundaries(
             const pointRes = await fetch(`https://nominatim.openstreetmap.org/search?${pointParams}`, {
                 headers: NOMINATIM_HEADERS,
                 cache: 'no-store',
+                signal,
             });
             if (pointRes.ok) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,6 +491,7 @@ export async function searchBoundaries(
                         const revRes = await fetch(`https://nominatim.openstreetmap.org/reverse?${revParams}`, {
                             headers: NOMINATIM_HEADERS,
                             cache: 'no-store',
+                            signal,
                         });
                         if (!revRes.ok) continue;
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -521,6 +529,7 @@ export async function searchBoundaries(
         const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
             headers: NOMINATIM_HEADERS,
             cache: 'no-store',
+            signal,
         });
         if (!res.ok) return [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

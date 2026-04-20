@@ -99,6 +99,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isSearching, setIsSearching]             = useState(false);
     const [selectedBoundaries, setSelectedBoundaries] = useState<BoundaryFeature[]>([]);
     const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const searchAbortControllerRef = useRef<AbortController | null>(null);
 
     // Modal
     const [pendingZone, setPendingZone] = useState<PendingZone | null>(null);
@@ -277,13 +278,36 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const handleSearch = useCallback((q: string) => {
         setSearchQuery(q);
         if (searchDebounce.current) clearTimeout(searchDebounce.current);
-        if (!q.trim() || q.trim().length < 2) { setSearchResults([]); return; }
-        searchDebounce.current = setTimeout(async () => {
-            setIsSearching(true);
-            const results = await searchBoundaries(q, 'es');
-            setSearchResults(results);
+        
+        // Cancelamos cualquier búsqueda anterior en curso
+        if (searchAbortControllerRef.current) {
+            searchAbortControllerRef.current.abort();
+        }
+
+        if (!q.trim() || q.trim().length < 2) { 
+            setSearchResults([]); 
             setIsSearching(false);
-        }, 450);
+            return; 
+        }
+
+        searchDebounce.current = setTimeout(async () => {
+            const controller = new AbortController();
+            searchAbortControllerRef.current = controller;
+
+            setIsSearching(true);
+            try {
+                const results = await searchBoundaries(q, 'es', controller.signal);
+                setSearchResults(results);
+            } catch (error: any) {
+                if (error.name === 'AbortError') return;
+                console.error("Search error:", error);
+            } finally {
+                // Solo apagamos el loader si esta sigue siendo la búsqueda activa
+                if (searchAbortControllerRef.current === controller) {
+                    setIsSearching(false);
+                }
+            }
+        }, 700);
     }, []);
 
     // ── Guardar zona ──────────────────────────────────────────────────────────
