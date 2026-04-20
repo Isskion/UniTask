@@ -623,6 +623,30 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (resource.data.authorId == request.auth.uid || getRealRole() >= 60)));
     }
     
+    // --- UNIGEO: GEOGRAPHIC ZONES ---
+    match /geographic_zones/{zoneId} {
+      // READ: Tenant members can read zones of their tenant
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+
+      // CREATE: Must belong to the same tenant; role >= 40 (operador o superior)
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(request.resource.data) && getRealRole() >= 40)
+      );
+
+      // UPDATE: Admins (>= 80) or the creator can update
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && getRealRole() >= 80)
+      );
+
+      // DELETE: Admins (>= 80) or SuperAdmin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
     // --- SYSTEM DATA (Counters, etc.) ---
     match /system/{document=**} {
       allow read, write: if isSuperAdmin();
