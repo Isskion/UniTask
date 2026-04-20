@@ -454,9 +454,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             map.current.on('gm:create', async (e: any) => {
                 const feature = e.feature as Feature<Polygon | MultiPolygon>;
-                if (!feature) return;
-                const overlaps = await runOverlapCheck(feature);
-                setPendingZone({ geojson: feature, overlaps });
+                if (!feature?.geometry) return;
+                // Extraer GeoJSON puro — e.feature tiene referencias circulares al mapa
+                const cleanFeature: Feature<Polygon | MultiPolygon> = {
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: {},
+                };
+                const overlaps = await runOverlapCheck(cleanFeature);
+                setPendingZone({ geojson: cleanFeature, overlaps });
                 setPendingName('');
             });
             setIsLoaded(true);
