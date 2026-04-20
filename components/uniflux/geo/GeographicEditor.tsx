@@ -412,7 +412,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setPendingName('');
         setIsSaving(false);
         setActiveTab('zones');
-    }, [pendingZone, editingZone, tenantId, projectId, pendingName, pendingType, loadZones, clearHighlights, clearSelectionLayer]);
+    }, [pendingZone, editingZone, tenantId, projectId, pendingName, pendingType, pendingColor, loadZones, clearSelectionLayer]);
 
     // ── Isócrona ──────────────────────────────────────────────────────────────
 
