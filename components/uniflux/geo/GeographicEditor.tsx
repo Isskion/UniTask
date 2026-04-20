@@ -10,7 +10,7 @@ import type { Feature, Polygon, MultiPolygon, FeatureCollection } from 'geojson'
 import {
     Map as MapIcon, Layers, PenTool, Hash, Info, AlertTriangle, X,
     ChevronRight, FileDown, Download, Timer, Loader2, Search, Plus,
-    CheckCircle2, Globe, Folder, FolderOpen, Eye
+    CheckCircle2, Globe, Folder, FolderOpen, Eye, EyeOff, Pencil, Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -21,6 +21,8 @@ import {
     checkZoneOverlap,
     getProjectZones,
     saveGeographicZone,
+    deleteGeographicZone,
+    updateGeographicZoneMetadata,
     fetchIsochrone,
     exportZonesToKML,
     exportZonesToExcelBase64,
@@ -109,6 +111,10 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isochroneProfile, setIsochroneProfile] = useState<IsochroneProfile>('driving');
     const [isochroneLoading, setIsochroneLoading] = useState(false);
     const [isochroneActive, setIsochroneActive]   = useState(false);
+
+    // Edición y Visibilidad
+    const [editingZone, setEditingZone] = useState<GeographicZone | null>(null);
+    const [hiddenZones, setHiddenZones] = useState<Set<string>>(new Set());
 
     // ── Cargar proyectos del tenant según permisos ────────────────────────────
 
@@ -282,21 +288,70 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // ── Guardar zona ──────────────────────────────────────────────────────────
 
+    const cancelPending = useCallback(() => { clearHighlights(); setPendingZone(null); setEditingZone(null); setPendingName(''); }, [clearHighlights]);
+
+    // ── Gestión avanzada de zonas ─────────────────────────────────────────────
+
+    const toggleZoneVisibility = useCallback((zoneId: string) => {
+        if (!map.current) return;
+        const isHidden = hiddenZones.has(zoneId);
+        const nextHidden = new Set(hiddenZones);
+        if (isHidden) nextHidden.delete(zoneId); else nextHidden.add(zoneId);
+        setHiddenZones(nextHidden);
+
+        const fillId = `${sid(zoneId)}-fill`;
+        const outlineId = `${sid(zoneId)}-outline`;
+        const visibility = isHidden ? 'visible' : 'none';
+
+        if (map.current.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', visibility);
+        if (map.current.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', visibility);
+    }, [hiddenZones]);
+
+    const handleDeleteZone = useCallback(async (zoneId: string) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar esta zona geográfica de forma permanente?')) return;
+        await deleteGeographicZone(zoneId);
+        
+        // Limpiar del mapa
+        if (map.current) {
+            const id = sid(zoneId);
+            if (map.current.getLayer(`${id}-fill`)) map.current.removeLayer(`${id}-fill`);
+            if (map.current.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`);
+            if (map.current.getSource(id)) map.current.removeSource(id);
+        }
+
+        setZones(prev => prev.filter(z => z.id !== zoneId));
+    }, []);
+
+    const handleEditZone = useCallback((zone: GeographicZone) => {
+        setEditingZone(zone);
+        setPendingName(zone.name);
+        setPendingType(zone.type as "TRANSPORTE" | "DEPOSITO");
+        // No hay geometría pendiente porque solo editamos metadatos
+        setPendingZone(null); 
+    }, []);
+
     const confirmSave = useCallback(async () => {
-        if (!pendingZone || !tenantId || !projectId || !pendingName.trim()) return;
+        if (!tenantId || !projectId || !pendingName.trim()) return;
         setIsSaving(true);
-        await saveGeographicZone({ tenantId, projectId, zoneCode: `Z-${Date.now()}`, name: pendingName.trim(), type: pendingType, geojson: pendingZone.geojson });
+
+        if (editingZone) {
+            // Caso edición de metadatos
+            await updateGeographicZoneMetadata(editingZone.id, { name: pendingName.trim(), type: pendingType });
+        } else if (pendingZone) {
+            // Caso creación nueva
+            await saveGeographicZone({ tenantId, projectId, zoneCode: `Z-${Date.now()}`, name: pendingName.trim(), type: pendingType, geojson: pendingZone.geojson });
+        }
+
         await loadZones();
         clearHighlights();
         clearSelectionLayer();
         setSelectedBoundaries([]);
         setPendingZone(null);
+        setEditingZone(null);
         setPendingName('');
         setIsSaving(false);
-        setActiveTab('zones'); // mostrar las zonas tras guardar
-    }, [pendingZone, tenantId, projectId, pendingName, pendingType, loadZones, clearHighlights, clearSelectionLayer]);
-
-    const cancelPending = useCallback(() => { clearHighlights(); setPendingZone(null); setPendingName(''); }, [clearHighlights]);
+        setActiveTab('zones');
+    }, [pendingZone, editingZone, tenantId, projectId, pendingName, pendingType, loadZones, clearHighlights, clearSelectionLayer]);
 
     // ── Isócrona ──────────────────────────────────────────────────────────────
 
@@ -587,7 +642,10 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                     ) : (
                                         zones.map(z => (
                                             <div key={z.id}
-                                                className="p-3 bg-muted/50 border border-border rounded-lg hover:border-primary/50 transition-all cursor-pointer group"
+                                                className={cn(
+                                                    "p-3 bg-muted/50 border border-border rounded-lg hover:border-primary/50 transition-all cursor-pointer group",
+                                                    hiddenZones.has(z.id) && "opacity-60"
+                                                )}
                                                 onClick={() => flyToZone(z)}
                                             >
                                                 <div className="flex items-center justify-between mb-1">
@@ -597,7 +655,31 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                                             "text-[10px] px-1.5 py-0.5 rounded uppercase font-medium",
                                                             z.type === 'TRANSPORTE' ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
                                                         )}>{z.type}</span>
-                                                        <Eye className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        
+                                                        {/* Acciones Rápidas */}
+                                                        <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); toggleZoneVisibility(z.id); }}
+                                                                className="p-1 hover:bg-background rounded transition-colors text-muted-foreground hover:text-primary"
+                                                                title={hiddenZones.has(z.id) ? "Mostrar" : "Ocultar"}
+                                                            >
+                                                                {hiddenZones.has(z.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleEditZone(z); }}
+                                                                className="p-1 hover:bg-background rounded transition-colors text-muted-foreground hover:text-primary"
+                                                                title="Editar Nombre/Tipo"
+                                                            >
+                                                                <Pencil className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleDeleteZone(z.id); }}
+                                                                className="p-1 hover:bg-background rounded transition-colors text-muted-foreground hover:text-destructive"
+                                                                title="Eliminar"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
@@ -740,22 +822,27 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             </main>
 
             {/* ── Modal bloqueante ──────────────────────────────────────────── */}
-            {pendingZone && (
+            {(pendingZone || editingZone) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5 animate-in zoom-in-95">
                         <div className="flex items-center gap-3">
-                            {pendingZone.overlaps.length > 0
+                            {editingZone ? <Pencil className="w-6 h-6 text-primary shrink-0" />
+                                : pendingZone?.overlaps.length && pendingZone.overlaps.length > 0
                                 ? <AlertTriangle className="w-6 h-6 text-destructive shrink-0" />
                                 : <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />}
                             <div>
-                                <h3 className="font-bold text-sm">{pendingZone.overlaps.length > 0 ? 'Solapamiento Detectado' : 'Guardar Zona'}</h3>
+                                <h3 className="font-bold text-sm">
+                                    {editingZone ? 'Editar Zona Geográfica' : pendingZone?.overlaps.length && pendingZone.overlaps.length > 0 ? 'Solapamiento Detectado' : 'Guardar Zona'}
+                                </h3>
                                 <p className="text-xs text-muted-foreground">
-                                    {pendingZone.overlaps.length > 0 ? 'La zona se superpone con zonas existentes.' : `Se guardará en el proyecto "${activeProject?.name}".`}
+                                    {editingZone ? `Modificando metadatos de "${editingZone.name}"`
+                                        : pendingZone?.overlaps.length && pendingZone.overlaps.length > 0 ? 'La zona se superpone con zonas existentes.' 
+                                        : `Se guardará en el proyecto "${activeProject?.name}".`}
                                 </p>
                             </div>
                         </div>
 
-                        {pendingZone.overlaps.length > 0 && (
+                        {pendingZone && pendingZone.overlaps.length > 0 && (
                             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 space-y-1">
                                 {pendingZone.overlaps.map(o => (
                                     <div key={o.zoneCode} className="flex items-center justify-between text-xs">
@@ -787,8 +874,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                             <button onClick={cancelPending} className="flex-1 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors">Cancelar</button>
                             <button onClick={confirmSave} disabled={!pendingName.trim() || isSaving}
                                 className={cn("flex-1 py-2 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-                                    pendingZone.overlaps.length > 0 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:opacity-90")}>
-                                {isSaving ? 'Guardando...' : pendingZone.overlaps.length > 0 ? 'Confirmar y Guardar' : 'Guardar Zona'}
+                                    !editingZone && pendingZone?.overlaps && pendingZone.overlaps.length > 0 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:opacity-90")}>
+                                {isSaving ? 'Guardando...' : editingZone ? 'Actualizar Zona' : pendingZone?.overlaps && pendingZone.overlaps.length > 0 ? 'Confirmar y Guardar' : 'Guardar Zona'}
                             </button>
                         </div>
                     </div>

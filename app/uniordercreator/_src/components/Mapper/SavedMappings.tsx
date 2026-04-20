@@ -54,7 +54,9 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
             const isPermission = err.message?.includes('permission') || err.code === 'permission-denied';
             setFeedback({ 
                 type: 'error', 
-                msg: isPermission ? '🚫 Error de permisos. Tu sesión puede estar desactualizada.' : '❌ Error al cargar plantillas.',
+                msg: isPermission 
+                    ? '🚫 Error de permisos (Posible retraso en la sincronización). Si acabas de cambiar de rol, prueba a recargar la página (Ctrl+R).' 
+                    : '❌ Error al cargar plantillas.',
                 isPermission
             });
         } finally {

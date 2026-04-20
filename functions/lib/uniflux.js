@@ -18,7 +18,7 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
     memory: '1GB'
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         try {
             // 1. Auth Check (Manual for onRequest)
             const authHeader = req.headers.authorization;
@@ -94,8 +94,53 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
                 model: "gemini-2.0-flash",
                 generationConfig: { responseMimeType: "application/json" }
             });
-            const systemInstruction = `
-        You are the UNIFLUX SEMANTIC COMPILER. 
+            const isC4Mode = (currentGraph === null || currentGraph === void 0 ? void 0 : currentGraph.docType) === 'c4';
+            const c4Level = (_d = currentGraph === null || currentGraph === void 0 ? void 0 : currentGraph.c4Level) !== null && _d !== void 0 ? _d : 1;
+            const C4_LEVEL_CONTEXT = {
+                1: "L1 Context: shows the system and its relationships with users and external systems. Use: C4_PERSON, C4_SYSTEM, C4_SYSTEM_EXT, C4_BOUNDARY.",
+                2: "L2 Container: shows the containers (apps, databases, services) inside the system. Use: C4_CONTAINER_WEB, C4_CONTAINER_API, C4_CONTAINER_DB, C4_CONTAINER_QUEUE, C4_PERSON, C4_SYSTEM_EXT, C4_BOUNDARY.",
+                3: "L3 Component: shows the components inside a container. Use: C4_COMPONENT, C4_BOUNDARY.",
+            };
+            const systemInstruction = isC4Mode ? `
+        You are a C4 ARCHITECTURE COMPILER.
+        Your job is to translate software architecture descriptions into a valid JSON FlowGraph using the C4 model.
+
+        CURRENT DIAGRAM LEVEL: ${C4_LEVEL_CONTEXT[c4Level] || C4_LEVEL_CONTEXT[1]}
+
+        C4 ONTOLOGY:
+        - C4NodeType: "C4_PERSON" | "C4_SYSTEM" | "C4_SYSTEM_EXT" | "C4_CONTAINER_WEB" | "C4_CONTAINER_API" | "C4_CONTAINER_DB" | "C4_CONTAINER_QUEUE" | "C4_COMPONENT" | "C4_BOUNDARY"
+        - FlowNode: { id: string, type: C4NodeType, label: string, technology?: string, description?: string, external?: boolean, position: {x, y} }
+        - FlowEdge: { id: string, source: string, target: string, label?: string }
+        - FlowGraph: { nodes: FlowNode[], edges: FlowEdge[], docType: "c4", c4Level: ${c4Level} }
+
+        C4 VISUAL RULES:
+        1. C4_PERSON: human actors — use external: true for actors outside your system boundary.
+        2. C4_SYSTEM / C4_SYSTEM_EXT: software systems — fill technology with the main tech stack.
+        3. C4_CONTAINER_*: deployable units — ALWAYS fill technology (e.g. "Next.js 15", "PostgreSQL 16").
+        4. C4_COMPONENT: modules inside a container — fill technology with the language or framework.
+        5. C4_BOUNDARY: grouping containers, no connections needed.
+        6. Edges represent calls/interactions — label with the protocol or action (e.g. "HTTPS/JSON", "SQL queries", "reads from").
+        7. Always fill description for SYSTEM and CONTAINER nodes.
+
+        LAYOUT RULES:
+        - C4_PERSON actors: left side (x: 0-150, spread vertically).
+        - Core system/containers: center (x: 300-700, spread vertically).
+        - External systems: right side (x: 900-1100).
+        - C4_BOUNDARY: place to group related elements, position behind them (x slightly left of contained nodes).
+
+        STRICT RULES:
+        - Node IDs MUST be strictly sequential numeric strings: "1", "2", "3"...
+        - Output language MUST match the user's prompt language exactly.
+        - OUTPUT ONLY VALID JSON. No conversational text.
+        - MUST include docType: "c4" and c4Level: ${c4Level} in the FlowGraph root.
+
+        BUSINESS KNOWLEDGE FOR THIS TENANT:
+        ${tenantKnowledge}
+
+        RECENT CORRECTIONS/LEARNINGS:
+        ${corrections}
+    ` : `
+        You are the UNIFLUX SEMANTIC COMPILER.
         Your job is to translate logistics process descriptions into a valid JSON FlowGraph.
 
         ONTOLOGY:

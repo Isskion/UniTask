@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/firebase';
 import {
-    collection, doc, addDoc, getDocs, deleteDoc,
+    collection, doc, addDoc, getDocs, deleteDoc, updateDoc,
     query, where, orderBy, serverTimestamp, Timestamp,
 } from 'firebase/firestore';
 import ExcelJS from 'exceljs';
@@ -178,6 +178,20 @@ export async function getProjectZones(tenantId: string, projectId: string): Prom
  */
 export async function deleteGeographicZone(zoneId: string): Promise<void> {
     await deleteDoc(doc(db, GEO_ZONES_COLLECTION, zoneId));
+}
+
+/**
+ * Actualiza los metadatos (nombre, tipo) de una zona existente.
+ */
+export async function updateGeographicZoneMetadata(
+    zoneId: string,
+    data: { name?: string; type?: string }
+): Promise<void> {
+    const docRef = doc(db, GEO_ZONES_COLLECTION, zoneId);
+    await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp(),
+    });
 }
 
 // ─── Exportaciones ────────────────────────────────────────────────────────────

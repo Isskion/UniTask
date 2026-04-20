@@ -65,3 +65,4 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 # Nested projects
 /unigis-order-creator-web/
 /functions/lib/
+/lib/generated/prisma
