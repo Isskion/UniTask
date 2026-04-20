@@ -69,6 +69,46 @@ function polygonFromFeature(feature: any, cpCode: string): BoundaryFeature | nul
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function zippopotamLookup(cp: string): Promise<{ lat: string; lon: string; placeName: string; state: string } | null> {
+    try {
+        const res = await fetch(`https://api.zippopotam.us/ES/${cp}`, {
+            headers: { 'User-Agent': HDR['User-Agent'] },
+            next: { revalidate: 86400 },
+        });
+        if (!res.ok) return null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data: any = await res.json();
+        const place = data?.places?.[0];
+        if (!place) return null;
+        return { lat: place.latitude, lon: place.longitude, placeName: place['place name'], state: place.state };
+    } catch { return null; }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function nominatimMuniPolygon(name: string, countryCode: string, cpCode: string): Promise<BoundaryFeature[]> {
+    const fc = await nominatimGet({
+        q: name, countrycodes: countryCode,
+        format: 'geojson', polygon_geojson: '1', addressdetails: '1', limit: '3',
+    }, 86400);
+    if (!fc?.features?.length) return [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return fc.features.filter((f: any) =>
+        (f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon') &&
+        !NON_ZONE_CLASSES.has(f.properties?.class ?? '')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ).map((f: any) => {
+        const p = f.properties;
+        return {
+            osmId: `${p.osm_type ?? 'N'}${p.osm_id}`,
+            displayName: p.display_name ?? name,
+            shortName: p.name ?? name,
+            addressType: `Municipio (CP ${cpCode})`,
+            geometry: f.geometry,
+        };
+    });
+}
+
 async function searchPostalCode(q: string, countryCode: string): Promise<BoundaryFeature[]> {
     // 1. Nominatim directo — algunos CPs tienen polígono propio en OSM
     try {
@@ -96,14 +136,24 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         }
     } catch { /* continúa */ }
 
-    // 2. Obtener centroide del CP con datos de dirección
+    // 2. Zippopotam.us — catálogo fiable de CPs españoles con nombre de municipio correcto
+    const zippo = await zippopotamLookup(q);
+    if (zippo) {
+        // Buscar polígono del municipio por nombre (fuente autoritativa)
+        const hits = await nominatimMuniPolygon(zippo.placeName, countryCode, q);
+        if (hits.length) return hits;
+        // Si el nombre exacto no da resultado, probar con la comunidad autónoma como contexto
+        const hitsWithState = await nominatimMuniPolygon(`${zippo.placeName}, ${zippo.state}`, countryCode, q);
+        if (hitsWithState.length) return hitsWithState;
+    }
+
+    // 3. Fallback Nominatim: obtener centroide + datos de dirección
     let lat = '', lon = '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let addressObj: Record<string, string> | null = null;
     for (const attempt of [
         { postalcode: q, countrycodes: countryCode, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
         { q, countrycodes: countryCode, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
-        { q: `código postal ${q} España`, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
     ]) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -114,7 +164,7 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
 
     if (!lat) return [];
 
-    // 3. Reverse geocoding en escalera de zoom: barrio → distrito → municipio → comarca
+    // 4. Reverse geocoding en escalera de zoom
     for (const zoom of ['14', '12', '10', '8']) {
         try {
             const feature = await nominatimReverse(lat, lon, zoom);
@@ -123,33 +173,11 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         } catch { /* siguiente zoom */ }
     }
 
-    // 4. Fallback: buscar el polígono del municipio usando el nombre extraído del geocoding
+    // 5. Último recurso: municipio desde address de Nominatim
     const muniName = addressObj?.municipality ?? addressObj?.city ?? addressObj?.town ?? addressObj?.village ?? addressObj?.county;
     if (muniName) {
-        try {
-            const fc = await nominatimGet({
-                q: muniName, countrycodes: countryCode,
-                format: 'geojson', polygon_geojson: '1', addressdetails: '1', limit: '3',
-            }, 86400);
-            if (fc?.features?.length) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const hits = fc.features.filter((f: any) =>
-                    (f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon') &&
-                    !NON_ZONE_CLASSES.has(f.properties?.class ?? '')
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ).map((f: any) => {
-                    const p = f.properties;
-                    return {
-                        osmId: `${p.osm_type ?? 'N'}${p.osm_id}`,
-                        displayName: p.display_name ?? muniName,
-                        shortName: p.name ?? muniName,
-                        addressType: `Municipio (CP ${q})`,
-                        geometry: f.geometry,
-                    };
-                });
-                if (hits.length) return hits;
-            }
-        } catch { /* falla silenciosamente */ }
+        const hits = await nominatimMuniPolygon(muniName, countryCode, q);
+        if (hits.length) return hits;
     }
 
     return [];
