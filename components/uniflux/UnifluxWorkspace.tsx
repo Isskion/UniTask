@@ -1,21 +1,53 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
-import { FlowGraph, FlowNode, FlowEdge, NodeType, MermaidEngine } from '@/app/uniflux/core/types';
+import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
+import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
+import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
+import { getNodeVisibility, getEdgeVisibility, buildNodeMap, getAIVisibleGraph, shouldRender, OPACITY } from '@/app/uniflux/core/visibility';
+import { CURRENT_SCHEMA_VERSION } from '@/app/uniflux/core/migrations';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2 } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map } from 'lucide-react';
 import UnifluxNodePalette from './UnifluxNodePalette';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
 import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
 import UnifluxMermaidEditor from './UnifluxMermaidEditor';
+import UnifluxC4Palette from './UnifluxC4Palette';
+import UnifluxC4NodeEditor from './UnifluxC4NodeEditor';
+import UnifluxC4Templates from './UnifluxC4Templates';
+import UnifluxC4PersonNode from './nodes/UnifluxC4PersonNode';
+import UnifluxC4SystemNode from './nodes/UnifluxC4SystemNode';
+import UnifluxC4ContainerNode from './nodes/UnifluxC4ContainerNode';
+import UnifluxC4ComponentNode from './nodes/UnifluxC4ComponentNode';
+import UnifluxC4BoundaryNode from './nodes/UnifluxC4BoundaryNode';
+
+// Derived from modes.ts — workspace doesn't need to know C4 node names directly
+const C4_NODE_TYPES = MODE_REGISTRY['c4'].nodeTypes;
+const C4_CONTAINER_TYPES = new Set<string>(['C4_CONTAINER_WEB','C4_CONTAINER_API','C4_CONTAINER_DB','C4_CONTAINER_QUEUE']);
+
+function getC4ReactFlowType(c4Type: string): string {
+    if (c4Type === 'C4_PERSON') return 'C4_PERSON';
+    if (c4Type === 'C4_SYSTEM' || c4Type === 'C4_SYSTEM_EXT') return 'C4_SYSTEM';
+    if (C4_CONTAINER_TYPES.has(c4Type)) return 'C4_CONTAINER';
+    if (c4Type === 'C4_COMPONENT') return 'C4_COMPONENT';
+    if (c4Type === 'C4_BOUNDARY') return 'C4_BOUNDARY';
+    return 'C4_SYSTEM';
+}
 
 const nodeTypes = {
     ENVIRONMENT: UnifluxEnvironmentNode,
+    C4_PERSON: UnifluxC4PersonNode,
+    C4_SYSTEM: UnifluxC4SystemNode,
+    C4_CONTAINER: UnifluxC4ContainerNode,
+    C4_COMPONENT: UnifluxC4ComponentNode,
+    C4_BOUNDARY: UnifluxC4BoundaryNode,
 };
 
 // Initial placeholder graph
@@ -54,6 +86,16 @@ export default function UnifluxWorkspace() {
     // Tracks the source Mermaid flow ID when a conversion draft is active.
     // Cleared on explicit save or when loading a different flow.
     const [sourceMermaidFlowId, setSourceMermaidFlowId] = useState<string | null>(null);
+
+    // C4 diagram state
+    const [activeC4Level, setActiveC4Level] = useState<1 | 2 | 3>(1);
+    const [showC4Templates, setShowC4Templates] = useState(false);
+
+    // Keep graph.c4Level in sync with activeC4Level so it's persisted on save
+    const handleC4LevelChange = useCallback((level: 1 | 2 | 3) => {
+        setActiveC4Level(level);
+        setGraph(prev => ({ ...prev, c4Level: level }));
+    }, []);
 
     // Wizard State
     const [showWizard, setShowWizard] = useState(true);
@@ -131,6 +173,8 @@ export default function UnifluxWorkspace() {
     // Inline edge-label editor (replaces window.prompt)
     const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
     const [edgeEditValue, setEdgeEditValue] = useState('');
+    const [edgeProtocol, setEdgeProtocol] = useState('');
+    const [edgeRelType, setEdgeRelType] = useState<string>('sync');
 
     // Save toast
     const [showSaveToast, setShowSaveToast] = useState(false);
@@ -138,49 +182,86 @@ export default function UnifluxWorkspace() {
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
 
+    // isNodeVisibleAtLevel kept for backward compat with onDrop and onNodeDragStop
+    const isNodeVisibleAtLevel = useCallback((nodeType: string, nodeC4Level: number | undefined, viewLevel: number): boolean => {
+        const natural = nodeC4Level ?? ({ C4_PERSON:1, C4_SYSTEM:1, C4_SYSTEM_EXT:1, C4_CONTAINER_WEB:2, C4_CONTAINER_API:2, C4_CONTAINER_DB:2, C4_CONTAINER_QUEUE:2, C4_COMPONENT:3, C4_BOUNDARY:1 } as Record<string,number>)[nodeType] ?? viewLevel;
+        return natural <= viewLevel;
+    }, []);
+
     // Sync Graph -> React Flow ONLY on load or AI update
     useEffect(() => {
-        const rfNodes: Node[] = graph.nodes.map(n => ({
-            id: n.id,
-            type: n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
-            position: n.position,
-            data: {
-                label: n.type === 'ENVIRONMENT' ? n.label : `${n.id}. ${n.label}`,
-                type: n.type,
-                isLocked: n.isLocked,
-            },
-            // ENVIRONMENT nodes go to the back so contained nodes are always clickable
-            zIndex: n.type === 'ENVIRONMENT' ? -1 : 1,
-            style: { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 },
-            parentId: n.parentId,
-            extent: n.parentId ? 'parent' : undefined,
-            draggable: !n.isLocked,
-            selectable: !n.isLocked,
-            sourcePosition: Position.Right,
-            targetPosition: Position.Left,
-        }));
+        const nodeMap = buildNodeMap(graph.nodes);
+        // Filter out 'hidden' nodes entirely — only render 'full' and 'dimmed'
+        const renderableNodes = graph.nodes.filter(n =>
+            !C4_NODE_TYPES.has(n.type) || shouldRender(n, activeC4Level)
+        );
+        const rfNodes: Node[] = renderableNodes.map(n => {
+            const isC4 = C4_NODE_TYPES.has(n.type);
+            const isBoundaryLike = n.type === 'ENVIRONMENT' || n.type === 'C4_BOUNDARY';
+            const visTier = isC4 ? getNodeVisibility(n, activeC4Level) : 'full';
+            const opacity = n.isLocked ? 0.8 : OPACITY[visTier];
+            return {
+                id: n.id,
+                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default'),
+                position: n.position,
+                data: isC4 ? {
+                    label: n.label,
+                    type: n.type,
+                    c4Type: n.type,
+                    technology: n.technology,
+                    description: n.description,
+                    external: n.external,
+                    c4Level: n.c4Level,
+                    isLocked: n.isLocked,
+                    dimmed: visTier !== 'full',
+                } : {
+                    label: isBoundaryLike ? n.label : `${n.id}. ${n.label}`,
+                    type: n.type,
+                    isLocked: n.isLocked,
+                },
+                zIndex: isBoundaryLike ? -1 : 1,
+                style: isC4
+                    ? { background: 'transparent', border: 'none', padding: 0, width: n.width, height: n.height, opacity, transition: 'opacity 0.25s ease' }
+                    : { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 },
+                parentId: n.parentId,
+                extent: n.parentId ? 'parent' : undefined,
+                draggable: !n.isLocked && visTier === 'full',
+                selectable: visTier === 'full',
+                sourcePosition: isC4 ? undefined : Position.Right,
+                targetPosition: isC4 ? undefined : Position.Left,
+            };
+        });
 
-        const rfEdges: Edge[] = graph.edges.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            label: e.label,
-            type: 'straight',
-            animated: true,
-            labelStyle: { fill: '#4b5563', fontWeight: 600, fontSize: 12, fontFamily: 'inherit' },
-            labelBgStyle: { fill: '#ffffff', stroke: '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
-            labelBgPadding: [12, 6],
-            labelBgBorderRadius: 8,
-        }));
+        const rfEdges: Edge[] = graph.edges.map(e => {
+            const isC4Edge = graph.docType === 'c4';
+            // For C4: dim edges where either endpoint is dimmed
+            const srcNode = isC4Edge ? graph.nodes.find(n => n.id === e.source) : null;
+            const tgtNode = isC4Edge ? graph.nodes.find(n => n.id === e.target) : null;
+            const edgeVisTier = isC4Edge ? getEdgeVisibility(e, nodeMap, activeC4Level) : 'full';
+            const edgeDimmed = edgeVisTier !== 'full';
+            const edgeStyle = getC4EdgeStyle(e.c4RelType, edgeDimmed as boolean);
+            return {
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
+                type: isC4Edge ? 'default' : 'straight',
+                animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : true,
+                style: isC4Edge ? edgeStyle.line : undefined,
+                markerEnd: isC4Edge ? edgeStyle.markerEnd : undefined,
+                labelStyle: { fill: edgeDimmed ? '#d1d5db' : '#4b5563', fontWeight: 600, fontSize: 11, fontFamily: 'inherit' },
+                labelBgStyle: { fill: '#ffffff', stroke: edgeDimmed ? '#f3f4f6' : '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
+                labelBgPadding: [10, 5] as [number, number],
+                labelBgBorderRadius: 6,
+                data: isC4Edge ? { c4RelType: e.c4RelType, protocol: e.protocol, c4Description: e.c4Description } : undefined,
+            };
+        });
 
         setNodes(rfNodes);
         setEdges(rfEdges);
 
-        // If we have nodes, hide the wizard
-        if (graph.nodes.length > 0) {
-            setShowWizard(false);
-        }
-    }, [graph, setNodes, setEdges]);
+        if (graph.nodes.length > 0) setShowWizard(false);
+    }, [graph, activeC4Level, setNodes, setEdges, isNodeVisibleAtLevel]);
 
     // Fetch Projects
     useEffect(() => {
@@ -216,13 +297,18 @@ export default function UnifluxWorkspace() {
     // Flow Loading & Reset Handlers
     const handleLoadFlow = async (flowId: string) => {
         const tenantToUse = tenantId || '1';
-        const flowInfo = await getFlow(tenantToUse, flowId);
-        if (flowInfo) {
+        const rawFlowInfo = await getFlow(tenantToUse, flowId);
+        if (rawFlowInfo) {
+            // Auto-upgrade legacy Firestore documents to current schema
+            const flowInfo = needsMigration(rawFlowInfo) ? migrateGraph(rawFlowInfo) : rawFlowInfo;
             setGraph(flowInfo);
             setSelectedProjectId(flowInfo.projectId || selectedProjectId);
             setIsSidebarOpen(false);
             setShowWizard(false);
-            setSourceMermaidFlowId(null); // discard any active conversion draft
+            setSourceMermaidFlowId(null);
+            if (flowInfo.docType === 'c4' && flowInfo.c4Level) {
+                setActiveC4Level(flowInfo.c4Level as 1 | 2 | 3);
+            }
             setTimeout(takeSnapshot, 0);
         }
     };
@@ -240,6 +326,31 @@ export default function UnifluxWorkspace() {
         setEdges([]);
         setShowWizard(true);
         setSourceMermaidFlowId(null);
+    };
+
+    const handleNewC4Flow = () => {
+        const newTemplate: FlowGraph = {
+            ...INITIAL_GRAPH,
+            id: `draft-${Date.now()}`,
+            projectId: selectedProjectId,
+            name: 'Nuevo Diagrama C4',
+            docType: 'c4',
+            c4Level: 1,
+            schemaVersion: 3,
+        };
+        setGraph(newTemplate);
+        setIsSidebarOpen(false);
+        setNodes([]);
+        setEdges([]);
+        setShowWizard(true);
+        handleC4LevelChange(1);
+        setSourceMermaidFlowId(null);
+    };
+
+    const handleApplyC4Template = (tplNodes: FlowNode[], tplEdges: FlowEdge[]) => {
+        setGraph(prev => ({ ...prev, nodes: tplNodes, edges: tplEdges }));
+        setShowWizard(false);
+        setTimeout(takeSnapshot, 0);
     };
 
     const handleNewMermaidFlow = () => {
@@ -338,6 +449,23 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     };
 
+    const handleC4NodeSave = (nodeId: string, newLabel: string, newType: C4NodeType, technology: string, description: string, external: boolean) => {
+        const rfType = getC4ReactFlowType(newType);
+        setNodes(nds => nds.map(node => {
+            if (node.id === nodeId) {
+                return {
+                    ...node,
+                    type: rfType,
+                    data: { ...node.data, label: newLabel, type: newType, c4Type: newType, technology, description, external },
+                    style: { background: 'transparent', border: 'none', padding: 0, opacity: node.data.isLocked ? 0.8 : 1 },
+                };
+            }
+            return node;
+        }));
+        setSelectedNode(null);
+        setTimeout(takeSnapshot, 0);
+    };
+
     const handleNodeDelete = (nodeId: string) => {
         setNodes(nds => nds.filter(node => node.id !== nodeId));
         setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
@@ -394,11 +522,24 @@ export default function UnifluxWorkspace() {
         event.stopPropagation();
         setEditingEdge(edge);
         setEdgeEditValue((edge.label as string) || '');
+        setEdgeProtocol((edge.data?.protocol as string) || '');
+        setEdgeRelType((edge.data?.c4RelType as string) || 'sync');
     };
 
     const handleEdgeLabelSave = () => {
         if (!editingEdge) return;
-        setEdges(eds => eds.map(e => e.id === editingEdge.id ? { ...e, label: edgeEditValue } : e));
+        const isC4 = graph.docType === 'c4';
+        setEdges(eds => eds.map(e => {
+            if (e.id !== editingEdge.id) return e;
+            const updated = {
+                ...e,
+                label: isC4 ? (edgeProtocol || edgeEditValue || undefined) : edgeEditValue,
+                data: isC4 ? { ...e.data, c4RelType: edgeRelType, protocol: edgeProtocol, c4Description: edgeEditValue } : e.data,
+                ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
+                animated: isC4 ? (edgeRelType === 'async' || edgeRelType === 'event') : true,
+            };
+            return updated;
+        }));
         setEditingEdge(null);
         setTimeout(takeSnapshot, 0);
     };
@@ -420,46 +561,59 @@ export default function UnifluxWorkspace() {
         (event: React.DragEvent) => {
             event.preventDefault();
 
-            const type = event.dataTransfer.getData('application/reactflow/type') as NodeType;
+            const type = event.dataTransfer.getData('application/reactflow/type') as AnyNodeType;
             const label = event.dataTransfer.getData('application/reactflow/label');
+            const c4Type = event.dataTransfer.getData('application/reactflow/c4type') as C4NodeType | '';
 
-            if (!type || !label || !reactFlowInstance) {
-                return;
-            }
+            if (!type || !label || !reactFlowInstance) return;
 
             const position = reactFlowInstance.screenToFlowPosition({
                 x: event.clientX,
                 y: event.clientY,
             });
 
-            // Use sequential numeric ID
             let newIdNum = 1;
-            while (nodes.some(n => n.id === newIdNum.toString())) {
-                newIdNum++;
-            }
+            while (nodes.some(n => n.id === newIdNum.toString())) newIdNum++;
             const newNodeId = newIdNum.toString();
-            const newNode: Node = {
-                id: newNodeId,
-                type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
-                position,
-                data: { label: `${newNodeId}. ${label}`, type: type },
-                style: type === 'ENVIRONMENT' ? { ...getNodeStyle(type), width: 300, height: 200 } : getNodeStyle(type),
-                sourcePosition: Position.Right,
-                targetPosition: Position.Left,
-            };
+
+            const isC4 = C4_NODE_TYPES.has(type);
+
+            let newNode: Node;
+            if (isC4) {
+                const rfType = getC4ReactFlowType(type);
+                const isBoundary = type === 'C4_BOUNDARY';
+                newNode = {
+                    id: newNodeId,
+                    type: rfType,
+                    position,
+                    data: { label, type, c4Type: type, technology: '', description: '', external: false, c4Level: activeC4Level },
+                    style: { background: 'transparent', border: 'none', padding: 0, ...(isBoundary ? { width: 300, height: 200 } : {}) },
+                    zIndex: isBoundary ? -1 : 1,
+                };
+            } else {
+                newNode = {
+                    id: newNodeId,
+                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
+                    position,
+                    data: { label: `${newNodeId}. ${label}`, type },
+                    style: type === 'ENVIRONMENT' ? { ...getNodeStyle(type), width: 300, height: 200 } : getNodeStyle(type),
+                    sourcePosition: Position.Right,
+                    targetPosition: Position.Left,
+                };
+            }
 
             setNodes((nds) => nds.concat(newNode));
             setTimeout(takeSnapshot, 0);
         },
-        [reactFlowInstance, setNodes, nodes],
+        [reactFlowInstance, setNodes, nodes, activeC4Level],
     );
 
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
-        if (draggedNode.data.type === 'ENVIRONMENT') return;
+        if (draggedNode.data.type === 'ENVIRONMENT' || draggedNode.data.type === 'C4_BOUNDARY') return;
 
-        // Check if dropped inside an environment
+        // Check if dropped inside an environment or C4 boundary
         const targetEnv = nodes.find(n =>
-            n.data.type === 'ENVIRONMENT' &&
+            (n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY') &&
             n.id !== draggedNode.id &&
             draggedNode.position.x >= n.position.x &&
             draggedNode.position.y >= n.position.y &&
@@ -545,7 +699,11 @@ export default function UnifluxWorkspace() {
         try {
             // Import generateFlowWithAI Dynamically to avoid cycle issues if any, or statically if provided
             const { generateFlowWithAI } = await import('@/app/actions/uniflux-ai');
-            const prompt = `Create an initial data flow between these systems: ${wizardInput}. Create nodes representing these systems and the initial flow of information between them.`;
+            // Mode-aware prompt: C4 passes the description directly; visual wraps it with intent context
+            const mode = getMode(graph.docType);
+            const prompt = mode.id === 'c4'
+                ? wizardInput
+                : `Describe the initial data flow: ${wizardInput}. Create nodes representing these systems and the flow of information between them.`;
 
             const result = await generateFlowWithAI(prompt, graph);
 
@@ -582,21 +740,33 @@ export default function UnifluxWorkspace() {
                 finalGraph = {
                     ...graph,
                     ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
+                    schemaVersion: CURRENT_SCHEMA_VERSION,
                 };
             } else {
                 // Re-sync React Flow visually into the abstract FlowGraph
-                const updatedGraphNodes: FlowNode[] = nodes.map(n => ({
-                    id: n.id,
-                    type: n.data.type as NodeType || 'OPERATION',
-                    label: n.data.type === 'ENVIRONMENT'
-                        ? (n.data.label as string)
-                        : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
-                    position: n.position,
-                    ...(n.parentId ? { parentId: n.parentId } : {}),
-                    ...(n.data.isLocked !== undefined ? { isLocked: n.data.isLocked as boolean } : {}),
-                    ...(n.style?.width !== undefined ? { width: n.style.width as number } : {}),
-                    ...(n.style?.height !== undefined ? { height: n.style.height as number } : {}),
-                }));
+                const updatedGraphNodes: FlowNode[] = nodes.map(n => {
+                    const isC4 = C4_NODE_TYPES.has(n.data.type as string);
+                    const isBoundaryLike = n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY';
+                    return {
+                        id: n.id,
+                        type: (n.data.type as AnyNodeType) || 'OPERATION',
+                        label: isBoundaryLike
+                            ? (n.data.label as string)
+                            : isC4
+                                ? (n.data.label as string)
+                                : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
+                        position: n.position,
+                        ...(n.parentId ? { parentId: n.parentId } : {}),
+                        ...(n.data.isLocked !== undefined ? { isLocked: n.data.isLocked as boolean } : {}),
+                        ...(n.style?.width !== undefined ? { width: n.style.width as number } : {}),
+                        ...(n.style?.height !== undefined ? { height: n.style.height as number } : {}),
+                        // C4-specific fields
+                        ...(isC4 && n.data.technology ? { technology: n.data.technology as string } : {}),
+                        ...(isC4 && n.data.description ? { description: n.data.description as string } : {}),
+                        ...(isC4 && n.data.external !== undefined ? { external: n.data.external as boolean } : {}),
+                        ...(isC4 && n.data.c4Level ? { c4Level: n.data.c4Level as 1|2|3|4 } : {}),
+                    };
+                });
 
                 const updatedGraphEdges: FlowEdge[] = edges.map(e => ({
                     id: e.id,
@@ -609,7 +779,8 @@ export default function UnifluxWorkspace() {
                     ...graph,
                     ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
                     nodes: updatedGraphNodes,
-                    edges: updatedGraphEdges
+                    edges: updatedGraphEdges,
+                    schemaVersion: CURRENT_SCHEMA_VERSION,
                 };
             }
 
@@ -636,27 +807,46 @@ export default function UnifluxWorkspace() {
 
     // Always-fresh graph that reflects the current canvas state (not just last save).
     // Passed to UnifluxToolbar so the AI always sees unsaved node moves/additions.
-    const liveGraph = useMemo<FlowGraph>(() => ({
-        ...graph,
-        nodes: nodes.map(n => ({
-            id: n.id,
-            type: (n.data.type as NodeType) || 'OPERATION',
-            label: n.data.type === 'ENVIRONMENT'
-                ? (n.data.label as string)
-                : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
-            position: n.position,
-            parentId: n.parentId,
-            isLocked: n.data.isLocked as boolean | undefined,
-            width: n.style?.width as number | undefined,
-            height: n.style?.height as number | undefined,
-        })),
-        edges: edges.map(e => ({
+    // For C4: only passes nodes visible at the current view level (AI doesn't need dimmed context).
+    const liveGraph = useMemo<FlowGraph>(() => {
+        const allNodes: FlowNode[] = nodes.map(n => {
+            const isC4 = C4_NODE_TYPES.has(n.data.type as string);
+            const isBoundaryLike = n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY';
+            return {
+                id: n.id,
+                type: (n.data.type as AnyNodeType) || 'OPERATION',
+                label: isBoundaryLike || isC4
+                    ? (n.data.label as string)
+                    : (n.data.label as string).replace(new RegExp(`^${n.id}\\.\\s*`), ''),
+                position: n.position,
+                parentId: n.parentId,
+                isLocked: n.data.isLocked as boolean | undefined,
+                width: n.style?.width as number | undefined,
+                height: n.style?.height as number | undefined,
+                ...(isC4 ? {
+                    technology: n.data.technology as string | undefined,
+                    description: n.data.description as string | undefined,
+                    external: n.data.external as boolean | undefined,
+                    c4Level: n.data.c4Level as 1|2|3|4 | undefined,
+                } : {}),
+            };
+        });
+        const allEdges: FlowEdge[] = edges.map(e => ({
             id: e.id,
             source: e.source,
             target: e.target,
             label: e.label as string | undefined,
-        })),
-    }), [graph, nodes, edges]);
+            ...(e.data?.c4RelType ? { c4RelType: e.data.c4RelType as any } : {}),
+            ...(e.data?.protocol ? { protocol: e.data.protocol as string } : {}),
+        }));
+
+        // For C4: trim to only what's visible at the current level so the AI gets clean context
+        const { nodes: visibleNodes, edges: visibleEdges } = graph.docType === 'c4'
+            ? getAIVisibleGraph(allNodes, allEdges, activeC4Level)
+            : { nodes: allNodes, edges: allEdges };
+
+        return { ...graph, nodes: visibleNodes, edges: visibleEdges };
+    }, [graph, nodes, edges, activeC4Level]);
 
     return (
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
@@ -691,6 +881,32 @@ export default function UnifluxWorkspace() {
                                 {graph.name}
                                 <Pencil className="w-3 h-3 text-gray-400 group-hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
+                        )}
+                        {/* C4 level badge — visible only in C4 mode */}
+                        {graph.docType === 'c4' && (
+                            <div className="flex items-center gap-1">
+                                {([1, 2, 3] as const).map(lvl => (
+                                    <button
+                                        key={lvl}
+                                        onClick={() => handleC4LevelChange(lvl)}
+                                        title={lvl === 1 ? 'L1 Context' : lvl === 2 ? 'L2 Container' : 'L3 Component'}
+                                        className={`text-[10px] font-bold px-2 py-1 rounded border transition-all ${
+                                            activeC4Level === lvl
+                                                ? 'text-white border-blue-600'
+                                                : 'text-blue-600 bg-white border-blue-200 hover:border-blue-400'
+                                        }`}
+                                        style={activeC4Level === lvl ? { background: 'linear-gradient(135deg, #1168BD, #438DD5)' } : {}}
+                                    >
+                                        L{lvl}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {/* Mermaid badge */}
+                        {graph.docType === 'mermaid' && (
+                            <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-200 px-2 py-1 rounded">
+                                Mermaid DSL
+                            </span>
                         )}
                     </div>
                 </div>
@@ -786,7 +1002,8 @@ export default function UnifluxWorkspace() {
                                         ? updatedAt.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
                                         : null;
                                     const isMermaid = flow.docType === 'mermaid';
-                                    const nodeCount = isMermaid ? null : (flow.nodes?.length ?? 0);
+                                    const isC4 = flow.docType === 'c4';
+                                    const nodeCount = (isMermaid || isC4) ? null : (flow.nodes?.length ?? 0);
                                     const isActive = graph.id === flow.id;
                                     return (
                                         <div
@@ -823,17 +1040,21 @@ export default function UnifluxWorkspace() {
                                                         onClick={() => handleLoadFlow(flow.id)}
                                                         className="flex items-center gap-3 flex-1 min-w-0 text-left"
                                                     >
-                                                        <div className={`p-2 rounded-lg shrink-0 ${isActive ? 'bg-purple-100 text-purple-700' : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
-                                                            {isMermaid ? <GitBranch className="w-4 h-4" /> : <ListTree className="w-4 h-4" />}
+                                                        <div className={`p-2 rounded-lg shrink-0 ${isActive
+                                                            ? isC4 ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                                            : 'bg-gray-50 text-gray-400 group-hover:bg-purple-50 group-hover:text-purple-600'}`}>
+                                                            {isMermaid ? <GitBranch className="w-4 h-4" /> : isC4 ? <Building2 className="w-4 h-4" /> : <ListTree className="w-4 h-4" />}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <div className={`text-sm font-bold truncate ${isActive ? 'text-purple-900' : 'text-gray-700'}`}>
+                                                            <div className={`text-sm font-bold truncate ${isActive ? (isC4 ? 'text-blue-900' : 'text-purple-900') : 'text-gray-700'}`}>
                                                                 {flow.name || 'Sin título'}
                                                             </div>
                                                             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                                 {isMermaid
                                                                     ? <span className="text-[10px] text-teal-500 font-medium">Mermaid DSL</span>
-                                                                    : <span className="text-[10px] text-gray-400">{nodeCount} nodos</span>
+                                                                    : isC4
+                                                                        ? <span className="text-[10px] text-blue-500 font-medium">C4 Architecture · L{flow.c4Level ?? 1}</span>
+                                                                        : <span className="text-[10px] text-gray-400">{nodeCount} nodos</span>
                                                                 }
                                                                 {dateStr && <><span className="text-[10px] text-gray-300">·</span><span className="text-[10px] text-gray-400">{dateStr}</span></>}
                                                             </div>
@@ -867,7 +1088,14 @@ export default function UnifluxWorkspace() {
                             className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-gray-200 hover:border-purple-300 hover:text-purple-700 text-gray-700 rounded-xl font-bold text-sm transition-all shadow-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            Crear Nuevo Flujo
+                            Nuevo Flujo Visual
+                        </button>
+                        <button
+                            onClick={handleNewC4Flow}
+                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-blue-200 hover:border-blue-400 hover:text-blue-700 text-blue-600 rounded-xl font-bold text-sm transition-all shadow-sm"
+                        >
+                            <Building2 className="w-4 h-4" />
+                            Nuevo Diagrama C4
                         </button>
                         <button
                             onClick={handleNewMermaidFlow}
@@ -876,28 +1104,63 @@ export default function UnifluxWorkspace() {
                             <GitBranch className="w-4 h-4" />
                             Nuevo Diagrama Mermaid
                         </button>
+
+                        <Link
+                            href={`/uniflux/geo?projectId=${selectedProjectId}`}
+                            className={cn(
+                                "w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-50 border border-indigo-200 hover:border-indigo-400 hover:text-indigo-800 text-indigo-700 rounded-xl font-bold text-sm transition-all shadow-sm",
+                                !selectedProjectId && "opacity-50 pointer-events-none"
+                            )}
+                        >
+                            <Map className="w-4 h-4" />
+                            Módulo Geográfico v2.0
+                        </Link>
                     </div>
                 </div>
 
-                {/* AI Interaction Layer — hidden in Mermaid mode */}
+                {/* AI Interaction Layer — hidden only in Mermaid mode */}
                 {!showWizard && graph.docType !== 'mermaid' && <UnifluxToolbar currentGraph={liveGraph} onGraphUpdate={handleGraphUpdate} />}
 
                 {/* Initial Wizard Overlay — hidden in Mermaid mode */}
                 {showWizard && graph.docType !== 'mermaid' && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-50/80 backdrop-blur-sm">
                         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-gray-100">
-                            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
-                                Iniciar Nuevo Flujo
-                            </h2>
-                            <p className="text-gray-600 mb-6">
-                                ¿Qué sistemas van a interactuar? Describe el escenario inicial para generar la estructura base (Ej: Aplicación Móvil, CRM y Facturación).
-                            </p>
+                            {graph.docType === 'c4' ? (
+                                <>
+                                    <h2 className="text-2xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, #1168BD, #438DD5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                        Nuevo Diagrama C4
+                                    </h2>
+                                    <p className="text-gray-600 mb-2">
+                                        Describe la arquitectura a documentar. La IA generará el diagrama en nivel {activeC4Level === 1 ? 'L1 Context' : activeC4Level === 2 ? 'L2 Container' : 'L3 Component'}.
+                                    </p>
+                                    <div className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 mb-5">
+                                        {activeC4Level === 1 && '🌐 L1 Context — sistemas, actores y relaciones principales'}
+                                        {activeC4Level === 2 && '📦 L2 Container — apps, APIs, bases de datos y colas'}
+                                        {activeC4Level === 3 && '🧩 L3 Component — módulos y servicios internos'}
+                                        {' · Cambia el nivel en la paleta izquierda.'}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
+                                        Iniciar Nuevo Flujo
+                                    </h2>
+                                    <p className="text-gray-600 mb-6">
+                                        ¿Qué sistemas van a interactuar? Describe el escenario inicial para generar la estructura base.
+                                    </p>
+                                </>
+                            )}
 
                             <form onSubmit={handleWizardSubmit}>
                                 <textarea
                                     className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none resize-none mb-4"
                                     rows={4}
-                                    placeholder="Ej: El cliente hace un pedido en la App Móvil, se registra en el CRM y pasa al ERP para facturación."
+                                    placeholder={graph.docType === 'c4'
+                                        ? activeC4Level === 1 ? 'Ej: Sistema e-commerce con clientes web, app móvil, pasarela de pagos externa y ERP interno.'
+                                        : activeC4Level === 2 ? 'Ej: Backend de pedidos con API REST en Node.js, PostgreSQL y cola Kafka.'
+                                        : 'Ej: Módulo de autenticación con JWT service, user repository y email notification.'
+                                        : 'Ej: El cliente hace un pedido en la App Móvil, se registra en el CRM y pasa al ERP para facturación.'
+                                    }
                                     value={wizardInput}
                                     onChange={(e) => setWizardInput(e.target.value)}
                                     disabled={isGeneratingWizard}
@@ -922,7 +1185,8 @@ export default function UnifluxWorkspace() {
                                     <button
                                         type="submit"
                                         disabled={!wizardInput.trim() || isGeneratingWizard}
-                                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:shadow-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
+                                        className={`px-6 py-2 text-white rounded-lg hover:shadow-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 flex items-center gap-2 ${graph.docType === 'c4' ? '' : 'bg-gradient-to-r from-purple-600 to-blue-600'}`}
+                                        style={graph.docType === 'c4' ? { background: 'linear-gradient(135deg, #1168BD, #438DD5)' } : {}}
                                     >
                                         {isGeneratingWizard ? (
                                             <>
@@ -930,9 +1194,9 @@ export default function UnifluxWorkspace() {
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
-                                                Generando Flujo...
+                                                {graph.docType === 'c4' ? 'Generando C4...' : 'Generando Flujo...'}
                                             </>
-                                        ) : 'Generar Flujo Inicial'}
+                                        ) : graph.docType === 'c4' ? 'Generar Diagrama C4' : 'Generar Flujo Inicial'}
                                     </button>
                                 </div>
                             </form>
@@ -940,39 +1204,121 @@ export default function UnifluxWorkspace() {
                     </div>
                 )}
 
-                {/* Node Palette — hidden in Mermaid mode */}
-                {!showWizard && graph.docType !== 'mermaid' && <UnifluxNodePalette />}
-
-                {/* Node Editor — hidden in Mermaid mode */}
-                {selectedNode && graph.docType !== 'mermaid' && (
-                    <UnifluxNodeEditor
-                        nodeId={selectedNode.id}
-                        initialLabel={
-                            selectedNode.data.type === 'ENVIRONMENT'
-                                ? (selectedNode.data.label as string)
-                                : (selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')
-                        }
-                        initialType={selectedNode.data.type as NodeType || 'OPERATION'}
-                        isLocked={selectedNode.data.isLocked as boolean | undefined}
-                        onSave={handleNodeSave}
-                        onClose={() => setSelectedNode(null)}
-                        onDelete={handleNodeDelete}
-                        onToggleLock={selectedNode.data.type === 'ENVIRONMENT' ? handleToggleLock : undefined}
+                {/* C4 Templates modal */}
+                {showC4Templates && (
+                    <UnifluxC4Templates
+                        onApply={handleApplyC4Template}
+                        onClose={() => setShowC4Templates(false)}
                     />
                 )}
 
-                {/* Inline Edge Label Editor */}
+                {/* Node Palette — visual flow palette or C4 palette depending on mode */}
+                {graph.docType === 'c4'
+                    ? <UnifluxC4Palette activeLevel={activeC4Level} onLevelChange={handleC4LevelChange} onOpenTemplates={() => setShowC4Templates(true)} />
+                    : !showWizard && graph.docType !== 'mermaid' && <UnifluxNodePalette />
+                }
+
+                {/* Node Editor — C4 editor or standard editor depending on node type */}
+                {selectedNode && graph.docType !== 'mermaid' && (
+                    C4_NODE_TYPES.has(selectedNode.data.type as string)
+                        ? <UnifluxC4NodeEditor
+                            nodeId={selectedNode.id}
+                            initialLabel={selectedNode.data.label as string}
+                            initialType={selectedNode.data.c4Type as C4NodeType || selectedNode.data.type as C4NodeType}
+                            initialTechnology={selectedNode.data.technology as string | undefined}
+                            initialDescription={selectedNode.data.description as string | undefined}
+                            initialExternal={selectedNode.data.external as boolean | undefined}
+                            isLocked={selectedNode.data.isLocked as boolean | undefined}
+                            onSave={handleC4NodeSave}
+                            onClose={() => setSelectedNode(null)}
+                            onDelete={handleNodeDelete}
+                            onToggleLock={selectedNode.data.type === 'C4_BOUNDARY' ? handleToggleLock : undefined}
+                          />
+                        : <UnifluxNodeEditor
+                            nodeId={selectedNode.id}
+                            initialLabel={
+                                selectedNode.data.type === 'ENVIRONMENT'
+                                    ? (selectedNode.data.label as string)
+                                    : (selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')
+                            }
+                            initialType={selectedNode.data.type as NodeType || 'OPERATION'}
+                            isLocked={selectedNode.data.isLocked as boolean | undefined}
+                            onSave={handleNodeSave}
+                            onClose={() => setSelectedNode(null)}
+                            onDelete={handleNodeDelete}
+                            onToggleLock={selectedNode.data.type === 'ENVIRONMENT' ? handleToggleLock : undefined}
+                          />
+                )}
+
+                {/* Inline Edge Editor — standard for visual flow, enriched for C4 */}
                 {editingEdge && (
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-80">
-                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Editar etiqueta de conexión</p>
-                        <input
-                            autoFocus
-                            value={edgeEditValue}
-                            onChange={e => setEdgeEditValue(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
-                            placeholder="Texto de la conexión (vacío = sin etiqueta)"
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
-                        />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-96">
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-3">
+                            {graph.docType === 'c4' ? 'Editar relación C4' : 'Editar etiqueta de conexión'}
+                        </p>
+
+                        {graph.docType === 'c4' && (
+                            <>
+                                {/* Relationship type selector */}
+                                <div className="mb-3">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1.5">Tipo de relación</label>
+                                    <div className="flex gap-1.5 flex-wrap">
+                                        {[
+                                            { id: 'sync',     label: '→ Sync',     color: '#1168BD' },
+                                            { id: 'async',    label: '⇢ Async',    color: '#438DD5' },
+                                            { id: 'event',    label: '⚡ Evento',   color: '#f59e0b' },
+                                            { id: 'database', label: '🗄 Database', color: '#10b981' },
+                                            { id: 'external', label: '🌍 Externo',  color: '#9ca3af' },
+                                        ].map(t => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setEdgeRelType(t.id)}
+                                                className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all"
+                                                style={edgeRelType === t.id
+                                                    ? { background: t.color, color: '#fff', borderColor: t.color }
+                                                    : { background: '#f9fafb', color: '#374151', borderColor: '#e5e7eb' }
+                                                }
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                {/* Protocol */}
+                                <div className="mb-3">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Protocolo / Tecnología</label>
+                                    <input
+                                        value={edgeProtocol}
+                                        onChange={e => setEdgeProtocol(e.target.value)}
+                                        placeholder="Ej: HTTPS/JSON, SQL queries, gRPC"
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                                    />
+                                </div>
+                                {/* Description */}
+                                <div className="mb-3">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Descripción (opcional)</label>
+                                    <input
+                                        autoFocus
+                                        value={edgeEditValue}
+                                        onChange={e => setEdgeEditValue(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
+                                        placeholder="¿Qué hace esta llamada?"
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        {graph.docType !== 'c4' && (
+                            <input
+                                autoFocus
+                                value={edgeEditValue}
+                                onChange={e => setEdgeEditValue(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
+                                placeholder="Texto de la conexión (vacío = sin etiqueta)"
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
+                            />
+                        )}
                         <div className="flex gap-2">
                             <button onClick={handleEdgeLabelSave} className="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity">
                                 Guardar
@@ -1138,10 +1484,22 @@ function getNodeStyle(type: string) {
                 borderRadius: '12px'
             };
         default:
-            return {
-                ...base,
-                background: '#FFFFFF',
-                borderColor: '#9E9E9E'
-            };
+            if (type.startsWith('C4_')) {
+                return { background: 'transparent', border: 'none', padding: 0 };
+            }
+            return { ...base, background: '#FFFFFF', borderColor: '#9E9E9E' };
     }
+}
+
+// C4 edge visual styles by relationship type
+function getC4EdgeStyle(relType?: string, dimmed?: boolean) {
+    const alpha = dimmed ? '33' : 'ff';
+    const styles: Record<string, { line: React.CSSProperties; markerEnd?: string }> = {
+        sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 } },
+        async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' } },
+        event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' } },
+        database: { line: { stroke: `#10b981${alpha}`, strokeWidth: 2 } },
+        external: { line: { stroke: `#9ca3af${alpha}`, strokeWidth: 1.5, strokeDasharray: '8 4' } },
+    };
+    return styles[relType ?? 'sync'] ?? styles.sync;
 }

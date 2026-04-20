@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ZoneType {
+  TRANSPORTE
+  DEPOSITO
+}
+
+model GeographicZone {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  projectId  String   @map("project_id") @db.Uuid
+  zoneCode   String   @unique @map("zone_code") @db.VarChar(50)
+  name       String   @db.VarChar(255)
+  boundary   Unsupported("geometry(MultiPolygon, 4326)")
+  type       ZoneType
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([boundary], name: "idx_geographic_zones_boundary", type: Gist)
+  @@index([metadata], name: "idx_geographic_zones_metadata", type: Gin)
+  @@index([tenantId, projectId], name: "idx_geographic_zones_tenant_project")
+  @@map("geographic_zones")
+}

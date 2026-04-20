@@ -39,7 +39,8 @@ import {
     Zap,
     Database,
     Mail,
-    Table
+    Table,
+    Map
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -389,6 +390,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && can('uniflux', 'views') && (
                                         <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                     )}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -614,6 +618,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     )}
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                         <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                    )}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
                                     )}
                                 </div>
                             )}
