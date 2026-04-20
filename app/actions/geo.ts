@@ -299,6 +299,13 @@ const NOMINATIM_HEADERS = {
     'Accept-Language': 'es,en',
 };
 
+const OVERPASS_ENDPOINTS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter',
+    'https://z.overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+];
+
 function isPostalCode(query: string): boolean {
     return /^\d{4,6}$/.test(query.trim());
 }
@@ -321,72 +328,75 @@ function nominatimFeaturesToBoundaries(features: any[], fallbackQuery: string): 
 }
 
 async function searchPostalCodeViaOverpass(postalCode: string, countryCode: string): Promise<BoundaryFeature[]> {
-    const countryTag = countryCode.toUpperCase();
     const overpassQuery = `
-[out:json][timeout:25];
-area["ISO3166-1"="${countryTag}"][admin_level=2]->.pais;
+[out:json][timeout:30];
 (
-  relation["postal_code"="${postalCode}"](area.pais);
-  relation["addr:postcode"="${postalCode}"](area.pais);
-  way["postal_code"="${postalCode}"](area.pais);
-  way["addr:postcode"="${postalCode}"](area.pais);
+  relation["postal_code"="${postalCode}"];
+  relation["addr:postcode"="${postalCode}"];
+  way["postal_code"="${postalCode}"];
+  way["addr:postcode"="${postalCode}"];
 );
 out geom;`.trim();
 
-    try {
-        const res = await fetch('https://overpass-api.de/api/interpreter', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': NOMINATIM_HEADERS['User-Agent'] },
-            body:    `data=${encodeURIComponent(overpassQuery)}`,
-            cache:   'no-cache',
-        });
-        if (!res.ok) return [];
+    for (const endpoint of OVERPASS_ENDPOINTS) {
+        try {
+            const res = await fetch(endpoint, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': NOMINATIM_HEADERS['User-Agent'] },
+                body:    `data=${encodeURIComponent(overpassQuery)}`,
+                cache:   'no-cache',
+                // Usamos un timeout corto de fetch para saltar al siguiente mirror si este no responde
+                signal:  AbortSignal.timeout(15000), 
+            });
+            if (!res.ok) continue;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data: { elements: any[] } = await res.json();
-        const results: BoundaryFeature[] = [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data: { elements: any[] } = await res.json();
+            const results: BoundaryFeature[] = [];
 
-        for (const el of data.elements) {
-            let rings: number[][][] = [];
+            for (const el of data.elements) {
+                let rings: number[][][] = [];
 
-            if (el.type === 'relation' && el.members) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const outerWays = el.members.filter((m: any) => m.type === 'way' && m.role === 'outer' && m.geometry);
-                if (outerWays.length === 0) continue;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                rings = outerWays.map((w: any) =>
-                    w.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])
-                );
-            } else if (el.type === 'way' && el.geometry) {
-                rings = [el.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])];
-            } else {
-                continue;
+                if (el.type === 'relation' && el.members) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const outerWays = el.members.filter((m: any) => m.type === 'way' && m.role === 'outer' && m.geometry);
+                    if (outerWays.length === 0) continue;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    rings = outerWays.map((w: any) =>
+                        w.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])
+                    );
+                } else if (el.type === 'way' && el.geometry) {
+                    rings = [el.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])];
+                } else {
+                    continue;
+                }
+
+                const closedRings = rings.map(ring => {
+                    if (ring.length < 2) return ring;
+                    const [first, last] = [ring[0], ring[ring.length - 1]];
+                    if (first[0] !== last[0] || first[1] !== last[1]) ring.push([...first]);
+                    return ring;
+                });
+
+                results.push({
+                    osmId:       `${el.type[0].toUpperCase()}${el.id}`,
+                    displayName: `CP ${postalCode}${el.tags?.name ? ` — ${el.tags.name}` : ''}`,
+                    shortName:   `CP ${postalCode}`,
+                    addressType: 'Código Postal',
+                    geometry: {
+                        type:        closedRings.length === 1 ? 'Polygon' : 'MultiPolygon',
+                        coordinates: closedRings.length === 1 ? closedRings : closedRings.map(r => [r]),
+                    },
+                });
             }
 
-            const closedRings = rings.map(ring => {
-                if (ring.length < 2) return ring;
-                const [first, last] = [ring[0], ring[ring.length - 1]];
-                if (first[0] !== last[0] || first[1] !== last[1]) ring.push([...first]);
-                return ring;
-            });
-
-            results.push({
-                osmId:       `${el.type[0].toUpperCase()}${el.id}`,
-                displayName: `CP ${postalCode}${el.tags?.name ? ` — ${el.tags.name}` : ''}`,
-                shortName:   `CP ${postalCode}`,
-                addressType: 'Código Postal',
-                geometry: {
-                    type:        closedRings.length === 1 ? 'Polygon' : 'MultiPolygon',
-                    coordinates: closedRings.length === 1 ? closedRings : closedRings.map(r => [r]),
-                },
-            });
+            if (results.length > 0) return results;
+        } catch (error) {
+            console.warn(`Overpass mirror fail (${endpoint}):`, error instanceof Error ? error.message : error);
+            continue;
         }
-
-        return results;
-    } catch (error) {
-        console.error('Overpass error para CP:', error instanceof Error ? error.message : error);
-        return [];
     }
+    return [];
 }
 
 export async function searchBoundaries(
