@@ -193,8 +193,10 @@ export async function exportZonesToExcelBase64(tenantId: string, projectId: stri
 /**
  * Exporta las zonas del proyecto a GeoJSON nativo (via ST_AsGeoJSON de PostGIS).
  */
+type GeoZoneRow = { id: string; name: string; zoneCode: string; type: string; metadata: unknown; boundary: unknown };
+
 export async function exportZonesToGeoJSON(tenantId: string, projectId: string) {
-    const zones = await prisma.$queryRaw<Array<{ id: string; name: string; zoneCode: string; type: string; metadata: unknown; boundary: unknown }>>`
+    const zones = await prisma.$queryRaw<GeoZoneRow[]>`
         SELECT
             id::text,
             name,
@@ -213,7 +215,7 @@ export async function exportZonesToGeoJSON(tenantId: string, projectId: string) 
 
     return {
         type: 'FeatureCollection',
-        features: zones.map(z => ({
+        features: zones.map((z: GeoZoneRow) => ({
             type: 'Feature',
             geometry: z.boundary,
             properties: {
@@ -575,7 +577,7 @@ export async function exportZonesToKML(tenantId: string, projectId: string): Pro
 
     const featureCollection = {
         type: 'FeatureCollection',
-        features: zones.map(z => ({
+        features: zones.map((z: GeoZoneRow) => ({
             type: 'Feature',
             geometry: z.boundary,
             properties: {
