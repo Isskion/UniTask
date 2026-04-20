@@ -25,7 +25,7 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return request.auth != null && (getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com');
+      return request.auth != null && (getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com' || request.auth.token.email == 'daniel.delamo@unigis.com');
     }
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
@@ -631,19 +631,19 @@ service cloud.firestore {
       // CREATE: Must belong to the same tenant; role >= 40 (operador o superior)
       allow create: if isAuthenticated() && (
         isSuperAdmin() ||
-        (docTenantMatches(request.resource.data) && getRealRole() >= 40)
+        (string(request.resource.data.tenantId) == getRealTenantId() && getRealRole() >= 40)
       );
 
       // UPDATE: Admins (>= 80) or the creator can update
       allow update: if isAuthenticated() && (
         isSuperAdmin() ||
-        (docTenantMatches(resource.data) && getRealRole() >= 80)
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
       );
 
-      // DELETE: Admins (>= 80) or SuperAdmin
+      // DELETE: Admins (>= 80) or Creator or SuperAdmin
       allow delete: if isAuthenticated() && (
         isSuperAdmin() ||
-        (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 80))
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
       );
     }
 

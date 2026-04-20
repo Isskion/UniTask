@@ -1,6 +1,6 @@
 'use client'; // Uses Firebase client SDK — no 'use server'
 
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import {
     collection, doc, addDoc, getDocs, deleteDoc, updateDoc,
     query, where, orderBy, serverTimestamp, Timestamp,
@@ -80,6 +80,7 @@ export async function saveGeographicZone(params: SaveZoneParams): Promise<{ id: 
         type,
         boundary: JSON.stringify(geometry),
         metadata: metadata ?? {},
+        createdBy: auth.currentUser?.uid || 'system',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     });
