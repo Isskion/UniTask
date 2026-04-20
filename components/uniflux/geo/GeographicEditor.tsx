@@ -453,12 +453,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             map.current.on('gm:drawend', () => setActiveTool(null));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             map.current.on('gm:create', async (e: any) => {
-                const feature = e.feature as Feature<Polygon | MultiPolygon>;
-                if (!feature?.geometry) return;
-                // Extraer GeoJSON puro — e.feature tiene referencias circulares al mapa
+                const raw = e.feature;
+                if (!raw) return;
+                // e.feature es un objeto Geoman con refs circulares al mapa.
+                // Reconstruimos la geometría desde cero con solo type+coordinates.
+                const geomSrc = raw.geometry ?? raw; // algunas versiones exponen la geometría en la raíz
+                if (!geomSrc?.type || !geomSrc?.coordinates) return;
                 const cleanFeature: Feature<Polygon | MultiPolygon> = {
                     type: 'Feature',
-                    geometry: feature.geometry,
+                    geometry: { type: geomSrc.type, coordinates: geomSrc.coordinates } as Polygon | MultiPolygon,
                     properties: {},
                 };
                 const overlaps = await runOverlapCheck(cleanFeature);
