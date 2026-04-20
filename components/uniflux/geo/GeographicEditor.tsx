@@ -96,6 +96,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [searchQuery, setSearchQuery]             = useState('');
     const [searchResults, setSearchResults]         = useState<BoundaryFeature[]>([]);
     const [isSearching, setIsSearching]             = useState(false);
+    const [searchError, setSearchError]             = useState<string | null>(null);
     const [selectedBoundaries, setSelectedBoundaries] = useState<BoundaryFeature[]>([]);
     const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchAbortControllerRef = useRef<AbortController | null>(null);
@@ -276,17 +277,17 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     const handleSearch = useCallback((q: string) => {
         setSearchQuery(q);
+        setSearchError(null);
         if (searchDebounce.current) clearTimeout(searchDebounce.current);
-        
-        // Cancelamos cualquier búsqueda anterior en curso
+
         if (searchAbortControllerRef.current) {
             searchAbortControllerRef.current.abort();
         }
 
-        if (!q.trim() || q.trim().length < 2) { 
-            setSearchResults([]); 
+        if (!q.trim() || q.trim().length < 2) {
+            setSearchResults([]);
             setIsSearching(false);
-            return; 
+            return;
         }
 
         searchDebounce.current = setTimeout(async () => {
@@ -294,14 +295,19 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             searchAbortControllerRef.current = controller;
 
             setIsSearching(true);
+            setSearchResults([]);
             try {
                 const results = await searchBoundaries(q, 'es');
-                setSearchResults(results);
-            } catch (error: any) {
-                if (error.name === 'AbortError') return;
-                console.error("Search error:", error);
+                if (searchAbortControllerRef.current === controller) {
+                    setSearchResults(results);
+                }
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name === 'AbortError') return;
+                console.error('Search error:', error);
+                if (searchAbortControllerRef.current === controller) {
+                    setSearchError(error instanceof Error ? error.message : 'Error al buscar. Inténtalo de nuevo.');
+                }
             } finally {
-                // Solo apagamos el loader si esta sigue siendo la búsqueda activa
                 if (searchAbortControllerRef.current === controller) {
                     setIsSearching(false);
                 }
@@ -604,7 +610,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                             ))}
                                         </div>
                                     )}
-                                    {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+                                    {searchError && (
+                                        <p className="text-[11px] text-destructive text-center py-1 flex items-center justify-center gap-1">
+                                            <AlertTriangle className="w-3 h-3 shrink-0" /> {searchError}
+                                        </p>
+                                    )}
+                                    {!searchError && searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
                                         <p className="text-[11px] text-muted-foreground text-center py-1">Sin resultados para "{searchQuery}"</p>
                                     )}
                                 </div>

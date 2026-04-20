@@ -96,17 +96,19 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         }
     } catch { /* continúa */ }
 
-    // 2. Obtener centroide del CP
+    // 2. Obtener centroide del CP con datos de dirección
     let lat = '', lon = '';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let addressObj: Record<string, string> | null = null;
     for (const attempt of [
-        { postalcode: q, countrycodes: countryCode, format: 'json', limit: '1' } as Record<string, string>,
-        { q, countrycodes: countryCode, format: 'json', limit: '1', addressdetails: '1' } as Record<string, string>,
-        { q: `código postal ${q} España`, format: 'json', limit: '1' } as Record<string, string>,
+        { postalcode: q, countrycodes: countryCode, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
+        { q, countrycodes: countryCode, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
+        { q: `código postal ${q} España`, format: 'json', addressdetails: '1', limit: '1' } as Record<string, string>,
     ]) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const pts: any[] = await nominatimGet(attempt, 86400) ?? [];
-            if (pts?.length) { lat = pts[0].lat; lon = pts[0].lon; break; }
+            if (pts?.length) { lat = pts[0].lat; lon = pts[0].lon; addressObj = pts[0].address ?? null; break; }
         } catch { /* siguiente */ }
     }
 
@@ -119,6 +121,35 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
             const result = polygonFromFeature(feature, q);
             if (result) return [result];
         } catch { /* siguiente zoom */ }
+    }
+
+    // 4. Fallback: buscar el polígono del municipio usando el nombre extraído del geocoding
+    const muniName = addressObj?.municipality ?? addressObj?.city ?? addressObj?.town ?? addressObj?.village ?? addressObj?.county;
+    if (muniName) {
+        try {
+            const fc = await nominatimGet({
+                q: muniName, countrycodes: countryCode,
+                format: 'geojson', polygon_geojson: '1', addressdetails: '1', limit: '3',
+            }, 86400);
+            if (fc?.features?.length) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const hits = fc.features.filter((f: any) =>
+                    (f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon') &&
+                    !NON_ZONE_CLASSES.has(f.properties?.class ?? '')
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ).map((f: any) => {
+                    const p = f.properties;
+                    return {
+                        osmId: `${p.osm_type ?? 'N'}${p.osm_id}`,
+                        displayName: p.display_name ?? muniName,
+                        shortName: p.name ?? muniName,
+                        addressType: `Municipio (CP ${q})`,
+                        geometry: f.geometry,
+                    };
+                });
+                if (hits.length) return hits;
+            }
+        } catch { /* falla silenciosamente */ }
     }
 
     return [];
