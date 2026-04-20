@@ -78,7 +78,7 @@ export async function saveGeographicZone(params: SaveZoneParams): Promise<{ id: 
         zoneCode,
         name,
         type,
-        boundary: geometry,
+        boundary: JSON.stringify(geometry),
         metadata: metadata ?? {},
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -161,7 +161,7 @@ export async function getProjectZones(tenantId: string, projectId: string): Prom
                 zoneCode: data.zoneCode,
                 name: data.name,
                 type: data.type,
-                boundary: data.boundary,
+                boundary: typeof data.boundary === 'string' ? JSON.parse(data.boundary) : data.boundary,
                 metadata: data.metadata ?? {},
                 createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
                 updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
@@ -335,7 +335,7 @@ out geom;`.trim();
             method:  'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': NOMINATIM_HEADERS['User-Agent'] },
             body:    `data=${encodeURIComponent(overpassQuery)}`,
-            cache:   'force-cache',
+            cache:   'no-cache',
         });
         if (!res.ok) return [];
 
@@ -422,9 +422,9 @@ export async function searchBoundaries(
         //    Obtenemos la ubicación del CP y hacemos reverse geocoding para
         //    devolver el barrio/distrito más próximo con polígono disponible.
         try {
-            // 3a. Obtener coordenadas del CP (resultado puntual)
+            // 3a. Obtener coordenadas del CP (búsqueda genérica q=xxx en lugar de atributo postalcode)
             const pointParams = new URLSearchParams({
-                postalcode:   q,
+                q,
                 countrycodes: countryCode,
                 format:       'json',
                 limit:        '1',
