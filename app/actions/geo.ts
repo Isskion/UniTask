@@ -326,8 +326,10 @@ async function searchPostalCodeViaOverpass(postalCode: string, countryCode: stri
 [out:json][timeout:25];
 area["ISO3166-1"="${countryTag}"][admin_level=2]->.pais;
 (
-  relation["postal_code"="${postalCode}"]["boundary"="postal_code"](area.pais);
-  relation["addr:postcode"="${postalCode}"]["boundary"="postal_code"](area.pais);
+  relation["postal_code"="${postalCode}"](area.pais);
+  relation["addr:postcode"="${postalCode}"](area.pais);
+  way["postal_code"="${postalCode}"](area.pais);
+  way["addr:postcode"="${postalCode}"](area.pais);
 );
 out geom;`.trim();
 
@@ -345,16 +347,21 @@ out geom;`.trim();
         const results: BoundaryFeature[] = [];
 
         for (const el of data.elements) {
-            if (el.type !== 'relation' || !el.members) continue;
+            let rings: number[][][] = [];
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const outerWays = el.members.filter((m: any) => m.type === 'way' && m.role === 'outer' && m.geometry);
-            if (outerWays.length === 0) continue;
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rings: number[][][] = outerWays.map((w: any) =>
-                w.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])
-            );
+            if (el.type === 'relation' && el.members) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const outerWays = el.members.filter((m: any) => m.type === 'way' && m.role === 'outer' && m.geometry);
+                if (outerWays.length === 0) continue;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                rings = outerWays.map((w: any) =>
+                    w.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])
+                );
+            } else if (el.type === 'way' && el.geometry) {
+                rings = [el.geometry.map((pt: { lat: number; lon: number }) => [pt.lon, pt.lat])];
+            } else {
+                continue;
+            }
 
             const closedRings = rings.map(ring => {
                 if (ring.length < 2) return ring;
@@ -364,7 +371,7 @@ out geom;`.trim();
             });
 
             results.push({
-                osmId:       `R${el.id}`,
+                osmId:       `${el.type[0].toUpperCase()}${el.id}`,
                 displayName: `CP ${postalCode}${el.tags?.name ? ` — ${el.tags.name}` : ''}`,
                 shortName:   `CP ${postalCode}`,
                 addressType: 'Código Postal',
@@ -423,10 +430,9 @@ export async function searchBoundaries(
         //    Obtenemos la ubicación del CP y hacemos reverse geocoding para
         //    devolver el barrio/distrito más próximo con polígono disponible.
         try {
-            // 3a. Obtener coordenadas del CP (búsqueda genérica q=xxx en lugar de atributo postalcode)
+            // 3a. Obtener coordenadas del CP (búsqueda genérica con contexto de país)
             const pointParams = new URLSearchParams({
-                q,
-                countrycodes: countryCode,
+                q:            `${q}, Spain`, // Forzamos contexto de España para CPs numéricos
                 format:       'json',
                 limit:        '1',
             });
