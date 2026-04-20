@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [user, setUser] = useState<User | null>(null);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const profileUnsubRef = useRef<(() => void) | null>(null);
+    const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
     const lastRefreshTimeRef = useRef<number>(0);
     const refreshCountRef = useRef<number>(0);
 
@@ -67,11 +68,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         // Escuchamos cambios en el token (Login, Logout, Refresh)
         const unsubscribe = onIdTokenChanged(auth, async (currentUser) => {
-            // [FIX] Cleanup previous profile listener if it exists to prevent "zombie" listeners
+            // [FIX] Cleanup previous listeners and timers to prevent "zombie" refreshes
             if (profileUnsubRef.current) {
                 console.log("[AuthContext] 🧹 Cleaning up previous profile listener...");
                 profileUnsubRef.current();
                 profileUnsubRef.current = null;
+            }
+            if (refreshTimerRef.current) {
+                console.log("[AuthContext] 🧹 Cleaning up pending refresh timer...");
+                clearTimeout(refreshTimerRef.current);
+                refreshTimerRef.current = null;
             }
 
             if (currentUser) {
@@ -136,7 +142,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     }
 
                     if (needsRefresh) {
-                        console.log(`[AuthContext] ⚠️ Refresh Triggered: Role=${roleMismatch} (${data.roleLevel} vs ${claims.roleLevel}), Tenant=${tenantMismatch} (${data.tenantId} vs ${claims.tenantId}), SyncStale=${syncStale}`);
+                        console.log(`[AuthContext] ⚠️ Refresh Triggered: 
+                            Role=${roleMismatch} (FS:${data.roleLevel}[${typeof data.roleLevel}] vs TK:${claims.roleLevel}[${typeof claims.roleLevel}]), 
+                            Tenant=${tenantMismatch} (FS:${data.tenantId}[${typeof data.tenantId}] vs TK:${claims.tenantId}[${typeof claims.tenantId}]), 
+                            SyncStale=${syncStale}`);
 
                         // [OPTIMISTIC] Still update the UI profile so the name/photo reflects immediately
                         setUserProfile(data as UserProfile);
@@ -182,27 +191,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                         console.log(`[AuthContext] ⚠️ Profile mismatch detected (Refreshes in window: ${refreshCountRef.current}). Scheduling forced token refresh...`);
 
-                        // [FIX] Do NOT set viewContext to null — keep the app usable during refresh.
-                        // Only block on the very first load (when viewContext is already null).
+                        // [FIX] Use refreshTimerRef to ensure total cleanup
+                        if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
 
-                        // Debounce: Wait 3s (increased for latency) to allow Cloud Functions to settle propagation
-                        if (refreshTimer) clearTimeout(refreshTimer);
-
-                        refreshTimer = setTimeout(async () => {
+                        refreshTimerRef.current = setTimeout(async () => {
                             console.log("[AuthContext] 🔄 Executing Forced Token Refresh...");
                             try {
                                 tokenResult = await currentUser.getIdTokenResult(true); // Force Refresh
-                                claims = tokenResult.claims;
-                                console.log("[AuthContext] ✅ Token Refreshed. New Claims:", claims);
+                                const newClaims = tokenResult.claims;
+                                console.log("[AuthContext] ✅ Token Refreshed. New Claims:", newClaims);
+
+                                // Update claims in the current scope for subsequent logic
+                                claims = newClaims;
 
                                 // Check if mismatch is STILL present after refresh
-                                const stillMismatched = Number(data.roleLevel) !== Number(claims.roleLevel) ||
-                                    String(data.tenantId) !== String(claims.tenantId);
+                                const stillMismatched = Number(data.roleLevel) !== Number(newClaims.roleLevel) ||
+                                    String(data.tenantId) !== String(newClaims.tenantId);
 
                                 if (stillMismatched) {
                                     // Claims didn't update — Cloud Function hasn't propagated yet.
                                     // Use Firestore profile directly as source of truth.
-                                    console.warn("[AuthContext] ⚠️ Token claims still mismatched after refresh. Using Firestore profile values.");
+                                    console.warn(`[AuthContext] ⚠️ Token claims still mismatched after refresh. (FS:${data.roleLevel} vs TK:${newClaims.roleLevel}). Using Firestore profile values.`);
                                     const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
                                     const firestoreTenant = String(data.tenantId) || "unknown";
 
@@ -219,13 +228,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     });
                                 } else {
                                     // Re-evaluate identity with NEW token
-                                    let newRole = Number(claims.roleLevel);
-                                    if (isNaN(newRole) && claims.role) {
+                                    let newRole = Number(newClaims.roleLevel);
+                                    if (isNaN(newRole) && newClaims.role) {
                                         console.log("[AuthContext] ⚠️ claims.roleLevel missing, falling back to legacy claims.role mapping.");
-                                        newRole = getRoleLevel(claims.role as string);
+                                        newRole = getRoleLevel(newClaims.role as string);
                                     }
                                     newRole = (newRole || 0) as RoleLevel;
-                                    const newTenant = (claims.tenantId as string) || "unknown";
+                                    const newTenant = (newClaims.tenantId as string) || "unknown";
 
                                     setIdentity({
                                         uid: currentUser.uid,
@@ -252,6 +261,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                     isMasquerading: false
                                 });
                                 setLoading(false);
+                            } finally {
+                                refreshTimerRef.current = null;
                             }
                         }, 3000); // 3 seconds total wait
                     } else {
@@ -589,15 +600,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             await signInWithEmailAndPassword(auth, e, p);
         } catch (error: any) {
             const currentProjectId = auth.app.options.projectId;
-            console.error("[AuthContext] loginWithEmail error:", {
-                code: error.code,
-                message: error.message,
-                projectId: currentProjectId,
-                env: process.env.NODE_ENV
-            });
-            
+            console.error("[AuthContext] loginWithEmail FAILED");
+            console.error("- Error Code:", error.code);
+            console.error("- Error Message:", error.message);
+            console.error("- Project ID:", currentProjectId);
+            console.error("- Auth Domain:", auth.app.options.authDomain);
+            console.log("- Full Raw Error:", error);
+
+            if (error.code === 'auth/invalid-api-key' || error.code === 'auth/api-key-not-found' || error.code === 'auth/invalid-app-credential') {
+                console.error("[AuthContext] 🚨 CONFIG ERROR: The API Key or App ID in .env.local might be invalid for project:", currentProjectId);
+            }
+
+            if (error.code === 'auth/unauthorized-domain') {
+                console.error("[AuthContext] 🚨 DOMAIN ERROR: 'localhost' is not authorized in Firebase Console for this project.");
+            }
+
             if (error.code === 'auth/wrong-password') {
-                console.warn(`[AuthContext] 🛡️ AUTH FAILED: Check if your local project matches production. CURRENT PROJECT: ${currentProjectId}`);
+                console.warn(`[AuthContext] 🛡️ AUTH FAILED: Incorrect password or project mismatch. (Target: ${currentProjectId})`);
             }
 
             if (error.code === 'auth/network-request-failed' || error.message?.includes('404')) {

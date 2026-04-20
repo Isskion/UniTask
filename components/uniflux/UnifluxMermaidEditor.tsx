@@ -115,18 +115,37 @@ function highlightMermaid(code: string): string {
 // ---------------------------------------------------------------------------
 const MONO = "'JetBrains Mono', 'Fira Code', monospace";
 
-function LineNumbers({ count }: { count: number }) {
+const SHARED_TEXT_STYLE: React.CSSProperties = {
+    fontFamily: MONO,
+    fontSize: 13,
+    lineHeight: '22px',
+    padding: '16px',
+    margin: 0,
+    whiteSpace: 'pre',
+    boxSizing: 'border-box',
+    tabSize: 4,
+};
+
+function LineNumbers({ count, scrollRef }: { count: number; scrollRef: React.RefObject<HTMLDivElement | null> }) {
     return (
-        <div style={{
-            position: 'absolute', left: 0, top: 0, width: 44, height: '100%',
-            background: '#f1f5f9', borderRight: '1px solid #e2e8f0',
-            padding: '16px 0', textAlign: 'right', userSelect: 'none', zIndex: 2,
-        }}>
-            {Array.from({ length: count }, (_, i) => (
-                <div key={i} style={{ height: 22, lineHeight: '22px', paddingRight: 12, fontSize: 12, color: '#94a3b8', fontFamily: MONO }}>
+        <div 
+            ref={scrollRef}
+            style={{
+                width: 44, background: '#f8fafc', borderRight: '1px solid #e2e8f0',
+                display: 'flex', flexDirection: 'column', flexShrink: 0,
+                overflow: 'hidden', zIndex: 10, userSelect: 'none', height: '100%',
+            }}
+        >
+            <div style={{ height: 16 }} />
+            {Array.from({ length: count }).map((_, i) => (
+                <div key={i} style={{ 
+                    height: 22, fontSize: 10, color: '#94a3b8', 
+                    textAlign: 'right', paddingRight: 8, fontFamily: MONO, lineHeight: '22px'
+                }}>
                     {i + 1}
                 </div>
             ))}
+            <div style={{ height: 100 }} />
         </div>
     );
 }
@@ -449,6 +468,16 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
         onInsertSnippet(engine === 'sequence' ? `Actor1->>Actor2: ` : `NuevoNodo[Etiqueta]`);
     }, [handMode, engine, onInsertSnippet]);
 
+    const handleWheel = useCallback((e: React.WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            // e.preventDefault() is handled by React if it's not a passive listener
+            setZoom(z => Math.max(0.1, Math.min(8, z * (e.deltaY > 0 ? 0.92 : 1.08))));
+        } else {
+            // Natural panning with wheel
+            setPan(p => ({ x: p.x - e.deltaX, y: p.y - e.deltaY }));
+        }
+    }, []);
+
     const resetView = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, []);
 
     const zoomBtnBase = {
@@ -573,9 +602,10 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
                 onContextMenu={handleContextMenu}
                 onClick={handleClick}
-                style={{ width: '100%', height: '100%', cursor: !handMode ? 'crosshair' : 'grab', userSelect: 'none' }}
+                style={{ width: '100%', height: '100%', cursor: !handMode ? 'crosshair' : 'grab', userSelect: 'none', overflow: 'hidden' }}
             >
                 <div style={{
                     width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -594,7 +624,14 @@ function DiagramPanel({ code, mermaidReady, activeTheme, handMode, engine, onIns
                             </pre>
                         </div>
                     ) : svg ? (
-                        <div dangerouslySetInnerHTML={{ __html: svg }} style={{ maxWidth: '100%', maxHeight: '100%' }} />
+                        <div 
+                            dangerouslySetInnerHTML={{ __html: svg }} 
+                            style={{ 
+                                // Remove maxWidth/maxHeight 100% to allow the SVG to take its native size 
+                                // and be pannable/zoomable without being forced to fit the viewport.
+                                display: 'block' 
+                            }} 
+                        />
                     ) : (
                         <div style={{ color: dk ? '#475569' : '#94a3b8', fontSize: 14, textAlign: 'center' }}>
                             <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.3 }}>◇</div>
@@ -637,6 +674,7 @@ export default function UnifluxMermaidEditor({
     const mermaidReady = useMermaid();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const highlightRef = useRef<HTMLPreElement>(null);
+    const lineNumbersRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const activeTheme = THEMES.find(t => t.key === activeThemeKey) ?? THEMES[0];
@@ -653,25 +691,32 @@ export default function UnifluxMermaidEditor({
     }, [engine, onEngineChange]);
 
     const handleScroll = useCallback(() => {
-        if (highlightRef.current && textareaRef.current) {
-            highlightRef.current.scrollTop = textareaRef.current.scrollTop;
-            highlightRef.current.scrollLeft = textareaRef.current.scrollLeft;
-        }
+        const ta = textareaRef.current;
+        if (!ta) return;
+        
+        requestAnimationFrame(() => {
+            if (highlightRef.current) {
+                highlightRef.current.scrollTop = ta.scrollTop;
+                highlightRef.current.scrollLeft = ta.scrollLeft;
+            }
+            if (lineNumbersRef.current) {
+                lineNumbersRef.current.scrollTop = ta.scrollTop;
+            }
+        });
     }, []);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Tab') {
             e.preventDefault();
             const { selectionStart, selectionEnd } = e.currentTarget;
-            const newVal = code.substring(0, selectionStart) + '    ' + code.substring(selectionEnd);
-            setCode(newVal);
+            setCode(prev => prev.substring(0, selectionStart) + '    ' + prev.substring(selectionEnd));
             requestAnimationFrame(() => {
                 if (textareaRef.current) {
                     textareaRef.current.selectionStart = textareaRef.current.selectionEnd = selectionStart + 4;
                 }
             });
         }
-    }, [code]);
+    }, []); // Removed 'code' from dependencies as we use functional update
 
     // Resizable split
     useEffect(() => {
@@ -920,8 +965,8 @@ export default function UnifluxMermaidEditor({
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
                 {/* Code editor panel */}
-                <div style={{ width: `${splitRatio * 100}%`, display: 'flex', flexDirection: 'column', background: '#fafafa', borderRight: '1px solid #e2e8f0' }}>
-                    <div style={{ height: 30, padding: '0 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                <div style={{ width: `${splitRatio * 100}%`, height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', background: '#fafafa', borderRight: '1px solid #e2e8f0' }}>
+                    <div style={{ height: 30, padding: '0 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', flexShrink: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7c3aed' }} />
                             <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: MONO }}>
@@ -931,23 +976,55 @@ export default function UnifluxMermaidEditor({
                         <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: MONO }}>{lineCount} líneas</span>
                     </div>
 
-                    <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-                        <LineNumbers count={lineCount} />
-                        <pre
-                            ref={highlightRef}
-                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: MONO, fontSize: 13, lineHeight: '22px', color: '#374151', overflow: 'auto', whiteSpace: 'pre', pointerEvents: 'none', background: 'transparent', zIndex: 1 }}
-                            dangerouslySetInnerHTML={{ __html: highlightMermaid(code) }}
-                        />
-                        <textarea
-                            ref={textareaRef}
-                            value={code}
-                            onChange={e => setCode(e.target.value)}
-                            onScroll={handleScroll}
-                            onKeyDown={handleKeyDown}
-                            spellCheck={false}
-                            style={{ position: 'absolute', left: 44, top: 0, width: 'calc(100% - 44px)', height: '100%', margin: 0, padding: 16, fontFamily: MONO, fontSize: 13, lineHeight: '22px', color: 'transparent', caretColor: '#7c3aed', background: 'transparent', border: 'none', outline: 'none', resize: 'none', overflow: 'auto', whiteSpace: 'pre', zIndex: 3 }}
-                        />
-                    </div>
+                        <div 
+                            className="editor-viewport"
+                            style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', minHeight: 0, background: 'white' }}
+                        >
+                            <LineNumbers count={lineCount} scrollRef={lineNumbersRef} />
+                            
+                            <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+                                {/* 
+                                   HIGHLIGHT LAYER (BEHIND)
+                                   Exactly overlays the visible space but scrolls with JS.
+                                */}
+                                <pre
+                                    ref={highlightRef}
+                                    style={{ 
+                                        ...SHARED_TEXT_STYLE,
+                                        position: 'absolute', inset: 0,
+                                        color: '#374151', pointerEvents: 'none', 
+                                        background: 'transparent', zIndex: 5, 
+                                        overflow: 'hidden',
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: highlightMermaid(code) }}
+                                />
+
+                                {/* 
+                                   NATIVE INPUT LAYER (TOPMASTER)
+                                   This is the ONLY element that scrolls.
+                                   It generates the scrollbars and follows the caret natively.
+                                */}
+                                <textarea
+                                    ref={textareaRef}
+                                    value={code}
+                                    onChange={e => setCode(e.target.value)}
+                                    onScroll={handleScroll}
+                                    onKeyDown={handleKeyDown}
+                                    spellCheck={false}
+                                    autoCapitalize="off"
+                                    autoCorrect="off"
+                                    autoComplete="off"
+                                    style={{ 
+                                        ...SHARED_TEXT_STYLE,
+                                        position: 'absolute', inset: 0,
+                                        width: '100%', height: '100%',
+                                        color: 'transparent', caretColor: '#7c3aed', background: 'transparent', 
+                                        border: 'none', outline: 'none', resize: 'none',
+                                        zIndex: 20, overflow: 'auto'
+                                    }}
+                                />
+                            </div>
+                        </div>
                 </div>
 
                 {/* Resize handle */}
