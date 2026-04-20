@@ -25,7 +25,7 @@ const TYPE_LABELS: Record<string, string> = {
     region: 'Región', country: 'País',
 };
 
-const NON_ZONE_CLASSES = new Set(['building', 'highway', 'amenity', 'shop', 'leisure', 'man_made', 'place']);
+const NON_ZONE_CLASSES = new Set(['building', 'highway', 'amenity', 'shop', 'leisure', 'man_made']);
 
 function isCP(q: string) { return /^\d{4,6}$/.test(q.trim()); }
 
@@ -100,7 +100,8 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
     let lat = '', lon = '';
     for (const attempt of [
         { postalcode: q, countrycodes: countryCode, format: 'json', limit: '1' } as Record<string, string>,
-        { q: `${q} Spain`, format: 'json', limit: '1' } as Record<string, string>,
+        { q, countrycodes: countryCode, format: 'json', limit: '1', addressdetails: '1' } as Record<string, string>,
+        { q: `código postal ${q} España`, format: 'json', limit: '1' } as Record<string, string>,
     ]) {
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
