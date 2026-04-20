@@ -35,6 +35,7 @@ interface SaveZoneParams {
     name: string;
     type: 'TRANSPORTE' | 'DEPOSITO';
     geojson: GeoJSONGeometry | GeoJSONFeature;
+    color?: string;
     metadata?: Record<string, unknown>;
 }
 
@@ -52,6 +53,7 @@ export interface GeographicZone {
     name: string;
     type: string;
     boundary: GeoJSONGeometry;
+    color?: string;
     metadata: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;
@@ -79,6 +81,7 @@ export async function saveGeographicZone(params: SaveZoneParams): Promise<{ id: 
         name,
         type,
         boundary: JSON.stringify(geometry),
+        color: params.color ?? null,
         metadata: metadata ?? {},
         createdBy: auth.currentUser?.uid || 'system',
         createdAt: serverTimestamp(),
@@ -163,6 +166,7 @@ export async function getProjectZones(tenantId: string, projectId: string): Prom
                 name: data.name,
                 type: data.type,
                 boundary: typeof data.boundary === 'string' ? JSON.parse(data.boundary) : data.boundary,
+                color: data.color,
                 metadata: data.metadata ?? {},
                 createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
                 updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : new Date(),
@@ -186,7 +190,7 @@ export async function deleteGeographicZone(zoneId: string): Promise<void> {
  */
 export async function updateGeographicZoneMetadata(
     zoneId: string,
-    data: { name?: string; type?: string }
+    data: { name?: string; type?: string; color?: string }
 ): Promise<void> {
     const docRef = doc(db, GEO_ZONES_COLLECTION, zoneId);
     await updateDoc(docRef, {

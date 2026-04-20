@@ -37,6 +37,7 @@ interface GeographicZone {
     name: string;
     zoneCode: string;
     type: 'TRANSPORTE' | 'DEPOSITO';
+    color?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     boundary: any;
 }
@@ -61,6 +62,15 @@ interface GeographicEditorProps {
 
 const ZONE_COLORS: Record<string, string> = { TRANSPORTE: '#6366f1', DEPOSITO: '#10b981' };
 const ZONE_BORDER_COLORS: Record<string, string> = { TRANSPORTE: '#4f46e5', DEPOSITO: '#059669' };
+
+const DISTINCT_COLORS = [
+    '#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', 
+    '#8b5cf6', '#f97316', '#d946ef', '#06b6d4', '#84cc16'
+];
+
+function getRandomColor() {
+    return DISTINCT_COLORS[Math.floor(Math.random() * DISTINCT_COLORS.length)];
+}
 const ISOCHRONE_SOURCE  = 'isochrone-preview';
 const ISOCHRONE_FILL    = 'isochrone-fill';
 const ISOCHRONE_OUTLINE = 'isochrone-outline';
@@ -105,6 +115,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [pendingZone, setPendingZone] = useState<PendingZone | null>(null);
     const [pendingName, setPendingName] = useState('');
     const [pendingType, setPendingType] = useState<'TRANSPORTE' | 'DEPOSITO'>('TRANSPORTE');
+    const [pendingColor, setPendingColor] = useState('#6366f1');
 
     // Isócrona
     const [isochroneMode, setIsochroneMode]       = useState(false);
@@ -137,10 +148,17 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const renderZoneOnMap = useCallback((zone: GeographicZone) => {
         if (!map.current) return;
         const id = sid(zone.id);
-        if (map.current.getSource(id)) return;
+        if (map.current.getSource(id)) {
+            // Actualizar color si ya existe (por si cambió en edición)
+            const color = zone.color || ZONE_COLORS[zone.type] || '#6366f1';
+            if (map.current.getLayer(`${id}-fill`)) map.current.setPaintProperty(`${id}-fill`, 'fill-color', color);
+            if (map.current.getLayer(`${id}-outline`)) map.current.setPaintProperty(`${id}-outline`, 'line-color', color);
+            return;
+        }
+        const color = zone.color || ZONE_COLORS[zone.type] || '#6366f1';
         map.current.addSource(id, { type: 'geojson', data: zone.boundary });
-        map.current.addLayer({ id: `${id}-fill`, type: 'fill', source: id, paint: { 'fill-color': ZONE_COLORS[zone.type] ?? '#6366f1', 'fill-opacity': 0.3 } });
-        map.current.addLayer({ id: `${id}-outline`, type: 'line', source: id, paint: { 'line-color': ZONE_BORDER_COLORS[zone.type] ?? '#4f46e5', 'line-width': 2 } });
+        map.current.addLayer({ id: `${id}-fill`, type: 'fill', source: id, paint: { 'fill-color': color, 'fill-opacity': 0.3 } });
+        map.current.addLayer({ id: `${id}-outline`, type: 'line', source: id, paint: { 'line-color': color, 'line-width': 2 } });
     }, []);
 
     // Limpiar capas de zonas del mapa al cambiar de proyecto
@@ -196,7 +214,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         zones.forEach(z => {
             const fillId = `${sid(z.id)}-fill`;
             if (!map.current?.getLayer(fillId)) return;
-            map.current.setPaintProperty(fillId, 'fill-color', ZONE_COLORS[z.type] ?? '#6366f1');
+            map.current.setPaintProperty(fillId, 'fill-color', z.color || ZONE_COLORS[z.type] || '#6366f1');
             map.current.setPaintProperty(fillId, 'fill-opacity', 0.3);
         });
     }, [zones]);
@@ -271,6 +289,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         if (!merged) return;
         const overlaps = await runOverlapCheck(merged);
         setPendingZone({ geojson: merged, overlaps });
+        setPendingColor(getRandomColor());
         setPendingName(selectedBoundaries.length === 1 ? selectedBoundaries[0].shortName : selectedBoundaries.map(b => b.shortName).join(' + '));
     }, [selectedBoundaries, projectId, runOverlapCheck]);
 
@@ -356,6 +375,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setEditingZone(zone);
         setPendingName(zone.name);
         setPendingType(zone.type as "TRANSPORTE" | "DEPOSITO");
+        setPendingColor(zone.color || (ZONE_COLORS[zone.type] ?? '#6366f1'));
         // No hay geometría pendiente porque solo editamos metadatos
         setPendingZone(null); 
     }, []);
@@ -366,10 +386,22 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
         if (editingZone) {
             // Caso edición de metadatos
-            await updateGeographicZoneMetadata(editingZone.id, { name: pendingName.trim(), type: pendingType });
+            await updateGeographicZoneMetadata(editingZone.id, { 
+                name: pendingName.trim(), 
+                type: pendingType,
+                color: pendingColor 
+            });
         } else if (pendingZone) {
             // Caso creación nueva
-            await saveGeographicZone({ tenantId, projectId, zoneCode: `Z-${Date.now()}`, name: pendingName.trim(), type: pendingType, geojson: pendingZone.geojson });
+            await saveGeographicZone({ 
+                tenantId, 
+                projectId, 
+                zoneCode: `Z-${Date.now()}`, 
+                name: pendingName.trim(), 
+                type: pendingType, 
+                color: pendingColor,
+                geojson: pendingZone.geojson 
+            });
         }
 
         await loadZones();
@@ -465,6 +497,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 };
                 const overlaps = await runOverlapCheck(cleanFeature);
                 setPendingZone({ geojson: cleanFeature, overlaps });
+                setPendingColor(getRandomColor());
                 setPendingName('');
             });
             setIsLoaded(true);
@@ -700,12 +733,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                                 onClick={() => flyToZone(z)}
                                             >
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-bold truncate flex-1 mr-2">{z.name}</span>
+                                                    <div className="flex items-center gap-2 truncate flex-1 mr-2">
+                                                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: z.color || ZONE_COLORS[z.type] }} />
+                                                        <span className="text-xs font-bold truncate">{z.name}</span>
+                                                    </div>
                                                     <div className="flex items-center gap-1 shrink-0">
                                                         <span className={cn(
                                                             "text-[10px] px-1.5 py-0.5 rounded uppercase font-medium",
                                                             z.type === 'TRANSPORTE' ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                                                        )}>{z.type}</span>
+                                                        )} style={{ color: z.color, borderColor: z.color }}>{z.type}</span>
                                                         
                                                         {/* Acciones Rápidas */}
                                                         <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -924,6 +960,22 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                     <option value="TRANSPORTE">TRANSPORTE</option>
                                     <option value="DEPOSITO">DEPÓSITO</option>
                                 </select>
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-2">Color Distintivo</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {DISTINCT_COLORS.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => setPendingColor(c)}
+                                            className={cn(
+                                                "w-6 h-6 rounded-full border-2 transition-all",
+                                                pendingColor === c ? "border-primary scale-110 shadow-md" : "border-transparent hover:scale-105"
+                                            )}
+                                            style={{ backgroundColor: c }}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
