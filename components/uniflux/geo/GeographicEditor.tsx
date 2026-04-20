@@ -453,20 +453,36 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             map.current.on('gm:drawend', () => setActiveTool(null));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             map.current.on('gm:create', async (e: any) => {
-                const raw = e.feature;
+                // Diagnóstico: log seguro sin serializar refs circulares
+                try {
+                    const eKeys = Object.keys(e ?? {});
+                    const fKeys = e?.feature ? Object.keys(e.feature) : [];
+                    const geom = e?.feature?.geometry;
+                    console.log('[gm:create] event keys:', eKeys);
+                    console.log('[gm:create] feature keys:', fKeys);
+                    console.log('[gm:create] geometry:', geom?.type, 'coords?', !!geom?.coordinates);
+                } catch { /* ignore */ }
+
+                const raw = e?.feature ?? e?.layer;
                 if (!raw) return;
-                // e.feature es un objeto Geoman con refs circulares al mapa.
-                // Reconstruimos la geometría desde cero con solo type+coordinates.
-                const geomSrc = raw.geometry ?? raw; // algunas versiones exponen la geometría en la raíz
-                if (!geomSrc?.type || !geomSrc?.coordinates) return;
-                const cleanFeature: Feature<Polygon | MultiPolygon> = {
-                    type: 'Feature',
-                    geometry: { type: geomSrc.type, coordinates: geomSrc.coordinates } as Polygon | MultiPolygon,
-                    properties: {},
-                };
-                const overlaps = await runOverlapCheck(cleanFeature);
-                setPendingZone({ geojson: cleanFeature, overlaps });
-                setPendingName('');
+
+                try {
+                    // Intentar toGeoJSON() primero (algunas versiones de Geoman)
+                    const plain = typeof raw.toGeoJSON === 'function' ? raw.toGeoJSON() : raw;
+                    const geom = plain?.geometry ?? plain;
+                    if (!geom?.type || !geom?.coordinates) return;
+
+                    const cleanFeature: Feature<Polygon | MultiPolygon> = {
+                        type: 'Feature',
+                        geometry: { type: geom.type, coordinates: geom.coordinates } as Polygon | MultiPolygon,
+                        properties: {},
+                    };
+                    const overlaps = await runOverlapCheck(cleanFeature);
+                    setPendingZone({ geojson: cleanFeature, overlaps });
+                    setPendingName('');
+                } catch (err) {
+                    console.error('[gm:create] error al procesar feature:', err);
+                }
             });
             setIsLoaded(true);
         });
