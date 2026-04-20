@@ -306,14 +306,30 @@ const OVERPASS_ENDPOINTS = [
     'https://overpass.kumi.systems/api/interpreter',
 ];
 
+// Bbox de España (aproximado, incluyendo islas) para optimizar búsquedas globales
+const SPAIN_BBOX = '35.0,-10.0,44.0,4.5';
+
 function isPostalCode(query: string): boolean {
     return /^\d{4,6}$/.test(query.trim());
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function nominatimFeaturesToBoundaries(features: any[], fallbackQuery: string): BoundaryFeature[] {
+function nominatimFeaturesToBoundaries(features: any[], fallbackQuery: string, isCP = false): BoundaryFeature[] {
     return features
-        .filter((f) => f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon')
+        .filter((f) => {
+            const geomType = f.geometry?.type;
+            if (geomType !== 'Polygon' && geomType !== 'MultiPolygon') return false;
+            
+            // Si es un CP, ignoramos edificios, monumentos o calles concretas para evitar 
+            // "irme a una dirección muy concreta" como pide el usuario.
+            if (isCP) {
+                const cls = f.properties?.class || '';
+                if (['building', 'highway', 'amenity', 'shop', 'leisure', 'man_made'].includes(cls)) {
+                    return false;
+                }
+            }
+            return true;
+        })
         .map((f) => {
             const props = f.properties;
             const addressType = props.addresstype ?? props.type ?? props.class ?? 'administrative';
@@ -331,10 +347,10 @@ async function searchPostalCodeViaOverpass(postalCode: string, countryCode: stri
     const overpassQuery = `
 [out:json][timeout:30];
 (
-  relation["postal_code"="${postalCode}"];
-  relation["addr:postcode"="${postalCode}"];
-  way["postal_code"="${postalCode}"];
-  way["addr:postcode"="${postalCode}"];
+  relation["postal_code"="${postalCode}"](${SPAIN_BBOX});
+  relation["addr:postcode"="${postalCode}"](${SPAIN_BBOX});
+  way["postal_code"="${postalCode}"](${SPAIN_BBOX});
+  way["addr:postcode"="${postalCode}"](${SPAIN_BBOX});
 );
 out geom;`.trim();
 
@@ -426,7 +442,7 @@ export async function searchBoundaries(
             if (res.ok) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const fc: { features: any[] } = await res.json();
-                const hits = nominatimFeaturesToBoundaries(fc.features, q);
+                const hits = nominatimFeaturesToBoundaries(fc.features, q, true);
                 if (hits.length > 0) return hits;
             }
         } catch { /* continúa */ }
@@ -456,8 +472,8 @@ export async function searchBoundaries(
                 if (points.length > 0) {
                     const { lat, lon, display_name } = points[0];
 
-                    // 3b. Reverse en nivel barrio/distrito (zoom 14)
-                    for (const zoom of ['14', '12', '10']) {
+                    // 3b. Reverse en nivel barrio/distrito (zoom 12-10 para CPs, más amplio)
+                    for (const zoom of ['12', '11', '10']) {
                         const revParams = new URLSearchParams({
                             lat, lon,
                             format:          'geojson',
@@ -509,7 +525,7 @@ export async function searchBoundaries(
         if (!res.ok) return [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fc: { features: any[] } = await res.json();
-        return nominatimFeaturesToBoundaries(fc.features, q);
+        return nominatimFeaturesToBoundaries(fc.features, q, false);
     } catch (error) {
         console.error('Error al buscar límites:', error instanceof Error ? error.message : error);
         return [];
