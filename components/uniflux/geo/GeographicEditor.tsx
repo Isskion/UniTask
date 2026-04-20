@@ -450,40 +450,20 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 },
             });
             map.current.on('gm:drawstart', (e: { shape?: string }) => setActiveTool(e.shape ?? 'Polígono'));
-            map.current.on('gm:drawend', () => setActiveTool(null));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            map.current.on('gm:create', async (e: any) => {
-                // Diagnóstico: log seguro sin serializar refs circulares
-                try {
-                    const eKeys = Object.keys(e ?? {});
-                    const fKeys = e?.feature ? Object.keys(e.feature) : [];
-                    const geom = e?.feature?.geometry;
-                    console.log('[gm:create] event keys:', eKeys);
-                    console.log('[gm:create] feature keys:', fKeys);
-                    console.log('[gm:create] geometry:', geom?.type, 'coords?', !!geom?.coordinates);
-                } catch { /* ignore */ }
-
-                const raw = e?.feature ?? e?.layer;
-                if (!raw) return;
-
-                try {
-                    // Intentar toGeoJSON() primero (algunas versiones de Geoman)
-                    const plain = typeof raw.toGeoJSON === 'function' ? raw.toGeoJSON() : raw;
-                    const geom = plain?.geometry ?? plain;
-                    if (!geom?.type || !geom?.coordinates) return;
-
-                    const cleanFeature: Feature<Polygon | MultiPolygon> = {
-                        type: 'Feature',
-                        geometry: { type: geom.type, coordinates: geom.coordinates } as Polygon | MultiPolygon,
-                        properties: {},
-                    };
-                    const overlaps = await runOverlapCheck(cleanFeature);
-                    setPendingZone({ geojson: cleanFeature, overlaps });
-                    setPendingName('');
-                } catch (err) {
-                    console.error('[gm:create] error al procesar feature:', err);
-                }
+            map.current.on('gm:drawend', (e: any) => {
+                setActiveTool(null);
+                console.log('[gm:drawend] keys:', Object.keys(e ?? {}));
+                if (e?.feature) console.log('[gm:drawend] feature keys:', Object.keys(e.feature));
+                if (e?.layer)   console.log('[gm:drawend] layer keys:', Object.keys(e.layer));
             });
+            // Escuchar múltiples variantes del evento de creación para detectar cuál dispara
+            for (const evtName of ['gm:create', 'gm:feature:create', 'gm:feature:added', 'draw:create', 'pm:create']) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                map.current.on(evtName as any, (e: any) => {
+                    console.log(`[${evtName}] FIRED — keys:`, Object.keys(e ?? {}));
+                });
+            }
             setIsLoaded(true);
         });
         return () => { map.current?.remove(); };
