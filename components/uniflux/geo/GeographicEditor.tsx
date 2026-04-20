@@ -28,7 +28,7 @@ import {
     exportZonesToGeoJSON,
 } from '@/app/actions/geo';
 import { searchBoundaries, fetchIsochrone } from '@/app/actions/geo-search';
-import type { IsochroneProfile, BoundaryFeature } from '@/app/actions/geo-search';
+import type { IsochroneProfile, BoundaryFeature, IsochroneResult } from '@/app/actions/geo-search';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -112,6 +112,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isochroneProfile, setIsochroneProfile] = useState<IsochroneProfile>('driving');
     const [isochroneLoading, setIsochroneLoading] = useState(false);
     const [isochroneActive, setIsochroneActive]   = useState(false);
+    const [isochroneError, setIsochroneError]     = useState<string | null>(null);
 
     // Edición y Visibilidad
     const [editingZone, setEditingZone] = useState<GeographicZone | null>(null);
@@ -392,7 +393,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setIsochroneActive(false);
     }, []);
 
-    const toggleIsochroneMode = useCallback(() => setIsochroneMode(prev => { if (prev) clearIsochroneLayer(); return !prev; }), [clearIsochroneLayer]);
+    const toggleIsochroneMode = useCallback(() => setIsochroneMode(prev => { if (prev) { clearIsochroneLayer(); setIsochroneError(null); } return !prev; }), [clearIsochroneLayer]);
 
     useEffect(() => {
         if (!map.current || !isLoaded) return;
@@ -400,17 +401,25 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             if (!isochroneMode) return;
             const { lng, lat } = e.lngLat;
             setIsochroneLoading(true);
+            setIsochroneError(null);
             clearIsochroneLayer();
-            const result = await fetchIsochrone({ lng, lat, minutes: isochroneMinutes, profile: isochroneProfile });
-            if (result?.features.length) {
+            const result: IsochroneResult = await fetchIsochrone({ lng, lat, minutes: isochroneMinutes, profile: isochroneProfile });
+            if (!result.ok) {
+                setIsochroneError(result.error);
+                setIsochroneLoading(false);
+                return;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const fc = result.data as any;
+            if (fc?.features?.length) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                map.current?.addSource(ISOCHRONE_SOURCE, { type: 'geojson', data: result as any });
+                map.current?.addSource(ISOCHRONE_SOURCE, { type: 'geojson', data: fc as any });
                 map.current?.addLayer({ id: ISOCHRONE_FILL, type: 'fill', source: ISOCHRONE_SOURCE, paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.25 } });
                 map.current?.addLayer({ id: ISOCHRONE_OUTLINE, type: 'line', source: ISOCHRONE_SOURCE, paint: { 'line-color': '#d97706', 'line-width': 2, 'line-dasharray': [4, 2] } });
                 setIsochroneActive(true);
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const coords = (result.features[0].geometry as any).coordinates[0] as [number, number][];
-                const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+                const coords = (fc.features[0].geometry as any).coordinates[0] as [number, number][];
+                const bounds = coords.reduce((b: maplibregl.LngLatBounds, c: [number, number]) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
                 map.current?.fitBounds(bounds, { padding: 40, duration: 800 });
             }
             setIsochroneLoading(false);
@@ -742,6 +751,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                         {activeTab === 'isochrone' && (
                             <div className="flex-1 p-3 space-y-3 overflow-y-auto">
                                 <p className="text-[10px] text-muted-foreground">Calcula el área alcanzable desde un punto en el tiempo indicado.</p>
+                                {isochroneError && (
+                                    <div className="flex items-start gap-2 p-2 bg-destructive/10 border border-destructive/30 rounded-lg text-[11px] text-destructive">
+                                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                        <span>{isochroneError}</span>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <label className="text-[10px] text-muted-foreground block mb-1">Minutos</label>

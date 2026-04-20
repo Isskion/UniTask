@@ -221,12 +221,19 @@ export async function searchBoundaries(
 
 interface IsochroneParams { lng: number; lat: number; minutes: number; profile: IsochroneProfile; }
 
-export async function fetchIsochrone(p: IsochroneParams) {
+export type IsochroneResult =
+    | { ok: true; data: unknown }
+    | { ok: false; error: string };
+
+export async function fetchIsochrone(p: IsochroneParams): Promise<IsochroneResult> {
     const token = process.env.MAPBOX_TOKEN;
-    if (!token) return null;
+    if (!token) return { ok: false, error: 'MAPBOX_TOKEN no configurado en el servidor.' };
     const url = `https://api.mapbox.com/isochrone/v1/mapbox/${p.profile}/${p.lng},${p.lat}?contours_minutes=${p.minutes}&polygons=true&access_token=${token}`;
     try {
         const res = await fetch(url, { cache: 'no-store' });
-        return res.ok ? res.json() : null;
-    } catch { return null; }
+        if (!res.ok) return { ok: false, error: `Mapbox error ${res.status}: ${res.statusText}` };
+        return { ok: true, data: await res.json() };
+    } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : 'Error de red al calcular isócrona.' };
+    }
 }
