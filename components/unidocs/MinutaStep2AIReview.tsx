@@ -6,7 +6,7 @@
 // Si rechaza → pasa directo con rawHtml.
 
 import { useState } from "react";
-import { UniDocsMinuta } from "@/types/unidocs";
+import { UniDocsMinuta, NoteInput } from "@/types/unidocs";
 import { generateMinutaFunction } from "@/lib/functions";
 import { Loader2, Sparkles, ChevronRight, ChevronLeft, CheckCircle, XCircle } from "lucide-react";
 

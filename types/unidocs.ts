@@ -97,6 +97,19 @@ export interface UniLeakNote {
     updatedAt?: any;
 }
 
+// V2.4 — Tipos para integración con IA
+export interface NoteInput {
+    title: string;
+    content: string;     // HTML de TipTap
+    date?: string;       // ISO o texto legible (para prioridad temporal)
+    author?: string;     // Autor (para detectar conflictos)
+}
+
+export interface GeminiMinutaResult {
+    html: string;
+    error?: string;
+}
+
 // Default page margins (A4 standard)
 export const DEFAULT_PAGE_MARGINS: PageMargins = {
     top: 15,
