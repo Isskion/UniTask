@@ -119,11 +119,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // Isócrona
     const [isochroneMode, setIsochroneMode]       = useState(false);
-    const [isochroneMinutes, setIsochroneMinutes] = useState(15);
+    const [isochroneMinutes, setIsochroneMinutes] = useState(30);
     const [isochroneProfile, setIsochroneProfile] = useState<IsochroneProfile>('driving');
     const [isochroneLoading, setIsochroneLoading] = useState(false);
     const [isochroneActive, setIsochroneActive]   = useState(false);
     const [isochroneError, setIsochroneError]     = useState<string | null>(null);
+    const [isochroneFeature, setIsochroneFeature] = useState<Feature<Polygon | MultiPolygon> | null>(null);
 
     // Edición y Visibilidad
     const [editingZone, setEditingZone] = useState<GeographicZone | null>(null);
@@ -422,6 +423,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         if (map.current.getLayer(ISOCHRONE_OUTLINE)) map.current.removeLayer(ISOCHRONE_OUTLINE);
         if (map.current.getSource(ISOCHRONE_SOURCE)) map.current.removeSource(ISOCHRONE_SOURCE);
         setIsochroneActive(false);
+        setIsochroneFeature(null);
     }, []);
 
     const toggleIsochroneMode = useCallback(() => setIsochroneMode(prev => { if (prev) { clearIsochroneLayer(); setIsochroneError(null); } return !prev; }), [clearIsochroneLayer]);
@@ -448,10 +450,10 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 map.current?.addLayer({ id: ISOCHRONE_FILL, type: 'fill', source: ISOCHRONE_SOURCE, paint: { 'fill-color': '#f59e0b', 'fill-opacity': 0.25 } });
                 map.current?.addLayer({ id: ISOCHRONE_OUTLINE, type: 'line', source: ISOCHRONE_SOURCE, paint: { 'line-color': '#d97706', 'line-width': 2, 'line-dasharray': [4, 2] } });
                 setIsochroneActive(true);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const coords = (fc.features[0].geometry as any).coordinates[0] as [number, number][];
-                const bounds = coords.reduce((b: maplibregl.LngLatBounds, c: [number, number]) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
-                map.current?.fitBounds(bounds, { padding: 40, duration: 800 });
+                const isoFeature = fc.features[0] as Feature<Polygon | MultiPolygon>;
+                setIsochroneFeature(isoFeature);
+                const bbox = turf.bbox(isoFeature);
+                map.current?.fitBounds([bbox[0], bbox[1], bbox[2], bbox[3]] as [number, number, number, number], { padding: 40, duration: 800 });
             }
             setIsochroneLoading(false);
         };
@@ -805,7 +807,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                         <label className="text-[10px] text-muted-foreground block mb-1">Minutos</label>
                                         <select value={isochroneMinutes} onChange={e => setIsochroneMinutes(Number(e.target.value))}
                                             className="w-full bg-background border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50">
-                                            {[5, 10, 15, 20, 30, 45, 60].map(m => <option key={m} value={m}>{m} min</option>)}
+                                            {[30, 45, 60, 75, 90, 120].map(m => <option key={m} value={m}>{m} min</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -827,10 +829,23 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                         : <><Timer className="w-4 h-4" />Activar Isócrona</>}
                                 </button>
                                 {isochroneActive && (
-                                    <button onClick={clearIsochroneLayer}
-                                        className="w-full py-1.5 rounded-lg text-[10px] font-medium text-muted-foreground hover:text-destructive border border-border hover:border-destructive/50 transition-all">
-                                        Limpiar isócrona
-                                    </button>
+                                    <>
+                                        <button
+                                            onClick={async () => {
+                                                if (!isochroneFeature || !projectId) return;
+                                                const overlaps = await runOverlapCheck(isochroneFeature);
+                                                setPendingZone({ geojson: isochroneFeature, overlaps });
+                                                setPendingColor(getRandomColor());
+                                                setPendingName(`Isócrona ${isochroneMinutes} min`);
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all">
+                                            <Plus className="w-4 h-4" /> Guardar como Zona
+                                        </button>
+                                        <button onClick={clearIsochroneLayer}
+                                            className="w-full py-1.5 rounded-lg text-[10px] font-medium text-muted-foreground hover:text-destructive border border-border hover:border-destructive/50 transition-all">
+                                            Limpiar isócrona
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         )}

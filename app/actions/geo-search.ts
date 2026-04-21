@@ -86,6 +86,75 @@ async function zippopotamLookup(cp: string): Promise<{ lat: string; lon: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function overpassPostalCode(cp: string): Promise<BoundaryFeature[]> {
+    try {
+        const query = `[out:json][timeout:15];relation["postal_code"="${cp}"]["boundary"="postal_code"];out ids;`;
+        const res = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': HDR['User-Agent'] },
+            body: `data=${encodeURIComponent(query)}`,
+            next: { revalidate: 86400 },
+        });
+        if (!res.ok) return [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data: any = await res.json();
+        const relation = data?.elements?.[0];
+        if (!relation?.id) return [];
+
+        // Nominatim lookup por ID de relación OSM para obtener el polígono real del CP
+        const lookupUrl = `https://nominatim.openstreetmap.org/lookup?osm_ids=R${relation.id}&format=geojson&polygon_geojson=1&addressdetails=1`;
+        const lookupRes = await fetch(lookupUrl, { headers: HDR, next: { revalidate: 86400 } });
+        if (!lookupRes.ok) return [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fc: any = await lookupRes.json();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (fc?.features ?? []).filter((f: any) =>
+            f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).map((f: any) => {
+            const p = f.properties ?? {};
+            return {
+                osmId:       `R${relation.id}`,
+                displayName: p.display_name ?? `CP ${cp}`,
+                shortName:   p.name ?? `CP ${cp}`,
+                addressType: 'Código Postal',
+                geometry:    f.geometry,
+            };
+        });
+    } catch { return []; }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function cartociudadPostalCode(cp: string): Promise<BoundaryFeature[]> {
+    try {
+        const filter = `<Filter><PropertyIsEqualTo><PropertyName>codigoPostal</PropertyName><Literal>${cp}</Literal></PropertyIsEqualTo></Filter>`;
+        const params = new URLSearchParams({
+            SERVICE: 'WFS', VERSION: '1.1.0', REQUEST: 'GetFeature',
+            TYPENAME: 'app:CodigoPostal', SRSNAME: 'EPSG:4326',
+            OUTPUTFORMAT: 'application/json', FILTER: filter,
+        });
+        const url = `https://www.cartociudad.es/wfs-cartociudad/services?${params}`;
+        const res = await fetch(url, { headers: HDR, next: { revalidate: 86400 } });
+        if (!res.ok) return [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fc: any = await res.json();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (fc?.features ?? []).filter((f: any) =>
+            f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ).map((f: any) => ({
+            osmId:       `cc_${cp}`,
+            displayName: `CP ${cp} (CartoCiudad/IGN)`,
+            shortName:   `CP ${cp}`,
+            addressType: 'Código Postal',
+            geometry:    f.geometry,
+        }));
+    } catch { return []; }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function nominatimMuniPolygon(name: string, countryCode: string, cpCode: string): Promise<BoundaryFeature[]> {
     const fc = await nominatimGet({
         q: name, countrycodes: countryCode,
@@ -136,7 +205,15 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         }
     } catch { /* continúa */ }
 
-    // 2. Zippopotam.us — catálogo fiable de CPs españoles con nombre de municipio correcto
+    // 2. Overpass → OSM relation del CP → Nominatim lookup (polígono real del CP)
+    const overpassHits = await overpassPostalCode(q);
+    if (overpassHits.length) return overpassHits;
+
+    // 3. CartoCiudad WFS (IGN oficial) — fallback con datos oficiales del IGN
+    const cartoHits = await cartociudadPostalCode(q);
+    if (cartoHits.length) return cartoHits;
+
+    // 4. Zippopotam.us — catálogo fiable de CPs españoles con nombre de municipio correcto
     const zippo = await zippopotamLookup(q);
     if (zippo) {
         // Buscar polígono del municipio por nombre (fuente autoritativa)
@@ -147,7 +224,7 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         if (hitsWithState.length) return hitsWithState;
     }
 
-    // 3. Fallback Nominatim: obtener centroide + datos de dirección
+    // 5. Fallback Nominatim: obtener centroide + datos de dirección
     let lat = '', lon = '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let addressObj: Record<string, string> | null = null;
@@ -164,7 +241,7 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
 
     if (!lat) return [];
 
-    // 4. Reverse geocoding en escalera de zoom
+    // 6. Reverse geocoding en escalera de zoom
     for (const zoom of ['14', '12', '10', '8']) {
         try {
             const feature = await nominatimReverse(lat, lon, zoom);
@@ -173,7 +250,7 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
         } catch { /* siguiente zoom */ }
     }
 
-    // 5. Último recurso: municipio desde address de Nominatim
+    // 7. Último recurso: municipio desde address de Nominatim
     const muniName = addressObj?.municipality ?? addressObj?.city ?? addressObj?.town ?? addressObj?.village ?? addressObj?.county;
     if (muniName) {
         const hits = await nominatimMuniPolygon(muniName, countryCode, q);
