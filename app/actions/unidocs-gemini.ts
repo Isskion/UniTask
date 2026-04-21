@@ -19,7 +19,7 @@ export interface GeminiMinutaResult {
     error?: string;
 }
 
-const MODEL_ID = "gemini-2.0-flash";
+const MODEL_ID = "gemini-1.5-flash"; // Usando 1.5 Flash estable para mejor cuota y fiabilidad
 const MAX_TOTAL_CHARS = 15000; // Total character limit to avoid TPM issues
 
 const SYSTEM_PROMPT = `Actúa como un Arquitecto de Integración y Business Analyst senior. 
@@ -37,8 +37,7 @@ REGLAS CRÍTICAS — APLICA SIN EXCEPCIÓN
 ═══════════════════════════════════════════
 ESTRUCTURA DE SALIDA OBLIGATORIA (HTML)
 ═══════════════════════════════════════════
-Devuelve ÚNICAMENTE HTML limpio. Usa solo: <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <table>, <thead>, <tbody>, <tr>, <td>, <th>. 
-Estructura: 1. Resumen Ejecutivo, 2. Decisiones Confirmadas, 3. Requerimientos Técnicos (Tabla), 4. Modelo de Datos (Tabla), 5. Acciones Pendientes (Tabla), 6. Conflictos, 7. Riesgos.`;
+Devuelve ÚNICAMENTE HTML limpio con clases de Tailwind si es necesario para tablas (opcional). Estructura interna: 1. Resumen Ejecutivo, 2. Decisiones Confirmadas, 3. Requerimientos Técnicos (Tabla), 4. Modelo de Datos (Tabla), 5. Acciones Pendientes (Tabla), 6. Conflictos, 7. Riesgos.`;
 
 /**
  * Limpia el HTML de TipTap para su procesamiento por IA, eliminando ruido y limitando tamaño.
@@ -117,10 +116,11 @@ export async function reviewMinutaWithGemini(
 
         const prompt = buildUserPrompt(notes, projectName);
         
-        console.log(`[UniDocs Gemini] Solicitando revisión IA. Proyecto: ${projectName}. Caracteres en el prompt: ${prompt.length}`);
+        // Diagnóstico de cuota y configuración
+        console.log(`[UniDocs Gemini] Solicitando revisión IA. KeyPrefix: ${apiKey.substring(0, 7)}... Proyecto: ${projectName}. Modelo: ${MODEL_ID}. Caracteres: ${prompt.length}`);
 
-        // Wrap with retry logic for 429 errors
-        const result = await withAiRetry(() => model.generateContent(prompt));
+        // Aumentamos el delay inicial a 5 segundos para recuperarse mejor de errores 429
+        const result = await withAiRetry(() => model.generateContent(prompt), 3, 5000);
         const text = result.response.text();
 
         // Strip markdown code fences if the model wraps output
