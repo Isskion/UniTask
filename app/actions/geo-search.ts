@@ -85,10 +85,35 @@ async function zippopotamLookup(cp: string): Promise<{ lat: string; lon: string;
     } catch { return null; }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function overpassPostalCode(cp: string): Promise<BoundaryFeature[]> {
+// Andrew's monotone chain — convex hull sin dependencias externas
+function convexHull(pts: [number, number][]): [number, number][] | null {
+    if (pts.length < 3) return null;
+    const s = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (o: [number,number], a: [number,number], b: [number,number]) =>
+        (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]);
+    const lower: [number,number][] = [];
+    for (const p of s) {
+        while (lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length-1], p) <= 0) lower.pop();
+        lower.push(p);
+    }
+    const upper: [number,number][] = [];
+    for (const p of [...s].reverse()) {
+        while (upper.length >= 2 && cross(upper[upper.length-2], upper[upper.length-1], p) <= 0) upper.pop();
+        upper.push(p);
+    }
+    upper.pop(); lower.pop();
+    const hull = [...lower, ...upper];
+    if (hull.length < 3) return null;
+    return [...hull, hull[0]]; // cerrar el anillo
+}
+
+// Obtiene todos los elementos OSM con addr:postcode=CP dentro del bbox de Nominatim
+// y calcula el convex hull como polígono aproximado del área del CP
+async function overpassPostalCode(cp: string, bbox: [number,number,number,number] | null): Promise<BoundaryFeature[]> {
     try {
-        const query = `[out:json][timeout:15];relation["postal_code"="${cp}"]["boundary"="postal_code"];out ids;`;
+        // bbox Nominatim: [minLon, minLat, maxLon, maxLat] → Overpass: (minLat,minLon,maxLat,maxLon)
+        const bboxStr = bbox ? `(${bbox[1]},${bbox[0]},${bbox[3]},${bbox[2]})` : '';
+        const query = `[out:json][timeout:25];(way["addr:postcode"="${cp}"]${bboxStr};node["addr:postcode"="${cp}"]${bboxStr};);out center;`;
         const res = await fetch('https://overpass-api.de/api/interpreter', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': HDR['User-Agent'] },
@@ -98,31 +123,28 @@ async function overpassPostalCode(cp: string): Promise<BoundaryFeature[]> {
         if (!res.ok) return [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data: any = await res.json();
-        const relation = data?.elements?.[0];
-        if (!relation?.id) return [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const points: [number,number][] = (data?.elements ?? []).map((el: any) => {
+            const lat = el.lat ?? el.center?.lat;
+            const lon = el.lon ?? el.center?.lon;
+            return (lat && lon) ? [lon, lat] as [number,number] : null;
+        }).filter(Boolean);
 
-        // Nominatim lookup por ID de relación OSM para obtener el polígono real del CP
-        const lookupUrl = `https://nominatim.openstreetmap.org/lookup?osm_ids=R${relation.id}&format=geojson&polygon_geojson=1&addressdetails=1`;
-        const lookupRes = await fetch(lookupUrl, { headers: HDR, next: { revalidate: 86400 } });
-        if (!lookupRes.ok) return [];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fc: any = await lookupRes.json();
+        if (points.length < 3) return [];
+        const hull = convexHull(points);
+        if (!hull) return [];
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fc?.features ?? []).filter((f: any) =>
-            f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ).map((f: any) => {
-            const p = f.properties ?? {};
-            return {
-                osmId:       `R${relation.id}`,
-                displayName: p.display_name ?? `CP ${cp}`,
-                shortName:   p.name ?? `CP ${cp}`,
-                addressType: 'Código Postal',
-                geometry:    f.geometry,
-            };
-        });
-    } catch { return []; }
+        return [{
+            osmId:       `addr_${cp}`,
+            displayName: `CP ${cp}`,
+            shortName:   `CP ${cp}`,
+            addressType: 'Código Postal',
+            geometry:    { type: 'Polygon', coordinates: [hull] },
+        }];
+    } catch (e) {
+        console.error('[Overpass addr:postcode ERROR]', e);
+        return [];
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -151,7 +173,10 @@ async function cartociudadPostalCode(cp: string): Promise<BoundaryFeature[]> {
             addressType: 'Código Postal',
             geometry:    f.geometry,
         }));
-    } catch { return []; }
+    } catch (e) {
+        console.error('[CartoCiudad WFS ERROR]', e);
+        return [];
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,11 +204,12 @@ async function nominatimMuniPolygon(name: string, countryCode: string, cpCode: s
 }
 
 async function searchPostalCode(q: string, countryCode: string): Promise<BoundaryFeature[]> {
-    // 1. Nominatim directo — algunos CPs tienen polígono propio en OSM
+    // 1. Nominatim — extrae bbox aunque no haya polígono; algunos CPs sí tienen polígono propio
+    let nominatimBbox: [number,number,number,number] | null = null;
     try {
         const fc = await nominatimGet({
             postalcode: q, countrycodes: countryCode,
-            format: 'geojson', polygon_geojson: '1', addressdetails: '1', limit: '5',
+            format: 'geojson', polygon_geojson: '1', addressdetails: '1', limit: '3',
         }, 86400);
         if (fc?.features?.length) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -202,14 +228,17 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
                 };
             });
             if (hits.length) return hits;
+            // Guardar bbox aunque no haya polígono — lo usará Overpass
+            const b = fc.features[0]?.bbox;
+            if (b?.length === 4) nominatimBbox = b as [number,number,number,number];
         }
     } catch { /* continúa */ }
 
-    // 2. Overpass → OSM relation del CP → Nominatim lookup (polígono real del CP)
-    const overpassHits = await overpassPostalCode(q);
+    // 2. Overpass addr:postcode → convex hull del CP (basado en edificios/nodos reales)
+    const overpassHits = await overpassPostalCode(q, nominatimBbox);
     if (overpassHits.length) return overpassHits;
 
-    // 3. CartoCiudad WFS (IGN oficial) — fallback con datos oficiales del IGN
+    // 3. CartoCiudad WFS (IGN oficial) — endpoint actualmente bloqueado, se mantiene por si se restaura
     const cartoHits = await cartociudadPostalCode(q);
     if (cartoHits.length) return cartoHits;
 
