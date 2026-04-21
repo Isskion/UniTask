@@ -7,7 +7,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { withAiRetry } from "@/lib/ai-retry";
 
-const MODEL_ID = "gemini-2.0-flash";
+export interface NoteInput {
+    title: string;
+    content: string;     // HTML de TipTap
+    date?: string;       // ISO o texto legible — usado para prioridad temporal
+    author?: string;     // Autor si está disponible — para detectar conflictos entre personas
+}
+
+export interface GeminiMinutaResult {
+    html: string;
+    error?: string;
+}
 
 const MODEL_ID = "gemini-2.0-flash";
 const MAX_TOTAL_CHARS = 15000; // Total character limit to avoid TPM issues
