@@ -64,3 +64,37 @@ export async function logUsage(data: any) {
         console.error("Failed to log usage", e);
     }
 }
+
+/**
+ * Utility to wrap AI calls with exponential backoff and retry logic.
+ * Specifically handles 429 (Rate Limit / Resource Exhausted) errors.
+ */
+export async function withAiRetry<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    initialDelay: number = 2000
+): Promise<T> {
+    let lastError: any;
+    for (let i = 0; i <= maxRetries; i++) {
+        try {
+            return await fn();
+        } catch (error: any) {
+            lastError = error;
+            const errorMessage = error.message || "";
+            const isRateLimit =
+                errorMessage.includes("429") ||
+                errorMessage.includes("Too Many Requests") ||
+                errorMessage.includes("Resource exhausted") ||
+                error.status === 429;
+
+            if (!isRateLimit || i === maxRetries) {
+                throw error;
+            }
+
+            const delay = (initialDelay * Math.pow(2, i)) + (Math.random() * 500);
+            console.warn(`[Functions AI Retry] Attempt ${i + 1} failed (429). Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw lastError;
+}

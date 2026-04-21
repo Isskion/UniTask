@@ -79,7 +79,8 @@ exports.analyzeDocumentStructure = functions.region("europe-west1").runWith({
         }
     `;
     try {
-        const result = await model.generateContent(prompt);
+        // Wrap with retry logic for 429 errors
+        const result = await (0, utils_1.withAiRetry)(() => model.generateContent(prompt));
         const responseText = result.response.text();
         // Robust JSON Extraction
         const jsonStart = responseText.indexOf('{');
@@ -137,10 +138,11 @@ exports.analyzePdf = functions.region("europe-west1").runWith({
         Detect language and output in that language.
     `;
     try {
-        const result = await model.generateContent([
+        // Wrap with retry logic for 429 errors
+        const result = await (0, utils_1.withAiRetry)(() => model.generateContent([
             prompt,
             { inlineData: { data: base64Data, mimeType: "application/pdf" } }
-        ]);
+        ]));
         const responseText = result.response.text();
         // Robust JSON Extraction
         const jsonStart = responseText.indexOf('{');
@@ -259,7 +261,8 @@ exports.summarizeNotes = functions.region("europe-west1").runWith({
         `;
     }
     try {
-        const result = await model.generateContent(prompt);
+        // Wrap with retry logic for 429 errors
+        const result = await (0, utils_1.withAiRetry)(() => model.generateContent(prompt));
         const responseText = result.response.text();
         // [Robust Refinement] Handle markdown backticks and extra text
         const cleanJson = (text) => {

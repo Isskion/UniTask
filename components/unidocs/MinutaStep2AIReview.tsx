@@ -47,10 +47,17 @@ export default function MinutaStep2AIReview({
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     const handleReviewWithAI = async () => {
+        const noteInputs = buildNoteInputs(minuta);
+        const totalChars = noteInputs.reduce((acc, n) => acc + n.content.length, 0);
+        
+        // Soft limit warning ( IA will truncate anyway, but good for user to know)
+        if (totalChars > 25000 && !confirm(`Las notas seleccionadas son muy extensas (~${Math.round(totalChars/1000)}k caracteres). Es posible que la IA no pueda procesar todo el contenido y trunque el resultado. ¿Deseas continuar?`)) {
+            return;
+        }
+
         setReviewState("loading");
         setErrorMsg(null);
         try {
-            const noteInputs = buildNoteInputs(minuta);
             const result = await reviewMinutaWithGemini(noteInputs, projectName);
             if (result.error) {
                 setErrorMsg(result.error);

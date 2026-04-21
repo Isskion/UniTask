@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { isAiEnabled, logUsage } from "./utils";
+import { isAiEnabled, logUsage, withAiRetry } from "./utils";
 
 
 
@@ -87,7 +87,8 @@ export const analyzeDocumentStructure = functions.region("europe-west1").runWith
     `;
 
     try {
-        const result = await model.generateContent(prompt);
+        // Wrap with retry logic for 429 errors
+        const result = await withAiRetry(() => model.generateContent(prompt));
         const responseText = result.response.text();
 
         // Robust JSON Extraction
@@ -152,10 +153,11 @@ export const analyzePdf = functions.region("europe-west1").runWith({
     `;
 
     try {
-        const result = await model.generateContent([
+        // Wrap with retry logic for 429 errors
+        const result = await withAiRetry(() => model.generateContent([
             prompt,
             { inlineData: { data: base64Data, mimeType: "application/pdf" } }
-        ]);
+        ]));
         const responseText = result.response.text();
 
         // Robust JSON Extraction
@@ -284,7 +286,8 @@ export const summarizeNotes = functions.region("europe-west1").runWith({
     }
 
     try {
-        const result = await model.generateContent(prompt);
+        // Wrap with retry logic for 429 errors
+        const result = await withAiRetry(() => model.generateContent(prompt));
         const responseText = result.response.text();
 
         // [Robust Refinement] Handle markdown backticks and extra text

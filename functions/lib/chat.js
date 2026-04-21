@@ -141,7 +141,8 @@ exports.chat = functions.region("europe-west1").runWith({
                 history: protectedHistory,
                 generationConfig: { maxOutputTokens: 1000 },
             });
-            const result = await chatSession.sendMessage(securedMessage);
+            // Wrap with retry logic for 429 errors
+            const result = await (0, utils_1.withAiRetry)(() => chatSession.sendMessage(securedMessage));
             const response = await result.response;
             const text = response.text();
             console.log("Gemini response success", !!text);

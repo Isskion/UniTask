@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logUsage = exports.checkUsageLimit = exports.isAiEnabled = exports.getDb = void 0;
+exports.withAiRetry = exports.logUsage = exports.checkUsageLimit = exports.isAiEnabled = exports.getDb = void 0;
 const admin = require("firebase-admin");
 let dbInstance = null;
 const getDb = () => {
@@ -60,4 +60,32 @@ async function logUsage(data) {
     }
 }
 exports.logUsage = logUsage;
+/**
+ * Utility to wrap AI calls with exponential backoff and retry logic.
+ * Specifically handles 429 (Rate Limit / Resource Exhausted) errors.
+ */
+async function withAiRetry(fn, maxRetries = 3, initialDelay = 2000) {
+    let lastError;
+    for (let i = 0; i <= maxRetries; i++) {
+        try {
+            return await fn();
+        }
+        catch (error) {
+            lastError = error;
+            const errorMessage = error.message || "";
+            const isRateLimit = errorMessage.includes("429") ||
+                errorMessage.includes("Too Many Requests") ||
+                errorMessage.includes("Resource exhausted") ||
+                error.status === 429;
+            if (!isRateLimit || i === maxRetries) {
+                throw error;
+            }
+            const delay = (initialDelay * Math.pow(2, i)) + (Math.random() * 500);
+            console.warn(`[Functions AI Retry] Attempt ${i + 1} failed (429). Retrying in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw lastError;
+}
+exports.withAiRetry = withAiRetry;
 //# sourceMappingURL=utils.js.map

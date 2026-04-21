@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { isAiEnabled, checkUsageLimit, logUsage, getDb } from "./utils";
+import { isAiEnabled, checkUsageLimit, logUsage, getDb, withAiRetry } from "./utils";
 import * as cors from "cors";
 
 // Initialize CORS middleware
@@ -154,7 +154,8 @@ export const chat = functions.region("europe-west1").runWith({
                 generationConfig: { maxOutputTokens: 1000 },
             });
 
-            const result = await chatSession.sendMessage(securedMessage);
+            // Wrap with retry logic for 429 errors
+            const result = await withAiRetry(() => chatSession.sendMessage(securedMessage));
             const response = await result.response;
             const text = response.text();
             console.log("Gemini response success", !!text);
