@@ -203,9 +203,14 @@ async function nominatimMuniPolygon(name: string, countryCode: string, cpCode: s
     });
 }
 
+// Radio fijo alrededor del centroide del CP para Overpass.
+// El bbox de Nominatim es demasiado grande (28001 Madrid → 9×10 km).
+// ±0.025° ≈ ±2.5 km — suficiente para cualquier CP urbano.
+const CP_SEARCH_DELTA = 0.025;
+
 async function searchPostalCode(q: string, countryCode: string): Promise<BoundaryFeature[]> {
-    // 1. Nominatim — extrae bbox aunque no haya polígono; algunos CPs sí tienen polígono propio
-    let nominatimBbox: [number,number,number,number] | null = null;
+    // 1. Nominatim — extrae centroide para acotar Overpass; algunos CPs tienen polígono propio
+    let centroidBbox: [number,number,number,number] | null = null;
     try {
         const fc = await nominatimGet({
             postalcode: q, countrycodes: countryCode,
@@ -228,14 +233,18 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
                 };
             });
             if (hits.length) return hits;
-            // Guardar bbox aunque no haya polígono — lo usará Overpass
-            const b = fc.features[0]?.bbox;
-            if (b?.length === 4) nominatimBbox = b as [number,number,number,number];
+            // Construir bbox desde el centroide con radio fijo — el bbox de Nominatim
+            // para CPs de ciudad es demasiado grande (ej: 28001 Madrid → 9×10 km)
+            const coords = fc.features[0]?.geometry?.coordinates as [number, number] | undefined;
+            if (coords) {
+                const [lon, lat] = coords;
+                centroidBbox = [lon - CP_SEARCH_DELTA, lat - CP_SEARCH_DELTA, lon + CP_SEARCH_DELTA, lat + CP_SEARCH_DELTA];
+            }
         }
     } catch { /* continúa */ }
 
     // 2. Overpass addr:postcode → convex hull del CP (basado en edificios/nodos reales)
-    const overpassHits = await overpassPostalCode(q, nominatimBbox);
+    const overpassHits = await overpassPostalCode(q, centroidBbox);
     if (overpassHits.length) return overpassHits;
 
     // 3. CartoCiudad WFS (IGN oficial) — endpoint actualmente bloqueado, se mantiene por si se restaura
