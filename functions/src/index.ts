@@ -17,6 +17,7 @@ export * from "./pdf";
 export * from "./ping";
 export * from "./tasks";
 export * from "./registration";
-export * from "./uniflux";
+export { generateUnifluxFlow } from "./uniflux";
+export { generateMinuta } from "./generateMinuta";
 export * from "./syncUserClaims";
 export * from "./unigis";

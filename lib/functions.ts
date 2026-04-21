@@ -5,3 +5,4 @@ import { app } from './firebase';
 const functions = getFunctions(app, 'europe-west1');
 
 export const updateUserClaimsFunction = httpsCallable(functions, 'updateUserClaims');
+export const generateMinutaFunction = httpsCallable<any, { success: boolean, html: string }>(functions, 'generateMinuta');

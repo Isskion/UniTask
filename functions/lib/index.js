@@ -14,6 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateMinuta = exports.generateUnifluxFlow = void 0;
 const admin = require("firebase-admin");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -30,7 +31,10 @@ __exportStar(require("./pdf"), exports);
 __exportStar(require("./ping"), exports);
 __exportStar(require("./tasks"), exports);
 __exportStar(require("./registration"), exports);
-__exportStar(require("./uniflux"), exports);
+var uniflux_1 = require("./uniflux");
+Object.defineProperty(exports, "generateUnifluxFlow", { enumerable: true, get: function () { return uniflux_1.generateUnifluxFlow; } });
+var generateMinuta_1 = require("./generateMinuta");
+Object.defineProperty(exports, "generateMinuta", { enumerable: true, get: function () { return generateMinuta_1.generateMinuta; } });
 __exportStar(require("./syncUserClaims"), exports);
 __exportStar(require("./unigis"), exports);
 //# sourceMappingURL=index.js.map

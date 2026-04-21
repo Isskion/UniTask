@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { UniDocsMinuta } from "@/types/unidocs";
-import { reviewMinutaWithGemini, NoteInput } from "@/app/actions/unidocs-gemini";
+import { generateMinutaFunction } from "@/lib/functions";
 import { Loader2, Sparkles, ChevronRight, ChevronLeft, CheckCircle, XCircle } from "lucide-react";
 
 interface MinutaStep2AIReviewProps {
@@ -50,7 +50,6 @@ export default function MinutaStep2AIReview({
         const noteInputs = buildNoteInputs(minuta);
         const totalChars = noteInputs.reduce((acc, n) => acc + n.content.length, 0);
         
-        // Soft limit warning ( IA will truncate anyway, but good for user to know)
         if (totalChars > 25000 && !confirm(`Las notas seleccionadas son muy extensas (~${Math.round(totalChars/1000)}k caracteres). Es posible que la IA no pueda procesar todo el contenido y trunque el resultado. ¿Deseas continuar?`)) {
             return;
         }
@@ -58,16 +57,22 @@ export default function MinutaStep2AIReview({
         setReviewState("loading");
         setErrorMsg(null);
         try {
-            const result = await reviewMinutaWithGemini(noteInputs, projectName);
-            if (result.error) {
-                setErrorMsg(result.error);
-                setReviewState("error");
-            } else {
-                onChange({ aiHtml: result.html, editedHtml: result.html });
+            const result = await generateMinutaFunction({
+                notes: noteInputs,
+                projectName: projectName
+            });
+            
+            const data = result.data;
+            if (data.html) {
+                onChange({ aiHtml: data.html, editedHtml: data.html });
                 setReviewState("done");
+            } else {
+                setErrorMsg("No se recibió contenido de la IA.");
+                setReviewState("error");
             }
         } catch (e: any) {
-            setErrorMsg(e.message || "Error inesperado al contactar con Gemini.");
+            console.error("[MinutaStep2AIReview] Cloud Function Error:", e);
+            setErrorMsg(e.message || "Error al conectar con el servicio de IA en la nube.");
             setReviewState("error");
         }
     };
