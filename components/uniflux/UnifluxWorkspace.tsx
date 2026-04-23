@@ -793,39 +793,77 @@ export default function UnifluxWorkspace() {
         [reactFlowInstance, setNodes, nodes, activeC4Level],
     );
 
-    const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
-        if (draggedNode.data.type === 'ENVIRONMENT' || draggedNode.data.type === 'C4_BOUNDARY') return;
+    const onNodeResizeStop = useCallback((_event: any, { id, width, height }: { id: string, width: number, height: number }) => {
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
+        }));
+        setTimeout(takeSnapshot, 0);
+    }, [setGraph, takeSnapshot]);
 
+    const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
         // Use absolute position for hit testing
         const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.position.x;
         const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.position.y;
 
-        // Check if dropped inside an environment or C4 boundary
-        const targetEnv = nodes.find(n => {
+        // 1. Find all possible containers (excluding the dragged node itself)
+        // We look for containers where the drop point (absX, absY) is inside.
+        const containers = nodes.filter(n => {
+            if (n.id === draggedNode.id) return false;
+            if (!(n.type === 'ENVIRONMENT' || n.type === 'C4_BOUNDARY')) return false;
+            
             const envAbsX = (n as any).computed?.positionAbsolute?.x ?? n.position.x;
             const envAbsY = (n as any).computed?.positionAbsolute?.y ?? n.position.y;
-            return (n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY') &&
-                n.id !== draggedNode.id &&
+            
+            // Prefer measured dimensions, fallback to width/height properties
+            const w = n.measured?.width ?? n.width ?? (n.style?.width as number) ?? 0;
+            const h = n.measured?.height ?? n.height ?? (n.style?.height as number) ?? 0;
+            
+            return (
                 absX >= envAbsX &&
                 absY >= envAbsY &&
-                absX <= envAbsX + (n.style?.width as number || 0) &&
-                absY <= envAbsY + (n.style?.height as number || 0);
+                absX <= envAbsX + w &&
+                absY <= envAbsY + h
+            );
         });
 
+        // 2. Pick the innermost container (the one with the smallest area)
+        let targetEnv = null;
+        if (containers.length > 0) {
+            containers.sort((a, b) => {
+                const areaA = (a.measured?.width ?? a.width ?? 0) * (a.measured?.height ?? a.height ?? 0);
+                const areaB = (b.measured?.width ?? b.width ?? 0) * (b.measured?.height ?? b.height ?? 0);
+                return areaA - areaB;
+            });
+            targetEnv = containers[0];
+        }
+
         if (targetEnv && draggedNode.parentId !== targetEnv.id) {
+            const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
+            const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
+            
+            const newRelativePos = {
+                x: absX - envAbsX,
+                y: absY - envAbsY
+            };
+
+            // Update abstract graph to ensure persistence
+            setGraph(prev => ({
+                ...prev,
+                nodes: prev.nodes.map(n => n.id === draggedNode.id 
+                    ? { ...n, parentId: targetEnv.id, position: newRelativePos } 
+                    : n
+                )
+            }));
+            
+            // Update RF state for immediate feedback
             setNodes(nds => nds.map(node => {
                 if (node.id === draggedNode.id) {
-                    const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
-                    const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
                     return {
                         ...node,
                         parentId: targetEnv.id,
                         extent: 'parent',
-                        // Re-calculate position relative to parent using absolute coordinates
-                        position: {
-                            x: absX - envAbsX,
-                            y: absY - envAbsY
-                        }
+                        position: newRelativePos
                     };
                 }
                 return node;
@@ -833,24 +871,38 @@ export default function UnifluxWorkspace() {
             setTimeout(takeSnapshot, 0);
         } else if (!targetEnv && draggedNode.parentId) {
             // Dragged out of parent
+            setGraph(prev => ({
+                ...prev,
+                nodes: prev.nodes.map(n => n.id === draggedNode.id 
+                    ? { ...n, parentId: undefined, position: { x: absX, y: absY } } 
+                    : n
+                )
+            }));
+            
             setNodes(nds => nds.map(node => {
                 if (node.id === draggedNode.id) {
-                    // It was unparented, so we need to set its position to its absolute position
                     return {
                         ...node,
                         parentId: undefined,
                         extent: undefined,
-                        position: {
-                            x: absX,
-                            y: absY
-                        }
+                        position: { x: absX, y: absY }
                     };
                 }
                 return node;
             }));
             setTimeout(takeSnapshot, 0);
+        } else {
+            // Just moved within same parent or outside — sync position to graph
+            setGraph(prev => ({
+                ...prev,
+                nodes: prev.nodes.map(n => n.id === draggedNode.id 
+                    ? { ...n, position: draggedNode.position } 
+                    : n
+                )
+            }));
+            setTimeout(takeSnapshot, 0);
         }
-    }, [nodes, setNodes, takeSnapshot]);
+    }, [nodes, setNodes, setGraph, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
     const handleGraphUpdate = (newGraph: FlowGraph) => {
@@ -1628,6 +1680,7 @@ export default function UnifluxWorkspace() {
                     onDrop={onDrop}
                     onDragOver={onDragOver}
                     onNodeDragStop={onNodeDragStop}
+                    onNodeResizeStop={onNodeResizeStop}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
                     onNodeContextMenu={onNodeContextMenu}
