@@ -813,8 +813,8 @@ export default function UnifluxWorkspace() {
 
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
         // Use React Flow's own computed absolute position — it's the most reliable source during drag
-        const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.positionAbsolute?.x;
-        const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.positionAbsolute?.y;
+        const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? (draggedNode as any).positionAbsolute?.x;
+        const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? (draggedNode as any).positionAbsolute?.y;
 
         // If we can't get absolute position, just persist the relative position as-is
         if (absX == null || absY == null || isNaN(absX) || isNaN(absY)) {
@@ -836,8 +836,8 @@ export default function UnifluxWorkspace() {
 
         // Helper to get absolute position of a container
         const getContainerAbsPos = (container: Node): { x: number; y: number } => {
-            const cx = (container as any).computed?.positionAbsolute?.x ?? container.positionAbsolute?.x ?? container.position.x;
-            const cy = (container as any).computed?.positionAbsolute?.y ?? container.positionAbsolute?.y ?? container.position.y;
+            const cx = (container as any).computed?.positionAbsolute?.x ?? (container as any).positionAbsolute?.x ?? container.position.x;
+            const cy = (container as any).computed?.positionAbsolute?.y ?? (container as any).positionAbsolute?.y ?? container.position.y;
             return { x: cx, y: cy };
         };
 
