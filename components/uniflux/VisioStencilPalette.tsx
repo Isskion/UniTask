@@ -145,12 +145,78 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
         ]
     },
     {
+        title: 'Infraestructura',
+        defaultOpen: false,
+        items: [
+            {
+                type: 'OPERATION',
+                label: 'Servidor',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-slate-600">
+                        <rect x="20" y="20" width="60" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <rect x="20" y="42" width="60" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <rect x="20" y="64" width="60" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <circle cx="28" cy="27.5" r="2" fill="currentColor" />
+                        <circle cx="28" cy="49.5" r="2" fill="currentColor" />
+                        <circle cx="28" cy="71.5" r="2" fill="currentColor" />
+                    </svg>
+                )
+            },
+            {
+                type: 'DATA',
+                label: 'Base de Datos',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-amber-600">
+                        <ellipse cx="50" cy="30" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <path d="M15,30 L15,70 C15,78 31,85 50,85 C69,85 85,78 85,70 L85,30" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <path d="M15,50 C15,58 31,65 50,65 C69,65 85,58 85,50" fill="none" stroke="currentColor" strokeWidth="4" />
+                    </svg>
+                )
+            },
+            {
+                type: 'OPERATION',
+                label: 'Nube',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-blue-400">
+                        <path d="M25,70 C10,70 10,50 25,45 C25,25 50,20 60,35 C80,30 90,45 80,65 C90,85 65,90 55,80 C45,90 20,85 25,70 Z" fill="none" stroke="currentColor" strokeWidth="4" />
+                    </svg>
+                )
+            }
+        ]
+    },
+    {
+        title: 'Red y Seguridad',
+        defaultOpen: false,
+        items: [
+            {
+                type: 'DECISION',
+                label: 'Firewall',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-orange-600">
+                        <rect x="15" y="20" width="70" height="60" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <path d="M15,40 L85,40 M15,60 L85,60 M35,20 L35,40 M65,20 L65,40 M50,40 L50,60 M25,60 L25,80 M75,60 L75,80" fill="none" stroke="currentColor" strokeWidth="4" />
+                    </svg>
+                )
+            },
+            {
+                type: 'OPERATION',
+                label: 'Router',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-slate-500">
+                        <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="4" />
+                        <path d="M30,50 L70,50 M50,30 L50,70 M35,35 L65,65 M65,35 L35,65" fill="none" stroke="currentColor" strokeWidth="4" />
+                    </svg>
+                )
+            }
+        ]
+    },
+    {
         title: 'Contenedores',
         defaultOpen: true,
         items: [
             {
                 type: 'ENVIRONMENT',
-                label: 'Entorno / Área',
+                label: 'Área / Grupo',
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm">
                         <rect x="10" y="20" width="80" height="60" rx="4" fill="transparent" stroke="#94a3b8" strokeWidth="4" strokeDasharray="8 4" />
