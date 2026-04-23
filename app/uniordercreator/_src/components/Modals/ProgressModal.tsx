@@ -221,15 +221,15 @@ export default function ProgressModal({
     const eta = elapsed > 0 && current > 0 ? Math.round(((total - current) / (current / elapsed))) : 0;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-100 overflow-hidden" style={{ animation: 'dashboardSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
                 {/* Header */}
-                <div className={`px-6 py-4 ${isComplete ? 'bg-gradient-to-r from-emerald-700 to-emerald-600' : 'bg-gradient-to-r from-slate-800 to-indigo-900'}`}>
-                    <h2 className="text-lg font-bold text-white">
+                <div className={`px-6 py-4 ${isComplete ? 'bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-[#0f172a] via-[#1e1b4b] to-[#0f172a]'}`}>
+                    <h2 className="text-lg font-bold text-white tracking-tight">
                         {isComplete ? '✅ Envío Completado' : '⏳ Enviando Pedidos'}
                     </h2>
                     {!isComplete && (
-                        <p className="text-xs text-white/60 mt-0.5">
+                        <p className="text-[11px] text-white/50 mt-0.5 font-medium">
                             {speed} pedidos/min · ETA: {formatTime(eta)}
                         </p>
                     )}
@@ -238,21 +238,21 @@ export default function ProgressModal({
                 <div className="p-6 space-y-5">
                     {/* Stats */}
                     <div className="grid grid-cols-4 gap-3">
-                        <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                            <div className="text-lg font-black text-slate-700">{total}</div>
-                            <div className="text-[10px] text-slate-500 font-semibold uppercase">Total</div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center shadow-sm">
+                            <div className="text-xl font-black text-slate-700 tabular-nums">{total}</div>
+                            <div className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Total</div>
                         </div>
-                        <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
-                            <div className="text-lg font-black text-emerald-600">✅ {successCount}</div>
-                            <div className="text-[10px] text-emerald-500 font-semibold uppercase">OK</div>
+                        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-center shadow-sm">
+                            <div className="text-xl font-black text-emerald-600 tabular-nums">{successCount}</div>
+                            <div className="text-[9px] text-emerald-500 font-semibold uppercase tracking-wider mt-0.5">✓ OK</div>
                         </div>
-                        <div className="p-2.5 bg-red-50 rounded-xl border border-red-100 text-center">
-                            <div className="text-lg font-black text-red-600">❌ {errorCount}</div>
-                            <div className="text-[10px] text-red-500 font-semibold uppercase">Error</div>
+                        <div className="p-3 bg-red-50 rounded-xl border border-red-100 text-center shadow-sm">
+                            <div className="text-xl font-black text-red-600 tabular-nums">{errorCount}</div>
+                            <div className="text-[9px] text-red-500 font-semibold uppercase tracking-wider mt-0.5">✗ Error</div>
                         </div>
-                        <div className="p-2.5 bg-indigo-50 rounded-xl border border-indigo-100 text-center">
-                            <div className="text-lg font-black text-indigo-600">⏱️</div>
-                            <div className="text-xs text-indigo-500 font-mono font-bold">{formatTime(elapsed)}</div>
+                        <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 text-center shadow-sm">
+                            <div className="text-base font-black text-indigo-600 font-mono">{formatTime(elapsed)}</div>
+                            <div className="text-[9px] text-indigo-500 font-semibold uppercase tracking-wider mt-0.5">Tiempo</div>
                         </div>
                     </div>
 

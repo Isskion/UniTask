@@ -28,6 +28,7 @@ import MappingActions from '@/app/uniordercreator/_src/components/Mapper/Mapping
 import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
 import DataPrepModal from '@/app/uniordercreator/_src/components/Modals/DataPrepModal';
 import HelpModal from '@/app/uniordercreator/_src/components/Modals/HelpModal';
+import ResultsDashboard from '@/app/uniordercreator/_src/components/Dashboard/ResultsDashboard';
 import { ToastProvider } from '@/app/uniordercreator/_src/components/UI/ToastProvider';
 
 import '@/app/uniordercreator/_src/i18n';
@@ -51,6 +52,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
     const [savedMappingsOpen, setSavedMappingsOpen] = useState(false);
     const [savedMappingsMode, setSavedMappingsMode] = useState<'save' | 'list'>('list');
     const [dataPrepOpen, setDataPrepOpen] = useState(false);
+    const [dashboardOpen, setDashboardOpen] = useState(false);
 
     // Progress state
     const [progressTotal, setProgressTotal] = useState(0);
@@ -449,8 +451,10 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                     logs.push({ ref, status: 'success', msg: `Creado (ID: ${resultText || 'OK'})` });
                 } else {
                     let msg = '';
+                    let errorCode = '';
 
                     if (resultNode && !isValid) {
+                        errorCode = resultText; // e.g. "-39"
                         msg = UNIGIS_ERROR_CODES[resultText]
                             ? `${resultText}: ${UNIGIS_ERROR_CODES[resultText]}`
                             : `Fallo lógico: respuesta "${resultText}"`;
@@ -478,7 +482,8 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                 }
             } catch (err: any) {
                 errors++;
-                setRowStatus(index, 'error', err.message);
+                setRowStatus(index, 'error', err.message, lastRawResponse);
+                if (err._errorCode) updateRowData(index, '_errorCode', err._errorCode);
                 logs.push({
                     ref,
                     status: 'error',
@@ -513,6 +518,14 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
             .map((row, index) => ({ row, index }))
             .filter(({ row }: { row: any }) => row._status === 'error');
         sendBatch(batch);
+    }, [rows, sendBatch]);
+
+    // ─── Retry individual row (from dashboard) ────────────────────────
+    const handleRetryRow = useCallback((index: number) => {
+        const row = rows[index];
+        if (!row) return;
+        setDashboardOpen(false);
+        sendBatch([{ row, index }]);
     }, [rows, sendBatch]);
 
     const handleCancelSend = useCallback(() => {
@@ -596,6 +609,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                 onManageUsers={() => { }}
                 onShowHelp={() => setHelpOpen(true)}
                 onSaveTemplate={() => { setSavedMappingsMode('save'); setSavedMappingsOpen(true); }}
+                onShowDashboard={() => setDashboardOpen(true)}
                 isLoadingExcel={isLoadingExcel}
             />
 
@@ -695,6 +709,12 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
             <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
             <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} initialMode={savedMappingsMode} tenantId={tenantId} />
             <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+            <ResultsDashboard
+                isOpen={dashboardOpen}
+                onClose={() => setDashboardOpen(false)}
+                onRetryRow={handleRetryRow}
+                onRetryAll={() => { setDashboardOpen(false); handleRetryFailed(); }}
+            />
         </div>
     );
 }

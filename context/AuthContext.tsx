@@ -163,11 +163,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                             console.warn("[AuthContext] 🛡️ Refresh loop detected! Using Firestore profile as source of truth instead of looping.");
                             
                             // [HEAL] Attempt to trigger a server-side sync to fix the stale token
-                            import('@/app/actions/auth-actions').then(({ syncUserClaimsAction }) => {
-                                syncUserClaimsAction(currentUser.uid).then(res => {
-                                    if (res.success) console.log("[AuthContext] ✅ Self-healing sync triggered successfully.");
-                                });
-                            });
+                            console.log("[AuthContext] 🛠️ Attempting self-healing sync for UID:", currentUser.uid);
+                            import('@/app/actions/auth-actions')
+                                .then(({ syncUserClaimsAction }) => {
+                                    syncUserClaimsAction(currentUser.uid)
+                                        .then(res => {
+                                            if (res.success) {
+                                                console.log("[AuthContext] ✅ Self-healing sync triggered successfully.");
+                                            } else {
+                                                console.error("[AuthContext] ❌ Self-healing sync failed:", res.message);
+                                            }
+                                        })
+                                        .catch(err => console.error("[AuthContext] ❌ syncUserClaimsAction error:", err));
+                                })
+                                .catch(err => console.error("[AuthContext] ❌ Failed to import auth-actions:", err));
 
                             const firestoreRole = (Number(data.roleLevel) || 0) as RoleLevel;
                             const firestoreTenant = String(data.tenantId) || "unknown";

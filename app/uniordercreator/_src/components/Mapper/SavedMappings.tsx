@@ -327,7 +327,10 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-red-50 text-red-700 border border-red-200'
                             }`}>
-                            <div>{feedback.msg}</div>
+                            <div className="flex flex-col gap-1">
+                                <div>{feedback.msg}</div>
+                                <div className="text-[10px] opacity-60 font-mono">Tenant: {tenantId} | UID: {userUid?.slice(0, 8)}...</div>
+                            </div>
                             {feedback.isPermission && (
                                 <button
                                     onClick={handleRepair}

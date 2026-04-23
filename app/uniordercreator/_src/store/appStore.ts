@@ -13,6 +13,7 @@ export type RowStatus = 'pending' | 'sending' | 'success' | 'error';
 export interface RowData extends Record<string, any> {
     _status?: RowStatus;
     _error?: string;
+    _errorCode?: string;
     _serverResponse?: string;
     _items?: Record<string, any>[];
     _grouped?: boolean;

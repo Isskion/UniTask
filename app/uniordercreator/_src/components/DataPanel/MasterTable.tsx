@@ -50,25 +50,29 @@ const TableRow = React.memo(function TableRow({
 
     return (
         <tr
-            className={`border-b border-slate-50 cursor-pointer transition-colors ${isSelected
-                ? 'bg-indigo-50 border-l-2 border-l-indigo-500'
+            className={`border-b cursor-pointer transition-all duration-100 ${isSelected
+                ? 'bg-indigo-50/80 border-l-[3px] border-l-indigo-500 border-b-indigo-100'
                 : isChecked
-                    ? 'bg-sky-50/50'
-                    : index % 2 === 0
-                        ? 'bg-white hover:bg-slate-50'
-                        : 'bg-slate-50/30 hover:bg-slate-100/50'
+                    ? 'bg-sky-50/40 border-l-[3px] border-l-sky-400 border-b-sky-100/50'
+                    : row._status === 'success'
+                        ? 'bg-emerald-50/20 border-b-slate-100/60 hover:bg-emerald-50/40'
+                        : row._status === 'error'
+                            ? 'bg-red-50/20 border-b-slate-100/60 hover:bg-red-50/40'
+                            : index % 2 === 0
+                                ? 'bg-white border-b-slate-100/60 hover:bg-slate-50/80'
+                                : 'bg-slate-50/20 border-b-slate-100/60 hover:bg-slate-100/40'
                 }`}
             onClick={(e) => onRowClick(index, e)}
         >
-            <td className="w-7 px-1 py-0.5 text-center">
+            <td className="w-7 px-1 py-1 text-center">
                 <input
                     type="checkbox"
-                    className="w-3 h-3 rounded border-slate-300 text-indigo-600 cursor-pointer accent-indigo-600"
+                    className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 cursor-pointer accent-indigo-600"
                     checked={isChecked}
                     onChange={() => onToggle(index)}
                 />
             </td>
-            <td className="w-8 px-1 py-0.5 text-center">
+            <td className="w-8 px-1 py-1 text-center">
                 <div className="flex items-center justify-center gap-1">
                     {validationLight()}
                     {statusIcon()}
@@ -83,7 +87,7 @@ const TableRow = React.memo(function TableRow({
             {headers.map((h) => (
                 <td
                     key={h}
-                    className="px-1.5 py-0.5 text-[11px] text-slate-700 whitespace-nowrap max-w-[180px] truncate"
+                    className="px-2 py-1 text-[11px] text-slate-600 whitespace-nowrap max-w-[180px] truncate font-medium"
                     onDoubleClick={(e) => onDoubleClick(index, h, e)}
                 >
                     {formatCell((row as Record<string, any>)[h])}
@@ -219,17 +223,19 @@ export default function MasterTable() {
     if (rows.length === 0) {
         return (
             <div
-                className={`flex flex-col items-center justify-center h-full p-6 text-center transition-all duration-300 ${isDragOver
-                    ? 'bg-indigo-50 border-2 border-dashed border-indigo-400 rounded-xl'
+                className={`flex flex-col items-center justify-center h-full p-8 text-center transition-all duration-300 ${isDragOver
+                    ? 'bg-gradient-to-br from-indigo-50 to-violet-50 border-2 border-dashed border-indigo-300 rounded-2xl'
                     : ''
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                <div className={`transition-transform duration-300 ${isDragOver ? 'scale-110' : ''}`}>
-                    <div className="text-5xl mb-3 opacity-40">📋</div>
-                    <p className="text-sm text-slate-500 font-semibold mb-1">
+                <div className={`transition-all duration-300 ${isDragOver ? 'scale-110 -translate-y-1' : ''}`}>
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200 flex items-center justify-center shadow-sm">
+                        <span className="text-3xl opacity-50">{isDragOver ? '📥' : '📋'}</span>
+                    </div>
+                    <p className="text-sm text-slate-600 font-semibold mb-1">
                         {isDragOver ? '¡Suelta el archivo aquí!' : 'Arrastra un archivo Excel aquí'}
                     </p>
                     <p className="text-xs text-slate-400">o usa el botón 📂 del menú superior</p>
@@ -275,16 +281,16 @@ export default function MasterTable() {
 
             <table className="w-full border-collapse">
                 <thead className="sticky top-0 z-10" style={{ top: rows.length > 5 ? '32px' : '0' }}>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="w-7 px-1 py-1 text-center">
+                    <tr className="bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+                        <th className="w-7 px-1 py-1.5 text-center">
                             <input
                                 type="checkbox"
-                                className="w-3 h-3 rounded border-slate-300 text-indigo-600 cursor-pointer accent-indigo-600"
+                                className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 cursor-pointer accent-indigo-600"
                                 onChange={(e) => toggleSelectAll(e.target.checked)}
                                 checked={selectedIndices.size === rows.length && rows.length > 0}
                             />
                         </th>
-                        <th className="w-8 px-1 py-1 text-center text-[10px] font-bold text-slate-400">#</th>
+                        <th className="w-8 px-1 py-1.5 text-center text-[10px] font-bold text-slate-400">#</th>
                         {headers.map((h) => {
                             const matchKey = String(h).trim().toLowerCase();
                             const mappedList = reverseMap[matchKey];
@@ -292,17 +298,17 @@ export default function MasterTable() {
                             return (
                                 <th
                                     key={h}
-                                    className={`px-1.5 py-1 text-left text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors ${
+                                    className={`px-2 py-1.5 text-left text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors ${
                                         isMapped 
-                                            ? 'font-black text-indigo-700 bg-indigo-100/80 border-b-[3px] border-indigo-500 cursor-pointer hover:bg-indigo-200' 
-                                            : 'font-bold text-slate-500 hover:bg-slate-100'
+                                            ? 'font-extrabold text-indigo-700 bg-indigo-50/60 border-b-2 border-b-indigo-500 cursor-pointer hover:bg-indigo-100/60' 
+                                            : 'font-semibold text-slate-500 hover:bg-slate-50'
                                     }`}
                                     onClick={isMapped && mappedList?.length ? () => navigateToField(mappedList[0].full) : undefined}
                                     title={isMapped && mappedList?.length ? `Mapeado a: ${mappedList.map((f) => f.full).join(', ')} (Click para ir a campo)` : undefined}
                                 >
                                     <div className="flex items-center gap-1.5">
                                         {h}
-                                        {isMapped && <span className="text-[9px] opacity-70">🔗</span>}
+                                        {isMapped && <span className="text-[8px] text-indigo-400">●</span>}
                                     </div>
                                 </th>
                             );
