@@ -625,6 +625,21 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     };
 
+    const handleNodeDuplicate = (nodeId: string) => {
+        const nodeToCopy = nodes.find(n => n.id === nodeId);
+        if (!nodeToCopy) return;
+        
+        const newNode = {
+            ...nodeToCopy,
+            id: `node-${Date.now()}`,
+            position: { x: nodeToCopy.position.x + 50, y: nodeToCopy.position.y + 50 },
+            selected: false,
+        };
+        
+        setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(newNode));
+        setTimeout(takeSnapshot, 0);
+    };
+
     const handleToggleLock = useCallback((nodeId: string, locked: boolean) => {
         setNodes(nds => nds.map(node => {
             if (node.id === nodeId) {
@@ -1682,7 +1697,7 @@ export default function UnifluxWorkspace() {
                         {menu.type === 'node' && (
                             <>
                                 <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acciones Nodo</div>
-                                <button onClick={() => { duplicateNode(); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                <button onClick={() => { handleNodeDuplicate(menu.id!); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
                                     <Copy className="w-4 h-4 text-slate-400" /> Duplicar
                                 </button>
                                 <button onClick={() => { handleToggleLock(menu.id!, !nodes.find(n => n.id === menu.id)?.data.isLocked); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
