@@ -8,6 +8,7 @@ interface StencilItem {
     type: NodeType;
     label: string;
     renderIcon: () => React.ReactNode;
+    additionalData?: Record<string, any>;
 }
 
 const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }[] = [
@@ -166,8 +167,9 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
         defaultOpen: false,
         items: [
             {
-                type: 'OPERATION',
+                type: 'ICON' as NodeType,
                 label: 'Servidor',
+                additionalData: { iconName: 'Server', color: '#475569' },
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-slate-600">
                         <rect x="20" y="20" width="60" height="15" rx="2" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -180,8 +182,9 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
                 )
             },
             {
-                type: 'DATA',
+                type: 'ICON' as NodeType,
                 label: 'Base de Datos',
+                additionalData: { iconName: 'Database', color: '#d97706' },
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-amber-600">
                         <ellipse cx="50" cy="30" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -191,8 +194,9 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
                 )
             },
             {
-                type: 'OPERATION',
+                type: 'ICON' as NodeType,
                 label: 'Nube',
+                additionalData: { iconName: 'Cloud', color: '#60a5fa' },
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-blue-400">
                         <path d="M25,70 C10,70 10,50 25,45 C25,25 50,20 60,35 C80,30 90,45 80,65 C90,85 65,90 55,80 C45,90 20,85 25,70 Z" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -206,8 +210,9 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
         defaultOpen: false,
         items: [
             {
-                type: 'DECISION',
+                type: 'ICON' as NodeType,
                 label: 'Firewall',
+                additionalData: { iconName: 'Shield', color: '#ea580c' },
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-orange-600">
                         <rect x="15" y="20" width="70" height="60" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -216,8 +221,9 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
                 )
             },
             {
-                type: 'OPERATION',
+                type: 'ICON' as NodeType,
                 label: 'Router',
+                additionalData: { iconName: 'Router', color: '#64748b' },
                 renderIcon: () => (
                     <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-slate-500">
                         <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -254,12 +260,13 @@ export default function VisioStencilPalette() {
         setOpenCats(prev => ({ ...prev, [title]: !prev[title] }));
     };
 
-    const onDragStart = (event: React.DragEvent, nodeType: NodeType, label: string) => {
-        event.dataTransfer.setData('application/reactflow/type', nodeType);
-        event.dataTransfer.setData('application/reactflow/label', label);
+    const onDragStart = (event: React.DragEvent, item: StencilItem) => {
+        event.dataTransfer.setData('application/reactflow/type', item.type);
+        event.dataTransfer.setData('application/reactflow/label', item.label);
+        if (item.additionalData) {
+            event.dataTransfer.setData('application/reactflow/additionalData', JSON.stringify(item.additionalData));
+        }
         event.dataTransfer.effectAllowed = 'move';
-        
-        // Setup visual drag ghost (optional advanced: custom ghost image)
     };
 
     return (
@@ -309,9 +316,9 @@ export default function VisioStencilPalette() {
                                 <div className="grid grid-cols-2 gap-2 mt-2 px-1">
                                     {filteredItems.map(item => (
                                         <div
-                                            key={item.type}
+                                            key={`${item.type}-${item.label}`}
                                             draggable
-                                            onDragStart={(e) => onDragStart(e, item.type, item.label)}
+                                            onDragStart={(e) => onDragStart(e, item)}
                                             className="flex flex-col items-center gap-1.5 p-3 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200 cursor-grab active:cursor-grabbing transition-all group"
                                             title={item.label}
                                         >

@@ -385,7 +385,6 @@ export default function UnifluxWorkspace() {
                          : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
                       ),
                 parentId: n.parentId || undefined,
-                extent: n.parentId ? 'parent' : undefined,
                 draggable: !n.isLocked && visTier === 'full',
                 selectable: isBoundaryLike ? true : visTier === 'full',
                 sourcePosition: isC4 ? undefined : Position.Right,
@@ -760,6 +759,9 @@ export default function UnifluxWorkspace() {
             const type = event.dataTransfer.getData('application/reactflow/type') as AnyNodeType;
             const label = event.dataTransfer.getData('application/reactflow/label');
             const c4Type = event.dataTransfer.getData('application/reactflow/c4type') as C4NodeType | '';
+            const additionalDataRaw = event.dataTransfer.getData('application/reactflow/additionalData');
+            let additionalData: Record<string, any> = {};
+            try { if (additionalDataRaw) additionalData = JSON.parse(additionalDataRaw); } catch {}
 
             if (!type || !label || !reactFlowInstance) return;
 
@@ -791,7 +793,7 @@ export default function UnifluxWorkspace() {
                     id: newNodeId,
                     type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : type === 'ICON' ? 'ICON' : type === 'IMAGE' ? 'IMAGE' : 'visioShape',
                     position,
-                    data: { label: label, type },
+                    data: { label, type, ...additionalData },
                     style: type === 'ENVIRONMENT' 
                         ? { ...getNodeStyle(type), width: 400, height: 300, border: '2px dashed #94a3b8', borderRadius: '12px' } 
                         : type === 'ICON' || type === 'IMAGE'
@@ -810,61 +812,98 @@ export default function UnifluxWorkspace() {
 
 
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
-        // Find the node in current nodes array to get its latest computed state
-        const nodeInState = nodes.find(n => n.id === draggedNode.id);
-        if (!nodeInState) return;
+        // Use React Flow's own computed absolute position — it's the most reliable source during drag
+        const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.positionAbsolute?.x;
+        const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.positionAbsolute?.y;
 
-        // Manually calculate absolute position to be 100% sure, as 'computed' might be stale
-        const getAbsPos = (n: Node, allNodes: Node[]): { x: number, y: number } => {
-            if (!n.parentId) return n.position;
-            const parent = allNodes.find(p => p.id === n.parentId);
-            if (!parent) return n.position;
-            const pPos = getAbsPos(parent, allNodes);
-            return { x: n.position.x + pPos.x, y: n.position.y + pPos.y };
+        // If we can't get absolute position, just persist the relative position as-is
+        if (absX == null || absY == null || isNaN(absX) || isNaN(absY)) {
+            // Just persist the current position without re-parenting
+            setGraph(prev => ({
+                ...prev,
+                nodes: prev.nodes.map(n => {
+                    if (n.id === draggedNode.id) {
+                        return { ...n, position: draggedNode.position };
+                    }
+                    return n;
+                })
+            }));
+            setTimeout(takeSnapshot, 0);
+            return;
+        }
+
+        const currentParentId = draggedNode.parentId;
+
+        // Helper to get absolute position of a container
+        const getContainerAbsPos = (container: Node): { x: number; y: number } => {
+            const cx = (container as any).computed?.positionAbsolute?.x ?? container.positionAbsolute?.x ?? container.position.x;
+            const cy = (container as any).computed?.positionAbsolute?.y ?? container.positionAbsolute?.y ?? container.position.y;
+            return { x: cx, y: cy };
         };
 
-        const absPos = getAbsPos(nodeInState, nodes);
-        const absX = absPos.x;
-        const absY = absPos.y;
-
-        if (isNaN(absX) || isNaN(absY)) return;
-
-        // 1. Hit test for containers
+        // Hit test: find all containers the node center is inside of
         const containers = nodes.filter(n => {
             if (n.id === draggedNode.id) return false;
-            if (!(n.type === 'ENVIRONMENT' || n.type === 'C4_BOUNDARY')) return false;
-            const envAbs = getAbsPos(n, nodes);
-            const w = n.measured?.width ?? n.width ?? (n.style?.width as number) ?? 0;
-            const h = n.measured?.height ?? n.height ?? (n.style?.height as number) ?? 0;
+            if (n.type !== 'ENVIRONMENT' && n.type !== 'C4_BOUNDARY') return false;
+            // Don't allow a container to be parented to itself or to its own children
+            if (draggedNode.type === 'ENVIRONMENT' || draggedNode.type === 'C4_BOUNDARY') {
+                if (n.parentId === draggedNode.id) return false;
+            }
+            const envAbs = getContainerAbsPos(n);
+            const w = n.measured?.width ?? (n.style?.width as number) ?? 0;
+            const h = n.measured?.height ?? (n.style?.height as number) ?? 0;
+            if (w === 0 || h === 0) return false;
             return (absX >= envAbs.x && absY >= envAbs.y && absX <= envAbs.x + w && absY <= envAbs.y + h);
         });
 
-        let targetEnv = null;
+        // Pick the smallest (innermost) container
+        let targetEnv: Node | null = null;
         if (containers.length > 0) {
             containers.sort((a, b) => {
-                const areaA = (a.measured?.width ?? a.width ?? 1) * (a.measured?.height ?? a.height ?? 1);
-                const areaB = (b.measured?.width ?? b.width ?? 1) * (b.measured?.height ?? b.height ?? 1);
+                const areaA = (a.measured?.width ?? (a.style?.width as number) ?? 9999) * (a.measured?.height ?? (a.style?.height as number) ?? 9999);
+                const areaB = (b.measured?.width ?? (b.style?.width as number) ?? 9999) * (b.measured?.height ?? (b.style?.height as number) ?? 9999);
                 return areaA - areaB;
             });
             targetEnv = containers[0];
         }
 
         const newParentId = targetEnv?.id || undefined;
-        let newRelativePos = { x: absX, y: absY };
-        
-        if (targetEnv) {
-            const envAbs = getAbsPos(targetEnv, nodes);
-            newRelativePos = { x: absX - envAbs.x, y: absY - envAbs.y };
+        const parentChanged = currentParentId !== newParentId;
+
+        // If parent didn't change, just persist the position React Flow already set (it's already relative to parent)
+        if (!parentChanged) {
+            setGraph(prev => ({
+                ...prev,
+                nodes: prev.nodes.map(n => {
+                    if (n.id === draggedNode.id) {
+                        return { ...n, position: draggedNode.position };
+                    }
+                    return n;
+                })
+            }));
+            setTimeout(takeSnapshot, 0);
+            return;
         }
 
-        // UPDATE BOTH STATES COORDINATED
+        // Parent changed — need to recalculate relative position for the new parent
+        let newRelativePos: { x: number; y: number };
+        if (targetEnv) {
+            const envAbs = getContainerAbsPos(targetEnv);
+            newRelativePos = { x: absX - envAbs.x, y: absY - envAbs.y };
+        } else {
+            // Moving out of a container — use absolute position
+            newRelativePos = { x: absX, y: absY };
+        }
+
+        // Update visual state immediately
         setNodes(nds => nds.map(n => {
             if (n.id === draggedNode.id) {
-                return { ...n, parentId: newParentId, position: newRelativePos, extent: newParentId ? 'parent' : undefined };
+                return { ...n, parentId: newParentId, position: newRelativePos };
             }
             return n;
         }));
 
+        // Persist to graph
         setGraph(prev => ({
             ...prev,
             nodes: prev.nodes.map(n => {
