@@ -95,49 +95,43 @@ const ImageNode = ({ id, data, selected }: any) => {
                 </button>
             </NodeToolbar>
 
-            {/* Quick Connect Handles (Styled as Arrows) */}
+            {/* Connection Handles (Standard dots for manual drag) */}
+            <Handle type="source" position={Position.Right} id="right-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
+            <Handle type="source" position={Position.Bottom} id="bottom-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
+            <Handle type="source" position={Position.Left} id="left-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
+            <Handle type="source" position={Position.Top} id="top-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
+
+            {/* Quick Spawn Buttons (Floating translucent arrows) */}
             {selected && !isLocked && (
                 <div className="absolute inset-0 pointer-events-none z-[60]">
-                    <Handle 
-                        type="source"
-                        position={Position.Right}
-                        id="right-c"
-                        className="!absolute -right-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                    <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
-                        title="Clic para clonar / Arrastra para conectar"
+                        className="absolute -right-9 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        title="Clonar a la derecha"
                     >
-                        <ArrowRight className="w-4 h-4 pointer-events-none" />
-                    </Handle>
-                    <Handle 
-                        type="source"
-                        position={Position.Bottom}
-                        id="bottom-c"
-                        className="!absolute -bottom-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        <ArrowRight className="w-3 h-3" />
+                    </button>
+                    <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
-                        title="Clic para clonar / Arrastra para conectar"
+                        className="absolute -bottom-9 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        title="Clonar abajo"
                     >
-                        <ArrowDown className="w-4 h-4 pointer-events-none" />
-                    </Handle>
-                    <Handle 
-                        type="source"
-                        position={Position.Left}
-                        id="left-c"
-                        className="!absolute -left-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        <ArrowDown className="w-3 h-3" />
+                    </button>
+                    <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
-                        title="Clic para clonar / Arrastra para conectar"
+                        className="absolute -left-9 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        title="Clonar a la izquierda"
                     >
-                        <ArrowLeft className="w-4 h-4 pointer-events-none" />
-                    </Handle>
-                    <Handle 
-                        type="source"
-                        position={Position.Top}
-                        id="top-c"
-                        className="!absolute -top-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        <ArrowLeft className="w-3 h-3" />
+                    </button>
+                    <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
-                        title="Clic para clonar / Arrastra para conectar"
+                        className="absolute -top-9 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        title="Clonar arriba"
                     >
-                        <ArrowUp className="w-4 h-4 pointer-events-none" />
-                    </Handle>
+                        <ArrowUp className="w-3 h-3" />
+                    </button>
                 </div>
             )}
 
