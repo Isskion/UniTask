@@ -252,6 +252,7 @@ export default function UnifluxWorkspace() {
     const [edgeRelType, setEdgeRelType] = useState<string>('sync');
     const [edgeLineType, setEdgeLineType] = useState<string>('smoothstep');
     const [edgeAnimated, setEdgeAnimated] = useState<boolean>(true);
+    const [edgeColor, setEdgeColor] = useState<string>('#94a3b8');
 
     // Save toast
     const [showSaveToast, setShowSaveToast] = useState(false);
@@ -616,6 +617,7 @@ export default function UnifluxWorkspace() {
         setEdgeRelType((edge.data?.c4RelType as string) || 'sync');
         setEdgeLineType(edge.type || 'smoothstep');
         setEdgeAnimated(edge.animated || false);
+        setEdgeColor(edge.style?.stroke || '#94a3b8');
     };
 
     const handleEdgeLabelSave = () => {
@@ -630,6 +632,8 @@ export default function UnifluxWorkspace() {
                 ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
                 type: isC4 ? e.type : edgeLineType,
                 animated: isC4 ? (edgeRelType === 'async' || edgeRelType === 'event') : edgeAnimated,
+                style: { ...e.style, stroke: edgeColor, strokeWidth: 2 },
+                markerEnd: typeof e.markerEnd === 'object' ? { ...e.markerEnd, color: edgeColor } : e.markerEnd,
             };
             return updated;
         }));
@@ -1432,6 +1436,15 @@ export default function UnifluxWorkspace() {
                                             {edgeAnimated ? '⚡ Animada' : 'Estática'}
                                         </button>
                                     </div>
+                                    <div className="w-16">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Color</label>
+                                        <input
+                                            type="color"
+                                            value={edgeColor}
+                                            onChange={e => setEdgeColor(e.target.value)}
+                                            className="w-full h-[30px] border border-gray-200 rounded-lg cursor-pointer p-0.5 bg-white"
+                                        />
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -1562,7 +1575,10 @@ export default function UnifluxWorkspace() {
                                 <Download className="w-3.5 h-3.5" />
                                 Exportar HQ
                             </button>
-                            <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-40 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden py-1 z-50">
+                            <div className="absolute right-0 top-full pt-1 hidden group-hover:block w-40 bg-white border border-slate-200 shadow-2xl rounded-xl overflow-hidden py-1 z-[100]">
+                                <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Seleccionar Formato</span>
+                                </div>
                                 <button onClick={() => handleExport('svg')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 border-b border-slate-100">Vectorial (.svg)</button>
                                 <button onClick={() => handleExport('png')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700">Imagen PNG (.png)</button>
                                 <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 border-b border-slate-100">Imagen JPG (.jpg)</button>

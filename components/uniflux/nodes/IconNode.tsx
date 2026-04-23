@@ -80,17 +80,30 @@ const IconNode = ({ id, data, selected }: any) => {
                     style={{ filter: selected ? `drop-shadow(0 0 8px ${color}66)` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                 />
 
-                {/* Universal Handles (8 points: Sides + Corners) */}
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4 }} id="top" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4 }} id="right" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4 }} id="bottom" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4 }} id="left" className="opacity-0 group-hover:opacity-100" />
+                {/* Universal Handles (16 points: Sides + Corners + Midpoints) */}
+                {/* Top side */}
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%' }} id="top-c" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: 0 }} id="top-l" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '100%' }} id="top-r" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%' }} id="top-25" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%' }} id="top-75" className="opacity-0 group-hover:opacity-100" />
                 
-                {/* Corner Handles */}
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: -4 }} id="top-left" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, right: -4, left: 'auto' }} id="top-right" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: -4, top: 'auto' }} id="bottom-left" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, right: -4, top: 'auto', left: 'auto' }} id="bottom-right" className="opacity-0 group-hover:opacity-100" />
+                {/* Bottom side */}
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto' }} id="bottom-c" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto' }} id="bottom-l" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto' }} id="bottom-r" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto' }} id="bottom-25" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto' }} id="bottom-75" className="opacity-0 group-hover:opacity-100" />
+
+                {/* Left side */}
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%' }} id="left-25" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%' }} id="left-c" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%' }} id="left-75" className="opacity-0 group-hover:opacity-100" />
+
+                {/* Right side */}
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto' }} id="right-25" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto' }} id="right-c" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto' }} id="right-75" className="opacity-0 group-hover:opacity-100" />
             </div>
         </>
     );
