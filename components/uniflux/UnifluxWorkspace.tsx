@@ -277,7 +277,7 @@ export default function UnifluxWorkspace() {
     const menuRef = useRef<HTMLDivElement>(null);
 
     const onNodeContextMenu = useCallback(
-        (event: React.MouseEvent, node: Node) => {
+        (event: React.MouseEvent | MouseEvent, node: Node) => {
             event.preventDefault();
             setMenu({
                 id: node.id,
@@ -290,7 +290,7 @@ export default function UnifluxWorkspace() {
     );
 
     const onPaneContextMenu = useCallback(
-        (event: React.MouseEvent) => {
+        (event: React.MouseEvent | MouseEvent) => {
             event.preventDefault();
             setMenu({
                 top: event.clientY,
@@ -302,7 +302,7 @@ export default function UnifluxWorkspace() {
     );
 
     const onEdgeContextMenu = useCallback(
-        (event: React.MouseEvent, edge: Edge) => {
+        (event: React.MouseEvent | MouseEvent, edge: Edge) => {
             event.preventDefault();
             setMenu({
                 id: edge.id,
