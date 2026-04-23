@@ -15,7 +15,7 @@ import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/acti
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download } from 'lucide-react';
-import { getLayoutedElements } from '@/app/uniflux/core/layout';
+import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import VisioStencilPalette from './VisioStencilPalette';
