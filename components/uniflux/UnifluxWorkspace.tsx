@@ -299,13 +299,10 @@ export default function UnifluxWorkspace() {
                     ...n.additionalData
                 },
                 zIndex: isBoundaryLike ? (n.isLocked ? -10 : -1) : 1,
-                draggable: !n.isLocked,
-                selectable: true,
-                selected: selectedNode?.id === n.id,
                 style: isC4
                     ? { background: 'transparent', border: 'none', padding: 0, width: n.width, height: n.height, opacity, transition: 'opacity 0.25s ease' }
                     : (n.type === 'ENVIRONMENT'
-                         ? { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 }
+                         ? { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1, pointerEvents: 'all' }
                          : n.type === 'ICON' || n.type === 'IMAGE'
                          ? { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 64, height: n.height ?? 64, opacity: n.isLocked ? 0.8 : 1 }
                          : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
@@ -313,7 +310,7 @@ export default function UnifluxWorkspace() {
                 parentId: n.parentId,
                 extent: n.parentId ? 'parent' : undefined,
                 draggable: !n.isLocked && visTier === 'full',
-                selectable: visTier === 'full',
+                selectable: isBoundaryLike ? true : visTier === 'full',
                 sourcePosition: isC4 ? undefined : Position.Right,
                 targetPosition: isC4 ? undefined : Position.Left,
             };
@@ -571,12 +568,14 @@ export default function UnifluxWorkspace() {
     const handleToggleLock = useCallback((nodeId: string, locked: boolean) => {
         setNodes(nds => nds.map(node => {
             if (node.id === nodeId) {
+                const isBoundary = node.data.type === 'ENVIRONMENT' || node.data.type === 'C4_BOUNDARY';
                 return {
                     ...node,
                     draggable: !locked,
-                    selectable: !locked,
+                    selectable: isBoundary ? true : !locked,
+                    zIndex: isBoundary ? (locked ? -10 : -1) : 1,
                     data: { ...node.data, isLocked: locked },
-                    style: { ...node.style, opacity: locked ? 0.8 : 1 }
+                    style: { ...node.style, opacity: locked ? 0.8 : 1, pointerEvents: 'all' }
                 };
             }
             return node;
