@@ -47,6 +47,7 @@ export interface DiagramMode {
 // ── Visual Flow Mode ────────────────────────────────────────────────────────
 const VISUAL_NODE_TYPES = new Set([
     'START', 'STATE', 'OPERATION', 'TASK', 'DECISION', 'TERMINAL', 'ERROR', 'ENVIRONMENT',
+    'DATA', 'SUBPROCESS', 'DOCUMENT'
 ]);
 
 export const VisualMode: DiagramMode = {
@@ -63,7 +64,7 @@ You are the UNIFLUX SEMANTIC COMPILER.
 Your job is to translate logistics process descriptions into a valid JSON FlowGraph.
 
 ONTOLOGY:
-- NodeType: "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR"
+- NodeType: "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR" | "DATA" | "SUBPROCESS" | "DOCUMENT"
 - FlowNode: { id: string, type: NodeType, label: string, position: {x, y} }
 - FlowEdge: { id: string, source: string, target: string, label?: string, condition?: string }
 - FlowGraph: { nodes: FlowNode[], edges: FlowEdge[] }

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, Controls, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -15,7 +15,8 @@ import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/acti
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map } from 'lucide-react';
-import UnifluxNodePalette from './UnifluxNodePalette';
+import VisioStencilPalette from './VisioStencilPalette';
+import VisioShapeNode from './nodes/VisioShapeNode';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
 import UnifluxEnvironmentNode from './nodes/UnifluxEnvironmentNode';
 import UnifluxMermaidEditor from './UnifluxMermaidEditor';
@@ -43,6 +44,7 @@ function getC4ReactFlowType(c4Type: string): string {
 
 const nodeTypes = {
     ENVIRONMENT: UnifluxEnvironmentNode,
+    visioShape: VisioShapeNode,
     C4_PERSON: UnifluxC4PersonNode,
     C4_SYSTEM: UnifluxC4SystemNode,
     C4_CONTAINER: UnifluxC4ContainerNode,
@@ -161,10 +163,14 @@ export default function UnifluxWorkspace() {
                 else undo();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
                 redo();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                handleSave();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [undo, redo]);
 
     // Editor State
@@ -202,7 +208,7 @@ export default function UnifluxWorkspace() {
             const opacity = n.isLocked ? 0.8 : OPACITY[visTier];
             return {
                 id: n.id,
-                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default'),
+                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'visioShape'),
                 position: n.position,
                 data: isC4 ? {
                     label: n.label,
@@ -245,8 +251,8 @@ export default function UnifluxWorkspace() {
                 source: e.source,
                 target: e.target,
                 label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
-                type: isC4Edge ? 'default' : 'straight',
-                animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : true,
+                type: isC4Edge ? 'default' : 'smoothstep',
+                animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
                 style: isC4Edge ? edgeStyle.line : undefined,
                 markerEnd: isC4Edge ? edgeStyle.markerEnd : undefined,
                 labelStyle: { fill: edgeDimmed ? '#d1d5db' : '#4b5563', fontWeight: 600, fontSize: 11, fontFamily: 'inherit' },
@@ -850,17 +856,17 @@ export default function UnifluxWorkspace() {
 
     return (
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
-            <header className="h-14 bg-white border-b px-4 md:px-6 flex items-center justify-between z-20 shadow-sm">
+            <header className="h-14 bg-slate-950 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between z-20 shadow-lg">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="p-2 -ml-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-2"
+                        className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
                     >
                         <ListTree className="w-5 h-5" />
-                        <span className="text-sm font-bold hidden sm:inline">Mis Flujos</span>
+                        <span className="text-sm font-bold hidden sm:inline">Explorador</span>
                     </button>
 
-                    <div className="h-6 w-px bg-gray-200 hidden sm:block"></div>
+                    <div className="h-6 w-px bg-slate-800 hidden sm:block"></div>
 
                     <div className="flex items-center gap-2">
                         {isEditingName ? (
@@ -870,16 +876,16 @@ export default function UnifluxWorkspace() {
                                 onChange={(e) => setEditNameValue(e.target.value)}
                                 onBlur={handleNameRename}
                                 onKeyDown={(e) => e.key === 'Enter' && handleNameRename()}
-                                className="text-sm font-medium text-gray-900 bg-white border border-purple-300 rounded-md px-2 py-1 outline-none ring-2 ring-purple-100 w-48"
+                                className="text-sm font-medium text-white bg-slate-800 border border-blue-500 rounded-md px-2 py-1 outline-none w-48"
                             />
                         ) : (
                             <div
                                 onClick={() => { setEditNameValue(graph.name); setIsEditingName(true); }}
-                                className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100 hover:border-purple-200 hover:bg-purple-50 cursor-pointer flex items-center gap-2 group transition-colors"
+                                className="text-sm font-medium text-slate-200 bg-slate-900 px-3 py-1.5 rounded-md border border-slate-700 hover:border-slate-500 hover:bg-slate-800 cursor-pointer flex items-center gap-2 group transition-colors"
                                 title="Click para renombrar el flujo"
                             >
                                 {graph.name}
-                                <Pencil className="w-3 h-3 text-gray-400 group-hover:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Pencil className="w-3 h-3 text-slate-500 group-hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                         )}
                         {/* C4 level badge — visible only in C4 mode */}
@@ -915,7 +921,7 @@ export default function UnifluxWorkspace() {
                     <select
                         value={selectedProjectId}
                         onChange={(e) => setSelectedProjectId(e.target.value)}
-                        className="text-xs sm:text-sm border border-gray-200 bg-white hover:bg-gray-50 py-1.5 px-3 rounded-lg font-medium text-gray-700 outline-none cursor-pointer hidden md:block"
+                        className="text-xs sm:text-sm border border-slate-700 bg-slate-900 hover:bg-slate-800 py-1.5 px-3 rounded-lg font-medium text-slate-200 outline-none cursor-pointer hidden md:block focus:border-blue-500"
                     >
                         <option value="" disabled>1. Seleccionar Proyecto...</option>
                         {projects.map(p => (
@@ -926,7 +932,7 @@ export default function UnifluxWorkspace() {
                     <button
                         onClick={handleSave}
                         disabled={isSaving || !selectedProjectId}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:opacity-90 text-white rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:from-gray-400 disabled:to-gray-500"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-400"
                     >
                         {saveStatus === 'saving' ? (
                             <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -1215,7 +1221,7 @@ export default function UnifluxWorkspace() {
                 {/* Node Palette — visual flow palette or C4 palette depending on mode */}
                 {graph.docType === 'c4'
                     ? <UnifluxC4Palette activeLevel={activeC4Level} onLevelChange={handleC4LevelChange} onOpenTemplates={() => setShowC4Templates(true)} />
-                    : !showWizard && graph.docType !== 'mermaid' && <UnifluxNodePalette />
+                    : !showWizard && graph.docType !== 'mermaid' && <VisioStencilPalette />
                 }
 
                 {/* Node Editor — C4 editor or standard editor depending on node type */}
@@ -1416,9 +1422,21 @@ export default function UnifluxWorkspace() {
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
                     onPaneClick={() => { setSelectedNode(null); setEditingEdge(null); }}
+                    snapToGrid={true}
+                    snapGrid={[15, 15]}
                     fitView
+                    minZoom={0.1}
+                    maxZoom={4}
+                    defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
+                    connectionLineType={'smoothstep' as any}
                 >
-                    <Background color="#ccc" gap={20} />
+                    <Background color="#94a3b8" variant="dots" gap={15} size={1} />
+                    <MiniMap 
+                        nodeColor={(n) => n.type === 'visioShape' ? '#94a3b8' : '#cbd5e1'}
+                        maskColor="rgba(0,0,0,0.1)"
+                        pannable
+                        zoomable
+                    />
                     <Controls />
                 </ReactFlow>}
             </div>
