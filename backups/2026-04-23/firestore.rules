@@ -112,8 +112,8 @@ service cloud.firestore {
                   (getRealRole() >= 80 || (
                       // Validation logic copied from root
                       (!('estimatedEffortSize' in request.resource.data) || request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
-                      (!('estimatedEffort' in request.resource.data) || request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort == null) &&
-                      (!('actualEffort' in request.resource.data) || request.resource.data.actualEffort is number || request.resource.data.actualEffort == null)
+                      (!('estimatedEffort' in request.resource.data) || (request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort is string) || request.resource.data.estimatedEffort == null) &&
+                      (!('actualEffort' in request.resource.data) || (request.resource.data.actualEffort is number || request.resource.data.actualEffort is string) || request.resource.data.actualEffort == null)
                   )))
             );
             allow delete: if isTenantAuth() && (
@@ -555,15 +555,17 @@ service cloud.firestore {
     match /unigis_templates/{templateId} {
       allow read: if isAuthenticated() && (
         isSuperAdmin() || 
-        docTenantMatches(resource.data)
+        string(resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) ||
+        resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')
       );
       allow create: if isAuthenticated() && (
         isSuperAdmin() || 
-        docTenantMatches(request.resource.data)
+        string(request.resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) ||
+        request.resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')
       );
       allow update, delete: if isAuthenticated() && (
         isSuperAdmin() || 
-        (docTenantMatches(resource.data) && getRealRole() >= 60)
+        ((string(resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) || resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')) && getRealRole() >= 60)
       );
     }
 

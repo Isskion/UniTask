@@ -2,7 +2,7 @@
 
 import React, { memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Copy, Trash, Image as ImageIcon } from 'lucide-react';
+import { Copy, Trash, Image as ImageIcon, ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -42,6 +42,44 @@ const ImageNode = ({ id, data, selected }: any) => {
         setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     };
 
+    const quickConnect = (dir: 'top' | 'bottom' | 'left' | 'right') => {
+        setNodes((nds) => {
+            const nodeToCopy = nds.find((n) => n.id === id);
+            if (!nodeToCopy) return nds;
+            
+            const newId = `image-${Date.now()}`;
+            const offset = 150;
+            const newPosition = {
+                x: nodeToCopy.position.x + (dir === 'left' ? -offset : dir === 'right' ? offset : 0),
+                y: nodeToCopy.position.y + (dir === 'top' ? -offset : dir === 'bottom' ? offset : 0),
+            };
+
+            const newNode = {
+                ...nodeToCopy,
+                id: newId,
+                position: newPosition,
+                selected: true,
+            };
+
+            setTimeout(() => {
+                setEdges((eds) => [
+                    ...eds,
+                    {
+                        id: `e-${id}-${newId}`,
+                        source: id,
+                        target: newId,
+                        sourceHandle: `${dir}-c`,
+                        targetHandle: dir === 'top' ? 'bottom-c' : dir === 'bottom' ? 'top-c' : dir === 'left' ? 'right-c' : 'left-c',
+                        type: 'smoothstep',
+                        animated: false,
+                    }
+                ]);
+            }, 0);
+
+            return nds.map(n => ({...n, selected: false})).concat(newNode);
+        });
+    };
+
     return (
         <>
             <NodeToolbar 
@@ -56,6 +94,40 @@ const ImageNode = ({ id, data, selected }: any) => {
                     <Trash className="w-4 h-4" />
                 </button>
             </NodeToolbar>
+
+            {/* Quick Connect Arrows */}
+            {selected && !isLocked && (
+                <div className="absolute inset-0 pointer-events-none z-[60]">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
+                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar a la derecha"
+                    >
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
+                        className="absolute -bottom-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar abajo"
+                    >
+                        <ArrowDown className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
+                        className="absolute -left-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar a la izquierda"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
+                        className="absolute -top-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar arriba"
+                    >
+                        <ArrowUp className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
 
             {!isLocked && (
                 <NodeResizer

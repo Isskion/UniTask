@@ -698,7 +698,7 @@ export default function UnifluxWorkspace() {
                     position,
                     data: { label: label, type },
                     style: type === 'ENVIRONMENT' 
-                        ? { ...getNodeStyle(type), width: 300, height: 200 } 
+                        ? { ...getNodeStyle(type), width: 400, height: 300, border: '2px dashed #94a3b8', borderRadius: '12px' } 
                         : type === 'ICON' || type === 'IMAGE'
                         ? { background: 'transparent', border: 'none', padding: 0, width: 64, height: 64 }
                         : { background: 'transparent', border: 'none', padding: 0, width: 120, height: 80 },
@@ -1556,7 +1556,16 @@ export default function UnifluxWorkspace() {
                     fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
                     minZoom={0.1}
                     maxZoom={2}
-                    defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
+                    defaultEdgeOptions={{ 
+                        type: 'smoothstep', 
+                        animated: false,
+                        style: { strokeWidth: 2, stroke: '#94a3b8' },
+                        markerEnd: {
+                            type: 'arrowclosed' as any,
+                            color: '#94a3b8',
+                        },
+                    }}
+                    connectionLineStyle={{ strokeWidth: 2, stroke: '#3b82f6' }}
                     connectionLineType={'smoothstep' as any}
                     connectionMode={ConnectionMode.Loose}
                     elevateNodesOnSelect={false}

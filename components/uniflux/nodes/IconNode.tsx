@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Copy, Trash, icons, LucideProps } from 'lucide-react';
+import { Copy, Trash, icons, LucideProps, Palette, ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -13,9 +13,20 @@ const handleStyle = {
     transition: 'opacity 0.2s',
 };
 
+const PRESET_COLORS = [
+    '#4f46e5', // Indigo
+    '#0ea5e9', // Blue
+    '#10b981', // Green
+    '#f59e0b', // Yellow
+    '#ef4444', // Red
+    '#a855f7', // Purple
+    '#64748b', // Slate
+];
+
 const IconNode = ({ id, data, selected }: any) => {
-    const { setNodes, setEdges } = useReactFlow();
+    const { updateNodeData, setNodes, setEdges } = useReactFlow();
     
+    const [showColors, setShowColors] = useState(false);
     const iconName = data.iconName || 'Box';
     const color = data.color || '#4f46e5';
     const isLocked = data.isLocked || false;
@@ -46,6 +57,49 @@ const IconNode = ({ id, data, selected }: any) => {
         setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
     };
 
+    const handleColorChange = (c: string) => {
+        updateNodeData(id, { color: c });
+        setShowColors(false);
+    };
+
+    const quickConnect = (dir: 'top' | 'bottom' | 'left' | 'right') => {
+        setNodes((nds) => {
+            const nodeToCopy = nds.find((n) => n.id === id);
+            if (!nodeToCopy) return nds;
+            
+            const newId = `icon-${Date.now()}`;
+            const offset = 150;
+            const newPosition = {
+                x: nodeToCopy.position.x + (dir === 'left' ? -offset : dir === 'right' ? offset : 0),
+                y: nodeToCopy.position.y + (dir === 'top' ? -offset : dir === 'bottom' ? offset : 0),
+            };
+
+            const newNode = {
+                ...nodeToCopy,
+                id: newId,
+                position: newPosition,
+                selected: true,
+            };
+
+            setTimeout(() => {
+                setEdges((eds) => [
+                    ...eds,
+                    {
+                        id: `e-${id}-${newId}`,
+                        source: id,
+                        target: newId,
+                        sourceHandle: `${dir}-c`,
+                        targetHandle: dir === 'top' ? 'bottom-c' : dir === 'bottom' ? 'top-c' : dir === 'left' ? 'right-c' : 'left-c',
+                        type: 'smoothstep',
+                        animated: false,
+                    }
+                ]);
+            }, 0);
+
+            return nds.map(n => ({...n, selected: false})).concat(newNode);
+        });
+    };
+
     return (
         <>
             <NodeToolbar 
@@ -53,6 +107,24 @@ const IconNode = ({ id, data, selected }: any) => {
                 position={Position.Top} 
                 className="flex items-center gap-1 bg-white p-1 rounded-lg shadow-xl border border-slate-200"
             >
+                <div className="relative">
+                    <button onClick={() => setShowColors(!showColors)} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Cambiar color">
+                        <Palette className="w-4 h-4" />
+                    </button>
+                    {showColors && (
+                        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white p-2 rounded-lg shadow-xl border border-slate-200 flex gap-1 z-50">
+                            {PRESET_COLORS.map((c, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={() => handleColorChange(c)}
+                                    className="w-5 h-5 rounded-full border transition-transform hover:scale-110"
+                                    style={{ backgroundColor: c, borderColor: 'rgba(0,0,0,0.1)' }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="w-px h-4 bg-slate-200 mx-1" />
                 <button onClick={duplicateNode} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Duplicar">
                     <Copy className="w-4 h-4" />
                 </button>
@@ -60,6 +132,40 @@ const IconNode = ({ id, data, selected }: any) => {
                     <Trash className="w-4 h-4" />
                 </button>
             </NodeToolbar>
+
+            {/* Quick Connect Arrows */}
+            {selected && !isLocked && (
+                <div className="absolute inset-0 pointer-events-none z-[60]">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
+                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar a la derecha"
+                    >
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
+                        className="absolute -bottom-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar abajo"
+                    >
+                        <ArrowDown className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
+                        className="absolute -left-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar a la izquierda"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
+                        className="absolute -top-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
+                        title="Conectar arriba"
+                    >
+                        <ArrowUp className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
 
             {!isLocked && (
                 <NodeResizer
