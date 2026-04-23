@@ -594,14 +594,20 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     }, [setNodes, takeSnapshot]);
 
-    // Handle Manual Connections & Edge Updates
     const onConnect = useCallback((params: Connection) => {
         // Automatically add an empty label or default animated edge
         const newEdge: Edge = {
             ...params,
             id: `e-${params.source}-${params.target}-${Date.now()}`,
-            type: 'straight',
-            animated: true,
+            type: 'smoothstep',
+            animated: false,
+            style: { stroke: '#94a3b8', strokeWidth: 2 },
+            markerEnd: { 
+                type: 'arrowclosed' as any,
+                width: 20,
+                height: 20,
+                color: '#94a3b8'
+            },
             labelStyle: { fill: '#4b5563', fontWeight: 600, fontSize: 12, fontFamily: 'inherit' },
             labelBgStyle: { fill: '#ffffff', stroke: '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
             labelBgPadding: [12, 6],
@@ -609,7 +615,7 @@ export default function UnifluxWorkspace() {
         };
         setEdges((eds) => addEdge(newEdge, eds));
         setTimeout(takeSnapshot, 0);
-    }, [setEdges]);
+    }, [setEdges, takeSnapshot]);
 
     // Inline edge label editor handlers
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {

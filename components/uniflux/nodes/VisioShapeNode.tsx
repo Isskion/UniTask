@@ -195,6 +195,13 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                         targetHandle: dir === 'top' ? 'bottom-c' : dir === 'bottom' ? 'top-c' : dir === 'left' ? 'right-c' : 'left-c',
                         type: 'smoothstep',
                         animated: false,
+                        style: { stroke: '#94a3b8', strokeWidth: 2 },
+                        markerEnd: { 
+                            type: 'arrowclosed' as any,
+                            width: 20,
+                            height: 20,
+                            color: '#94a3b8'
+                        },
                     }
                 ]);
             }, 0);

@@ -92,6 +92,13 @@ const IconNode = ({ id, data, selected }: any) => {
                         targetHandle: dir === 'top' ? 'bottom-c' : dir === 'bottom' ? 'top-c' : dir === 'left' ? 'right-c' : 'left-c',
                         type: 'smoothstep',
                         animated: false,
+                        style: { stroke: '#94a3b8', strokeWidth: 2 },
+                        markerEnd: { 
+                            type: 'arrowclosed' as any,
+                            width: 20,
+                            height: 20,
+                            color: '#94a3b8'
+                        },
                     }
                 ]);
             }, 0);
@@ -210,6 +217,11 @@ const IconNode = ({ id, data, selected }: any) => {
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto' }} id="right-25" className="opacity-0 group-hover:opacity-100" />
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto' }} id="right-c" className="opacity-0 group-hover:opacity-100" />
                 <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto' }} id="right-75" className="opacity-0 group-hover:opacity-100" />
+                
+                {/* Node Label */}
+                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-slate-600 bg-white/60 backdrop-blur-[2px] px-2 py-0.5 rounded-full border border-slate-100/50 shadow-sm pointer-events-none">
+                    {data.label || 'Icono'}
+                </div>
             </div>
         </>
     );

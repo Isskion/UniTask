@@ -273,9 +273,60 @@
     display: block !important;
   }
 
-  /* Ensure background colors/images are printed if needed */
-  * {
+    * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+}
+
+/* --- UNIFLUX WORKSPACE STYLES --- */
+.react-flow__handle {
+  width: 10px !important;
+  height: 10px !important;
+  background: #8b5cf6 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.react-flow__handle:hover {
+  width: 16px !important;
+  height: 16px !important;
+  background: #7c3aed !important;
+  cursor: crosshair !important;
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.react-flow__handle-connecting {
+  background: #10b981 !important;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.react-flow__edge-path {
+  stroke-width: 2.5;
+  transition: stroke 0.3s ease;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #4f46e5 !important;
+  stroke-width: 3.5;
+}
+
+.react-flow__connection-path {
+  stroke: #8b5cf6 !important;
+  stroke-width: 2.5;
+  stroke-dasharray: 5;
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: 0; }
 }
