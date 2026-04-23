@@ -323,14 +323,12 @@ export default function UnifluxWorkspace() {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => window.removeEventListener('mousedown', handleClickOutside);
     }, [closeMenu]);
 
-    // Sync Graph -> React Flow ONLY on load or AI update
-    useEffect(() => {
-        const nodeMap = buildNodeMap(graph.nodes);
-        // Filter out 'hidden' nodes entirely — only render 'full' and 'dimmed'
-        const renderableNodes = graph.nodes.filter(n =>
+    const syncNodesFromGraph = useCallback((targetGraph: FlowGraph) => {
+        const nodeMap = buildNodeMap(targetGraph.nodes);
+        const renderableNodes = targetGraph.nodes.filter(n =>
             !C4_NODE_TYPES.has(n.type) || shouldRender(n, activeC4Level)
         );
         const rfNodes: Node[] = renderableNodes.map(n => {
@@ -341,7 +339,7 @@ export default function UnifluxWorkspace() {
             return {
                 id: n.id,
                 type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : n.type === 'ICON' ? 'ICON' : n.type === 'IMAGE' ? 'IMAGE' : 'visioShape'),
-                position: n.position,
+                position: n.position || { x: 0, y: 0 },
                 data: isC4 ? {
                     label: n.label,
                     type: n.type,
@@ -378,12 +376,10 @@ export default function UnifluxWorkspace() {
             };
         });
 
-        const rfEdges: Edge[] = graph.edges.map(e => {
-            const isC4Edge = graph.docType === 'c4';
-            // For C4: dim edges where either endpoint is dimmed
-            const srcNode = isC4Edge ? graph.nodes.find(n => n.id === e.source) : null;
-            const tgtNode = isC4Edge ? graph.nodes.find(n => n.id === e.target) : null;
-            const edgeVisTier = isC4Edge ? getEdgeVisibility(e, nodeMap, activeC4Level) : 'full';
+        const rfEdges: Edge[] = targetGraph.edges.map(e => {
+            const isC4Edge = targetGraph.docType === 'c4';
+            const nodeMapLocal = buildNodeMap(targetGraph.nodes);
+            const edgeVisTier = isC4Edge ? getEdgeVisibility(e, nodeMapLocal, activeC4Level) : 'full';
             const edgeDimmed = edgeVisTier !== 'full';
             const edgeStyle = getC4EdgeStyle(e.c4RelType, edgeDimmed as boolean);
             return {
@@ -796,41 +792,36 @@ export default function UnifluxWorkspace() {
     );
 
 
-    const onNodeResizeStop = useCallback((id: string, width: number, height: number) => {
-        setGraph(prev => ({
-            ...prev,
-            nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
-        }));
-        // We don't setNodes here, the useEffect will sync it from graph
-        setTimeout(takeSnapshot, 0);
-    }, [setGraph, takeSnapshot]);
-
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
-        // 1. Get absolute position of the drop point
-        const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.position.x;
-        const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.position.y;
+        // Find the node in current nodes array to get its latest computed state
+        const nodeInState = nodes.find(n => n.id === draggedNode.id);
+        if (!nodeInState) return;
+
+        // Manually calculate absolute position to be 100% sure, as 'computed' might be stale
+        const getAbsPos = (n: Node, allNodes: Node[]): { x: number, y: number } => {
+            if (!n.parentId) return n.position;
+            const parent = allNodes.find(p => p.id === n.parentId);
+            if (!parent) return n.position;
+            const pPos = getAbsPos(parent, allNodes);
+            return { x: n.position.x + pPos.x, y: n.position.y + pPos.y };
+        };
+
+        const absPos = getAbsPos(nodeInState, nodes);
+        const absX = absPos.x;
+        const absY = absPos.y;
 
         if (isNaN(absX) || isNaN(absY)) return;
 
-        // 2. Find all possible containers
+        // 1. Hit test for containers
         const containers = nodes.filter(n => {
             if (n.id === draggedNode.id) return false;
             if (!(n.type === 'ENVIRONMENT' || n.type === 'C4_BOUNDARY')) return false;
-            
-            const envAbsX = (n as any).computed?.positionAbsolute?.x ?? n.position.x;
-            const envAbsY = (n as any).computed?.positionAbsolute?.y ?? n.position.y;
+            const envAbs = getAbsPos(n, nodes);
             const w = n.measured?.width ?? n.width ?? (n.style?.width as number) ?? 0;
             const h = n.measured?.height ?? n.height ?? (n.style?.height as number) ?? 0;
-            
-            return (
-                absX >= envAbsX &&
-                absY >= envAbsY &&
-                absX <= envAbsX + w &&
-                absY <= envAbsY + h
-            );
+            return (absX >= envAbs.x && absY >= envAbs.y && absX <= envAbs.x + w && absY <= envAbs.y + h);
         });
 
-        // 3. Find the innermost container (smallest area)
         let targetEnv = null;
         if (containers.length > 0) {
             containers.sort((a, b) => {
@@ -841,34 +832,34 @@ export default function UnifluxWorkspace() {
             targetEnv = containers[0];
         }
 
-        // 4. Update the graph state. The useEffect will handle the setNodes sync.
-        setGraph(prev => {
-            const newNodes = prev.nodes.map(n => {
+        const newParentId = targetEnv?.id || undefined;
+        let newRelativePos = { x: absX, y: absY };
+        
+        if (targetEnv) {
+            const envAbs = getAbsPos(targetEnv, nodes);
+            newRelativePos = { x: absX - envAbs.x, y: absY - envAbs.y };
+        }
+
+        // UPDATE BOTH STATES COORDINATED
+        setNodes(nds => nds.map(n => {
+            if (n.id === draggedNode.id) {
+                return { ...n, parentId: newParentId, position: newRelativePos, extent: newParentId ? 'parent' : undefined };
+            }
+            return n;
+        }));
+
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => {
                 if (n.id === draggedNode.id) {
-                    if (targetEnv) {
-                        const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
-                        const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
-                        return { 
-                            ...n, 
-                            parentId: targetEnv.id, 
-                            position: { x: absX - envAbsX, y: absY - envAbsY } 
-                        };
-                    } else {
-                        // Not dropped in any container, but might have been in one before
-                        return { 
-                            ...n, 
-                            parentId: undefined, 
-                            position: { x: absX, y: absY } 
-                        };
-                    }
+                    return { ...n, parentId: newParentId, position: newRelativePos };
                 }
                 return n;
-            });
-            return { ...prev, nodes: newNodes };
-        });
+            })
+        }));
 
         setTimeout(takeSnapshot, 0);
-    }, [nodes, setGraph, takeSnapshot]);
+    }, [nodes, setNodes, setGraph, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
     const handleGraphUpdate = (newGraph: FlowGraph) => {
