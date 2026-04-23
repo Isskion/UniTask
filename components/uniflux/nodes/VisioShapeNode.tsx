@@ -250,37 +250,45 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                 </button>
             </NodeToolbar>
 
-            {/* Quick Connect Arrows */}
+            {/* Quick Connect Handles (Styled as Arrows) */}
             {selected && !isLocked && !isEditing && (
                 <div className="absolute inset-0 pointer-events-none z-[60]">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
-                        className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
-                        title="Conectar a la derecha"
+                    <Handle 
+                        type="source"
+                        position={Position.Right}
+                        id="right-c"
+                        className="!absolute -right-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        title="Arrastra para conectar a la derecha"
                     >
-                        <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
-                        className="absolute -bottom-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
-                        title="Conectar abajo"
+                        <ArrowRight className="w-4 h-4 pointer-events-none" />
+                    </Handle>
+                    <Handle 
+                        type="source"
+                        position={Position.Bottom}
+                        id="bottom-c"
+                        className="!absolute -bottom-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        title="Arrastra para conectar abajo"
                     >
-                        <ArrowDown className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
-                        className="absolute -left-8 top-1/2 -translate-y-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
-                        title="Conectar a la izquierda"
+                        <ArrowDown className="w-4 h-4 pointer-events-none" />
+                    </Handle>
+                    <Handle 
+                        type="source"
+                        position={Position.Left}
+                        id="left-c"
+                        className="!absolute -left-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        title="Arrastra para conectar a la izquierda"
                     >
-                        <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
-                        className="absolute -top-8 left-1/2 -translate-x-1/2 p-1 bg-white border border-slate-200 rounded-full shadow-lg text-slate-400 hover:text-blue-600 hover:border-blue-400 pointer-events-auto transition-all hover:scale-110 active:scale-95"
-                        title="Conectar arriba"
+                        <ArrowLeft className="w-4 h-4 pointer-events-none" />
+                    </Handle>
+                    <Handle 
+                        type="source"
+                        position={Position.Top}
+                        id="top-c"
+                        className="!absolute -top-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
+                        title="Arrastra para conectar arriba"
                     >
-                        <ArrowUp className="w-4 h-4" />
-                    </button>
+                        <ArrowUp className="w-4 h-4 pointer-events-none" />
+                    </Handle>
                 </div>
             )}
 
