@@ -7,25 +7,32 @@ interface UnifluxNodeEditorProps {
     nodeId: string;
     initialLabel: string;
     initialType: NodeType;
+    initialData?: any;
     isLocked?: boolean;
-    onSave: (nodeId: string, label: string, type: NodeType) => void;
+    onSave: (nodeId: string, label: string, type: NodeType, additionalData?: any) => void;
     onClose: () => void;
     onDelete: (nodeId: string) => void;
     onToggleLock?: (nodeId: string, locked: boolean) => void;
 }
 
-export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, isLocked, onSave, onClose, onDelete, onToggleLock }: UnifluxNodeEditorProps) {
+export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, initialData, isLocked, onSave, onClose, onDelete, onToggleLock }: UnifluxNodeEditorProps) {
     const [label, setLabel] = useState(initialLabel);
     const [type, setType] = useState<NodeType>(initialType);
+    const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
+    const [iconName, setIconName] = useState(initialData?.iconName || 'Box');
+    const [color, setColor] = useState(initialData?.color || '#4f46e5');
 
     // Sync if props change
     useEffect(() => {
         setLabel(initialLabel);
         setType(initialType);
-    }, [initialLabel, initialType]);
+        setImageUrl(initialData?.imageUrl || '');
+        setIconName(initialData?.iconName || 'Box');
+        setColor(initialData?.color || '#4f46e5');
+    }, [initialLabel, initialType, initialData]);
 
     const handleSave = () => {
-        onSave(nodeId, label, type);
+        onSave(nodeId, label, type, { imageUrl, iconName, color });
     };
 
     const nodeTypes: { value: NodeType; label: string }[] = [
@@ -37,6 +44,8 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
         { value: 'ERROR', label: 'Error' },
         { value: 'TERMINAL', label: 'Fin' },
         { value: 'ENVIRONMENT', label: 'Entorno' },
+        { value: 'ICON', label: 'Icono' },
+        { value: 'IMAGE', label: 'Imagen' },
     ];
 
     return (
@@ -76,6 +85,45 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                         ))}
                     </select>
                 </div>
+
+                {type === 'IMAGE' && (
+                    <div>
+                        <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">URL de la Imagen</label>
+                        <input
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                            placeholder="https://ejemplo.com/imagen.png"
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1">Pega una URL o un texto en Base64.</p>
+                    </div>
+                )}
+
+                {type === 'ICON' && (
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Nombre del Icono</label>
+                            <input
+                                value={iconName}
+                                onChange={(e) => setIconName(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                placeholder="Ej: Box, User, Settings"
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">Nombres de Lucide React</p>
+                        </div>
+                        <div className="w-1/3">
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Color</label>
+                            <input
+                                type="color"
+                                value={color}
+                                onChange={(e) => setColor(e.target.value)}
+                                className="w-full h-[38px] border border-gray-200 rounded-lg cursor-pointer"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Lock toggle — only shown when onToggleLock is provided (e.g. ENVIRONMENT nodes) */}
                 {onToggleLock && (

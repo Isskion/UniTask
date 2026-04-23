@@ -269,17 +269,11 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                     )}
                 </div>
 
-                {/* Handles with group-hover visibility */}
-                <Handle type="target" position={Position.Top} className="group-hover:opacity-100" style={handleStyle} id="top" />
-                <Handle type="source" position={Position.Right} className="group-hover:opacity-100" style={handleStyle} id="right" />
-                <Handle type="target" position={Position.Bottom} className="group-hover:opacity-100" style={handleStyle} id="bottom" />
-                <Handle type="source" position={Position.Left} className="group-hover:opacity-100" style={handleStyle} id="left" />
-                
-                {/* Additional handles for flexibility (both source and target everywhere) */}
-                <Handle type="source" position={Position.Top} className="opacity-0" id="src-top" />
-                <Handle type="target" position={Position.Right} className="opacity-0" id="tgt-right" />
-                <Handle type="source" position={Position.Bottom} className="opacity-0" id="src-bottom" />
-                <Handle type="target" position={Position.Left} className="opacity-0" id="tgt-left" />
+                {/* Universal Handles (ConnectionMode.Loose makes them act as both source and target) */}
+                <Handle type="source" position={Position.Top} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="top" />
+                <Handle type="source" position={Position.Right} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="right" />
+                <Handle type="source" position={Position.Bottom} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="bottom" />
+                <Handle type="source" position={Position.Left} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="left" />
             </div>
         </>
     );

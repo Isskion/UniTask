@@ -118,6 +118,33 @@ const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }
         ]
     },
     {
+        title: 'Elementos Visuales',
+        defaultOpen: true,
+        items: [
+            {
+                type: 'ICON',
+                label: 'Icono',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-indigo-600">
+                        <polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="transparent" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
+                        <circle cx="50" cy="50" r="15" fill="currentColor" />
+                    </svg>
+                )
+            },
+            {
+                type: 'IMAGE',
+                label: 'Imagen',
+                renderIcon: () => (
+                    <svg viewBox="0 0 100 100" className="w-8 h-8 drop-shadow-sm text-blue-500">
+                        <rect x="10" y="15" width="80" height="70" rx="8" fill="transparent" stroke="currentColor" strokeWidth="6" />
+                        <circle cx="35" cy="35" r="10" fill="currentColor" />
+                        <path d="M10,85 L40,50 L65,70 L80,55 L90,65" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
+                    </svg>
+                )
+            }
+        ]
+    },
+    {
         title: 'Contenedores',
         defaultOpen: true,
         items: [

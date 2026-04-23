@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position, ConnectionMode } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -31,6 +31,8 @@ import UnifluxC4SystemNode from './nodes/UnifluxC4SystemNode';
 import UnifluxC4ContainerNode from './nodes/UnifluxC4ContainerNode';
 import UnifluxC4ComponentNode from './nodes/UnifluxC4ComponentNode';
 import UnifluxC4BoundaryNode from './nodes/UnifluxC4BoundaryNode';
+import IconNode from './nodes/IconNode';
+import ImageNode from './nodes/ImageNode';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
 const C4_NODE_TYPES = MODE_REGISTRY['c4'].nodeTypes;
@@ -53,6 +55,8 @@ const nodeTypes = {
     C4_CONTAINER: UnifluxC4ContainerNode,
     C4_COMPONENT: UnifluxC4ComponentNode,
     C4_BOUNDARY: UnifluxC4BoundaryNode,
+    ICON: IconNode,
+    IMAGE: ImageNode,
 };
 
 // Initial placeholder graph
@@ -239,6 +243,8 @@ export default function UnifluxWorkspace() {
     const [edgeEditValue, setEdgeEditValue] = useState('');
     const [edgeProtocol, setEdgeProtocol] = useState('');
     const [edgeRelType, setEdgeRelType] = useState<string>('sync');
+    const [edgeLineType, setEdgeLineType] = useState<string>('smoothstep');
+    const [edgeAnimated, setEdgeAnimated] = useState<boolean>(true);
 
     // Save toast
     const [showSaveToast, setShowSaveToast] = useState(false);
@@ -266,7 +272,7 @@ export default function UnifluxWorkspace() {
             const opacity = n.isLocked ? 0.8 : OPACITY[visTier];
             return {
                 id: n.id,
-                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'visioShape'),
+                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : n.type === 'ICON' ? 'ICON' : n.type === 'IMAGE' ? 'IMAGE' : 'visioShape'),
                 position: n.position,
                 data: isC4 ? {
                     label: n.label,
@@ -288,6 +294,8 @@ export default function UnifluxWorkspace() {
                     ? { background: 'transparent', border: 'none', padding: 0, width: n.width, height: n.height, opacity, transition: 'opacity 0.25s ease' }
                     : (n.type === 'ENVIRONMENT'
                          ? { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 }
+                         : n.type === 'ICON' || n.type === 'IMAGE'
+                         ? { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 64, height: n.height ?? 64, opacity: n.isLocked ? 0.8 : 1 }
                          : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
                       ),
                 parentId: n.parentId,
@@ -591,6 +599,8 @@ export default function UnifluxWorkspace() {
         setEdgeEditValue((edge.label as string) || '');
         setEdgeProtocol((edge.data?.protocol as string) || '');
         setEdgeRelType((edge.data?.c4RelType as string) || 'sync');
+        setEdgeLineType(edge.type || 'smoothstep');
+        setEdgeAnimated(edge.animated || false);
     };
 
     const handleEdgeLabelSave = () => {
@@ -603,7 +613,8 @@ export default function UnifluxWorkspace() {
                 label: isC4 ? (edgeProtocol || edgeEditValue || undefined) : edgeEditValue,
                 data: isC4 ? { ...e.data, c4RelType: edgeRelType, protocol: edgeProtocol, c4Description: edgeEditValue } : e.data,
                 ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
-                animated: isC4 ? (edgeRelType === 'async' || edgeRelType === 'event') : true,
+                type: isC4 ? e.type : edgeLineType,
+                animated: isC4 ? (edgeRelType === 'async' || edgeRelType === 'event') : edgeAnimated,
             };
             return updated;
         }));
@@ -660,11 +671,13 @@ export default function UnifluxWorkspace() {
             } else {
                 newNode = {
                     id: newNodeId,
-                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'visioShape',
+                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : type === 'ICON' ? 'ICON' : type === 'IMAGE' ? 'IMAGE' : 'visioShape',
                     position,
                     data: { label: label, type },
                     style: type === 'ENVIRONMENT' 
                         ? { ...getNodeStyle(type), width: 300, height: 200 } 
+                        : type === 'ICON' || type === 'IMAGE'
+                        ? { background: 'transparent', border: 'none', padding: 0, width: 64, height: 64 }
                         : { background: 'transparent', border: 'none', padding: 0, width: 120, height: 80 },
                     sourcePosition: Position.Right,
                     targetPosition: Position.Left,
@@ -680,27 +693,35 @@ export default function UnifluxWorkspace() {
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
         if (draggedNode.data.type === 'ENVIRONMENT' || draggedNode.data.type === 'C4_BOUNDARY') return;
 
+        // Use absolute position for hit testing
+        const absX = draggedNode.computed?.positionAbsolute?.x ?? draggedNode.position.x;
+        const absY = draggedNode.computed?.positionAbsolute?.y ?? draggedNode.position.y;
+
         // Check if dropped inside an environment or C4 boundary
-        const targetEnv = nodes.find(n =>
-            (n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY') &&
-            n.id !== draggedNode.id &&
-            draggedNode.position.x >= n.position.x &&
-            draggedNode.position.y >= n.position.y &&
-            draggedNode.position.x <= n.position.x + (n.style?.width as number || 0) &&
-            draggedNode.position.y <= n.position.y + (n.style?.height as number || 0)
-        );
+        const targetEnv = nodes.find(n => {
+            const envAbsX = n.computed?.positionAbsolute?.x ?? n.position.x;
+            const envAbsY = n.computed?.positionAbsolute?.y ?? n.position.y;
+            return (n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY') &&
+                n.id !== draggedNode.id &&
+                absX >= envAbsX &&
+                absY >= envAbsY &&
+                absX <= envAbsX + (n.style?.width as number || 0) &&
+                absY <= envAbsY + (n.style?.height as number || 0);
+        });
 
         if (targetEnv && draggedNode.parentId !== targetEnv.id) {
             setNodes(nds => nds.map(node => {
                 if (node.id === draggedNode.id) {
+                    const envAbsX = targetEnv.computed?.positionAbsolute?.x ?? targetEnv.position.x;
+                    const envAbsY = targetEnv.computed?.positionAbsolute?.y ?? targetEnv.position.y;
                     return {
                         ...node,
                         parentId: targetEnv.id,
                         extent: 'parent',
-                        // Re-calculate position relative to parent
+                        // Re-calculate position relative to parent using absolute coordinates
                         position: {
-                            x: draggedNode.position.x - targetEnv.position.x,
-                            y: draggedNode.position.y - targetEnv.position.y
+                            x: absX - envAbsX,
+                            y: absY - envAbsY
                         }
                     };
                 }
@@ -711,15 +732,14 @@ export default function UnifluxWorkspace() {
             // Dragged out of parent
             setNodes(nds => nds.map(node => {
                 if (node.id === draggedNode.id) {
-                    // Find old parent to calculate absolute position
-                    const oldParent = nds.find(p => p.id === node.parentId);
+                    // It was unparented, so we need to set its position to its absolute position
                     return {
                         ...node,
                         parentId: undefined,
                         extent: undefined,
                         position: {
-                            x: draggedNode.position.x + (oldParent?.position.x || 0),
-                            y: draggedNode.position.y + (oldParent?.position.y || 0)
+                            x: absX,
+                            y: absY
                         }
                     };
                 }
@@ -727,7 +747,7 @@ export default function UnifluxWorkspace() {
             }));
             setTimeout(takeSnapshot, 0);
         }
-    }, [nodes, setNodes]);
+    }, [nodes, setNodes, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
     const handleGraphUpdate = (newGraph: FlowGraph) => {
@@ -1379,14 +1399,40 @@ export default function UnifluxWorkspace() {
                         )}
 
                         {graph.docType !== 'c4' && (
-                            <input
-                                autoFocus
-                                value={edgeEditValue}
-                                onChange={e => setEdgeEditValue(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
-                                placeholder="Texto de la conexión (vacío = sin etiqueta)"
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
-                            />
+                            <>
+                                <input
+                                    autoFocus
+                                    value={edgeEditValue}
+                                    onChange={e => setEdgeEditValue(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleEdgeLabelSave(); if (e.key === 'Escape') setEditingEdge(null); }}
+                                    placeholder="Texto de la conexión (vacío = sin etiqueta)"
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-400 mb-3"
+                                />
+                                <div className="flex gap-2 mb-3">
+                                    <div className="flex-1">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Tipo de línea</label>
+                                        <select
+                                            value={edgeLineType}
+                                            onChange={e => setEdgeLineType(e.target.value)}
+                                            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-purple-400"
+                                        >
+                                            <option value="default">Curva (Bezier)</option>
+                                            <option value="smoothstep">Escalón Suave</option>
+                                            <option value="step">Escalón</option>
+                                            <option value="straight">Recta</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Animación</label>
+                                        <button
+                                            onClick={() => setEdgeAnimated(!edgeAnimated)}
+                                            className={`w-full py-1.5 px-2 text-xs font-semibold rounded-lg border transition-all ${edgeAnimated ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}
+                                        >
+                                            {edgeAnimated ? '⚡ Animada' : 'Estática'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
                         )}
                         <div className="flex gap-2">
                             <button onClick={handleEdgeLabelSave} className="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity">
@@ -1492,6 +1538,8 @@ export default function UnifluxWorkspace() {
                     maxZoom={4}
                     defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
                     connectionLineType={'smoothstep' as any}
+                    connectionMode={ConnectionMode.Loose}
+                    elevateNodesOnSelect={false}
                 >
                     <Background color="#94a3b8" variant={BackgroundVariant.Dots} gap={15} size={1} />
                     <MiniMap 
