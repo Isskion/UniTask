@@ -1194,16 +1194,7 @@ export default function UnifluxWorkspace() {
                             Nuevo Diagrama Mermaid
                         </button>
 
-                        <Link
-                            href={`/uniflux/geo?projectId=${selectedProjectId}`}
-                            className={cn(
-                                "w-full flex justify-center items-center gap-2 py-2.5 bg-indigo-50 border border-indigo-200 hover:border-indigo-400 hover:text-indigo-800 text-indigo-700 rounded-xl font-bold text-sm transition-all shadow-sm",
-                                !selectedProjectId && "opacity-50 pointer-events-none"
-                            )}
-                        >
-                            <Map className="w-4 h-4" />
-                            Módulo Geográfico v2.0
-                        </Link>
+
                     </div>
                 </div>
 
