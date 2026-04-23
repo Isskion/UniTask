@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
