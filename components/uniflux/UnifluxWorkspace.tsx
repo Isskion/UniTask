@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -14,7 +14,9 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download } from 'lucide-react';
+import { getLayoutedElements } from '@/app/uniflux/core/layout';
+import { toPng } from 'html-to-image';
 import VisioStencilPalette from './VisioStencilPalette';
 import VisioShapeNode from './nodes/VisioShapeNode';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
@@ -154,6 +156,30 @@ export default function UnifluxWorkspace() {
             }
         }
     }, [history, historyIndex, setNodes, setEdges]);
+    
+    // Auto Layout & Export
+    const triggerAutoLayout = useCallback((dir: 'LR' | 'TB') => {
+        takeSnapshot();
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+            nodes,
+            edges,
+            dir
+        );
+        setNodes([...layoutedNodes]);
+        setEdges([...layoutedEdges]);
+        setTimeout(() => reactFlowInstance?.fitView({ duration: 500, padding: 0.2 }), 50);
+    }, [nodes, edges, reactFlowInstance, takeSnapshot, setNodes, setEdges]);
+
+    const handleExportPng = useCallback(() => {
+        const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
+        if (!viewport) return;
+        toPng(viewport, { backgroundColor: '#ffffff', pixelRatio: 2 }).then((dataUrl) => {
+            const a = document.createElement('a');
+            a.setAttribute('download', `flujo-${graph.name.toLowerCase().replace(/\s/g, '-')}.png`);
+            a.setAttribute('href', dataUrl);
+            a.click();
+        });
+    }, [graph.name]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -1438,6 +1464,17 @@ export default function UnifluxWorkspace() {
                         zoomable
                     />
                     <Controls />
+                    <Panel position="top-right" className="flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200">
+                        <button onClick={() => triggerAutoLayout('LR')} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 transition-colors" title="Diagrama Horizontal">
+                            <LayoutTemplate className="w-3.5 h-3.5" />
+                            Auto Layout
+                        </button>
+                        <div className="w-px h-4 bg-slate-200"></div>
+                        <button onClick={handleExportPng} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-blue-600 rounded-lg flex items-center gap-1.5 transition-colors" title="Exportar Diseño a PNG">
+                            <Download className="w-3.5 h-3.5" />
+                            Renderizar PNG
+                        </button>
+                    </Panel>
                 </ReactFlow>}
             </div>
         </div>
