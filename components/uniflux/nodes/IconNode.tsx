@@ -80,11 +80,17 @@ const IconNode = ({ id, data, selected }: any) => {
                     style={{ filter: selected ? `drop-shadow(0 0 8px ${color}66)` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                 />
 
-                {/* Universal Handles (ConnectionMode.Loose makes them act as both source and target) */}
-                <Handle type="source" position={Position.Top} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="top" />
-                <Handle type="source" position={Position.Right} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="right" />
-                <Handle type="source" position={Position.Bottom} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="bottom" />
-                <Handle type="source" position={Position.Left} className="opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity" style={handleStyle} id="left" />
+                {/* Universal Handles (8 points: Sides + Corners) */}
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4 }} id="top" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4 }} id="right" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4 }} id="bottom" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4 }} id="left" className="opacity-0 group-hover:opacity-100" />
+                
+                {/* Corner Handles */}
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: -4 }} id="top-left" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, right: -4, left: 'auto' }} id="top-right" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: -4, top: 'auto' }} id="bottom-left" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, right: -4, top: 'auto', left: 'auto' }} id="bottom-right" className="opacity-0 group-hover:opacity-100" />
             </div>
         </>
     );

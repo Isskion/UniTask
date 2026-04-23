@@ -187,8 +187,12 @@ export default function UnifluxWorkspace() {
 
         const config = {
             backgroundColor: '#ffffff',
-            pixelRatio: format === 'svg' ? 1 : 4, // 4x resolution for rasters to guarantee maximum clarity
+            pixelRatio: format === 'svg' ? 1 : 4,
             filter,
+            cacheBust: true,
+            style: {
+                transform: 'none',
+            }
         };
 
         const downloadFile = (dataUrl: string, ext: string) => {
@@ -198,20 +202,23 @@ export default function UnifluxWorkspace() {
             a.click();
         };
 
+        const container = document.querySelector('.react-flow') as HTMLElement;
+        if (!container) return;
+
         if (format === 'png') {
-            toPng(viewport, config).then(dataUrl => downloadFile(dataUrl, 'png'));
+            toPng(container, config).then(dataUrl => downloadFile(dataUrl, 'png'));
         } else if (format === 'jpeg') {
-            toJpeg(viewport, config).then(dataUrl => downloadFile(dataUrl, 'jpg'));
+            toJpeg(container, config).then(dataUrl => downloadFile(dataUrl, 'jpg'));
         } else if (format === 'svg') {
-            toSvg(viewport, config).then(dataUrl => downloadFile(dataUrl, 'svg'));
+            toSvg(container, config).then(dataUrl => downloadFile(dataUrl, 'svg'));
         } else if (format === 'pdf') {
-            toPng(viewport, config).then(dataUrl => {
+            toPng(container, config).then(dataUrl => {
                 const pdf = new jsPDF({
-                    orientation: viewport.offsetWidth > viewport.offsetHeight ? 'landscape' : 'portrait',
+                    orientation: container.offsetWidth > container.offsetHeight ? 'landscape' : 'portrait',
                     unit: 'px',
-                    format: [viewport.offsetWidth, viewport.offsetHeight]
+                    format: [container.offsetWidth, container.offsetHeight]
                 });
-                pdf.addImage(dataUrl, 'PNG', 0, 0, viewport.offsetWidth, viewport.offsetHeight);
+                pdf.addImage(dataUrl, 'PNG', 0, 0, container.offsetWidth, container.offsetHeight);
                 pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
             });
         }
