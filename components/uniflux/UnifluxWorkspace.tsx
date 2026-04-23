@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, Controls, MiniMap, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -1430,7 +1430,7 @@ export default function UnifluxWorkspace() {
                     defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
                     connectionLineType={'smoothstep' as any}
                 >
-                    <Background color="#94a3b8" variant="dots" gap={15} size={1} />
+                    <Background color="#94a3b8" variant={BackgroundVariant.Dots} gap={15} size={1} />
                     <MiniMap 
                         nodeColor={(n) => n.type === 'visioShape' ? '#94a3b8' : '#cbd5e1'}
                         maskColor="rgba(0,0,0,0.1)"
