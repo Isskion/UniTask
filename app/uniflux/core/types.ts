@@ -55,6 +55,8 @@ export interface FlowNode {
     external?: boolean;
     // V4: natural C4 level of this node (enables semantic zoom across levels)
     c4Level?: C4LevelValue;
+    // Extra data for custom node behaviors
+    additionalData?: Record<string, any>;
 }
 
 export interface FlowEdge {
