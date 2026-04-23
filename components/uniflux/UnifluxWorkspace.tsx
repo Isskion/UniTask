@@ -296,8 +296,12 @@ export default function UnifluxWorkspace() {
                     label: n.label,
                     type: n.type,
                     isLocked: n.isLocked,
+                    ...n.additionalData
                 },
-                zIndex: isBoundaryLike ? -1 : 1,
+                zIndex: isBoundaryLike ? (n.isLocked ? -10 : -1) : 1,
+                draggable: !n.isLocked,
+                selectable: true,
+                selected: selectedNode?.id === n.id,
                 style: isC4
                     ? { background: 'transparent', border: 'none', padding: 0, width: n.width, height: n.height, opacity, transition: 'opacity 0.25s ease' }
                     : (n.type === 'ENVIRONMENT'
@@ -577,15 +581,15 @@ export default function UnifluxWorkspace() {
             }
             return node;
         }));
-        // Persist lock state in abstract graph so it survives any re-sync from setGraph
-        setGraph(prev => ({
-            ...prev,
-            nodes: prev.nodes.map(n => n.id === nodeId ? { ...n, isLocked: locked } : n)
-        }));
-        // Keep NodeEditor open with updated lock state (setGraph triggers useEffect which
-        // resets nodes, potentially causing RF to clear selection and close the panel)
+
+        // Do NOT call setGraph here. setGraph triggers the useEffect that re-syncs everything from the abstract graph.
+        // Since the abstract graph is only updated on manual "Save", calling setGraph here would revert all unsaved 
+        // node moves or label changes. We only update the local React Flow state; it will be persisted when the user 
+        // clicks the main "Guardar" button.
+        
+        // Update selection state to reflect the new lock status in the editor panel
         setSelectedNode(prev => prev?.id === nodeId
-            ? { ...prev, data: { ...prev.data, isLocked: locked } }
+            ? { ...prev, data: { ...prev.data, isLocked: locked }, draggable: !locked }
             : prev
         );
         setTimeout(takeSnapshot, 0);
