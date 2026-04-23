@@ -1311,8 +1311,9 @@ export default function UnifluxWorkspace() {
                     : !showWizard && graph.docType !== 'mermaid' && <VisioStencilPalette />
                 }
 
-                {/* Node Editor — C4 editor or standard editor depending on node type */}
-                {selectedNode && graph.docType !== 'mermaid' && (
+                <div className="flex-1 relative h-full overflow-hidden">
+                    {/* Node Editor — C4 editor or standard editor depending on node type */}
+                    {selectedNode && graph.docType !== 'mermaid' && (
                     C4_NODE_TYPES.has(selectedNode.data.type as string)
                         ? <UnifluxC4NodeEditor
                             nodeId={selectedNode.id}
@@ -1587,6 +1588,7 @@ export default function UnifluxWorkspace() {
                         </div>
                     </Panel>
                 </ReactFlow>}
+                </div>
             </div>
         </div>
     );
