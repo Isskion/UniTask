@@ -150,13 +150,13 @@ export default function Header({
                         </button>
                     )}
                     <button
-                        className={`${btnBase} bg-indigo-500/[0.08] text-indigo-300/80 hover:bg-indigo-500/[0.15] border border-indigo-500/15`}
+                        className={`${btnBase} bg-emerald-500/[0.08] text-emerald-300/80 hover:bg-emerald-500/[0.15] border border-emerald-500/15`}
                         onClick={onSaveTemplate}
                         disabled={!hasData}
-                        title="Guardar Mapeo como Plantilla"
+                        title="Exportar Layout Excel como Plantilla"
                     >
-                        <span className="text-xs">💾</span>
-                        <span className="hidden lg:inline">Guardar</span>
+                        <span className="text-xs">📋</span>
+                        <span className="hidden lg:inline">Layout</span>
                     </button>
                     <button
                         className={`${btnBase} bg-white/[0.04] text-slate-300/80 hover:bg-white/[0.08] border border-white/[0.06]`}

@@ -25,7 +25,7 @@ import DynamicFieldsWizard from '@/app/uniordercreator/_src/components/Wizards/D
 import MultiSheetWizard from '@/app/uniordercreator/_src/components/Wizards/MultiSheetWizard';
 import MappingWizard from '@/app/uniordercreator/_src/components/Wizards/MappingWizard';
 import MappingActions from '@/app/uniordercreator/_src/components/Mapper/MappingActions';
-import SavedMappings from '@/app/uniordercreator/_src/components/Mapper/SavedMappings';
+import LayoutExporter from '@/app/uniordercreator/_src/components/Mapper/LayoutExporter';
 import DataPrepModal from '@/app/uniordercreator/_src/components/Modals/DataPrepModal';
 import HelpModal from '@/app/uniordercreator/_src/components/Modals/HelpModal';
 import ResultsDashboard from '@/app/uniordercreator/_src/components/Dashboard/ResultsDashboard';
@@ -49,8 +49,8 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
     const [multiSheetWizOpen, setMultiSheetWizOpen] = useState(false);
     const [mappingWizardOpen, setMappingWizardOpen] = useState(false);
     const [mappingActionsOpen, setMappingActionsOpen] = useState(false);
-    const [savedMappingsOpen, setSavedMappingsOpen] = useState(false);
-    const [savedMappingsMode, setSavedMappingsMode] = useState<'save' | 'list'>('list');
+    const [layoutExporterOpen, setLayoutExporterOpen] = useState(false);
+    const [layoutExporterMode, setLayoutExporterMode] = useState<'export' | 'import'>('export');
     const [dataPrepOpen, setDataPrepOpen] = useState(false);
     const [dashboardOpen, setDashboardOpen] = useState(false);
 
@@ -608,7 +608,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                 onLogout={() => useAppStore.getState().setToken(null)}
                 onManageUsers={() => { }}
                 onShowHelp={() => setHelpOpen(true)}
-                onSaveTemplate={() => { setSavedMappingsMode('save'); setSavedMappingsOpen(true); }}
+                onSaveTemplate={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }}
                 onShowDashboard={() => setDashboardOpen(true)}
                 isLoadingExcel={isLoadingExcel}
             />
@@ -624,7 +624,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setDynWizardOpen(true)} title="Campos Dinámicos">🔧</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMultiSheetWizOpen(true)} title="Multi-Hoja">📊</button>
                             <button className="p-0.5 hover:bg-slate-200 rounded transition-colors text-xs" onClick={() => setMappingActionsOpen(true)} title="Acciones de Mapeo">🗺️</button>
-                            <button className="p-0.5 hover:bg-amber-100 rounded transition-colors text-amber-600 text-xs" onClick={() => { setSavedMappingsMode('list'); setSavedMappingsOpen(true); }} title="Plantillas en la Nube">☁️</button>
+                            <button className="p-0.5 hover:bg-emerald-100 rounded transition-colors text-emerald-600 text-xs" onClick={() => { setLayoutExporterMode('export'); setLayoutExporterOpen(true); }} title="Exportar / Importar Layout Excel">📋</button>
                             <button
                                 className="p-0.5 hover:bg-red-100 rounded transition-colors text-red-500 text-xs"
                                 onClick={() => { if (confirm('¿Limpiar todo el mapeo actual?')) setMapping({}); }}
@@ -707,7 +707,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                 tenantId={tenantId}
             />
             <MappingActions isOpen={mappingActionsOpen} onClose={() => setMappingActionsOpen(false)} onOpenWizard={() => setMappingWizardOpen(true)} />
-            <SavedMappings isOpen={savedMappingsOpen} onClose={() => setSavedMappingsOpen(false)} initialMode={savedMappingsMode} tenantId={tenantId} />
+            <LayoutExporter isOpen={layoutExporterOpen} onClose={() => setLayoutExporterOpen(false)} initialMode={layoutExporterMode} />
             <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
             <ResultsDashboard
                 isOpen={dashboardOpen}
