@@ -16,7 +16,8 @@ import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/layout';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg, toSvg } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 import VisioStencilPalette from './VisioStencilPalette';
 import VisioShapeNode from './nodes/VisioShapeNode';
 import UnifluxNodeEditor from './UnifluxNodeEditor';
@@ -170,15 +171,46 @@ export default function UnifluxWorkspace() {
         setTimeout(() => reactFlowInstance?.fitView({ duration: 500, padding: 0.2 }), 50);
     }, [nodes, edges, reactFlowInstance, takeSnapshot, setNodes, setEdges]);
 
-    const handleExportPng = useCallback(() => {
+    const handleExport = useCallback((format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
-        toPng(viewport, { backgroundColor: '#ffffff', pixelRatio: 2 }).then((dataUrl) => {
+        
+        // Use a high pixel ratio for maximum resolution
+        const filter = (node: HTMLElement) => {
+            if (node?.classList?.contains('react-flow__minimap') || node?.classList?.contains('react-flow__controls')) return false;
+            return true;
+        };
+
+        const config = {
+            backgroundColor: '#ffffff',
+            pixelRatio: format === 'svg' ? 1 : 4, // 4x resolution for rasters to guarantee maximum clarity
+            filter,
+        };
+
+        const downloadFile = (dataUrl: string, ext: string) => {
             const a = document.createElement('a');
-            a.setAttribute('download', `flujo-${graph.name.toLowerCase().replace(/\s/g, '-')}.png`);
+            a.setAttribute('download', `uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.${ext}`);
             a.setAttribute('href', dataUrl);
             a.click();
-        });
+        };
+
+        if (format === 'png') {
+            toPng(viewport, config).then(dataUrl => downloadFile(dataUrl, 'png'));
+        } else if (format === 'jpeg') {
+            toJpeg(viewport, config).then(dataUrl => downloadFile(dataUrl, 'jpg'));
+        } else if (format === 'svg') {
+            toSvg(viewport, config).then(dataUrl => downloadFile(dataUrl, 'svg'));
+        } else if (format === 'pdf') {
+            toPng(viewport, config).then(dataUrl => {
+                const pdf = new jsPDF({
+                    orientation: viewport.offsetWidth > viewport.offsetHeight ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [viewport.offsetWidth, viewport.offsetHeight]
+                });
+                pdf.addImage(dataUrl, 'PNG', 0, 0, viewport.offsetWidth, viewport.offsetHeight);
+                pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
+            });
+        }
     }, [graph.name]);
 
     // Keyboard Shortcuts
@@ -1475,10 +1507,18 @@ export default function UnifluxWorkspace() {
                             Auto Layout
                         </button>
                         <div className="w-px h-4 bg-slate-200"></div>
-                        <button onClick={handleExportPng} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-blue-600 rounded-lg flex items-center gap-1.5 transition-colors" title="Exportar Diseño a PNG">
-                            <Download className="w-3.5 h-3.5" />
-                            Renderizar PNG
-                        </button>
+                        <div className="relative group">
+                            <button className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-blue-600 rounded-lg flex items-center gap-1.5 transition-colors" title="Exportar Diseño en Alta Resolución">
+                                <Download className="w-3.5 h-3.5" />
+                                Exportar HQ
+                            </button>
+                            <div className="absolute right-0 top-full mt-1 hidden group-hover:block w-40 bg-white border border-slate-200 shadow-xl rounded-lg overflow-hidden py-1 z-50">
+                                <button onClick={() => handleExport('svg')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 border-b border-slate-100">Vectorial (.svg)</button>
+                                <button onClick={() => handleExport('png')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700">Imagen PNG (.png)</button>
+                                <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 border-b border-slate-100">Imagen JPG (.jpg)</button>
+                                <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-red-700">Documento PDF (.pdf)</button>
+                            </div>
+                        </div>
                     </Panel>
                 </ReactFlow>}
             </div>
