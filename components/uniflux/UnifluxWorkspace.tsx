@@ -326,6 +326,23 @@ export default function UnifluxWorkspace() {
         return () => window.removeEventListener('mousedown', handleClickOutside);
     }, [closeMenu]);
 
+    const onNodeResizeStop = useCallback((id: string, width: number, height: number) => {
+        // Coordinated update for visual immediate feedback and persistence
+        setNodes(nds => nds.map(n => n.id === id ? { 
+            ...n, 
+            style: { ...n.style, width, height },
+            // Also update measured for parenting logic
+            measured: { ...n.measured, width, height }
+        } : n));
+        
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
+        }));
+        
+        setTimeout(takeSnapshot, 0);
+    }, [setNodes, setGraph, takeSnapshot]);
+
     const syncNodesFromGraph = useCallback((targetGraph: FlowGraph) => {
         const nodeMap = buildNodeMap(targetGraph.nodes);
         const renderableNodes = targetGraph.nodes.filter(n =>
