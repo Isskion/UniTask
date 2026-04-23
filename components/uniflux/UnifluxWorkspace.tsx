@@ -369,7 +369,7 @@ export default function UnifluxWorkspace() {
                          ? { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 64, height: n.height ?? 64, opacity: n.isLocked ? 0.8 : 1 }
                          : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
                       ),
-                parentId: n.parentId,
+                parentId: n.parentId || undefined,
                 extent: n.parentId ? 'parent' : undefined,
                 draggable: !n.isLocked && visTier === 'full',
                 selectable: isBoundaryLike ? true : visTier === 'full',
@@ -801,24 +801,24 @@ export default function UnifluxWorkspace() {
             ...prev,
             nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
         }));
+        // We don't setNodes here, the useEffect will sync it from graph
         setTimeout(takeSnapshot, 0);
     }, [setGraph, takeSnapshot]);
 
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
-        // Use absolute position for hit testing
+        // 1. Get absolute position of the drop point
         const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.position.x;
         const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.position.y;
 
-        // 1. Find all possible containers (excluding the dragged node itself)
-        // We look for containers where the drop point (absX, absY) is inside.
+        if (isNaN(absX) || isNaN(absY)) return;
+
+        // 2. Find all possible containers
         const containers = nodes.filter(n => {
             if (n.id === draggedNode.id) return false;
             if (!(n.type === 'ENVIRONMENT' || n.type === 'C4_BOUNDARY')) return false;
             
             const envAbsX = (n as any).computed?.positionAbsolute?.x ?? n.position.x;
             const envAbsY = (n as any).computed?.positionAbsolute?.y ?? n.position.y;
-            
-            // Prefer measured dimensions, fallback to width/height properties
             const w = n.measured?.width ?? n.width ?? (n.style?.width as number) ?? 0;
             const h = n.measured?.height ?? n.height ?? (n.style?.height as number) ?? 0;
             
@@ -830,82 +830,45 @@ export default function UnifluxWorkspace() {
             );
         });
 
-        // 2. Pick the innermost container (the one with the smallest area)
+        // 3. Find the innermost container (smallest area)
         let targetEnv = null;
         if (containers.length > 0) {
             containers.sort((a, b) => {
-                const areaA = (a.measured?.width ?? a.width ?? 0) * (a.measured?.height ?? a.height ?? 0);
-                const areaB = (b.measured?.width ?? b.width ?? 0) * (b.measured?.height ?? b.height ?? 0);
+                const areaA = (a.measured?.width ?? a.width ?? 1) * (a.measured?.height ?? a.height ?? 1);
+                const areaB = (b.measured?.width ?? b.width ?? 1) * (b.measured?.height ?? b.height ?? 1);
                 return areaA - areaB;
             });
             targetEnv = containers[0];
         }
 
-        if (targetEnv && draggedNode.parentId !== targetEnv.id) {
-            const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
-            const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
-            
-            const newRelativePos = {
-                x: absX - envAbsX,
-                y: absY - envAbsY
-            };
+        // 4. Update the graph state. The useEffect will handle the setNodes sync.
+        setGraph(prev => {
+            const newNodes = prev.nodes.map(n => {
+                if (n.id === draggedNode.id) {
+                    if (targetEnv) {
+                        const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
+                        const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
+                        return { 
+                            ...n, 
+                            parentId: targetEnv.id, 
+                            position: { x: absX - envAbsX, y: absY - envAbsY } 
+                        };
+                    } else {
+                        // Not dropped in any container, but might have been in one before
+                        return { 
+                            ...n, 
+                            parentId: undefined, 
+                            position: { x: absX, y: absY } 
+                        };
+                    }
+                }
+                return n;
+            });
+            return { ...prev, nodes: newNodes };
+        });
 
-            // Update abstract graph to ensure persistence
-            setGraph(prev => ({
-                ...prev,
-                nodes: prev.nodes.map(n => n.id === draggedNode.id 
-                    ? { ...n, parentId: targetEnv.id, position: newRelativePos } 
-                    : n
-                )
-            }));
-            
-            // Update RF state for immediate feedback
-            setNodes(nds => nds.map(node => {
-                if (node.id === draggedNode.id) {
-                    return {
-                        ...node,
-                        parentId: targetEnv.id,
-                        extent: 'parent',
-                        position: newRelativePos
-                    };
-                }
-                return node;
-            }));
-            setTimeout(takeSnapshot, 0);
-        } else if (!targetEnv && draggedNode.parentId) {
-            // Dragged out of parent
-            setGraph(prev => ({
-                ...prev,
-                nodes: prev.nodes.map(n => n.id === draggedNode.id 
-                    ? { ...n, parentId: undefined, position: { x: absX, y: absY } } 
-                    : n
-                )
-            }));
-            
-            setNodes(nds => nds.map(node => {
-                if (node.id === draggedNode.id) {
-                    return {
-                        ...node,
-                        parentId: undefined,
-                        extent: undefined,
-                        position: { x: absX, y: absY }
-                    };
-                }
-                return node;
-            }));
-            setTimeout(takeSnapshot, 0);
-        } else {
-            // Just moved within same parent or outside — sync position to graph
-            setGraph(prev => ({
-                ...prev,
-                nodes: prev.nodes.map(n => n.id === draggedNode.id 
-                    ? { ...n, position: draggedNode.position } 
-                    : n
-                )
-            }));
-            setTimeout(takeSnapshot, 0);
-        }
-    }, [nodes, setNodes, setGraph, takeSnapshot]);
+        setTimeout(takeSnapshot, 0);
+    }, [nodes, setGraph, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
     const handleGraphUpdate = (newGraph: FlowGraph) => {
