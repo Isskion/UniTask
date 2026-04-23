@@ -628,10 +628,12 @@ export default function UnifluxWorkspace() {
             } else {
                 newNode = {
                     id: newNodeId,
-                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'default',
+                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : 'visioShape',
                     position,
-                    data: { label: `${newNodeId}. ${label}`, type },
-                    style: type === 'ENVIRONMENT' ? { ...getNodeStyle(type), width: 300, height: 200 } : getNodeStyle(type),
+                    data: { label: label, type },
+                    style: type === 'ENVIRONMENT' 
+                        ? { ...getNodeStyle(type), width: 300, height: 200 } 
+                        : { background: 'transparent', border: 'none', padding: 0, width: 120, height: 80 },
                     sourcePosition: Position.Right,
                     targetPosition: Position.Left,
                 };
