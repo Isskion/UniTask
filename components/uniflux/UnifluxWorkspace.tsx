@@ -509,13 +509,21 @@ export default function UnifluxWorkspace() {
     };
 
     // Node Editor Save Handlers
-    const handleNodeSave = (nodeId: string, newLabel: string, newType: NodeType) => {
+    const handleNodeSave = (nodeId: string, newLabel: string, newType: NodeType, additionalData?: any) => {
         setNodes(nds => nds.map(node => {
             if (node.id === nodeId) {
                 return {
                     ...node,
-                    data: { ...node.data, label: `${node.id}. ${newLabel}`, type: newType },
-                    style: getNodeStyle(newType)
+                    type: newType, // Make sure the React Flow type is updated
+                    data: { 
+                        ...node.data, 
+                        label: (newType === 'ICON' || newType === 'IMAGE') ? newLabel : `${node.id}. ${newLabel}`, 
+                        type: newType,
+                        ...additionalData 
+                    },
+                    style: (newType === 'ICON' || newType === 'IMAGE')
+                        ? { background: 'transparent', border: 'none', padding: 0, width: node.style?.width ?? 64, height: node.style?.height ?? 64, opacity: node.data.isLocked ? 0.8 : 1 }
+                        : { ...getNodeStyle(newType), width: node.style?.width, height: node.style?.height, opacity: node.data.isLocked ? 0.8 : 1 }
                 };
             }
             return node;
@@ -1316,6 +1324,7 @@ export default function UnifluxWorkspace() {
                                     : (selectedNode.data.label as string).replace(new RegExp(`^${selectedNode.id}\\.\\s*`), '')
                             }
                             initialType={selectedNode.data.type as NodeType || 'OPERATION'}
+                            initialData={selectedNode.data}
                             isLocked={selectedNode.data.isLocked as boolean | undefined}
                             onSave={handleNodeSave}
                             onClose={() => setSelectedNode(null)}

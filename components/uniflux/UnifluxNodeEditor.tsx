@@ -1,7 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock } from 'lucide-react';
+import { X, Check, Lock, Unlock, Upload, Search, icons as LucideIcons } from 'lucide-react';
+
+const POPULAR_ICONS = [
+    'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',
+    'Calendar', 'Clock', 'Shield', 'Zap', 'Award', 'Star', 'Heart', 'Smile', 'MessageSquare', 'Send',
+    'Truck', 'ShoppingCart', 'CreditCard', 'Wallet', 'Briefcase', 'HardDrive', 'Monitor', 'Smartphone',
+    'Laptop', 'Camera', 'Music', 'Film', 'Book', 'File', 'Folder', 'Image', 'Bell', 'Play',
+    'Lock', 'Unlock', 'Key', 'Eye', 'Check', 'AlertCircle', 'Info', 'HelpCircle', 'X', 'Zap'
+];
 
 interface UnifluxNodeEditorProps {
     nodeId: string;
@@ -33,6 +41,17 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
 
     const handleSave = () => {
         onSave(nodeId, label, type, { imageUrl, iconName, color });
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImageUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
     };
 
     const nodeTypes: { value: NodeType; label: string }[] = [
@@ -87,40 +106,92 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                 </div>
 
                 {type === 'IMAGE' && (
-                    <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">URL de la Imagen</label>
-                        <input
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                            placeholder="https://ejemplo.com/imagen.png"
-                        />
-                        <p className="text-[10px] text-gray-400 mt-1">Pega una URL o un texto en Base64.</p>
+                    <div className="flex flex-col gap-3">
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Subir desde PC</label>
+                            <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition-all text-gray-500 hover:text-purple-600 group">
+                                <Upload className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                <span className="text-xs font-medium">Seleccionar imagen</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                            </label>
+                        </div>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                <div className="w-full border-t border-gray-100"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs">
+                                <span className="bg-white px-2 text-gray-400">O URL externa</span>
+                            </div>
+                        </div>
+                        <div>
+                            <input
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                placeholder="https://ejemplo.com/imagen.png"
+                            />
+                        </div>
+                        {imageUrl && (
+                            <div className="mt-1 flex items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-8 h-8 rounded bg-white border overflow-hidden shrink-0">
+                                        <img src={imageUrl} alt="preview" className="w-full h-full object-contain" />
+                                    </div>
+                                    <span className="text-[10px] text-gray-400 truncate">Vista previa</span>
+                                </div>
+                                <button onClick={() => setImageUrl('')} className="text-red-400 hover:text-red-600">
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {type === 'ICON' && (
-                    <div className="flex gap-2">
-                        <div className="flex-1">
-                            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Nombre del Icono</label>
-                            <input
-                                value={iconName}
-                                onChange={(e) => setIconName(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
-                                placeholder="Ej: Box, User, Settings"
-                            />
-                            <p className="text-[10px] text-gray-400 mt-1">Nombres de Lucide React</p>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Nombre del Icono</label>
+                                <input
+                                    value={iconName}
+                                    onChange={(e) => setIconName(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+                                    placeholder="Ej: Box, User, Settings"
+                                />
+                            </div>
+                            <div className="w-1/3">
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Color</label>
+                                <input
+                                    type="color"
+                                    value={color}
+                                    onChange={(e) => setColor(e.target.value)}
+                                    className="w-full h-[38px] border border-gray-200 rounded-lg cursor-pointer p-1"
+                                />
+                            </div>
                         </div>
-                        <div className="w-1/3">
-                            <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Color</label>
-                            <input
-                                type="color"
-                                value={color}
-                                onChange={(e) => setColor(e.target.value)}
-                                className="w-full h-[38px] border border-gray-200 rounded-lg cursor-pointer"
-                            />
+
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Seleccionar Icono</label>
+                            <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-100 rounded-xl bg-gray-50 custom-scrollbar">
+                                {POPULAR_ICONS.map(name => {
+                                    const Icon = (LucideIcons as any)[name];
+                                    const isSelected = iconName === name;
+                                    return (
+                                        <button
+                                            key={name}
+                                            onClick={() => setIconName(name)}
+                                            className={`flex items-center justify-center p-2 rounded-lg transition-all ${isSelected
+                                                ? 'bg-purple-600 text-white shadow-md'
+                                                : 'bg-white text-gray-400 hover:text-purple-600 hover:shadow-sm border border-transparent hover:border-purple-100'}`}
+                                            title={name}
+                                        >
+                                            {Icon ? <Icon size={18} strokeWidth={isSelected ? 2.5 : 2} /> : <span>?</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 )}
