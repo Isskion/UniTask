@@ -147,56 +147,60 @@ const ImageNode = ({ id, data, selected }: any) => {
             )}
 
             <div 
-                className="w-full h-full relative group flex items-center justify-center cursor-pointer pointer-events-auto rounded-lg overflow-hidden border border-transparent hover:border-blue-200 transition-colors"
+                className="w-full h-full relative group flex items-center justify-center cursor-pointer pointer-events-auto rounded-lg border border-transparent hover:border-blue-200 transition-colors"
                 style={{ 
                     boxShadow: selected ? '0 0 0 2px #3b82f6' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                     backgroundColor: imageUrl ? 'transparent' : '#f8fafc'
                 }}
             >
-                {imageUrl ? (
-                    <img 
-                        src={imageUrl} 
-                        alt="Node image" 
-                        className="w-full h-full object-contain pointer-events-none" 
-                        draggable={false}
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center pointer-events-none">
-                        <ImageIcon className="w-8 h-8 mb-1 opacity-50" />
-                        <span className="text-[10px] font-medium opacity-80">Sin imagen</span>
-                    </div>
-                )}
+                {/* Image Container with Overflow Hidden */}
+                <div className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center">
+                    {imageUrl ? (
+                        <img 
+                            src={imageUrl} 
+                            alt="Node image" 
+                            className="w-full h-full object-contain pointer-events-none" 
+                            draggable={false}
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center pointer-events-none">
+                            <ImageIcon className="w-8 h-8 mb-1 opacity-50" />
+                            <span className="text-[10px] font-medium opacity-80">Sin imagen</span>
+                        </div>
+                    )}
+                </div>
 
                 {/* Universal Handles (16 points: Sides + Corners + Midpoints) */}
                 {/* Top side */}
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%' }} id="top-c" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: 0 }} id="top-l" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '100%' }} id="top-r" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%' }} id="top-25" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%' }} id="top-75" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%', opacity: selected ? 1 : 0 }} id="top-c" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: 0, opacity: selected ? 1 : 0 }} id="top-l" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '100%', opacity: selected ? 1 : 0 }} id="top-r" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%', opacity: selected ? 1 : 0 }} id="top-25" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%', opacity: selected ? 1 : 0 }} id="top-75" className="group-hover:opacity-100" />
                 
                 {/* Bottom side */}
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto' }} id="bottom-c" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto' }} id="bottom-l" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto' }} id="bottom-r" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto' }} id="bottom-25" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto' }} id="bottom-75" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-c" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-l" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-r" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-25" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-75" className="group-hover:opacity-100" />
 
                 {/* Left side */}
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%' }} id="left-25" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%' }} id="left-c" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%' }} id="left-75" className="opacity-0 group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%', opacity: selected ? 1 : 0 }} id="left-25" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%', opacity: selected ? 1 : 0 }} id="left-c" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%', opacity: selected ? 1 : 0 }} id="left-75" className="group-hover:opacity-100" />
 
                 {/* Right side */}
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto' }} id="right-25" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto' }} id="right-c" className="opacity-0 group-hover:opacity-100" />
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto' }} id="right-75" className="opacity-0 group-hover:opacity-100" />
-                
-                {/* Node Label */}
-                <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-slate-600 bg-white/60 backdrop-blur-[2px] px-2 py-0.5 rounded-full border border-slate-100/50 shadow-sm pointer-events-none">
-                    {data.label || 'Imagen'}
-                </div>
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-25" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-c" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-75" className="group-hover:opacity-100" />
             </div>
+
+            {/* Node Label (OUTSIDE the overflow-hidden container) */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-slate-600 bg-white/80 backdrop-blur-[2px] px-2 py-0.5 rounded-full border border-slate-200/50 shadow-sm pointer-events-none z-10">
+                {data.label || 'Imagen'}
+            </div>
+
         </>
     );
 };

@@ -8,7 +8,8 @@ const POPULAR_ICONS = [
     'Calendar', 'Clock', 'Shield', 'Zap', 'Award', 'Star', 'Heart', 'Smile', 'MessageSquare', 'Send',
     'Truck', 'ShoppingCart', 'CreditCard', 'Wallet', 'Briefcase', 'HardDrive', 'Monitor', 'Smartphone',
     'Laptop', 'Camera', 'Music', 'Film', 'Book', 'File', 'Folder', 'Image', 'Bell', 'Play',
-    'Lock', 'Unlock', 'Key', 'Eye', 'Check', 'AlertCircle', 'Info', 'HelpCircle', 'X', 'Zap'
+    'Lock', 'Unlock', 'Key', 'Eye', 'Check', 'AlertCircle', 'Info', 'HelpCircle', 'X', 'Zap',
+    'Router', 'Wifi', 'Cpu', 'Activity', 'Terminal', 'Layers', 'Share2', 'Link', 'Anchor', 'Target'
 ];
 
 interface UnifluxNodeEditorProps {
