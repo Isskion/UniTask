@@ -1543,7 +1543,7 @@ export default function UnifluxWorkspace() {
                         pannable
                         zoomable
                     />
-                    <Controls />
+                    <Controls position="bottom-right" className="z-50" />
                     <Panel position="top-right" className="flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200">
                         <button onClick={() => triggerAutoLayout('LR')} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 transition-colors" title="Diagrama Horizontal">
                             <LayoutTemplate className="w-3.5 h-3.5" />
