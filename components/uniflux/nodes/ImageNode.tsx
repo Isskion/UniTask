@@ -103,7 +103,8 @@ const ImageNode = ({ id, data, selected }: any) => {
                         position={Position.Right}
                         id="right-c"
                         className="!absolute -right-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
-                        title="Arrastra para conectar a la derecha"
+                        onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
+                        title="Clic para clonar / Arrastra para conectar"
                     >
                         <ArrowRight className="w-4 h-4 pointer-events-none" />
                     </Handle>
@@ -112,7 +113,8 @@ const ImageNode = ({ id, data, selected }: any) => {
                         position={Position.Bottom}
                         id="bottom-c"
                         className="!absolute -bottom-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
-                        title="Arrastra para conectar abajo"
+                        onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
+                        title="Clic para clonar / Arrastra para conectar"
                     >
                         <ArrowDown className="w-4 h-4 pointer-events-none" />
                     </Handle>
@@ -121,7 +123,8 @@ const ImageNode = ({ id, data, selected }: any) => {
                         position={Position.Left}
                         id="left-c"
                         className="!absolute -left-10 top-1/2 -translate-y-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
-                        title="Arrastra para conectar a la izquierda"
+                        onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
+                        title="Clic para clonar / Arrastra para conectar"
                     >
                         <ArrowLeft className="w-4 h-4 pointer-events-none" />
                     </Handle>
@@ -130,7 +133,8 @@ const ImageNode = ({ id, data, selected }: any) => {
                         position={Position.Top}
                         id="top-c"
                         className="!absolute -top-10 left-1/2 -translate-x-1/2 p-1.5 bg-white border border-slate-200 rounded-full shadow-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-400 pointer-events-auto transition-all hover:scale-125 active:scale-95 flex items-center justify-center !w-8 !h-8 !opacity-100"
-                        title="Arrastra para conectar arriba"
+                        onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
+                        title="Clic para clonar / Arrastra para conectar"
                     >
                         <ArrowUp className="w-4 h-4 pointer-events-none" />
                     </Handle>
