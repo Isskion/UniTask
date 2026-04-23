@@ -121,6 +121,27 @@ export default function UnifluxWorkspace() {
 
     // React Flow State
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    
+    // Wrap onNodesChange to persist dimension changes (resizing) into the abstract graph
+    const handleNodesChange = useCallback((changes: any[]) => {
+        onNodesChange(changes);
+        const dimChanges = changes.filter(c => c.type === 'dimensions');
+        if (dimChanges.length > 0) {
+            setGraph(prev => {
+                let changed = false;
+                const newNodes = prev.nodes.map(n => {
+                    const change = dimChanges.find(c => c.id === n.id);
+                    if (change && change.dimensions) {
+                        changed = true;
+                        return { ...n, width: change.dimensions.width, height: change.dimensions.height };
+                    }
+                    return n;
+                });
+                return changed ? { ...prev, nodes: newNodes } : prev;
+            });
+        }
+    }, [onNodesChange, setGraph]);
+
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
@@ -793,13 +814,6 @@ export default function UnifluxWorkspace() {
         [reactFlowInstance, setNodes, nodes, activeC4Level],
     );
 
-    const onNodeResizeStop = useCallback((_event: any, { id, width, height }: { id: string, width: number, height: number }) => {
-        setGraph(prev => ({
-            ...prev,
-            nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
-        }));
-        setTimeout(takeSnapshot, 0);
-    }, [setGraph, takeSnapshot]);
 
     const onNodeDragStop = useCallback((_event: any, draggedNode: Node) => {
         // Use absolute position for hit testing
@@ -1673,14 +1687,13 @@ export default function UnifluxWorkspace() {
                     nodes={nodes}
                     edges={edges}
                     nodeTypes={nodeTypes}
-                    onNodesChange={onNodesChange}
+                    onNodesChange={handleNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
                     onInit={setReactFlowInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
                     onNodeDragStop={onNodeDragStop}
-                    onNodeResizeStop={onNodeResizeStop}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
                     onNodeContextMenu={onNodeContextMenu}
