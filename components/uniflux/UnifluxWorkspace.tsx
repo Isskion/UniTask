@@ -694,13 +694,13 @@ export default function UnifluxWorkspace() {
         if (draggedNode.data.type === 'ENVIRONMENT' || draggedNode.data.type === 'C4_BOUNDARY') return;
 
         // Use absolute position for hit testing
-        const absX = draggedNode.computed?.positionAbsolute?.x ?? draggedNode.position.x;
-        const absY = draggedNode.computed?.positionAbsolute?.y ?? draggedNode.position.y;
+        const absX = (draggedNode as any).computed?.positionAbsolute?.x ?? draggedNode.position.x;
+        const absY = (draggedNode as any).computed?.positionAbsolute?.y ?? draggedNode.position.y;
 
         // Check if dropped inside an environment or C4 boundary
         const targetEnv = nodes.find(n => {
-            const envAbsX = n.computed?.positionAbsolute?.x ?? n.position.x;
-            const envAbsY = n.computed?.positionAbsolute?.y ?? n.position.y;
+            const envAbsX = (n as any).computed?.positionAbsolute?.x ?? n.position.x;
+            const envAbsY = (n as any).computed?.positionAbsolute?.y ?? n.position.y;
             return (n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY') &&
                 n.id !== draggedNode.id &&
                 absX >= envAbsX &&
@@ -712,8 +712,8 @@ export default function UnifluxWorkspace() {
         if (targetEnv && draggedNode.parentId !== targetEnv.id) {
             setNodes(nds => nds.map(node => {
                 if (node.id === draggedNode.id) {
-                    const envAbsX = targetEnv.computed?.positionAbsolute?.x ?? targetEnv.position.x;
-                    const envAbsY = targetEnv.computed?.positionAbsolute?.y ?? targetEnv.position.y;
+                    const envAbsX = (targetEnv as any).computed?.positionAbsolute?.x ?? targetEnv.position.x;
+                    const envAbsY = (targetEnv as any).computed?.positionAbsolute?.y ?? targetEnv.position.y;
                     return {
                         ...node,
                         parentId: targetEnv.id,
