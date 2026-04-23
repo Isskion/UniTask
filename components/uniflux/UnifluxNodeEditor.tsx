@@ -162,6 +162,7 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                             </div>
                         )}
                     </div>
+                )}
                 {type === 'ICON' && (
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-2 items-end">

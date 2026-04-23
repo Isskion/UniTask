@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BaseEdge, EdgeProps, getStepPath } from '@xyflow/react';
+import { BaseEdge, EdgeProps, getSmoothStepPath } from '@xyflow/react';
 
 export default function UnifluxOrthogonalEdge({
     id,
@@ -20,7 +20,7 @@ export default function UnifluxOrthogonalEdge({
     labelBgBorderRadius,
     selected,
 }: EdgeProps) {
-    const [edgePath, labelX, labelY] = getStepPath({
+    const [edgePath, labelX, labelY] = getSmoothStepPath({
         sourceX,
         sourceY,
         sourcePosition,
