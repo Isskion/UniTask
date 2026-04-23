@@ -202,6 +202,10 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
             return nds.map(n => ({...n, selected: false})).concat(newNode);
         });
     };
+    const deleteNode = () => {
+        setNodes((nds) => nds.filter((n) => n.id !== id));
+        setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+    };
 
     return (
         <>
