@@ -360,10 +360,10 @@ export default function UnifluxWorkspace() {
         listProjectFlows(tenantToUse, selectedProjectId)
             .then(flows => {
                 setSavedFlows(flows as FlowGraph[]);
-                // Auto-open sidebar if canvas is empty and user has existing flows
-                if (flows.length > 0 && graph.nodes.length === 0) {
-                    setIsSidebarOpen(true);
-                }
+                // Removed auto-open sidebar to avoid covering the stencil palette
+                // if (flows.length > 0 && graph.nodes.length === 0) {
+                //     setIsSidebarOpen(true);
+                // }
             })
             .catch(err => console.error("Failed to load flows", err))
             .finally(() => setIsLoadingFlows(false));
@@ -1031,13 +1031,7 @@ export default function UnifluxWorkspace() {
 
             <div className="flex-1 relative flex">
 
-                {/* Flow Management Sidebar Overlay */}
-                {isSidebarOpen && (
-                    <div
-                        className="absolute inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
-                        onClick={() => setIsSidebarOpen(false)}
-                    />
-                )}
+                {/* Flow Management Sidebar Overlay - Removed to prevent blocking interaction */}
 
                 {/* Flow Management Sidebar Panel */}
                 <div className={`absolute top-0 bottom-0 left-0 w-80 bg-white border-r shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -1525,8 +1519,9 @@ export default function UnifluxWorkspace() {
                     snapToGrid={true}
                     snapGrid={[15, 15]}
                     fitView
+                    fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
                     minZoom={0.1}
-                    maxZoom={4}
+                    maxZoom={2}
                     defaultEdgeOptions={{ type: 'smoothstep', animated: false }}
                     connectionLineType={'smoothstep' as any}
                     connectionMode={ConnectionMode.Loose}
