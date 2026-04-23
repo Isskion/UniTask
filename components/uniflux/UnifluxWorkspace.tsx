@@ -247,14 +247,17 @@ export default function UnifluxWorkspace() {
                     isLocked: n.isLocked,
                     dimmed: visTier !== 'full',
                 } : {
-                    label: isBoundaryLike ? n.label : `${n.id}. ${n.label}`,
+                    label: n.label,
                     type: n.type,
                     isLocked: n.isLocked,
                 },
                 zIndex: isBoundaryLike ? -1 : 1,
                 style: isC4
                     ? { background: 'transparent', border: 'none', padding: 0, width: n.width, height: n.height, opacity, transition: 'opacity 0.25s ease' }
-                    : { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 },
+                    : (n.type === 'ENVIRONMENT'
+                         ? { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1 }
+                         : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
+                      ),
                 parentId: n.parentId,
                 extent: n.parentId ? 'parent' : undefined,
                 draggable: !n.isLocked && visTier === 'full',
