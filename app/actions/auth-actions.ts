@@ -22,7 +22,7 @@ export async function syncUserClaimsAction(targetUserId: string) {
         const syncFn = httpsCallable(functions, 'syncUserClaims');
         const result = await syncFn({ targetUserId });
 
-        return result.data as { success: boolean; claims?: any };
+        return result.data as { success: boolean; claims?: any; message?: string };
     } catch (error: any) {
         console.error("Sync Claims Action Error:", error);
         return { success: false, message: error.message || "Error al sincronizar permisos" };

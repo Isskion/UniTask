@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { auth, db } from '../lib/firebase'; // Fixed path to lib/firebase
@@ -171,7 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                                             if (res.success) {
                                                 console.log("[AuthContext] ✅ Self-healing sync triggered successfully.");
                                             } else {
-                                                console.error("[AuthContext] ❌ Self-healing sync failed:", res.message);
+                                                console.error("[AuthContext] ❌ Self-healing sync failed:", (res as any).message);
                                             }
                                         })
                                         .catch(err => console.error("[AuthContext] ❌ syncUserClaimsAction error:", err));
