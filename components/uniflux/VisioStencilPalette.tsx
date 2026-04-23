@@ -12,6 +12,23 @@ interface StencilItem {
 
 const CATEGORIES: { title: string; defaultOpen?: boolean; items: StencilItem[] }[] = [
     {
+        title: 'Componentes Pro',
+        defaultOpen: true,
+        items: [
+            {
+                type: 'PRO_NODE' as NodeType,
+                label: 'Tabla Pro',
+                renderIcon: () => (
+                    <div className="w-8 h-8 rounded border-t-4 border-indigo-500 bg-slate-50 flex flex-col gap-0.5 p-1 shadow-sm">
+                        <div className="h-1 w-full bg-slate-200" />
+                        <div className="h-1 w-2/3 bg-slate-200" />
+                        <div className="h-1 w-full bg-slate-200" />
+                    </div>
+                )
+            }
+        ]
+    },
+    {
         title: 'Flujo Básico',
         defaultOpen: true,
         items: [

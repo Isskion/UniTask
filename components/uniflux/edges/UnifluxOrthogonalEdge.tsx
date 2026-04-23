@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React, { memo } from 'react';
-import { BaseEdge, getSmoothStepPath, EdgeProps, EdgeLabelRenderer } from '@xyflow/react';
+import React from 'react';
+import { BaseEdge, EdgeProps, getStepPath } from '@xyflow/react';
 
-const UnifluxOrthogonalEdge = ({
+export default function UnifluxOrthogonalEdge({
     id,
     sourceX,
     sourceY,
@@ -14,16 +14,20 @@ const UnifluxOrthogonalEdge = ({
     style = {},
     markerEnd,
     label,
+    labelStyle,
+    labelBgStyle,
+    labelBgPadding,
+    labelBgBorderRadius,
     selected,
-}: EdgeProps) => {
-    const [edgePath, labelX, labelY] = getSmoothStepPath({
+}: EdgeProps) {
+    const [edgePath, labelX, labelY] = getStepPath({
         sourceX,
         sourceY,
         sourcePosition,
         targetX,
         targetY,
         targetPosition,
-        borderRadius: 16, // Bordes suavizados para un look moderno
+        borderRadius: 16, // Softer turns
     });
 
     return (
@@ -33,36 +37,38 @@ const UnifluxOrthogonalEdge = ({
                 markerEnd={markerEnd} 
                 style={{
                     ...style,
-                    strokeWidth: selected ? 3 : 2,
-                    stroke: selected ? '#3b82f6' : '#94a3b8',
+                    strokeWidth: selected ? 3.5 : 2.5,
+                    stroke: selected ? '#4f46e5' : (style.stroke || '#94a3b8'),
                     transition: 'stroke-width 0.2s, stroke 0.2s',
                 }} 
             />
-            
             {label && (
-                <EdgeLabelRenderer>
-                    <div
-                        style={{
-                            position: 'absolute',
-                            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                            background: 'white',
-                            padding: '4px 8px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: '#475569',
-                            border: '1px solid #cbd5e1',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                            pointerEvents: 'all',
+                <text
+                    x={labelX}
+                    y={labelY}
+                    style={{
+                        ...labelStyle,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        fill: selected ? '#4f46e5' : '#64748b',
+                        textAnchor: 'middle',
+                        dominantBaseline: 'central',
+                    }}
+                >
+                    <tspan 
+                        style={{ 
+                            ...labelBgStyle, 
+                            fill: '#fff', 
+                            stroke: selected ? '#4f46e5' : '#e2e8f0',
+                            strokeWidth: 1,
                         }}
-                        className="nodrag nopan"
+                        dx={0} 
+                        dy={0}
                     >
                         {label}
-                    </div>
-                </EdgeLabelRenderer>
+                    </tspan>
+                </text>
             )}
         </>
     );
-};
-
-export default memo(UnifluxOrthogonalEdge);
+}

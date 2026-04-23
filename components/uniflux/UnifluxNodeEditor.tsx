@@ -29,6 +29,9 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
     const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
     const [iconName, setIconName] = useState(initialData?.iconName || 'Box');
     const [color, setColor] = useState(initialData?.color || '#4f46e5');
+    const [items, setItems] = useState<{ key: string, value: string }[]>(initialData?.items || []);
+    const [newItemKey, setNewItemKey] = useState('');
+    const [newItemValue, setNewItemValue] = useState('');
 
     // Sync if props change
     useEffect(() => {
@@ -37,10 +40,22 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
         setImageUrl(initialData?.imageUrl || '');
         setIconName(initialData?.iconName || 'Box');
         setColor(initialData?.color || '#4f46e5');
+        setItems(initialData?.items || []);
     }, [initialLabel, initialType, initialData]);
 
     const handleSave = () => {
-        onSave(nodeId, label, type, { imageUrl, iconName, color });
+        onSave(nodeId, label, type, { imageUrl, iconName, color, items });
+    };
+
+    const addItem = () => {
+        if (!newItemKey || !newItemValue) return;
+        setItems(prev => [...prev, { key: newItemKey, value: newItemValue }]);
+        setNewItemKey('');
+        setNewItemValue('');
+    };
+
+    const removeItem = (idx: number) => {
+        setItems(prev => prev.filter((_, i) => i !== idx));
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +80,7 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
         { value: 'ENVIRONMENT', label: 'Entorno' },
         { value: 'ICON', label: 'Icono' },
         { value: 'IMAGE', label: 'Imagen' },
+        { value: 'PRO_NODE', label: 'Tabla Pro' },
     ];
 
     return (
@@ -146,8 +162,6 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                             </div>
                         )}
                     </div>
-                )}
-
                 {type === 'ICON' && (
                     <div className="flex flex-col gap-4">
                         <div className="flex gap-2 items-end">
@@ -191,6 +205,64 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                                         </button>
                                     );
                                 })}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {type === 'PRO_NODE' && (
+                    <div className="flex flex-col gap-3">
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Color Tema</label>
+                                <input
+                                    type="color"
+                                    value={color}
+                                    onChange={(e) => setColor(e.target.value)}
+                                    className="w-full h-8 border border-gray-200 rounded-lg cursor-pointer"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="border border-slate-100 rounded-lg p-3 bg-slate-50/50">
+                            <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Datos de la Tabla</label>
+                            
+                            <div className="space-y-2 mb-3">
+                                {items.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 bg-white p-1.5 rounded-md shadow-sm border border-slate-100">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase">{item.key}</div>
+                                            <div className="text-[10px] font-bold text-slate-600 truncate">{item.value}</div>
+                                        </div>
+                                        <button onClick={() => removeItem(idx)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-1">
+                                    <input
+                                        value={newItemKey}
+                                        onChange={(e) => setNewItemKey(e.target.value.toUpperCase())}
+                                        className="flex-1 border border-gray-200 rounded-md px-2 py-1 text-[10px] uppercase font-mono"
+                                        placeholder="CLAVE"
+                                    />
+                                    <input
+                                        value={newItemValue}
+                                        onChange={(e) => setNewItemValue(e.target.value)}
+                                        className="flex-1 border border-gray-200 rounded-md px-2 py-1 text-[10px]"
+                                        placeholder="VALOR"
+                                    />
+                                </div>
+                                <button
+                                    onClick={addItem}
+                                    disabled={!newItemKey || !newItemValue}
+                                    className="w-full py-1 text-[10px] font-bold bg-white border border-slate-200 text-slate-600 rounded-md hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-50 transition-all"
+                                >
+                                    + Añadir Fila
+                                </button>
                             </div>
                         </div>
                     </div>

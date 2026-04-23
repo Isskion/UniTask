@@ -33,6 +33,8 @@ import UnifluxC4ComponentNode from './nodes/UnifluxC4ComponentNode';
 import UnifluxC4BoundaryNode from './nodes/UnifluxC4BoundaryNode';
 import IconNode from './nodes/IconNode';
 import ImageNode from './nodes/ImageNode';
+import UnifluxProNode from './nodes/UnifluxProNode';
+import UnifluxOrthogonalEdge from './edges/UnifluxOrthogonalEdge';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
 const C4_NODE_TYPES = MODE_REGISTRY['c4'].nodeTypes;
@@ -57,6 +59,11 @@ const nodeTypes = {
     C4_BOUNDARY: UnifluxC4BoundaryNode,
     ICON: IconNode,
     IMAGE: ImageNode,
+    PRO_NODE: UnifluxProNode,
+};
+
+const edgeTypes = {
+    orthogonal: UnifluxOrthogonalEdge,
 };
 
 // Initial placeholder graph
@@ -260,11 +267,64 @@ export default function UnifluxWorkspace() {
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
 
-    // isNodeVisibleAtLevel kept for backward compat with onDrop and onNodeDragStop
     const isNodeVisibleAtLevel = useCallback((nodeType: string, nodeC4Level: number | undefined, viewLevel: number): boolean => {
         const natural = nodeC4Level ?? ({ C4_PERSON:1, C4_SYSTEM:1, C4_SYSTEM_EXT:1, C4_CONTAINER_WEB:2, C4_CONTAINER_API:2, C4_CONTAINER_DB:2, C4_CONTAINER_QUEUE:2, C4_COMPONENT:3, C4_BOUNDARY:1 } as Record<string,number>)[nodeType] ?? viewLevel;
         return natural <= viewLevel;
     }, []);
+    
+    // Context Menu State
+    const [menu, setMenu] = useState<{ id?: string, top?: number, left?: number, right?: number, bottom?: number, type: 'node' | 'pane' | 'edge' } | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const onNodeContextMenu = useCallback(
+        (event: React.MouseEvent, node: Node) => {
+            event.preventDefault();
+            setMenu({
+                id: node.id,
+                top: event.clientY,
+                left: event.clientX,
+                type: 'node'
+            });
+        },
+        [setMenu]
+    );
+
+    const onPaneContextMenu = useCallback(
+        (event: React.MouseEvent) => {
+            event.preventDefault();
+            setMenu({
+                top: event.clientY,
+                left: event.clientX,
+                type: 'pane'
+            });
+        },
+        [setMenu]
+    );
+
+    const onEdgeContextMenu = useCallback(
+        (event: React.MouseEvent, edge: Edge) => {
+            event.preventDefault();
+            setMenu({
+                id: edge.id,
+                top: event.clientY,
+                left: event.clientX,
+                type: 'edge'
+            });
+        },
+        [setMenu]
+    );
+
+    const closeMenu = useCallback(() => setMenu(null), []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                closeMenu();
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [closeMenu]);
 
     // Sync Graph -> React Flow ONLY on load or AI update
     useEffect(() => {
@@ -530,8 +590,8 @@ export default function UnifluxWorkspace() {
                         type: newType,
                         ...additionalData 
                     },
-                    style: (newType === 'ICON' || newType === 'IMAGE')
-                        ? { background: 'transparent', border: 'none', padding: 0, width: node.style?.width ?? 64, height: node.style?.height ?? 64, opacity: node.data.isLocked ? 0.8 : 1 }
+                    style: (newType === 'ICON' || newType === 'IMAGE' || newType === 'PRO_NODE')
+                        ? { background: 'transparent', border: 'none', padding: 0, width: node.style?.width ?? (newType === 'PRO_NODE' ? 200 : 64), height: node.style?.height ?? (newType === 'PRO_NODE' ? 100 : 64), opacity: node.data.isLocked ? 0.8 : 1 }
                         : { ...getNodeStyle(newType), width: node.style?.width, height: node.style?.height, opacity: node.data.isLocked ? 0.8 : 1 }
                 };
             }
@@ -1433,6 +1493,7 @@ export default function UnifluxWorkspace() {
                                         >
                                             <option value="default">Curva (Bezier)</option>
                                             <option value="smoothstep">Escalón Suave</option>
+                                            <option value="orthogonal">Ortogonal Pro</option>
                                             <option value="step">Escalón</option>
                                             <option value="straight">Recta</option>
                                         </select>
@@ -1554,7 +1615,11 @@ export default function UnifluxWorkspace() {
                     onNodeDragStop={onNodeDragStop}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
-                    onPaneClick={() => { setSelectedNode(null); setEditingEdge(null); }}
+                    onNodeContextMenu={onNodeContextMenu}
+                    onPaneContextMenu={onPaneContextMenu}
+                    onEdgeContextMenu={onEdgeContextMenu}
+                    onPaneClick={() => { setSelectedNode(null); setEditingEdge(null); closeMenu(); }}
+                    edgeTypes={edgeTypes}
                     snapToGrid={true}
                     snapGrid={[15, 15]}
                     fitView
@@ -1607,6 +1672,45 @@ export default function UnifluxWorkspace() {
                     </Panel>
                 </ReactFlow>}
                 </div>
+                {/* Context Menu */}
+                {menu && (
+                    <div
+                        ref={menuRef}
+                        style={{ top: menu.top, left: menu.left }}
+                        className="fixed z-[9999] bg-white rounded-xl shadow-2xl border border-slate-200 p-1.5 min-w-[180px] animate-in fade-in zoom-in duration-150"
+                    >
+                        {menu.type === 'node' && (
+                            <>
+                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acciones Nodo</div>
+                                <button onClick={() => { duplicateNode(); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                    <Copy className="w-4 h-4 text-slate-400" /> Duplicar
+                                </button>
+                                <button onClick={() => { handleToggleLock(menu.id!, !nodes.find(n => n.id === menu.id)?.data.isLocked); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                    <Save className="w-4 h-4 text-slate-400" /> {nodes.find(n => n.id === menu.id)?.data.isLocked ? 'Desbloquear' : 'Bloquear'}
+                                </button>
+                                <div className="h-px bg-slate-100 my-1" />
+                                <button onClick={() => { handleNodeDelete(menu.id!); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors text-left">
+                                    <Trash2 className="w-4 h-4" /> Eliminar
+                                </button>
+                            </>
+                        )}
+                        {menu.type === 'pane' && (
+                            <>
+                                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lienzo</div>
+                                <button onClick={() => { reactFlowInstance?.fitView({ duration: 400 }); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                    <Map className="w-4 h-4 text-slate-400" /> Centrar Vista
+                                </button>
+                                <button onClick={() => { handleNewFlow(); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                    <Plus className="w-4 h-4 text-slate-400" /> Nuevo Flujo
+                                </button>
+                                <div className="h-px bg-slate-100 my-1" />
+                                <button onClick={() => { handleExport('png'); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
+                                    <Download className="w-4 h-4 text-slate-400" /> Exportar PNG
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

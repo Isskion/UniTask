@@ -1,129 +1,87 @@
-'use client'
+'use client';
 
-import React, { memo, useState } from 'react';
-import { Handle, Position, NodeResizer, NodeToolbar } from '@xyflow/react';
-import { cn } from '@/lib/utils';
-import { Settings, Copy, Trash2, Lock, Unlock, MoreHorizontal, Maximize2 } from 'lucide-react';
+import React, { memo } from 'react';
+import { Handle, Position, NodeResizer } from '@xyflow/react';
 
-const UnifluxProNode = ({ data, selected, id }: any) => {
-    const [isHovered, setIsHovered] = useState(false);
-    
-    // Configuración visual basada en el tipo de nodo
-    const getStyles = () => {
-        const type = data.type;
-        switch (type) {
-            case 'START':
-                return { bg: 'bg-emerald-500', border: 'border-emerald-700', text: 'text-white', icon: '🏁' };
-            case 'TERMINAL':
-                return { bg: 'bg-slate-700', border: 'border-slate-900', text: 'text-white', icon: '⏹️' };
-            case 'DECISION':
-                return { bg: 'bg-amber-400', border: 'border-amber-600', text: 'text-slate-900', icon: '💎', shape: 'diamond' };
-            case 'TASK':
-                return { bg: 'bg-indigo-500', border: 'border-indigo-700', text: 'text-white', icon: '📝' };
-            case 'ERROR':
-                return { bg: 'bg-rose-500', border: 'border-rose-700', text: 'text-white', icon: '⚠️' };
-            default:
-                return { bg: 'bg-sky-500', border: 'border-sky-700', text: 'text-white', icon: '⚙️' };
-        }
-    };
+const handleStyle = {
+    width: 8,
+    height: 8,
+    background: '#8b5cf6',
+    border: '2px solid white',
+    opacity: 0,
+    transition: 'opacity 0.2s',
+};
 
-    const styles = getStyles();
-    const isLocked = data.isLocked;
-
-    // Handle styling - Visio style (small dots)
-    const handleStyle = {
-        width: 8,
-        height: 8,
-        background: '#fff',
-        border: '1.5px solid #3b82f6',
-        borderRadius: '50%',
-        opacity: selected || isHovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-    };
+const UnifluxProNode = ({ data, selected }: any) => {
+    const isLocked = data.isLocked || false;
+    const items = data.items || []; // { key: string, value: string }
+    const color = data.color || '#4f46e5';
 
     return (
-        <div 
-            className={cn(
-                "relative transition-all duration-200 group",
-                selected ? "z-10" : "z-0"
+        <div className="group">
+            {!isLocked && (
+                <NodeResizer
+                    color={color}
+                    isVisible={selected}
+                    minWidth={200}
+                    minHeight={100}
+                    handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
+                />
             )}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Toolbar Contextual */}
-            <NodeToolbar 
-                isVisible={selected} 
-                position={Position.Top}
-                className="flex gap-1 p-1 bg-white shadow-xl rounded-lg border border-gray-200 mb-2"
-            >
-                <button className="p-1.5 hover:bg-gray-100 rounded text-gray-600 transition-colors">
-                    <Settings className="w-4 h-4" />
-                </button>
-                <button className="p-1.5 hover:bg-gray-100 rounded text-gray-600 transition-colors">
-                    <Copy className="w-4 h-4" />
-                </button>
-                <div className="w-[1px] h-4 bg-gray-200 my-auto mx-1" />
-                <button className="p-1.5 hover:bg-red-50 rounded text-red-500 transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                </button>
-            </NodeToolbar>
-
-            {/* Resizer */}
-            <NodeResizer 
-                isVisible={selected && !isLocked} 
-                minWidth={100} 
-                minHeight={60} 
-                handleClassName="!bg-blue-500 !border-white !w-3 !h-3 !rounded-sm"
-                lineClassName="!border-blue-500/50"
-            />
-
-            {/* Main Body */}
-            <div 
-                className={cn(
-                    "flex flex-col items-center justify-center p-4 min-w-[140px] min-h-[70px] rounded-lg border-2 shadow-lg transition-all",
-                    styles.bg, styles.border, styles.text,
-                    selected ? "ring-4 ring-blue-500/30 scale-[1.02]" : "hover:shadow-xl",
-                    isLocked && "opacity-80 grayscale-[30%]"
-                )}
-                style={{
-                    width: data.width || '100%',
-                    height: data.height || '100%',
-                }}
-            >
-                {isLocked && (
-                    <div className="absolute top-2 right-2 opacity-60">
-                        <Lock className="w-3 h-3" />
-                    </div>
-                )}
+            
+            <div className="bg-white rounded-xl shadow-lg border-2 border-slate-200 overflow-hidden flex flex-col transition-all group-hover:border-indigo-400 min-w-[200px]"
+                 style={{ borderColor: selected ? color : undefined }}>
                 
-                <div className="text-xl mb-1">{styles.icon}</div>
-                <div className="font-bold text-sm text-center leading-tight px-2">
-                    {data.label}
+                {/* Header */}
+                <div className="bg-slate-50 px-3 py-2 border-b border-slate-200 flex items-center justify-between"
+                     style={{ borderTop: `4px solid ${color}` }}>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{data.type || 'PRO NODE'}</span>
+                    {data.external && <span className="bg-orange-100 text-orange-600 text-[8px] px-1.5 rounded-full font-bold uppercase">External</span>}
                 </div>
-                
-                {data.description && (
-                    <div className="text-[9px] mt-1 opacity-80 italic text-center">
-                        {data.description}
+
+                {/* Content */}
+                <div className="p-3">
+                    <div className="font-bold text-slate-800 text-sm mb-1">{data.label}</div>
+                    {data.description && <div className="text-[10px] text-slate-500 line-clamp-2 mb-2">{data.description}</div>}
+                    
+                    {/* Items Table */}
+                    {items.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                            {items.map((item: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between text-[9px] py-1 border-b border-slate-50 last:border-0">
+                                    <span className="font-mono text-slate-400 uppercase">{item.key}</span>
+                                    <span className="font-bold text-slate-600">{item.value}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer/Meta */}
+                {data.technology && (
+                    <div className="bg-slate-50/50 px-3 py-1.5 text-[9px] font-bold text-slate-400 flex items-center gap-1.5 italic">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+                        {data.technology}
                     </div>
                 )}
             </div>
 
-            {/* 8 Handles (Visio-style slots) */}
-            {/* Top */}
-            <Handle type="target" position={Position.Top} id="t1" style={{ ...handleStyle, left: '33%' }} />
-            <Handle type="target" position={Position.Top} id="t2" style={{ ...handleStyle, left: '66%' }} />
+            {/* 16 Connection Handles */}
+            <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%' }} id="top-c" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%' }} id="top-25" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%' }} id="top-75" className="opacity-0 group-hover:opacity-100" />
             
-            {/* Bottom */}
-            <Handle type="source" position={Position.Bottom} id="b1" style={{ ...handleStyle, left: '33%' }} />
-            <Handle type="source" position={Position.Bottom} id="b2" style={{ ...handleStyle, left: '66%' }} />
-            
-            {/* Left */}
-            <Handle type="target" position={Position.Left} id="l1" style={{ ...handleStyle, top: '33%' }} />
-            <Handle type="target" position={Position.Left} id="l2" style={{ ...handleStyle, top: '66%' }} />
-            
-            {/* Right */}
-            <Handle type="source" position={Position.Right} id="r1" style={{ ...handleStyle, top: '33%' }} />
-            <Handle type="source" position={Position.Right} id="r2" style={{ ...handleStyle, top: '66%' }} />
+            <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto' }} id="bottom-c" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto' }} id="bottom-25" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto' }} id="bottom-75" className="opacity-0 group-hover:opacity-100" />
+
+            <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%' }} id="left-25" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%' }} id="left-c" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%' }} id="left-75" className="opacity-0 group-hover:opacity-100" />
+
+            <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto' }} id="right-25" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto' }} id="right-c" className="opacity-0 group-hover:opacity-100" />
+            <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto' }} id="right-75" className="opacity-0 group-hover:opacity-100" />
         </div>
     );
 };
