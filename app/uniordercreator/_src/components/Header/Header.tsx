@@ -167,22 +167,21 @@ export default function Header({
                         <span className="hidden lg:inline">Validar</span>
                     </button>
 
-                    {/* Dashboard Button */}
-                    {(successCount > 0 || failedCount > 0) && (
-                        <button
-                            className={`${btnBase} relative bg-gradient-to-r from-violet-500/15 to-indigo-500/15 text-violet-300 border border-violet-400/25 hover:from-violet-500/25 hover:to-indigo-500/25`}
-                            onClick={onShowDashboard}
-                            title="Dashboard de Resultados"
-                        >
-                            <span className="text-xs">📊</span>
-                            <span className="hidden lg:inline">Dashboard</span>
-                            {failedCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 flex items-center justify-center text-[8px] font-black bg-red-500 text-white rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse px-1">
-                                    {failedCount}
-                                </span>
-                            )}
-                        </button>
-                    )}
+                    {/* Dashboard Button — Always visible */}
+                    <button
+                        className={`${btnBase} relative bg-gradient-to-r from-violet-500/15 to-indigo-500/15 text-violet-300 border border-violet-400/25 hover:from-violet-500/25 hover:to-indigo-500/25`}
+                        onClick={onShowDashboard}
+                        disabled={!hasData}
+                        title="Dashboard de Resultados"
+                    >
+                        <span className="text-xs">📊</span>
+                        <span className="hidden lg:inline">Dashboard</span>
+                        {failedCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 flex items-center justify-center text-[8px] font-black bg-red-500 text-white rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse px-1">
+                                {failedCount}
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 <div className="w-px h-6 bg-white/[0.06]" />
