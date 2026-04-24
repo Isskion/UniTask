@@ -519,15 +519,21 @@ export default function UnifluxWorkspace() {
         const startX = 50;
         const startY = 50;
 
+        let nextId = 1;
+        const existingIds = nodes.map(n => parseInt(n.id)).filter(id => !isNaN(id));
+        if (existingIds.length > 0) {
+            nextId = Math.max(...existingIds) + 1;
+        }
+
         for (let i = 0; i < count; i++) {
-            const id = `area-${Date.now()}-${i}`;
+            const newNodeId = (nextId + i).toString();
             const label = `Sistema ${i + 1}`;
             newNodes.push({
-                id,
+                id: newNodeId,
                 type: 'ENVIRONMENT',
                 position: { x: startX + (i % 3) * spacing, y: startY + Math.floor(i / 3) * spacing },
                 data: { 
-                    label, 
+                    label: `${newNodeId}. ${label}`, 
                     type: 'ENVIRONMENT',
                     onResizeStop: onNodeResizeStop 
                 },
