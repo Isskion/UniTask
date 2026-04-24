@@ -436,6 +436,8 @@ export default function UnifluxWorkspace() {
                 id: e.id,
                 source: e.source,
                 target: e.target,
+                ...(e.sourceHandle ? { sourceHandle: e.sourceHandle } : {}),
+                ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                 label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
                 type: isC4Edge ? 'default' : 'smoothstep',
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
@@ -1108,6 +1110,8 @@ export default function UnifluxWorkspace() {
                     id: e.id,
                     source: e.source,
                     target: e.target,
+                    ...(e.sourceHandle ? { sourceHandle: e.sourceHandle } : {}),
+                    ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                     ...(e.label ? { label: e.label as string } : {}),
                 }));
 
