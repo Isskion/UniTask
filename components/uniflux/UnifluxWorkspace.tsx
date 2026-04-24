@@ -421,6 +421,11 @@ export default function UnifluxWorkspace() {
 
         if (graph.nodes.length > 0) setShowWizard(false);
     }, [graph, activeC4Level, setNodes, setEdges, isNodeVisibleAtLevel]);
+    
+    // Crucial: Synchronize the visual canvas whenever the abstract graph state changes
+    useEffect(() => {
+        syncNodesFromGraph(graph);
+    }, [graph, syncNodesFromGraph]);
 
     // Fetch Projects
     useEffect(() => {
