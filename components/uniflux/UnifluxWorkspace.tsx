@@ -109,10 +109,43 @@ export default function UnifluxWorkspace() {
     const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
     // Keep graph.c4Level in sync with activeC4Level so it's persisted on save
-    const handleC4LevelChange = useCallback((level: 1 | 2 | 3) => {
+    const handleC4LevelChange = (level: 1 | 2 | 3) => {
         setActiveC4Level(level);
         setGraph(prev => ({ ...prev, c4Level: level }));
-    }, []);
+        
+        // Update visibility directly on React Flow state to avoid wiping out unsaved local changes
+        setNodes(nds => nds.map(n => {
+            if (!C4_NODE_TYPES.has(n.data.type as string)) return n;
+            const visTier = getNodeVisibility(n.data as any, level);
+            const opacity = n.data.isLocked ? 0.8 : OPACITY[visTier];
+            return {
+                ...n,
+                data: { ...n.data, dimmed: visTier !== 'full' },
+                style: { ...n.style, opacity, pointerEvents: n.data.isLocked ? 'none' : 'all' },
+                draggable: !n.data.isLocked && visTier === 'full',
+                selectable: visTier === 'full'
+            };
+        }));
+        
+        setEdges(eds => {
+            // Build a fast lookup map for edges to check node visibility
+            const nodeMapLocal = buildNodeMap(nodes.map(n => ({ ...n.data, id: n.id }) as any));
+            return eds.map(e => {
+                const isC4Edge = graph.docType === 'c4';
+                if (!isC4Edge) return e;
+                const edgeVisTier = getEdgeVisibility({ source: e.source, target: e.target } as any, nodeMapLocal, level);
+                const edgeDimmed = edgeVisTier !== 'full';
+                const edgeStyle = getC4EdgeStyle(e.data?.c4RelType as any, edgeDimmed);
+                return {
+                    ...e,
+                    style: edgeStyle.line,
+                    markerEnd: edgeStyle.markerEnd as any,
+                    labelStyle: { fill: edgeDimmed ? '#d1d5db' : '#4b5563', fontWeight: 600, fontSize: 11, fontFamily: 'inherit' },
+                    labelBgStyle: { fill: '#ffffff', stroke: edgeDimmed ? '#f3f4f6' : '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 }
+                };
+            });
+        });
+    };
 
     // Wizard State
     const [showWizard, setShowWizard] = useState(false);
@@ -419,13 +452,7 @@ export default function UnifluxWorkspace() {
         setNodes(rfNodes);
         setEdges(rfEdges);
 
-        if (graph.nodes.length > 0) setShowWizard(false);
-    }, [graph, activeC4Level, setNodes, setEdges, isNodeVisibleAtLevel]);
-    
-    // Crucial: Synchronize the visual canvas whenever the abstract graph state changes
-    useEffect(() => {
-        syncNodesFromGraph(graph);
-    }, [graph, syncNodesFromGraph]);
+    }, [activeC4Level, isNodeVisibleAtLevel]);
 
     // Fetch Projects
     useEffect(() => {
@@ -473,6 +500,7 @@ export default function UnifluxWorkspace() {
             if (flowInfo.docType === 'c4' && flowInfo.c4Level) {
                 setActiveC4Level(flowInfo.c4Level as 1 | 2 | 3);
             }
+            syncNodesFromGraph(flowInfo);
             setTimeout(takeSnapshot, 0);
         }
     };
@@ -512,7 +540,9 @@ export default function UnifluxWorkspace() {
     };
 
     const handleApplyC4Template = (tplNodes: FlowNode[], tplEdges: FlowEdge[]) => {
-        setGraph(prev => ({ ...prev, nodes: tplNodes, edges: tplEdges }));
+        const newGraph = { ...graph, nodes: tplNodes, edges: tplEdges };
+        setGraph(newGraph);
+        syncNodesFromGraph(newGraph);
         setShowWizard(false);
         setShowTemplatesModal(false);
         setTimeout(takeSnapshot, 0);
@@ -986,6 +1016,7 @@ export default function UnifluxWorkspace() {
             projectId: graph.projectId || newGraph.projectId
         };
         setGraph(mergedGraph);
+        syncNodesFromGraph(mergedGraph);
         setShowWizard(false);
         setTimeout(takeSnapshot, 0);
         // Show undo banner so user knows they can revert the AI change
