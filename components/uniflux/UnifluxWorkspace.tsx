@@ -1105,6 +1105,12 @@ export default function UnifluxWorkspace() {
                         ...(isC4 && n.data.description ? { description: n.data.description as string } : {}),
                         ...(isC4 && n.data.external !== undefined ? { external: n.data.external as boolean } : {}),
                         ...(isC4 && n.data.c4Level ? { c4Level: n.data.c4Level as 1|2|3|4 } : {}),
+                        additionalData: {
+                            ...(n.data.additionalData || {}),
+                            ...(n.data.rotation ? { rotation: n.data.rotation } : {}),
+                            ...(n.data.imageUrl ? { imageUrl: n.data.imageUrl } : {}),
+                            ...(n.data.iconId ? { iconId: n.data.iconId } : {}),
+                        }
                     };
                 });
 

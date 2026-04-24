@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Edit2, Trash, Copy } from 'lucide-react';
+import { Edit2, Trash, Copy, RotateCw, Link } from 'lucide-react';
 
 const UnifluxTextNode = ({ id, data, selected }: any) => {
     const { updateNodeData, setNodes, setEdges } = useReactFlow();
@@ -59,6 +59,12 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
         });
     };
 
+    const handleRotate = () => {
+        const currentRotation = data.rotation || 0;
+        const nextRotation = (currentRotation + 90) % 360;
+        updateNodeData(id, { rotation: nextRotation });
+    };
+
     return (
         <div className="relative min-w-[150px] min-h-[50px] group">
             <NodeToolbar 
@@ -68,6 +74,9 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
             >
                 <button onClick={() => setIsEditing(true)} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Editar texto">
                     <Edit2 className="w-4 h-4" />
+                </button>
+                <button onClick={handleRotate} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Girar 90°">
+                    <RotateCw className="w-4 h-4" />
                 </button>
                 <button onClick={duplicateNode} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Duplicar">
                     <Copy className="w-4 h-4" />
@@ -89,13 +98,14 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
             )}
 
             <div 
-                className={`w-full h-full p-2 transition-all duration-200 ${selected ? 'ring-2 ring-blue-500/20' : ''}`}
+                className={`w-full h-full p-2 transition-all duration-300 ${selected ? 'ring-2 ring-blue-500/20' : ''}`}
                 onDoubleClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
                 style={{
                     fontFamily: 'Garamond, Georgia, serif',
                     fontSize: '15px',
                     color: '#334155',
-                    cursor: isEditing ? 'text' : 'move'
+                    cursor: isEditing ? 'text' : 'move',
+                    transform: `rotate(${data.rotation || 0}deg)`,
                 }}
             >
                 {isEditing ? (
@@ -115,9 +125,11 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
                 )}
             </div>
 
-            {/* Invisible handles to allow connections if needed, but text nodes are usually leaf nodes */}
-            <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-            <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+            {/* Connection handles: visible only when selected to allow "chaining" to other elements */}
+            <Handle type="target" position={Position.Top} style={{ opacity: selected ? 0.6 : 0 }} />
+            <Handle type="source" position={Position.Bottom} style={{ opacity: selected ? 0.6 : 0 }} />
+            <Handle type="source" position={Position.Left} style={{ opacity: selected ? 0.6 : 0 }} />
+            <Handle type="source" position={Position.Right} style={{ opacity: selected ? 0.6 : 0 }} />
         </div>
     );
 };
