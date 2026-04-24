@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { isAiEnabled, logUsage, getDb } from "./utils";
+import { isAiEnabled, logUsage, getDb, withAiRetry } from "./utils";
 import { UnifluxValidator } from "./uniflux_validator";
 import * as cors from "cors";
 
@@ -97,7 +97,7 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
 
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.0-flash",
+                model: "gemini-1.5-flash",
                 generationConfig: { responseMimeType: "application/json" }
             });
 
@@ -190,10 +190,10 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
                 attempts++;
                 console.log(`AI Attempt ${attempts}/${maxAttempts}`);
 
-                const result = await model.generateContent([
+                const result = await withAiRetry(() => model.generateContent([
                     { text: systemInstruction },
                     { text: currentAiInput }
-                ]);
+                ]));
 
                 const responseText = result.response.text();
 
@@ -226,7 +226,7 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
             if (userRole !== 'superadmin') {
                 await logUsage({
                     userId, tenantId, action: "uniflux_generate",
-                    charsIn: userPrompt.length, charsOut: JSON.stringify(lastResult).length, model: "gemini-2.0-flash"
+                    charsIn: userPrompt.length, charsOut: JSON.stringify(lastResult).length, model: "gemini-1.5-flash"
                 });
             }
 

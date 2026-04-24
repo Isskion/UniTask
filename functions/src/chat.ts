@@ -130,7 +130,7 @@ export const chat = functions.region("europe-west1").runWith({
 
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.0-flash",
+                model: "gemini-1.5-flash",
                 systemInstruction: systemPromptContent
             });
 
