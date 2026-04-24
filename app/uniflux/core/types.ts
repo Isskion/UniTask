@@ -5,7 +5,7 @@
  */
 
 // ── V1: Visual flow node types (original — do not modify) ──────────────────
-export type NodeType = "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR" | "ENVIRONMENT" | "DATA" | "SUBPROCESS" | "DOCUMENT" | "ICON" | "IMAGE" | "PRO_NODE";
+export type NodeType = "START" | "STATE" | "OPERATION" | "TASK" | "DECISION" | "TERMINAL" | "ERROR" | "ENVIRONMENT" | "DATA" | "SUBPROCESS" | "DOCUMENT" | "ICON" | "IMAGE" | "PRO_NODE" | "TEXT";
 
 // ── V3: C4 Architecture node types (additive — does not affect visual/mermaid) ──
 export type C4NodeType =

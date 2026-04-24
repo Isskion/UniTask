@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -35,6 +35,7 @@ import UnifluxC4BoundaryNode from './nodes/UnifluxC4BoundaryNode';
 import IconNode from './nodes/IconNode';
 import ImageNode from './nodes/ImageNode';
 import UnifluxProNode from './nodes/UnifluxProNode';
+import UnifluxTextNode from './nodes/UnifluxTextNode';
 import UnifluxOrthogonalEdge from './edges/UnifluxOrthogonalEdge';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
@@ -61,6 +62,7 @@ const nodeTypes = {
     ICON: IconNode,
     IMAGE: ImageNode,
     PRO_NODE: UnifluxProNode,
+    TEXT: UnifluxTextNode,
 };
 
 const edgeTypes = {
@@ -389,7 +391,7 @@ export default function UnifluxWorkspace() {
             const opacity = n.isLocked ? 0.8 : OPACITY[visTier];
             return {
                 id: n.id,
-                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : n.type === 'ICON' ? 'ICON' : n.type === 'IMAGE' ? 'IMAGE' : 'visioShape'),
+                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : n.type === 'ICON' ? 'ICON' : n.type === 'IMAGE' ? 'IMAGE' : n.type === 'TEXT' ? 'TEXT' : 'visioShape'),
                 position: n.position || { x: 0, y: 0 },
                 data: isC4 ? {
                     label: n.label,
@@ -1087,7 +1089,7 @@ export default function UnifluxWorkspace() {
                     const isBoundaryLike = n.data.type === 'ENVIRONMENT' || n.data.type === 'C4_BOUNDARY';
                     return {
                         id: n.id,
-                        type: (n.data.type as AnyNodeType) || 'OPERATION',
+                        type: (n.data.type as AnyNodeType) || (n.type === 'TEXT' ? 'TEXT' : 'OPERATION'),
                         label: isBoundaryLike
                             ? (n.data.label as string)
                             : isC4
@@ -1880,6 +1882,25 @@ export default function UnifluxWorkspace() {
                                 <div className="h-px bg-slate-100 my-1" />
                                 <button onClick={() => { handleExport('png'); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
                                     <Download className="w-4 h-4 text-slate-400" /> Exportar PNG
+                                </button>
+                                <div className="h-px bg-slate-100 my-1" />
+                                <button onClick={() => { 
+                                    if (reactFlowInstance && menu) {
+                                        const position = reactFlowInstance.screenToFlowPosition({ x: menu.left, y: menu.top });
+                                        const newNodeId = `text-${Date.now()}`;
+                                        const newNode = {
+                                            id: newNodeId,
+                                            type: 'TEXT',
+                                            position,
+                                            data: { label: '', type: 'TEXT', onResizeStop: onNodeResizeStop },
+                                            style: { width: 250, height: 100 }
+                                        };
+                                        setNodes(nds => nds.concat(newNode));
+                                        setTimeout(takeSnapshot, 0);
+                                    }
+                                    closeMenu(); 
+                                }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-left">
+                                    <Type className="w-4 h-4" /> Añadir Comentario
                                 </button>
                             </>
                         )}
