@@ -26,6 +26,7 @@ import UnifluxMermaidEditor from './UnifluxMermaidEditor';
 import UnifluxC4Palette from './UnifluxC4Palette';
 import UnifluxC4NodeEditor from './UnifluxC4NodeEditor';
 import UnifluxC4Templates from './UnifluxC4Templates';
+import UnifluxTemplatesModal from './UnifluxTemplatesModal';
 import UnifluxC4PersonNode from './nodes/UnifluxC4PersonNode';
 import UnifluxC4SystemNode from './nodes/UnifluxC4SystemNode';
 import UnifluxC4ContainerNode from './nodes/UnifluxC4ContainerNode';
@@ -105,7 +106,7 @@ export default function UnifluxWorkspace() {
 
     // C4 diagram state
     const [activeC4Level, setActiveC4Level] = useState<1 | 2 | 3>(1);
-    const [showC4Templates, setShowC4Templates] = useState(false);
+    const [showTemplatesModal, setShowTemplatesModal] = useState(false);
 
     // Keep graph.c4Level in sync with activeC4Level so it's persisted on save
     const handleC4LevelChange = useCallback((level: 1 | 2 | 3) => {
@@ -114,7 +115,7 @@ export default function UnifluxWorkspace() {
     }, []);
 
     // Wizard State
-    const [showWizard, setShowWizard] = useState(true);
+    const [showWizard, setShowWizard] = useState(false);
     const [wizardInput, setWizardInput] = useState('');
     const [isGeneratingWizard, setIsGeneratingWizard] = useState(false);
     const [wizardError, setWizardError] = useState<string | null>(null);
@@ -508,6 +509,42 @@ export default function UnifluxWorkspace() {
     const handleApplyC4Template = (tplNodes: FlowNode[], tplEdges: FlowEdge[]) => {
         setGraph(prev => ({ ...prev, nodes: tplNodes, edges: tplEdges }));
         setShowWizard(false);
+        setShowTemplatesModal(false);
+        setTimeout(takeSnapshot, 0);
+    };
+
+    const handleGenerateAreas = (count: number) => {
+        const newNodes: Node[] = [];
+        const spacing = 450;
+        const startX = 50;
+        const startY = 50;
+
+        for (let i = 0; i < count; i++) {
+            const id = `area-${Date.now()}-${i}`;
+            const label = `Sistema ${i + 1}`;
+            newNodes.push({
+                id,
+                type: 'ENVIRONMENT',
+                position: { x: startX + (i % 3) * spacing, y: startY + Math.floor(i / 3) * spacing },
+                data: { 
+                    label, 
+                    type: 'ENVIRONMENT',
+                    onResizeStop: onNodeResizeStop 
+                },
+                style: { 
+                    background: 'rgba(241, 245, 249, 0.4)',
+                    borderColor: '#94a3b8',
+                    borderStyle: 'dashed',
+                    borderWidth: '2px',
+                    borderRadius: '12px',
+                    width: 400,
+                    height: 300 
+                },
+                zIndex: -1,
+            });
+        }
+
+        setNodes(nds => nds.concat(newNodes));
         setTimeout(takeSnapshot, 0);
     };
 
@@ -1117,6 +1154,14 @@ export default function UnifluxWorkspace() {
                         <span className="text-sm font-bold hidden sm:inline">Explorador</span>
                     </button>
 
+                    <button
+                        onClick={() => setShowTemplatesModal(true)}
+                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
+                    >
+                        <LayoutTemplate className="w-5 h-5" />
+                        <span className="text-sm font-bold hidden sm:inline">Plantillas</span>
+                    </button>
+
                     <div className="h-6 w-px bg-slate-800 hidden sm:block"></div>
 
                     <div className="flex items-center gap-2">
@@ -1446,17 +1491,20 @@ export default function UnifluxWorkspace() {
                     </div>
                 )}
 
-                {/* C4 Templates modal */}
-                {showC4Templates && (
-                    <UnifluxC4Templates
-                        onApply={handleApplyC4Template}
-                        onClose={() => setShowC4Templates(false)}
+                {/* Templates and Area Generator Modal */}
+                {showTemplatesModal && (
+                    <UnifluxTemplatesModal
+                        onApplyTemplate={handleApplyC4Template}
+                        onGenerateAreas={handleGenerateAreas}
+                        onOpenAIWizard={() => setShowWizard(true)}
+                        onClose={() => setShowTemplatesModal(false)}
+                        docType={graph.docType || 'visual'}
                     />
                 )}
 
                 {/* Node Palette — visual flow palette or C4 palette depending on mode */}
                 {graph.docType === 'c4'
-                    ? <UnifluxC4Palette activeLevel={activeC4Level} onLevelChange={handleC4LevelChange} onOpenTemplates={() => setShowC4Templates(true)} />
+                    ? <UnifluxC4Palette activeLevel={activeC4Level} onLevelChange={handleC4LevelChange} onOpenTemplates={() => setShowTemplatesModal(true)} />
                     : !showWizard && graph.docType !== 'mermaid' && <VisioStencilPalette />
                 }
 
