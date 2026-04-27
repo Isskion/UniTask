@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode, SelectionMode } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -160,6 +160,7 @@ export default function UnifluxWorkspace() {
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
     const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
+    const [interactionMode, setInteractionMode] = useState<'pan' | 'selection'>('pan');
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -1812,6 +1813,9 @@ export default function UnifluxWorkspace() {
                     onConnect={onConnect}
                     onReconnect={onReconnect}
                     edgesReconnectable={true}
+                    panOnDrag={interactionMode === 'pan'}
+                    selectionOnDrag={interactionMode === 'selection'}
+                    selectionMode={SelectionMode.Partial}
                     onInit={setReactFlowInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
@@ -1852,6 +1856,23 @@ export default function UnifluxWorkspace() {
                     />
                     <Controls position="bottom-right" className="z-50" />
                     <Panel position="top-right" className="flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200">
+                        <div className="flex bg-slate-100 rounded-lg p-0.5 mr-1">
+                            <button 
+                                onClick={() => setInteractionMode('pan')} 
+                                className={`p-1.5 rounded-md transition-all ${interactionMode === 'pan' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                                title="Modo Mano (Panorámica)"
+                            >
+                                <Hand className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                                onClick={() => setInteractionMode('selection')} 
+                                className={`p-1.5 rounded-md transition-all ${interactionMode === 'selection' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
+                                title="Modo Selección (Arrastrar para seleccionar varios)"
+                            >
+                                <MousePointer2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                        <div className="w-px h-4 bg-slate-200 mr-1"></div>
                         <button 
                             onClick={() => setShowGrid(!showGrid)} 
                             className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${showGrid ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-slate-600 hover:bg-slate-100'}`}
