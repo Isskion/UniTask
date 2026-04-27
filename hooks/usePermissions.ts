@@ -34,22 +34,32 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-            unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
         },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
     },
-    // Add other legacy roles if needed
     'consultor': {
         name: 'Consultor Legacy',
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { 
-            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: true, unavailabilityRegistry: true,
-            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: true, uniflux: true, inbox: false
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
         },
         exportAccess: { tasks: true, projects: false, reports: false },
-        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
+    },
+    'externo': {
+        name: 'Externo Legacy',
+        projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
+        taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
+        viewAccess: { 
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
+            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+        },
+        exportAccess: { tasks: false, projects: false, reports: false },
+        specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false, viewTechnicalInfo: false }
     },
 };
 
