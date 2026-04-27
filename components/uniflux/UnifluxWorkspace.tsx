@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode, SelectionMode } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode, SelectionMode, MarkerType } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -457,8 +457,8 @@ export default function UnifluxWorkspace() {
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
                 style: isC4Edge ? edgeStyle.line : undefined,
                 markerEnd: isC4Edge 
-                    ? (edgeStyle.markerEnd || { type: 'arrowclosed', color: isC4Edge ? getC4EdgeStyle(e.c4RelType, edgeDimmed).line.stroke : '#94a3b8' }) 
-                    : (e.markerEnd || { type: 'arrowclosed', width: 20, height: 20, color: (e.style?.stroke || '#94a3b8') }),
+                    ? (edgeStyle.markerEnd || { type: MarkerType.ArrowClosed, color: isC4Edge ? getC4EdgeStyle(e.c4RelType, edgeDimmed).line.stroke : '#94a3b8' }) 
+                    : (e.markerEnd || { type: MarkerType.ArrowClosed, width: 20, height: 20, color: (e.style?.stroke || '#94a3b8') }),
                 labelStyle: { fill: edgeDimmed ? '#d1d5db' : '#4b5563', fontWeight: 600, fontSize: 11, fontFamily: 'inherit' },
                 labelBgStyle: { fill: '#ffffff', stroke: edgeDimmed ? '#f3f4f6' : '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
                 labelBgPadding: [10, 5] as [number, number],
@@ -794,7 +794,7 @@ export default function UnifluxWorkspace() {
             animated: false,
             style: { stroke: '#94a3b8', strokeWidth: 2 },
             markerEnd: { 
-                type: 'arrowclosed' as any,
+                type: MarkerType.ArrowClosed,
                 width: 20,
                 height: 20,
                 color: '#94a3b8'
@@ -2055,11 +2055,11 @@ function getNodeStyle(type: string) {
 function getC4EdgeStyle(relType?: string, dimmed?: boolean) {
     const alpha = dimmed ? '33' : 'ff';
     const styles: Record<string, { line: React.CSSProperties; markerEnd?: string }> = {
-        sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 }, markerEnd: { type: 'arrowclosed', color: `#1168BD${alpha}` } },
-        async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' }, markerEnd: { type: 'arrowclosed', color: `#438DD5${alpha}` } },
-        event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' }, markerEnd: { type: 'arrowclosed', color: `#f59e0b${alpha}` } },
-        database: { line: { stroke: `#10b981${alpha}`, strokeWidth: 2 }, markerEnd: { type: 'arrowclosed', color: `#10b981${alpha}` } },
-        external: { line: { stroke: `#9ca3af${alpha}`, strokeWidth: 1.5, strokeDasharray: '8 4' }, markerEnd: { type: 'arrowclosed', color: `#9ca3af${alpha}` } },
+        sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: `#1168BD${alpha}` } },
+        async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' }, markerEnd: { type: MarkerType.ArrowClosed, color: `#438DD5${alpha}` } },
+        event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' }, markerEnd: { type: MarkerType.ArrowClosed, color: `#f59e0b${alpha}` } },
+        database: { line: { stroke: `#10b981${alpha}`, strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: `#10b981${alpha}` } },
+        external: { line: { stroke: `#9ca3af${alpha}`, strokeWidth: 1.5, strokeDasharray: '8 4' }, markerEnd: { type: MarkerType.ArrowClosed, color: `#9ca3af${alpha}` } },
     };
     return styles[relType ?? 'sync'] ?? styles.sync;
 }

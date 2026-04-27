@@ -252,12 +252,6 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                 </button>
             </NodeToolbar>
 
-            {/* Connection Handles (Standard dots for manual drag) */}
-            <Handle type="source" position={Position.Right} id="right-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
-            <Handle type="source" position={Position.Bottom} id="bottom-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
-            <Handle type="source" position={Position.Left} id="left-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
-            <Handle type="source" position={Position.Top} id="top-c" className="!bg-indigo-500/40 !w-2.5 !h-2.5 !border-none hover:!bg-indigo-500 hover:scale-150 transition-all" />
-
             {/* Quick Spawn Buttons (Floating translucent arrows) */}
             {selected && !isLocked && !isEditing && (
                 <div className="absolute inset-0 pointer-events-none z-[60]">
