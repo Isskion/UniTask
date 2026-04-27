@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -159,6 +159,14 @@ export default function UnifluxWorkspace() {
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+    const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
+
+    // Sync showGrid when loading a flow
+    useEffect(() => {
+        if (graph.showGrid !== undefined) {
+            setShowGrid(graph.showGrid);
+        }
+    }, [graph.id, graph.showGrid]);
 
     // History State (Undo/Redo)
     const [history, setHistory] = useState<{ nodes: Node[], edges: Edge[] }[]>([]);
@@ -224,7 +232,10 @@ export default function UnifluxWorkspace() {
         
         // Use a high pixel ratio for maximum resolution
         const filter = (node: HTMLElement) => {
-            if (node?.classList?.contains('react-flow__minimap') || node?.classList?.contains('react-flow__controls')) return false;
+            if (node?.classList?.contains('react-flow__minimap') || 
+                node?.classList?.contains('react-flow__controls') ||
+                node?.classList?.contains('react-flow__background') // Hide grid during export
+            ) return false;
             return true;
         };
 
@@ -517,6 +528,7 @@ export default function UnifluxWorkspace() {
             name: 'Nuevo Flujo'
         };
         setGraph(newTemplate);
+        setShowGrid(true);
         setIsSidebarOpen(false);
         setNodes([]);
         setEdges([]);
@@ -535,6 +547,7 @@ export default function UnifluxWorkspace() {
             schemaVersion: 3,
         };
         setGraph(newTemplate);
+        setShowGrid(true);
         setIsSidebarOpen(false);
         setNodes([]);
         setEdges([]);
@@ -1133,6 +1146,7 @@ export default function UnifluxWorkspace() {
                     ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
                     nodes: updatedGraphNodes,
                     edges: updatedGraphEdges,
+                    showGrid,
                     schemaVersion: CURRENT_SCHEMA_VERSION,
                 };
             }
@@ -1829,7 +1843,7 @@ export default function UnifluxWorkspace() {
                     connectionMode={ConnectionMode.Loose}
                     elevateNodesOnSelect={false}
                 >
-                    <Background color="#94a3b8" variant={BackgroundVariant.Dots} gap={15} size={1} />
+                    {showGrid && <Background color="#94a3b8" variant={BackgroundVariant.Dots} gap={15} size={1} />}
                     <MiniMap 
                         nodeColor={(n) => n.type === 'visioShape' ? '#94a3b8' : '#cbd5e1'}
                         maskColor="rgba(0,0,0,0.1)"
@@ -1838,6 +1852,15 @@ export default function UnifluxWorkspace() {
                     />
                     <Controls position="bottom-right" className="z-50" />
                     <Panel position="top-right" className="flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200">
+                        <button 
+                            onClick={() => setShowGrid(!showGrid)} 
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${showGrid ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-slate-600 hover:bg-slate-100'}`}
+                            title={showGrid ? 'Ocultar Cuadrícula' : 'Mostrar Cuadrícula'}
+                        >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                            Grid
+                        </button>
+                        <div className="w-px h-4 bg-slate-200"></div>
                         <button onClick={() => triggerAutoLayout('LR')} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 transition-colors" title="Diagrama Horizontal">
                             <LayoutTemplate className="w-3.5 h-3.5" />
                             Auto Layout

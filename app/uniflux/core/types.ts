@@ -99,6 +99,8 @@ export interface FlowGraph {
     mermaidEngine?: MermaidEngine;
     // V3: C4 Architecture
     c4Level?: C4LevelValue;
+    // V6: UI Preferences
+    showGrid?: boolean;
     // V4: schema version for safe future migrations
     schemaVersion?: number;
     metadata: {
