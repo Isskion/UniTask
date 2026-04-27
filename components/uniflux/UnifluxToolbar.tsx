@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Sparkles, Send, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Sparkles, Send, Loader2, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import { generateFlowWithAI } from '@/app/actions/uniflux-ai';
 import { FlowGraph, ValidationResult } from '@/app/uniflux/core/types';
 
@@ -53,30 +53,38 @@ SOLICITUD DEL USUARIO: `
     };
 
     return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
-            <div className={`bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${isOpen ? 'ring-4 ring-purple-50/50' : ''}`}>
-
-                {/* Header / Toggle */}
-                {!isOpen && (
-                    <button
-                        onClick={() => setIsOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                        <Sparkles className="w-4 h-4 text-purple-600" />
-                        Ask AI to build or modify your flow...
-                    </button>
-                )}
-
+        <div className="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+            {/* Main AI Container */}
+            <div 
+                className={`bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/20 overflow-hidden transition-all duration-500 ease-in-out ${
+                    isOpen 
+                        ? 'w-[350px] md:w-[450px] opacity-100 translate-y-0' 
+                        : 'w-0 h-0 opacity-0 translate-y-10 pointer-events-none'
+                }`}
+            >
                 {/* Main Input Area */}
                 {isOpen && (
-                    <form onSubmit={handleSubmit} className="p-1">
-                        <div className="relative">
+                    <form onSubmit={handleSubmit} className="flex flex-col">
+                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-purple-600" />
+                                <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Uniflux AI Assistant</span>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={() => setIsOpen(false)}
+                                className="p-1 hover:bg-gray-200 rounded-md text-gray-400 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="p-4 relative">
                             <textarea
                                 value={prompt}
                                 onChange={(e) => setPrompt(e.target.value)}
-                                placeholder="Describe your process... (e.g., 'Receive goods, check quality, if damaged return to sender, else stock')"
-                                className="w-full pl-4 pr-12 py-4 text-gray-800 placeholder-gray-400 bg-transparent resize-none focus:outline-none text-base"
-                                rows={2}
+                                placeholder="Describe your process... (e.g., 'Add a step to check quality after production')"
+                                className="w-full py-2 text-gray-800 placeholder-gray-400 bg-transparent resize-none focus:outline-none text-sm min-h-[100px]"
                                 autoFocus
                                 disabled={loading}
                                 onKeyDown={(e) => {
@@ -87,26 +95,26 @@ SOLICITUD DEL USUARIO: `
                                 }}
                             />
 
-                            <div className="absolute right-2 bottom-3 flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsOpen(false)}
-                                    className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
-                                >
-                                    <span className="text-xs">Close</span>
-                                </button>
+                            <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
                                 <button
                                     type="submit"
                                     disabled={!prompt.trim() || loading}
-                                    className={`p-2 rounded-lg transition-all ${prompt.trim() && !loading
-                                        ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md'
-                                        : 'bg-gray-100 text-gray-300'
-                                        }`}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                                        prompt.trim() && !loading
+                                            ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:scale-105'
+                                            : 'bg-gray-100 text-gray-300'
+                                    }`}
                                 >
                                     {loading ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Procesando...
+                                        </>
                                     ) : (
-                                        <Send className="w-5 h-5" />
+                                        <>
+                                            <Send className="w-3.5 h-3.5" />
+                                            Enviar
+                                        </>
                                     )}
                                 </button>
                             </div>
@@ -114,15 +122,35 @@ SOLICITUD DEL USUARIO: `
 
                         {/* Status Feedback */}
                         {status && (
-                            <div className={`px-4 py-2 text-sm flex items-center gap-2 border-t ${status.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'
-                                }`}>
-                                {status.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                                {status.message}
+                            <div className={`px-4 py-3 text-[11px] flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 ${
+                                status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                            }`}>
+                                {status.type === 'success' ? <CheckCircle className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                                <span className="font-medium">{status.message}</span>
                             </div>
                         )}
                     </form>
                 )}
             </div>
+
+            {/* Toggle Button (Floating Bubble) */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`group relative flex items-center justify-center w-14 h-14 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 ${
+                    isOpen 
+                        ? 'bg-gray-800 text-white rotate-90' 
+                        : 'bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 text-white'
+                }`}
+            >
+                {isOpen ? (
+                    <X className="w-6 h-6" />
+                ) : (
+                    <>
+                        <Sparkles className="w-6 h-6 group-hover:animate-pulse" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full animate-bounce" />
+                    </>
+                )}
+            </button>
         </div>
     );
 }
