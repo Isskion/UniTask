@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, onSnapshot, DocumentSnapshot, FirestoreError } from 'firebase/firestore';
-import { PermissionGroup, getRoleLevel } from '@/types';
+import { PermissionGroup, getRoleLevel, RoleLevel } from '@/types';
 
 // Default Fallback Permissions based on Legacy Roles
 const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
