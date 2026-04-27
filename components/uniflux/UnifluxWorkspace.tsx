@@ -36,7 +36,7 @@ import IconNode from './nodes/IconNode';
 import ImageNode from './nodes/ImageNode';
 import UnifluxProNode from './nodes/UnifluxProNode';
 import UnifluxTextNode from './nodes/UnifluxTextNode';
-import UnifluxOrthogonalEdge from './edges/UnifluxOrthogonalEdge';
+import UnifluxMovableEdge from './edges/UnifluxMovableEdge';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
 const C4_NODE_TYPES = MODE_REGISTRY['c4'].nodeTypes;
@@ -66,7 +66,8 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-    orthogonal: UnifluxOrthogonalEdge,
+    orthogonal: UnifluxMovableEdge,
+    movable: UnifluxMovableEdge,
 };
 
 // Initial placeholder graph
@@ -453,7 +454,7 @@ export default function UnifluxWorkspace() {
                 ...(e.sourceHandle ? { sourceHandle: e.sourceHandle } : {}),
                 ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                 label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
-                type: isC4Edge ? 'default' : 'smoothstep',
+                type: isC4Edge ? 'default' : 'orthogonal',
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
                 style: isC4Edge ? edgeStyle.line : undefined,
                 markerEnd: isC4Edge 
@@ -466,7 +467,8 @@ export default function UnifluxWorkspace() {
                 data: isC4Edge ? { c4RelType: e.c4RelType, protocol: e.protocol, c4Description: e.c4Description } : {
                     animated: e.animated,
                     style: e.style,
-                    markerEnd: e.markerEnd
+                    markerEnd: e.markerEnd,
+                    pathPoints: e.pathPoints || []
                 },
             };
         });
@@ -790,7 +792,7 @@ export default function UnifluxWorkspace() {
         const newEdge: Edge = {
             ...params,
             id: `e-${params.source}-${params.target}-${Date.now()}`,
-            type: 'smoothstep',
+            type: 'orthogonal',
             animated: false,
             style: { stroke: '#94a3b8', strokeWidth: 2 },
             markerEnd: { 
@@ -812,6 +814,34 @@ export default function UnifluxWorkspace() {
         setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
         setTimeout(takeSnapshot, 0);
     }, [setEdges, takeSnapshot]);
+
+    // Waypoint management for movable edges
+    const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+        if (!reactFlowInstance) return;
+        
+        // Add point if edge is selected or Shift is held
+        if (!edge.selected && !event.shiftKey) return;
+
+        const position = reactFlowInstance.screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+        });
+
+        setEdges((eds) => eds.map((e) => {
+            if (e.id === edge.id) {
+                const currentPoints = (e.data?.pathPoints as any[]) || [];
+                return { 
+                    ...e, 
+                    data: { 
+                        ...e.data, 
+                        pathPoints: [...currentPoints, position] 
+                    } 
+                };
+            }
+            return e;
+        }));
+        setTimeout(takeSnapshot, 0);
+    }, [reactFlowInstance, setEdges, takeSnapshot]);
 
     // Inline edge label editor handlers
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
@@ -1154,6 +1184,7 @@ export default function UnifluxWorkspace() {
                     ...(e.data?.c4RelType ? { c4RelType: e.data.c4RelType as any } : {}),
                     ...(e.data?.protocol ? { protocol: e.data.protocol as string } : {}),
                     ...(e.data?.c4Description ? { c4Description: e.data.c4Description as string } : {}),
+                    pathPoints: (e.data?.pathPoints as any[]) || []
                 }));
 
                 finalGraph = {
@@ -1838,6 +1869,7 @@ export default function UnifluxWorkspace() {
                     onDrop={onDrop}
                     onDragOver={onDragOver}
                     onNodeDragStop={onNodeDragStop}
+                    onEdgeClick={onEdgeClick}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
                     onNodeContextMenu={onNodeContextMenu}

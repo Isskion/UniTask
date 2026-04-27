@@ -84,6 +84,8 @@ export interface FlowEdge {
     animated?: boolean;
     style?: any;
     markerEnd?: any;
+    // V8: Manual path points for draggable edges
+    pathPoints?: { x: number; y: number }[];
 }
 
 export type MermaidEngine = 'sequence' | 'flowchart';
