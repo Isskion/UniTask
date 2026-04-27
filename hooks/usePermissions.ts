@@ -45,8 +45,8 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         projectAccess: { viewAll: false, assignedOnly: true, create: false, edit: false, archive: false },
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { 
-            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-            unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+            dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: true, unavailabilityRegistry: true,
+            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: true, uniflux: true, inbox: false
         },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
