@@ -300,11 +300,10 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                     minHeight={40}
                     handleStyle={{ width: 10, height: 10, borderRadius: 2, background: 'white', border: `2px solid ${strokeColor}`, zIndex: 100 }}
                     onResizeStart={() => setIsResizing(true)}
-                    onResizeEnd={() => {
+                    onResizeEnd={(e, { width, height }) => {
                         setIsResizing(false);
-                        // Trigger standard resize end for state sync
+                        data.onResizeStop?.(id, width, height);
                     }}
-                    onResizeStop={(e, { width, height }) => data.onResizeStop?.(id, width, height)}
                 />
             )}
 

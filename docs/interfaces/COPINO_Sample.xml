@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<COPINOE05>
+  <COPINOE05.HEADER>
+    <anxs_interchange.header>
+      <anxe_sender.identification>PORTIC</anxe_sender.identification>
+      <anxe_recipient.identification>EUROPASTRY</anxe_recipient.identification>
+    </anxs_interchange.header>
+    <anxs_message.header>
+      <anxe_message.reference.number>MSG123456</anxe_message.reference.number>
+      <anxe_message.type>COPINO</anxe_message.type>
+      <anxe_message.version.number>D99A</anxe_message.version.number>
+    </anxs_message.header>
+    <trsd_beginning.of.message>
+      <tred_document.message.name.coded>172</tred_document.message.name.coded>
+      <tred_document.message.number>COP-2026-001</tred_document.message.number>
+      <tred_message.function.coded>9</tred_message.function.coded>
+    </trsd_beginning.of.message>
+    <trcd_date.time.period>
+      <tred_date.time.period.qualifier>137</tred_date.time.period.qualifier>
+      <tred_date.time.period>202604271000</tred_date.time.period>
+    </trcd_date.time.period>
+  </COPINOE05.HEADER>
+  
+  <COPINOE05.GROUP1>
+    <trcd_reference>
+      <tred_reference.qualifier>BN</tred_reference.qualifier>
+      <tred_reference.number>BKG987654321</tred_reference.number>
+    </trcd_reference>
+  </COPINOE05.GROUP1>
+  
+  <COPINOE05.GROUP2>
+    <trsd_details.of.transport>
+      <tred_transport.stage.qualifier>10</tred_transport.stage.qualifier>
+      <tred_mode.of.transport.coded>1</tred_mode.of.transport.coded>
+      <trcd_transport.identification>
+        <tred_id.of.the.means.of.transport>9123456</tred_id.of.the.means.of.transport>
+        <tred_id.of_means.of.transport.identification>MSC MARINA</tred_id.of_means.of.transport.identification>
+      </trcd_transport.identification>
+    </trsd_details.of.transport>
+    <trcd_date.time.period>
+      <tred_date.time.period.qualifier>132</tred_date.time.period.qualifier>
+      <tred_date.time.period>202605051200</tred_date.time.period>
+    </trcd_date.time.period>
+  </COPINOE05.GROUP2>
+  
+  <COPINOE05.GROUP3>
+    <trsd_name.and.address>
+      <tred_party.qualifier>TR</tred_party.qualifier>
+      <tred_party.id.identification>LOG12345</tred_party.id.identification>
+      <tred_name.and.address.line>LOGIFRIO BARCELONA</tred_name.and.address.line>
+    </trsd_name.and.address>
+  </COPINOE05.GROUP3>
+  
+  <COPINOE05.GROUP8>
+    <trsd_equipment.details>
+      <tred_equipment.qualifier>CN</tred_equipment.qualifier>
+      <tred_equipment.identification.number>MSCU1234567</tred_equipment.identification.number>
+      <tred_equipment.size.and.type.identification>45G1</tred_equipment.size.and.type.identification>
+    </trsd_equipment.details>
+    <trsd_measurements>
+      <tred_measurement.dimension.coded>AET</tred_measurement.dimension.coded>
+      <tred_measurement.value>24500</tred_measurement.value>
+    </trsd_measurements>
+    <trsd_seal.number>
+      <tred_seal.number>SEAL998877</tred_seal.number>
+    </trsd_seal.number>
+  </COPINOE05.GROUP8>
+</COPINOE05>

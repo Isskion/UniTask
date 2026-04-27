@@ -1,9 +1,9 @@
 -- =============================================================================
 -- SQL Script: Creación de Campos Dinámicos para EUP (UniSolutions)
--- Tablas: parada_dyn, Item_dyn
+-- Tablas: parada_dyn, ParadaItem_dyn
 -- =============================================================================
 
--- NOTA: Se asume que las tablas parada_dyn e Item_dyn tienen una estructura de metadatos.
+-- NOTA: Se asume que las tablas parada_dyn e ParadaItem_dyn tienen una estructura de metadatos.
 -- Si las tablas no existen, este script las creará con una estructura estándar.
 
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'parada_dyn')
@@ -17,9 +17,9 @@ BEGIN
     );
 END
 
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Item_dyn')
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'ParadaItem_dyn')
 BEGIN
-    CREATE TABLE Item_dyn (
+    CREATE TABLE ParadaItem_dyn (
         Id INT IDENTITY(1,1) PRIMARY KEY,
         Nombre NVARCHAR(100) NOT NULL,
         Etiqueta NVARCHAR(100),
@@ -58,17 +58,27 @@ INSERT INTO parada_dyn (Nombre, Etiqueta, TipoDato) VALUES
 ('Z_ValorImpuesto', 'Valor Impuesto 1', 'Float'),
 ('Z_ValorImpuesto2', 'Valor Impuesto 2', 'Float'),
 ('Z_ValorMinimoACobrar', 'Valor Mínimo a Cobrar', 'Float'),
-('Z_ValorTotalACobrar', 'Valor Total a Cobrar (Final)', 'Float');
+('Z_ValorTotalACobrar', 'Valor Total a Cobrar (Final)', 'Float'),
+-- CAMPOS PORTIC COPINO
+('Z_COPINO_Numero', 'Nº Mensaje COPINO', 'String'),
+('Z_FechaMensaje', 'Fecha del Mensaje', 'DateTime'),
+('Z_Buque_IMO', 'IMO del Buque', 'String'),
+('Z_Buque_Nombre', 'Nombre del Buque', 'String'),
+('Z_ETA', 'Fecha Prevista Arribo (ETA)', 'DateTime'),
+('Z_Booking', 'Booking / Reserva', 'String'),
+('Z_Viaje', 'Número de Viaje', 'String'),
+('Z_Transportista_Cod', 'Código Transportista', 'String'),
+('Z_Transportista_Nom', 'Nombre Transportista', 'String');
 
 -- SET IDENTITY_INSERT parada_dyn OFF;
 
 -- -----------------------------------------------------------------------------
--- INSERTS PARA Item_dyn (Campos a nivel de Producto/Item)
+-- INSERTS PARA ParadaItem_dyn (Campos a nivel de Producto/Item/Contenedor)
 -- -----------------------------------------------------------------------------
 
--- SET IDENTITY_INSERT Item_dyn ON;
+-- SET IDENTITY_INSERT ParadaItem_dyn ON;
 
-INSERT INTO Item_dyn (Nombre, Etiqueta, TipoDato) VALUES 
+INSERT INTO ParadaItem_dyn (Nombre, Etiqueta, TipoDato) VALUES 
 ('Z_Alicuota', 'Alícuota 1', 'Float'),
 ('Z_Alicuota2', 'Alícuota 2', 'Float'),
 ('Z_CantidadPreparada', 'Cantidad Preparada', 'Float'),
@@ -93,8 +103,17 @@ INSERT INTO Item_dyn (Nombre, Etiqueta, TipoDato) VALUES
 ('Z_ValorBonificacion2', 'Valor Bonificación 2', 'Float'),
 ('Z_ValorBonificacion3', 'Valor Bonificación 3', 'Float'),
 ('Z_ValorTotalACobrar', 'Valor Total a Cobrar Item', 'Float'),
-('Z_ValorUnitario', 'Valor Unitario', 'Float');
+('Z_ValorUnitario', 'Valor Unitario', 'Float'),
+-- CAMPOS PORTIC COPINO (EQUIPMENT/GOODS)
+('Z_Contenedor_Numero', 'Número Contenedor', 'String'),
+('Z_Contenedor_Tipo', 'Tipo ISO Contenedor', 'String'),
+('Z_Precinto', 'Número de Precinto', 'String'),
+('Z_PesoBruto', 'Peso Bruto (kg)', 'Float'),
+('Z_Longitud', 'Longitud Contenedor', 'String'),
+('Z_Bultos', 'Cantidad Bultos', 'Int'),
+('Z_UN_Number', 'Código UN (Peligrosas)', 'String'),
+('Z_IMDG_Clase', 'Clase IMDG', 'String');
 
--- SET IDENTITY_INSERT Item_dyn OFF;
+-- SET IDENTITY_INSERT ParadaItem_dyn OFF;
 
 GO

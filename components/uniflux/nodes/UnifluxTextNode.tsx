@@ -96,8 +96,10 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
                     minHeight={30}
                     handleStyle={{ width: 10, height: 10, borderRadius: 2, background: 'white', border: '2px solid #3b82f6', zIndex: 100 }}
                     onResizeStart={() => setIsResizing(true)}
-                    onResizeEnd={() => setIsResizing(false)}
-                    onResizeStop={(_, { width, height }) => data.onResizeStop?.(id, width, height)}
+                    onResizeEnd={(e, { width, height }) => {
+                        setIsResizing(false);
+                        data.onResizeStop?.(id, width, height);
+                    }}
                 />
             )}
 
