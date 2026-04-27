@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { isAiEnabled, logUsage, getDb, withAiRetry } from "./utils";
+import { isAiEnabled, logUsage, getDb, withAiRetry, sanitizeGraphForAI } from "./utils";
 import { UnifluxValidator } from "./uniflux_validator";
 import * as cors from "cors";
 
@@ -97,7 +97,7 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
 
             const genAI = new GoogleGenerativeAI(apiKey);
             const model = genAI.getGenerativeModel({
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 generationConfig: { responseMimeType: "application/json" }
             });
 
@@ -178,7 +178,8 @@ export const generateUnifluxFlow = functions.region("europe-west1").runWith({
 
             let currentAiInput = userPrompt;
             if (currentGraph) {
-                currentAiInput += `\n\nCURRENT GRAPH CONTEXT:\n${JSON.stringify(currentGraph)}`;
+                const sanitized = sanitizeGraphForAI(currentGraph);
+                currentAiInput += `\n\nCURRENT GRAPH CONTEXT (JSON):\n${JSON.stringify(sanitized)}`;
             }
 
             let attempts = 0;

@@ -168,7 +168,8 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
     `;
             let currentAiInput = userPrompt;
             if (currentGraph) {
-                currentAiInput += `\n\nCURRENT GRAPH CONTEXT:\n${JSON.stringify(currentGraph)}`;
+                const sanitized = (0, utils_1.sanitizeGraphForAI)(currentGraph);
+                currentAiInput += `\n\nCURRENT GRAPH CONTEXT (JSON):\n${JSON.stringify(sanitized)}`;
             }
             let attempts = 0;
             const maxAttempts = 3;
@@ -177,10 +178,10 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
             while (attempts < maxAttempts) {
                 attempts++;
                 console.log(`AI Attempt ${attempts}/${maxAttempts}`);
-                const result = await model.generateContent([
+                const result = await (0, utils_1.withAiRetry)(() => model.generateContent([
                     { text: systemInstruction },
                     { text: currentAiInput }
-                ]);
+                ]));
                 const responseText = result.response.text();
                 try {
                     // Robust Extraction
@@ -210,7 +211,7 @@ exports.generateUnifluxFlow = functions.region("europe-west1").runWith({
             if (userRole !== 'superadmin') {
                 await (0, utils_1.logUsage)({
                     userId, tenantId, action: "uniflux_generate",
-                    charsIn: userPrompt.length, charsOut: JSON.stringify(lastResult).length, model: "gemini-2.0-flash"
+                    charsIn: userPrompt.length, charsOut: JSON.stringify(lastResult).length, model: "gemini-1.5-flash"
                 });
             }
             res.status(200).send({

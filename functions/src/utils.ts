@@ -66,6 +66,37 @@ export async function logUsage(data: any) {
 }
 
 /**
+ * Sanitizes a FlowGraph to reduce token usage.
+ * Removes visual noise like styles, z-index, and precise positions.
+ */
+export function sanitizeGraphForAI(graph: any) {
+    if (!graph) return null;
+    
+    return {
+        ...graph,
+        nodes: (graph.nodes || []).map((n: any) => ({
+            id: n.id,
+            type: n.type || n.data?.type,
+            label: n.label || n.data?.label,
+            parentId: n.parentId,
+            // Only keep rough positions to save tokens
+            position: n.position ? { x: Math.round(n.position.x), y: Math.round(n.position.y) } : undefined,
+            // Data fields specific to business logic, but no styles
+            ...(n.data?.technology ? { technology: n.data.technology } : {}),
+            ...(n.data?.description ? { description: n.data.description } : {}),
+            ...(n.data?.external !== undefined ? { external: n.data.external } : {}),
+        })),
+        edges: (graph.edges || []).map((e: any) => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            label: e.label,
+            condition: e.condition || e.data?.condition
+        }))
+    };
+}
+
+/**
  * Utility to wrap AI calls with exponential backoff and retry logic.
  * Specifically handles 429 (Rate Limit / Resource Exhausted) errors.
  */
@@ -92,7 +123,10 @@ export async function withAiRetry<T>(
             }
 
             const delay = (initialDelay * Math.pow(2, i)) + (Math.random() * 500);
-            console.warn(`[Functions AI Retry] Attempt ${i + 1} failed (429). Retrying in ${Math.round(delay)}ms...`);
+            const apiKey = process.env.GEMINI_API_KEY || "";
+            const keySnippet = apiKey ? `...${apiKey.slice(-4)}` : "MISSING";
+            
+            console.warn(`[Functions AI Retry] Attempt ${i + 1} failed (429). Key: ${keySnippet}. Retrying in ${Math.round(delay)}ms...`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }

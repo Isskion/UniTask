@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { isAiEnabled, logUsage, withAiRetry } from "./utils";
 
-const MODEL_ID = "gemini-1.5-flash";
+const MODEL_ID = "gemini-2.0-flash";
 const MAX_TOTAL_CHARS = 15000;
 
 const SYSTEM_PROMPT = `Actúa como un Arquitecto de Integración y Business Analyst senior. 
