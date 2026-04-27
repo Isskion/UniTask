@@ -456,12 +456,18 @@ export default function UnifluxWorkspace() {
                 type: isC4Edge ? 'default' : 'smoothstep',
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
                 style: isC4Edge ? edgeStyle.line : undefined,
-                markerEnd: isC4Edge ? edgeStyle.markerEnd : undefined,
+                markerEnd: isC4Edge 
+                    ? (edgeStyle.markerEnd || { type: 'arrowclosed', color: isC4Edge ? getC4EdgeStyle(e.c4RelType, edgeDimmed).line.stroke : '#94a3b8' }) 
+                    : (e.markerEnd || { type: 'arrowclosed', width: 20, height: 20, color: (e.style?.stroke || '#94a3b8') }),
                 labelStyle: { fill: edgeDimmed ? '#d1d5db' : '#4b5563', fontWeight: 600, fontSize: 11, fontFamily: 'inherit' },
                 labelBgStyle: { fill: '#ffffff', stroke: edgeDimmed ? '#f3f4f6' : '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
                 labelBgPadding: [10, 5] as [number, number],
                 labelBgBorderRadius: 6,
-                data: isC4Edge ? { c4RelType: e.c4RelType, protocol: e.protocol, c4Description: e.c4Description } : undefined,
+                data: isC4Edge ? { c4RelType: e.c4RelType, protocol: e.protocol, c4Description: e.c4Description } : {
+                    animated: e.animated,
+                    style: e.style,
+                    markerEnd: e.markerEnd
+                },
             };
         });
 
@@ -1140,6 +1146,14 @@ export default function UnifluxWorkspace() {
                     ...(e.sourceHandle ? { sourceHandle: e.sourceHandle } : {}),
                     ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                     ...(e.label ? { label: e.label as string } : {}),
+                    // Persist visual styles
+                    animated: e.animated,
+                    style: e.style,
+                    markerEnd: e.markerEnd,
+                    // Persist C4 data if present
+                    ...(e.data?.c4RelType ? { c4RelType: e.data.c4RelType as any } : {}),
+                    ...(e.data?.protocol ? { protocol: e.data.protocol as string } : {}),
+                    ...(e.data?.c4Description ? { c4Description: e.data.c4Description as string } : {}),
                 }));
 
                 finalGraph = {
@@ -1206,6 +1220,10 @@ export default function UnifluxWorkspace() {
             label: e.label as string | undefined,
             ...(e.data?.c4RelType ? { c4RelType: e.data.c4RelType as any } : {}),
             ...(e.data?.protocol ? { protocol: e.data.protocol as string } : {}),
+            // Pass visual styles to AI so it understands the current aesthetic
+            animated: e.animated,
+            style: e.style,
+            markerEnd: e.markerEnd,
         }));
 
         // For C4: trim to only what's visible at the current level so the AI gets clean context
@@ -2037,11 +2055,11 @@ function getNodeStyle(type: string) {
 function getC4EdgeStyle(relType?: string, dimmed?: boolean) {
     const alpha = dimmed ? '33' : 'ff';
     const styles: Record<string, { line: React.CSSProperties; markerEnd?: string }> = {
-        sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 } },
-        async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' } },
-        event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' } },
-        database: { line: { stroke: `#10b981${alpha}`, strokeWidth: 2 } },
-        external: { line: { stroke: `#9ca3af${alpha}`, strokeWidth: 1.5, strokeDasharray: '8 4' } },
+        sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 }, markerEnd: { type: 'arrowclosed', color: `#1168BD${alpha}` } },
+        async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' }, markerEnd: { type: 'arrowclosed', color: `#438DD5${alpha}` } },
+        event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' }, markerEnd: { type: 'arrowclosed', color: `#f59e0b${alpha}` } },
+        database: { line: { stroke: `#10b981${alpha}`, strokeWidth: 2 }, markerEnd: { type: 'arrowclosed', color: `#10b981${alpha}` } },
+        external: { line: { stroke: `#9ca3af${alpha}`, strokeWidth: 1.5, strokeDasharray: '8 4' }, markerEnd: { type: 'arrowclosed', color: `#9ca3af${alpha}` } },
     };
     return styles[relType ?? 'sync'] ?? styles.sync;
 }
