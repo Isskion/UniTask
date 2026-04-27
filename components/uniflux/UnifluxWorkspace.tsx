@@ -2054,7 +2054,7 @@ function getNodeStyle(type: string) {
 // C4 edge visual styles by relationship type
 function getC4EdgeStyle(relType?: string, dimmed?: boolean) {
     const alpha = dimmed ? '33' : 'ff';
-    const styles: Record<string, { line: React.CSSProperties; markerEnd?: string }> = {
+    const styles: Record<string, { line: React.CSSProperties; markerEnd?: any }> = {
         sync:     { line: { stroke: `#1168BD${alpha}`, strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: `#1168BD${alpha}` } },
         async:    { line: { stroke: `#438DD5${alpha}`, strokeWidth: 2, strokeDasharray: '6 3' }, markerEnd: { type: MarkerType.ArrowClosed, color: `#438DD5${alpha}` } },
         event:    { line: { stroke: `#f59e0b${alpha}`, strokeWidth: 2, strokeDasharray: '2 4' }, markerEnd: { type: MarkerType.ArrowClosed, color: `#f59e0b${alpha}` } },
