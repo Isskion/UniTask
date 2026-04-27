@@ -1,0 +1,407 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:unis="http://unisolutions.com.ar/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <unis:CrearViajeCompleto>
+         <!--F5M información de albaranes (F5M003)-->
+         <unis:crearviaje>
+            <unis:CrearViajeNumero>7</unis:CrearViajeNumero> <!--7, constante-->
+            <unis:ApiKey>FA-57-7F-50-AE-E</unis:ApiKey>
+            <unis:Dominio>0031-KRK</unis:Dominio> <!--matrícula (rescatar datos desde F558098D)-->
+            <unis:FechaViaje>2026-02-06T15:20:00</unis:FechaViaje> <!-- F5M003 HADRQJ añadir hora 00:00:00-->
+            <unis:IdViaje>643</unis:IdViaje> <!-- ruta de Unigis routeId-->
+            <unis:Descripcion>Prueba descripción</unis:Descripcion> <!-- devolver la ruta generada en JDE -->
+            <unis:Observaciones></unis:Observaciones><!--vacío-->
+            <unis:Empresa></unis:Empresa><!--vacío-->
+            <unis:Sucursal></unis:Sucursal><!--vacío-->
+            <unis:Operacion>101</unis:Operacion><!--(delegación) F5M003 HAAC02-->
+            <unis:varchar1>Saldo:100 Euros|OTROS: 25 Euros</unis:varchar1><!--concatenar saldo moneda y saldo otros F5M062 RU@SMO y RU@SOT-->
+			
+            <!--opcionales, ampliables si fuera necesarios-->
+            <unis:varchar2>Opcional 2</unis:varchar2>
+            <unis:varchar3>Opcional 3</unis:varchar3>
+            <unis:varchar4>Opcional 4</unis:varchar4>
+            <unis:varchar5>Opcional 5</unis:varchar5>
+            <unis:varchar6>Opcional 6</unis:varchar6>
+            <unis:Int_1>1</unis:Int_1>
+            <unis:Int_2>2</unis:Int_2>
+            <unis:Float_1>1</unis:Float_1>
+            <unis:Float_2>1</unis:Float_2>
+            <unis:Float_3>1</unis:Float_3>
+            <unis:Float_4>1</unis:Float_4>
+			<!-- fin opcionales -->
+			
+            <unis:Estado>
+               <unis:IdViaje>643</unis:IdViaje> <!-- ruta de Unigis routeId-->
+               <unis:Estado>xxx</unis:Estado> <!-- si está preparado ok -> PREPARADO (TODO: enviar codigo referencia) -->
+               <unis:Login>MSoft</unis:Login> <!--cte: MSoft-->
+               <unis:ValidarTransicion>1</unis:ValidarTransicion> <!-- cte (por ahora ya que no va a haber mas estado que PREPARADO) -->
+               <unis:FechaCambioEstado>xxx</unis:FechaCambioEstado> <!-- fecha del momento en que se envia a Unigis -->
+               <unis:Observaciones></unis:Observaciones> <!-- vacío -->
+            </unis:Estado>
+
+            <unis:conductor>
+               <unis:ReferenciaExterna>581569</unis:ReferenciaExterna> <!-- (driverRef) RUCARS-->
+               <unis:SincronizarUsuario>true</unis:SincronizarUsuario> <!--true, constante-->
+            </unis:conductor>
+            <unis:Paradas>
+               <unis:pParada>
+                  <unis:Secuencia>1</unis:Secuencia> <!--cte, '1'-->
+                  <unis:RefDocumento>92775127</unis:RefDocumento><!--F5M003.HADOCO (id pedido)-->
+				  <!-- TODO: cuando se tenga el campo definido de tipoDocumento (quizás campo <unis:ReferenciaFiscal>) (albarán/factura) se recogerá de F5M003.HAZDCT -->
+                  <!--NUMERO DE DOCUMENTO DE PARADA ADICIONAL AL DEL PEDIDO, EJEMPLO, EL NUMERO DE FACTURA-->
+                  <unis:RefDocumentoAdicional>12345678</unis:RefDocumentoAdicional> <!-- F5M003.HAZDOC (numero del documento (albarán/factura)-->
+                  <!--IDENTIFICADOR DEL PEDIDO DEL PEDIDO-->
+                  <unis:RefDocumentoPedido>xxx-xxx-xxx</unis:RefDocumentoPedido> <!-- companyId - orderType - orderId  (concatenación)-->
+                  <unis:TipoParada>V6</unis:TipoParada><!--F5M003.HAZDCT (tipo pedido)-->
+                  <unis:Valor_Declarado>100</unis:Valor_Declarado><!--F5M003.HA$IMT (valor total con iva)-->
+                  <!--opcionales, ampliables si fuera necesarios (email,tlf...)-->
+                  <unis:RequiereControl>0</unis:RequiereControl><!--cte, 0-->
+                  <unis:ValorControl>4441</unis:ValorControl><!-- F5M061.BS@PIN -->
+                  <!--fin opcionales-->
+                  <unis:cliente>
+                     <!--aparecen los mismo campos del pedido (INT1)-->
+                     <unis:RefCliente>143098</unis:RefCliente> <!-- F5M003.HA$AN8-->
+					 <!--
+                     <unis:RazonSocial>VIZOR PERLA, S.L.</unis:RazonSocial> 
+                     <unis:Direccion>C/ MARINA, 107 LOCAL 1</unis:Direccion>
+                     <unis:Calle>MARINA</unis:Calle>
+                     <unis:NumeroPuerta>107</unis:NumeroPuerta>
+                     <unis:Localidad>MONTGAT</unis:Localidad>
+                     <unis:Provincia>Barcelona</unis:Provincia>
+                     <unis:Pais>ESPAÑA</unis:Pais>
+					 -->
+                     <unis:RefDomicilioExterno>143098</unis:RefDomicilioExterno><!-- recuperar del pedido original F4201-->
+                     <unis:DomicilioDescripcion>VIZOR PERLA, S.L.</unis:DomicilioDescripcion><!-- recuperar del pedido original F4201-->
+					 <!--
+                     <unis:DomicilioCodigoPostal>08390</unis:DomicilioCodigoPostal>
+					 -->
+                  </unis:cliente>
+                  <unis:CampoDinamico>
+				  <!-- Unigis incorporará 2 nuevos campos (bloques) dinámicos para enviar esta información de igual manera que está almacenada en JDE -->
+					<unis:CampoValor>
+                        <unis:Campo>Z_Entrega</unis:Campo><!-- para impresión -->
+                        <unis:Valor>xxx</unis:Valor> <!-- F5M003.HASHL1 HASTA HASHL5 -->
+                     </unis:CampoValor>
+					 <unis:CampoValor>
+                        <unis:Campo>Z_RSocial</unis:Campo><!-- para impresión -->
+                        <unis:Valor>xxx</unis:Valor> <!-- F5M003.HASXL1 HASTA HASXL4 -->
+                     </unis:CampoValor>
+					 <!--Valores posibles: 1,2,3 y 4. SI F5M009.OCADXC == 'N' entonces No permite el 2; SI F5M009.OCADPG == 'YY' -->
+                     <unis:CampoValor>
+                        <unis:Campo>Z_FormaPagoPreferente</unis:Campo>
+                        <unis:Valor>4</unis:Valor> <!--CTE, 4 (tarjeta credito)-->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_FormaPago2</unis:Campo>
+                        <unis:Valor>1</unis:Valor> <!--CTE, 1 (metálico)-->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_FormaPago3</unis:Campo>
+                        <unis:Valor>xx</unis:Valor> <!--Si F5M009.OCADXC == 'Y' -> 2; ELSE IF SI F5M009.OCADPG == 'Y' -> 3; ELSE EN OTRO CASO '' -->
+                     </unis:CampoValor>
+					 <unis:CampoValor>
+                        <unis:Campo>Z_FormaPago4</unis:Campo>
+                        <unis:Valor>XX</unis:Valor><!--Si F5M009.OCADXC == 'Y' y F5M009.OCADPG == 'Y' -> 3, ELSE en otro caso ''-->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_RequiereCobroObligatorioTotal</unis:Campo>
+                        <unis:Valor>SI</unis:Valor> <!-- F5M003.HACCOB : SI ES X -> 'SI'. EN OTRO CASO 'NO'-->
+                     </unis:CampoValor>
+					 <!--no lo manejan desde JDE
+                     <unis:CampoValor>
+                        <unis:Campo>Z_RequiereCobroObligatorioParcial</unis:Campo>
+                        <unis:Valor>NO</unis:Valor> 
+                     </unis:CampoValor>
+					 -->
+					 <!-- no enviar
+                     <unis:CampoValor>
+                        <unis:Campo>Z_CodigoAutorizacionEntrega</unis:Campo>
+                        <unis:Valor>8888</unis:Valor>
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_ValorMinimoACobrar</unis:Campo>
+                        <unis:Valor>100</unis:Valor> 
+                     </unis:CampoValor>
+					 -->
+					 <!--IMPORTANTE:  A NIVEL DE CABECERA NO MANDAMOS IMPUESTOS NI BONIFICACIONES específicos, es la suma de las líneas)-->
+                     <unis:CampoValor>
+                        <unis:Campo>Z_TotalACobrar</unis:Campo>
+                        <unis:Valor>100</unis:Valor> <!-- F5M003.HA$IMT -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_TipoImpuesto</unis:Campo>
+                        <unis:Valor>IVA21</unis:Valor> <!-- JDE: F5M005.IATXA1 JOIN F0005 (DRSY = '54' AND DRRT = 'AV') HAGO JOIN CON EL CAMPO TRIM(DRKY) = F5M005.IATXA1 (ESTE ES EL CODE DE LA IMAGEN) A LA DESCRIPCION DRDL01 HACERLE SUBSTRING DE LAS 10 PRIMERAS POSICIONES -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_Alicuota</unis:Campo>
+                        <unis:Valor>0.21</unis:Valor> <!-- F5M005.IAII01 -->
+                     </unis:CampoValor>
+					 <!-- TODO: AÑADIR TAG RECARGO EQUIVALENCIA PARA CADA TIPO DE IMPUESTO -->
+					 <!-- JDE trabaja con 3 tipos de impuestos -->
+                     <unis:CampoValor>
+                        <unis:Campo>Z_TipoImpuesto2</unis:Campo>
+                        <unis:Valor>IVA10</unis:Valor><!-- JDE: F5M005.IATXA1 JOIN F0005 (DRSY = '54' AND DRRT = 'AV') HAGO JOIN CON EL CAMPO TRIM(DRKY) = F5M005.IATXA1 (ESTE ES EL CODE DE LA IMAGEN) A LA DESCRIPCION DRDL01 HACERLE SUBSTRING DE LAS 10 PRIMERAS POSICIONES -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_Alicuota2</unis:Campo>
+                        <unis:Valor>0.10</unis:Valor><!-- F5M005.IAII01 (será del otro registro, habrán 2) -->
+                     </unis:CampoValor>
+					 <unis:CampoValor>
+                        <unis:Campo>Z_TipoImpuesto3</unis:Campo>
+                        <unis:Valor>IVA4</unis:Valor><!-- JDE: F5M005.IATXA1 JOIN F0005 (DRSY = '54' AND DRRT = 'AV') HAGO JOIN CON EL CAMPO TRIM(DRKY) = F5M005.IATXA1 (ESTE ES EL CODE DE LA IMAGEN) A LA DESCRIPCION DRDL01 HACERLE SUBSTRING DE LAS 10 PRIMERAS POSICIONES -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_Alicuota3</unis:Campo>
+                        <unis:Valor>0.4</unis:Valor><!-- F5M005.IAII01 (será del otro registro, habrán 2) -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_TipoBonificacion</unis:Campo>
+                        <unis:Valor>ZG01</unis:Valor> <!-- JDE: no lo gestiona ; hay bonificaciones pronto pago ó ráppel -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_TipoValorBonificacion</unis:Campo>
+                        <!--P(porcentaje) valor menor  a 1) NULL (aplica a el valor directitto>-->
+                        <unis:Valor>P</unis:Valor> <!-- JDE: no lo gestiona -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_ValorBonificacion</unis:Campo>
+                        <unis:Valor>0.05</unis:Valor> <!-- JDE: no lo gestiona -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_ValorTotalACobrar</unis:Campo>
+                        <unis:Valor>100</unis:Valor> <!-- F5M005.HA$IMT (TODO: IGUAL A TOTAL A COBRAR?) -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_ValorImpuesto</unis:Campo>
+                        <unis:Valor>10</unis:Valor> <!-- Sumatorio del valor de los impuestos del tipo 1 (de los IAII01) -->
+                     </unis:CampoValor>
+                     <unis:CampoValor>
+                        <unis:Campo>Z_ValorImpuesto2</unis:Campo>
+                        <unis:Valor>3.5</unis:Valor> <!-- Sumatorio del valor de los impuestos del tipo 2 (de los IAII02) -->
+                     </unis:CampoValor>
+					 <!-- FIN CAMPOS NO ENVIAR A UNIGIS, IMPUESTOS Y BONIFICACIONES SE ENVIAN EN LINEAS-->
+                  </unis:CampoDinamico>
+                  <unis:Items>
+                     <unis:pParadaItem>
+                        <unis:RefDocumento>63434</unis:RefDocumento> <!-- F5M004.DALITM (identificador item)-->
+                        <unis:RefDocumentoAdicional>xxx</unis:RefDocumentoAdicional> <!-- F5M004.DACITM (COD ART DEL TERCERO) -->
+                        <unis:Descripcion>Mini Hot Dog Beach (6u)</unis:Descripcion> <!-- F5M004.DADSC1 -->
+                        <unis:Cantidad>1</unis:Cantidad> <!-- F5M004.DASOQS /100 -->
+						<!--DIFERENCIAR CANTIDAD PEDIDA (F5M004.DASOQS) Y PREPARADA (F5M004.DAQNTR)-->
+                        <unis:Volumen>0.030014</unis:Volumen> <!--  F55308.I$$M3 * (F5M004.DASOQS/100)(m3; multiplicar por cantidad pedida / 100) -->
+                        <unis:Peso>3.18</unis:Peso> <!-- F55308.I$$KCR * (F5M004.DASOQS/100)(kg; multiplicar por cantidad pedida / 100)  -->
+                        <unis:Bulto>1</unis:Bulto> <!-- F5M004.DASOQS -->
+                        <unis:Pallets>0.018</unis:Pallets> <!-- F5M004.DASOQS/F55308.I$$CPP (3 decimales) -->
+                        <unis:UnidadMedida>CJ</unis:UnidadMedida> <!-- CTE, CJ -->
+                        <!--opcionales, si se quiere informar del articulo de una manera diferente-->
+                        <unis:Varchar1>opcional 1</unis:Varchar1>
+                        <unis:Varchar2>opcional 2</unis:Varchar2>
+                        <unis:Varchar3>opcional 3</unis:Varchar3>
+                        <!--FIN opcionales-->
+                        <!--mismos datos que los artículos (items)-->
+                        <!--FIN-->
+						<!-- En caso de que algun campo no esté informado no enviar a Unigis-->
+                        <unis:CampoDinamico>
+							<unis:CampoValor>
+                              <unis:Campo>Z_CantidadPreparada</unis:Campo>
+                              <unis:Valor>1</unis:Valor><!--F5M004.DAQNTR (en el campo DAQNTR inicialmente se seteará con la pedida y cuando se prepare se actualizará ese campo con la preparada)-->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_PrecioParaImpresion</unis:Campo>
+                              <unis:Valor>1</unis:Valor><!--F5M004.DAIPRC -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_ImporteBruto</unis:Campo>
+                              <unis:Valor>1</unis:Valor><!--F5M004.DAAB01 -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_IndicadorImprimirDescuento</unis:Campo>
+                              <unis:Valor>Y</unis:Valor><!-- F5M004.DAFFU1 -> Y/N -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorACobrar</unis:Campo>
+                              <unis:Valor>20</unis:Valor> <!-- JDE: F5M004.DAAEXP / 100 -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorUnitario</unis:Campo>
+                              <unis:Valor>20</unis:Valor> <!-- JDE: F5M004.DAUPRC / 1000000 -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoImpuesto</unis:Campo>
+                              <unis:Valor>IVA</unis:Valor> <!-- PENDIENTE aclarar query JDE: IVA / IGIC / RECARGO EQUIVALENCIA -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_Alicuota</unis:Campo>
+                              <unis:Valor>0.21</unis:Valor> <!-- F5M004.DAXI01/100000 -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_TipoImpuesto2</unis:Campo>
+                              <unis:Valor>RECARGO EQUIVALENCIA</unis:Valor> <!-- JDE: PENDIENTE ACLARAR. Campo obligatorio en Unigis -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_Alicuota2</unis:Campo>
+                              <unis:Valor>0.04</unis:Valor> <!-- F5M004.DAXI02/100000 -->
+                           </unis:CampoValor>
+						   <!-- Si no tiene bonificaciones no mandar nada de bonificaciones-->
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoBonificacion</unis:Campo>
+                              <unis:Valor>ZG01</unis:Valor> <!-- SI F5M004.DA$DPP <> 0 -> 'pronto pago' ELSE '' -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoValorBonificacion</unis:Campo>
+                              <unis:Valor>P</unis:Valor> <!-- CTE, 'P' (Porcentaje) -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorBonificacion</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor> <!-- F5M004.DA$DPP/100 -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoBonificacion2</unis:Campo>
+                              <unis:Valor>ZG01</unis:Valor> <!-- SI F5M004.DA$DRF <> 0 -> 'rappel' ELSE '' -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoValorBonificacion2</unis:Campo>
+                              <unis:Valor>P</unis:Valor> <!-- CTE, 'P' (Porcentaje) -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorBonificacion2</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor> <!-- F5M004.DA$DRF/100 -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_TipoBonificacion3</unis:Campo>
+                              <unis:Valor>ZG01</unis:Valor> <!-- SI F5M004.DAFVTR <> 0 -> 'comercial' ELSE '' -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoValorBonificacion3</unis:Campo>
+                              <unis:Valor>P</unis:Valor> <!-- CTE, 'P' (Porcentaje) -->
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorBonificacion3</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor> <!-- F5M004.DAFVTR/100 -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_PromocionCampana</unis:Campo>
+                              <unis:Valor>xxx</unis:Valor> <!-- F5M004.DADMCT -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_LineaObsequio</unis:Campo>
+                              <unis:Valor>Y</unis:Valor> <!-- F5M004.DAFFU2 (si está a ‘Y’ el precio unitario = 0) -->
+                           </unis:CampoValor>
+						   <!-- Si no tiene UM secundaria no enviar-->
+						   <unis:CampoValor>
+                              <unis:Campo>Z_ImprimirUMsecundaria</unis:Campo>
+                              <unis:Valor>Y</unis:Valor> <!-- F5M004.DA@IUM (Y/N) -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_UMsecundaria</unis:Campo>
+                              <unis:Valor>Unidades</unis:Valor> <!-- F5M004.DABK15 -->
+                           </unis:CampoValor>
+						   <unis:CampoValor>
+                              <unis:Campo>Z_FactorConversionUMsecundaria</unis:Campo>
+                              <unis:Valor>1</unis:Valor> <!-- F5M004.DACONV/10000000 -->
+                           </unis:CampoValor>
+                        </unis:CampoDinamico>
+                     </unis:pParadaItem>
+                     <unis:pParadaItem>
+                        <unis:RefDocumento>67750</unis:RefDocumento>
+                        <!--F4211.SDLITM(identificador item)-->
+                        <unis:RefDocumentoAdicional>RefItemCte</unis:RefDocumentoAdicional>
+                        <!--F554104.IVCITM, EN CASO DE NO EXISTIR REPETIMOS F4211.SDLITM-->
+                        <unis:Descripcion>Pan molde brioche (10u)</unis:Descripcion>
+                        <!--F4211.SDDSC1-->
+                        <!--TODO: estas cantidades deben ser las verdaderamente preparadas, no las solicitadas; pendiente de revisar por JDE de dónde obtenerlas-->
+                        <unis:Cantidad>1</unis:Cantidad>
+                        <unis:Volumen>0.031152</unis:Volumen>
+                        <unis:Peso>3.3</unis:Peso>
+                        <unis:Bulto>1</unis:Bulto>
+                        <unis:Pallets>0.018</unis:Pallets>
+                        <unis:UnidadMedida>CA</unis:UnidadMedida>
+                        <!--opcionales, si se quiere informar del articulo de una manera diferente-->
+                        <unis:Varchar1>opcional 1</unis:Varchar1>
+                        <unis:Varchar2>opcional 2</unis:Varchar2>
+                        <unis:Varchar3>opcional 3</unis:Varchar3>
+                        <unis:ValorACobrar>10</unis:ValorACobrar>
+                        <!--Optional:-->
+                        <unis:ValorUnitario>10</unis:ValorUnitario>
+                        <!--Optional:-->
+                        <unis:ValorCobrado>0</unis:ValorCobrado>
+                        <!--FIN opcionales-->
+                        <!--mismos datos que los artículos (items)-->
+                        <!--FIN-->
+                        <!--TODO: identificar bonificaciones e impuestos (a nivel de Item)-->
+                        <unis:CampoDinamico>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorTotalACobrar</unis:Campo>
+                              <unis:Valor>10</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorUnitario</unis:Campo>
+                              <unis:Valor>10</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoImpuesto</unis:Campo>
+                              <unis:Valor>IVA 21</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_Alicuota</unis:Campo>
+                              <unis:Valor>0.21</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoImpuesto2</unis:Campo>
+                              <unis:Valor>IVA 21</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_Alicuota2</unis:Campo>
+                              <unis:Valor>0.21</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoBonificacion</unis:Campo>
+                              <unis:Valor>ZG01</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoValorBonificacion</unis:Campo>
+                              <unis:Valor>P</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorBonificacion</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoBonificacion2</unis:Campo>
+                              <unis:Valor>ZG01</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_TipoValorBonificacion2</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor>
+                           </unis:CampoValor>
+                           <unis:CampoValor>
+                              <unis:Campo>Z_ValorBonificacion2</unis:Campo>
+                              <unis:Valor>0.05</unis:Valor>
+                           </unis:CampoValor>
+                        </unis:CampoDinamico>
+                     </unis:pParadaItem>
+                  </unis:Items>
+                  <unis:Estados>
+                     <unis:pEstadoParada>
+                        <unis:RefDocumento>92775127</unis:RefDocumento> <!-- F5M003.HADOCO (id pedido)-->
+                        <unis:Estado>XXX</unis:Estado> <!-- 11 ALBARANADO (A) , 12 ALBARAN MODIFICADO (C)-->
+                        <!--NO ENVIAR ARCHIVOS, SE MANDARÁN EN EL SERVICIO "CrearDocumentos"-->
+						<unis:ArchivosAsociados><!--LA RUTA DE ACCESO A LOS PDFs: '\\192.168.250.205\pdf\UNIGIS\00001' buscar documento por ZDOC.PDF (F5M003.HAZDOC == refDocumentoAdicional)-->
+                           <unis:pArchivoDoc>
+                              <unis:Descripcion>DOC</unis:Descripcion> <!-- JDE: serán siempre PDF -->
+                              <!--nombre del documento a enviar-->
+                              <unis:TipoArchivo>.png</unis:TipoArchivo> <!-- JDE: serán siempre .pdf -->
+                              <!--TODO: definir los tipos de archivos que se vayan a enviar, pendiente de revisar por JDE-->
+                              <unis:Contenido>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?></unis:Contenido>
+                              <unis:ClasificacionArchivo>FOTO</unis:ClasificacionArchivo> <!-- JDE: serán siempre PDF -->
+                              <!--TODO: enviar los tipos de archivos posibles (ALBARÁN ó FACTURA)?, pendiente de revisar por JDE-->
+                           </unis:pArchivoDoc>
+                        </unis:ArchivosAsociados>
+                     </unis:pEstadoParada>
+                  </unis:Estados>
+               </unis:pParada>
+            </unis:Paradas>
+         </unis:crearviaje>
+      </unis:CrearViajeCompleto>
+   </soapenv:Body>
+</soapenv:Envelope>

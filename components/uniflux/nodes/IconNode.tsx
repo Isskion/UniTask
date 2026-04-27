@@ -27,6 +27,9 @@ const IconNode = ({ id, data, selected }: any) => {
     const { updateNodeData, setNodes, setEdges } = useReactFlow();
     
     const [showColors, setShowColors] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+    
     const iconName = data.iconName || 'Box';
     const color = data.color || '#4f46e5';
     const isLocked = data.isLocked || false;
@@ -151,31 +154,31 @@ const IconNode = ({ id, data, selected }: any) => {
                 <div className="absolute inset-0 pointer-events-none z-[60]">
                     <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('right'); }}
-                        className="absolute -right-9 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        className="absolute -right-11 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/60 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-md text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90 z-20"
                         title="Clonar a la derecha"
                     >
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                     <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('bottom'); }}
-                        className="absolute -bottom-9 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        className="absolute -bottom-11 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/60 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-md text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90 z-20"
                         title="Clonar abajo"
                     >
-                        <ArrowDown className="w-3 h-3" />
+                        <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                     <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('left'); }}
-                        className="absolute -left-9 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        className="absolute -left-11 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-white/60 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-md text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90 z-20"
                         title="Clonar a la izquierda"
                     >
-                        <ArrowLeft className="w-3 h-3" />
+                        <ArrowLeft className="w-3.5 h-3.5" />
                     </button>
                     <button 
                         onClick={(e) => { e.stopPropagation(); quickConnect('top'); }}
-                        className="absolute -top-9 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-sm text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90"
+                        className="absolute -top-11 left-1/2 -translate-x-1/2 w-6 h-6 flex items-center justify-center bg-white/60 hover:bg-white backdrop-blur-sm border border-slate-200/50 rounded-full shadow-md text-slate-400 hover:text-indigo-600 pointer-events-auto transition-all hover:scale-110 active:scale-90 z-20"
                         title="Clonar arriba"
                     >
-                        <ArrowUp className="w-3 h-3" />
+                        <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                 </div>
             )}
@@ -187,11 +190,17 @@ const IconNode = ({ id, data, selected }: any) => {
                     minWidth={32}
                     minHeight={32}
                     keepAspectRatio={true}
-                    handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
+                    handleStyle={{ width: 10, height: 10, borderRadius: 2, background: 'white', border: `2px solid ${color}`, zIndex: 100 }}
+                    onResizeStart={() => setIsResizing(true)}
+                    onResizeEnd={() => setIsResizing(false)}
                 />
             )}
 
-            <div className="w-full h-full relative group flex items-center justify-center pointer-events-auto cursor-pointer">
+            <div 
+                className="w-full h-full relative group flex items-center justify-center pointer-events-auto cursor-pointer"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+            >
                 <IconComponent 
                     color={color} 
                     strokeWidth={1.5}
@@ -200,29 +209,30 @@ const IconNode = ({ id, data, selected }: any) => {
                 />
 
                 {/* Universal Handles (16 points: Sides + Corners + Midpoints) */}
+                {/* Visual rule: Only show main centers on select, show all on hover, hide all on resizing */}
                 {/* Top side */}
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%', opacity: selected ? 1 : 0 }} id="top-c" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: 0, opacity: selected ? 1 : 0 }} id="top-l" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '100%', opacity: selected ? 1 : 0 }} id="top-r" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%', opacity: selected ? 1 : 0 }} id="top-25" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%', opacity: selected ? 1 : 0 }} id="top-75" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '50%', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="top-c" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: 0, opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-l" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '100%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-r" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '25%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-25" />
+                <Handle type="source" position={Position.Top} style={{ ...handleStyle, top: -4, left: '75%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="top-75" />
                 
                 {/* Bottom side */}
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-c" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-l" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-r" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-25" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto', opacity: selected ? 1 : 0 }} id="bottom-75" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '50%', top: 'auto', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="bottom-c" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: 0, top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-l" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '100%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-r" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '25%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-25" />
+                <Handle type="source" position={Position.Bottom} style={{ ...handleStyle, bottom: -4, left: '75%', top: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="bottom-75" />
 
                 {/* Left side */}
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%', opacity: selected ? 1 : 0 }} id="left-25" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%', opacity: selected ? 1 : 0 }} id="left-c" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%', opacity: selected ? 1 : 0 }} id="left-75" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '25%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="left-25" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '50%', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="left-c" />
+                <Handle type="source" position={Position.Left} style={{ ...handleStyle, left: -4, top: '75%', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="left-75" />
 
                 {/* Right side */}
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-25" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-c" className="group-hover:opacity-100" />
-                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto', opacity: selected ? 1 : 0 }} id="right-75" className="group-hover:opacity-100" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '25%', left: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="right-25" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '50%', left: 'auto', opacity: isResizing ? 0 : (isHovered || selected ? 1 : 0) }} id="right-c" />
+                <Handle type="source" position={Position.Right} style={{ ...handleStyle, right: -4, top: '75%', left: 'auto', opacity: isResizing ? 0 : (isHovered ? 1 : 0) }} id="right-75" />
             </div>
 
             {/* Node Label (OUTSIDE for consistency) */}

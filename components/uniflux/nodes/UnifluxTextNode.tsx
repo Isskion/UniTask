@@ -12,6 +12,8 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     
     const isLocked = data.isLocked || false;
+    const [isHovered, setIsHovered] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
 
     useEffect(() => {
         if (isEditing && inputRef.current) {
@@ -92,14 +94,18 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
                     isVisible={selected}
                     minWidth={100}
                     minHeight={30}
-                    handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
-                    onResizeEnd={(_, { width, height }) => data.onResizeStop?.(id, width, height)}
+                    handleStyle={{ width: 10, height: 10, borderRadius: 2, background: 'white', border: '2px solid #3b82f6', zIndex: 100 }}
+                    onResizeStart={() => setIsResizing(true)}
+                    onResizeEnd={() => setIsResizing(false)}
+                    onResizeStop={(_, { width, height }) => data.onResizeStop?.(id, width, height)}
                 />
             )}
 
             <div 
                 className={`w-full h-full p-2 transition-all duration-300 ${selected ? 'ring-2 ring-blue-500/20' : ''}`}
                 onDoubleClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
                 style={{
                     fontFamily: 'Garamond, Georgia, serif',
                     fontSize: '15px',
@@ -126,10 +132,11 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
             </div>
 
             {/* Connection handles: visible only when selected to allow "chaining" to other elements */}
-            <Handle type="target" position={Position.Top} style={{ opacity: selected ? 0.6 : 0 }} />
-            <Handle type="source" position={Position.Bottom} style={{ opacity: selected ? 0.6 : 0 }} />
-            <Handle type="source" position={Position.Left} style={{ opacity: selected ? 0.6 : 0 }} />
-            <Handle type="source" position={Position.Right} style={{ opacity: selected ? 0.6 : 0 }} />
+            {/* Connection handles: visible only when selected/hovered to allow "chaining" to other elements, hide on resize */}
+            <Handle type="target" position={Position.Top} style={{ opacity: isResizing ? 0 : (isHovered || selected ? 0.6 : 0) }} id="top-c" />
+            <Handle type="source" position={Position.Bottom} style={{ opacity: isResizing ? 0 : (isHovered || selected ? 0.6 : 0) }} id="bottom-c" />
+            <Handle type="source" position={Position.Left} style={{ opacity: isResizing ? 0 : (isHovered || selected ? 0.6 : 0) }} id="left-c" />
+            <Handle type="source" position={Position.Right} style={{ opacity: isResizing ? 0 : (isHovered || selected ? 0.6 : 0) }} id="right-c" />
         </div>
     );
 };

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, Position, ConnectionMode } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -785,6 +785,11 @@ export default function UnifluxWorkspace() {
             labelBgBorderRadius: 8,
         };
         setEdges((eds) => addEdge(newEdge, eds));
+        setTimeout(takeSnapshot, 0);
+    }, [setEdges, takeSnapshot]);
+
+    const onReconnect = useCallback((oldEdge: Edge, newConnection: Connection) => {
+        setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
         setTimeout(takeSnapshot, 0);
     }, [setEdges, takeSnapshot]);
 
@@ -1791,6 +1796,8 @@ export default function UnifluxWorkspace() {
                     onNodesChange={onNodesChange}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
+                    onReconnect={onReconnect}
+                    edgesReconnectable={true}
                     onInit={setReactFlowInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
