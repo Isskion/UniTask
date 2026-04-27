@@ -88,10 +88,6 @@ export function usePermissions() {
     const [loading, setLoading] = useState(true);
     const [globalAIEnabled, setGlobalAIEnabled] = useState<boolean>(false);
     const [tenantAIEnabled, setTenantAIEnabled] = useState<boolean>(false);
-    const [tenantConfig, setTenantConfig] = useState<{ unitaskToolsEnabled: boolean; enabledTools: string[] }>({
-        unitaskToolsEnabled: false,
-        enabledTools: []
-    });
 
     useEffect(() => {
         if (authLoading) return;
@@ -175,12 +171,7 @@ export function usePermissions() {
         if (tenantId) {
             unsubTenant = onSnapshot(doc(db, "tenants", tenantId), (snap) => {
                 if (snap.exists()) {
-                    const data = snap.data();
-                    setTenantAIEnabled(data.aiEnabled !== false);
-                    setTenantConfig({
-                        unitaskToolsEnabled: data.unitaskToolsEnabled || false,
-                        enabledTools: data.enabledTools || []
-                    });
+                    setTenantAIEnabled(snap.data().aiEnabled !== false);
                 }
             });
         }
@@ -194,43 +185,33 @@ export function usePermissions() {
 
     const can = (action: string, context: string): boolean => {
         if (loading) return false;
-        // 1. Super Admin Bypass (Absolute Power)
+        // Super Admin Bypass
         if (userRole === 'app_admin' || userRole === 'superadmin') return true;
 
-        // 2. View Access Logic (The "Solid" Parameterization)
-        if (context === 'views') {
-            // Identify tool category
-            const isTechnicalTool = ['dispoPlan', 'unavailabilityRegistry', 'uniflux', 'unidocs', 'unileaks', 'inbox'].includes(action);
-            const isSpecificTool = ['uniordercreator', 'swagger', 'soap'].includes(action);
-            
-            // Check if tenant has the tool active
-            const tenantHasTool = isTechnicalTool ? tenantConfig.unitaskToolsEnabled : 
-                                 isSpecificTool ? tenantConfig.enabledTools.includes(action) : true;
-
-            if (tenantHasTool) {
-                // Rule: Admin, PM, and Consultant ALWAYS see active tools
-                const roleLevel = getRoleLevel(userRole);
-                if (roleLevel >= RoleLevel.CONSULTANT) return true;
-                
-                // Rule: Team / Client / Others fallback to their assigned Permission Group (e.g. UniLeaks only)
-                return permissions.viewAccess?.[action as keyof typeof permissions.viewAccess] || false;
-            }
-            return false;
-        }
-
-        // 3. Entity & Special Permissions (CRUD / Trash / Technical Info)
         if (context === 'tasks') {
             if (action === 'delete') return permissions.taskAccess?.delete || false;
             if (action === 'create') return permissions.taskAccess?.create || false;
             if (action === 'edit') return permissions.taskAccess?.edit || false;
             if (action === 'view') return permissions.taskAccess?.viewAll || permissions.taskAccess?.assignedProjectsOnly || false;
         }
-        if (context === 'project' || context === 'projects') {
+        if (context === 'project') {
             if (action === 'create') return permissions.projectAccess?.create || false;
             if (action === 'edit') return permissions.projectAccess?.edit || false;
             if (action === 'view') return permissions.projectAccess?.viewAll || permissions.projectAccess?.assignedOnly || false;
             if (action === 'archive') return permissions.projectAccess?.archive || false;
             if (action === 'viewAll') return permissions.projectAccess?.viewAll || false;
+        }
+        if (context === 'projects') {
+            if (action === 'create') return permissions.projectAccess?.create || false;
+            if (action === 'edit') return permissions.projectAccess?.edit || false;
+            if (action === 'view') return permissions.projectAccess?.viewAll || permissions.projectAccess?.assignedOnly || false;
+            if (action === 'archive') return permissions.projectAccess?.archive || false;
+            if (action === 'viewAll') return permissions.projectAccess?.viewAll || false;
+        }
+
+        if (context === 'views') {
+            const hasAccess = permissions.viewAccess?.[action as keyof typeof permissions.viewAccess] || false;
+            return hasAccess;
         }
 
         if (context === 'special') {

@@ -352,45 +352,48 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                         )}
 
                         {/* Unitask Tools (The broad entry) */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 px-1 mb-2">
-                                <Wrench className="w-3 h-3 text-rose-500" />
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.unitask_tools') || 'Unitask Tools'}</p>
+                        {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 px-1 mb-2">
+                                    <Wrench className="w-3 h-3 text-rose-500" />
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.unitask_tools') || 'Unitask Tools'}</p>
+                                </div>
+                                <div className="nav-section-island border-rose-500/20 bg-rose-500/5 shadow-[inset_0_0_20px_rgba(225,29,72,0.02)]">
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
+                                        <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                    )}
+                                    
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
+                                        <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                    )}
+                                    
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unileaks', 'views') && (
+                                        <NavLink href="/unileaks" target="_blank" icon={Zap} label={t('nav.unileaks') || 'UniLeaks'} />
+                                    )}
+
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && can('uniordercreator', 'views') && (
+                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                    )}
+
+                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && can('swagger', 'views') && (
+                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
+                                    )}
+
+                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && can('soap', 'views') && (
+                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP" />
+                                    )}
+
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unidocs', 'views') && (
+                                        <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                    )}
+
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('uniflux', 'views') && (
+                                        <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                    )}
+
+                                </div>
                             </div>
-                            <div className="nav-section-island border-rose-500/20 bg-rose-500/5 shadow-[inset_0_0_20px_rgba(225,29,72,0.02)]">
-                                {can('dispoPlan', 'views') && (
-                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                )}
-                                
-                                {can('unavailabilityRegistry', 'views') && (
-                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                )}
-                                
-                                {can('unileaks', 'views') && (
-                                    <NavLink href="/unileaks" target="_blank" icon={Zap} label={t('nav.unileaks') || 'UniLeaks'} />
-                                )}
-
-                                {can('uniordercreator', 'views') && (
-                                    <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                )}
-
-                                {can('swagger', 'views') && (
-                                    <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
-                                )}
-
-                                {can('soap', 'views') && (
-                                    <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP" />
-                                )}
-
-                                {can('unidocs', 'views') && (
-                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                )}
-
-                                {can('uniflux', 'views') && (
-                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                                )}
-                            </div>
-                        </div>
+                        )}
 
                         {/* Secondary / Admin */}
                         {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
