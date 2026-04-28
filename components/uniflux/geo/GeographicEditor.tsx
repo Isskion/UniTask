@@ -26,6 +26,7 @@ import {
     exportZonesToKML,
     exportZonesToExcelBase64,
     exportZonesToGeoJSON,
+    updateGeographicZoneGeometry,
 } from '@/app/actions/geo';
 import { searchBoundaries, fetchIsochrone } from '@/app/actions/geo-search';
 import type { IsochroneProfile, BoundaryFeature, IsochroneResult } from '@/app/actions/geo-search';
@@ -52,6 +53,8 @@ interface PendingZone {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     geojson: any;
     overlaps: OverlapResult[];
+    isUpdateForId?: string; // Si tiene valor, es una actualización de geometría, no una nueva zona
+    mergedFromIds?: string[]; // Si proviene de una fusión, lista de IDs originales
 }
 
 interface GeographicEditorProps {
@@ -129,6 +132,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     // Edición y Visibilidad
     const [editingZone, setEditingZone] = useState<GeographicZone | null>(null);
     const [hiddenZones, setHiddenZones] = useState<Set<string>>(new Set());
+    const [selectedZonesForMerge, setSelectedZonesForMerge] = useState<Set<string>>(new Set());
 
     // ── Cargar proyectos del tenant según permisos ────────────────────────────
 
@@ -149,17 +153,52 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const renderZoneOnMap = useCallback((zone: GeographicZone) => {
         if (!map.current) return;
         const id = sid(zone.id);
+        const color = zone.color || ZONE_COLORS[zone.type] || '#6366f1';
+        
+        // Crear FeatureCollection para inyectar las propiedades (name) al source
+        const featureData: FeatureCollection = {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: zone.boundary as Polygon | MultiPolygon,
+                    properties: { name: zone.name }
+                }
+            ]
+        };
+
         if (map.current.getSource(id)) {
+            // Actualizar source de geometría y propiedades
+            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(featureData);
             // Actualizar color si ya existe (por si cambió en edición)
-            const color = zone.color || ZONE_COLORS[zone.type] || '#6366f1';
             if (map.current.getLayer(`${id}-fill`)) map.current.setPaintProperty(`${id}-fill`, 'fill-color', color);
             if (map.current.getLayer(`${id}-outline`)) map.current.setPaintProperty(`${id}-outline`, 'line-color', color);
             return;
         }
-        const color = zone.color || ZONE_COLORS[zone.type] || '#6366f1';
-        map.current.addSource(id, { type: 'geojson', data: zone.boundary });
+        
+        map.current.addSource(id, { type: 'geojson', data: featureData });
         map.current.addLayer({ id: `${id}-fill`, type: 'fill', source: id, paint: { 'fill-color': color, 'fill-opacity': 0.3 } });
         map.current.addLayer({ id: `${id}-outline`, type: 'line', source: id, paint: { 'line-color': color, 'line-width': 2 } });
+        
+        // Capa de texto para el nombre
+        map.current.addLayer({
+            id: `${id}-label`,
+            type: 'symbol',
+            source: id,
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 13,
+                'text-anchor': 'center',
+                'text-justify': 'center',
+                'symbol-placement': 'point' // Centro del polígono
+            },
+            paint: {
+                'text-color': '#ffffff',
+                'text-halo-color': '#000000',
+                'text-halo-width': 1.5,
+                'text-halo-blur': 0.5
+            }
+        });
     }, []);
 
     // Limpiar capas de zonas del mapa al cambiar de proyecto
@@ -169,6 +208,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             const id = sid(z.id);
             if (map.current?.getLayer(`${id}-fill`)) map.current.removeLayer(`${id}-fill`);
             if (map.current?.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`);
+            if (map.current?.getLayer(`${id}-label`)) map.current.removeLayer(`${id}-label`);
             if (map.current?.getSource(id)) map.current.removeSource(id);
         });
     }, [zones]);
@@ -220,12 +260,19 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         });
     }, [zones]);
 
-    const runOverlapCheck = useCallback(async (feature: Feature<Polygon | MultiPolygon>): Promise<OverlapResult[]> => {
-        const turfHit = zones.some(z => { try { return turf.booleanOverlap(feature, z.boundary); } catch { return false; } });
+    const runOverlapCheck = useCallback(async (feature: Feature<Polygon | MultiPolygon>, excludeZoneIds: string[] = []): Promise<OverlapResult[]> => {
+        // Filtramos las zonas excluidas para que no den falso positivo de solapamiento consigo mismas
+        const zonesToCheck = zones.filter(z => !excludeZoneIds.includes(z.id));
+        const turfHit = zonesToCheck.some(z => { try { return turf.booleanOverlap(feature, z.boundary); } catch { return false; } });
         if (!turfHit) { clearHighlights(); return []; }
         const overlaps = await checkZoneOverlap(projectId, feature as unknown as Parameters<typeof checkZoneOverlap>[1]);
-        highlightOverlaps(overlaps);
-        return overlaps;
+        // Filtramos overlaps que provengan de las zonas excluidas
+        const filteredOverlaps = overlaps.filter(o => {
+            const zoneHit = zones.find(z => z.zoneCode === o.zoneCode);
+            return !zoneHit || !excludeZoneIds.includes(zoneHit.id);
+        });
+        highlightOverlaps(filteredOverlaps);
+        return filteredOverlaps;
     }, [zones, projectId, highlightOverlaps, clearHighlights]);
 
     // ── Capa de selección en mapa ─────────────────────────────────────────────
@@ -278,7 +325,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // ── Crear zona desde selección ────────────────────────────────────────────
 
-    const createZoneFromSelection = useCallback(async () => {
+    const createZoneFromSelection = useCallback(async (updateZoneId?: string) => {
         if (selectedBoundaries.length === 0 || !projectId) return;
         let merged: Feature<Polygon | MultiPolygon> | null = null;
         for (const b of selectedBoundaries) {
@@ -288,11 +335,71 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             if (result) merged = result as Feature<Polygon | MultiPolygon>;
         }
         if (!merged) return;
-        const overlaps = await runOverlapCheck(merged);
-        setPendingZone({ geojson: merged, overlaps });
-        setPendingColor(getRandomColor());
-        setPendingName(selectedBoundaries.length === 1 ? selectedBoundaries[0].shortName : selectedBoundaries.map(b => b.shortName).join(' + '));
-    }, [selectedBoundaries, projectId, runOverlapCheck]);
+        const overlaps = await runOverlapCheck(merged, updateZoneId ? [updateZoneId] : []);
+        setPendingZone({ geojson: merged, overlaps, isUpdateForId: updateZoneId });
+        
+        if (updateZoneId) {
+            const zone = zones.find(z => z.id === updateZoneId);
+            setPendingColor(zone?.color || getRandomColor());
+            setPendingName(zone?.name || '');
+            setPendingType(zone?.type as 'TRANSPORTE' | 'DEPOSITO' || 'TRANSPORTE');
+        } else {
+            setPendingColor(getRandomColor());
+            setPendingName(selectedBoundaries.length === 1 ? selectedBoundaries[0].shortName : selectedBoundaries.map(b => b.shortName).join(' + '));
+        }
+    }, [selectedBoundaries, projectId, runOverlapCheck, zones]);
+
+    // Cargar zona a la selección para modificar
+    const handleLoadToSelection = useCallback((zone: GeographicZone) => {
+        const bFeature: BoundaryFeature = {
+            osmId: `zone_${zone.id}`,
+            displayName: `Zona ${zone.name}`,
+            shortName: zone.name,
+            addressType: 'Zona Manual',
+            geometry: zone.boundary as { type: string; coordinates: unknown }
+        };
+        setSelectedBoundaries(prev => [...prev.filter(x => x.osmId !== bFeature.osmId), bFeature]);
+        updateSelectionLayer([...selectedBoundaries.filter(x => x.osmId !== bFeature.osmId), bFeature]);
+        setActiveTab('search');
+        if (map.current) {
+            try {
+                const bbox = turf.bbox(turf.feature(zone.boundary as Polygon | MultiPolygon));
+                map.current.fitBounds([bbox[0], bbox[1], bbox[2], bbox[3]] as [number, number, number, number], { padding: 60, duration: 800 });
+            } catch { /* ignore */ }
+        }
+    }, [selectedBoundaries, updateSelectionLayer]);
+
+    // Fusionar Zonas
+    const toggleZoneSelectionForMerge = useCallback((zoneId: string) => {
+        const next = new Set(selectedZonesForMerge);
+        if (next.has(zoneId)) next.delete(zoneId); else next.add(zoneId);
+        setSelectedZonesForMerge(next);
+    }, [selectedZonesForMerge]);
+
+    const handleMergeSelectedZones = useCallback(async () => {
+        if (selectedZonesForMerge.size < 2 || !projectId) return;
+        
+        let merged: Feature<Polygon | MultiPolygon> | null = null;
+        const selectedZonesList = zones.filter(z => selectedZonesForMerge.has(z.id));
+        
+        for (const zone of selectedZonesList) {
+            const feat = turf.feature(zone.boundary as Polygon | MultiPolygon);
+            if (!merged) { merged = feat; continue; }
+            const result = turf.union(turf.featureCollection([merged, feat]));
+            if (result) merged = result as Feature<Polygon | MultiPolygon>;
+        }
+        
+        if (!merged) return;
+        const overlaps = await runOverlapCheck(merged, Array.from(selectedZonesForMerge));
+        setPendingZone({ 
+            geojson: merged, 
+            overlaps, 
+            mergedFromIds: Array.from(selectedZonesForMerge) 
+        });
+        setPendingColor(selectedZonesList[0].color || getRandomColor());
+        setPendingName(`Fusión ${selectedZonesList.map(z => z.name).join(' + ')}`);
+        setPendingType(selectedZonesList[0].type as 'TRANSPORTE' | 'DEPOSITO');
+    }, [selectedZonesForMerge, zones, projectId, runOverlapCheck]);
 
     // ── Búsqueda con debounce ─────────────────────────────────────────────────
 
@@ -351,10 +458,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
         const fillId = `${sid(zoneId)}-fill`;
         const outlineId = `${sid(zoneId)}-outline`;
+        const labelId = `${sid(zoneId)}-label`;
         const visibility = isHidden ? 'visible' : 'none';
 
         if (map.current.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', visibility);
         if (map.current.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', visibility);
+        if (map.current.getLayer(labelId)) map.current.setLayoutProperty(labelId, 'visibility', visibility);
     }, [hiddenZones]);
 
     const handleDeleteZone = useCallback(async (zoneId: string) => {
@@ -366,10 +475,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             const id = sid(zoneId);
             if (map.current.getLayer(`${id}-fill`)) map.current.removeLayer(`${id}-fill`);
             if (map.current.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`);
+            if (map.current.getLayer(`${id}-label`)) map.current.removeLayer(`${id}-label`);
             if (map.current.getSource(id)) map.current.removeSource(id);
         }
 
         setZones(prev => prev.filter(z => z.id !== zoneId));
+        setSelectedZonesForMerge(prev => { const n = new Set(prev); n.delete(zoneId); return n; });
     }, []);
 
     const handleEditZone = useCallback((zone: GeographicZone) => {
@@ -392,8 +503,16 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 type: pendingType,
                 color: pendingColor 
             });
+        } else if (pendingZone?.isUpdateForId) {
+            // Caso actualización de geometría + metadatos (Desde carga a selección)
+            await updateGeographicZoneGeometry(pendingZone.isUpdateForId, pendingZone.geojson);
+            await updateGeographicZoneMetadata(pendingZone.isUpdateForId, { 
+                name: pendingName.trim(), 
+                type: pendingType,
+                color: pendingColor 
+            });
         } else if (pendingZone) {
-            // Caso creación nueva
+            // Caso creación nueva o fusión
             await saveGeographicZone({ 
                 tenantId, 
                 projectId, 
@@ -403,6 +522,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 color: pendingColor,
                 geojson: pendingZone.geojson 
             });
+            
+            // Si viene de una fusión y creamos la nueva zona, preguntamos si se borran las viejas
+            if (pendingZone.mergedFromIds && pendingZone.mergedFromIds.length > 0) {
+                if (window.confirm('Zona fusionada guardada con éxito. ¿Deseas eliminar las zonas originales de las que procede?')) {
+                    for (const id of pendingZone.mergedFromIds) {
+                        await deleteGeographicZone(id);
+                    }
+                }
+            }
         }
 
         await loadZones();
@@ -410,6 +538,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setSelectedBoundaries([]);
         setPendingZone(null);
         setEditingZone(null);
+        setSelectedZonesForMerge(new Set());
         setPendingName('');
         setIsSaving(false);
         setActiveTab('zones');
@@ -735,6 +864,14 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                             >
                                                 <div className="flex items-center justify-between mb-1">
                                                     <div className="flex items-center gap-2 truncate flex-1 mr-2">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={selectedZonesForMerge.has(z.id)}
+                                                            onChange={(e) => { e.stopPropagation(); toggleZoneSelectionForMerge(z.id); }}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="w-3 h-3 text-primary rounded border-border focus:ring-primary/50 cursor-pointer"
+                                                            title="Seleccionar para fusionar"
+                                                        />
                                                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: z.color || ZONE_COLORS[z.type] }} />
                                                         <span className="text-xs font-bold truncate">{z.name}</span>
                                                     </div>
@@ -746,6 +883,13 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                                         
                                                         {/* Acciones Rápidas */}
                                                         <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); handleLoadToSelection(z); }}
+                                                                className="p-1 hover:bg-background rounded transition-colors text-sky-600 hover:text-sky-500"
+                                                                title="Cargar a Selección (para añadir territorios o fusionar)"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                            </button>
                                                             <button 
                                                                 onClick={(e) => { e.stopPropagation(); toggleZoneVisibility(z.id); }}
                                                                 className="p-1 hover:bg-background rounded transition-colors text-muted-foreground hover:text-primary"
@@ -777,6 +921,18 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                         ))
                                     )}
                                 </div>
+                                
+                                {selectedZonesForMerge.size >= 2 && (
+                                    <div className="p-3 border-t border-border shrink-0 bg-background/95 backdrop-blur z-10 animate-in slide-in-from-bottom-4">
+                                        <button 
+                                            onClick={handleMergeSelectedZones}
+                                            className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all"
+                                        >
+                                            <Layers className="w-4 h-4" />
+                                            Fusionar {selectedZonesForMerge.size} Zonas
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -786,8 +942,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                 <div className="p-3 bg-muted/50 border border-border rounded-lg text-xs text-muted-foreground leading-relaxed">
                                     Usa las herramientas de la esquina superior izquierda del mapa para trazar polígonos libres. Al terminar de dibujar se abrirá el formulario de guardado.
                                 </div>
-                                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-[10px] text-amber-700 dark:text-amber-300">
-                                    <strong>Regla de Oro:</strong> Las zonas guardadas son inmutables. Para modificar una zona, bórrala y vuelve a dibujarla.
+                                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-[10px] text-primary-foreground dark:text-primary-foreground/90 bg-primary/20">
+                                    <strong>Consejo UniGeo:</strong> Puedes modificar una zona existente usando el botón "+" (Cargar a Selección) en la lista de zonas, añadir más áreas y guardar los cambios.
                                 </div>
                             </div>
                         )}

@@ -199,6 +199,22 @@ export async function updateGeographicZoneMetadata(
     });
 }
 
+/**
+ * Actualiza la geometría de una zona existente.
+ */
+export async function updateGeographicZoneGeometry(
+    zoneId: string,
+    geojson: GeoJSONGeometry | GeoJSONFeature
+): Promise<void> {
+    const geometry = extractGeometry(geojson);
+    const docRef = doc(db, GEO_ZONES_COLLECTION, zoneId);
+    
+    await updateDoc(docRef, {
+        boundary: JSON.stringify(geometry),
+        updatedAt: serverTimestamp(),
+    });
+}
+
 // ─── Exportaciones ────────────────────────────────────────────────────────────
 
 export async function exportZonesToExcel(tenantId: string, projectId: string): Promise<Buffer> {
