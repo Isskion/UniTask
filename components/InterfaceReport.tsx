@@ -53,15 +53,16 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                 if (tenantDoc.exists() && isMounted) {
                     const data = tenantDoc.data();
                     if (data.logos?.length > 0) {
-                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes("principal"));
-                        setTenantLogo(principal?.url || data.logos[0].url);
+                        const empresaLogo = data.logos.find((l: any) => l.label?.toUpperCase().includes("EMPRESA"));
+                        const principalLogo = data.logos.find((l: any) => l.label?.toUpperCase().includes("PRINCIPAL"));
+                        setTenantLogo(empresaLogo?.url || principalLogo?.url || data.logos[0].url);
                     } else if (data.logoUrl) {
                         setTenantLogo(data.logoUrl);
                     }
                 }
 
                 // Client Logo
-                if ((project as any).clientLogoUrl && isMounted) {
+                if ((project as any).clientLogoUrl && typeof (project as any).clientLogoUrl === 'string' && (project as any).clientLogoUrl.trim() !== '') {
                     setClientLogo((project as any).clientLogoUrl);
                 } else {
                     const docsSnap = await getDocs(collection(db, "projects", project.id, "documents"));
