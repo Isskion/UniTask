@@ -102,6 +102,13 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                 color: black !important;
                                 border-color: #eee !important;
                             }
+                            /* Forzar fondo claro en bloques de código y contenedores oscuros para que el texto negro sea visible */
+                            #unitask-interface-report .bg-black,
+                            #unitask-interface-report .bg-zinc-950,
+                            #unitask-interface-report .bg-zinc-900,
+                            #unitask-interface-report pre {
+                                background-color: #f4f4f5 !important;
+                            }
                             .text-primary {
                                 color: #000 !important;
                                 font-weight: bold !important;
@@ -241,8 +248,8 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                     </div>
 
                                     {iface.formatContent && (
-                                        <div className={cn("rounded-2xl border overflow-hidden shadow-sm", isLight ? "bg-zinc-950 text-zinc-300 border-zinc-900" : "bg-black border-white/10 text-zinc-400")}>
-                                            <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between bg-white/5">
+                                        <div className={cn("rounded-2xl border overflow-hidden shadow-sm print:!bg-zinc-50", isLight ? "bg-zinc-950 text-zinc-300 border-zinc-900" : "bg-black border-white/10 text-zinc-400")}>
+                                            <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between bg-white/5 print:!bg-zinc-200">
                                                 <div className="flex items-center gap-2">
                                                     <Code className="w-3 h-3 text-primary" />
                                                     <span className="text-[9px] font-bold uppercase font-mono tracking-widest opacity-60">Payload Spec ({iface.formatType})</span>
@@ -261,7 +268,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                             <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-1">
                                                 <ArrowRightLeft className="w-3 h-3" /> Mapeo Lógico de Datos
                                             </div>
-                                            <div className={cn("rounded-2xl border p-6 shadow-sm", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/5")}>
+                                            <div className={cn("rounded-2xl border p-6 shadow-sm print:!bg-zinc-50", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/5")}>
                                                 <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed opacity-80">
                                                     {iface.mapping}
                                                 </pre>

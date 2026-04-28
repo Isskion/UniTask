@@ -22,7 +22,7 @@ BEGIN
 
     DECLARE @IdJornada BIGINT,
             @IdTipoVehiculo INT,
-            @IdZona INT,
+            @Zona VARCHAR(50),
             @IdVehiculoAsignar INT;
 
     -- 1. Obtener datos directamente de la tabla RUTA
@@ -30,7 +30,7 @@ BEGIN
     SELECT TOP 1 
            @IdJornada = IdJornada,
            @IdTipoVehiculo = IdTipoVehiculo,
-           @IdZona = IdZona
+           @Zona = Zona
     FROM dbo.Ruta WITH (NOLOCK)
     WHERE IdRuta = @IdRuta;
 
@@ -41,21 +41,30 @@ BEGIN
         RETURN;
     END
 
-    -- Formatear Zona para búsqueda en Vehiculo_Dyn (ej: 1 -> '001')
-    -- Se mantiene el padding de 3 ceros según el estándar de EUP
-    DECLARE @ZonaFiltro VARCHAR(10) = RIGHT('000' + CAST(@IdZona AS VARCHAR(10)), 3);
+    -- Formatear Zona si es necesario, asumimos que viene como string (ej: '001')
+    DECLARE @ZonaFiltro VARCHAR(10) = RIGHT('000' + @Zona, 3);
 
-    -- 2. Buscar el mejor vehículo disponible según jerarquía de prioridad
+    -- 2. Buscar el mejor vehículo disponible según jerarquía de prioridad del CONDUCTOR
     SELECT TOP 1 @IdVehiculoAsignar = V.IdVehiculo
     FROM dbo.VehiculoJornada VJ WITH (NOLOCK)
     INNER JOIN dbo.Vehiculo V WITH (NOLOCK) ON VJ.IdVehiculo = V.IdVehiculo
+    INNER JOIN dbo.Conductor C WITH (NOLOCK) ON V.IdConductor = C.IdConductor
     INNER JOIN dbo.Recurso R WITH (NOLOCK) ON V.ReferenciaExterna = R.ReferenciaExterna
-    INNER JOIN dbo.Vehiculo_Dyn VD WITH (NOLOCK) ON V.ReferenciaExterna = VD.Dominio
+    INNER JOIN dbo.Conductor_Dyn CD WITH (NOLOCK) ON C.IdConductor = CD.IdConductor
+    OUTER APPLY (
+        -- Contar los días (Jornadas distintas) trabajados por este conductor en el mes actual
+        SELECT COUNT(DISTINCT R_Hist.IdJornada) AS DiasTrabajados
+        FROM dbo.Ruta R_Hist WITH (NOLOCK)
+        INNER JOIN dbo.Jornada J_Hist WITH (NOLOCK) ON R_Hist.IdJornada = J_Hist.IdJornada
+        WHERE R_Hist.IdConductor = C.IdConductor
+          AND MONTH(J_Hist.Fecha) = MONTH(GETDATE())
+          AND YEAR(J_Hist.Fecha) = YEAR(GETDATE())
+    ) Historial
     WHERE VJ.IdJornada = @IdJornada
       AND V.IdTipoVehiculo = @IdTipoVehiculo
       AND R.IdEstado = 1 -- Disponible
-      -- Priorización por Zonas (A, B o C)
-      AND (VD.ZonaOpcionA = @ZonaFiltro OR VD.ZonaOpcionB = @ZonaFiltro OR VD.ZonaOpcionC = @ZonaFiltro)
+      -- Priorización por Zonas (A, B o C) en el CONDUCTOR
+      AND (CD.ZonaOpcionA = @ZonaFiltro OR CD.ZonaOpcionB = @ZonaFiltro OR CD.ZonaOpcionC = @ZonaFiltro)
       -- Evitar vehículos ya asignados a otras RUTAS activas en la misma jornada
       AND NOT EXISTS (
           SELECT 1 
@@ -66,11 +75,12 @@ BEGIN
       )
     ORDER BY 
         CASE 
-            WHEN VD.ZonaOpcionA = @ZonaFiltro THEN 1
-            WHEN VD.ZonaOpcionB = @ZonaFiltro THEN 2
-            WHEN VD.ZonaOpcionC = @ZonaFiltro THEN 3
+            WHEN CD.ZonaOpcionA = @ZonaFiltro THEN 1
+            WHEN CD.ZonaOpcionB = @ZonaFiltro THEN 2
+            WHEN CD.ZonaOpcionC = @ZonaFiltro THEN 3
             ELSE 4 
         END ASC,
+        Historial.DiasTrabajados ASC, -- Priorizar a quien haya trabajado MENOS días en el mes
         V.IdVehiculo ASC;
 
     -- 3. Efectuar la asignación en la tabla RUTA
