@@ -61,8 +61,8 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                 }
 
                 // Client Logo
-                if (project.clientLogoUrl && isMounted) {
-                    setClientLogo(project.clientLogoUrl);
+                if ((project as any).clientLogoUrl && isMounted) {
+                    setClientLogo((project as any).clientLogoUrl);
                 } else {
                     const docsSnap = await getDocs(collection(db, "projects", project.id, "documents"));
                     let logoDoc = docsSnap.docs.find(d => d.data().typeCode?.toUpperCase() === 'LOGO');
@@ -80,7 +80,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
         };
         loadLogos();
         return () => { isMounted = false; };
-    }, [user?.tenantId, project.id, project.clientLogoUrl]);
+    }, [user?.tenantId, project.id, (project as any).clientLogoUrl]);
 
     const toggleInterface = (id: string) => {
         setSelectedIds(prev =>
