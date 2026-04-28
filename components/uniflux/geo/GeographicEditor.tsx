@@ -828,7 +828,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                 </div>
 
                                 <div className="p-3 border-t border-border shrink-0">
-                                    <button onClick={createZoneFromSelection} disabled={selectedBoundaries.length === 0}
+                                    <button onClick={() => createZoneFromSelection()} disabled={selectedBoundaries.length === 0}
                                         className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                                         <Plus className="w-4 h-4" />
                                         Crear Zona desde Selección
