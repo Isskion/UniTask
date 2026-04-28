@@ -10,6 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 import { InterfaceEntry, Project } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { useAuth } from "@/context/AuthContext";
 
 interface InterfaceReportProps {
     project: Project;
@@ -31,10 +34,53 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
     const [selectedIds, setSelectedIds] = useState<string[]>(interfaces.map(i => i.id));
     const [view, setView] = useState<'selector' | 'report'>('selector');
     const [isClient, setIsClient] = useState(false);
+    
+    const { user } = useAuth();
+    const [tenantLogo, setTenantLogo] = useState<string | null>(null);
+    const [clientLogo, setClientLogo] = useState<string | null>(null);
 
     useEffect(() => {
         setIsClient(true);
     }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadLogos = async () => {
+            if (!user?.tenantId) return;
+            try {
+                // Tenant Logo
+                const tenantDoc = await getDoc(doc(db, "tenants", user.tenantId));
+                if (tenantDoc.exists() && isMounted) {
+                    const data = tenantDoc.data();
+                    if (data.logos?.length > 0) {
+                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes("principal"));
+                        setTenantLogo(principal?.url || data.logos[0].url);
+                    } else if (data.logoUrl) {
+                        setTenantLogo(data.logoUrl);
+                    }
+                }
+
+                // Client Logo
+                if (project.clientLogoUrl && isMounted) {
+                    setClientLogo(project.clientLogoUrl);
+                } else {
+                    const docsSnap = await getDocs(collection(db, "projects", project.id, "documents"));
+                    let logoDoc = docsSnap.docs.find(d => d.data().typeCode?.toUpperCase() === 'LOGO');
+                    if (!logoDoc) logoDoc = docsSnap.docs.find(d => d.data().name?.toUpperCase().includes('LOGO'));
+                    if (!logoDoc) logoDoc = docsSnap.docs.find(d => (d.data().type || '').toLowerCase().startsWith('image/') && d.data().url);
+                    if (logoDoc && isMounted) {
+                        const data = logoDoc.data();
+                        const logoUrl = data.url || data.fileUrl || data.downloadURL;
+                        if (logoUrl) setClientLogo(logoUrl);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading logos:", e);
+            }
+        };
+        loadLogos();
+        return () => { isMounted = false; };
+    }, [user?.tenantId, project.id, project.clientLogoUrl]);
 
     const toggleInterface = (id: string) => {
         setSelectedIds(prev =>
@@ -150,22 +196,39 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
 
                     {/* Report Content */}
                     <div className="max-w-5xl mx-auto p-8 md:p-12 space-y-12 print:p-0 print:max-w-none">
-                        {/* Header */}
-                        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-12">
-                            <div className="space-y-4">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest">
+                        {/* Header Logos for Print/Preview */}
+                        <div className="flex items-center justify-between mb-8 pb-8 border-b">
+                            <div className="w-40 flex justify-start">
+                                {tenantLogo ? (
+                                    <img src={tenantLogo} alt="Logo Empresa" className="max-h-16 object-contain" />
+                                ) : (
+                                    <div className="h-16" />
+                                )}
+                            </div>
+                            <div className="flex-1 text-center px-4">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
                                     Reporte Técnico de Interfaces
                                 </div>
-                                <h1 className="text-4xl md:text-5xl font-black tracking-tight">{project.name}</h1>
-                                <p className="text-muted-foreground max-w-xl text-sm leading-relaxed">
-                                    Documentación consolidada de puntos de conexión, credenciales y especificaciones técnicas para las integraciones del proyecto.
-                                </p>
+                                <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase">{project.name}</h1>
                             </div>
-                            <div className="text-right flex flex-col items-end gap-1">
+                            <div className="w-40 flex justify-end">
+                                {clientLogo ? (
+                                    <img src={clientLogo} alt="Logo Cliente" className="max-h-16 object-contain" />
+                                ) : (
+                                    <div className="h-16" />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+                            <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">
+                                Documentación consolidada de puntos de conexión, credenciales y especificaciones técnicas para las integraciones del proyecto.
+                            </p>
+                            <div className="text-right flex flex-col items-end gap-1 shrink-0">
                                 <div className="text-[10px] font-bold uppercase text-muted-foreground">Generado el</div>
                                 <div className="text-base font-mono">{new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                             </div>
-                        </header>
+                        </div>
 
                         {/* Content Grid */}
                         <div className="space-y-12">
