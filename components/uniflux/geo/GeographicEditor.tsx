@@ -229,7 +229,6 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId, isLoaded]);
 
-    }, [hiddenZones]);
  
     const toggleZoneVisibility = useCallback((zoneId: string) => {
         if (!map.current) return;
