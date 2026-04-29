@@ -229,6 +229,23 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId, isLoaded]);
 
+    const toggleZoneVisibility = useCallback((zoneId: string) => {
+        if (!map.current) return;
+        const isHidden = hiddenZones.has(zoneId);
+        const nextHidden = new Set(hiddenZones);
+        if (isHidden) nextHidden.delete(zoneId); else nextHidden.add(zoneId);
+        setHiddenZones(nextHidden);
+
+        const fillId = `${sid(zoneId)}-fill`;
+        const outlineId = `${sid(zoneId)}-outline`;
+        const labelId = `${sid(zoneId)}-label`;
+        const visibility = isHidden ? 'visible' : 'none';
+
+        if (map.current.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', visibility);
+        if (map.current.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', visibility);
+        if (map.current.getLayer(labelId)) map.current.setLayoutProperty(labelId, 'visibility', visibility);
+    }, [hiddenZones]);
+
     // ── Zoom a zona al hacer clic en la lista ─────────────────────────────────
 
     const flyToZone = useCallback((zone: GeographicZone) => {
@@ -495,22 +512,6 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // ── Gestión avanzada de zonas ─────────────────────────────────────────────
 
-    const toggleZoneVisibility = useCallback((zoneId: string) => {
-        if (!map.current) return;
-        const isHidden = hiddenZones.has(zoneId);
-        const nextHidden = new Set(hiddenZones);
-        if (isHidden) nextHidden.delete(zoneId); else nextHidden.add(zoneId);
-        setHiddenZones(nextHidden);
-
-        const fillId = `${sid(zoneId)}-fill`;
-        const outlineId = `${sid(zoneId)}-outline`;
-        const labelId = `${sid(zoneId)}-label`;
-        const visibility = isHidden ? 'visible' : 'none';
-
-        if (map.current.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', visibility);
-        if (map.current.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', visibility);
-        if (map.current.getLayer(labelId)) map.current.setLayoutProperty(labelId, 'visibility', visibility);
-    }, [hiddenZones]);
 
     const handleDeleteZone = useCallback(async (zoneId: string) => {
         if (!window.confirm('¿Estás seguro de que deseas eliminar esta zona geográfica de forma permanente?')) return;
