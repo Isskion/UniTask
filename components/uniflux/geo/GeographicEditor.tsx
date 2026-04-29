@@ -485,6 +485,39 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setPendingType(selectedZonesList[0].type as 'TRANSPORTE' | 'DEPOSITO');
     }, [selectedZonesForMerge, zones, projectId, runOverlapCheck]);
 
+    const disableGeoman = useCallback(() => {
+        if (!geoman.current) return;
+        console.log('UniGeo: Desactivando Geoman y limpiando mapa');
+        try {
+            // Desactivar todos los modos de edición/dibujo
+            if (typeof geoman.current.disableGlobalEditMode === 'function') {
+                geoman.current.disableGlobalEditMode();
+            } else if (geoman.current.edit && typeof geoman.current.edit.disable === 'function') {
+                geoman.current.edit.disable();
+            } else if (typeof geoman.current.disableMode === 'function') {
+                geoman.current.disableMode('edit');
+                geoman.current.disableMode('draw');
+            }
+            
+            if (geoman.current.drawing && typeof geoman.current.drawing.disable === 'function') {
+                geoman.current.drawing.disable();
+            }
+        } catch (e) { console.warn('Error al desactivar modos de Geoman:', e); }
+
+        try {
+            // Limpiar features gestionadas
+            if (geoman.current.features) {
+                if (typeof geoman.current.features.clear === 'function') {
+                    geoman.current.features.clear();
+                } else if (typeof geoman.current.features.importGeoJson === 'function') {
+                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
+                } else if (typeof geoman.current.features.removeAllFeatures === 'function') {
+                    geoman.current.features.removeAllFeatures();
+                }
+            }
+        } catch (e) { console.warn('Error al limpiar features de Geoman:', e); }
+    }, []);
+
     // ── Búsqueda con debounce ─────────────────────────────────────────────────
 
     const handleSearch = useCallback((q: string) => {
@@ -536,15 +569,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 toggleZoneVisibility(pendingZone.isUpdateForId);
             }
         }
-        if (geoman.current?.features) {
-            try {
-                if (typeof geoman.current.features.clear === 'function') {
-                    geoman.current.features.clear();
-                } else if (typeof geoman.current.features.importGeoJson === 'function') {
-                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
-                }
-            } catch (e) { console.warn('Error clearing geoman features:', e); }
-        }
+        disableGeoman();
         clearHighlights(); 
         setPendingZone(null); 
         setEditingZone(null); 
@@ -623,15 +648,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
 
         await loadZones();
-        if (geoman.current?.features) {
-            try {
-                if (typeof geoman.current.features.clear === 'function') {
-                    geoman.current.features.clear();
-                } else if (typeof geoman.current.features.importGeoJson === 'function') {
-                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
-                }
-            } catch (e) { console.warn('Error clearing geoman features in confirmSave:', e); }
-        }
+        disableGeoman();
         clearSelectionLayer();
         setSelectedBoundaries([]);
         setPendingZone(null);
