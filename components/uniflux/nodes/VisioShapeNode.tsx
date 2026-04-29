@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink } from 'lucide-react';
+import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Link } from 'lucide-react';
 
 // Common handle style
 const handleStyle = {
