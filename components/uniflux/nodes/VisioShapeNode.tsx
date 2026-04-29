@@ -226,6 +226,15 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                 <button onClick={() => { setIsEditing(true); setShowColors(false); }} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Editar texto">
                     <Edit2 className="w-4 h-4" />
                 </button>
+                <button 
+                    onClick={() => { 
+                        alert("Usa 'Botón Derecho -> Propiedades / Vincular' para interconectar este nodo con otro flujo.");
+                    }} 
+                    className="p-1.5 hover:bg-purple-50 rounded text-purple-600 transition-colors border-l border-slate-100" 
+                    title="Vincular a otro flujo"
+                >
+                    <Link className="w-4 h-4" />
+                </button>
                 <div className="relative">
                     <button onClick={() => setShowColors(!showColors)} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors" title="Cambiar color">
                         <Palette className="w-4 h-4" />
@@ -308,6 +317,20 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
+                {/* V9: Navigation Link */}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
+
                 {/* SVG Background */}
                 <svg
                     width="100%"

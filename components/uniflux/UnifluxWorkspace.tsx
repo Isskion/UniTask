@@ -2013,6 +2013,9 @@ export default function UnifluxWorkspace() {
                         {menu.type === 'node' && (
                             <>
                                 <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acciones Nodo</div>
+                                <button onClick={() => { setSelectedNode(nodes.find(n => n.id === menu.id) || null); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded-lg transition-colors text-left font-bold">
+                                    <Settings className="w-4 h-4 text-purple-600" /> Propiedades / Vincular
+                                </button>
                                 <button onClick={() => { handleNodeDuplicate(menu.id!); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-left">
                                     <Copy className="w-4 h-4 text-slate-400" /> Duplicar
                                 </button>
