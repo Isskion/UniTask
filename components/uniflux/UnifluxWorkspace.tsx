@@ -1395,7 +1395,7 @@ export default function UnifluxWorkspace() {
                         </select>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar min-h-0">
                         <div className="flex items-center justify-between mb-4">
                             <label className="text-xs font-bold text-gray-500 uppercase">Flujos Guardados</label>
                             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">{savedFlows.length}</span>

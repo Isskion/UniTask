@@ -943,7 +943,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                 </div>
 
                                 {/* Selección activa */}
-                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
                                     {selectedBoundaries.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full opacity-40 text-center gap-2">
                                             <Globe className="w-8 h-8" />
@@ -989,7 +989,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                     </span>
                                     <button onClick={loadZones} className="text-[10px] text-primary hover:underline">Actualizar</button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
                                     {zones.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center h-full opacity-40 text-center gap-2">
                                             <Layers className="w-8 h-8" />

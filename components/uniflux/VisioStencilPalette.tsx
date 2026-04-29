@@ -270,9 +270,9 @@ export default function VisioStencilPalette() {
     };
 
     return (
-        <div className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col h-full shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30">
+        <div className="w-64 bg-slate-50 border-r border-slate-200 flex flex-col h-full overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30">
             {/* Header */}
-            <div className="p-4 border-b border-slate-200 bg-white">
+            <div className="p-4 border-b border-slate-200 bg-white shrink-0">
                 <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-3">
                     <GripVertical className="w-4 h-4 text-slate-400" />
                     Stencils
@@ -290,7 +290,7 @@ export default function VisioStencilPalette() {
             </div>
 
             {/* Categories */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 min-h-0">
                 {CATEGORIES.map((cat, i) => {
                     // Filter items based on search
                     const filteredItems = cat.items.filter(item => 
