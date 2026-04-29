@@ -377,9 +377,13 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
         
         try {
-            // 1. Limpiar previos en Geoman
-            if (geoman.current.features && typeof geoman.current.features.clear === 'function') {
-                geoman.current.features.clear();
+            // 1. Limpiar previos en Geoman (Defensivo)
+            if (geoman.current.features) {
+                if (typeof geoman.current.features.clear === 'function') {
+                    geoman.current.features.clear();
+                } else if (typeof geoman.current.features.importGeoJson === 'function') {
+                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
+                }
             }
             
             // 2. Ocultar zona estática (para evitar verla doble)
@@ -532,7 +536,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 toggleZoneVisibility(pendingZone.isUpdateForId);
             }
         }
-        if (geoman.current) geoman.current.features.clear();
+        if (geoman.current?.features) {
+            try {
+                if (typeof geoman.current.features.clear === 'function') {
+                    geoman.current.features.clear();
+                } else if (typeof geoman.current.features.importGeoJson === 'function') {
+                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
+                }
+            } catch (e) { console.warn('Error clearing geoman features:', e); }
+        }
         clearHighlights(); 
         setPendingZone(null); 
         setEditingZone(null); 
@@ -611,7 +623,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
 
         await loadZones();
-        if (geoman.current) geoman.current.features.clear();
+        if (geoman.current?.features) {
+            try {
+                if (typeof geoman.current.features.clear === 'function') {
+                    geoman.current.features.clear();
+                } else if (typeof geoman.current.features.importGeoJson === 'function') {
+                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
+                }
+            } catch (e) { console.warn('Error clearing geoman features in confirmSave:', e); }
+        }
         clearSelectionLayer();
         setSelectedBoundaries([]);
         setPendingZone(null);
