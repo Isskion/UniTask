@@ -58,6 +58,8 @@ export interface FlowNode {
     // V9: Inter-flow hyperlinking (deep linking)
     targetFlowId?: string;
     targetNodeId?: string;
+    // Extra data for custom node behaviors
+    additionalData?: Record<string, any>;
 }
 
 export interface FlowEdge {
