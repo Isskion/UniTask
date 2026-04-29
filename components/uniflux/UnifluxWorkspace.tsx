@@ -1205,6 +1205,9 @@ export default function UnifluxWorkspace() {
                         ...(isC4 && n.data.description ? { description: n.data.description as string } : {}),
                         ...(isC4 && n.data.external !== undefined ? { external: n.data.external as boolean } : {}),
                         ...(isC4 && n.data.c4Level ? { c4Level: n.data.c4Level as 1|2|3|4 } : {}),
+                        // Inter-flow hyperlinking
+                        targetFlowId: n.data.targetFlowId as string | undefined,
+                        targetNodeId: n.data.targetNodeId as string | undefined,
                         additionalData: {
                             ...(n.data.additionalData || {}),
                             ...(n.data.rotation ? { rotation: n.data.rotation } : {}),
@@ -1287,6 +1290,8 @@ export default function UnifluxWorkspace() {
                     external: n.data.external as boolean | undefined,
                     c4Level: n.data.c4Level as 1|2|3|4 | undefined,
                 } : {}),
+                targetFlowId: n.data.targetFlowId as string | undefined,
+                targetNodeId: n.data.targetNodeId as string | undefined,
             };
         });
         const allEdges: FlowEdge[] = edges.map(e => ({
@@ -1681,6 +1686,7 @@ export default function UnifluxWorkspace() {
                     {selectedNode && graph.docType !== 'mermaid' && (
                     C4_NODE_TYPES.has(selectedNode.data.type as string)
                         ? <UnifluxC4NodeEditor
+                            key={selectedNode.id}
                             nodeId={selectedNode.id}
                             initialLabel={selectedNode.data.label as string}
                             initialType={selectedNode.data.c4Type as C4NodeType || selectedNode.data.type as C4NodeType}
@@ -1696,6 +1702,7 @@ export default function UnifluxWorkspace() {
                             initialData={selectedNode.data}
                           />
                         : <UnifluxNodeEditor
+                            key={selectedNode.id}
                             nodeId={selectedNode.id}
                             initialLabel={
                                 selectedNode.data.type === 'ENVIRONMENT'
