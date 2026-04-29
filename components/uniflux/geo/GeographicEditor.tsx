@@ -229,6 +229,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId, isLoaded]);
 
+    }, [hiddenZones]);
+ 
     const toggleZoneVisibility = useCallback((zoneId: string) => {
         if (!map.current) return;
         const isHidden = hiddenZones.has(zoneId);
@@ -244,6 +246,19 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         if (map.current.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', visibility);
         if (map.current.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', visibility);
         if (map.current.getLayer(labelId)) map.current.setLayoutProperty(labelId, 'visibility', visibility);
+    }, [hiddenZones]);
+
+    const restoreAllHiddenZones = useCallback(() => {
+        if (!map.current) return;
+        hiddenZones.forEach(id => {
+            const fillId = `${sid(id)}-fill`;
+            const outlineId = `${sid(id)}-outline`;
+            const labelId = `${sid(id)}-label`;
+            if (map.current?.getLayer(fillId)) map.current.setLayoutProperty(fillId, 'visibility', 'visible');
+            if (map.current?.getLayer(outlineId)) map.current.setLayoutProperty(outlineId, 'visibility', 'visible');
+            if (map.current?.getLayer(labelId)) map.current.setLayoutProperty(labelId, 'visibility', 'visible');
+        });
+        setHiddenZones(new Set());
     }, [hiddenZones]);
 
     // ── Zoom a zona al hacer clic en la lista ─────────────────────────────────
@@ -370,13 +385,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     }, [selectedBoundaries, projectId, runOverlapCheck, zones]);
     const disableGeoman = useCallback(() => {
         if (!geoman.current) return;
-        console.log('UniGeo: Desactivando Geoman y limpiando mapa');
+        console.log('UniGeo: Desactivando Geoman y limpiando mapa (Hard Clear)');
+        
         try {
-            if (typeof geoman.current.disableGlobalEditMode === 'function') {
-                geoman.current.disableGlobalEditMode();
-            } else if (geoman.current.edit && typeof geoman.current.edit.disable === 'function') {
-                geoman.current.edit.disable();
-            } else if (typeof geoman.current.disableMode === 'function') {
+            if (typeof geoman.current.disableGlobalEditMode === 'function') geoman.current.disableGlobalEditMode();
+            if (geoman.current.edit && typeof geoman.current.edit.disable === 'function') geoman.current.edit.disable();
+            if (typeof geoman.current.disableMode === 'function') {
                 geoman.current.disableMode('edit');
                 geoman.current.disableMode('draw');
             }
@@ -388,30 +402,24 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 if (typeof fApi.clear === 'function') fApi.clear();
                 if (typeof fApi.removeAll === 'function') fApi.removeAll();
                 if (typeof fApi.importGeoJson === 'function') fApi.importGeoJson({ type: 'FeatureCollection', features: [] });
-                
-                if (typeof fApi.getFeatures === 'function') {
-                    const all = fApi.getFeatures();
-                    if (Array.isArray(all)) {
-                        all.forEach((f: any) => {
-                            if (f.id && typeof fApi.removeFeature === 'function') fApi.removeFeature(f.id);
-                        });
-                    }
-                }
             }
-        } catch (e) { console.warn('UniGeo: Fallo al limpiar features', e); }
-    }, []);
+        } catch (e) { /* ignore */ }
+
+        if (map.current) {
+            ['gm_main', 'gm_draw', 'gm_edit'].forEach(srcId => {
+                try {
+                    const src = map.current?.getSource(srcId) as maplibregl.GeoJSONSource;
+                    if (src) src.setData({ type: 'FeatureCollection', features: [] });
+                } catch (e) { /* ignore */ }
+            });
+        }
+
+        restoreAllHiddenZones();
+    }, [restoreAllHiddenZones]);
 
     const handleEditGeometry = useCallback((zone: GeographicZone) => {
         console.log('UniGeo: Iniciar edición de geometría', zone.id);
         
-        // 1. Restaurar zona anterior si existía
-        if (pendingZone?.isUpdateForId && pendingZone.isUpdateForId !== zone.id) {
-            if (hiddenZones.has(pendingZone.isUpdateForId)) {
-                toggleZoneVisibility(pendingZone.isUpdateForId);
-            }
-        }
-
-        // 2. Limpiar Geoman
         disableGeoman();
 
         if (!geoman.current || !map.current) {
@@ -420,11 +428,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
         
         try {
-            // 3. Ocultar zona estática
-            const isHidden = hiddenZones.has(zone.id);
-            if (!isHidden) toggleZoneVisibility(zone.id);
+            toggleZoneVisibility(zone.id);
 
-            // 4. Preparar feature con ID constante para evitar duplicados
             const feature = {
                 type: 'Feature' as const,
                 id: 'geoman-edit-target',
@@ -432,14 +437,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 properties: { zoneId: zone.id, isUpdate: true }
             };
 
-            // 5. Cargar en Geoman
             if (geoman.current.features && typeof geoman.current.features.importGeoJsonFeature === 'function') {
                 geoman.current.features.importGeoJsonFeature(feature);
             } else if (geoman.current.features && typeof geoman.current.features.add === 'function') {
                 geoman.current.features.add(feature);
             }
 
-            // 6. Activar edición
             if (typeof geoman.current.enableGlobalEditMode === 'function') {
                 geoman.current.enableGlobalEditMode();
             } else if (geoman.current.edit && typeof geoman.current.edit.enable === 'function') {
