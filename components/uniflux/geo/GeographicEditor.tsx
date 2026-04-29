@@ -130,7 +130,9 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isochroneFeature, setIsochroneFeature] = useState<Feature<Polygon | MultiPolygon> | null>(null);
 
     // Edición y Visibilidad
+    const geoman = useRef<any>(null);
     const [editingZone, setEditingZone] = useState<GeographicZone | null>(null);
+    const [showModal, setShowModal] = useState(false);
     const [hiddenZones, setHiddenZones] = useState<Set<string>>(new Set());
     const [selectedZonesForMerge, setSelectedZonesForMerge] = useState<Set<string>>(new Set());
 
@@ -347,7 +349,38 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             setPendingColor(getRandomColor());
             setPendingName(selectedBoundaries.length === 1 ? selectedBoundaries[0].shortName : selectedBoundaries.map(b => b.shortName).join(' + '));
         }
+        setShowModal(true);
     }, [selectedBoundaries, projectId, runOverlapCheck, zones]);
+
+    const handleEditGeometry = useCallback((zone: GeographicZone) => {
+        if (!geoman.current || !map.current) return;
+        
+        // Limpiar previos
+        geoman.current.features.clear();
+        
+        // Ocultar zona estática
+        const isHidden = hiddenZones.has(zone.id);
+        if (!isHidden) toggleZoneVisibility(zone.id);
+
+        const feature = {
+            type: 'Feature',
+            geometry: zone.boundary,
+            properties: { zoneId: zone.id, isUpdate: true }
+        };
+
+        geoman.current.features.add(feature);
+        geoman.current.edit.enable();
+
+        setPendingZone({ 
+            geojson: feature as any, 
+            overlaps: [], 
+            isUpdateForId: zone.id 
+        });
+        setPendingName(zone.name);
+        setPendingType(zone.type as 'TRANSPORTE' | 'DEPOSITO');
+        setPendingColor(zone.color || getRandomColor());
+        flyToZone(zone);
+    }, [hiddenZones, toggleZoneVisibility, flyToZone]);
 
     // Cargar zona a la selección para modificar
     const handleLoadToSelection = useCallback((zone: GeographicZone) => {
@@ -445,7 +478,20 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // ── Guardar zona ──────────────────────────────────────────────────────────
 
-    const cancelPending = useCallback(() => { clearHighlights(); setPendingZone(null); setEditingZone(null); setPendingName(''); }, [clearHighlights]);
+    const cancelPending = useCallback(() => { 
+        if (pendingZone?.isUpdateForId) {
+            // Restaurar visibilidad si era una actualización
+            if (hiddenZones.has(pendingZone.isUpdateForId)) {
+                toggleZoneVisibility(pendingZone.isUpdateForId);
+            }
+        }
+        if (geoman.current) geoman.current.features.clear();
+        clearHighlights(); 
+        setPendingZone(null); 
+        setEditingZone(null); 
+        setPendingName(''); 
+        setShowModal(false);
+    }, [clearHighlights, pendingZone, hiddenZones, toggleZoneVisibility]);
 
     // ── Gestión avanzada de zonas ─────────────────────────────────────────────
 
@@ -488,8 +534,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setPendingName(zone.name);
         setPendingType(zone.type as "TRANSPORTE" | "DEPOSITO");
         setPendingColor(zone.color || (ZONE_COLORS[zone.type] ?? '#6366f1'));
-        // No hay geometría pendiente porque solo editamos metadatos
         setPendingZone(null); 
+        setShowModal(true);
     }, []);
 
     const confirmSave = useCallback(async () => {
@@ -534,10 +580,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
 
         await loadZones();
+        if (geoman.current) geoman.current.features.clear();
         clearSelectionLayer();
         setSelectedBoundaries([]);
         setPendingZone(null);
         setEditingZone(null);
+        setShowModal(false);
         setSelectedZonesForMerge(new Set());
         setPendingName('');
         setIsSaving(false);
@@ -604,18 +652,18 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         });
         map.current.on('load', async () => {
             if (!map.current) return;
-            await createGeomanInstance(map.current, {
+            const gm = await createGeomanInstance(map.current, {
                 settings: { useControlsUi: true, controlsPosition: 'top-left' as 'top-left' },
                 controls: {
                     draw: { polygon: { uiEnabled: true }, rectangle: { uiEnabled: true }, circle: { uiEnabled: true }, marker: { uiEnabled: false }, line: { uiEnabled: false }, freehand: { uiEnabled: false } },
-                    edit: { drag: { uiEnabled: false }, rotate: { uiEnabled: false }, scale: { uiEnabled: false } },
+                    edit: { drag: { uiEnabled: true }, rotate: { uiEnabled: false }, scale: { uiEnabled: false } },
                 },
             });
+            geoman.current = gm;
             map.current.on('gm:drawstart', (e: { shape?: string }) => setActiveTool(e.shape ?? 'Polígono'));
             map.current.on('gm:drawend', () => setActiveTool(null));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             map.current.on('gm:create', async (e: any) => {
-                // En Geoman MapLibre el GeoJSON está en feature._geoJson, no en feature.geometry
                 const geoJson = e?.feature?._geoJson;
                 if (!geoJson) return;
                 const geom = geoJson.geometry ?? geoJson;
@@ -623,12 +671,40 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 const cleanFeature: Feature<Polygon | MultiPolygon> = {
                     type: 'Feature',
                     geometry: { type: geom.type, coordinates: geom.coordinates } as Polygon | MultiPolygon,
-                    properties: {},
+                    properties: { },
                 };
                 const overlaps = await runOverlapCheck(cleanFeature);
                 setPendingZone({ geojson: cleanFeature, overlaps });
                 setPendingColor(getRandomColor());
                 setPendingName('');
+                // No abrimos el modal inmediatamente, dejamos que la barra de herramientas flote
+            });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            map.current.on('gm:edit', async (e: any) => {
+                const geoJson = e?.feature?._geoJson;
+                if (!geoJson) return;
+                const geom = geoJson.geometry ?? geoJson;
+                
+                setPendingZone(prev => {
+                    if (!prev) return null;
+                    const updated = { 
+                        ...prev, 
+                        geojson: { 
+                            ...prev.geojson, 
+                            geometry: { type: geom.type, coordinates: geom.coordinates } 
+                        } 
+                    };
+                    // Re-verificar solapamientos tras edición
+                    runOverlapCheck(updated.geojson, prev.isUpdateForId ? [prev.isUpdateForId] : (prev.mergedFromIds || [])).then(overlaps => {
+                        setPendingZone(p => p ? { ...p, overlaps } : null);
+                    });
+                    return updated;
+                });
+            });
+
+            map.current.on('gm:remove', () => {
+                setPendingZone(null);
             });
             setIsLoaded(true);
         });
@@ -883,13 +959,20 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                                         
                                                         {/* Acciones Rápidas */}
                                                         <div className="flex items-center gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button 
-                                                                onClick={(e) => { e.stopPropagation(); handleLoadToSelection(z); }}
-                                                                className="p-1 hover:bg-background rounded transition-colors text-sky-600 hover:text-sky-500"
-                                                                title="Cargar a Selección (para añadir territorios o fusionar)"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                            </button>
+                                                                <button 
+                                                                    onClick={(e) => { e.stopPropagation(); handleLoadToSelection(z); }}
+                                                                    className="p-1 hover:bg-background rounded transition-colors text-sky-600 hover:text-sky-500"
+                                                                    title="Cargar a Selección (para añadir territorios o fusionar)"
+                                                                >
+                                                                    <Plus className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={(e) => { e.stopPropagation(); handleEditGeometry(z); }}
+                                                                    className="p-1 hover:bg-background rounded transition-colors text-orange-600 hover:text-orange-500"
+                                                                    title="Modificar Geometría (Vértices)"
+                                                                >
+                                                                    <PenTool className="w-3.5 h-3.5" />
+                                                                </button>
                                                             <button 
                                                                 onClick={(e) => { e.stopPropagation(); toggleZoneVisibility(z.id); }}
                                                                 className="p-1 hover:bg-background rounded transition-colors text-muted-foreground hover:text-primary"
@@ -1060,6 +1143,38 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                     </div>
                 )}
 
+                {/* Toolbar de cambios pendientes (No bloqueante) */}
+                {pendingZone && !showModal && (
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 bg-card/95 backdrop-blur-md border border-primary/30 p-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-8">
+                        <div className="flex items-center gap-3 border-r border-border pr-6">
+                            <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                            <div>
+                                <div className="text-xs font-bold uppercase tracking-wider">Cambios Pendientes</div>
+                                <div className="text-[10px] text-muted-foreground">
+                                    {pendingZone.isUpdateForId ? `Editando vertices de "${pendingName}"` : 'Nueva zona en curso'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {pendingZone.overlaps.length > 0 && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive rounded-lg border border-destructive/20">
+                                <AlertTriangle className="w-4 h-4" />
+                                <span className="text-[10px] font-bold uppercase">Solapamiento: {Math.max(...pendingZone.overlaps.map(o => o.overlapPercentage))}%</span>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                            <button onClick={cancelPending} className="px-4 py-2 rounded-xl text-xs font-bold hover:bg-muted transition-colors uppercase tracking-widest">
+                                Cancelar
+                            </button>
+                            <button onClick={() => setShowModal(true)} className="px-6 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all uppercase tracking-widest flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Guardar Zona
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Info panel */}
                 <div className="absolute top-4 right-4 z-10">
                     <div className="bg-card/80 backdrop-blur-md border border-border p-3 rounded-xl shadow-xl space-y-1.5 min-w-[140px]">
@@ -1084,8 +1199,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 </div>
             </main>
 
-            {/* ── Modal bloqueante ──────────────────────────────────────────── */}
-            {(pendingZone || editingZone) && (
+            {/* ── Modal bloqueante (Metadatos) ─────────────────────────────── */}
+            {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5 animate-in zoom-in-95">
                         <div className="flex items-center gap-3">
