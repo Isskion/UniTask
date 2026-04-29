@@ -25,7 +25,7 @@ interface UnifluxNodeEditorProps {
     availableFlows?: { id: string, name: string }[];
 }
 
-export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, initialData, isLocked, onSave, onClose, onDelete, onToggleLock }: UnifluxNodeEditorProps) {
+export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, initialData, isLocked, onSave, onClose, onDelete, onToggleLock, availableFlows }: UnifluxNodeEditorProps) {
     const [label, setLabel] = useState(initialLabel);
     const [type, setType] = useState<NodeType>(initialType);
     const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
