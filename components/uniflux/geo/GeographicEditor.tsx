@@ -370,33 +370,63 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     }, [selectedBoundaries, projectId, runOverlapCheck, zones]);
 
     const handleEditGeometry = useCallback((zone: GeographicZone) => {
-        if (!geoman.current || !map.current) return;
+        console.log('UniGeo: Iniciar edición de geometría', zone.id);
+        if (!geoman.current || !map.current) {
+            console.error('UniGeo: Geoman o Mapa no inicializados');
+            return;
+        }
         
-        // Limpiar previos
-        geoman.current.features.clear();
-        
-        // Ocultar zona estática
-        const isHidden = hiddenZones.has(zone.id);
-        if (!isHidden) toggleZoneVisibility(zone.id);
+        try {
+            // 1. Limpiar previos en Geoman
+            if (geoman.current.features && typeof geoman.current.features.clear === 'function') {
+                geoman.current.features.clear();
+            }
+            
+            // 2. Ocultar zona estática (para evitar verla doble)
+            const isHidden = hiddenZones.has(zone.id);
+            if (!isHidden) toggleZoneVisibility(zone.id);
 
-        const feature = {
-            type: 'Feature',
-            geometry: zone.boundary,
-            properties: { zoneId: zone.id, isUpdate: true }
-        };
+            // 3. Preparar feature
+            const feature = {
+                type: 'Feature' as const,
+                geometry: zone.boundary,
+                properties: { zoneId: zone.id, isUpdate: true }
+            };
 
-        geoman.current.features.add(feature);
-        geoman.current.edit.enable();
+            // 4. Importar a Geoman (probamos varios métodos por compatibilidad)
+            if (geoman.current.features && typeof geoman.current.features.importGeoJsonFeature === 'function') {
+                geoman.current.features.importGeoJsonFeature(feature);
+            } else if (geoman.current.features && typeof geoman.current.features.add === 'function') {
+                geoman.current.features.add(feature);
+            } else if (geoman.current.features && typeof geoman.current.features.importGeoJson === 'function') {
+                geoman.current.features.importGeoJson(feature);
+            }
 
-        setPendingZone({ 
-            geojson: feature as any, 
-            overlaps: [], 
-            isUpdateForId: zone.id 
-        });
-        setPendingName(zone.name);
-        setPendingType(zone.type as 'TRANSPORTE' | 'DEPOSITO');
-        setPendingColor(zone.color || getRandomColor());
-        flyToZone(zone);
+            // 5. Habilitar modo edición
+            if (typeof geoman.current.enableGlobalEditMode === 'function') {
+                geoman.current.enableGlobalEditMode();
+            } else if (geoman.current.edit && typeof geoman.current.edit.enable === 'function') {
+                geoman.current.edit.enable();
+            } else if (typeof geoman.current.enableMode === 'function') {
+                geoman.current.enableMode('edit', 'change');
+            }
+
+            // 6. Estado para barra flotante
+            setPendingZone({ 
+                geojson: feature as any, 
+                overlaps: [], 
+                isUpdateForId: zone.id 
+            });
+            setPendingName(zone.name);
+            setPendingType(zone.type as 'TRANSPORTE' | 'DEPOSITO');
+            setPendingColor(zone.color || getRandomColor());
+            
+            // 7. Zoom
+            flyToZone(zone);
+            console.log('UniGeo: Estado de edición activado');
+        } catch (error) {
+            console.error('UniGeo: Error al iniciar edición de geometría', error);
+        }
     }, [hiddenZones, toggleZoneVisibility, flyToZone]);
 
     // Cargar zona a la selección para modificar
