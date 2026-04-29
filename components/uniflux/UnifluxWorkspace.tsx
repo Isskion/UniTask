@@ -742,6 +742,7 @@ export default function UnifluxWorkspace() {
                         ...node.data, 
                         label: (newType === 'ICON' || newType === 'IMAGE') ? newLabel : `${node.id}. ${newLabel}`, 
                         type: newType,
+                        onNavigate: handleJumpToFlow,
                         ...additionalData 
                     },
                     style: (newType === 'ICON' || newType === 'IMAGE' || newType === 'PRO_NODE')
@@ -770,6 +771,7 @@ export default function UnifluxWorkspace() {
                         technology, 
                         description, 
                         external,
+                        onNavigate: handleJumpToFlow,
                         ...additionalData
                     },
                     style: { background: 'transparent', border: 'none', padding: 0, opacity: node.data.isLocked ? 0.8 : 1 },
@@ -966,7 +968,7 @@ export default function UnifluxWorkspace() {
                     id: newNodeId,
                     type: rfType,
                     position,
-                    data: { label, type, c4Type: type, technology: '', description: '', external: false, c4Level: activeC4Level },
+                    data: { label, type, c4Type: type, technology: '', description: '', external: false, c4Level: activeC4Level, onNavigate: handleJumpToFlow },
                     style: { background: 'transparent', border: 'none', padding: 0, ...(isBoundary ? { width: 300, height: 200 } : {}) },
                     zIndex: isBoundary ? -1 : 1,
                 };
@@ -975,7 +977,7 @@ export default function UnifluxWorkspace() {
                     id: newNodeId,
                     type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : type === 'ICON' ? 'ICON' : type === 'IMAGE' ? 'IMAGE' : 'visioShape',
                     position,
-                    data: { label, type, ...additionalData },
+                    data: { label, type, onNavigate: handleJumpToFlow, ...additionalData },
                     style: type === 'ENVIRONMENT' 
                         ? { ...getNodeStyle(type), width: 400, height: 300, border: '2px dashed #94a3b8', borderRadius: '12px' } 
                         : type === 'ICON' || type === 'IMAGE'
