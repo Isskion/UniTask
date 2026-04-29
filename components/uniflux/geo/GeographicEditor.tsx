@@ -368,54 +368,84 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         }
         setShowModal(true);
     }, [selectedBoundaries, projectId, runOverlapCheck, zones]);
+    const disableGeoman = useCallback(() => {
+        if (!geoman.current) return;
+        console.log('UniGeo: Desactivando Geoman y limpiando mapa');
+        try {
+            if (typeof geoman.current.disableGlobalEditMode === 'function') {
+                geoman.current.disableGlobalEditMode();
+            } else if (geoman.current.edit && typeof geoman.current.edit.disable === 'function') {
+                geoman.current.edit.disable();
+            } else if (typeof geoman.current.disableMode === 'function') {
+                geoman.current.disableMode('edit');
+                geoman.current.disableMode('draw');
+            }
+        } catch (e) { /* ignore */ }
+
+        try {
+            const fApi = geoman.current.features;
+            if (fApi) {
+                if (typeof fApi.clear === 'function') fApi.clear();
+                if (typeof fApi.removeAll === 'function') fApi.removeAll();
+                if (typeof fApi.importGeoJson === 'function') fApi.importGeoJson({ type: 'FeatureCollection', features: [] });
+                
+                if (typeof fApi.getFeatures === 'function') {
+                    const all = fApi.getFeatures();
+                    if (Array.isArray(all)) {
+                        all.forEach((f: any) => {
+                            if (f.id && typeof fApi.removeFeature === 'function') fApi.removeFeature(f.id);
+                        });
+                    }
+                }
+            }
+        } catch (e) { console.warn('UniGeo: Fallo al limpiar features', e); }
+    }, []);
 
     const handleEditGeometry = useCallback((zone: GeographicZone) => {
         console.log('UniGeo: Iniciar edición de geometría', zone.id);
+        
+        // 1. Restaurar zona anterior si existía
+        if (pendingZone?.isUpdateForId && pendingZone.isUpdateForId !== zone.id) {
+            if (hiddenZones.has(pendingZone.isUpdateForId)) {
+                toggleZoneVisibility(pendingZone.isUpdateForId);
+            }
+        }
+
+        // 2. Limpiar Geoman
+        disableGeoman();
+
         if (!geoman.current || !map.current) {
             console.error('UniGeo: Geoman o Mapa no inicializados');
             return;
         }
         
         try {
-            // 1. Limpiar previos en Geoman (Defensivo)
-            if (geoman.current.features) {
-                if (typeof geoman.current.features.clear === 'function') {
-                    geoman.current.features.clear();
-                } else if (typeof geoman.current.features.importGeoJson === 'function') {
-                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
-                }
-            }
-            
-            // 2. Ocultar zona estática (para evitar verla doble)
+            // 3. Ocultar zona estática
             const isHidden = hiddenZones.has(zone.id);
             if (!isHidden) toggleZoneVisibility(zone.id);
 
-            // 3. Preparar feature
+            // 4. Preparar feature con ID constante para evitar duplicados
             const feature = {
                 type: 'Feature' as const,
+                id: 'geoman-edit-target',
                 geometry: zone.boundary,
                 properties: { zoneId: zone.id, isUpdate: true }
             };
 
-            // 4. Importar a Geoman (probamos varios métodos por compatibilidad)
+            // 5. Cargar en Geoman
             if (geoman.current.features && typeof geoman.current.features.importGeoJsonFeature === 'function') {
                 geoman.current.features.importGeoJsonFeature(feature);
             } else if (geoman.current.features && typeof geoman.current.features.add === 'function') {
                 geoman.current.features.add(feature);
-            } else if (geoman.current.features && typeof geoman.current.features.importGeoJson === 'function') {
-                geoman.current.features.importGeoJson(feature);
             }
 
-            // 5. Habilitar modo edición
+            // 6. Activar edición
             if (typeof geoman.current.enableGlobalEditMode === 'function') {
                 geoman.current.enableGlobalEditMode();
             } else if (geoman.current.edit && typeof geoman.current.edit.enable === 'function') {
                 geoman.current.edit.enable();
-            } else if (typeof geoman.current.enableMode === 'function') {
-                geoman.current.enableMode('edit', 'change');
             }
 
-            // 6. Estado para barra flotante
             setPendingZone({ 
                 geojson: feature as any, 
                 overlaps: [], 
@@ -424,14 +454,11 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             setPendingName(zone.name);
             setPendingType(zone.type as 'TRANSPORTE' | 'DEPOSITO');
             setPendingColor(zone.color || getRandomColor());
-            
-            // 7. Zoom
             flyToZone(zone);
-            console.log('UniGeo: Estado de edición activado');
         } catch (error) {
-            console.error('UniGeo: Error al iniciar edición de geometría', error);
+            console.error('UniGeo: Error en handleEditGeometry', error);
         }
-    }, [hiddenZones, toggleZoneVisibility, flyToZone]);
+    }, [pendingZone, hiddenZones, toggleZoneVisibility, flyToZone, disableGeoman]);
 
     // Cargar zona a la selección para modificar
     const handleLoadToSelection = useCallback((zone: GeographicZone) => {
@@ -485,38 +512,6 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setPendingType(selectedZonesList[0].type as 'TRANSPORTE' | 'DEPOSITO');
     }, [selectedZonesForMerge, zones, projectId, runOverlapCheck]);
 
-    const disableGeoman = useCallback(() => {
-        if (!geoman.current) return;
-        console.log('UniGeo: Desactivando Geoman y limpiando mapa');
-        try {
-            // Desactivar todos los modos de edición/dibujo
-            if (typeof geoman.current.disableGlobalEditMode === 'function') {
-                geoman.current.disableGlobalEditMode();
-            } else if (geoman.current.edit && typeof geoman.current.edit.disable === 'function') {
-                geoman.current.edit.disable();
-            } else if (typeof geoman.current.disableMode === 'function') {
-                geoman.current.disableMode('edit');
-                geoman.current.disableMode('draw');
-            }
-            
-            if (geoman.current.drawing && typeof geoman.current.drawing.disable === 'function') {
-                geoman.current.drawing.disable();
-            }
-        } catch (e) { console.warn('Error al desactivar modos de Geoman:', e); }
-
-        try {
-            // Limpiar features gestionadas
-            if (geoman.current.features) {
-                if (typeof geoman.current.features.clear === 'function') {
-                    geoman.current.features.clear();
-                } else if (typeof geoman.current.features.importGeoJson === 'function') {
-                    geoman.current.features.importGeoJson({ type: 'FeatureCollection', features: [] });
-                } else if (typeof geoman.current.features.removeAllFeatures === 'function') {
-                    geoman.current.features.removeAllFeatures();
-                }
-            }
-        } catch (e) { console.warn('Error al limpiar features de Geoman:', e); }
-    }, []);
 
     // ── Búsqueda con debounce ─────────────────────────────────────────────────
 
