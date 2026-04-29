@@ -2,6 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
+import { ExternalLink } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -51,6 +52,20 @@ const UnifluxProNode = ({ data, selected }: any) => {
                 <div className="p-3">
                     <div className="font-bold text-slate-800 text-sm mb-1">{data.label}</div>
                     {data.description && <div className="text-[10px] text-slate-500 line-clamp-2 mb-2">{data.description}</div>}
+                    
+                    {/* V9: Navigation Link */}
+                    {data.targetFlowId && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                            }}
+                            className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
+                            title="Ver flujo relacionado"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                        </button>
+                    )}
                     
                     {/* Items Table */}
                     {items.length > 0 && (

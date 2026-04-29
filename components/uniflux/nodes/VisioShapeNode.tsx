@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
+import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink } from 'lucide-react';
 
 // Common handle style
 const handleStyle = {
@@ -354,6 +354,20 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                         >
                             {data.label}
                         </div>
+                    )}
+
+                    {/* V9: Navigation Link */}
+                    {data.targetFlowId && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                            }}
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[70] border border-white"
+                            title="Ver flujo relacionado"
+                        >
+                            <ExternalLink className="w-3 h-3" />
+                        </button>
                     )}
                 </div>
 

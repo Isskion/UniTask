@@ -22,6 +22,7 @@ interface UnifluxNodeEditorProps {
     onClose: () => void;
     onDelete: (nodeId: string) => void;
     onToggleLock?: (nodeId: string, locked: boolean) => void;
+    availableFlows?: { id: string, name: string }[];
 }
 
 export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, initialData, isLocked, onSave, onClose, onDelete, onToggleLock }: UnifluxNodeEditorProps) {
@@ -33,6 +34,8 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
     const [items, setItems] = useState<{ key: string, value: string }[]>(initialData?.items || []);
     const [newItemKey, setNewItemKey] = useState('');
     const [newItemValue, setNewItemValue] = useState('');
+    const [targetFlowId, setTargetFlowId] = useState(initialData?.targetFlowId || '');
+    const [targetNodeId, setTargetNodeId] = useState(initialData?.targetNodeId || '');
 
     // Sync if props change
     useEffect(() => {
@@ -42,10 +45,19 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
         setIconName(initialData?.iconName || 'Box');
         setColor(initialData?.color || '#4f46e5');
         setItems(initialData?.items || []);
+        setTargetFlowId(initialData?.targetFlowId || '');
+        setTargetNodeId(initialData?.targetNodeId || '');
     }, [initialLabel, initialType, initialData]);
 
     const handleSave = () => {
-        onSave(nodeId, label, type, { imageUrl, iconName, color, items });
+        onSave(nodeId, label, type, { 
+            imageUrl, 
+            iconName, 
+            color, 
+            items,
+            targetFlowId,
+            targetNodeId
+        });
     };
 
     const addItem = () => {
@@ -283,6 +295,34 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                         {isLocked ? 'Entorno bloqueado — click para desbloquear' : 'Bloquear entorno'}
                     </button>
                 )}
+
+                {/* V9: Cross-flow Hyperlink */}
+                <div className="border-t border-gray-100 pt-4 mt-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                        <LucideIcons.Link className="w-3 h-3" />
+                        Vincular a otro Flujo
+                    </label>
+                    <div className="flex flex-col gap-2">
+                        <select
+                            value={targetFlowId}
+                            onChange={(e) => setTargetFlowId(e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                        >
+                            <option value="">-- Seleccionar Flujo --</option>
+                            {availableFlows?.map(f => (
+                                <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                        </select>
+                        {targetFlowId && (
+                            <input
+                                value={targetNodeId}
+                                onChange={(e) => setTargetNodeId(e.target.value)}
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                                placeholder="ID del Nodo (opcional)"
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="p-3 border-t bg-gray-50 flex items-center justify-between">

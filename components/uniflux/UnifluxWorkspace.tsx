@@ -162,6 +162,9 @@ export default function UnifluxWorkspace() {
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
     const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
     const [interactionMode, setInteractionMode] = useState<'pan' | 'selection'>('pan');
+    
+    // V9: Inter-flow navigation (deep linking)
+    const pendingNavigationNodeId = useRef<string | null>(null);
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -298,6 +301,31 @@ export default function UnifluxWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [undo, redo]);
 
+    // V9: Handle cross-flow navigation with auto-centering
+    useEffect(() => {
+        if (pendingNavigationNodeId.current && reactFlowInstance && nodes.length > 0) {
+            const targetNode = nodes.find(n => n.id === pendingNavigationNodeId.current);
+            if (targetNode) {
+                console.log('UniFlux: Navegando a nodo profundo', targetNode.id);
+                setTimeout(() => {
+                    reactFlowInstance.fitView({ 
+                        nodes: [targetNode], 
+                        duration: 800, 
+                        padding: 0.5 
+                    });
+                    pendingNavigationNodeId.current = null;
+                }, 100);
+            }
+        }
+    }, [nodes, reactFlowInstance]);
+
+    const handleJumpToFlow = useCallback(async (flowId: string, nodeId?: string) => {
+        if (!flowId) return;
+        console.log('UniFlux: Saltando a flujo', flowId, nodeId ? `nodo ${nodeId}` : '');
+        pendingNavigationNodeId.current = nodeId || null;
+        await handleLoadFlow(flowId);
+    }, []);
+
     // Editor State
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
@@ -417,11 +445,19 @@ export default function UnifluxWorkspace() {
                     isLocked: n.isLocked,
                     dimmed: visTier !== 'full',
                     onResizeStop: onNodeResizeStop,
+                    // V9
+                    targetFlowId: n.targetFlowId,
+                    targetNodeId: n.targetNodeId,
+                    onNavigate: handleJumpToFlow,
                 } : {
                     label: n.label,
                     type: n.type,
                     isLocked: n.isLocked,
                     onResizeStop: onNodeResizeStop,
+                    // V9
+                    targetFlowId: n.targetFlowId,
+                    targetNodeId: n.targetNodeId,
+                    onNavigate: handleJumpToFlow,
                     ...n.additionalData
                 },
                 zIndex: isBoundaryLike ? (n.isLocked ? -10 : -1) : 1,
@@ -1662,6 +1698,7 @@ export default function UnifluxWorkspace() {
                             onClose={() => setSelectedNode(null)}
                             onDelete={handleNodeDelete}
                             onToggleLock={selectedNode.data.type === 'ENVIRONMENT' ? handleToggleLock : undefined}
+                            availableFlows={savedFlows}
                           />
                 )}
 
