@@ -77,10 +77,13 @@ export default function UnifluxC4NodeEditor({
     return (
         <div className="absolute top-20 right-4 z-40 bg-white shadow-xl rounded-xl border border-gray-200 w-72 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50/50">
-                <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ background: '#1168BD' }}></span>
-                    Propiedades C4
-                </h3>
+                <div className="flex flex-col">
+                    <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ background: '#1168BD' }}></span>
+                        Propiedades C4
+                    </h3>
+                    <span className="text-[10px] font-mono text-gray-400 ml-4">ID: {nodeId}</span>
+                </div>
                 <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors">
                     <X className="w-4 h-4" />
                 </button>

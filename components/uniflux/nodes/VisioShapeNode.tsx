@@ -331,6 +331,11 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                     </button>
                 )}
 
+                {/* Node ID Badge */}
+                <div className="absolute -top-2 -left-2 bg-slate-800 text-white text-[9px] font-mono px-1.5 py-0.5 rounded border border-slate-700 shadow-sm z-10 opacity-60 group-hover:opacity-100 transition-opacity">
+                    #{id}
+                </div>
+
                 {/* SVG Background */}
                 <svg
                     width="100%"
