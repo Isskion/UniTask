@@ -755,14 +755,23 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     };
 
-    const handleC4NodeSave = (nodeId: string, newLabel: string, newType: C4NodeType, technology: string, description: string, external: boolean) => {
+    const handleC4NodeSave = (nodeId: string, newLabel: string, newType: C4NodeType, technology: string, description: string, external: boolean, additionalData?: any) => {
         const rfType = getC4ReactFlowType(newType);
         setNodes(nds => nds.map(node => {
             if (node.id === nodeId) {
                 return {
                     ...node,
                     type: rfType,
-                    data: { ...node.data, label: newLabel, type: newType, c4Type: newType, technology, description, external },
+                    data: { 
+                        ...node.data, 
+                        label: newLabel, 
+                        type: newType, 
+                        c4Type: newType, 
+                        technology, 
+                        description, 
+                        external,
+                        ...additionalData
+                    },
                     style: { background: 'transparent', border: 'none', padding: 0, opacity: node.data.isLocked ? 0.8 : 1 },
                 };
             }

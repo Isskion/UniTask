@@ -32,7 +32,7 @@ interface UnifluxC4NodeEditorProps {
     initialDescription?: string;
     initialExternal?: boolean;
     isLocked?: boolean;
-    onSave: (nodeId: string, label: string, type: C4NodeType, technology: string, description: string, external: boolean) => void;
+    onSave: (nodeId: string, label: string, type: C4NodeType, technology: string, description: string, external: boolean, additionalData?: any) => void;
     onClose: () => void;
     onDelete: (nodeId: string) => void;
     onToggleLock?: (nodeId: string, locked: boolean) => void;
