@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { C4NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock } from 'lucide-react';
+import { X, Check, Lock, Unlock, Link } from 'lucide-react';
 
 const C4_NODE_LABELS: Record<C4NodeType, string> = {
     C4_PERSON:          'Persona',
@@ -36,18 +36,22 @@ interface UnifluxC4NodeEditorProps {
     onClose: () => void;
     onDelete: (nodeId: string) => void;
     onToggleLock?: (nodeId: string, locked: boolean) => void;
+    availableFlows?: { id: string, name: string }[];
+    initialData?: any;
 }
 
 export default function UnifluxC4NodeEditor({
     nodeId, initialLabel, initialType,
     initialTechnology = '', initialDescription = '', initialExternal = false,
-    isLocked, onSave, onClose, onDelete, onToggleLock,
+    isLocked, onSave, onClose, onDelete, onToggleLock, availableFlows, initialData
 }: UnifluxC4NodeEditorProps) {
     const [label, setLabel] = useState(initialLabel);
     const [type, setType] = useState<C4NodeType>(initialType);
     const [technology, setTechnology] = useState(initialTechnology);
     const [description, setDescription] = useState(initialDescription);
     const [external, setExternal] = useState(initialExternal);
+    const [targetFlowId, setTargetFlowId] = useState(initialData?.targetFlowId || '');
+    const [targetNodeId, setTargetNodeId] = useState(initialData?.targetNodeId || '');
 
     useEffect(() => {
         setLabel(initialLabel);
@@ -55,10 +59,15 @@ export default function UnifluxC4NodeEditor({
         setTechnology(initialTechnology);
         setDescription(initialDescription);
         setExternal(initialExternal);
-    }, [initialLabel, initialType, initialTechnology, initialDescription, initialExternal]);
+        setTargetFlowId(initialData?.targetFlowId || '');
+        setTargetNodeId(initialData?.targetNodeId || '');
+    }, [initialLabel, initialType, initialTechnology, initialDescription, initialExternal, initialData]);
 
     const handleSave = () => {
-        onSave(nodeId, label, type, technology, description, external);
+        onSave(nodeId, label, type, technology, description, external, {
+            targetFlowId,
+            targetNodeId
+        });
     };
 
     const isBoundary = type === 'C4_BOUNDARY';
@@ -157,6 +166,34 @@ export default function UnifluxC4NodeEditor({
                         {isLocked ? 'Bloqueado — click para desbloquear' : 'Bloquear elemento'}
                     </button>
                 )}
+
+                {/* V9: Cross-flow Hyperlink */}
+                <div className="border-t border-gray-100 pt-4 mt-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                        <Link className="w-3 h-3 text-blue-600" />
+                        Vincular a otro Flujo
+                    </label>
+                    <div className="flex flex-col gap-2">
+                        <select
+                            value={targetFlowId}
+                            onChange={(e) => setTargetFlowId(e.target.value)}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        >
+                            <option value="">-- Seleccionar Flujo --</option>
+                            {availableFlows?.map(f => (
+                                <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                        </select>
+                        {targetFlowId && (
+                            <input
+                                value={targetNodeId}
+                                onChange={(e) => setTargetNodeId(e.target.value)}
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                placeholder="ID del Nodo destino (opcional)"
+                            />
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div className="p-3 border-t bg-gray-50 flex items-center justify-between">

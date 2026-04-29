@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Upload, Search, icons as LucideIcons } from 'lucide-react';
+import { X, Check, Lock, Unlock, Upload, Search, Link, icons as LucideIcons } from 'lucide-react';
 
 const POPULAR_ICONS = [
     'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',
@@ -299,7 +299,7 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                 {/* V9: Cross-flow Hyperlink */}
                 <div className="border-t border-gray-100 pt-4 mt-2">
                     <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
-                        <LucideIcons.Link className="w-3 h-3" />
+                        <Link className="w-3 h-3" />
                         Vincular a otro Flujo
                     </label>
                     <div className="flex flex-col gap-2">

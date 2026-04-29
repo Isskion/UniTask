@@ -1683,6 +1683,8 @@ export default function UnifluxWorkspace() {
                             onClose={() => setSelectedNode(null)}
                             onDelete={handleNodeDelete}
                             onToggleLock={selectedNode.data.type === 'C4_BOUNDARY' ? handleToggleLock : undefined}
+                            availableFlows={savedFlows}
+                            initialData={selectedNode.data}
                           />
                         : <UnifluxNodeEditor
                             nodeId={selectedNode.id}
