@@ -166,6 +166,9 @@ export default function UnifluxWorkspace() {
     // V9: Inter-flow navigation (deep linking)
     const pendingNavigationNodeId = useRef<string | null>(null);
     const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+    
+    // Break circular dependency: syncNodesFromGraph -> handleJumpToFlow -> handleLoadFlow -> syncNodesFromGraph
+    const jumpToFlowRef = useRef<(flowId: string, nodeId?: string) => Promise<void>>(null as any);
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -323,12 +326,7 @@ export default function UnifluxWorkspace() {
         }
     }, [nodes, reactFlowInstance]);
 
-    const handleJumpToFlow = useCallback(async (flowId: string, nodeId?: string) => {
-        if (!flowId) return;
-        console.log('UniFlux: Saltando a flujo', flowId, nodeId ? `nodo ${nodeId}` : '');
-        pendingNavigationNodeId.current = nodeId || null;
-        await handleLoadFlow(flowId);
-    }, []);
+
 
     // Editor State
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -452,7 +450,7 @@ export default function UnifluxWorkspace() {
                     // V9
                     targetFlowId: n.targetFlowId,
                     targetNodeId: n.targetNodeId,
-                    onNavigate: handleJumpToFlow,
+                    onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                 } : {
                     label: n.label,
                     type: n.type,
@@ -461,7 +459,7 @@ export default function UnifluxWorkspace() {
                     // V9
                     targetFlowId: n.targetFlowId,
                     targetNodeId: n.targetNodeId,
-                    onNavigate: handleJumpToFlow,
+                    onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                     ...n.additionalData
                 },
                 zIndex: isBoundaryLike ? (n.isLocked ? -10 : -1) : 1,
@@ -517,7 +515,7 @@ export default function UnifluxWorkspace() {
         setNodes(rfNodes);
         setEdges(rfEdges);
 
-    }, [activeC4Level, isNodeVisibleAtLevel]);
+    }, [activeC4Level, isNodeVisibleAtLevel, onNodeResizeStop, highlightedNodeId]);
 
     // Fetch Projects
     useEffect(() => {
@@ -551,7 +549,7 @@ export default function UnifluxWorkspace() {
     }, [selectedProjectId, user, tenantId]);
 
     // Flow Loading & Reset Handlers
-    const handleLoadFlow = async (flowId: string) => {
+    const handleLoadFlow = useCallback(async (flowId: string) => {
         const tenantToUse = tenantId || '1';
         const rawFlowInfo = await getFlow(tenantToUse, flowId);
         if (rawFlowInfo) {
@@ -568,7 +566,18 @@ export default function UnifluxWorkspace() {
             syncNodesFromGraph(flowInfo);
             setTimeout(takeSnapshot, 0);
         }
-    };
+    }, [tenantId, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
+
+    const handleJumpToFlow = useCallback(async (flowId: string, nodeId?: string) => {
+        if (!flowId) return;
+        console.log('UniFlux: Saltando a flujo', flowId, nodeId ? `nodo ${nodeId}` : '');
+        pendingNavigationNodeId.current = nodeId || null;
+        await handleLoadFlow(flowId);
+    }, [handleLoadFlow]);
+
+    useEffect(() => {
+        jumpToFlowRef.current = handleJumpToFlow;
+    }, [handleJumpToFlow]);
 
     const handleNewFlow = () => {
         const newTemplate = {
@@ -757,6 +766,17 @@ export default function UnifluxWorkspace() {
             }
             return node;
         }));
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => n.id === nodeId ? { 
+                ...n, 
+                label: newLabel, 
+                type: newType, 
+                targetFlowId: additionalData?.targetFlowId,
+                targetNodeId: additionalData?.targetNodeId,
+                additionalData: { ...n.additionalData, ...additionalData } 
+            } : n)
+        }));
         setSelectedNode(null);
         setTimeout(takeSnapshot, 0);
     };
@@ -783,6 +803,20 @@ export default function UnifluxWorkspace() {
                 };
             }
             return node;
+        }));
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.map(n => n.id === nodeId ? { 
+                ...n, 
+                label: newLabel, 
+                type: newType, 
+                technology, 
+                description, 
+                external,
+                targetFlowId: additionalData?.targetFlowId,
+                targetNodeId: additionalData?.targetNodeId,
+                additionalData: { ...n.additionalData, ...additionalData }
+            } : n)
         }));
         setSelectedNode(null);
         setTimeout(takeSnapshot, 0);

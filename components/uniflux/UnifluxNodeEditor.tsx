@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons } from 'lucide-react';
+import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons, ExternalLink } from 'lucide-react';
 
 const POPULAR_ICONS = [
     'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',
@@ -104,7 +104,14 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         Propiedades del Nodo
                     </h3>
-                    <span className="text-[10px] font-mono text-gray-400 ml-4">ID: {nodeId}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-gray-400">ID: {nodeId}</span>
+                        {targetFlowId && (
+                            <span className="flex items-center gap-1 text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                                <ExternalLink className="w-2.5 h-2.5" /> VINCULADO
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors">
                     <X className="w-4 h-4" />

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { C4NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Link, ListTree } from 'lucide-react';
+import { X, Check, Lock, Unlock, Link, ListTree, ExternalLink } from 'lucide-react';
 
 const C4_NODE_LABELS: Record<C4NodeType, string> = {
     C4_PERSON:          'Persona',
@@ -82,7 +82,14 @@ export default function UnifluxC4NodeEditor({
                         <span className="w-2 h-2 rounded-full" style={{ background: '#1168BD' }}></span>
                         Propiedades C4
                     </h3>
-                    <span className="text-[10px] font-mono text-gray-400 ml-4">ID: {nodeId}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-gray-400">ID: {nodeId}</span>
+                        {targetFlowId && (
+                            <span className="flex items-center gap-1 text-[9px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                                <ExternalLink className="w-2.5 h-2.5" /> VINCULADO
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors">
                     <X className="w-4 h-4" />
