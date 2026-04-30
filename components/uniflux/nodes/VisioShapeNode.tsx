@@ -324,7 +324,7 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                             e.stopPropagation();
                             if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
                         }}
-                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[90] border-2 border-white pointer-events-auto"
                         title="Ver flujo relacionado"
                     >
                         <ExternalLink className="w-4 h-4" />

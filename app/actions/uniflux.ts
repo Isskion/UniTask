@@ -193,3 +193,52 @@ export async function listProjectFlows(tenantId: string, projectId: string) {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
+/**
+ * Creates a bidirectional link between two nodes in different flows.
+ * Updates both documents in Firestore.
+ */
+export async function createBidirectionalLink(
+    tenantId: string,
+    sourceFlowId: string,
+    sourceNodeId: string,
+    targetFlowId: string,
+    targetNodeId: string
+) {
+    if (!sourceFlowId || !targetFlowId || !sourceNodeId || !targetNodeId) return { success: false };
+
+    const sourceRef = doc(db, FLOWS_COLLECTION, sourceFlowId);
+    const targetRef = doc(db, FLOWS_COLLECTION, targetFlowId);
+
+    const [sourceSnap, targetSnap] = await Promise.all([
+        getDoc(sourceRef),
+        getDoc(targetRef)
+    ]);
+
+    if (!sourceSnap.exists() || !targetSnap.exists()) {
+        throw new Error("One or both flows not found");
+    }
+
+    const sourceData = sourceSnap.data() as FlowGraph;
+    const targetData = targetSnap.data() as FlowGraph;
+
+    // Update Source Flow (A -> B)
+    const updatedSourceNodes = sourceData.nodes.map(n => 
+        n.id === sourceNodeId ? { ...n, targetFlowId, targetNodeId } : n
+    );
+    await updateDoc(sourceRef, { 
+        nodes: updatedSourceNodes,
+        updatedAt: serverTimestamp()
+    });
+
+    // Update Target Flow (B -> A)
+    const updatedTargetNodes = targetData.nodes.map(n => 
+        n.id === targetNodeId ? { ...n, targetFlowId: sourceFlowId, targetNodeId: sourceNodeId } : n
+    );
+    await updateDoc(targetRef, { 
+        nodes: updatedTargetNodes,
+        updatedAt: serverTimestamp()
+    });
+
+    return { success: true };
+}

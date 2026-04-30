@@ -11,7 +11,7 @@ import { getNodeVisibility, getEdgeVisibility, buildNodeMap, getAIVisibleGraph, 
 import { CURRENT_SCHEMA_VERSION } from '@/app/uniflux/core/migrations';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
-import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
+import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow, createBidirectionalLink } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink } from 'lucide-react';
@@ -756,7 +756,7 @@ export default function UnifluxWorkspace() {
                         ...node.data, 
                         label: (newType === 'ICON' || newType === 'IMAGE') ? newLabel : `${node.id}. ${newLabel}`, 
                         type: newType,
-                        onNavigate: handleJumpToFlow,
+                        onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                         ...additionalData 
                     },
                     style: (newType === 'ICON' || newType === 'IMAGE' || newType === 'PRO_NODE')
@@ -777,6 +777,12 @@ export default function UnifluxWorkspace() {
                 additionalData: { ...n.additionalData, ...additionalData } 
             } : n)
         }));
+        // V9: Optional bidirectional link
+        if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
+            console.log('UniFlux: Creando vínculo bidireccional...');
+            createBidirectionalLink(tenantId || '1', graph.id, nodeId, additionalData.targetFlowId, additionalData.targetNodeId)
+                .catch(err => console.error("Error creating bidirectional link", err));
+        }
         setSelectedNode(null);
         setTimeout(takeSnapshot, 0);
     };
@@ -796,7 +802,7 @@ export default function UnifluxWorkspace() {
                         technology, 
                         description, 
                         external,
-                        onNavigate: handleJumpToFlow,
+                        onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                         ...additionalData
                     },
                     style: { background: 'transparent', border: 'none', padding: 0, opacity: node.data.isLocked ? 0.8 : 1 },
@@ -818,6 +824,12 @@ export default function UnifluxWorkspace() {
                 additionalData: { ...n.additionalData, ...additionalData }
             } : n)
         }));
+        // V9: Optional bidirectional link
+        if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
+            console.log('UniFlux: Creando vínculo bidireccional (C4)...');
+            createBidirectionalLink(tenantId || '1', graph.id, nodeId, additionalData.targetFlowId, additionalData.targetNodeId)
+                .catch(err => console.error("Error creating bidirectional C4 link", err));
+        }
         setSelectedNode(null);
         setTimeout(takeSnapshot, 0);
     };
@@ -825,6 +837,8 @@ export default function UnifluxWorkspace() {
     const handleNodeDelete = (nodeId: string) => {
         setNodes(nds => nds.filter(node => node.id !== nodeId));
         setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
+
+
         setSelectedNode(null);
         setTimeout(takeSnapshot, 0);
     };

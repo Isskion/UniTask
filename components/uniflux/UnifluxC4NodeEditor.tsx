@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { C4NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Link, ListTree, ExternalLink } from 'lucide-react';
+import { X, Check, Lock, Unlock, Link, ListTree, ExternalLink, GitBranch } from 'lucide-react';
 
 const C4_NODE_LABELS: Record<C4NodeType, string> = {
     C4_PERSON:          'Persona',
@@ -184,8 +184,11 @@ export default function UnifluxC4NodeEditor({
                             <Link className="w-3 h-3" />
                             Navegación Cross-Flow
                         </span>
-                        <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">C4 Sync</span>
+                        <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">Bidireccional</span>
                     </label>
+                    <div className="text-[9px] text-blue-500 font-medium mb-1.5 px-1 flex items-center gap-1">
+                        <GitBranch className="w-2.5 h-2.5" /> El vínculo se creará de ida y vuelta automáticamente.
+                    </div>
                     <div className="flex flex-col gap-2">
                         <select
                             value={targetFlowId}
