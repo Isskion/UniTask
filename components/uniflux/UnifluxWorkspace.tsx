@@ -2030,7 +2030,7 @@ export default function UnifluxWorkspace() {
                                 {nodes.find(n => n.id === menu.id)?.data.targetFlowId && (
                                     <button onClick={() => { 
                                         const node = nodes.find(n => n.id === menu.id);
-                                        if (node) handleJumpToFlow(node.data.targetFlowId, node.data.targetNodeId);
+                                        if (node) handleJumpToFlow(node.data.targetFlowId as string, node.data.targetNodeId as string);
                                         closeMenu(); 
                                     }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-left font-bold">
                                         <ExternalLink className="w-4 h-4 text-blue-600" /> Ir al flujo vinculado
