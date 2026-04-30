@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Upload, Search, Link, icons as LucideIcons } from 'lucide-react';
+import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons } from 'lucide-react';
 
 const POPULAR_ICONS = [
     'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',

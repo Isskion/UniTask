@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { C4NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Link } from 'lucide-react';
+import { X, Check, Lock, Unlock, Link, ListTree } from 'lucide-react';
 
 const C4_NODE_LABELS: Record<C4NodeType, string> = {
     C4_PERSON:          'Persona',
