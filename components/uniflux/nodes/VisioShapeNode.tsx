@@ -417,4 +417,4 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
     );
 };
 
-export default memo(VisioShapeNode);
+export default VisioShapeNode;

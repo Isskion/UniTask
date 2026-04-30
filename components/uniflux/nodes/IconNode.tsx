@@ -258,4 +258,4 @@ const IconNode = ({ id, data, selected }: any) => {
     );
 };
 
-export default memo(IconNode);
+export default IconNode;

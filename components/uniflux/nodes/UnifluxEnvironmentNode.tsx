@@ -45,4 +45,4 @@ const UnifluxEnvironmentNode = ({ data, selected }: any) => {
     );
 };
 
-export default memo(UnifluxEnvironmentNode);
+export default UnifluxEnvironmentNode;

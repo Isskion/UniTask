@@ -156,4 +156,4 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
     );
 };
 
-export default memo(UnifluxTextNode);
+export default UnifluxTextNode;
