@@ -766,17 +766,21 @@ export default function UnifluxWorkspace() {
             }
             return node;
         }));
-        setGraph(prev => ({
-            ...prev,
-            nodes: prev.nodes.map(n => n.id === nodeId ? { 
-                ...n, 
-                label: newLabel, 
-                type: newType, 
-                targetFlowId: additionalData?.targetFlowId,
-                targetNodeId: additionalData?.targetNodeId,
-                additionalData: { ...n.additionalData, ...additionalData } 
-            } : n)
-        }));
+        setGraph(prev => {
+            const updatedGraph = {
+                ...prev,
+                nodes: prev.nodes.map(n => n.id === nodeId ? { 
+                    ...n, 
+                    label: newLabel, 
+                    type: newType, 
+                    targetFlowId: additionalData?.targetFlowId,
+                    targetNodeId: additionalData?.targetNodeId,
+                    additionalData: { ...n.additionalData, ...additionalData } 
+                } : n)
+            };
+            syncNodesFromGraph(updatedGraph);
+            return updatedGraph;
+        });
         // V9: Optional bidirectional link
         if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
             console.log('UniFlux: Creando vínculo bidireccional...');
@@ -810,20 +814,24 @@ export default function UnifluxWorkspace() {
             }
             return node;
         }));
-        setGraph(prev => ({
-            ...prev,
-            nodes: prev.nodes.map(n => n.id === nodeId ? { 
-                ...n, 
-                label: newLabel, 
-                type: newType, 
-                technology, 
-                description, 
-                external,
-                targetFlowId: additionalData?.targetFlowId,
-                targetNodeId: additionalData?.targetNodeId,
-                additionalData: { ...n.additionalData, ...additionalData }
-            } : n)
-        }));
+        setGraph(prev => {
+            const updatedGraph = {
+                ...prev,
+                nodes: prev.nodes.map(n => n.id === nodeId ? { 
+                    ...n, 
+                    label: newLabel, 
+                    type: newType, 
+                    technology, 
+                    description, 
+                    external,
+                    targetFlowId: additionalData?.targetFlowId,
+                    targetNodeId: additionalData?.targetNodeId,
+                    additionalData: { ...n.additionalData, ...additionalData }
+                } : n)
+            };
+            syncNodesFromGraph(updatedGraph);
+            return updatedGraph;
+        });
         // V9: Optional bidirectional link
         if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
             console.log('UniFlux: Creando vínculo bidireccional (C4)...');
@@ -1302,6 +1310,7 @@ export default function UnifluxWorkspace() {
 
             await saveFlowDraft(tenantToUse, finalGraph, user.uid);
             setGraph(finalGraph);
+            syncNodesFromGraph(finalGraph);
             setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
 
             setSaveStatus('saved');
