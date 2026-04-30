@@ -2,7 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Copy, Trash, Image as ImageIcon, ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
+import { Copy, Trash, Image as ImageIcon, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -159,6 +159,19 @@ const ImageNode = ({ id, data, selected }: any) => {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
+                {/* V9: Navigation Link */}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[70] border-2 border-white"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
                 {/* Image Container with Overflow Hidden */}
                 <div className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center">
                     {imageUrl ? (

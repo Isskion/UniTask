@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { ExternalLink } from 'lucide-react';
 
 const UnifluxC4ComponentNode = ({ data, selected }: any) => {
     const bg = '#85BBF0';
@@ -19,7 +20,21 @@ const UnifluxC4ComponentNode = ({ data, selected }: any) => {
             textAlign: 'center',
             boxShadow: selected ? `0 0 0 2px ${border}88` : '0 1px 4px rgba(0,0,0,0.12)',
             cursor: data.isLocked ? 'default' : 'grab',
+            position: 'relative',
         }}>
+            {/* V9: Navigation Link */}
+            {data.targetFlowId && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                    }}
+                    className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
+                    title="Ver flujo relacionado"
+                >
+                    <ExternalLink className="w-4 h-4" />
+                </button>
+            )}
             <Handle type="target" position={Position.Top} style={{ background: border }} />
 
             <div style={{ fontSize: 18, marginBottom: 3 }}>🧩</div>

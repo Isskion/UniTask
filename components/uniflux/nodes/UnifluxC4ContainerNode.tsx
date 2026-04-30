@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { ExternalLink } from 'lucide-react';
 
 const CONTAINER_META: Record<string, { icon: string; tag: string }> = {
     C4_CONTAINER_WEB:   { icon: '🌐', tag: 'Web App' },
@@ -26,7 +27,21 @@ const UnifluxC4ContainerNode = ({ data, selected }: any) => {
             textAlign: 'center',
             boxShadow: selected ? `0 0 0 2px ${bg}88, 0 4px 16px ${bg}44` : '0 2px 8px rgba(0,0,0,0.18)',
             cursor: data.isLocked ? 'default' : 'grab',
+            position: 'relative',
         }}>
+            {/* V9: Navigation Link */}
+            {data.targetFlowId && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                    }}
+                    className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
+                    title="Ver flujo relacionado"
+                >
+                    <ExternalLink className="w-4 h-4" />
+                </button>
+            )}
             <Handle type="target" position={Position.Top} style={{ background: border }} />
 
             <div style={{ fontSize: 20, marginBottom: 4 }}>{meta.icon}</div>

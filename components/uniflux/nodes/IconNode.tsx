@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Copy, Trash, icons, LucideProps, Palette, ArrowRight, ArrowDown, ArrowLeft, ArrowUp } from 'lucide-react';
+import { Copy, Trash, icons, LucideProps, Palette, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -207,6 +207,20 @@ const IconNode = ({ id, data, selected }: any) => {
                     className="w-full h-full"
                     style={{ filter: selected ? `drop-shadow(0 0 8px ${color}66)` : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
                 />
+
+                {/* V9: Navigation Link */}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[70] border-2 border-white"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
 
                 {/* Universal Handles (16 points: Sides + Corners + Midpoints) */}
                 {/* Visual rule: Only show main centers on select, show all on hover, hide all on resizing */}

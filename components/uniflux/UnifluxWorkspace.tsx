@@ -14,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -165,6 +165,7 @@ export default function UnifluxWorkspace() {
     
     // V9: Inter-flow navigation (deep linking)
     const pendingNavigationNodeId = useRef<string | null>(null);
+    const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -307,6 +308,7 @@ export default function UnifluxWorkspace() {
             const targetNode = nodes.find(n => n.id === pendingNavigationNodeId.current);
             if (targetNode) {
                 console.log('UniFlux: Navegando a nodo profundo', targetNode.id);
+                const nodeId = targetNode.id;
                 setTimeout(() => {
                     reactFlowInstance.fitView({ 
                         nodes: [targetNode], 
@@ -314,6 +316,8 @@ export default function UnifluxWorkspace() {
                         padding: 0.5 
                     });
                     pendingNavigationNodeId.current = null;
+                    setHighlightedNodeId(nodeId);
+                    setTimeout(() => setHighlightedNodeId(null), 3000);
                 }, 100);
             }
         }
@@ -474,6 +478,7 @@ export default function UnifluxWorkspace() {
                 selectable: isBoundaryLike ? true : visTier === 'full',
                 sourcePosition: isC4 ? undefined : Position.Right,
                 targetPosition: isC4 ? undefined : Position.Left,
+                className: highlightedNodeId === n.id ? 'node-highlight-pulse' : undefined,
             };
         });
 
@@ -2022,6 +2027,15 @@ export default function UnifluxWorkspace() {
                         {menu.type === 'node' && (
                             <>
                                 <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acciones Nodo</div>
+                                {nodes.find(n => n.id === menu.id)?.data.targetFlowId && (
+                                    <button onClick={() => { 
+                                        const node = nodes.find(n => n.id === menu.id);
+                                        if (node) handleJumpToFlow(node.data.targetFlowId, node.data.targetNodeId);
+                                        closeMenu(); 
+                                    }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-left font-bold">
+                                        <ExternalLink className="w-4 h-4 text-blue-600" /> Ir al flujo vinculado
+                                    </button>
+                                )}
                                 <button onClick={() => { setSelectedNode(nodes.find(n => n.id === menu.id) || null); closeMenu(); }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded-lg transition-colors text-left font-bold">
                                     <Settings className="w-4 h-4 text-purple-600" /> Propiedades / Vincular
                                 </button>

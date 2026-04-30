@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
-import { Edit2, Trash, Copy, RotateCw, Link } from 'lucide-react';
+import { Edit2, Trash, Copy, RotateCw, Link, ExternalLink } from 'lucide-react';
 
 const UnifluxTextNode = ({ id, data, selected }: any) => {
     const { updateNodeData, setNodes, setEdges } = useReactFlow();
@@ -116,6 +116,19 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
                     transform: `rotate(${data.rotation || 0}deg)`,
                 }}
             >
+                {/* V9: Navigation Link */}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[70] border-2 border-white"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
                 {isEditing ? (
                     <textarea
                         ref={inputRef}

@@ -300,30 +300,41 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                 )}
 
                 {/* V9: Cross-flow Hyperlink */}
-                <div className="border-t border-gray-100 pt-4 mt-2">
-                    <label className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
-                        <Link className="w-3 h-3" />
-                        Vincular a otro Flujo
+                <div className="bg-purple-50/50 rounded-xl p-3 border border-purple-100 mt-2">
+                    <label className="text-[10px] font-bold text-purple-600 uppercase mb-2 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                            <Link className="w-3 h-3" />
+                            Navegación Cross-Flow
+                        </span>
+                        <span className="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">Premium</span>
                     </label>
                     <div className="flex flex-col gap-2">
                         <select
                             value={targetFlowId}
                             onChange={(e) => setTargetFlowId(e.target.value)}
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                            className="w-full border border-purple-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20"
                         >
-                            <option value="">-- Seleccionar Flujo --</option>
+                            <option value="">-- Sin vinculación --</option>
                             {availableFlows?.map(f => (
                                 <option key={f.id} value={f.id}>{f.name}</option>
                             ))}
                         </select>
                         {targetFlowId && (
-                            <input
-                                value={targetNodeId}
-                                onChange={(e) => setTargetNodeId(e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                                placeholder="ID del Nodo (opcional)"
-                            />
+                            <div className="relative">
+                                <input
+                                    value={targetNodeId}
+                                    onChange={(e) => setTargetNodeId(e.target.value)}
+                                    className="w-full border border-purple-100 bg-white/50 rounded-lg px-3 py-2 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-500/20 pl-8"
+                                    placeholder="Nodo destino (opcional)"
+                                />
+                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-purple-400">
+                                    <ListTree className="w-3.5 h-3.5" />
+                                </div>
+                            </div>
                         )}
+                        <p className="text-[9px] text-purple-400 mt-1 italic">
+                            Añade un icono de acceso directo al nodo para saltar a este flujo.
+                        </p>
                     </div>
                 </div>
             </div>

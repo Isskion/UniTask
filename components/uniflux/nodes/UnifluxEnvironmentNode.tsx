@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import { NodeResizer } from '@xyflow/react';
+import { ExternalLink } from 'lucide-react';
 
 const UnifluxEnvironmentNode = ({ data, selected }: any) => {
     const isLocked = data.isLocked || false;
@@ -25,6 +26,19 @@ const UnifluxEnvironmentNode = ({ data, selected }: any) => {
                     <span className="text-[9px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
                         Bloqueado
                     </span>
+                )}
+                {/* V9: Navigation Link */}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="absolute top-2 right-2 w-7 h-7 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white pointer-events-auto"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
                 )}
             </div>
         </>

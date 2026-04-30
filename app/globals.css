@@ -330,3 +330,14 @@
   from { stroke-dashoffset: 10; }
   to { stroke-dashoffset: 0; }
 }
+
+@keyframes node-pulse {
+  0% { box-shadow: 0 0 0 0px rgba(139, 92, 246, 0.7); outline: 2px solid transparent; }
+  50% { box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); outline: 2px solid #8b5cf6; }
+  100% { box-shadow: 0 0 0 0px rgba(139, 92, 246, 0); outline: 2px solid transparent; }
+}
+
+.node-highlight-pulse {
+  animation: node-pulse 1.5s ease-out infinite;
+  z-index: 100 !important;
+}
