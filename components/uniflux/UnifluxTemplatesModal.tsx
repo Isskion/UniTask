@@ -27,7 +27,7 @@ export default function UnifluxTemplatesModal({
     };
 
     return (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-md p-4">
             <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between px-8 py-6 border-b bg-gradient-to-r from-slate-50 to-white">

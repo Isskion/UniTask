@@ -1470,12 +1470,12 @@ export default function UnifluxWorkspace() {
                 </div>
             </header>
 
-            <div className="flex-1 relative flex">
+            <div className="flex-1 relative flex overflow-hidden h-full">
 
                 {/* Flow Management Sidebar Overlay - Removed to prevent blocking interaction */}
 
                 {/* Flow Management Sidebar Panel */}
-                <div className={`absolute top-0 bottom-0 left-0 w-80 bg-white border-r shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className={`absolute top-0 bottom-0 left-0 w-80 bg-white border-r shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col max-h-full ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                     <div className="h-14 border-b flex items-center justify-between px-4 shrink-0 bg-gray-50">
                         <h2 className="font-bold flex items-center gap-2 text-gray-800">
                             <Folder className="w-4 h-4 text-purple-600" />
@@ -1484,6 +1484,32 @@ export default function UnifluxWorkspace() {
                         <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-gray-200 rounded-md text-gray-500">
                             <X className="w-4 h-4" />
                         </button>
+                    </div>
+
+                    <div className="p-4 border-b bg-gray-50 flex flex-col gap-2 shrink-0">
+                        <button
+                            onClick={handleNewFlow}
+                            className="w-full flex justify-center items-center gap-2 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-md shadow-purple-100"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nuevo Flujo Visual
+                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={handleNewC4Flow}
+                                className="flex justify-center items-center gap-2 py-2 bg-white border border-blue-200 hover:border-blue-400 hover:text-blue-700 text-blue-600 rounded-xl font-bold text-[11px] transition-all shadow-sm"
+                            >
+                                <Building2 className="w-3.5 h-3.5" />
+                                C4
+                            </button>
+                            <button
+                                onClick={handleNewMermaidFlow}
+                                className="flex justify-center items-center gap-2 py-2 bg-white border border-teal-200 hover:border-teal-400 hover:text-teal-700 text-teal-600 rounded-xl font-bold text-[11px] transition-all shadow-sm"
+                            >
+                                <GitBranch className="w-3.5 h-3.5" />
+                                Mermaid
+                            </button>
+                        </div>
                     </div>
 
                     <div className="p-4 border-b bg-white">
@@ -1606,30 +1632,8 @@ export default function UnifluxWorkspace() {
                         )}
                     </div>
 
-                    <div className="p-4 border-t bg-gray-50 shrink-0 flex flex-col gap-2">
-                        <button
-                            onClick={handleNewFlow}
-                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-gray-200 hover:border-purple-300 hover:text-purple-700 text-gray-700 rounded-xl font-bold text-sm transition-all shadow-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Nuevo Flujo Visual
-                        </button>
-                        <button
-                            onClick={handleNewC4Flow}
-                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-blue-200 hover:border-blue-400 hover:text-blue-700 text-blue-600 rounded-xl font-bold text-sm transition-all shadow-sm"
-                        >
-                            <Building2 className="w-4 h-4" />
-                            Nuevo Diagrama C4
-                        </button>
-                        <button
-                            onClick={handleNewMermaidFlow}
-                            className="w-full flex justify-center items-center gap-2 py-2.5 bg-white border border-teal-200 hover:border-teal-400 hover:text-teal-700 text-teal-600 rounded-xl font-bold text-sm transition-all shadow-sm"
-                        >
-                            <GitBranch className="w-4 h-4" />
-                            Nuevo Diagrama Mermaid
-                        </button>
-
-
+                    <div className="p-4 border-t bg-gray-50 shrink-0 text-[10px] text-gray-400 text-center italic">
+                        UniFlux Flow Designer v1.2
                     </div>
                 </div>
 
@@ -1638,8 +1642,8 @@ export default function UnifluxWorkspace() {
 
                 {/* Initial Wizard Overlay — hidden in Mermaid mode */}
                 {showWizard && graph.docType !== 'mermaid' && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-50/80 backdrop-blur-sm">
-                        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-lg w-full border border-gray-100">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/40 backdrop-blur-sm p-4 overflow-y-auto">
+                        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 my-auto">
                             {graph.docType === 'c4' ? (
                                 <>
                                     <h2 className="text-2xl font-bold mb-2" style={{ background: 'linear-gradient(135deg, #1168BD, #438DD5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
