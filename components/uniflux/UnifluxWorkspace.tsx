@@ -464,7 +464,8 @@ export default function UnifluxWorkspace() {
             nodes: prev.nodes.map(n => n.id === id ? { ...n, width, height } : n)
         }));
         
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
     }, [setNodes, setGraph, takeSnapshot]);
 
     const syncNodesFromGraph = useCallback((targetGraph: FlowGraph) => {
@@ -609,7 +610,7 @@ export default function UnifluxWorkspace() {
                 setActiveC4Level(flowInfo.c4Level as 1 | 2 | 3);
             }
             syncNodesFromGraph(flowInfo);
-            setTimeout(takeSnapshot, 0);
+            setTimeout(takeSnapshot, 0); setIsDirty(true);
         }
     }, [tenantId, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
 
@@ -666,7 +667,7 @@ export default function UnifluxWorkspace() {
         syncNodesFromGraph(newGraph);
         setShowWizard(false);
         setShowTemplatesModal(false);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleGenerateAreas = (count: number) => {
@@ -707,7 +708,7 @@ export default function UnifluxWorkspace() {
         }
 
         setNodes(nds => nds.concat(newNodes));
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleNewMermaidFlow = () => {
@@ -822,14 +823,8 @@ export default function UnifluxWorkspace() {
                 additionalData: { ...n.additionalData, ...additionalData } 
             } : n)
         }));
-        // V9: Optional bidirectional link
-        if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
-            console.log('UniFlux: Creando vínculo bidireccional...');
-            createBidirectionalLink(tenantId || '1', graph.id, nodeId, additionalData.targetFlowId, additionalData.targetNodeId)
-                .catch(err => console.error("Error creating bidirectional link", err));
-        }
         setSelectedNode(null);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleC4NodeSave = (nodeId: string, newLabel: string, newType: C4NodeType, technology: string, description: string, external: boolean, additionalData?: any) => {
@@ -869,23 +864,25 @@ export default function UnifluxWorkspace() {
                 additionalData: { ...n.additionalData, ...additionalData }
             } : n)
         }));
-        // V9: Optional bidirectional link
         if (additionalData?.targetFlowId && additionalData?.targetNodeId && graph.id) {
             console.log('UniFlux: Creando vínculo bidireccional (C4)...');
             createBidirectionalLink(tenantId || '1', graph.id, nodeId, additionalData.targetFlowId, additionalData.targetNodeId)
                 .catch(err => console.error("Error creating bidirectional C4 link", err));
         }
         setSelectedNode(null);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleNodeDelete = (nodeId: string) => {
         setNodes(nds => nds.filter(node => node.id !== nodeId));
         setEdges(eds => eds.filter(edge => edge.source !== nodeId && edge.target !== nodeId));
-
-
+        setGraph(prev => ({
+            ...prev,
+            nodes: prev.nodes.filter(n => n.id !== nodeId),
+            edges: prev.edges.filter(e => e.source !== nodeId && e.target !== nodeId)
+        }));
         setSelectedNode(null);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const getNextNodeId = useCallback((currentNodes: Node[]) => {
@@ -921,7 +918,8 @@ export default function UnifluxWorkspace() {
         };
         
         setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(newNode));
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
     };
 
     const handleToggleLock = useCallback((nodeId: string, locked: boolean) => {
@@ -940,21 +938,15 @@ export default function UnifluxWorkspace() {
             return node;
         }));
 
-        // Do NOT call setGraph here. setGraph triggers the useEffect that re-syncs everything from the abstract graph.
-        // Since the abstract graph is only updated on manual "Save", calling setGraph here would revert all unsaved 
-        // node moves or label changes. We only update the local React Flow state; it will be persisted when the user 
-        // clicks the main "Guardar" button.
-        
-        // Update selection state to reflect the new lock status in the editor panel
         setSelectedNode(prev => prev?.id === nodeId
             ? { ...prev, data: { ...prev.data, isLocked: locked }, draggable: !locked }
             : prev
         );
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
     }, [setNodes, takeSnapshot]);
 
     const onConnect = useCallback((params: Connection) => {
-        // Automatically add an empty label or default animated edge
         const newEdge: Edge = {
             ...params,
             id: `e-${params.source}-${params.target}-${Date.now()}`,
@@ -973,19 +965,19 @@ export default function UnifluxWorkspace() {
             labelBgBorderRadius: 8,
         };
         setEdges((eds) => addEdge(newEdge, eds));
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
     }, [setEdges, takeSnapshot]);
 
     const onReconnect = useCallback((oldEdge: Edge, newConnection: Connection) => {
         setEdges((els) => reconnectEdge(oldEdge, newConnection, els));
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
     }, [setEdges, takeSnapshot]);
 
-    // Waypoint management for movable edges
     const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
         if (!reactFlowInstance) return;
         
-        // Add point if edge is selected or Shift is held
         if (!edge.selected && !event.shiftKey) return;
 
         const position = reactFlowInstance.screenToFlowPosition({
@@ -1006,10 +998,9 @@ export default function UnifluxWorkspace() {
             }
             return e;
         }));
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     }, [reactFlowInstance, setEdges, takeSnapshot]);
 
-    // Inline edge label editor handlers
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
         event.stopPropagation();
         setEditingEdge(edge);
@@ -1039,17 +1030,16 @@ export default function UnifluxWorkspace() {
             return updated;
         }));
         setEditingEdge(null);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleEdgeDelete = () => {
         if (!editingEdge) return;
         setEdges(eds => eds.filter(e => e.id !== editingEdge.id));
         setEditingEdge(null);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
-    // Drag and Drop Logic
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
@@ -1106,7 +1096,8 @@ export default function UnifluxWorkspace() {
             }
 
             setNodes((nds) => nds.concat(newNode));
-            setTimeout(takeSnapshot, 0);
+            setTimeout(takeSnapshot, 0); setIsDirty(true);
+            setIsDirty(true);
         },
         [reactFlowInstance, setNodes, nodes, activeC4Level],
     );
@@ -1129,7 +1120,7 @@ export default function UnifluxWorkspace() {
                     return n;
                 })
             }));
-            setTimeout(takeSnapshot, 0);
+            setTimeout(takeSnapshot, 0); setIsDirty(true);
             return;
         }
 
@@ -1182,7 +1173,7 @@ export default function UnifluxWorkspace() {
                     return n;
                 })
             }));
-            setTimeout(takeSnapshot, 0);
+            setTimeout(takeSnapshot, 0); setIsDirty(true);
             return;
         }
 
@@ -1215,7 +1206,7 @@ export default function UnifluxWorkspace() {
             })
         }));
 
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
     }, [nodes, setNodes, setGraph, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
@@ -1241,7 +1232,8 @@ export default function UnifluxWorkspace() {
         setGraph(mergedGraph);
         syncNodesFromGraph(mergedGraph);
         setShowWizard(false);
-        setTimeout(takeSnapshot, 0);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setIsDirty(true);
         // Show undo banner so user knows they can revert the AI change
         setShowAiBanner(true);
         setTimeout(() => setShowAiBanner(false), 6000);
@@ -2071,8 +2063,8 @@ export default function UnifluxWorkspace() {
                     nodes={nodes}
                     edges={edges}
                     nodeTypes={nodeTypes}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
+                    onNodesChange={onNodesChangeWrapped}
+                    onEdgesChange={onEdgesChangeWrapped}
                     onConnect={onConnect}
                     onReconnect={onReconnect}
                     edgesReconnectable={true}
@@ -2229,7 +2221,7 @@ export default function UnifluxWorkspace() {
                                             style: { width: 250, height: 100 }
                                         };
                                         setNodes(nds => nds.concat(newNode));
-                                        setTimeout(takeSnapshot, 0);
+                                        setTimeout(takeSnapshot, 0); setIsDirty(true);
                                     }
                                     closeMenu(); 
                                 }} className="w-full flex items-center gap-3 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-left">
