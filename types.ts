@@ -26,7 +26,7 @@ export interface Project {
     clientName: string; // New: External Client Name
 
     // Status & Health
-    status: 'active' | 'on_hold' | 'archived'; // New: Formal Status
+    status: 'active' | 'on_hold' | 'archived' | 'completed'; // New: Formal Status
     health: 'healthy' | 'risk' | 'critical'; // New: Health Signal
 
     // Contact Info

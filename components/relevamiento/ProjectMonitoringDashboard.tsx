@@ -122,8 +122,9 @@ export default function ProjectMonitoringDashboard({ globalProjects, onSelectPro
                     <td className="px-6 py-4 text-center">
                       <span className={cn(
                         "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.1em] border",
-                        project.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        (project.status === 'active' || project.status === 'completed') ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                         project.status === 'on_hold' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                        project.status === 'archived' ? 'bg-slate-500/10 text-slate-500 border-slate-500/20' :
                         'bg-muted text-muted-foreground border-border'
                       )}>
                         {project.status || 'draft'}
