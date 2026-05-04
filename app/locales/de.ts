@@ -87,6 +87,8 @@ export const de: Dictionary = {
         "uni-order-manager": "UniOrderManager",
         unidocs: "UniDocs",
         unitask_tools: "Unitask-Tools",
+        relevamiento: "Projekt-Erhebung",
+        administration: "Verwaltung",
         unileaks: "UniLeaks"
     },
 

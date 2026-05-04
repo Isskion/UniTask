@@ -87,6 +87,8 @@ export const pt: Dictionary = {
         "uni-order-manager": "UniOrderManager",
         unidocs: "UniDocs",
         unitask_tools: "Ferramentas Unitask",
+        relevamiento: "Levantamento Projetos",
+        administration: "Administração",
         unileaks: "UniLeaks"
     },
 
