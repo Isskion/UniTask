@@ -50,6 +50,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { PDFScanner } from "./PDFScanner"; // Added PDFScanner import
 import AvailabilityManager from "./availability/AvailabilityManager"; // Added DispoPlan import
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
+import RelevamientoTool from "./relevamiento/RelevamientoTool";
+import ProjectMonitoringDashboard from "./relevamiento/ProjectMonitoringDashboard";
 import { ProjectInterfaces } from "./ProjectInterfaces";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
@@ -63,7 +65,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -146,6 +148,8 @@ export default function DailyFollowUp() {
 
     const [profileLoading, setProfileLoading] = useState(true);
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
+    const [selectedRelevamientoProject, setSelectedRelevamientoProject] = useState<string | null>(null);
+    const [selectedRelevamientoProjectName, setSelectedRelevamientoProjectName] = useState<string>('');
 
 
 
@@ -165,7 +169,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = (searchParams.get('mode') || searchParams.get('view')) as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox', 'relevamiento'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -243,6 +247,16 @@ export default function DailyFollowUp() {
     const [isAILoading, setIsAILoading] = useState(false);
     const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
     const [aiSummary, setAiSummary] = useState<string>("");
+
+    // Fetch Global Projects for Relevamiento Tool
+    useEffect(() => {
+        if (!tenantId || !user) return;
+        const fetchProjects = async () => {
+            const projects = await getActiveProjects(tenantId, user.uid, getRoleLevel(userRole));
+            setGlobalProjects(projects);
+        };
+        fetchProjects();
+    }, [tenantId, user, userRole]);
 
     const [newTaskText, setNewTaskText] = useState("");
     const [pendingTaskId, setPendingTaskId] = useState<string | null>(null);
@@ -2401,12 +2415,14 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'tenant-management' ? (
                             <TenantManagement />
                         ) : viewMode === 'dashboard' ? (
-                            <Dashboard
-                                entry={entry}
-                                globalProjects={globalProjects}
-                                userProfile={userProfile}
-                                userRole={userRole}
-                            />
+                            <div className="flex-1 h-full overflow-y-auto custom-scrollbar p-6">
+                                <Dashboard
+                                    entry={entry}
+                                    globalProjects={globalProjects}
+                                    userProfile={userProfile}
+                                    userRole={userRole}
+                                />
+                            </div>
                         ) : viewMode === 'admin-task-master' ? (
                             <TaskMasterDataManagement />
                         ) : viewMode === 'admin-document-types' ? (
@@ -2443,6 +2459,37 @@ export default function DailyFollowUp() {
                             <AvailabilityRegistry />
                         ) : viewMode === 'unidocs' ? (
                             <UniDocsManagement />
+                        ) : viewMode === 'relevamiento' ? (
+                            <div className="flex-1 h-full min-h-0 overflow-hidden flex flex-col">
+                                {!selectedRelevamientoProject ? (
+                                    <ProjectMonitoringDashboard 
+                                        globalProjects={globalProjects}
+                                        onSelectProject={(id, name) => {
+                                            setSelectedRelevamientoProject(id);
+                                            setSelectedRelevamientoProjectName(name);
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+                                        <div className="bg-card border-b border-border p-2 flex items-center gap-4 shrink-0">
+                                            <button 
+                                                onClick={() => setSelectedRelevamientoProject(null)}
+                                                className="text-[10px] font-black uppercase tracking-widest bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-1.5 rounded-lg border border-border transition-all active:scale-95"
+                                            >
+                                                ← Volver al Listado
+                                            </button>
+                                            <div className="h-4 w-px bg-border" />
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Editando: {selectedRelevamientoProjectName}</span>
+                                        </div>
+                                        <div className="flex-1 min-h-0 overflow-hidden">
+                                            <RelevamientoTool 
+                                                projectId={selectedRelevamientoProject} 
+                                                projectName={selectedRelevamientoProjectName}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <div className="p-10 text-center text-zinc-500">{t('common.under_construction')} {viewMode}</div>
                         )}

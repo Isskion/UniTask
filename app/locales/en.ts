@@ -85,6 +85,8 @@ export const en = {
         "uni-order-manager": "UniOrderManager",
         unidocs: "UniDocs",
         unitask_tools: "Unitask Tools",
+        relevamiento: "Project Survey",
+        administration: "Administration",
         unileaks: "UniLeaks"
     },
 

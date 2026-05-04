@@ -40,7 +40,8 @@ import {
     Database,
     Mail,
     Table,
-    Map
+    Map,
+    ClipboardCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -63,8 +64,8 @@ import ProfileSettingsModal from "@/components/ProfileSettingsModal";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -313,8 +314,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.workspace')}</p>
                             </div>
                             <div className="nav-section-island">
-                                <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                                                                <NavItem mode="dashboard" icon={Layout} label={t('nav.dashboard')} />
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                                <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task-manager')} />
                                 <NavItem mode="inbox" icon={Mail} label={t('nav.inbox') || "Buzón Outlook"} />
@@ -361,6 +363,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 {can('dispoPlan', 'views') && (
                                     <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
                                 )}
+
                                 
                                 {can('unavailabilityRegistry', 'views') && (
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
