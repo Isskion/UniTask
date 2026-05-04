@@ -36,7 +36,8 @@ import IconNode from './nodes/IconNode';
 import ImageNode from './nodes/ImageNode';
 import UnifluxProNode from './nodes/UnifluxProNode';
 import UnifluxTextNode from './nodes/UnifluxTextNode';
-import UnifluxMovableEdge from './edges/UnifluxMovableEdge';
+import UnifluxOrthogonalEdge from './edges/UnifluxOrthogonalEdge';
+import UnifluxAlignmentGuides, { AlignmentGuide, DistanceIndicator } from './UnifluxAlignmentGuides';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
 const C4_NODE_TYPES = MODE_REGISTRY['c4'].nodeTypes;
@@ -66,8 +67,8 @@ const nodeTypes = {
 };
 
 const edgeTypes = {
-    orthogonal: UnifluxMovableEdge,
-    movable: UnifluxMovableEdge,
+    orthogonal: UnifluxOrthogonalEdge,
+    movable: UnifluxOrthogonalEdge,
 };
 
 // Initial placeholder graph
@@ -183,6 +184,83 @@ export default function UnifluxWorkspace() {
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
     const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
     const [interactionMode, setInteractionMode] = useState<'pan' | 'selection'>('pan');
+    
+    // V10: Alignment Guides
+    const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
+    const [distanceIndicators, setDistanceIndicators] = useState<DistanceIndicator[]>([]);
+
+    const onNodeDrag = useCallback((event: React.MouseEvent, node: Node) => {
+        const threshold = 5;
+        const guides: AlignmentGuide[] = [];
+        const distances: DistanceIndicator[] = [];
+
+        // Current node boundaries (absolute)
+        const absX = (node as any).computed?.positionAbsolute?.x ?? (node as any).positionAbsolute?.x ?? node.position.x;
+        const absY = (node as any).computed?.positionAbsolute?.y ?? (node as any).positionAbsolute?.y ?? node.position.y;
+        const w = node.measured?.width ?? (node.style?.width as number) ?? 0;
+        const h = node.measured?.height ?? (node.style?.height as number) ?? 0;
+
+        const nodeLeft = absX;
+        const nodeRight = absX + w;
+        const nodeCenterH = absX + w / 2;
+        const nodeTop = absY;
+        const nodeBottom = absY + h;
+        const nodeCenterV = absY + h / 2;
+
+        nodes.forEach(other => {
+            if (other.id === node.id) return;
+            
+            const otherAbsX = (other as any).computed?.positionAbsolute?.x ?? (other as any).positionAbsolute?.x ?? other.position.x;
+            const otherAbsY = (other as any).computed?.positionAbsolute?.y ?? (other as any).positionAbsolute?.y ?? other.position.y;
+            const otherW = other.measured?.width ?? (other.style?.width as number) ?? 0;
+            const otherH = other.measured?.height ?? (other.style?.height as number) ?? 0;
+
+            const otherLeft = otherAbsX;
+            const otherRight = otherAbsX + otherW;
+            const otherCenterH = otherAbsX + otherW / 2;
+            const otherTop = otherAbsY;
+            const otherBottom = otherAbsY + otherH;
+            const otherCenterV = otherAbsY + otherH / 2;
+
+            // Horizontal alignment (Vertical lines)
+            if (Math.abs(nodeLeft - otherLeft) < threshold) guides.push({ id: `v-ll-${other.id}`, type: 'vertical', position: otherLeft });
+            if (Math.abs(nodeLeft - otherRight) < threshold) guides.push({ id: `v-lr-${other.id}`, type: 'vertical', position: otherRight });
+            if (Math.abs(nodeRight - otherLeft) < threshold) guides.push({ id: `v-rl-${other.id}`, type: 'vertical', position: otherLeft });
+            if (Math.abs(nodeRight - otherRight) < threshold) guides.push({ id: `v-rr-${other.id}`, type: 'vertical', position: otherRight });
+            if (Math.abs(nodeCenterH - otherCenterH) < threshold) guides.push({ id: `v-cc-${other.id}`, type: 'vertical', position: otherCenterH });
+
+            // Vertical alignment (Horizontal lines)
+            if (Math.abs(nodeTop - otherTop) < threshold) guides.push({ id: `h-tt-${other.id}`, type: 'horizontal', position: otherTop });
+            if (Math.abs(nodeTop - otherBottom) < threshold) guides.push({ id: `h-tb-${other.id}`, type: 'horizontal', position: otherBottom });
+            if (Math.abs(nodeBottom - otherTop) < threshold) guides.push({ id: `h-bt-${other.id}`, type: 'horizontal', position: otherTop });
+            if (Math.abs(nodeBottom - otherBottom) < threshold) guides.push({ id: `h-bb-${other.id}`, type: 'horizontal', position: otherBottom });
+            if (Math.abs(nodeCenterV - otherCenterV) < threshold) guides.push({ id: `h-cc-${other.id}`, type: 'horizontal', position: otherCenterV });
+        });
+
+        // Distance indicators (simplified)
+        const nodesOnLeft = nodes.filter(n => n.id !== node.id && ((n as any).computed?.positionAbsolute?.x ?? n.position.x) + (n.measured?.width ?? 0) < absX);
+        const nodesOnRight = nodes.filter(n => n.id !== node.id && ((n as any).computed?.positionAbsolute?.x ?? n.position.x) > absX + w);
+        
+        nodesOnLeft.forEach(leftNode => {
+            const lAbsX = (leftNode as any).computed?.positionAbsolute?.x ?? leftNode.position.x;
+            const lW = leftNode.measured?.width ?? 0;
+            const lRight = lAbsX + lW;
+            const gap1 = nodeLeft - lRight;
+
+            nodesOnRight.forEach(rightNode => {
+                const rAbsX = (rightNode as any).computed?.positionAbsolute?.x ?? rightNode.position.x;
+                const gap2 = rAbsX - nodeRight;
+
+                if (Math.abs(gap1 - gap2) < threshold && gap1 > 10) {
+                    distances.push({ id: `dist-h-${leftNode.id}`, type: 'horizontal', x: nodeLeft, y: nodeCenterV, distance: gap1 });
+                    distances.push({ id: `dist-h-${rightNode.id}`, type: 'horizontal', x: rAbsX, y: nodeCenterV, distance: gap2 });
+                }
+            });
+        });
+
+        setAlignmentGuides(guides);
+        setDistanceIndicators(distances);
+    }, [nodes]);
     
     // V9: Inter-flow navigation (deep linking)
     const pendingNavigationNodeId = useRef<string | null>(null);
@@ -553,7 +631,6 @@ export default function UnifluxWorkspace() {
                     animated: e.animated,
                     style: e.style,
                     markerEnd: e.markerEnd,
-                    pathPoints: e.pathPoints || []
                 },
             };
         });
@@ -975,31 +1052,7 @@ export default function UnifluxWorkspace() {
         setIsDirty(true);
     }, [setEdges, takeSnapshot]);
 
-    const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-        if (!reactFlowInstance) return;
-        
-        if (!edge.selected && !event.shiftKey) return;
 
-        const position = reactFlowInstance.screenToFlowPosition({
-            x: event.clientX,
-            y: event.clientY,
-        });
-
-        setEdges((eds) => eds.map((e) => {
-            if (e.id === edge.id) {
-                const currentPoints = (e.data?.pathPoints as any[]) || [];
-                return { 
-                    ...e, 
-                    data: { 
-                        ...e.data, 
-                        pathPoints: [...currentPoints, position] 
-                    } 
-                };
-            }
-            return e;
-        }));
-        setTimeout(takeSnapshot, 0); setIsDirty(true);
-    }, [reactFlowInstance, setEdges, takeSnapshot]);
 
     const onEdgeDoubleClick = (event: React.MouseEvent, edge: Edge) => {
         event.stopPropagation();
@@ -1207,6 +1260,8 @@ export default function UnifluxWorkspace() {
         }));
 
         setTimeout(takeSnapshot, 0); setIsDirty(true);
+        setAlignmentGuides([]);
+        setDistanceIndicators([]);
     }, [nodes, setNodes, setGraph, takeSnapshot]);
 
     // Handle AI Updates — preserve work when AI would wipe existing nodes
@@ -2074,8 +2129,8 @@ export default function UnifluxWorkspace() {
                     onInit={setReactFlowInstance}
                     onDrop={onDrop}
                     onDragOver={onDragOver}
+                    onNodeDrag={onNodeDrag}
                     onNodeDragStop={onNodeDragStop}
-                    onEdgeClick={onEdgeClick}
                     onNodeDoubleClick={(_, node) => setSelectedNode(node)}
                     onEdgeDoubleClick={onEdgeDoubleClick}
                     onNodeContextMenu={onNodeContextMenu}
@@ -2159,6 +2214,7 @@ export default function UnifluxWorkspace() {
                             </div>
                         </div>
                     </Panel>
+                    <UnifluxAlignmentGuides guides={alignmentGuides} distances={distanceIndicators} />
                 </ReactFlow>}
                 </div>
                 {/* Context Menu */}
