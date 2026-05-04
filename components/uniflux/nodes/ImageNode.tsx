@@ -25,17 +25,34 @@ const ImageNode = ({ id, data, selected }: any) => {
         setNodes((nds) => {
             const nodeToCopy = nds.find((n) => n.id === id);
             if (!nodeToCopy) return nds;
-            const newId = `image-${Date.now()}`;
+
+            const numericIds = nds
+                .map(n => parseInt(n.id))
+                .filter(id => !isNaN(id));
+            const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+            const newId = (maxId + 1).toString();
+
+            // Update label if it starts with the old ID prefix (e.g., "5. Image")
+            let newLabel = nodeToCopy.data.label as string;
+            const oldIdPrefix = new RegExp(`^${nodeToCopy.id}\\.\\s*`);
+            if (oldIdPrefix.test(newLabel)) {
+                newLabel = newLabel.replace(oldIdPrefix, `${newId}. `);
+            }
+
             const newNode = {
                 ...nodeToCopy,
                 id: newId,
+                data: {
+                    ...nodeToCopy.data,
+                    label: newLabel,
+                },
                 position: {
                     x: nodeToCopy.position.x + 50,
                     y: nodeToCopy.position.y + 50,
                 },
                 selected: true,
             };
-            return nds.map(n => ({...n, selected: false})).concat(newNode);
+            return nds.map(n => ({ ...n, selected: false })).concat(newNode);
         });
     };
 
@@ -49,16 +66,32 @@ const ImageNode = ({ id, data, selected }: any) => {
             const nodeToCopy = nds.find((n) => n.id === id);
             if (!nodeToCopy) return nds;
             
-            const newId = `image-${Date.now()}`;
+            const numericIds = nds
+                .map(n => parseInt(n.id))
+                .filter(id => !isNaN(id));
+            const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+            const newId = (maxId + 1).toString();
+
             const offset = 150;
             const newPosition = {
                 x: nodeToCopy.position.x + (dir === 'left' ? -offset : dir === 'right' ? offset : 0),
                 y: nodeToCopy.position.y + (dir === 'top' ? -offset : dir === 'bottom' ? offset : 0),
             };
 
+            // Update label for the new node
+            let newLabel = nodeToCopy.data.label as string;
+            const oldIdPrefix = new RegExp(`^${nodeToCopy.id}\\.\\s*`);
+            if (oldIdPrefix.test(newLabel)) {
+                newLabel = newLabel.replace(oldIdPrefix, `${newId}. `);
+            }
+
             const newNode = {
                 ...nodeToCopy,
                 id: newId,
+                data: {
+                    ...nodeToCopy.data,
+                    label: newLabel,
+                },
                 position: newPosition,
                 selected: true,
             };

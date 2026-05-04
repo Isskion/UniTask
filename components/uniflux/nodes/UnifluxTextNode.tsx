@@ -47,7 +47,13 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
         setNodes((nds) => {
             const nodeToCopy = nds.find((n) => n.id === id);
             if (!nodeToCopy) return nds;
-            const newId = `node-${Date.now()}`;
+
+            const numericIds = nds
+                .map(n => parseInt(n.id))
+                .filter(id => !isNaN(id));
+            const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+            const newId = (maxId + 1).toString();
+
             const newNode = {
                 ...nodeToCopy,
                 id: newId,
@@ -57,7 +63,7 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
                 },
                 selected: true,
             };
-            return nds.map(n => ({...n, selected: false})).concat(newNode);
+            return nds.map(n => ({ ...n, selected: false })).concat(newNode);
         });
     };
 

@@ -91,6 +91,9 @@ export default function UnifluxWorkspace() {
     const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [isDirty, setIsDirty] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+    const [showSaveToast, setShowSaveToast] = useState(false);
 
     // Flow Management State
     const [projects, setProjects] = useState<Project[]>([]);
@@ -159,6 +162,24 @@ export default function UnifluxWorkspace() {
     // React Flow State
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    
+    // Wrapped handlers to track dirtiness
+    const onNodesChangeWrapped = useCallback((changes: any) => {
+        onNodesChange(changes);
+        const hasMeaningfulChange = changes.some((c: any) => 
+            c.type === 'position' || c.type === 'dimensions' || c.type === 'remove' || c.type === 'add' || c.type === 'replace'
+        );
+        if (hasMeaningfulChange) setIsDirty(true);
+    }, [onNodesChange]);
+
+    const onEdgesChangeWrapped = useCallback((changes: any) => {
+        onEdgesChange(changes);
+        const hasMeaningfulChange = changes.some((c: any) => 
+            c.type === 'remove' || c.type === 'add' || c.type === 'select'
+        );
+        if (hasMeaningfulChange) setIsDirty(true);
+    }, [onEdgesChange]);
+
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
     const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
     const [interactionMode, setInteractionMode] = useState<'pan' | 'selection'>('pan');
@@ -297,13 +318,42 @@ export default function UnifluxWorkspace() {
                 redo();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                handleSave();
+                handleSave(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [undo, redo]);
+
+    // Auto-save effect
+    useEffect(() => {
+        if (!isDirty || !user || !tenantId || !selectedProjectId || isSaving) return;
+
+        const timer = setTimeout(() => {
+            console.log("[uniflux] Auto-saving...");
+            handleSave(true);
+        }, 5000); // 5 seconds of inactivity triggers auto-save
+
+        return () => clearTimeout(timer);
+    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving]);
+
+    // Local backup effect (every 2 seconds if dirty)
+    useEffect(() => {
+        if (!isDirty || !graph.id) return;
+
+        const timer = setTimeout(() => {
+            const backup = {
+                nodes,
+                edges,
+                projectId: selectedProjectId,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(`uniflux_backup_${graph.id}`, JSON.stringify(backup));
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [nodes, edges, isDirty, graph.id, selectedProjectId]);
 
     // V9: Handle cross-flow navigation with auto-centering
     useEffect(() => {
@@ -325,8 +375,6 @@ export default function UnifluxWorkspace() {
             }
         }
     }, [nodes, reactFlowInstance]);
-
-
 
     // Editor State
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -843,13 +891,34 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0);
     };
 
+    const getNextNodeId = useCallback((currentNodes: Node[]) => {
+        const numericIds = currentNodes
+            .map(n => parseInt(n.id))
+            .filter(id => !isNaN(id));
+        const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+        return (maxId + 1).toString();
+    }, []);
+
     const handleNodeDuplicate = (nodeId: string) => {
         const nodeToCopy = nodes.find(n => n.id === nodeId);
         if (!nodeToCopy) return;
         
+        const newNodeId = getNextNodeId(nodes);
+        
+        // Update label if it starts with the old ID prefix (e.g., "5. My Node")
+        let newLabel = nodeToCopy.data.label as string;
+        const oldIdPrefix = new RegExp(`^${nodeToCopy.id}\\.\\s*`);
+        if (oldIdPrefix.test(newLabel)) {
+            newLabel = newLabel.replace(oldIdPrefix, `${newNodeId}. `);
+        }
+
         const newNode = {
             ...nodeToCopy,
-            id: `node-${Date.now()}`,
+            id: newNodeId,
+            data: {
+                ...nodeToCopy.data,
+                label: newLabel,
+            },
             position: { x: nodeToCopy.position.x + 50, y: nodeToCopy.position.y + 50 },
             selected: false,
         };
@@ -1007,9 +1076,7 @@ export default function UnifluxWorkspace() {
                 y: event.clientY,
             });
 
-            let newIdNum = 1;
-            while (nodes.some(n => n.id === newIdNum.toString())) newIdNum++;
-            const newNodeId = newIdNum.toString();
+            const newNodeId = getNextNodeId(nodes);
 
             const isC4 = C4_NODE_TYPES.has(type);
 
@@ -1215,12 +1282,12 @@ export default function UnifluxWorkspace() {
     };
 
     // Handle manual save
-    const handleSave = async () => {
+    const handleSave = async (isAutoSave: boolean = false) => {
         if (!user || !tenantId) return;
         const tenantToUse = tenantId || '1';
 
         if (!selectedProjectId) {
-            alert("Por favor selecciona un proyecto primero.");
+            if (!isAutoSave) alert("Por favor selecciona un proyecto primero.");
             return;
         }
 
@@ -1305,9 +1372,17 @@ export default function UnifluxWorkspace() {
             setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
 
             setSaveStatus('saved');
+            setIsDirty(false);
+            setLastSaved(new Date());
             setTimeout(() => setSaveStatus('idle'), 3000);
-            setShowSaveToast(true);
-            setTimeout(() => setShowSaveToast(false), 4000);
+            
+            if (!isAutoSave) {
+                setShowSaveToast(true);
+                setTimeout(() => setShowSaveToast(false), 4000);
+            }
+
+            // Remove local backup after successful cloud save
+            localStorage.removeItem(`uniflux_backup_${graph.id}`);
 
             // Refresh sidebar flows
             listProjectFlows(tenantToUse, selectedProjectId).then(f => setSavedFlows(f as FlowGraph[]));
@@ -1453,20 +1528,48 @@ export default function UnifluxWorkspace() {
                         ))}
                     </select>
 
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving || !selectedProjectId}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white rounded-lg shadow-sm transition-all disabled:opacity-50 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-400"
-                    >
-                        {saveStatus === 'saving' ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
-                        ) : saveStatus === 'saved' ? (
-                            <CheckCircle2 className="w-4 h-4 text-white" />
-                        ) : (
-                            <Save className="w-4 h-4" />
-                        )}
-                        {saveStatus === 'saving' ? 'Guardando...' : saveStatus === 'saved' ? 'Guardado' : 'Guardar'}
-                    </button>
+                        <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                                <div className="flex items-center gap-2">
+                                    {isDirty && !isSaving && (
+                                        <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1 animate-pulse">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            Cambios sin guardar
+                                        </span>
+                                    )}
+                                    {saveStatus === 'saving' && (
+                                        <span className="text-[10px] text-blue-500 font-medium flex items-center gap-1">
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            Guardando...
+                                        </span>
+                                    )}
+                                    {saveStatus === 'saved' && (
+                                        <span className="text-[10px] text-green-500 font-medium flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            Guardado
+                                        </span>
+                                    )}
+                                    {lastSaved && !isDirty && saveStatus === 'idle' && (
+                                        <span className="text-[10px] text-slate-400 font-medium">
+                                            Auto-guardado a las {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => handleSave(false)}
+                                disabled={isSaving}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1.5 rounded-lg font-bold transition-all shadow-sm active:scale-95 text-sm",
+                                    isDirty 
+                                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/20" 
+                                        : "bg-slate-800 text-slate-500 border border-slate-700 cursor-default"
+                                )}
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                <span>{isSaving ? 'Guardando...' : 'Guardar'}</span>
+                            </button>
+                        </div>
                 </div>
             </header>
 
