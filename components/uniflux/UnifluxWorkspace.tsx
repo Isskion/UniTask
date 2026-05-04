@@ -388,9 +388,6 @@ export default function UnifluxWorkspace() {
     const [edgeAnimated, setEdgeAnimated] = useState<boolean>(true);
     const [edgeColor, setEdgeColor] = useState<string>('#94a3b8');
 
-    // Save toast
-    const [showSaveToast, setShowSaveToast] = useState(false);
-
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
 
