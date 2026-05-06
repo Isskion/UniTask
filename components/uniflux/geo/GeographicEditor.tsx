@@ -111,6 +111,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isSearching, setIsSearching]             = useState(false);
     const [searchError, setSearchError]             = useState<string | null>(null);
     const [selectedBoundaries, setSelectedBoundaries] = useState<BoundaryFeature[]>([]);
+    const [searchCountry, setSearchCountry]           = useState<'es' | 'pt' | 'fr'>('es');
     const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchAbortControllerRef = useRef<AbortController | null>(null);
 
@@ -517,7 +518,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
 
     // ── Búsqueda con debounce ─────────────────────────────────────────────────
 
-    const handleSearch = useCallback((q: string) => {
+    const handleSearch = useCallback((q: string, country = searchCountry) => {
         setSearchQuery(q);
         setSearchError(null);
         if (searchDebounce.current) clearTimeout(searchDebounce.current);
@@ -539,7 +540,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
             setIsSearching(true);
             setSearchResults([]);
             try {
-                const results = await searchBoundaries(q, 'es');
+                const results = await searchBoundaries(q, country);
                 if (searchAbortControllerRef.current === controller) {
                     setSearchResults(results);
                 }
@@ -555,7 +556,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 }
             }
         }, 700);
-    }, []);
+    }, [searchCountry]);
 
     // ── Guardar zona ──────────────────────────────────────────────────────────
 
@@ -902,18 +903,33 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                             <div className="flex-1 flex flex-col overflow-hidden">
                                 <div className="p-3 space-y-2 border-b border-border shrink-0">
                                     <p className="text-[10px] text-muted-foreground leading-relaxed">
-                                        Busca por provincia, municipio, código postal, localidad o comunidad autónoma de España.
+                                        Busca por provincia, municipio, código postal, localidad o barrio de España, Portugal o Francia.
                                     </p>
-                                    <div className="relative">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                                        <input
-                                            type="text"
-                                            value={searchQuery}
-                                            onChange={e => handleSearch(e.target.value)}
-                                            placeholder="Ej: Valencia, 28001, Cataluña..."
-                                            className="w-full bg-muted border border-border rounded-lg pl-8 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                        />
-                                        {isSearching && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+                                    <div className="flex gap-1.5">
+                                        <select
+                                            value={searchCountry}
+                                            onChange={e => {
+                                                const val = e.target.value as 'es' | 'pt' | 'fr';
+                                                setSearchCountry(val);
+                                                if (searchQuery.trim().length >= 2) handleSearch(searchQuery, val);
+                                            }}
+                                            className="bg-muted border border-border rounded-lg px-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer shrink-0"
+                                        >
+                                            <option value="es">🇪🇸 ES</option>
+                                            <option value="pt">🇵🇹 PT</option>
+                                            <option value="fr">🇫🇷 FR</option>
+                                        </select>
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                                            <input
+                                                type="text"
+                                                value={searchQuery}
+                                                onChange={e => handleSearch(e.target.value, searchCountry)}
+                                                placeholder="Ej: Valencia, Porto, París..."
+                                                className="w-full bg-muted border border-border rounded-lg pl-8 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                            />
+                                            {isSearching && <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+                                        </div>
                                     </div>
 
                                     {searchResults.length > 0 && (

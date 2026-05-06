@@ -70,9 +70,9 @@ function polygonFromFeature(feature: any, cpCode: string): BoundaryFeature | nul
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function zippopotamLookup(cp: string): Promise<{ lat: string; lon: string; placeName: string; state: string } | null> {
+async function zippopotamLookup(cp: string, countryCode: string): Promise<{ lat: string; lon: string; placeName: string; state: string } | null> {
     try {
-        const res = await fetch(`https://api.zippopotam.us/ES/${cp}`, {
+        const res = await fetch(`https://api.zippopotam.us/${countryCode.toUpperCase()}/${cp}`, {
             headers: { 'User-Agent': HDR['User-Agent'] },
             next: { revalidate: 86400 },
         });
@@ -251,8 +251,8 @@ async function searchPostalCode(q: string, countryCode: string): Promise<Boundar
     const cartoHits = await cartociudadPostalCode(q);
     if (cartoHits.length) return cartoHits;
 
-    // 4. Zippopotam.us — catálogo fiable de CPs españoles con nombre de municipio correcto
-    const zippo = await zippopotamLookup(q);
+    // 4. Zippopotam.us — catálogo fiable de CPs con nombre de municipio correcto
+    const zippo = await zippopotamLookup(q, countryCode);
     if (zippo) {
         // Buscar polígono del municipio por nombre (fuente autoritativa)
         const hits = await nominatimMuniPolygon(zippo.placeName, countryCode, q);
