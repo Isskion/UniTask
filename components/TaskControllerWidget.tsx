@@ -78,6 +78,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     // Inline success feedback
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const currentTenantId = tenantId || "";
@@ -187,6 +188,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     // Action: Save real-time Task
     const handleSaveNowTask = async () => {
+        if (isSaving) return;
+
         if (secondsElapsed < 10) {
             showToast("Widget de Tareas", "La tarea debe durar al menos 10 segundos para guardarse", "warning");
             return;
@@ -204,6 +207,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
 
         try {
+            setIsSaving(true);
             const durationMinutes = Math.max(Math.round(secondsElapsed / 60), 1);
 
             // Add task
@@ -237,12 +241,16 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         } catch (err) {
             console.error(err);
             showToast("Error", "No se pudo registrar la tarea", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
 
     // Action: Save Retroactive task
     const handleSaveRetroTask = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSaving) return;
+
         const selectedProjectObj = projects.find((p) => p.id === retroProject);
         if (!selectedProjectObj) {
             showToast("Error", "Selecciona un proyecto válido", "error");
@@ -255,6 +263,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
 
         try {
+            setIsSaving(true);
             await addDoc(collection(db, "consultantTasks"), {
                 userId: user.uid,
                 userName: user.displayName || "Consultor",
@@ -284,6 +293,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         } catch (err) {
             console.error(err);
             showToast("Error", "No se pudo registrar la tarea retroactiva", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
 

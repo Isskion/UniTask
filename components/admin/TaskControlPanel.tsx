@@ -112,6 +112,27 @@ export default function TaskControlPanel() {
         return new Date().toISOString().split("T")[0];
     });
 
+    const dailyTotalMinutes = useMemo(() => {
+        if (!user) return 0;
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        return consultantTasks
+            .filter((task) => {
+                if (task.userId !== user.uid) return false;
+                if (!task.createdAt) return false;
+                const taskDate = new Date(task.createdAt.seconds * 1000);
+                return taskDate >= startOfToday;
+            })
+            .reduce((sum, task) => sum + (task.durationMinutes || 0), 0);
+    }, [consultantTasks, user]);
+
+    const formattedDailyTotal = useMemo(() => {
+        const hours = Math.floor(dailyTotalMinutes / 60);
+        const mins = dailyTotalMinutes % 60;
+        return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+    }, [dailyTotalMinutes]);
+
     // Debounce state for toggles
     const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
@@ -290,7 +311,7 @@ export default function TaskControlPanel() {
 
     // Fetch All Consultant Tasks for Tracking Tab
     useEffect(() => {
-        if (activeSubTab !== "tracking" || !currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") return;
+        if (!currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") return;
 
         setLoadingTasks(true);
         const q = query(
@@ -313,7 +334,7 @@ export default function TaskControlPanel() {
         });
 
         return () => unsubscribe();
-    }, [activeSubTab, currentTenantId]);
+    }, [currentTenantId]);
 
     const handleDeleteConsultantTask = async (id: string) => {
         if (!confirm("¿Estás seguro de que deseas eliminar este registro de actividad?")) return;
@@ -363,9 +384,13 @@ export default function TaskControlPanel() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 bg-card/60 border border-border py-10 px-8 rounded-3xl shadow-2xl backdrop-blur-md relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50" />
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-black text-foreground flex items-center gap-3 tracking-tighter">
+                    <h1 className="text-2xl md:text-3xl font-black text-foreground flex flex-wrap items-center gap-3 tracking-tighter">
                         <Lucide.ClipboardCheck className="w-8 h-8 text-primary animate-pulse" />
-                        CONTROL DE TAREAS
+                        <span>CONTROL DE TAREAS</span>
+                        <span className="text-xs font-black bg-primary/10 text-primary px-3 py-1.5 rounded-full border border-primary/20 flex items-center gap-1.5 shadow-sm shadow-primary/5 animate-pulse ml-2" title="Tiempo total trabajado hoy (HH:mm)">
+                            <Lucide.Clock className="w-3.5 h-3.5" />
+                            Hoy: {formattedDailyTotal}
+                        </span>
                     </h1>
                     <p className="text-muted-foreground mt-1 text-xs md:text-sm font-medium tracking-wide">
                         Administración de categorías de actividades del consultor
