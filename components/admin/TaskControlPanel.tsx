@@ -85,7 +85,19 @@ export default function TaskControlPanel() {
     // Tracking States
     const [consultantTasks, setConsultantTasks] = useState<any[]>([]);
     const [loadingTasks, setLoadingTasks] = useState(false);
-    const [activeSubTab, setActiveSubTab] = useState<"categories" | "tracking">("categories");
+    const [activeSubTab, setActiveSubTab] = useState<"categories" | "tracking">(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("task_control_subtab");
+            if (saved === "categories" || saved === "tracking") return saved as "categories" | "tracking";
+        }
+        return "categories";
+    });
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            localStorage.setItem("task_control_subtab", activeSubTab);
+        }
+    }, [activeSubTab]);
 
     // Filter States
     const [filterConsultant, setFilterConsultant] = useState("");
