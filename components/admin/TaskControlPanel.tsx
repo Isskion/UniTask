@@ -91,6 +91,14 @@ export default function TaskControlPanel() {
     const [filterConsultant, setFilterConsultant] = useState("");
     const [filterProject, setFilterProject] = useState("");
     const [filterCategory, setFilterCategory] = useState("");
+    const [filterStartDate, setFilterStartDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 60);
+        return d.toISOString().split("T")[0];
+    });
+    const [filterEndDate, setFilterEndDate] = useState(() => {
+        return new Date().toISOString().split("T")[0];
+    });
 
     // Debounce state for toggles
     const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
@@ -312,9 +320,20 @@ export default function TaskControlPanel() {
             const matchConsultant = !filterConsultant || task.userName?.toLowerCase().includes(filterConsultant.toLowerCase());
             const matchProject = !filterProject || task.projectName?.toLowerCase().includes(filterProject.toLowerCase());
             const matchCategory = !filterCategory || task.taskTypeName?.toLowerCase().includes(filterCategory.toLowerCase());
-            return matchConsultant && matchProject && matchCategory;
+            
+            // Date range comparison
+            let matchDate = true;
+            if (task.createdAt) {
+                const taskDate = new Date(task.createdAt.seconds * 1000);
+                const taskDateStr = taskDate.toISOString().split("T")[0];
+                
+                if (filterStartDate && taskDateStr < filterStartDate) matchDate = false;
+                if (filterEndDate && taskDateStr > filterEndDate) matchDate = false;
+            }
+            
+            return matchConsultant && matchProject && matchCategory && matchDate;
         });
-    }, [consultantTasks, filterConsultant, filterProject, filterCategory]);
+    }, [consultantTasks, filterConsultant, filterProject, filterCategory, filterStartDate, filterEndDate]);
 
     if (authLoading || !currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") {
         return (
@@ -535,44 +554,73 @@ export default function TaskControlPanel() {
             {activeSubTab === "tracking" && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                     {/* Filters Panel */}
-                    <div className="bg-card/40 border border-border rounded-3xl p-6 shadow-xl backdrop-blur-md grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Consultor</label>
-                            <div className="relative">
-                                <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                                <input
-                                    type="text"
-                                    value={filterConsultant}
-                                    onChange={(e) => setFilterConsultant(e.target.value)}
-                                    placeholder="Buscar consultor..."
-                                    className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
-                                />
+                    <div className="bg-card/40 border border-border rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Consultor</label>
+                                <div className="relative">
+                                    <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={filterConsultant}
+                                        onChange={(e) => setFilterConsultant(e.target.value)}
+                                        placeholder="Buscar consultor..."
+                                        className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Proyecto</label>
+                                <div className="relative">
+                                    <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={filterProject}
+                                        onChange={(e) => setFilterProject(e.target.value)}
+                                        placeholder="Buscar proyecto..."
+                                        className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Categoría</label>
+                                <div className="relative">
+                                    <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        placeholder="Buscar categoría..."
+                                        className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
+                                    />
+                                </div>
                             </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Proyecto</label>
-                            <div className="relative">
-                                <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                                <input
-                                    type="text"
-                                    value={filterProject}
-                                    onChange={(e) => setFilterProject(e.target.value)}
-                                    placeholder="Buscar proyecto..."
-                                    className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
-                                />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/40">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Fecha Inicio</label>
+                                <div className="relative">
+                                    <Lucide.Calendar className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="date"
+                                        value={filterStartDate}
+                                        onChange={(e) => setFilterStartDate(e.target.value)}
+                                        className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Filtrar por Categoría</label>
-                            <div className="relative">
-                                <Lucide.Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                                <input
-                                    type="text"
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
-                                    placeholder="Buscar categoría..."
-                                    className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
-                                />
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Fecha Fin</label>
+                                <div className="relative">
+                                    <Lucide.Calendar className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="date"
+                                        value={filterEndDate}
+                                        onChange={(e) => setFilterEndDate(e.target.value)}
+                                        className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2.5 text-xs text-foreground focus:outline-none focus:border-primary font-bold"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
