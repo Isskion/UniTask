@@ -1,6 +1,17 @@
-export const APP_VERSION = "14.3.0";
+export const APP_VERSION = "14.4.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.4.0",
+        date: "2026-05-08",
+        features: [
+            "Task Control: Introduced master Task Categories (taskTypes) administrative manager with real-time icons and color indicators.",
+            "Global Floating Widget: Integrated the interactive Task Controller (TaskControllerWidget) globally for hot-time tracking, retroactive entries, and active logs.",
+            "UX Refinement: Enhanced the 'Today' activities logs with optimized high-contrast colors, increased font sizes, and hover visual feedback.",
+            "Jira Export: Added a 1-click Markdown exporter to easily copy daily tracked activities directly into Jira comments and tickets.",
+            "Firestore Security: Hardened rules with double-auth document-level fallback checking to authorize masquerading Superadmins and out-of-sync tenant admins."
+        ]
+    },
     {
         version: "14.3.0",
         date: "2026-04-16",
