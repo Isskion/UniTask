@@ -61,11 +61,12 @@ import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
 import { RefreshCw } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import ProfileSettingsModal from "@/components/ProfileSettingsModal";
+import TaskControllerWidget from "@/components/TaskControllerWidget";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -88,8 +89,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const { t } = useLanguage();
     const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
     const [unitaskToolsEnabled, setUnitaskToolsEnabled] = useState<boolean>(false);
+    const [taskControlEnabled, setTaskControlEnabled] = useState<boolean>(false);
     const [enabledTools, setEnabledTools] = useState<string[]>([]);
-
+ 
     useEffect(() => {
         let isMounted = true;
         const fetchTenantLogo = async () => {
@@ -107,6 +109,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     }
                     // Fetch tool activation
                     setUnitaskToolsEnabled(data.unitaskToolsEnabled || false);
+                    setTaskControlEnabled(data.taskControlEnabled || false);
                     setEnabledTools(data.enabledTools || []);
                 }
             } catch (err: any) {
@@ -410,6 +413,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {userRole === 'superadmin' && (
                                         <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                                     )}
+                                    {(taskControlEnabled || userRole === 'superadmin') && (userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                        <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
+                                    )}
                                     {getRoleLevel(userRole) >= RoleLevel.PM && (
                                         <NavItem mode="admin-task-master" icon={Database} label={t('nav.taskMaster')} />
                                     )}
@@ -651,6 +657,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                         <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                     </>
                                 )}
+                                {(taskControlEnabled || userRole === 'superadmin') && (userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                    <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
+                                )}
                             </div>
 
                             <div className="mt-4 space-y-1">
@@ -669,6 +678,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
             <ProfileSettingsModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+            <TaskControllerWidget />
 
             {/* GLOBAL RECOVERY PANEL */}
             {(userRole === 'superadmin') && <FirebaseDiagnostic />}

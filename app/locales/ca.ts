@@ -80,6 +80,8 @@ export const ca: Dictionary = {
         tasks: "Tasques",
         users: "Usuaris",
         appManagement: "Gestió Unitask",
+        taskControl: "Control de Tasques",
+        "admin-task-control": "Control de Tasques",
         "knowledge-area": "Àrea de Coneixement",
         "lessons-learned": "Lliçons Apreses",
         "solution-records": "Registres de Solucions",

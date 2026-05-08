@@ -80,6 +80,8 @@ export const de: Dictionary = {
         tasks: "Aufgaben",
         users: "Benutzer",
         appManagement: "Unitask-Verwaltung",
+        taskControl: "Aufgabensteuerung",
+        "admin-task-control": "Aufgabensteuerung",
         "knowledge-area": "Wissensbereich",
         "lessons-learned": "Lektionen gelernt",
         "solution-records": "Lösungsaufzeichnungen",

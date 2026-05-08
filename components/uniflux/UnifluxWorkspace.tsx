@@ -194,7 +194,6 @@ export default function UnifluxWorkspace() {
         const guides: AlignmentGuide[] = [];
         const distances: DistanceIndicator[] = [];
 
-        // Current node boundaries (absolute)
         const absX = (node as any).computed?.positionAbsolute?.x ?? (node as any).positionAbsolute?.x ?? node.position.x;
         const absY = (node as any).computed?.positionAbsolute?.y ?? (node as any).positionAbsolute?.y ?? node.position.y;
         const w = node.measured?.width ?? (node.style?.width as number) ?? 0;
@@ -210,53 +209,63 @@ export default function UnifluxWorkspace() {
         nodes.forEach(other => {
             if (other.id === node.id) return;
             
-            const otherAbsX = (other as any).computed?.positionAbsolute?.x ?? (other as any).positionAbsolute?.x ?? other.position.x;
-            const otherAbsY = (other as any).computed?.positionAbsolute?.y ?? (other as any).positionAbsolute?.y ?? other.position.y;
-            const otherW = other.measured?.width ?? (other.style?.width as number) ?? 0;
-            const otherH = other.measured?.height ?? (other.style?.height as number) ?? 0;
+            const oX = (other as any).computed?.positionAbsolute?.x ?? (other as any).positionAbsolute?.x ?? other.position.x;
+            const oY = (other as any).computed?.positionAbsolute?.y ?? (other as any).positionAbsolute?.y ?? other.position.y;
+            const oW = other.measured?.width ?? (other.style?.width as number) ?? 0;
+            const oH = other.measured?.height ?? (other.style?.height as number) ?? 0;
 
-            const otherLeft = otherAbsX;
-            const otherRight = otherAbsX + otherW;
-            const otherCenterH = otherAbsX + otherW / 2;
-            const otherTop = otherAbsY;
-            const otherBottom = otherAbsY + otherH;
-            const otherCenterV = otherAbsY + otherH / 2;
+            const oLeft = oX;
+            const oRight = oX + oW;
+            const oCenterH = oX + oW / 2;
+            const oTop = oY;
+            const oBottom = oY + oH;
+            const oCenterV = oY + oH / 2;
 
-            // Horizontal alignment (Vertical lines)
-            if (Math.abs(nodeLeft - otherLeft) < threshold) guides.push({ id: `v-ll-${other.id}`, type: 'vertical', position: otherLeft });
-            if (Math.abs(nodeLeft - otherRight) < threshold) guides.push({ id: `v-lr-${other.id}`, type: 'vertical', position: otherRight });
-            if (Math.abs(nodeRight - otherLeft) < threshold) guides.push({ id: `v-rl-${other.id}`, type: 'vertical', position: otherLeft });
-            if (Math.abs(nodeRight - otherRight) < threshold) guides.push({ id: `v-rr-${other.id}`, type: 'vertical', position: otherRight });
-            if (Math.abs(nodeCenterH - otherCenterH) < threshold) guides.push({ id: `v-cc-${other.id}`, type: 'vertical', position: otherCenterH });
+            const startY = Math.min(nodeTop, oTop);
+            const endY = Math.max(nodeBottom, oBottom);
+            const startX = Math.min(nodeLeft, oLeft);
+            const endX = Math.max(nodeRight, oRight);
 
-            // Vertical alignment (Horizontal lines)
-            if (Math.abs(nodeTop - otherTop) < threshold) guides.push({ id: `h-tt-${other.id}`, type: 'horizontal', position: otherTop });
-            if (Math.abs(nodeTop - otherBottom) < threshold) guides.push({ id: `h-tb-${other.id}`, type: 'horizontal', position: otherBottom });
-            if (Math.abs(nodeBottom - otherTop) < threshold) guides.push({ id: `h-bt-${other.id}`, type: 'horizontal', position: otherTop });
-            if (Math.abs(nodeBottom - otherBottom) < threshold) guides.push({ id: `h-bb-${other.id}`, type: 'horizontal', position: otherBottom });
-            if (Math.abs(nodeCenterV - otherCenterV) < threshold) guides.push({ id: `h-cc-${other.id}`, type: 'horizontal', position: otherCenterV });
+            // Vertical guides (X alignment)
+            if (Math.abs(nodeLeft - oLeft) < threshold) guides.push({ id: `v-ll-${other.id}`, type: 'vertical', position: oLeft, start: startY, end: endY });
+            if (Math.abs(nodeLeft - oRight) < threshold) guides.push({ id: `v-lr-${other.id}`, type: 'vertical', position: oRight, start: startY, end: endY });
+            if (Math.abs(nodeRight - oLeft) < threshold) guides.push({ id: `v-rl-${other.id}`, type: 'vertical', position: oLeft, start: startY, end: endY });
+            if (Math.abs(nodeRight - oRight) < threshold) guides.push({ id: `v-rr-${other.id}`, type: 'vertical', position: oRight, start: startY, end: endY });
+            if (Math.abs(nodeCenterH - oCenterH) < threshold) guides.push({ id: `v-cc-${other.id}`, type: 'vertical', position: oCenterH, start: startY, end: endY });
+
+            // Horizontal guides (Y alignment)
+            if (Math.abs(nodeTop - oTop) < threshold) guides.push({ id: `h-tt-${other.id}`, type: 'horizontal', position: oTop, start: startX, end: endX });
+            if (Math.abs(nodeTop - oBottom) < threshold) guides.push({ id: `h-tb-${other.id}`, type: 'horizontal', position: oBottom, start: startX, end: endX });
+            if (Math.abs(nodeBottom - oTop) < threshold) guides.push({ id: `h-bt-${other.id}`, type: 'horizontal', position: oTop, start: startX, end: endX });
+            if (Math.abs(nodeBottom - oBottom) < threshold) guides.push({ id: `h-bb-${other.id}`, type: 'horizontal', position: oBottom, start: startX, end: endX });
+            if (Math.abs(nodeCenterV - oCenterV) < threshold) guides.push({ id: `h-cc-${other.id}`, type: 'horizontal', position: oCenterV, start: startX, end: endX });
         });
 
-        // Distance indicators (simplified)
-        const nodesOnLeft = nodes.filter(n => n.id !== node.id && ((n as any).computed?.positionAbsolute?.x ?? n.position.x) + (n.measured?.width ?? 0) < absX);
-        const nodesOnRight = nodes.filter(n => n.id !== node.id && ((n as any).computed?.positionAbsolute?.x ?? n.position.x) > absX + w);
+        // Smart Spacing detection
+        const horizontalOthers = nodes.filter(n => n.id !== node.id).sort((a, b) => ((a as any).computed?.positionAbsolute?.x ?? a.position.x) - ((b as any).computed?.positionAbsolute?.x ?? b.position.x));
         
-        nodesOnLeft.forEach(leftNode => {
-            const lAbsX = (leftNode as any).computed?.positionAbsolute?.x ?? leftNode.position.x;
-            const lW = leftNode.measured?.width ?? 0;
-            const lRight = lAbsX + lW;
-            const gap1 = nodeLeft - lRight;
+        for (let i = 0; i < horizontalOthers.length; i++) {
+            const o1 = horizontalOthers[i];
+            const o1X = (o1 as any).computed?.positionAbsolute?.x ?? o1.position.x;
+            const o1W = o1.measured?.width ?? 0;
+            const o1R = o1X + o1W;
 
-            nodesOnRight.forEach(rightNode => {
-                const rAbsX = (rightNode as any).computed?.positionAbsolute?.x ?? rightNode.position.x;
-                const gap2 = rAbsX - nodeRight;
-
-                if (Math.abs(gap1 - gap2) < threshold && gap1 > 10) {
-                    distances.push({ id: `dist-h-${leftNode.id}`, type: 'horizontal', x: nodeLeft, y: nodeCenterV, distance: gap1 });
-                    distances.push({ id: `dist-h-${rightNode.id}`, type: 'horizontal', x: rAbsX, y: nodeCenterV, distance: gap2 });
+            // Check if node is between o1 and another node
+            if (o1R < nodeLeft) {
+                const gap1 = nodeLeft - o1R;
+                for (let j = i + 1; j < horizontalOthers.length; j++) {
+                    const o2 = horizontalOthers[j];
+                    const o2X = (o2 as any).computed?.positionAbsolute?.x ?? o2.position.x;
+                    if (o2X > nodeRight) {
+                        const gap2 = o2X - nodeRight;
+                        if (Math.abs(gap1 - gap2) < threshold && gap1 > 20) {
+                            distances.push({ id: `d-h1-${o1.id}`, type: 'horizontal', x: nodeLeft, y: nodeCenterV, distance: gap1, label: Math.round(gap1).toString() });
+                            distances.push({ id: `d-h2-${o2.id}`, type: 'horizontal', x: o2X, y: nodeCenterV, distance: gap2, label: Math.round(gap2).toString() });
+                        }
+                    }
                 }
-            });
-        });
+            }
+        }
 
         setAlignmentGuides(guides);
         setDistanceIndicators(distances);
@@ -1379,6 +1388,11 @@ export default function UnifluxWorkspace() {
                             ...(n.data.rotation ? { rotation: n.data.rotation } : {}),
                             ...(n.data.imageUrl ? { imageUrl: n.data.imageUrl } : {}),
                             ...(n.data.iconId ? { iconId: n.data.iconId } : {}),
+                            ...(n.data.iconName ? { iconName: n.data.iconName } : {}),
+                            ...(n.data.color ? { color: n.data.color } : {}),
+                            ...(n.data.bgColor ? { bgColor: n.data.bgColor } : {}),
+                            ...(n.data.strokeColor ? { strokeColor: n.data.strokeColor } : {}),
+                            ...(n.data.items ? { items: n.data.items } : {}),
                         }
                     };
                 });
@@ -1466,6 +1480,17 @@ export default function UnifluxWorkspace() {
                 } : {}),
                 targetFlowId: n.data.targetFlowId as string | undefined,
                 targetNodeId: n.data.targetNodeId as string | undefined,
+                additionalData: {
+                    ...(n.data.additionalData || {}),
+                    ...(n.data.rotation ? { rotation: n.data.rotation } : {}),
+                    ...(n.data.imageUrl ? { imageUrl: n.data.imageUrl } : {}),
+                    ...(n.data.iconId ? { iconId: n.data.iconId } : {}),
+                    ...(n.data.iconName ? { iconName: n.data.iconName } : {}),
+                    ...(n.data.color ? { color: n.data.color } : {}),
+                    ...(n.data.bgColor ? { bgColor: n.data.bgColor } : {}),
+                    ...(n.data.strokeColor ? { strokeColor: n.data.strokeColor } : {}),
+                    ...(n.data.items ? { items: n.data.items } : {}),
+                }
             };
         });
         const allEdges: FlowEdge[] = edges.map(e => ({

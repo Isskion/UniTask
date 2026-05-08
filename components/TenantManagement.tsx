@@ -29,7 +29,8 @@ export default function TenantManagement() {
         code: "",
         isActive: true,
         aiEnabled: false,
-        unitaskToolsEnabled: false
+        unitaskToolsEnabled: false,
+        taskControlEnabled: false
     });
 
     useEffect(() => {
@@ -67,7 +68,8 @@ export default function TenantManagement() {
             code: tenant.code || tenant.id,
             isActive: tenant.isActive,
             aiEnabled: tenant.aiEnabled || false,
-            unitaskToolsEnabled: tenant.unitaskToolsEnabled || false
+            unitaskToolsEnabled: tenant.unitaskToolsEnabled || false,
+            taskControlEnabled: tenant.taskControlEnabled || false
         });
         setShowModal(true);
     };
@@ -88,6 +90,7 @@ export default function TenantManagement() {
                     isActive: formData.isActive,
                     aiEnabled: formData.aiEnabled || false,
                     unitaskToolsEnabled: formData.unitaskToolsEnabled || false,
+                    taskControlEnabled: formData.taskControlEnabled || false,
                     updatedAt: serverTimestamp()
                 });
             } else {
@@ -97,7 +100,8 @@ export default function TenantManagement() {
                     code: formData.name.toLowerCase().replace(/\s+/g, '-'),
                     isActive: formData.isActive ?? true,
                     aiEnabled: formData.aiEnabled || false,
-                    unitaskToolsEnabled: formData.unitaskToolsEnabled || false
+                    unitaskToolsEnabled: formData.unitaskToolsEnabled || false,
+                    taskControlEnabled: formData.taskControlEnabled || false
                 });
             }
             await loadTenants();
@@ -284,6 +288,19 @@ export default function TenantManagement() {
                                     <div className="flex flex-col">
                                         <span className="font-bold text-emerald-700 dark:text-emerald-300">Habilitar Herramientas Unitask</span>
                                         <span className="text-[10px] text-emerald-500/70 uppercase font-black">DispoPlan, UniLeaks, UniDocs, Uniflux</span>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center gap-2 text-sm cursor-pointer select-none p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/50 rounded-lg group">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.taskControlEnabled}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, taskControlEnabled: e.target.checked }))}
+                                        className="rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-indigo-700 dark:text-indigo-300">Habilitar Control de Tareas</span>
+                                        <span className="text-[10px] text-indigo-500/70 uppercase font-black">Módulo de imputación de horas para consultores</span>
                                     </div>
                                 </label>
                             </div>

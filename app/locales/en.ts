@@ -78,6 +78,8 @@ export const en = {
         tasks: "Tasks",
         users: "Users",
         appManagement: "Unitask Management",
+        taskControl: "Task Control",
+        "admin-task-control": "Task Control",
         "knowledge-area": "Knowledge Area",
         "lessons-learned": "Lessons Learned",
         "solution-records": "Knowledge Library",

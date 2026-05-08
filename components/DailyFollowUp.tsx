@@ -42,6 +42,8 @@ import UniDocsManagement from "./unidocs/UniDocsManagement"; // Added Import
 import SupportManagement from "./SupportManagement";
 import ManualViewer from "./ManualViewer";
 import AppManagement from "./AppManagement";
+import TaskControllerWidget from "./TaskControllerWidget";
+import TaskControlPanel from "./admin/TaskControlPanel";
 import DocumentTypesManager from "./admin/DocumentTypesManager"; // Added import
 import TenantLogoManager from "./admin/TenantLogoManager";
 import { KnowledgeBase } from "./KnowledgeBase";
@@ -65,7 +67,7 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento';
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -2250,6 +2252,7 @@ export default function DailyFollowUp() {
                                                 </div>
 
                                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                                                    <TaskControllerWidget embedded={true} />
 
                                                     {/* MANUAL ENTRY */}
                                                     <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",
@@ -2447,6 +2450,8 @@ export default function DailyFollowUp() {
                             <ManualViewer />
                         ) : viewMode === 'app-management' ? (
                             <AppManagement />
+                        ) : viewMode === 'admin-task-control' ? (
+                            <TaskControlPanel />
                         ) : viewMode === 'lessons-learned' ? (
                             <KnowledgeBase type="lesson_learned" initialId={searchParams.get('kbId') as any} />
                         ) : viewMode === 'solution-records' ? (

@@ -80,6 +80,7 @@ export interface Tenant {
     isActive: boolean;
     aiEnabled?: boolean; // New: Superadmin auth for AI billing
     unitaskToolsEnabled?: boolean; // V2.6: Master switch for tools activation
+    taskControlEnabled?: boolean; // V2.8: Master switch for Task Control activation
     enabledTools?: string[];      // V2.7: Individual tool IDs (dispoplan, uniflux, swagger, etc)
     minutasConfig?: {         // V2.4: UniDocs Minuta limits
         monthlyLimitPerUser: number; // default: 20

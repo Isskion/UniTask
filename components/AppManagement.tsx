@@ -61,6 +61,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
+import TaskControlPanel from './admin/TaskControlPanel';
 import { format, subDays, startOfDay, isAfter, isBefore } from 'date-fns';
 
 interface AIUsageLog {
@@ -92,6 +93,7 @@ export default function AppManagement() {
 
     // State
     const [loading, setLoading] = useState(true);
+    const [activeSubTab, setActiveSubTab] = useState<"ai_sam" | "task_control">("ai_sam");
     const [isHydrated, setIsHydrated] = useState(false);
     const [logs, setLogs] = useState<AIUsageLog[]>([]);
     const [tenants, setTenants] = useState<TenantConfig[]>([]);
@@ -481,8 +483,38 @@ export default function AppManagement() {
                 </div>
             </div>
 
-            {/* Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between px-2">
+            {/* Sub Tabs for Admin Options */}
+            <div className="flex items-center gap-2 border-b border-border pb-4 px-2">
+                <button
+                    onClick={() => setActiveSubTab("ai_sam")}
+                    className={cn(
+                        "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200",
+                        activeSubTab === "ai_sam"
+                            ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
+                            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    )}
+                >
+                    Métricas de IA & SAM
+                </button>
+                <button
+                    onClick={() => setActiveSubTab("task_control")}
+                    className={cn(
+                        "px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200",
+                        activeSubTab === "task_control"
+                            ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105"
+                            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    )}
+                >
+                    Control de Tareas
+                </button>
+            </div>
+
+            {activeSubTab === "task_control" ? (
+                <TaskControlPanel />
+            ) : (
+                <>
+                    {/* Filter Bar */}
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between px-2">
                 <div className="flex items-center gap-3 bg-card/50 border border-border rounded-xl px-4 py-2 w-full md:w-auto min-w-[320px] shadow-sm focus-within:border-primary transition-colors">
                     <Filter className="w-4 h-4 text-muted-foreground" />
                     <select
@@ -990,6 +1022,8 @@ export default function AppManagement() {
                     </p>
                 </div>
             </div>
+                </>
+            )}
         </div>
     );
 }

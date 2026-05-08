@@ -30,7 +30,8 @@ service cloud.firestore {
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
     function docTenantMatches(docData) {
-      return string(docData.get('tenantId', '1')) == getRealTenantId();
+      return string(docData.get('tenantId', '1')) == getRealTenantId() || 
+             (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(docData.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')));
     }
 
     // [SAM] Integrity Check: Key must match dimensions
@@ -647,6 +648,22 @@ service cloud.firestore {
         isSuperAdmin() ||
         (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
       );
+    }
+
+    // --- TASK TYPES (Master Categories for Consultant Tasks) ---
+    match /taskTypes/{typeId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+      allow update: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+    }
+
+    // --- CONSULTANT TASKS (Time Tracker / Consultant Activity) ---
+    match /consultantTasks/{taskId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
     }
 
     // --- SYSTEM DATA (Counters, etc.) ---
