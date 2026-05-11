@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode, SelectionMode, MarkerType } from '@xyflow/react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, Panel, Node, Edge, useNodesState, useEdgesState, Connection, addEdge, reconnectEdge, Position, ConnectionMode, SelectionMode, MarkerType, getNodesBounds } from '@xyflow/react';
 import { FlowGraph, FlowNode, FlowEdge, NodeType, C4NodeType, AnyNodeType, MermaidEngine } from '@/app/uniflux/core/types';
 import { getMode, MODE_REGISTRY } from '@/app/uniflux/core/modes';
 import { migrateGraph, needsMigration } from '@/app/uniflux/core/migrations';
@@ -344,26 +344,63 @@ export default function UnifluxWorkspace() {
     }, [nodes, edges, reactFlowInstance, takeSnapshot, setNodes, setEdges]);
 
     const handleExport = useCallback((format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
+        if (!nodes || nodes.length === 0) return;
+
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
         
-        // Use a high pixel ratio for maximum resolution
-        const filter = (node: HTMLElement) => {
-            if (node?.classList?.contains('react-flow__minimap') || 
-                node?.classList?.contains('react-flow__controls') ||
-                node?.classList?.contains('react-flow__background') // Hide grid during export
-            ) return false;
-            return true;
-        };
+        // 1. Get bounding box of flow elements using React Flow utilities
+        const nodesBounds = getNodesBounds(nodes);
+        
+        // 2. Define canvas space with explicit padding and dedicated title buffer
+        const padding = 60;
+        const titlePaddingTop = 95;
+        
+        // Final derived pixel dimensions
+        const imageWidth = nodesBounds.width + padding * 2;
+        const imageHeight = nodesBounds.height + padding * 2 + titlePaddingTop;
+        
+        // 3. Inject temporary visual title directly into viewport coordinates
+        const titleEl = document.createElement('div');
+        titleEl.id = 'temp-export-title';
+        titleEl.innerText = graph.name || 'Flujo UniFlux';
+        titleEl.style.position = 'absolute';
+        // Align within logic coordinates right above top bounds
+        titleEl.style.top = `${nodesBounds.y - titlePaddingTop + 35}px`; 
+        titleEl.style.left = `${nodesBounds.x}px`;
+        titleEl.style.width = `${nodesBounds.width}px`;
+        titleEl.style.textAlign = 'center';
+        titleEl.style.fontSize = '40px';
+        titleEl.style.fontWeight = '800';
+        titleEl.style.color = '#0f172a'; // Slate 900
+        titleEl.style.fontFamily = 'Inter, system-ui, sans-serif';
+        titleEl.style.letterSpacing = '-0.02em';
+        
+        // Subtitle (Date & Origin)
+        const dateEl = document.createElement('div');
+        dateEl.innerText = `${new Date().toLocaleDateString()} · Generado en UniFlux`;
+        dateEl.style.fontSize = '16px';
+        dateEl.style.fontWeight = '500';
+        dateEl.style.color = '#64748b'; // Slate 500
+        dateEl.style.marginTop = '6px';
+        dateEl.style.letterSpacing = 'normal';
+        titleEl.appendChild(dateEl);
+        
+        viewport.appendChild(titleEl);
 
+        // 4. Configure explicit transform mapping logical coordinates to output view
         const config = {
             backgroundColor: '#ffffff',
-            pixelRatio: format === 'svg' ? 1 : 4,
-            filter,
+            width: imageWidth,
+            height: imageHeight,
+            pixelRatio: format === 'svg' ? 1 : 3, // Optimized for quality and performance
             cacheBust: true,
             style: {
-                transform: 'none',
-            }
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                // Shift everything so visual starts exactly at padded bounds
+                transform: `translate(${-nodesBounds.x + padding}px, ${-nodesBounds.y + titlePaddingTop}px) scale(1)`,
+            },
         };
 
         const downloadFile = (dataUrl: string, ext: string) => {
@@ -373,27 +410,38 @@ export default function UnifluxWorkspace() {
             a.click();
         };
 
-        const container = document.querySelector('.react-flow') as HTMLElement;
-        if (!container) return;
+        const cleanup = () => {
+            if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
+        };
 
-        if (format === 'png') {
-            toPng(container, config).then(dataUrl => downloadFile(dataUrl, 'png'));
+        // Determine function based on format
+        let capturePromise;
+        if (format === 'svg') {
+            capturePromise = toSvg(viewport, config);
         } else if (format === 'jpeg') {
-            toJpeg(container, config).then(dataUrl => downloadFile(dataUrl, 'jpg'));
-        } else if (format === 'svg') {
-            toSvg(container, config).then(dataUrl => downloadFile(dataUrl, 'svg'));
-        } else if (format === 'pdf') {
-            toPng(container, config).then(dataUrl => {
-                const pdf = new jsPDF({
-                    orientation: container.offsetWidth > container.offsetHeight ? 'landscape' : 'portrait',
-                    unit: 'px',
-                    format: [container.offsetWidth, container.offsetHeight]
-                });
-                pdf.addImage(dataUrl, 'PNG', 0, 0, container.offsetWidth, container.offsetHeight);
-                pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
-            });
+            capturePromise = toJpeg(viewport, config);
+        } else {
+            capturePromise = toPng(viewport, config);
         }
-    }, [graph.name]);
+
+        capturePromise.then((dataUrl) => {
+            if (format === 'pdf') {
+                const pdf = new jsPDF({
+                    orientation: imageWidth > imageHeight ? 'landscape' : 'portrait',
+                    unit: 'px',
+                    format: [imageWidth, imageHeight]
+                });
+                pdf.addImage(dataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
+                pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
+            } else {
+                downloadFile(dataUrl, format === 'jpeg' ? 'jpg' : format);
+            }
+        })
+        .catch(err => {
+            console.error("Falló la exportación del flujo:", err);
+        })
+        .finally(cleanup);
+    }, [graph.name, nodes]);
 
     // Keyboard Shortcuts
     useEffect(() => {
