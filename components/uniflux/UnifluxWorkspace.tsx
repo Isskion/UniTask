@@ -193,86 +193,10 @@ export default function UnifluxWorkspace() {
     const [distanceIndicators, setDistanceIndicators] = useState<DistanceIndicator[]>([]);
 
     const onNodeDrag = useCallback((event: React.MouseEvent, node: Node) => {
-        const threshold = 5;
-        const guides: AlignmentGuide[] = [];
-        const distances: DistanceIndicator[] = [];
-
-        const absX = (node as any).computed?.positionAbsolute?.x ?? (node as any).positionAbsolute?.x ?? node.position.x;
-        const absY = (node as any).computed?.positionAbsolute?.y ?? (node as any).positionAbsolute?.y ?? node.position.y;
-        const w = node.measured?.width ?? (node.style?.width as number) ?? 0;
-        const h = node.measured?.height ?? (node.style?.height as number) ?? 0;
-
-        const nodeLeft = absX;
-        const nodeRight = absX + w;
-        const nodeCenterH = absX + w / 2;
-        const nodeTop = absY;
-        const nodeBottom = absY + h;
-        const nodeCenterV = absY + h / 2;
-
-        nodes.forEach(other => {
-            if (other.id === node.id) return;
-            
-            const oX = (other as any).computed?.positionAbsolute?.x ?? (other as any).positionAbsolute?.x ?? other.position.x;
-            const oY = (other as any).computed?.positionAbsolute?.y ?? (other as any).positionAbsolute?.y ?? other.position.y;
-            const oW = other.measured?.width ?? (other.style?.width as number) ?? 0;
-            const oH = other.measured?.height ?? (other.style?.height as number) ?? 0;
-
-            const oLeft = oX;
-            const oRight = oX + oW;
-            const oCenterH = oX + oW / 2;
-            const oTop = oY;
-            const oBottom = oY + oH;
-            const oCenterV = oY + oH / 2;
-
-            const startY = Math.min(nodeTop, oTop);
-            const endY = Math.max(nodeBottom, oBottom);
-            const startX = Math.min(nodeLeft, oLeft);
-            const endX = Math.max(nodeRight, oRight);
-
-            // Vertical guides (X alignment)
-            if (Math.abs(nodeLeft - oLeft) < threshold) guides.push({ id: `v-ll-${other.id}`, type: 'vertical', position: oLeft, start: startY, end: endY });
-            if (Math.abs(nodeLeft - oRight) < threshold) guides.push({ id: `v-lr-${other.id}`, type: 'vertical', position: oRight, start: startY, end: endY });
-            if (Math.abs(nodeRight - oLeft) < threshold) guides.push({ id: `v-rl-${other.id}`, type: 'vertical', position: oLeft, start: startY, end: endY });
-            if (Math.abs(nodeRight - oRight) < threshold) guides.push({ id: `v-rr-${other.id}`, type: 'vertical', position: oRight, start: startY, end: endY });
-            if (Math.abs(nodeCenterH - oCenterH) < threshold) guides.push({ id: `v-cc-${other.id}`, type: 'vertical', position: oCenterH, start: startY, end: endY });
-
-            // Horizontal guides (Y alignment)
-            if (Math.abs(nodeTop - oTop) < threshold) guides.push({ id: `h-tt-${other.id}`, type: 'horizontal', position: oTop, start: startX, end: endX });
-            if (Math.abs(nodeTop - oBottom) < threshold) guides.push({ id: `h-tb-${other.id}`, type: 'horizontal', position: oBottom, start: startX, end: endX });
-            if (Math.abs(nodeBottom - oTop) < threshold) guides.push({ id: `h-bt-${other.id}`, type: 'horizontal', position: oTop, start: startX, end: endX });
-            if (Math.abs(nodeBottom - oBottom) < threshold) guides.push({ id: `h-bb-${other.id}`, type: 'horizontal', position: oBottom, start: startX, end: endX });
-            if (Math.abs(nodeCenterV - oCenterV) < threshold) guides.push({ id: `h-cc-${other.id}`, type: 'horizontal', position: oCenterV, start: startX, end: endX });
-        });
-
-        // Smart Spacing detection
-        const horizontalOthers = nodes.filter(n => n.id !== node.id).sort((a, b) => ((a as any).computed?.positionAbsolute?.x ?? a.position.x) - ((b as any).computed?.positionAbsolute?.x ?? b.position.x));
-        
-        for (let i = 0; i < horizontalOthers.length; i++) {
-            const o1 = horizontalOthers[i];
-            const o1X = (o1 as any).computed?.positionAbsolute?.x ?? o1.position.x;
-            const o1W = o1.measured?.width ?? 0;
-            const o1R = o1X + o1W;
-
-            // Check if node is between o1 and another node
-            if (o1R < nodeLeft) {
-                const gap1 = nodeLeft - o1R;
-                for (let j = i + 1; j < horizontalOthers.length; j++) {
-                    const o2 = horizontalOthers[j];
-                    const o2X = (o2 as any).computed?.positionAbsolute?.x ?? o2.position.x;
-                    if (o2X > nodeRight) {
-                        const gap2 = o2X - nodeRight;
-                        if (Math.abs(gap1 - gap2) < threshold && gap1 > 20) {
-                            distances.push({ id: `d-h1-${o1.id}`, type: 'horizontal', x: nodeLeft, y: nodeCenterV, distance: gap1, label: Math.round(gap1).toString() });
-                            distances.push({ id: `d-h2-${o2.id}`, type: 'horizontal', x: o2X, y: nodeCenterV, distance: gap2, label: Math.round(gap2).toString() });
-                        }
-                    }
-                }
-            }
-        }
-
-        setAlignmentGuides(guides);
-        setDistanceIndicators(distances);
-    }, [nodes]);
+        // GUIAS DESACTIVADAS TEMPORALMENTE A PETICIÓN DE USUARIO
+        // const threshold = 5;
+        // ... logic omitted
+    }, []);
     
     // V9: Inter-flow navigation (deep linking)
     const pendingNavigationNodeId = useRef<string | null>(null);
@@ -2363,7 +2287,6 @@ export default function UnifluxWorkspace() {
                             </div>
                         </div>
                     </Panel>
-                    <UnifluxAlignmentGuides guides={alignmentGuides} distances={distanceIndicators} />
                 </ReactFlow>}
                 </div>
                 {/* Context Menu */}
