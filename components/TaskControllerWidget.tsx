@@ -149,12 +149,21 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         };
     }, [user, currentTenantId]);
 
-    // 2. Timer effect
+    // 2. Timer effect (Reliable implementation resistant to background tab throttling)
     useEffect(() => {
+        let id: NodeJS.Timeout | null = null;
+
         if (timerActive) {
-            timerRef.current = setInterval(() => {
-                setSecondsElapsed((prev) => prev + 1);
+            // Recalculate origin timestamp relative to the absolute current time less any previously gathered durations.
+            // This allows pauses and resumes to maintain atomic accuracy via clock comparison rather than cycle accumulation.
+            const originTimestamp = Date.now() - (secondsElapsed * 1000);
+
+            id = setInterval(() => {
+                const currentDelta = Math.floor((Date.now() - originTimestamp) / 1000);
+                // Enforce strictly increasing non-regressive clock value to prevent render jitter
+                setSecondsElapsed(prev => Math.max(prev, currentDelta));
             }, 1000);
+            timerRef.current = id;
         } else {
             if (timerRef.current) {
                 clearInterval(timerRef.current);
@@ -163,8 +172,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
 
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            if (id) clearInterval(id);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [timerActive]);
 
     if (!user) return null;
