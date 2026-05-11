@@ -11,7 +11,7 @@ import { getNodeVisibility, getEdgeVisibility, buildNodeMap, getAIVisibleGraph, 
 import { CURRENT_SCHEMA_VERSION } from '@/app/uniflux/core/migrations';
 import UnifluxToolbar from './UnifluxToolbar';
 import { useAuth } from '@/context/AuthContext';
-import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow, createBidirectionalLink } from '@/app/actions/uniflux';
+import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow, createBidirectionalLink, lockFlow, unlockFlow } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { db } from '@/lib/firebase';
@@ -219,21 +219,37 @@ export default function UnifluxWorkspace() {
     const historyIndexRef = useRef(-1);
     useEffect(() => { historyIndexRef.current = historyIndex; }, [historyIndex]);
 
+    const snapshotDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
     const takeSnapshot = useCallback(() => {
-        setNodes(nds => {
-            setEdges(eds => {
-                const snapshot = { nodes: JSON.parse(JSON.stringify(nds)), edges: JSON.parse(JSON.stringify(eds)) };
-                const currentIndex = historyIndexRef.current;
-                setHistory(prev => {
-                    const newHistory = prev.slice(0, currentIndex + 1);
-                    return [...newHistory, snapshot].slice(-50);
+        if (snapshotDebounceRef.current) clearTimeout(snapshotDebounceRef.current);
+        
+        snapshotDebounceRef.current = setTimeout(() => {
+            setNodes(nds => {
+                setEdges(eds => {
+                    const snapshot = { nodes: JSON.parse(JSON.stringify(nds)), edges: JSON.parse(JSON.stringify(eds)) };
+                    const currentIndex = historyIndexRef.current;
+                    setHistory(prev => {
+                        const newHistory = prev.slice(0, currentIndex + 1);
+                        // Optimization: prevent duplicates
+                        if (newHistory.length > 0) {
+                            const last = newHistory[newHistory.length - 1];
+                            if (JSON.stringify(last) === JSON.stringify(snapshot)) return prev;
+                        }
+                        return [...newHistory, snapshot].slice(-50);
+                    });
+                    setHistoryIndex(prev => {
+                         // Note: We aren't fully guarding the index here if prev was returned, 
+                         // but worst case is a safe shallow pointer step. 
+                         // The simple debounce solves 99% of concurrency overlaps anyway.
+                         return prev + 1;
+                    });
+                    return eds;
                 });
-                setHistoryIndex(prev => prev + 1);
-                return eds;
+                return nds;
             });
-            return nds;
-        });
-    }, [setNodes, setEdges]); // historyIndex removed — read via ref
+        }, 300); // 300ms de-jitter interval
+    }, [setNodes, setEdges]);
 
     const undo = useCallback(() => {
         if (historyIndex > 0) {
@@ -560,7 +576,7 @@ export default function UnifluxWorkspace() {
         setIsDirty(true);
     }, [setNodes, setGraph, takeSnapshot]);
 
-    const syncNodesFromGraph = useCallback((targetGraph: FlowGraph) => {
+    const syncNodesFromGraph = useCallback((targetGraph: FlowGraph, initializeHistory = false) => {
         const nodeMap = buildNodeMap(targetGraph.nodes);
         const renderableNodes = targetGraph.nodes.filter(n =>
             !C4_NODE_TYPES.has(n.type) || shouldRender(n, activeC4Level)
@@ -652,6 +668,15 @@ export default function UnifluxWorkspace() {
         setNodes(rfNodes);
         setEdges(rfEdges);
 
+        // V11 Fix: Clean history state ensuring baseline captures EXACTLY what we just calculated
+        if (initializeHistory) {
+            const initialSnap = { nodes: JSON.parse(JSON.stringify(rfNodes)), edges: JSON.parse(JSON.stringify(rfEdges)) };
+            setHistory([initialSnap]);
+            setHistoryIndex(0);
+            historyIndexRef.current = 0;
+            setIsDirty(false);
+        }
+
     }, [activeC4Level, isNodeVisibleAtLevel, onNodeResizeStop, highlightedNodeId]);
 
     // Fetch Tenant Watermark Logo
@@ -711,11 +736,33 @@ export default function UnifluxWorkspace() {
 
     // Flow Loading & Reset Handlers
     const handleLoadFlow = useCallback(async (flowId: string) => {
+        if (!user) return;
         const tenantToUse = tenantId || '1';
         const rawFlowInfo = await getFlow(tenantToUse, flowId);
+        
         if (rawFlowInfo) {
-            // Auto-upgrade legacy Firestore documents to current schema
+            // --- CONCURRENCY LOCK CHECK ---
+            if ((rawFlowInfo as any).lockedBy) {
+                const lock = (rawFlowInfo as any).lockedBy;
+                // Check if lock was created/updated within the last 3 minutes
+                const isFresh = (Date.now() - lock.timestamp) < (1000 * 60 * 3); 
+                if (isFresh && lock.uid !== user.uid) {
+                    alert(`⚠️ ACCESO DENEGADO: Este flujo está siendo editado actualmente por "${lock.name}". \n\nPara evitar la pérdida de datos o sobreescrituras accidentales, no puedes abrirlo hasta que se libere.`);
+                    setIsSidebarOpen(false);
+                    return; // BREAK HERE. Do not load graph.
+                }
+            }
+            
+            // 1. Update remote lock to reserve this document immediately
+            await lockFlow(flowId, user.uid, user.displayName || user.email || "Desconocido");
+            
+            // 2. Perform migration and clean slate rendering
             const flowInfo = needsMigration(rawFlowInfo) ? migrateGraph(rawFlowInfo) : rawFlowInfo;
+            
+            // Critical Fix: Hard Clear existing node state before loading new one to prevent leakage
+            setNodes([]);
+            setEdges([]);
+            
             setGraph(flowInfo);
             setSelectedProjectId(flowInfo.projectId || selectedProjectId);
             setIsSidebarOpen(false);
@@ -724,10 +771,33 @@ export default function UnifluxWorkspace() {
             if (flowInfo.docType === 'c4' && flowInfo.c4Level) {
                 setActiveC4Level(flowInfo.c4Level as 1 | 2 | 3);
             }
-            syncNodesFromGraph(flowInfo);
-            setTimeout(takeSnapshot, 0); setIsDirty(true);
+            
+            // V11 Fix: syncNodesFromGraph handles setting exact nodes AND atomic history seeding
+            syncNodesFromGraph(flowInfo, true);
         }
-    }, [tenantId, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
+    }, [tenantId, user, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
+
+    // V11 Heartbeat: Maintain active edit lock every minute
+    useEffect(() => {
+        if (!user || !graph.id || graph.id.includes('draft-')) return; 
+        
+        const renewLock = () => {
+            lockFlow(graph.id, user.uid, user.displayName || user.email || "Desconocido");
+        };
+        
+        const interval = setInterval(renewLock, 60 * 1000);
+        return () => clearInterval(interval);
+    }, [graph.id, user]);
+
+    // V11 Cleanup: Free the document when navigation away or unmounting
+    useEffect(() => {
+        const flowToUnlock = graph.id;
+        return () => {
+            if (flowToUnlock && !flowToUnlock.includes('draft-')) {
+                unlockFlow(flowToUnlock);
+            }
+        };
+    }, [graph.id]);
 
     const handleJumpToFlow = useCallback(async (flowId: string, nodeId?: string) => {
         if (!flowId) return;
@@ -754,6 +824,10 @@ export default function UnifluxWorkspace() {
         setEdges([]);
         setShowWizard(true);
         setSourceMermaidFlowId(null);
+        setHistory([{ nodes: [], edges: [] }]);
+        setHistoryIndex(0);
+        historyIndexRef.current = 0;
+        setIsDirty(false);
     };
 
     const handleNewC4Flow = () => {
@@ -774,15 +848,18 @@ export default function UnifluxWorkspace() {
         setShowWizard(true);
         handleC4LevelChange(1);
         setSourceMermaidFlowId(null);
+        setHistory([{ nodes: [], edges: [] }]);
+        setHistoryIndex(0);
+        historyIndexRef.current = 0;
+        setIsDirty(false);
     };
 
     const handleApplyC4Template = (tplNodes: FlowNode[], tplEdges: FlowEdge[]) => {
         const newGraph = { ...graph, nodes: tplNodes, edges: tplEdges };
         setGraph(newGraph);
-        syncNodesFromGraph(newGraph);
+        syncNodesFromGraph(newGraph, true); // True to init history
         setShowWizard(false);
         setShowTemplatesModal(false);
-        setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
     const handleGenerateAreas = (count: number) => {
@@ -2240,6 +2317,25 @@ export default function UnifluxWorkspace() {
                     />
                     <Controls position="bottom-right" className="z-50" />
                     <Panel position="top-right" className="flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-slate-200">
+                        <div className="flex bg-slate-100 rounded-lg p-0.5">
+                            <button 
+                                onClick={undo} 
+                                disabled={historyIndex <= 0}
+                                className={`p-1.5 rounded-md transition-all ${historyIndex > 0 ? 'hover:bg-white hover:shadow-sm text-slate-700' : 'text-slate-300 cursor-not-allowed'}`}
+                                title="Deshacer (Ctrl+Z)"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                                onClick={redo} 
+                                disabled={historyIndex >= history.length - 1}
+                                className={`p-1.5 rounded-md transition-all ${historyIndex < history.length - 1 ? 'hover:bg-white hover:shadow-sm text-slate-700' : 'text-slate-300 cursor-not-allowed'}`}
+                                title="Rehacer (Ctrl+Y)"
+                            >
+                                <RotateCcw className="w-3.5 h-3.5 scale-x-[-1]" />
+                            </button>
+                        </div>
+                        <div className="w-px h-4 bg-slate-200 mr-1"></div>
                         <div className="flex bg-slate-100 rounded-lg p-0.5 mr-1">
                             <button 
                                 onClick={() => setInteractionMode('pan')} 

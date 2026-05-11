@@ -242,3 +242,35 @@ export async function createBidirectionalLink(
 
     return { success: true };
 }
+
+/**
+ * Sets a timed lock on the flow to indicate active editing by a specific user.
+ */
+export async function lockFlow(flowId: string, userId: string, userName: string) {
+    if (!flowId || !userId) return;
+    const flowRef = doc(db, FLOWS_COLLECTION, flowId);
+    
+    // Dynamically import deleteField if needed, but we imported others at the top.
+    // Wait, I will need to add deleteField to the top imports in a multi-replace.
+    await updateDoc(flowRef, {
+        lockedBy: {
+            uid: userId,
+            name: userName || "Colaborador",
+            timestamp: Date.now(),
+            updatedAtStr: new Date().toISOString()
+        }
+    }).catch(err => console.warn("Locking failed", err));
+}
+
+/**
+ * Explicitly clears the lock when the user exits the editor.
+ */
+export async function unlockFlow(flowId: string) {
+    if (!flowId) return;
+    const flowRef = doc(db, FLOWS_COLLECTION, flowId);
+    const { deleteField } = await import("firebase/firestore");
+    
+    await updateDoc(flowRef, {
+        lockedBy: deleteField()
+    }).catch(err => console.warn("Unlocking failed", err));
+}
