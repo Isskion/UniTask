@@ -131,19 +131,17 @@ export default function TaskControlPanel() {
 
 
     const dailyTotalMinutes = useMemo(() => {
-        if (!user) return 0;
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
 
         return consultantTasks
             .filter((task) => {
-                if (task.userId !== user.uid) return false;
                 if (!task.createdAt) return false;
                 const taskDate = new Date(task.createdAt.seconds * 1000);
                 return taskDate >= startOfToday;
             })
-            .reduce((sum, task) => sum + (task.durationMinutes || 0), 0);
-    }, [consultantTasks, user]);
+            .reduce((sum, task) => sum + (Number(task.durationMinutes) || 0), 0);
+    }, [consultantTasks]);
 
     const formattedDailyTotal = useMemo(() => {
         const hours = Math.floor(dailyTotalMinutes / 60);
@@ -415,6 +413,16 @@ export default function TaskControlPanel() {
             return matchConsultant && matchProject && matchCategory && matchDate;
         });
     }, [consultantTasks, filterConsultant, filterProject, filterCategory, filterStartDate, filterEndDate]);
+
+    const filteredTotalMinutes = useMemo(() => {
+        return filteredTasks.reduce((sum, task) => sum + (Number(task.durationMinutes) || 0), 0);
+    }, [filteredTasks]);
+
+    const formattedFilteredTotal = useMemo(() => {
+        const hrs = Math.floor(filteredTotalMinutes / 60);
+        const mins = filteredTotalMinutes % 60;
+        return `${hrs}h ${mins.toString().padStart(2, "0")}m`;
+    }, [filteredTotalMinutes]);
 
     const handleExportToCsv = () => {
         if (filteredTasks.length === 0) {
@@ -873,7 +881,12 @@ export default function TaskControlPanel() {
                             REGISTRO DE ACTIVIDADES DEL TENANT
                         </div>
 
-                        <div className="absolute -top-3.5 right-8" ref={exportMenuRef}>
+                        <div className="absolute -top-3.5 right-8 flex items-center gap-3" ref={exportMenuRef}>
+                            {/* Total Duration Summation of Filtered Content */}
+                            <div className="bg-background border border-border px-4 py-1.5 rounded-lg text-[10px] font-black shadow-xl flex items-center gap-2 tracking-widest text-foreground select-none animate-in fade-in duration-300" title="Sumatorio total acumulado en el filtro actual">
+                                <Lucide.Clock className="w-3.5 h-3.5 text-primary animate-pulse" />
+                                TOTAL FILTRADO: <span className="text-primary bg-primary/10 px-2 py-0.5 rounded font-mono ml-1 border border-primary/20">{formattedFilteredTotal}</span>
+                            </div>
                             <button
                                 onClick={() => setIsExportOpen(!isExportOpen)}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-[10px] font-black shadow-xl flex items-center gap-2 transition-all active:scale-95 uppercase tracking-widest"

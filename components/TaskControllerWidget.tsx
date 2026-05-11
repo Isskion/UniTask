@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import * as Lucide from "lucide-react";
 import {
     collection,
@@ -152,7 +152,18 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             unsubProjects();
             unsubTasks();
         };
-    }, [user, currentTenantId]);
+    }, [user, currentTenantId, nowCategory]);
+
+    // Calculate Daily Total Summation
+    const dailyTotalMinutes = useMemo(() => {
+        return todayTasks.reduce((sum, task) => sum + (Number(task.durationMinutes) || 0), 0);
+    }, [todayTasks]);
+
+    const formattedDailyTotal = useMemo(() => {
+        const hrs = Math.floor(dailyTotalMinutes / 60);
+        const mins = dailyTotalMinutes % 60;
+        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}h`;
+    }, [dailyTotalMinutes]);
 
     // 2. Timer effect (Reliable implementation resistant to background tab throttling)
     useEffect(() => {
@@ -408,6 +419,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     <div className="flex items-center gap-2">
                         <Lucide.Timer className="w-5 h-5 text-primary animate-pulse" />
                         <span className="text-xs font-black uppercase tracking-wider">Control de Tareas</span>
+                        <span className="text-[10px] font-black bg-primary/15 text-primary px-2 py-0.5 rounded-md border border-primary/20 ml-1.5" title="Total hoy">
+                            {formattedDailyTotal}
+                        </span>
                     </div>
                     {timerActive && (
                         <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
