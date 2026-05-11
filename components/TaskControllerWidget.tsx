@@ -56,7 +56,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     const { theme } = useTheme();
 
     const [isOpen, setIsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<"now" | "retro" | "today">("now");
+    const [activeTab, setActiveTab] = useState<"now" | "retro" | "today" | "edit">("now");
 
     // Dynamic Lists
     const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
@@ -75,6 +75,11 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     const [retroCategory, setRetroCategory] = useState<TaskType | null>(null);
     const [retroDetails, setRetroDetails] = useState("");
     const [retroDuration, setRetroDuration] = useState(15); // Default 15 minutes
+
+    // Form states - "Editar"
+    const [editingTask, setEditingTask] = useState<ConsultantTask | null>(null);
+    const [editDuration, setEditDuration] = useState(15);
+    const [editDetails, setEditDetails] = useState("");
 
     // Inline success feedback
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -308,6 +313,39 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
     };
 
+    // Action: Initialize Update flow
+    const handleStartEditTask = (task: ConsultantTask) => {
+        setEditingTask(task);
+        setEditDuration(task.durationMinutes);
+        setEditDetails(task.details || "");
+        setActiveTab("edit");
+    };
+
+    const handleUpdateTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingTask || isSaving) return;
+        
+        try {
+            setIsSaving(true);
+            await updateDoc(doc(db, "consultantTasks", editingTask.id), {
+                durationMinutes: Number(editDuration),
+                details: editDetails,
+                updatedAt: serverTimestamp()
+            });
+            
+            showToast("Widget", "Tarea actualizada exitosamente", "success");
+            
+            // Return to list view
+            setEditingTask(null);
+            setActiveTab("today");
+        } catch (err) {
+            console.error("Error updateWidgetTask:", err);
+            showToast("Error", "No se pudo guardar la modificación", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     // Action: Undo/Delete Today's Task
     const handleUndoTask = async (id: string, taskTypeId: string) => {
         try {
@@ -380,7 +418,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 </div>
 
                 {/* Tab Selector */}
-                <div className="flex border-b border-white/5 text-center text-xs font-bold bg-white/2">
+                {activeTab !== "edit" && (
+                    <div className="flex border-b border-white/5 text-center text-xs font-bold bg-white/2">
                     <button
                         onClick={() => setActiveTab("now")}
                         className={cn(
@@ -409,6 +448,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                         Hoy ({todayTasks.length})
                     </button>
                 </div>
+                )}
 
                 {/* Dynamic Inline Success Notification */}
                 {saveSuccess && (
@@ -420,6 +460,85 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
                 {/* Content Box */}
                 <div className="p-4 max-h-96 overflow-y-auto custom-scrollbar">
+                    {/* 0. EDIT MODE VIEW */}
+                    {activeTab === "edit" && editingTask && (
+                        <form onSubmit={handleUpdateTask} className="space-y-4 animate-in slide-in-from-right-4 duration-200">
+                            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-primary/20 text-primary rounded-lg">
+                                        <Lucide.Edit2 className="w-3.5 h-3.5" />
+                                    </div>
+                                    <h3 className="text-xs font-black uppercase tracking-wide">Modificar Tarea</h3>
+                                </div>
+                                <button 
+                                    type="button"
+                                    onClick={() => { setEditingTask(null); setActiveTab("today"); }}
+                                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-all"
+                                >
+                                    Volver
+                                </button>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/10 p-3 rounded-xl">
+                                <p className="text-[9px] font-black text-primary uppercase tracking-widest truncate">{editingTask.projectName}</p>
+                                <h4 className="text-xs font-bold text-zinc-200">{editingTask.taskTypeName}</h4>
+                            </div>
+
+                            {/* Duration slider */}
+                            <div className="space-y-1 bg-white/2 border border-white/5 p-2.5 rounded-xl">
+                                <div className="flex justify-between items-center text-[10px]">
+                                    <span className="font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                                        <Lucide.Clock className="w-3 h-3"/> Duración
+                                    </span>
+                                    <span className="font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">
+                                        {editDuration} min
+                                    </span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="240"
+                                    step="5"
+                                    value={editDuration}
+                                    onChange={(e) => setEditDuration(Number(e.target.value))}
+                                    className="w-full accent-emerald-500 mt-2"
+                                />
+                            </div>
+
+                            {/* Details area */}
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
+                                    <Lucide.FileText className="w-3 h-3"/> Detalles
+                                </label>
+                                <textarea
+                                    value={editDetails}
+                                    onChange={(e) => setEditDetails(e.target.value)}
+                                    placeholder="Actualiza la descripción de tu actividad..."
+                                    rows={4}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-foreground focus:outline-none focus:border-emerald-500 resize-none leading-relaxed font-medium"
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setEditingTask(null); setActiveTab("today"); }}
+                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded-xl text-xs transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                                >
+                                    <Lucide.CheckCircle2 className="w-3.5 h-3.5" />
+                                    {isSaving ? "Guardando..." : "Actualizar"}
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
                     {/* 1. NOW TAB */}
                     {activeTab === "now" && (
                         <div className="space-y-4">
@@ -641,13 +760,22 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                             </p>
                                         </div>
 
-                                        <button
-                                            onClick={() => handleUndoTask(task.id, task.taskTypeId)}
-                                            className="opacity-0 group-hover/row:opacity-100 p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 rounded transition-all shrink-0"
-                                            title="Deshacer / Borrar"
-                                        >
-                                            <Lucide.Undo2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="opacity-0 group-hover/row:opacity-100 flex items-center gap-1 shrink-0 transition-all">
+                                            <button
+                                                onClick={() => handleStartEditTask(task)}
+                                                className="p-1.5 hover:bg-primary/10 text-zinc-500 hover:text-primary rounded transition-all"
+                                                title="Editar"
+                                            >
+                                                <Lucide.Edit2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleUndoTask(task.id, task.taskTypeId)}
+                                                className="p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 rounded transition-all"
+                                                title="Deshacer / Borrar"
+                                            >
+                                                <Lucide.Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}

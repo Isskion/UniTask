@@ -99,6 +99,12 @@ export default function TaskControlPanel() {
             localStorage.setItem("task_control_subtab", activeSubTab);
         }
     }, [activeSubTab]);
+
+    // Edit Task Modal States
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<any | null>(null);
+    const [editTaskDuration, setEditTaskDuration] = useState<number>(0);
+    const [editTaskDetails, setEditTaskDetails] = useState<string>("");
     
     // Export Actions UI State
     const [isExportOpen, setIsExportOpen] = useState(false);
@@ -357,6 +363,36 @@ export default function TaskControlPanel() {
         } catch (err) {
             console.error("Error deleting activity:", err);
             showToast("Error", "No se pudo eliminar el registro", "error");
+        }
+    };
+
+    const handleOpenTaskEdit = (task: any) => {
+        setEditingTask(task);
+        setEditTaskDuration(task.durationMinutes || 0);
+        setEditTaskDetails(task.details || "");
+        setIsTaskModalOpen(true);
+    };
+
+    const handleUpdateTask = async () => {
+        if (!editingTask) return;
+        
+        if (editTaskDuration < 1) {
+            showToast("Error", "La duración debe ser al menos 1 minuto", "error");
+            return;
+        }
+
+        try {
+            await updateDoc(doc(db, "consultantTasks", editingTask.id), {
+                durationMinutes: Number(editTaskDuration),
+                details: editTaskDetails,
+                updatedAt: serverTimestamp()
+            });
+            showToast("Control de Tareas", "Actividad actualizada correctamente", "success");
+            setIsTaskModalOpen(false);
+            setEditingTask(null);
+        } catch (err) {
+            console.error("Error updating task:", err);
+            showToast("Error", "Fallo al guardar los cambios de la actividad", "error");
         }
     };
 
@@ -949,13 +985,22 @@ export default function TaskControlPanel() {
                                                     {task.createdAt ? new Date(task.createdAt.seconds * 1000).toLocaleDateString() : "Reciente"}
                                                 </td>
                                                 <td className="px-6 py-4 bg-card/60 rounded-r-2xl border-r border-y border-border group-hover:bg-accent/50 transition-colors text-right">
-                                                    <button
-                                                        onClick={() => handleDeleteConsultantTask(task.id)}
-                                                        className="p-1.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-lg transition-all"
-                                                        title="Eliminar Registro"
-                                                    >
-                                                        <Lucide.Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <button
+                                                            onClick={() => handleOpenTaskEdit(task)}
+                                                            className="p-1.5 hover:bg-primary/10 text-muted-foreground hover:text-primary rounded-lg transition-all"
+                                                            title="Editar Actividad"
+                                                        >
+                                                            <Lucide.Edit2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteConsultantTask(task.id)}
+                                                            className="p-1.5 hover:bg-red-500/10 text-muted-foreground hover:text-red-500 rounded-lg transition-all"
+                                                            title="Eliminar Registro"
+                                                        >
+                                                            <Lucide.Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -1071,6 +1116,95 @@ export default function TaskControlPanel() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT TASK DETAILS MODAL */}
+            {isTaskModalOpen && editingTask && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-card border border-border shadow-2xl rounded-3xl w-full max-w-md overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                        <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-primary/10 text-primary rounded-xl">
+                                    <Lucide.Edit2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h2 className="text-sm font-black tracking-tight">Modificar Actividad</h2>
+                                    <p className="text-[10px] text-muted-foreground font-medium">{editingTask.projectName} - {editingTask.taskTypeName}</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsTaskModalOpen(false)}
+                                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
+                            >
+                                <Lucide.X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-5">
+                            {/* Duration Section */}
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                        <Lucide.Clock className="w-3 h-3" />
+                                        Duración en Minutos
+                                    </label>
+                                    <span className="text-xs font-mono font-black text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                                        {editTaskDuration} min
+                                    </span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="480"
+                                    step="5"
+                                    value={editTaskDuration}
+                                    onChange={(e) => setEditTaskDuration(Number(e.target.value))}
+                                    className="w-full accent-primary mt-2 h-2 rounded-full bg-secondary appearance-none cursor-pointer"
+                                />
+                                <div className="flex justify-between text-[9px] text-muted-foreground font-bold px-1">
+                                    <span>1m</span>
+                                    <span>1h</span>
+                                    <span>2h</span>
+                                    <span>4h</span>
+                                    <span>8h</span>
+                                </div>
+                            </div>
+
+                            {/* Details Input */}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                                    <Lucide.FileText className="w-3 h-3" />
+                                    Detalles Técnicos
+                                </label>
+                                <textarea
+                                    value={editTaskDetails}
+                                    onChange={(e) => setEditTaskDetails(e.target.value)}
+                                    placeholder="Actualiza la descripción de lo que hiciste..."
+                                    rows={4}
+                                    className="w-full bg-background border border-border rounded-xl p-3 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none font-medium leading-relaxed"
+                                />
+                            </div>
+
+                            {/* Form Actions */}
+                            <div className="pt-4 flex items-center gap-3 justify-end border-t border-border mt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTaskModalOpen(false)}
+                                    className="px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleUpdateTask}
+                                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-5 rounded-xl text-xs uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/20"
+                                >
+                                    <Lucide.CheckCircle2 className="w-3.5 h-3.5" />
+                                    Actualizar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
