@@ -414,7 +414,7 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.objectFit = 'contain';
             watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
             watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
-            watermarkEl.style.opacity = '0.35'; // 35% translucency as requested
+            watermarkEl.style.opacity = '0.20'; // Lowered opacity for maximum text readability
             watermarkEl.style.zIndex = '-1'; // Render behind SVG edges and node markup
             
             viewport.insertBefore(watermarkEl, viewport.firstChild);
