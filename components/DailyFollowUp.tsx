@@ -2451,7 +2451,9 @@ export default function DailyFollowUp() {
                         ) : viewMode === 'app-management' ? (
                             <AppManagement />
                         ) : viewMode === 'admin-task-control' ? (
-                            <TaskControlPanel />
+                            <div className="p-6 h-full overflow-y-auto custom-scrollbar bg-background">
+                                <TaskControlPanel />
+                            </div>
                         ) : viewMode === 'lessons-learned' ? (
                             <KnowledgeBase type="lesson_learned" initialId={searchParams.get('kbId') as any} />
                         ) : viewMode === 'solution-records' ? (

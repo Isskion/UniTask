@@ -104,13 +104,10 @@ export default function TaskControlPanel() {
     const [filterProject, setFilterProject] = useState("");
     const [filterCategory, setFilterCategory] = useState("");
     const [filterStartDate, setFilterStartDate] = useState(() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 60);
-        return d.toISOString().split("T")[0];
-    });
-    const [filterEndDate, setFilterEndDate] = useState(() => {
         return new Date().toISOString().split("T")[0];
     });
+    const [filterEndDate, setFilterEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+
 
     const dailyTotalMinutes = useMemo(() => {
         if (!user) return 0;
@@ -367,6 +364,31 @@ export default function TaskControlPanel() {
             return matchConsultant && matchProject && matchCategory && matchDate;
         });
     }, [consultantTasks, filterConsultant, filterProject, filterCategory, filterStartDate, filterEndDate]);
+
+    const handleExportToCsv = () => {
+        if (filteredTasks.length === 0) {
+            showToast("Info", "No hay datos filtrados para exportar", "info");
+            return;
+        }
+
+        let csv = 'Consultor,Proyecto,Categoria,Detalle,Duracion(min),Fecha\n';
+        const safeStr = (s: string) => `"${s ? String(s).replace(/"/g, '""').replace(/\n/g, " ") : ''}"`;
+
+        filteredTasks.forEach(task => {
+            const dateStr = task.createdAt ? new Date(task.createdAt.seconds * 1000).toLocaleDateString() : 'Reciente';
+            csv += `${safeStr(task.userName)},${safeStr(task.projectName)},${safeStr(task.taskTypeName)},${safeStr(task.details)},${task.durationMinutes || 0},${dateStr}\n`;
+        });
+
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `registro_actividades_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Exportación", "Archivo CSV descargado correctamente", "success");
+    };
 
     if (authLoading || !currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") {
         return (
@@ -666,6 +688,17 @@ export default function TaskControlPanel() {
                     <div className="bg-card/40 border border-border rounded-3xl p-6 md:p-8 shadow-xl backdrop-blur-md relative">
                         <div className="absolute -top-3.5 left-8 bg-primary text-white px-4 py-1 rounded-lg text-[9px] font-black tracking-[0.2em] shadow-lg">
                             REGISTRO DE ACTIVIDADES DEL TENANT
+                        </div>
+
+                        <div className="absolute -top-3.5 right-8 flex items-center gap-2">
+                            <button
+                                onClick={handleExportToCsv}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold shadow-lg flex items-center gap-1.5 transition-all active:scale-95"
+                                title="Exportar tabla a CSV"
+                            >
+                                <Lucide.Download className="w-3 h-3" />
+                                EXPORTAR CSV
+                            </button>
                         </div>
 
                         {loadingTasks ? (
