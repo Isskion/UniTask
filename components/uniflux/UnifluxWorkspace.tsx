@@ -204,6 +204,8 @@ export default function UnifluxWorkspace() {
     
     // Break circular dependency: syncNodesFromGraph -> handleJumpToFlow -> handleLoadFlow -> syncNodesFromGraph
     const jumpToFlowRef = useRef<(flowId: string, nodeId?: string) => Promise<void>>(null as any);
+    // V12: Bridge reference to allow history hydration access to node handlers without circular dependencies
+    const onResizeStopRef = useRef<any>(null);
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -255,7 +257,17 @@ export default function UnifluxWorkspace() {
         if (historyIndex > 0) {
             const prevState = history[historyIndex - 1];
             if (prevState && prevState.nodes) {
-                setNodes(prevState.nodes);
+                // V12 HYDRATION FIX: JSON.stringify in takeSnapshot stripped function pointers.
+                // We explicitly re-inject live handlers so the restored node remains fully interactive!
+                const hydratedNodes = prevState.nodes.map(n => ({
+                    ...n,
+                    data: {
+                        ...(n.data || {}),
+                        onResizeStop: onResizeStopRef.current,
+                        onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid)
+                    }
+                }));
+                setNodes(hydratedNodes);
                 setEdges(prevState.edges);
                 setHistoryIndex(historyIndex - 1);
             }
@@ -266,7 +278,15 @@ export default function UnifluxWorkspace() {
         if (historyIndex < history.length - 1) {
             const nextState = history[historyIndex + 1];
             if (nextState && nextState.nodes) {
-                setNodes(nextState.nodes);
+                const hydratedNodes = nextState.nodes.map(n => ({
+                    ...n,
+                    data: {
+                        ...(n.data || {}),
+                        onResizeStop: onResizeStopRef.current,
+                        onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid)
+                    }
+                }));
+                setNodes(hydratedNodes);
                 setEdges(nextState.edges);
                 setHistoryIndex(historyIndex + 1);
             }
@@ -575,6 +595,11 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0); setIsDirty(true);
         setIsDirty(true);
     }, [setNodes, setGraph, takeSnapshot]);
+
+    // V12: Bridge current closure to reference so undo/redo hydration is never stale
+    useEffect(() => {
+        onResizeStopRef.current = onNodeResizeStop;
+    }, [onNodeResizeStop]);
 
     const syncNodesFromGraph = useCallback((targetGraph: FlowGraph, initializeHistory = false) => {
         const nodeMap = buildNodeMap(targetGraph.nodes);
