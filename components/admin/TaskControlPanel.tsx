@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import * as Lucide from "lucide-react";
+import ExcelJS from "exceljs";
 import {
     collection,
     query,
@@ -98,6 +99,20 @@ export default function TaskControlPanel() {
             localStorage.setItem("task_control_subtab", activeSubTab);
         }
     }, [activeSubTab]);
+    
+    // Export Actions UI State
+    const [isExportOpen, setIsExportOpen] = useState(false);
+    const exportMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+                setIsExportOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     // Filter States
     const [filterConsultant, setFilterConsultant] = useState("");
@@ -388,6 +403,138 @@ export default function TaskControlPanel() {
         link.click();
         document.body.removeChild(link);
         showToast("Exportación", "Archivo CSV descargado correctamente", "success");
+        setIsExportOpen(false);
+    };
+
+    const handleExportRichExcel = async () => {
+        if (filteredTasks.length === 0) {
+            showToast("Info", "No hay datos filtrados para exportar", "info");
+            return;
+        }
+
+        try {
+            showToast("Exportación", "Generando libro de Excel...", "info");
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'UniTask System';
+            workbook.created = new Date();
+
+            // 1. Detalle Completo Sheet
+            const sheet1 = workbook.addWorksheet('Listado Detallado');
+            sheet1.columns = [
+                { header: 'Fecha', key: 'fecha', width: 15 },
+                { header: 'Consultor', key: 'consultor', width: 25 },
+                { header: 'Proyecto', key: 'proyecto', width: 25 },
+                { header: 'Categoría', key: 'categoria', width: 20 },
+                { header: 'Duración (Min)', key: 'duracion', width: 15 },
+                { header: 'Detalle Técnico', key: 'detalle', width: 60 }
+            ];
+            sheet1.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            sheet1.getRow(1).fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FF1F2937'}};
+
+            // 2. Groupings Storage
+            const byConsultant: Record<string, { hrs: number, count: number }> = {};
+            const byProject: Record<string, { hrs: number, count: number }> = {};
+
+            filteredTasks.forEach(task => {
+                const dateStr = task.createdAt ? new Date(task.createdAt.seconds * 1000).toLocaleDateString() : 'Reciente';
+                const dur = Number(task.durationMinutes) || 0;
+
+                sheet1.addRow({
+                    fecha: dateStr,
+                    consultor: task.userName || 'N/A',
+                    proyecto: task.projectName || 'N/A',
+                    categoria: task.taskTypeName || 'N/A',
+                    duracion: dur,
+                    detalle: task.details || ''
+                });
+
+                const c = task.userName || 'Sin Identificar';
+                const p = task.projectName || 'Sin Proyecto';
+                
+                if(!byConsultant[c]) byConsultant[c] = { hrs: 0, count: 0 };
+                byConsultant[c].hrs += dur / 60;
+                byConsultant[c].count += 1;
+
+                if(!byProject[p]) byProject[p] = { hrs: 0, count: 0 };
+                byProject[p].hrs += dur / 60;
+                byProject[p].count += 1;
+            });
+
+            // 2. Consultant Summary Sheet
+            const sheet2 = workbook.addWorksheet('Resumen Consultor');
+            sheet2.columns = [
+                { header: 'Consultor', key: 'c', width: 30 },
+                { header: 'Total Horas', key: 'h', width: 15 },
+                { header: 'Nº Tareas', key: 't', width: 15 }
+            ];
+            sheet2.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            sheet2.getRow(1).fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FF991B1B'}};
+            Object.entries(byConsultant).forEach(([name, data]) => {
+                sheet2.addRow({ c: name, h: Number(data.hrs.toFixed(2)), t: data.count });
+            });
+
+            // 3. Project Summary Sheet
+            const sheet3 = workbook.addWorksheet('Resumen Proyecto');
+            sheet3.columns = [
+                { header: 'Proyecto', key: 'p', width: 35 },
+                { header: 'Total Horas', key: 'h', width: 15 },
+                { header: 'Nº Tareas', key: 't', width: 15 }
+            ];
+            sheet3.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            sheet3.getRow(1).fill = { type: 'pattern', pattern:'solid', fgColor:{argb:'FF374151'}};
+            Object.entries(byProject).forEach(([proj, data]) => {
+                sheet3.addRow({ p: proj, h: Number(data.hrs.toFixed(2)), t: data.count });
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `reporte_unitask_${new Date().toISOString().split('T')[0]}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Éxito", "Libro Excel descargado correctamente", "success");
+            setIsExportOpen(false);
+        } catch (err) {
+            console.error(err);
+            showToast("Error", "No se pudo procesar el Excel", "error");
+        }
+    };
+
+    const handleCopyToClipboard = async () => {
+        if (filteredTasks.length === 0) {
+            showToast("Info", "Sin datos para copiar", "info");
+            return;
+        }
+        
+        let txt = `📊 RESUMEN DE ACTIVIDADES DEL TENANT\nFecha: ${new Date().toLocaleDateString()}\n\n`;
+        const byP: Record<string, number> = {};
+        filteredTasks.forEach(t => {
+            const p = t.projectName || 'Sin Proyecto';
+            byP[p] = (byP[p] || 0) + (Number(t.durationMinutes) || 0);
+        });
+
+        txt += `🕒 TIEMPOS TOTALES POR PROYECTO:\n`;
+        Object.entries(byP).forEach(([proj, mins]) => {
+            txt += `- ${proj}: ${(mins/60).toFixed(2)} Horas (${mins} min)\n`;
+        });
+
+        txt += `\n📋 ÚLTIMOS REGISTROS (${Math.min(15, filteredTasks.length)}):\n`;
+        filteredTasks.slice(0, 15).forEach(t => {
+            txt += `• [${t.userName || '?'}] ${t.projectName}: ${t.details ? t.details.substring(0, 60) + (t.details.length > 60 ? "..." : "") : "Sin detalle"} (${t.durationMinutes}m)\n`;
+        });
+
+        try {
+            await navigator.clipboard.writeText(txt);
+            showToast("Copiado", "Resumen de texto enviado al portapapeles", "success");
+            setIsExportOpen(false);
+        } catch (e) {
+            console.error(e);
+            showToast("Error", "Fallo de escritura en portapapeles", "error");
+        }
     };
 
     if (authLoading || !currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") {
@@ -690,15 +837,63 @@ export default function TaskControlPanel() {
                             REGISTRO DE ACTIVIDADES DEL TENANT
                         </div>
 
-                        <div className="absolute -top-3.5 right-8 flex items-center gap-2">
+                        <div className="absolute -top-3.5 right-8" ref={exportMenuRef}>
                             <button
-                                onClick={handleExportToCsv}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-[10px] font-bold shadow-lg flex items-center gap-1.5 transition-all active:scale-95"
-                                title="Exportar tabla a CSV"
+                                onClick={() => setIsExportOpen(!isExportOpen)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-lg text-[10px] font-black shadow-xl flex items-center gap-2 transition-all active:scale-95 uppercase tracking-widest"
+                                title="Opciones de Exportación"
                             >
-                                <Lucide.Download className="w-3 h-3" />
-                                EXPORTAR CSV
+                                <Lucide.DownloadCloud className="w-3.5 h-3.5" />
+                                Exportar
+                                <Lucide.ChevronDown className={cn("w-3 h-3 transition-transform", isExportOpen ? "rotate-180" : "")} />
                             </button>
+
+                            {isExportOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 backdrop-blur-xl">
+                                    <div className="p-2 flex flex-col gap-1">
+                                        <div className="px-3 py-1 text-[9px] font-black text-muted-foreground uppercase tracking-wider border-b border-border mb-1">Formato Profesional</div>
+                                        <button 
+                                            onClick={handleExportRichExcel}
+                                            className="flex items-center gap-3 px-3 py-2 hover:bg-emerald-500/10 rounded-lg text-left group transition-colors"
+                                        >
+                                            <div className="p-1.5 bg-emerald-500/20 text-emerald-600 rounded-md group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                                <Lucide.FileSpreadsheet className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-foreground">Libro Excel (.xlsx)</div>
+                                                <div className="text-[9px] text-muted-foreground">3 hojas con reportes y resúmenes</div>
+                                            </div>
+                                        </button>
+                                        
+                                        <div className="px-3 py-1 text-[9px] font-black text-muted-foreground uppercase tracking-wider border-b border-border mt-2 mb-1">Datos Rápidos</div>
+                                        <button 
+                                            onClick={handleExportToCsv}
+                                            className="flex items-center gap-3 px-3 py-2 hover:bg-secondary/80 rounded-lg text-left group transition-colors"
+                                        >
+                                            <div className="p-1.5 bg-secondary text-muted-foreground rounded-md group-hover:bg-foreground group-hover:text-background transition-all">
+                                                <Lucide.FileText className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-foreground">CSV Plano</div>
+                                                <div className="text-[9px] text-muted-foreground">Listado crudo compatible</div>
+                                            </div>
+                                        </button>
+
+                                        <button 
+                                            onClick={handleCopyToClipboard}
+                                            className="flex items-center gap-3 px-3 py-2 hover:bg-secondary/80 rounded-lg text-left group transition-colors"
+                                        >
+                                            <div className="p-1.5 bg-secondary text-muted-foreground rounded-md group-hover:bg-foreground group-hover:text-background transition-all">
+                                                <Lucide.ClipboardCopy className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-foreground">Copiar Resumen</div>
+                                                <div className="text-[9px] text-muted-foreground">Texto formateado al portapapeles</div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {loadingTasks ? (
