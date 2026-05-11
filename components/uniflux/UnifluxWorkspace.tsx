@@ -354,7 +354,7 @@ export default function UnifluxWorkspace() {
         
         // 2. Define canvas space with explicit padding and dedicated title buffer
         const padding = 60;
-        const titlePaddingTop = 95;
+        const titlePaddingTop = 120; // Higher safety buffer to prevent overlap with high curves/nodes
         
         // Final derived pixel dimensions
         const imageWidth = nodesBounds.width + padding * 2;
@@ -365,12 +365,14 @@ export default function UnifluxWorkspace() {
         titleEl.id = 'temp-export-title';
         titleEl.innerText = graph.name || 'Flujo UniFlux';
         titleEl.style.position = 'absolute';
-        // Align within logic coordinates right above top bounds
-        titleEl.style.top = `${nodesBounds.y - titlePaddingTop + 35}px`; 
-        titleEl.style.left = `${nodesBounds.x}px`;
-        titleEl.style.width = `${nodesBounds.width}px`;
-        titleEl.style.textAlign = 'center';
-        titleEl.style.fontSize = '40px';
+        // Positioned closely to the absolute top edge of our padded zone
+        titleEl.style.top = `${nodesBounds.y - titlePaddingTop + 25}px`; 
+        // Align strictly to the far-left boundary of our visible area
+        titleEl.style.left = `${nodesBounds.x - padding + 25}px`;
+        titleEl.style.width = 'auto'; // Allow self-sizing
+        titleEl.style.maxWidth = `${Math.max(400, imageWidth / 2)}px`; // Safe capping
+        titleEl.style.textAlign = 'left';
+        titleEl.style.fontSize = '36px';
         titleEl.style.fontWeight = '800';
         titleEl.style.color = '#0f172a'; // Slate 900
         titleEl.style.fontFamily = 'Inter, system-ui, sans-serif';
