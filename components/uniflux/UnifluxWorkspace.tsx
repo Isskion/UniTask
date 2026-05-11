@@ -14,6 +14,8 @@ import { useAuth } from '@/context/AuthContext';
 import { saveFlowDraft, listProjectFlows, getFlow, deleteFlow, createBidirectionalLink } from '@/app/actions/uniflux';
 import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
@@ -95,6 +97,7 @@ export default function UnifluxWorkspace() {
     const [isDirty, setIsDirty] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [showSaveToast, setShowSaveToast] = useState(false);
+    const [tenantLogoUrl, setTenantLogoUrl] = useState<string | null>(null);
 
     // Flow Management State
     const [projects, setProjects] = useState<Project[]>([]);
@@ -390,6 +393,33 @@ export default function UnifluxWorkspace() {
         
         viewport.appendChild(titleEl);
 
+        // 3.5 Inject temporary logo watermark if it exists
+        let watermarkEl: HTMLImageElement | null = null;
+        if (tenantLogoUrl) {
+            watermarkEl = document.createElement('img');
+            watermarkEl.src = tenantLogoUrl;
+            watermarkEl.crossOrigin = "anonymous"; // Crucial for remote assets in canvas rendering
+            watermarkEl.style.position = 'absolute';
+            
+            // Locate logic center of the flow
+            const centerX = nodesBounds.x + nodesBounds.width / 2;
+            const centerY = nodesBounds.y + nodesBounds.height / 2;
+            
+            // Derive aesthetic scaling (70% cover capped at safe performance limit)
+            const baseSize = Math.max(nodesBounds.width, nodesBounds.height) * 0.7;
+            const watermarkSize = Math.min(1600, Math.max(400, baseSize));
+            
+            watermarkEl.style.width = `${watermarkSize}px`;
+            watermarkEl.style.height = `${watermarkSize}px`;
+            watermarkEl.style.objectFit = 'contain';
+            watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
+            watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
+            watermarkEl.style.opacity = '0.35'; // 35% translucency as requested
+            watermarkEl.style.zIndex = '-1'; // Render behind SVG edges and node markup
+            
+            viewport.insertBefore(watermarkEl, viewport.firstChild);
+        }
+
         // 4. Configure explicit transform mapping logical coordinates to output view
         const config = {
             backgroundColor: '#ffffff',
@@ -414,6 +444,7 @@ export default function UnifluxWorkspace() {
 
         const cleanup = () => {
             if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
+            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
         };
 
         // Determine function based on format
@@ -443,7 +474,7 @@ export default function UnifluxWorkspace() {
             console.error("Falló la exportación del flujo:", err);
         })
         .finally(cleanup);
-    }, [graph.name, nodes]);
+    }, [graph.name, nodes, tenantLogoUrl]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -698,6 +729,30 @@ export default function UnifluxWorkspace() {
         setEdges(rfEdges);
 
     }, [activeC4Level, isNodeVisibleAtLevel, onNodeResizeStop, highlightedNodeId]);
+
+    // Fetch Tenant Watermark Logo
+    useEffect(() => {
+        if (!tenantId || tenantId === "unknown" || tenantId === "__DENY__") return;
+        let isMounted = true;
+        const fetchLogo = async () => {
+            try {
+                const tDoc = await getDoc(doc(db, 'tenants', tenantId));
+                if (isMounted && tDoc.exists()) {
+                    const data = tDoc.data();
+                    if (data.logos && data.logos.length > 0) {
+                        const principal = data.logos.find((l: any) => l.label?.toLowerCase().includes('principal'));
+                        setTenantLogoUrl(principal?.url || data.logos[0].url);
+                    } else if (data.logoUrl) {
+                        setTenantLogoUrl(data.logoUrl);
+                    }
+                }
+            } catch (e) {
+                console.warn("Uniflux: Error pre-cargando marca de agua del tenant", e);
+            }
+        };
+        fetchLogo();
+        return () => { isMounted = false; };
+    }, [tenantId]);
 
     // Fetch Projects
     useEffect(() => {
