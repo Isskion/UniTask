@@ -16,7 +16,7 @@ import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink, ArrowLeftRight } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -1207,6 +1207,22 @@ export default function UnifluxWorkspace() {
         setTimeout(takeSnapshot, 0); setIsDirty(true);
     };
 
+    const handleEdgeInvert = () => {
+        if (!editingEdge) return;
+        setEdges(eds => eds.map(e => {
+            if (e.id !== editingEdge.id) return e;
+            return {
+                ...e,
+                source: e.target,
+                target: e.source,
+                sourceHandle: e.targetHandle,
+                targetHandle: e.sourceHandle,
+            };
+        }));
+        setEditingEdge(null);
+        setTimeout(takeSnapshot, 0); setIsDirty(true);
+    };
+
     const onDragOver = useCallback((event: React.DragEvent) => {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'move';
@@ -2164,6 +2180,9 @@ export default function UnifluxWorkspace() {
                         <div className="flex gap-2">
                             <button onClick={handleEdgeLabelSave} className="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity">
                                 Guardar
+                            </button>
+                            <button onClick={handleEdgeInvert} className="px-3 py-1.5 text-blue-600 hover:bg-blue-50 text-sm font-medium rounded-lg transition-colors border border-blue-100 flex items-center justify-center gap-1" title="Invertir Dirección">
+                                <ArrowLeftRight className="w-4 h-4" />
                             </button>
                             <button onClick={handleEdgeDelete} className="px-3 py-1.5 text-red-500 hover:bg-red-50 text-sm font-medium rounded-lg transition-colors border border-red-100">
                                 Eliminar
