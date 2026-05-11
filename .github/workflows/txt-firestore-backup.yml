@@ -21,7 +21,7 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: 📦 Install Dependencies
         run: npm install firebase-admin
@@ -49,5 +49,6 @@ jobs:
           git config --global user.email "backup-bot@unitask.ai"
           git add users_list.txt all_projects.txt project_ids.txt sites_list.txt projects.txt || true
           git commit -m "📝 TXT backup: $(date +'%Y-%m-%d %H:%M %Z')" || echo "No changes to commit"
+          git pull --rebase origin main
           git push origin main
 
