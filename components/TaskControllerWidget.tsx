@@ -121,8 +121,10 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             });
             setProjects(list);
             if (list.length > 0) {
-                setNowProject(list[0].id);
-                setRetroProject(list[0].id);
+                // Critical Fix: Only set default project IF the value is currently empty (initial state),
+                // preventing overwrite of the hydrated value that came from persistent activeTimers.
+                setNowProject(prev => prev || list[0].id);
+                setRetroProject(prev => prev || list[0].id);
             }
         });
 
@@ -242,6 +244,33 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             console.error("Firestore Timer Sync Error", e);
         }
     };
+
+    // --- 1.7 Auto-Sync Input Fields (Mirrors selection to Firestore during runtime) ---
+    useEffect(() => {
+        // Only sync live changes if a timer is explicitly running
+        if (!timerActive || !user || !currentTenantId || currentTenantId === "unknown") return;
+
+        const timerId = setTimeout(async () => {
+            const timerDocRef = doc(db, "activeTimers", user.uid);
+            const selectedProjectObj = projects.find((p) => p.id === nowProject);
+            
+            try {
+                // Use updateDoc to narrowly mutate fields without overwriting timestamps or duration anchors
+                await updateDoc(timerDocRef, {
+                    projectId: nowProject,
+                    projectName: selectedProjectObj?.name || "",
+                    taskTypeId: nowCategory?.id || "",
+                    taskTypeName: nowCategory?.name || "",
+                    details: nowDetails,
+                    updatedAt: serverTimestamp()
+                });
+            } catch (err) {
+                // Fails silently if document was deleted mid-sync by admin force stop
+            }
+        }, 800); // 800ms debounce to avoid rapid consecutive writes during typing
+
+        return () => clearTimeout(timerId);
+    }, [nowProject, nowCategory, nowDetails, timerActive, projects.length > 0]);
 
     // 2. Timer effect (Reliable implementation resistant to background tab throttling)
     useEffect(() => {
