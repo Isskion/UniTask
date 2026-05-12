@@ -375,18 +375,22 @@ async function handleLogin() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(rawResponse, "text/xml");
             
-            // Buscar nodos comunes de UNIGIS login
+            // Buscar nodos comunes de UNIGIS login — MapiToken tiene prioridad sobre Token genérico
             const resultNode = xmlDoc.getElementsByTagName("Result")[0];
-            const tokenNode = xmlDoc.getElementsByTagName("Token")[0] || xmlDoc.getElementsByTagName("MapiToken")[0] || xmlDoc.getElementsByTagName("JWT")[0] || xmlDoc.getElementsByTagName("JMT")[0];
+            const mapiTokenNode = xmlDoc.getElementsByTagName("MapiToken")[0];
+            const genericTokenNode = xmlDoc.getElementsByTagName("Token")[0] || xmlDoc.getElementsByTagName("JWT")[0] || xmlDoc.getElementsByTagName("JMT")[0];
             const messageNode = xmlDoc.getElementsByTagName("Message")[0];
 
             if (resultNode) {
+                const mapiToken = mapiTokenNode ? mapiTokenNode.textContent : '';
+                const fallbackToken = genericTokenNode ? genericTokenNode.textContent : '';
                 data = {
                     Result: resultNode.textContent.toLowerCase() === 'true',
-                    Token: tokenNode ? tokenNode.textContent : '',
-                    MapiToken: tokenNode ? tokenNode.textContent : '',
+                    MapiToken: mapiToken || fallbackToken,
+                    Token: fallbackToken,
                     Message: messageNode ? messageNode.textContent : ''
                 };
+                console.log('[Login XML] MapiToken encontrado:', mapiToken ? 'SÍ' : 'NO', '| Token genérico:', fallbackToken ? 'SÍ' : 'NO');
             } else {
                 throw new Error("Respuesta del servidor no es JSON ni XML válido: " + rawResponse.slice(0, 100));
             }
