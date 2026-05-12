@@ -1956,8 +1956,6 @@ export default function UnifluxWorkspace() {
                     </div>
                 </div>
 
-                {/* AI Interaction Layer — hidden only in Mermaid mode */}
-                {!showWizard && graph.docType !== 'mermaid' && <UnifluxToolbar currentGraph={liveGraph} onGraphUpdate={handleGraphUpdate} />}
 
                 {/* Initial Wizard Overlay — hidden in Mermaid mode */}
                 {showWizard && graph.docType !== 'mermaid' && (
@@ -2060,6 +2058,9 @@ export default function UnifluxWorkspace() {
                 }
 
                 <div className="flex-1 relative h-full overflow-hidden">
+                    {/* AI Interaction Layer — hidden only in Mermaid mode */}
+                    {!showWizard && graph.docType !== 'mermaid' && <UnifluxToolbar currentGraph={liveGraph} onGraphUpdate={handleGraphUpdate} />}
+
                     {/* Node Editor — C4 editor or standard editor depending on node type */}
                     {selectedNode && graph.docType !== 'mermaid' && (
                     C4_NODE_TYPES.has(selectedNode.data.type as string)
@@ -2243,7 +2244,7 @@ export default function UnifluxWorkspace() {
 
                 {/* Post-AI undo banner */}
                 {showAiBanner && (
-                    <div className="absolute bottom-6 left-6 z-50 flex items-center gap-3 bg-purple-900 text-white shadow-xl rounded-xl px-4 py-3">
+                    <div className="absolute bottom-24 left-6 z-50 flex items-center gap-3 bg-purple-900 text-white shadow-xl rounded-xl px-4 py-3">
                         <RotateCcw className="w-4 h-4 text-purple-300 shrink-0" />
                         <div>
                             <p className="text-sm font-semibold">IA aplicó cambios</p>

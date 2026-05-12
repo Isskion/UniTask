@@ -53,7 +53,7 @@ SOLICITUD DEL USUARIO: `
     };
 
     return (
-        <div className="absolute bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+        <div className="absolute bottom-6 left-6 z-50 flex flex-col items-start gap-3">
             {/* Main AI Container */}
             <div 
                 className={`bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-white/20 overflow-hidden transition-all duration-500 ease-in-out ${
