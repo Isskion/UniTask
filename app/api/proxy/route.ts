@@ -12,7 +12,7 @@ function getForwardHeaders(req: Request, contentType: string) {
         'Accept': 'application/json, text/plain, */*',
     };
 
-    const allowList = ['x-apikey', 'apikey', 'authorization', 'token', 'soapaction'];
+    const allowList = ['x-apikey', 'apikey', 'authorization', 'token', 'soapaction', 'mapitoken'];
     req.headers.forEach((value, key) => {
         if (allowList.includes(key.toLowerCase())) {
             headersToForward[key] = value;
@@ -105,7 +105,7 @@ export async function OPTIONS() {
         headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, ApiKey, X-ApiKey, Token, SOAPAction',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, ApiKey, X-ApiKey, Token, SOAPAction, MapiToken',
         }
     });
 }

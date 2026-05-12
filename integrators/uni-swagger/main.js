@@ -1250,6 +1250,7 @@ async function executeServiceCall(body, current = null, total = null) {
                 'Content-Type': contentType,
                 'X-ApiKey': apikey,
                 'ApiKey': apikey,
+                'MapiToken': apikey,
                 'Authorization': `Bearer ${apikey}`,
                 'Token': apikey,
                 'SOAPAction': `http://unigis.com/Mapi/SOAP/LogisticAsync/${methodName}`
