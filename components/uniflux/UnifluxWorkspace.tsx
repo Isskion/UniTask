@@ -1574,8 +1574,8 @@ export default function UnifluxWorkspace() {
                         position: n.position,
                         ...(n.parentId ? { parentId: n.parentId } : {}),
                         ...(n.data.isLocked !== undefined ? { isLocked: n.data.isLocked as boolean } : {}),
-                        ...(n.style?.width !== undefined ? { width: n.style.width as number } : {}),
-                        ...(n.style?.height !== undefined ? { height: n.style.height as number } : {}),
+                        ...((n.style?.width ?? n.measured?.width) !== undefined ? { width: (n.style?.width ?? n.measured?.width) as number } : {}),
+                        ...((n.style?.height ?? n.measured?.height) !== undefined ? { height: (n.style?.height ?? n.measured?.height) as number } : {}),
                         // C4-specific fields
                         ...(isC4 && n.data.technology ? { technology: n.data.technology as string } : {}),
                         ...(isC4 && n.data.description ? { description: n.data.description as string } : {}),

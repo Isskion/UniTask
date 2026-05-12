@@ -21,7 +21,7 @@ const UnifluxProNode = ({ data, selected }: any) => {
     const [isResizing, setIsResizing] = useState(false);
 
     return (
-        <div className="group">
+        <div className="group w-full h-full">
             {!isLocked && (
                 <NodeResizer
                     color={color}
@@ -35,7 +35,7 @@ const UnifluxProNode = ({ data, selected }: any) => {
             )}
             
             <div 
-                className="bg-white rounded-xl shadow-lg border-2 border-slate-200 overflow-hidden flex flex-col transition-all group-hover:border-indigo-400 min-w-[200px]"
+                className="bg-white rounded-xl shadow-lg border-2 border-slate-200 overflow-hidden flex flex-col transition-all group-hover:border-indigo-400 min-w-[200px] w-full h-full"
                 style={{ borderColor: selected ? color : undefined }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}

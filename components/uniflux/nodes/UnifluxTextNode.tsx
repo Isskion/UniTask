@@ -74,7 +74,7 @@ const UnifluxTextNode = ({ id, data, selected }: any) => {
     };
 
     return (
-        <div className="relative min-w-[150px] min-h-[50px] group">
+        <div className="relative min-w-[150px] min-h-[50px] w-full h-full group">
             <NodeToolbar 
                 isVisible={selected && !isLocked} 
                 position={Position.Top} 
