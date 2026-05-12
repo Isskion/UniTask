@@ -1,0 +1,27 @@
+{
+  "nodes": [],
+  "docType": "mermaid",
+  "edges": [],
+  "name": "Draw Intermodal 002",
+  "tenantId": "3",
+  "mermaidEngine": "flowchart",
+  "id": "draft-1773154177504",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1773152532,
+      "nanoseconds": 248000000
+    },
+    "updatedAt": {
+      "seconds": 1773152532,
+      "nanoseconds": 248000000
+    }
+  },
+  "mermaidCode": "flowchart TD\n    %% === DEFINICIÓN DE ESTILOS ===\n    classDef externos fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#01579b\n    classDef tms fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100\n    classDef mobile fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c\n    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c\n    classDef success fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20\n    classDef decision fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:#f57f17\n    \n    %% === SISTEMAS EXTERNOS ===\n    subgraph externos[\"🌐 SISTEMAS EXTERNOS\"]\n        direction TB\n        E1[\"📤 Envío de pedido\"]\n        E2[\"📨 Recepción confirmación<br/>PEDIDO PLANIFICADO\"]\n        E3[\"❌ Pedido Rechazado\"]:::error\n        E4[\"✅ Pedido Entregado\"]:::success\n    end\n    \n    %% === TMS ===\n    subgraph tms[\"💼 TMS - Gestión de Transporte\"]\n        direction TB\n        \n        subgraph recepcion[\"Recepción y Validación\"]\n            T1[\"📥 Recepción de pedido\"]\n            T2{\"⚙️ Validación<br/>automática\"}:::decision\n            T3[\"📋 Estado: GRABADO\"]\n            T4[\"⚠️ Estado: ERROR<br/>REVISAR\"]:::error\n        end\n        \n        subgraph completado[\"Completado de Datos\"]\n            T5[\"📝 Completar info<br/>de transporte\"]\n            T6{\"⚙️ Validación 1\"}:::decision\n            T7{\"⚙️ Validación 2\"}:::decision\n            T8[\"✓ Estado: CONFIRMADO\"]:::success\n            T9[\"⚠️ Estado: ERROR<br/>REVISAR\"]:::error\n        end\n        \n        subgraph planificacion[\"Planificación\"]\n            T10[\"👤 Usuario cambia<br/>estado → genera órdenes\"]\n            T11[\"🗺️ Estado: EN PLANIFICACION<br/>Rutas generadas\"]\n            T12[\"🚚 Asignación de medios<br/>(vehículo + conductor)\"]\n            T13[\"📲 Viaje disponible<br/>Estado: INACTIVO\"]\n        end\n        \n        subgraph finalizacion[\"Finalización\"]\n            T14[\"❌ Pedido Rechazado\"]:::error\n            T15[\"✅ Pedido Entregado\"]:::success\n        end\n    end\n    \n    %% === MOBILE ===\n    subgraph mobile[\"📱 TMS MOBILE - Ejecución\"]\n        direction TB\n        \n        M1[\"🚀 Chofer activa viaje<br/>Estado: ACTIVO\"]\n        M2[\"📍 Tracking GPS activo\"]\n        M3{\"🎯 Proximidad<br/>a geocerca?\"}:::decision\n        \n        subgraph entregas[\"Gestión de Entregas\"]\n            M4[\"⏳ Estado: NO ENTREGADA\"]\n            M5[\"✅ Estado: ENTREGADA\"]:::success\n            M6[\"📦 Estado: ENTREGA PARCIAL\"]\n        end\n        \n        subgraph resultados[\"Resultados\"]\n            M7[\"❌ Entrega Rechazada\"]:::error\n            M8[\"✅ Entrega Completa\"]:::success\n            M9[\"📦 Entrega Parcial\"]\n        end\n        \n        M10[\"🔄 Siguiente parada\"]\n        M11[\"🏁 Viaje finalizado\"]:::success\n    end\n    \n    %% === CONEXIONES PRINCIPALES ===\n    \n    %% Entrada al sistema\n    E1 ==>|\"Interfaz #1 CreacionPedido\"| T1\n    \n    %% Validación inicial\n    T1 --> T2\n    T2 -->|\"✓ OK\"| T3\n    T2 -->|\"✗ KO\"| T4\n    T4 -.->|\"Corrección manual\"| T2\n    \n    %% Completado\n    T3 --> T5\n    T5 --> T6\n    T6 --> T7\n    T7 -->|\"✓ OK\"| T8\n    T7 -->|\"✗ KO\"| T9\n    T9 -.->|\"Re-validación\"| T7\n    \n    %% Planificación\n    T8 --> T10\n    T10 --> T11\n    T11 --> T12\n    T12 --> T13\n    T13 ==>|\"Notificación EDI\"| E2\n    \n    %% Activación de viaje\n    T13 ==>|\"Chofer inicia\"| M1\n    \n    %% Ejecución móvil\n    M1 --> M2\n    M2 --> M3\n    M3 -->|\"Sí, en geocerca\"| M4\n    M3 -->|\"Sí, en geocerca\"| M5\n    M3 -->|\"Sí, en geocerca\"| M6\n    \n    %% Resultados de entrega\n    M4 --> M7\n    M5 --> M8\n    M6 --> M9\n    \n    %% Loop de paradas\n    M7 --> M10\n    M8 --> M10\n    M9 --> M10\n    M10 -.->|\"Más paradas\"| M2\n    M10 -->|\"Última parada\"| M11\n    \n    %% Finalización\n    M7 -.->|\"Notificación\"| T14\n    T14 ==> E3\n    M11 ==> T15\n    T15 ==> E4\n    \n    %% === APLICAR ESTILOS ===\n    class E1,E2,E3,E4 externos\n    class T1,T3,T5,T8,T10,T11,T12,T13 tms\n    class T4,T9,T14 error\n    class T15 success\n    class T2,T6,T7 decision\n    class M1,M2,M4,M5,M6,M10 mobile\n    class M3 decision\n    class M7,T14 error\n    class M8,M11,T15 success",
+  "updatedAt": {
+    "_seconds": 1773161923,
+    "_nanoseconds": 25000000
+  }
+}

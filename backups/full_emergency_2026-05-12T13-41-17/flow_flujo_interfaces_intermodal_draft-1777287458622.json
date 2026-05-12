@@ -1,0 +1,1503 @@
+{
+  "schemaVersion": 4,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "name": "Flujo interfaces Intermodal",
+  "tenantId": "3",
+  "id": "draft-1777287458622",
+  "showGrid": false,
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "edges": [
+    {
+      "id": "e-500-501-1778506815931-121",
+      "source": "500",
+      "target": "501",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-500-502-1778506815931-81",
+      "source": "500",
+      "target": "502",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-500-503-1778506815931-376",
+      "source": "500",
+      "target": "503",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-504-505-1778506815931-47",
+      "source": "504",
+      "target": "505",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-504-506-1778506815931-297",
+      "source": "504",
+      "target": "506",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-507-1778506815931-973",
+      "source": "501",
+      "target": "507",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-507-504-1778506815931-972",
+      "source": "507",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-509-1778506815931-104",
+      "source": "509",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-509-504-1778506815931-784",
+      "source": "504",
+      "target": "509",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-511-1778506815931-427",
+      "source": "511",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-511-504-1778506815931-592",
+      "source": "504",
+      "target": "511",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-513-1778506815931-206",
+      "source": "501",
+      "target": "513",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-513-504-1778506815931-200",
+      "source": "513",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-515-1778506815931-764",
+      "source": "501",
+      "target": "515",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-515-504-1778506815931-399",
+      "source": "515",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-517-1778506815931-48",
+      "source": "517",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-517-504-1778506815931-670",
+      "source": "504",
+      "target": "517",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-519-1778506815931-508",
+      "source": "519",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-519-504-1778506815931-489",
+      "source": "504",
+      "target": "519",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-521-1778506815931-144",
+      "source": "521",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-521-504-1778506815931-298",
+      "source": "504",
+      "target": "521",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-523-1778506815931-238",
+      "source": "501",
+      "target": "523",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-523-504-1778506815931-760",
+      "source": "523",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-501-525-1778506815931-695",
+      "source": "525",
+      "target": "501",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-525-504-1778506815931-619",
+      "source": "504",
+      "target": "525",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-527-1778506815931-373",
+      "source": "502",
+      "target": "527",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-527-504-1778506815931-232",
+      "source": "527",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-528-1778506815931-387",
+      "source": "528",
+      "target": "502",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-528-504-1778506815931-325",
+      "source": "504",
+      "target": "528",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-529-1778506815931-216",
+      "source": "529",
+      "target": "502",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-529-504-1778506815931-840",
+      "source": "504",
+      "target": "529",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-530-1778506815931-414",
+      "source": "530",
+      "target": "502",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-530-504-1778506815931-258",
+      "source": "504",
+      "target": "530",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-531-1778506815931-489",
+      "source": "531",
+      "target": "502",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-531-504-1778506815931-556",
+      "source": "504",
+      "target": "531",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-532-1778506815931-962",
+      "source": "532",
+      "target": "502",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-532-504-1778506815931-78",
+      "source": "504",
+      "target": "532",
+      "sourceHandle": "left-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-502-533-1778506815931-781",
+      "source": "502",
+      "target": "533",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-533-504-1778506815931-416",
+      "source": "533",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-503-535-1778506815931-470",
+      "source": "503",
+      "target": "535",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-535-504-1778506815931-691",
+      "source": "535",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-503-536-1778506815931-360",
+      "source": "503",
+      "target": "536",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-536-504-1778506815931-251",
+      "source": "536",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-503-537-1778506815931-95",
+      "source": "503",
+      "target": "537",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-537-504-1778506815931-588",
+      "source": "537",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "height": 20,
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__550right-c-504left-c",
+      "source": "550",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-503-550-1778585286022",
+      "source": "503",
+      "target": "550",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-503-552-1778585401791",
+      "source": "503",
+      "target": "552",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "color": "#94a3b8",
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-552-504-1778585410769",
+      "source": "552",
+      "target": "504",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20,
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    }
+  ],
+  "lockedBy": {
+    "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Daniel Tenant Admin",
+    "timestamp": 1778591534176,
+    "updatedAtStr": "2026-05-12T13:12:14.176Z"
+  },
+  "nodes": [
+    {
+      "id": "500",
+      "type": "STATE",
+      "label": "Sistemas\nExternos\n(Web Service)",
+      "position": {
+        "x": 550,
+        "y": 1073.75
+      },
+      "width": 160,
+      "height": 80,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "501",
+      "type": "STATE",
+      "label": "Maersk",
+      "position": {
+        "x": 1310,
+        "y": 973.75
+      },
+      "parentId": "env-maersk",
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "502",
+      "type": "STATE",
+      "label": "Portic",
+      "position": {
+        "x": 2590,
+        "y": 2605
+      },
+      "parentId": "env-portic",
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "503",
+      "type": "STATE",
+      "label": "Webfleet",
+      "position": {
+        "x": 1310,
+        "y": 1683.75
+      },
+      "parentId": "env-webfleet",
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "504",
+      "type": "STATE",
+      "label": "TMS",
+      "position": {
+        "x": 4275,
+        "y": 1620
+      },
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "505",
+      "type": "STATE",
+      "label": "Sistemas externos",
+      "position": {
+        "x": 4890,
+        "y": 1380
+      },
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "506",
+      "type": "STATE",
+      "label": "ERP",
+      "position": {
+        "x": 4890,
+        "y": 1620
+      },
+      "width": 140,
+      "height": 60,
+      "additionalData": {
+        "bgColor": "#f3e8ff",
+        "strokeColor": "#a855f7"
+      }
+    },
+    {
+      "id": "507",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Container_update)",
+      "position": {
+        "x": 1550,
+        "y": 980
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "508",
+      "type": "TEXT",
+      "label": "Vinculación de un número de contenedor especifico (TCNU7964600) a la reserva.",
+      "position": {
+        "x": 140,
+        "y": 1233.75
+      },
+      "parentId": "env-maersk",
+      "width": 980,
+      "height": 40,
+      "additionalData": {}
+    },
+    {
+      "id": "509",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Arrival)",
+      "position": {
+        "x": 2190,
+        "y": 330
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "510",
+      "type": "TEXT",
+      "label": "TImestamp de llegada real (Actual arrival) a una ubicación especifica",
+      "position": {
+        "x": 147.5,
+        "y": 1353.75
+      },
+      "parentId": "env-maersk",
+      "width": 965,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "511",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Departure)",
+      "position": {
+        "x": 2190,
+        "y": 470
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "512",
+      "type": "TEXT",
+      "label": "Registro cuando el transporte abandona una ubicación o nodo logistico",
+      "position": {
+        "x": 125,
+        "y": 1463.75
+      },
+      "parentId": "env-maersk",
+      "width": 1010,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "513",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Customer_Appointment_Pickup)",
+      "position": {
+        "x": 1550,
+        "y": 1120
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "514",
+      "type": "TEXT",
+      "label": "Fecha y hora pactada con el cliente para recoger la carga. ",
+      "position": {
+        "x": 455,
+        "y": 1573.75
+      },
+      "parentId": "env-maersk",
+      "width": 350,
+      "height": 40,
+      "additionalData": {}
+    },
+    {
+      "id": "515",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Customer_Appointment_DropOff)",
+      "position": {
+        "x": 1550,
+        "y": 1260
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "516",
+      "type": "TEXT",
+      "label": "Fecha y hora pactada con el cliente para la descarga o devolución. ",
+      "position": {
+        "x": 50,
+        "y": 1693.75
+      },
+      "parentId": "env-maersk",
+      "width": 1160,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "517",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (gps_update)",
+      "position": {
+        "x": 2190,
+        "y": 610
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "518",
+      "type": "TEXT",
+      "label": "Coordenadas geográficas (latitud/longitud) del equipo en tiempo real. ",
+      "position": {
+        "x": 140,
+        "y": 1803.75
+      },
+      "parentId": "env-portic",
+      "width": 980,
+      "height": 85,
+      "additionalData": {}
+    },
+    {
+      "id": "519",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (wait_time)",
+      "position": {
+        "x": 2190,
+        "y": 750
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "520",
+      "type": "TEXT",
+      "label": "Reporte de demoras en sitio, incluyendo motivo y archivo adjunto (evidencia). ",
+      "position": {
+        "x": 147.5,
+        "y": 1968.75
+      },
+      "parentId": "env-portic",
+      "width": 965,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "521",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (delay)",
+      "position": {
+        "x": 2190,
+        "y": 890
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "522",
+      "type": "TEXT",
+      "label": "Motivo del retraso (ej. TR_TRAIL_ISSUE) y nueva fecha/hora estimada. ",
+      "position": {
+        "x": 147.5,
+        "y": 2078.75
+      },
+      "parentId": "env-portic",
+      "width": 965,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "523",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (seal_update)",
+      "position": {
+        "x": 1550,
+        "y": 1400
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "524",
+      "type": "TEXT",
+      "label": "Datos del conductor: nombre, licencia, número de placa y teléfono de contacto. ",
+      "position": {
+        "x": 200,
+        "y": 2188.75
+      },
+      "parentId": "env-portic",
+      "width": 860,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "525",
+      "type": "OPERATION",
+      "label": "JSON Syncout / adaptar UNIGIS --> Maersk (driver_update)",
+      "position": {
+        "x": 2190,
+        "y": 1617.5
+      },
+      "parentId": "env-maersk",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "526",
+      "type": "TEXT",
+      "label": "Número de sello de seguridad (Seal Number) aplicado al contenedor. ",
+      "position": {
+        "x": 65,
+        "y": 2298.75
+      },
+      "parentId": "env-portic",
+      "width": 1130,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "527",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (IFTMIN-2)",
+      "position": {
+        "x": 2830,
+        "y": 2645
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "528",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (IFTMINE03)",
+      "position": {
+        "x": 2190,
+        "y": 2345
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "529",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (COPINOE04)",
+      "position": {
+        "x": 2190,
+        "y": 2485
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "530",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (COPINOE05)",
+      "position": {
+        "x": 2190,
+        "y": 2625
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "531",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (COPINOI06)",
+      "position": {
+        "x": 2190,
+        "y": 2765
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "532",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (COPINOI07)",
+      "position": {
+        "x": 2190,
+        "y": 2905
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "533",
+      "type": "OPERATION",
+      "label": "Unigis\n-> Portic (IFTMINE03)",
+      "position": {
+        "x": 2830,
+        "y": 3065
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "534",
+      "type": "TEXT",
+      "label": "indica las instrucciones de recogida de contenedores o mercancías en la Terminal y su entrega al importador.",
+      "position": {
+        "x": 252.5,
+        "y": 2408.75
+      },
+      "parentId": "env-portic",
+      "width": 755,
+      "height": 200,
+      "additionalData": {}
+    },
+    {
+      "id": "535",
+      "type": "OPERATION",
+      "label": "GPS Adapter Unigis\n-> Webfleet (showVehicleReportExtern)",
+      "position": {
+        "x": 1550,
+        "y": 1540
+      },
+      "parentId": "env-webfleet",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "536",
+      "type": "OPERATION",
+      "label": "GPS Adapter Unigis\n-> (showTripReportExtern) ",
+      "position": {
+        "x": 1550,
+        "y": 1680
+      },
+      "parentId": "env-webfleet",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "537",
+      "type": "OPERATION",
+      "label": "GPS Adapter Unigis\n-> (showWorkingTimes) ",
+      "position": {
+        "x": 1550,
+        "y": 1820
+      },
+      "parentId": "env-webfleet",
+      "width": 300,
+      "height": 75,
+      "additionalData": {}
+    },
+    {
+      "id": "538",
+      "type": "TEXT",
+      "label": "Se envían o disponibilizan los datos de la posición de los vehículos, según parametros TSP.",
+      "position": {
+        "x": 4485,
+        "y": 1320
+      },
+      "parentId": "env-portic",
+      "width": 345,
+      "height": 105,
+      "additionalData": {}
+    },
+    {
+      "id": "539",
+      "type": "TEXT",
+      "label": "TMS informa al ERP de cualquier actuación o modificación del estado de los pedidos.",
+      "position": {
+        "x": 4410,
+        "y": 1710
+      },
+      "parentId": "env-portic",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "540",
+      "type": "TEXT",
+      "label": " contiene todos los detalles asociados a la recuperar las Instrucciones de recogida de contenedores vacíos en la Terminal.",
+      "position": {
+        "x": 215,
+        "y": 2983.75
+      },
+      "parentId": "env-portic",
+      "width": 830,
+      "height": 30,
+      "additionalData": {}
+    },
+    {
+      "id": "541",
+      "type": "TEXT",
+      "label": "El mensaje COPINO (Container pre-notification message), será enviado por la empresa de transporte terrestre al Dépot o Terminal como notificación de recogida de contenedores vacíos.",
+      "position": {
+        "x": 200,
+        "y": 3093.75
+      },
+      "parentId": "env-portic",
+      "width": 860,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "542",
+      "type": "TEXT",
+      "label": "El mensaje COPINO (Container pre-notification message), será enviado por la empresa de transporte terrestre a la Terminal como notificación de devolución de contenedor cargado",
+      "position": {
+        "x": 192.5,
+        "y": 3253.75
+      },
+      "parentId": "env-webfleet",
+      "width": 875,
+      "height": 125,
+      "additionalData": {}
+    },
+    {
+      "id": "543",
+      "type": "TEXT",
+      "label": "comunicar, por parte de la empresa de transportes o transportista autónomo a la Terminal de carga, la previsión de recogida de mercancías en una fecha determinada.",
+      "position": {
+        "x": 192.5,
+        "y": 3458.75
+      },
+      "parentId": "env-webfleet",
+      "width": 875,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "544",
+      "type": "TEXT",
+      "label": "comunicar, por parte de la empresa de transportes o transportista autónomo al dépot, la previsión de devolución del contenedor vacío en una fecha determinada.",
+      "position": {
+        "x": 200,
+        "y": 3618.75
+      },
+      "parentId": "env-webfleet",
+      "width": 860,
+      "height": 125,
+      "additionalData": {}
+    },
+    {
+      "id": "545",
+      "type": "TEXT",
+      "label": "indica las instrucciones de recogida de contenedores vacíos en la Terminal y su entrega al importador.",
+      "position": {
+        "x": 267.5,
+        "y": 3823.75
+      },
+      "parentId": "env-webfleet",
+      "width": 725,
+      "height": 185,
+      "additionalData": {}
+    },
+    {
+      "id": "546",
+      "type": "TEXT",
+      "label": "Indica información técnica del Camión",
+      "position": {
+        "x": 1830,
+        "y": 3105
+      },
+      "parentId": "env-webfleet",
+      "width": 725,
+      "height": 200,
+      "additionalData": {}
+    },
+    {
+      "id": "547",
+      "type": "TEXT",
+      "label": "Captura notificaciones, alertas y eventos críticos del viaje utilizando la información recopilada del método (showVehiculeReportExtern)",
+      "position": {
+        "x": 65,
+        "y": 4368.75
+      },
+      "parentId": "env-webfleet",
+      "width": 1130,
+      "height": 185,
+      "additionalData": {}
+    },
+    {
+      "id": "548",
+      "type": "TEXT",
+      "label": "Indica la información continua de los viajes realizados, incluyendo datos de telemetría, ubicación, consumo de combustible e indicadores de eficiencia.",
+      "position": {
+        "x": 72.5,
+        "y": 4633.75
+      },
+      "parentId": "env-webfleet",
+      "width": 1115,
+      "height": 200,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778531618218",
+      "type": "TEXT",
+      "label": "Formato de integración XML",
+      "position": {
+        "x": 505,
+        "y": 5638.75
+      },
+      "parentId": "env-webfleet",
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "549",
+      "type": "TEXT",
+      "label": "Formato de integración Json",
+      "position": {
+        "x": 505,
+        "y": 4913.75
+      },
+      "parentId": "env-webfleet",
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778531940810",
+      "type": "TEXT",
+      "label": "Integración vía API REST",
+      "position": {
+        "x": 505,
+        "y": 5818.75
+      },
+      "parentId": "env-webfleet",
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "550",
+      "type": "OPERATION",
+      "label": "GPS Adapter Unigis\n-> Webfleet (showEventReportExtern)",
+      "position": {
+        "x": 1550,
+        "y": 1975
+      },
+      "parentId": "env-webfleet",
+      "width": 300,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "551",
+      "type": "TEXT",
+      "label": "Informa sobre los cambios en los estados de trabajo y la jornada laboral de los conductores mediante datos de ubicación y del tacógrafo digital.",
+      "position": {
+        "x": 57.5,
+        "y": 5093.75
+      },
+      "parentId": "env-webfleet",
+      "width": 1145,
+      "height": 200,
+      "additionalData": {}
+    },
+    {
+      "id": "552",
+      "type": "OPERATION",
+      "label": "GPS Adapter Unigis\n-> (getRemainingDrivingTimesEU)",
+      "position": {
+        "x": 1550,
+        "y": 2135
+      },
+      "parentId": "env-webfleet",
+      "width": 300,
+      "height": 60,
+      "additionalData": {}
+    },
+    {
+      "id": "553",
+      "type": "TEXT",
+      "label": "Determina los tiempos de conducción y descanso restantes para los conductores basándose estrictamente en la normativa de la Unión Europea.",
+      "position": {
+        "x": 65,
+        "y": 5373.75
+      },
+      "parentId": "env-webfleet",
+      "width": 1130,
+      "height": 185,
+      "additionalData": {}
+    }
+  ],
+  "updatedAt": {
+    "_seconds": 1778593176,
+    "_nanoseconds": 157000000
+  }
+}

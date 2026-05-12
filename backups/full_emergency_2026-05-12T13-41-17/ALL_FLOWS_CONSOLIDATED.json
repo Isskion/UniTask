@@ -1,0 +1,3953 @@
+[
+  {
+    "id": "draft-1773130707186",
+    "nodes": [],
+    "docType": "mermaid",
+    "edges": [],
+    "name": "Flujo Transpais Intermodal",
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1773130664,
+        "nanoseconds": 227000000
+      },
+      "updatedAt": {
+        "seconds": 1773130664,
+        "nanoseconds": 227000000
+      }
+    },
+    "mermaidCode": "sequenceDiagram\n    Sistema Externo-->>TMS:Envio de pedidos // Paso 1 Alta de pedido\n    TMS-->>TMS:Pedido Estado INGRESADO\n    TMS-->>TMS:Paso 2Bis: Recepción de documentación\n    TMS-->>TMS:Validación interna Paso 2: Validación de Integración\nalt pedido KO\n    TMS-->>TMS: Pedido estado ERROR - REQUIERE CORRECION\n    TMS-->>TMS: Paso 3: Gestión de Errores (Si aplica)\n    TMS-->>TMS:Validación interna\nelse pedido OK\n    TMS-->>TMS: Pedido estado Grabado\nend\n    TMS-->>TMS: Customer service CONFIRMA pedido\n    TMS-->>TMS: Validación interna Paso 4: Confirmación Planificación\nalt pedido KO\n    TMS-->>TMS: Pedido estado ERROR - REQUIERE CORRECION \n    TMS-->>TMS: Paso 4bis: Gestión de Errores   \n    TMS-->>TMS:Validación interna\n    else pedido OK\n    TMS-->>TMS: Pedido estado CONFIRMADO\nend\n    TMS-->>TMS: Planificador cambia estado de pedidos y genera viajes <br> Paso 5:Generación de viajes\n    TMS-->>TMS: Pedido estado EN PLANIFICACIÓN, <BR/> Viaje estado Inactivo\n    TMS-->>TMS: Planificador asigna medios a los viajes <BR/> Pedido PLANIFICADO <br>  Viaje INACTIVO\n    TMS-->>Mobile: El viaje queda disponible para chofer en Mobile. \n    Mobile-->>TMS: Chofer activa el viaje <br> Paso 6: Chofer activa el viaje, estado de viaje ACTIVO\n    Mobile-->>Mobile: COMIENZA SEGUIMIENTO TRACKING DEL VEHÍCULO\n    Mobile-->>Sistema Externo: Las coordenadas son accesibles / enviadas  en todo momento mientras el viaje esté activo\n    Mobile-->>Mobile: Chofer realiza control de carga <BR/>  Paso 7:Tras activación del viaje, impresión y/o revisión de documentación <BR/> Recepción de PIN\nalt Viaje KO\n    Mobile-->>TMS: Viaje estado ERROR - REQUIERE CORRECIÓN\nelse pedido OK\n    Mobile-->>TMS: Viaje estado CONTENEDOR RECOGIDO\nend\n    TMS-->>TMS: Estado Pedido CONTENEDOR RECOGIDO\n    TMS-->>Sistema Externo: Estado Pedido CONTENEDOR RECOGIDO\n    Mobile-->>Mobile: El chofer realiza las diferentes paradas del viaje\n    Mobile-->>Mobile: Paso 8: Gestión de Entregas \n    Mobile-->>Sistema Externo:Los estados se comunican para informar a los sistemas externos <BR/> Junto a la posición del vehículo\n    Mobile-->>Mobile: El contenedor se devuelve a depot con cambio de estado DEVOLUCIÓN DE CONTENEDOR<BR/> Estado del pedido ENTREGADO <BR/> Estado viaje VIAJE FINALIZADO\n    Mobile-->>Sistema Externo: El cambio de estado se informa a Sistema Externo. Cierre de pedido\n    TMS-->>TMS: Paso 9: Validación de incidencias y viaje liquidable\n    TMS-->>TMS: Paso 10: Generación de la liquidación de cobro y de pago \n    TMS-->>TMS: Cierre del viaje",
+    "schemaVersion": 4,
+    "updatedAt": {
+      "_seconds": 1777915295,
+      "_nanoseconds": 71000000
+    }
+  },
+  {
+    "id": "draft-1773134674435",
+    "nodes": [],
+    "docType": "mermaid",
+    "edges": [],
+    "name": "Nuevo Diagrama Mermaid",
+    "tenantId": "3",
+    "mermaidEngine": "flowchart",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1773134479,
+        "nanoseconds": 204000000
+      },
+      "updatedAt": {
+        "seconds": 1773134479,
+        "nanoseconds": 204000000
+      }
+    },
+    "mermaidCode": "%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'sans-serif', 'lineColor': '#64748b'}}}%%\ngraph TD\n    %% --- ESTILOS DE ALTA FIDELIDAD ---\n    classDef sistema fill:#0f172a,stroke:#3b82f6,stroke-width:3px,color:#ffffff,font-weight:bold,font-size:18px;\n    classDef apiOut fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a,font-size:14px;\n    classDef apiIn fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#14532d,font-size:14px;\n    classDef logica fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#92400e,font-size:14px;\n\n    %% --- CAPA SUPERIOR: SISTEMA ORIGEN ---\n    ERP([fa:fa-building ERP CORPORATIVO]):::sistema\n\n    %% --- CAPA INTERMEDIA: INTERFACES ---\n    subgraph MIDDLEWARE [Capa de Integración y Reglas de Negocio]\n        direction LR\n\n        subgraph SALIDA [📤 Flujo de Salida: ERP ➔ TMS]\n            direction TB\n            I1(\"<b>[01] Crear Órdenes</b><br/><i>API POST</i>\"):::apiOut\n            I3(\"<b>[03] Actualizar Estado</b><br/><i>API PUT</i>\"):::apiOut\n            I8(\"<b>[08] Crear Recursos</b><br/><i>API POST</i>\"):::apiOut\n            I9(\"<b>[09] Formas de Pago</b><br/><i>API POST</i>\"):::apiOut\n            \n            D1{\"¿Sufrió<br/>cambios?\"}:::logica\n            I5(\"<b>[05] Viaje Completo</b><br/><i>API PUT</i>\"):::apiOut\n            \n            D1 -->|Sí| I5\n        end\n\n        subgraph RETORNO [📥 Flujo de Retorno: TMS ➔ ERP]\n            direction TB\n            R2(\"<b>[02] Datos de Pedidos</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R4(\"<b>[04] Viaje Creado</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R6(\"<b>[06] Parada Tratada</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R7(\"<b>[07] Retornables</b><br/><i>Webhook JSON</i>\"):::apiIn\n        end\n    end\n\n    %% --- CAPA INFERIOR: SISTEMA DESTINO ---\n    TMS([fa:fa-truck-moving TMS UNIGIS]):::sistema\n\n    %% --- CONEXIONES PRINCIPALES ---\n    \n    %% Flujo de bajada (Líneas continuas)\n    ERP ==>|Envío de Peticiones| I1 & I3 & I8 & I9 & D1\n    I1 & I3 & I8 & I9 & I5 ==>|Ejecución en Destino| TMS\n\n    %% Flujo de subida (Líneas punteadas para eventos asíncronos)\n    TMS -.->|Disparo de Eventos| R2 & R4 & R6 & R7\n    R2 & R4 & R6 & R7 -.->|Actualización| ERP",
+    "updatedAt": {
+      "_seconds": 1773153935,
+      "_nanoseconds": 535000000
+    }
+  },
+  {
+    "id": "draft-1773154177504",
+    "nodes": [],
+    "docType": "mermaid",
+    "edges": [],
+    "name": "Draw Intermodal 002",
+    "tenantId": "3",
+    "mermaidEngine": "flowchart",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1773152532,
+        "nanoseconds": 248000000
+      },
+      "updatedAt": {
+        "seconds": 1773152532,
+        "nanoseconds": 248000000
+      }
+    },
+    "mermaidCode": "flowchart TD\n    %% === DEFINICIÓN DE ESTILOS ===\n    classDef externos fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#01579b\n    classDef tms fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100\n    classDef mobile fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c\n    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c\n    classDef success fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20\n    classDef decision fill:#fff9c4,stroke:#f9a825,stroke-width:2px,color:#f57f17\n    \n    %% === SISTEMAS EXTERNOS ===\n    subgraph externos[\"🌐 SISTEMAS EXTERNOS\"]\n        direction TB\n        E1[\"📤 Envío de pedido\"]\n        E2[\"📨 Recepción confirmación<br/>PEDIDO PLANIFICADO\"]\n        E3[\"❌ Pedido Rechazado\"]:::error\n        E4[\"✅ Pedido Entregado\"]:::success\n    end\n    \n    %% === TMS ===\n    subgraph tms[\"💼 TMS - Gestión de Transporte\"]\n        direction TB\n        \n        subgraph recepcion[\"Recepción y Validación\"]\n            T1[\"📥 Recepción de pedido\"]\n            T2{\"⚙️ Validación<br/>automática\"}:::decision\n            T3[\"📋 Estado: GRABADO\"]\n            T4[\"⚠️ Estado: ERROR<br/>REVISAR\"]:::error\n        end\n        \n        subgraph completado[\"Completado de Datos\"]\n            T5[\"📝 Completar info<br/>de transporte\"]\n            T6{\"⚙️ Validación 1\"}:::decision\n            T7{\"⚙️ Validación 2\"}:::decision\n            T8[\"✓ Estado: CONFIRMADO\"]:::success\n            T9[\"⚠️ Estado: ERROR<br/>REVISAR\"]:::error\n        end\n        \n        subgraph planificacion[\"Planificación\"]\n            T10[\"👤 Usuario cambia<br/>estado → genera órdenes\"]\n            T11[\"🗺️ Estado: EN PLANIFICACION<br/>Rutas generadas\"]\n            T12[\"🚚 Asignación de medios<br/>(vehículo + conductor)\"]\n            T13[\"📲 Viaje disponible<br/>Estado: INACTIVO\"]\n        end\n        \n        subgraph finalizacion[\"Finalización\"]\n            T14[\"❌ Pedido Rechazado\"]:::error\n            T15[\"✅ Pedido Entregado\"]:::success\n        end\n    end\n    \n    %% === MOBILE ===\n    subgraph mobile[\"📱 TMS MOBILE - Ejecución\"]\n        direction TB\n        \n        M1[\"🚀 Chofer activa viaje<br/>Estado: ACTIVO\"]\n        M2[\"📍 Tracking GPS activo\"]\n        M3{\"🎯 Proximidad<br/>a geocerca?\"}:::decision\n        \n        subgraph entregas[\"Gestión de Entregas\"]\n            M4[\"⏳ Estado: NO ENTREGADA\"]\n            M5[\"✅ Estado: ENTREGADA\"]:::success\n            M6[\"📦 Estado: ENTREGA PARCIAL\"]\n        end\n        \n        subgraph resultados[\"Resultados\"]\n            M7[\"❌ Entrega Rechazada\"]:::error\n            M8[\"✅ Entrega Completa\"]:::success\n            M9[\"📦 Entrega Parcial\"]\n        end\n        \n        M10[\"🔄 Siguiente parada\"]\n        M11[\"🏁 Viaje finalizado\"]:::success\n    end\n    \n    %% === CONEXIONES PRINCIPALES ===\n    \n    %% Entrada al sistema\n    E1 ==>|\"Interfaz #1 CreacionPedido\"| T1\n    \n    %% Validación inicial\n    T1 --> T2\n    T2 -->|\"✓ OK\"| T3\n    T2 -->|\"✗ KO\"| T4\n    T4 -.->|\"Corrección manual\"| T2\n    \n    %% Completado\n    T3 --> T5\n    T5 --> T6\n    T6 --> T7\n    T7 -->|\"✓ OK\"| T8\n    T7 -->|\"✗ KO\"| T9\n    T9 -.->|\"Re-validación\"| T7\n    \n    %% Planificación\n    T8 --> T10\n    T10 --> T11\n    T11 --> T12\n    T12 --> T13\n    T13 ==>|\"Notificación EDI\"| E2\n    \n    %% Activación de viaje\n    T13 ==>|\"Chofer inicia\"| M1\n    \n    %% Ejecución móvil\n    M1 --> M2\n    M2 --> M3\n    M3 -->|\"Sí, en geocerca\"| M4\n    M3 -->|\"Sí, en geocerca\"| M5\n    M3 -->|\"Sí, en geocerca\"| M6\n    \n    %% Resultados de entrega\n    M4 --> M7\n    M5 --> M8\n    M6 --> M9\n    \n    %% Loop de paradas\n    M7 --> M10\n    M8 --> M10\n    M9 --> M10\n    M10 -.->|\"Más paradas\"| M2\n    M10 -->|\"Última parada\"| M11\n    \n    %% Finalización\n    M7 -.->|\"Notificación\"| T14\n    T14 ==> E3\n    M11 ==> T15\n    T15 ==> E4\n    \n    %% === APLICAR ESTILOS ===\n    class E1,E2,E3,E4 externos\n    class T1,T3,T5,T8,T10,T11,T12,T13 tms\n    class T4,T9,T14 error\n    class T15 success\n    class T2,T6,T7 decision\n    class M1,M2,M4,M5,M6,M10 mobile\n    class M3 decision\n    class M7,T14 error\n    class M8,M11,T15 success",
+    "updatedAt": {
+      "_seconds": 1773161923,
+      "_nanoseconds": 25000000
+    }
+  },
+  {
+    "id": "draft-1773659720742",
+    "metadata": {
+      "createdAt": {
+        "_seconds": 1773659714,
+        "_nanoseconds": 880000000
+      },
+      "authorId": "user",
+      "version": "0.1",
+      "updatedAt": {
+        "_seconds": 1773659714,
+        "_nanoseconds": 880000000
+      }
+    },
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "docType": "mermaid",
+    "edges": [],
+    "name": "Diseño tablas TransIA",
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "mermaidCode": "sequenceDiagram\n    \n    Pedido-->>Paradas: Cada Pedido tiene N paradas, <br> siendo carga y descarga obligatorias\n    Pedido-->>Pedido: Tras guardar se lanza tarificación\n    Ventas->>Pedido: Se registra el resueltado de tarificar <br>en diferentes lineas, una por concepto.\n    Pedido-->>Tramo:Se genera un tramo identico al pedido al crear pedido, <br>mismo origen, edstino y unidades de carga.\n    Tramo-->>Tramo: Se asignan medios al tramo (vehículo, conductor...)\n    Tramo-->>Viaje: Nace el viaje tras asignación de medios.\n    Viaje-->>Viaje: Se tarifica el viaje si procede\n    Viaje-->>Compra: Nacen las lineas de coste, una por concepto\n    Compra-->>Reparto: Se crean las lineas de reparto según parametro al crearse la compra.\n    Reparto-->>Tramo: Se asocian las lineas de reparto al Tramo.",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "updatedAt": {
+      "_seconds": 1773659731,
+      "_nanoseconds": 565000000
+    }
+  },
+  {
+    "id": "draft-1775823048921",
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "docType": "mermaid",
+    "edges": [],
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1775823025,
+        "nanoseconds": 678000000
+      },
+      "updatedAt": {
+        "seconds": 1775823025,
+        "nanoseconds": 678000000
+      }
+    },
+    "name": "Flujo LS",
+    "schemaVersion": 4,
+    "mermaidCode": "sequenceDiagram\n\n    participant COM as Comercial (CRM/SF)\n    participant ERP as SID LS\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MAN as Manual\n    participant SMA as Semiautomatico\n    participant AUT as Automatico\n    participant MCFS as MulticapacityFlowSolver\n    participant MOB as Unigis App (X Deliveries)\n\n    COM->>ERP: Alta de Pedidos\n    ERP->>TMS: Envío de Pedido Confirmado\n\nNote over COM, MOB: ORDER MANAGEMENT (Entidades: Pedidos de Client)\n    TMS-->>TMS: Recibe pedido : Estado INICIAL\n    TMS-->>TMS: Validación de datos <br> Validar campos (solo de TMS)\n  alt Pedido con Incidencias\n    TMS->>ERP: Actualiza a INGRESADO - BLOQUEADO <br> Incluir información en falta o <br> corrigir información incorrecta \n    Note right of TMS: Gestión en Back Office / Créditos\n    ERP->>TMS: Liberación -> Actualiza a CONFIRMADO <br> Alteración de estado de los pedidos para confirmado, <br>liberando para programación.\n  else Datos OK\n    TMS-->>TMS: Estado: CONFIRMADO\n  end\n    \n  alt ¿Tiene Cita?\n    TMS->>TMS: Si tiene Cita!\n    Note right of TMS: Añadir datos de cita y volvemos a validar pedido\n  else Datos OK\n    TMS-->TMS: Estado: REGISTRADO OK\n  end\nNote over TMS, MCFS : Tipo de programación(Entidades: Pedidos de Client)\nNote over MAN, MAN: Planificación Manual \n    MAN-->>MAN: Atribución del estado de pedido manualmente<br>pedido a pedido o massivamente \n    MAN-->>MAN: Estado pedido 'PLANIFICAR'\n\nNote over SMA,SMA: Planificación Semiautomatica\n    MAN-->>MAN: *4 Estado pedido - Reglas : Seleción massiva de pedidos y <br>realizar proceso especial.<br>Atribución de lo estado de<br>pedido por reglas parametrizadas <br>(por ejemplo por volumen, o numero paletes) Matriz decisión\n    MAN-->>MAN: Crear Ruta: <br> Estado Ruta: INICIAL\n\n\n\n\n\n\n\n  alt Necesidad de hacer cambios al roteo?\n    MAN->>MAN: ANADIR O BORRAR: *7 Cambios Ruta\n    MAN->>MAN: CAMBIAR RUTA: Edición massiva de ruta\n    MAN->>MAN: REORDENAR SEQUENCIA: Reordenação Automática\n  else Sin cambios necesario\n    MAN-->>MAN: Estado: CONFIRMADO\n  end\n  alt ¿Vehículo definido?\n    MAN->>MAN: Asignar Vehiculo\n  else Vehículo asginado\n    MAN-->>MAN: Confirmación de Ruta: Estado 'CONFIRMADA'\n  end\n\n\n\nNote over TMS, MAN: PLANIFICACIÓN MANUAL (Entidades: Pedidos de Client)\n    MAN-->>MAN: Selección de ordenes : Selecionar las ordens para rotear. \n    MAN-->>MAN: Crear Ruta: <br> Estado Ruta: INICIAL\n\n  alt ¿Vehículo definido?\n    MAN->>MAN: Asignar Vehiculo\n  else Vehículo asginado\n    MAN-->>MAN: Confirmación de Ruta: Estado 'CONFIRMADA'\n  end",
+    "updatedAt": {
+      "_seconds": 1776434652,
+      "_nanoseconds": 319000000
+    }
+  },
+  {
+    "id": "draft-1775826378047",
+    "metadata": {
+      "createdAt": {
+        "_seconds": 1775823025,
+        "_nanoseconds": 678000000
+      },
+      "authorId": "user",
+      "version": "0.1",
+      "updatedAt": {
+        "_seconds": 1775823025,
+        "_nanoseconds": 678000000
+      }
+    },
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "docType": "mermaid",
+    "edges": [],
+    "name": "Flujo total",
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "mermaidCode": "sequenceDiagram\n    participant COM as Comercial (CRM/SF)\n    participant ERP as ERP Europastry\n    participant INT as Interfaz (Middleware)\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MOB as Unigis App (X Deliveries)\n\n    Note over COM, MOB: Proceso de INTERFASE 1: Creación y Validación\n    COM->>ERP: Alta de Pedidos\n    ERP->>INT: Envío de Pedido grabado\n    INT->>INT: Consolida y normaliza datos\n    INT->>TMS: WS CrearOrdenesPedido (Estado: INGRESADO)\n\n    alt Pedido con Incidencias\n        INT->>TMS: Actualiza a INGRESADO - BLOQUEADO\n        Note right of INT: Gestión en Back Office / Créditos\n        INT->>TMS: Liberación -> Actualiza a INGRESADO\n    end\n\n    TMS->>TMS: Validación de datos operativos\n    alt Faltan datos\n        TMS->>TMS: Estado: ERROR-REQUIERE AJUSTE\n        Note right of TMS: Ajuste manual en Unigis OM\n        TMS->>TMS: Cambio a estado GRABADO\n    else Datos OK\n        TMS->>TMS: Estado: GRABADO\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE 2: Adelanto Preparación\n    TMS->>TMS: Evalúa lógica de adelantos\n    TMS->>INT: Asigna Grupo Ruta (Estado: ENVIADO A PREPARACION)\n    INT->>ERP: Envío de integración al ERP\n\n    Note over COM, MOB: Proceso de INTERFASE 3: Confirmación y VL\n    ERP->>ERP: Proceso de confirmación (Bloquea ediciones)\n    ERP->>INT: Genera VL y envía a TMS\n    INT->>TMS: WS CrearOrdenesPedido (Estado: EN PREPARACION)\n\n    Note over COM, MOB: Paso 4: Planificación (Aprox 18:00 hrs)\n    TMS->>TMS: Filtro por estado y cambio a PLANIFICAR\n    TMS->>TMS: Geocodificación y Consolidación de paradas\n    TMS->>TMS: Ruteo Automático (Reglas de negocio)\n    \n    Note over COM, MOB: Proceso de INTERFASE 4: Asignación y Viaje\n    TMS->>TMS: Cambio a CONFIRMADA (Valida Medios)\n    TMS->>TMS: Creación de Viaje (Estado: PLANIFICADO EN PREPARACION)\n    TMS->>ERP: Envío de viaje y paradas al ERP\n    TMS-->>COM: Email automático a Operación/Transportista\n\n    Note over COM, MOB: Proceso de INTERFASE 5: Preparación\n    ERP->>ERP: Almacén confirma carga en pallets\n    ERP->>INT: Envío de actualización de viaje preparada\n    INT->>TMS: WS CrearViajeCompleto7 (Estado: PREPARADO + Albarán)\n\n    Note over COM, MOB: Paso 7: Carga del Camión (Madrugada)\n    MOB->>MOB: Conductor valida ítems y secuencia en App\n    alt Carga Exitosa\n        MOB->>TMS: Estado Parada: CARGADO\n    else Incidencia de carga\n        MOB->>TMS: Estado: CARGADO PARCIAL / NO CARGADO\n        TMS->>TMS: Generación Hoja de Faltantes\n    end\n\n    Note over COM, MOB: Paso 9: Activación del viaje\n    MOB->>TMS: Conductor activa viaje (Estado: ACTIVO)\n    TMS->>TMS: Pedidos pasan a EN RUTA / POR COBRAR / POR RECOGER\n\n    Note over COM, MOB: Proceso de INTERFASE 6: Ejecución y Visita\n    TMS->>TMS: Geocerca activa estado VISITADO automáticamente\n    MOB->>TMS: Registro de POD y estado final (Entregado/Rechazado)\n    MOB->>INT: Envío de estados y valores cobrados\n    INT->>ERP: Interfaz de liquidación al ERP\n\n    Note over COM, MOB: Proceso de INTERFASE 7: Depósito en Banco\n    MOB->>TMS: Parada Depósito -> DEPOSITO REALIZADO\n    TMS->>ERP: Envío de liquidaciones y foto de comprobante\n\n    Note over COM, MOB: Proceso de INTERFASE 8: Rendición en Almacén\n    MOB->>TMS: Generación parada Rendición (No entregados/Recogidos)\n    Note right of TMS: Usuario Almacén valida en Tracking\n    TMS->>TMS: Estado: RENDIDO\n    TMS->>ERP: Interfaz de reingreso automático de productos\n\n    Note over COM, MOB: Paso 14: Liquidación\n    TMS->>TMS: Aprobación de incidencias de viaje\n    TMS->>TMS: Estado Viaje: LIQUIDABLE (Cálculo de tarifas)\n    \n    Note over COM, MOB: Proceso de INTERFASE 9: Pago a Proveedores\n    TMS->>TMS: Generación Liquidación (Estado: CONFIRMADA)\n    TMS->>ERP: Envío de preliquidaciones de pago por interfaz\n    TMS->>TMS: Estado Viaje: LIQUIDADO",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "updatedAt": {
+      "_seconds": 1775826611,
+      "_nanoseconds": 552000000
+    },
+    "lockedBy": {
+      "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+      "name": "Daniel Tenant Admin",
+      "timestamp": 1778581990607,
+      "updatedAtStr": "2026-05-12T10:33:10.607Z"
+    }
+  },
+  {
+    "id": "draft-1776327338334",
+    "metadata": {
+      "createdAt": {
+        "_seconds": 1776327304,
+        "_nanoseconds": 229000000
+      },
+      "authorId": "user",
+      "version": "0.1",
+      "updatedAt": {
+        "_seconds": 1776327304,
+        "_nanoseconds": 229000000
+      }
+    },
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "docType": "mermaid",
+    "edges": [],
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "mermaidCode": "sequenceDiagram\n\n    participant COM as Comercial (CRM/SF)\n    participant ERP as ERP Delgado\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MOB as Unigis App (X Deliveries)\n\nNote over COM, MOB: Proceso de INTERFASE 1: Creación y Validación\n    COM->>ERP: Alta de Pedidos\n    ERP->>TMS: Envío de Pedido grabado\n    TMS-->>TMS: Recibe pedido : Estado INGRESADO\n\n    alt Pedido con Incidencias\n        TMS-->>ERP: Actualiza a INGRESADO - BLOQUEADO\n        Note right of TMS: Gestión en Back Office / Créditos\n        ERP-->>TMS: Liberación -> Actualiza a INGRESADO\n    end\n    \n TMS->>TMS: Validación de datos operativos\n    alt Faltan datos\n        TMS->>TMS: Estado: ERROR-REQUIERE AJUSTE\n        Note right of TMS: Ajuste manual en Unigis OM\n        TMS->>TMS: Cambio a estado GRABADO\n    else Datos OK\n        TMS->>TMS: Estado: GRABADO\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Envío Preparación\n    TMS->>TMS: Evalúa lógica de Preparación\n    TMS->>ERP: Envío de integración al ERP (Estado Pedido: ENVIADO A PREPARACION)\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Preparación\n    ERP->>ERP: Almacén confirma carga en pallets con SGA\n    ERP->>ERP: Envío de actualización de viaje preparada\n    ERP->>TMS: WS ?? (Estado Pedido: PREPARADO + Albarán)\n\n    Note over COM, MOB: Paso 4: Planificación \n    TMS->>TMS: Filtro por estado y cambio a POR RUTEAR\n    TMS->>TMS: Geocodificación y Consolidación de paradas\n    TMS->>TMS: Se crean las ordenes al recibir el estado (Estado Orden: POR RUTEAR)\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Ruteado de ordenes y envío a ERP\n    TMS->>TMS: Creación de Viaje <br> (Estado Ruta: PLANIFICADO) <br> (Estado Orden: RUTEADA) <br> (Estado Pedido: RUTEADO)\n      alt Cambios de ordenes en rutas\n        TMS->>ERP: Estado RUTA: INFORMAR CAMBIOS\n      end   \n    TMS->>TMS: Estado RUTA: VALIDADA\n   \n\n    Note over COM, MOB: Proceso de INTERFASE ??: Asignación y Viaje\n    TMS->>TMS: Asignan los medios a las rutas\n    TMS->>TMS: Creación de Viaje (Estado: PENDIENTE DE CARGA)  <br> (Estado Orden: PENDIENTE DE CARGA)\n    TMS->>MOB: Envío automático a Operación/Transportista\n\n    Note over COM, MOB: Paso 7: Carga del Camión \n    MOB->>MOB: Conductor valida ítems y secuencia en App\n    alt Carga Exitosa\n        MOB->>TMS: (Estado Parada: PENDIENTE REPARTO)\n    else Incidencia de carga\n        MOB->>TMS: (Estado Parada: CARGADO <br> Estado Viaje: CARGADO)\n        TMS->>ERP: Enviamos los datos de carga para actualizar en ERP\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Ejecución\n    MOB->>TMS: Registro de POD y estado final (Estado Parada: EN REPARTO)  <br> (Estado Parada: ENTREGADO) <br>  (Estado Parada: ENTREGA PARCIAL) <br> (Estado Parada: NO ENTREGADO)  <br> (Estado Orden: PENDIENTE DE CARGA) <br> (Estado Orden: CARGADA) <br> (Estado Orden: ENTREGADO) <br> (Estado Orden: ENTREGADO PARCIAL) <br> (Estado Orden: NO ENTREGADO)\n    TMS->>ERP: Envío de estados y valores cobrados. Totales entregados por parada.\n    TMS->>ERP: Cuando todas las paradas se han finalizado (Estado Viaje: FIN REPARTO)\n    TMS->>TMS: Cuando hay paradas no tratadas, pero el chofer llega a Deposito (Estado Viaje: VIAJE INCOMPLETO) <br> Notificamos que el viaje llega con Paradas sin gestionar\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Fin de viaje\n    MOB->>TMS: Se detecta la entrada en la Geocerca del deposito de llegada\n    TMS->>ERP: (Estado Viaje: FIN DE DÍA)",
+    "name": "Flujo de estados DLG",
+    "updatedAt": {
+      "_seconds": 1776334159,
+      "_nanoseconds": 365000000
+    },
+    "lockedBy": {
+      "uid": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+      "name": "Jesus Marquez",
+      "timestamp": 1778573700297,
+      "updatedAtStr": "2026-05-12T08:15:00.297Z"
+    }
+  },
+  {
+    "id": "draft-1776435106494",
+    "schemaVersion": 4,
+    "docType": "mermaid",
+    "edges": [],
+    "mermaidCode": "sequenceDiagram\n    autonumber\n    participant ERP as ERP / SGA\n    participant EAL as MiddleWare-EAL\n    participant OM as Unigis OM\n    participant TMS as Unigis TMS (Planning)\n    participant FLT as Unigis Fleet (Flota)\n    participant MOB as Unigis App (X Deliveries)\n\n    Note over FLT, TMS: GESTIÓN DE RECURSOS (Fleet)\n    FLT->>FLT: Registro de Vehículos y Conductores\n    FLT->>FLT: Estado: DISPONIBLE / EN MANTENIMIENTO\n    FLT->>TMS: Sincronización de Recursos Activos\n    Note right of FLT: Incluye Documentación y Vencimientos\n\n    Note over ERP, OM: FASE 1: DEMANDA (Interfaz 1)\n    ERP->>EAL: Envío de Pedidos\n    EAL->>OM: Recepción Interfaz 1\n    \n    rect rgb(240, 240, 240)\n    Note right of OM: Proceso de Domicilios (Destinatarios)\n    OM->>OM: Creación de Domicilio\n    OM->>OM: Validación Geocodificación (Automático)\n    OM->>OM: Asociación al Maestro\n    alt Error de Geocodificación\n        OM-->>OM: Estado PEDIDO: ERROR-REQUIERE AJUSTE\n        Note right of OM: Acción Manual: Corrección de coordenadas\n    else Geocodificación OK\n        OM->>OM: Estado PEDIDO: LISTO PARA PLANIFICAR\n    end\n    end\n\n    Note over OM, TMS: FASE 2: PLANIFICACIÓN (Entidad RUTA/VIAJE)\n    OM->>TMS: Traspaso de Pedidos a Órdenes\n    \n    rect rgb(235, 245, 235)\n    Note right of TMS: Filtros: Fecha, Depósito, Muelle\n    \n    alt Camino A: MANUAL\n        TMS->>TMS: Selección de Órdenes (Manual)\n        TMS->>TMS: Creación de Unidad/Viaje\n        TMS->>TMS: Arrastre (Drag & Drop) de Paradas\n    else Camino B: SEMIAUTOMÁTICO\n        TMS->>TMS: Agrupación por Zonas Lógicas\n        TMS->>TMS: Generación de Propuesta de Ruta\n    else Camino C: MCFS (Optimización)\n        TMS->>TMS: Configuración Restricciones (Ventanas/Costes)\n        TMS->>TMS: Ejecución Motor Algorítmico MCFS\n    end\n    end\n\n    TMS->>TMS: Estado RUTA/VIAJE: PLANIFICADO\n    TMS->>TMS: Validación de Viaje (Acción Usuario)\n    TMS->>TMS: Estado RUTA/VIAJE: VALIDADO / CONFIRMADO\n\n    Note over TMS, MOB: FASE 3: EJECUCIÓN (Interfaz 2)\n    TMS->>MOB: Envío a App (Despacho de Viaje)\n    MOB->>MOB: Estado VIAJE: ASIGNADO\n    \n    rect rgb(255, 245, 245)\n    Note right of MOB: Operativa en Ruta\n    MOB->>MOB: Inicio de Viaje (Estado: EN VIAJE)\n    MOB->>MOB: Llegada a Parada (Geocerca/Manual)\n    MOB->>MOB: Estado PARADA: EN CURSO\n    MOB->>MOB: Confirmación Entrega (POD/Firma/Foto)\n    MOB->>MOB: Estado PARADA: VISITADO (Entregado/Rechazado)\n    end\n\n    Note over MOB, ERP: FASE 4: CIERRE (Interfaz 4)\n    MOB->>TMS: Sincronización de Eventos Real-Time\n    TMS->>TMS: Estado VIAJE: FINALIZADO\n    TMS->>EAL: Envío de Estados y Valores Finales\n    EAL->>ERP: Actualización Final",
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Flujo Gemini completo",
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1776434954,
+        "nanoseconds": 97000000
+      },
+      "updatedAt": {
+        "seconds": 1776434954,
+        "nanoseconds": 97000000
+      }
+    },
+    "updatedAt": {
+      "_seconds": 1778059484,
+      "_nanoseconds": 958000000
+    }
+  },
+  {
+    "id": "draft-1777015984773",
+    "schemaVersion": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1777015984,
+        "nanoseconds": 773000000
+      },
+      "updatedAt": {
+        "seconds": 1777015984,
+        "nanoseconds": 773000000
+      }
+    },
+    "name": "Prueba 1",
+    "edges": [
+      {
+        "id": "e-6-7-1777016773925",
+        "source": "6",
+        "target": "7",
+        "sourceHandle": "left-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-7-5-1777016777164",
+        "source": "7",
+        "target": "5",
+        "sourceHandle": "top-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-5-node-1777016036653-1777016780231",
+        "source": "5",
+        "target": "node-1777016036653",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "bottom-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      }
+    ],
+    "showGrid": true,
+    "nodes": [
+      {
+        "label": "1. Sistema 1",
+        "width": 400,
+        "height": 300,
+        "additionalData": {},
+        "type": "ENVIRONMENT",
+        "id": "1",
+        "position": {
+          "y": 50,
+          "x": 50
+        }
+      },
+      {
+        "id": "2",
+        "type": "ENVIRONMENT",
+        "additionalData": {},
+        "position": {
+          "x": 500,
+          "y": 50
+        },
+        "width": 400,
+        "height": 300,
+        "label": "2. Sistema 2"
+      },
+      {
+        "label": "3. Sistema 3",
+        "height": 300,
+        "width": 400,
+        "type": "ENVIRONMENT",
+        "additionalData": {},
+        "id": "3",
+        "position": {
+          "x": 950,
+          "y": 50
+        }
+      },
+      {
+        "id": "4",
+        "additionalData": {},
+        "type": "ENVIRONMENT",
+        "position": {
+          "x": 45,
+          "y": 495
+        },
+        "width": 400,
+        "height": 300,
+        "label": "4. Sistema 4"
+      },
+      {
+        "position": {
+          "x": 630,
+          "y": 150
+        },
+        "targetFlowId": "draft-1777280096725",
+        "id": "5",
+        "targetNodeId": "3",
+        "height": 80,
+        "width": 120,
+        "label": "Estado",
+        "additionalData": {},
+        "type": "STATE"
+      },
+      {
+        "id": "6",
+        "position": {
+          "y": 615,
+          "x": 195
+        },
+        "targetFlowId": "draft-1777280096725",
+        "width": 120,
+        "height": 80,
+        "label": "Inicio",
+        "targetNodeId": "10",
+        "type": "START",
+        "additionalData": {}
+      },
+      {
+        "additionalData": {},
+        "type": "ERROR",
+        "targetNodeId": "2",
+        "label": "Error",
+        "height": 80,
+        "width": 120,
+        "targetFlowId": "draft-1777280096725",
+        "position": {
+          "y": 150,
+          "x": 180
+        },
+        "id": "7"
+      },
+      {
+        "additionalData": {},
+        "type": "STATE",
+        "height": 80,
+        "width": 120,
+        "label": "Estado",
+        "targetNodeId": "4",
+        "id": "node-1777016036653",
+        "position": {
+          "y": 150,
+          "x": 1080
+        },
+        "targetFlowId": "draft-1777280096725"
+      },
+      {
+        "height": 100,
+        "width": 250,
+        "label": "Prueba de persistencia de comentario",
+        "position": {
+          "x": 165,
+          "y": 405
+        },
+        "id": "text-1777017417517",
+        "additionalData": {},
+        "type": "TEXT"
+      }
+    ],
+    "lockedBy": {
+      "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+      "name": "Daniel Tenant Admin",
+      "updatedAtStr": "2026-05-11T15:43:12.138Z",
+      "timestamp": 1778514192138
+    },
+    "updatedAt": {
+      "_seconds": 1778586512,
+      "_nanoseconds": 628000000
+    }
+  },
+  {
+    "id": "draft-1777280096725",
+    "schemaVersion": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "name": "Prueba IA",
+    "edges": [
+      {
+        "id": "1",
+        "source": "1",
+        "target": "2",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "2",
+        "source": "2",
+        "target": "3",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "3",
+        "source": "3",
+        "target": "4",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "4",
+        "source": "4",
+        "target": "5",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "5",
+        "source": "5",
+        "target": "6",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "6",
+        "source": "6",
+        "target": "7",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "7",
+        "source": "7",
+        "target": "8",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "8",
+        "source": "8",
+        "target": "9",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "9",
+        "source": "9",
+        "target": "10",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "10",
+        "source": "10",
+        "target": "11",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "11",
+        "source": "11",
+        "target": "12",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "12",
+        "source": "5",
+        "target": "12",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      }
+    ],
+    "showGrid": true,
+    "nodes": [
+      {
+        "position": {
+          "y": 250,
+          "x": 0
+        },
+        "id": "1",
+        "additionalData": {},
+        "type": "START",
+        "width": 120,
+        "height": 80,
+        "label": "Recepción y Validación en TMS"
+      },
+      {
+        "type": "OPERATION",
+        "additionalData": {},
+        "label": "Grabación y Envío a Preparación (TMS/ERP/SGA)",
+        "width": 120,
+        "height": 80,
+        "targetNodeId": "7",
+        "id": "2",
+        "targetFlowId": "draft-1777015984773",
+        "position": {
+          "x": 200,
+          "y": 150
+        }
+      },
+      {
+        "targetFlowId": "draft-1777015984773",
+        "position": {
+          "x": 400,
+          "y": 150
+        },
+        "id": "3",
+        "targetNodeId": "5",
+        "label": "Finalización Preparación (TMS/ERP/SGA)",
+        "width": 120,
+        "height": 80,
+        "additionalData": {},
+        "type": "OPERATION"
+      },
+      {
+        "position": {
+          "x": 600,
+          "y": 150
+        },
+        "targetFlowId": "draft-1777015984773",
+        "id": "4",
+        "targetNodeId": "node-1777016036653",
+        "width": 120,
+        "height": 80,
+        "label": "Planificación de Rutas (TMS/ERP)",
+        "additionalData": {},
+        "type": "OPERATION"
+      },
+      {
+        "additionalData": {},
+        "type": "OPERATION",
+        "targetNodeId": "6",
+        "width": 120,
+        "height": 80,
+        "label": "Asignación de Recursos (TMS)",
+        "position": {
+          "x": 800,
+          "y": 250
+        },
+        "targetFlowId": "draft-1777015984773",
+        "id": "5"
+      },
+      {
+        "height": 80,
+        "width": 120,
+        "label": "Generación del Viaje (TMS)",
+        "id": "6",
+        "type": "OPERATION",
+        "additionalData": {},
+        "position": {
+          "x": 600,
+          "y": 350
+        }
+      },
+      {
+        "id": "7",
+        "type": "OPERATION",
+        "additionalData": {},
+        "position": {
+          "y": 350,
+          "x": 400
+        },
+        "height": 80,
+        "width": 120,
+        "label": "Sincronización a Móvil (TMS/MOBILE)"
+      },
+      {
+        "additionalData": {},
+        "type": "OPERATION",
+        "id": "8",
+        "position": {
+          "y": 350,
+          "x": 200
+        },
+        "label": "Inicio de Viaje (MOBILE)",
+        "height": 80,
+        "width": 120
+      },
+      {
+        "width": 120,
+        "height": 80,
+        "label": "Gestión de Parada (Entrega) (MOBILE)",
+        "id": "9",
+        "additionalData": {},
+        "type": "OPERATION",
+        "position": {
+          "y": 450,
+          "x": 400
+        }
+      },
+      {
+        "position": {
+          "x": 600,
+          "y": 450
+        },
+        "id": "10",
+        "type": "OPERATION",
+        "additionalData": {},
+        "width": 120,
+        "height": 80,
+        "label": "Cierre Automático de Viaje (TMS)",
+        "targetFlowId": "draft-1777015984773",
+        "targetNodeId": "6"
+      },
+      {
+        "position": {
+          "x": 800,
+          "y": 450
+        },
+        "id": "11",
+        "type": "OPERATION",
+        "additionalData": {},
+        "height": 80,
+        "width": 120,
+        "label": "Liquidación / Retorno (TMS/ERP)"
+      },
+      {
+        "position": {
+          "x": 1000,
+          "y": 250
+        },
+        "additionalData": {},
+        "type": "TERMINAL",
+        "id": "12",
+        "label": "CIERRE FINAL (Confirmación en ERP)",
+        "width": 120,
+        "height": 80
+      }
+    ],
+    "lockedBy": {
+      "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+      "name": "Daniel Tenant Admin",
+      "updatedAtStr": "2026-05-12T11:48:54.757Z",
+      "timestamp": 1778586534757
+    },
+    "updatedAt": {
+      "_seconds": 1778586500,
+      "_nanoseconds": 536000000
+    }
+  },
+  {
+    "id": "draft-1777287458622",
+    "schemaVersion": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Flujo interfaces Intermodal",
+    "tenantId": "3",
+    "showGrid": false,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "edges": [
+      {
+        "id": "e-500-501-1778506815931-121",
+        "source": "500",
+        "target": "501",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-500-502-1778506815931-81",
+        "source": "500",
+        "target": "502",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-500-503-1778506815931-376",
+        "source": "500",
+        "target": "503",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-504-505-1778506815931-47",
+        "source": "504",
+        "target": "505",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-504-506-1778506815931-297",
+        "source": "504",
+        "target": "506",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-507-1778506815931-973",
+        "source": "501",
+        "target": "507",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-507-504-1778506815931-972",
+        "source": "507",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-509-1778506815931-104",
+        "source": "509",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-509-504-1778506815931-784",
+        "source": "504",
+        "target": "509",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-511-1778506815931-427",
+        "source": "511",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-511-504-1778506815931-592",
+        "source": "504",
+        "target": "511",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-513-1778506815931-206",
+        "source": "501",
+        "target": "513",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-513-504-1778506815931-200",
+        "source": "513",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-515-1778506815931-764",
+        "source": "501",
+        "target": "515",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-515-504-1778506815931-399",
+        "source": "515",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-517-1778506815931-48",
+        "source": "517",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-517-504-1778506815931-670",
+        "source": "504",
+        "target": "517",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-519-1778506815931-508",
+        "source": "519",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-519-504-1778506815931-489",
+        "source": "504",
+        "target": "519",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-521-1778506815931-144",
+        "source": "521",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-521-504-1778506815931-298",
+        "source": "504",
+        "target": "521",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-523-1778506815931-238",
+        "source": "501",
+        "target": "523",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-523-504-1778506815931-760",
+        "source": "523",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-501-525-1778506815931-695",
+        "source": "525",
+        "target": "501",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-525-504-1778506815931-619",
+        "source": "504",
+        "target": "525",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-527-1778506815931-373",
+        "source": "502",
+        "target": "527",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-527-504-1778506815931-232",
+        "source": "527",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-528-1778506815931-387",
+        "source": "528",
+        "target": "502",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-528-504-1778506815931-325",
+        "source": "504",
+        "target": "528",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-529-1778506815931-216",
+        "source": "529",
+        "target": "502",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-529-504-1778506815931-840",
+        "source": "504",
+        "target": "529",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-530-1778506815931-414",
+        "source": "530",
+        "target": "502",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-530-504-1778506815931-258",
+        "source": "504",
+        "target": "530",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-531-1778506815931-489",
+        "source": "531",
+        "target": "502",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-531-504-1778506815931-556",
+        "source": "504",
+        "target": "531",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-532-1778506815931-962",
+        "source": "532",
+        "target": "502",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-532-504-1778506815931-78",
+        "source": "504",
+        "target": "532",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-502-533-1778506815931-781",
+        "source": "502",
+        "target": "533",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-533-504-1778506815931-416",
+        "source": "533",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-503-535-1778506815931-470",
+        "source": "503",
+        "target": "535",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-535-504-1778506815931-691",
+        "source": "535",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-503-536-1778506815931-360",
+        "source": "503",
+        "target": "536",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-536-504-1778506815931-251",
+        "source": "536",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-503-537-1778506815931-95",
+        "source": "503",
+        "target": "537",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-537-504-1778506815931-588",
+        "source": "537",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__550right-c-504left-c",
+        "source": "550",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-503-550-1778585286022",
+        "source": "503",
+        "target": "550",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-503-552-1778585401791",
+        "source": "503",
+        "target": "552",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "color": "#94a3b8",
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-552-504-1778585410769",
+        "source": "552",
+        "target": "504",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      }
+    ],
+    "lockedBy": {
+      "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+      "name": "Daniel Tenant Admin",
+      "timestamp": 1778591534176,
+      "updatedAtStr": "2026-05-12T13:12:14.176Z"
+    },
+    "nodes": [
+      {
+        "id": "500",
+        "type": "STATE",
+        "label": "Sistemas\nExternos\n(Web Service)",
+        "position": {
+          "x": 550,
+          "y": 1073.75
+        },
+        "width": 160,
+        "height": 80,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "501",
+        "type": "STATE",
+        "label": "Maersk",
+        "position": {
+          "x": 1310,
+          "y": 973.75
+        },
+        "parentId": "env-maersk",
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "502",
+        "type": "STATE",
+        "label": "Portic",
+        "position": {
+          "x": 2590,
+          "y": 2605
+        },
+        "parentId": "env-portic",
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "503",
+        "type": "STATE",
+        "label": "Webfleet",
+        "position": {
+          "x": 1310,
+          "y": 1683.75
+        },
+        "parentId": "env-webfleet",
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "504",
+        "type": "STATE",
+        "label": "TMS",
+        "position": {
+          "x": 4275,
+          "y": 1620
+        },
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "505",
+        "type": "STATE",
+        "label": "Sistemas externos",
+        "position": {
+          "x": 4890,
+          "y": 1380
+        },
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "506",
+        "type": "STATE",
+        "label": "ERP",
+        "position": {
+          "x": 4890,
+          "y": 1620
+        },
+        "width": 140,
+        "height": 60,
+        "additionalData": {
+          "bgColor": "#f3e8ff",
+          "strokeColor": "#a855f7"
+        }
+      },
+      {
+        "id": "507",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Container_update)",
+        "position": {
+          "x": 1550,
+          "y": 980
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "508",
+        "type": "TEXT",
+        "label": "Vinculación de un número de contenedor especifico (TCNU7964600) a la reserva.",
+        "position": {
+          "x": 140,
+          "y": 1233.75
+        },
+        "parentId": "env-maersk",
+        "width": 980,
+        "height": 40,
+        "additionalData": {}
+      },
+      {
+        "id": "509",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Arrival)",
+        "position": {
+          "x": 2190,
+          "y": 330
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "510",
+        "type": "TEXT",
+        "label": "TImestamp de llegada real (Actual arrival) a una ubicación especifica",
+        "position": {
+          "x": 147.5,
+          "y": 1353.75
+        },
+        "parentId": "env-maersk",
+        "width": 965,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "511",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Departure)",
+        "position": {
+          "x": 2190,
+          "y": 470
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "512",
+        "type": "TEXT",
+        "label": "Registro cuando el transporte abandona una ubicación o nodo logistico",
+        "position": {
+          "x": 125,
+          "y": 1463.75
+        },
+        "parentId": "env-maersk",
+        "width": 1010,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "513",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Customer_Appointment_Pickup)",
+        "position": {
+          "x": 1550,
+          "y": 1120
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "514",
+        "type": "TEXT",
+        "label": "Fecha y hora pactada con el cliente para recoger la carga. ",
+        "position": {
+          "x": 455,
+          "y": 1573.75
+        },
+        "parentId": "env-maersk",
+        "width": 350,
+        "height": 40,
+        "additionalData": {}
+      },
+      {
+        "id": "515",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (Customer_Appointment_DropOff)",
+        "position": {
+          "x": 1550,
+          "y": 1260
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "516",
+        "type": "TEXT",
+        "label": "Fecha y hora pactada con el cliente para la descarga o devolución. ",
+        "position": {
+          "x": 50,
+          "y": 1693.75
+        },
+        "parentId": "env-maersk",
+        "width": 1160,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "517",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (gps_update)",
+        "position": {
+          "x": 2190,
+          "y": 610
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "518",
+        "type": "TEXT",
+        "label": "Coordenadas geográficas (latitud/longitud) del equipo en tiempo real. ",
+        "position": {
+          "x": 140,
+          "y": 1803.75
+        },
+        "parentId": "env-portic",
+        "width": 980,
+        "height": 85,
+        "additionalData": {}
+      },
+      {
+        "id": "519",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (wait_time)",
+        "position": {
+          "x": 2190,
+          "y": 750
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "520",
+        "type": "TEXT",
+        "label": "Reporte de demoras en sitio, incluyendo motivo y archivo adjunto (evidencia). ",
+        "position": {
+          "x": 147.5,
+          "y": 1968.75
+        },
+        "parentId": "env-portic",
+        "width": 965,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "521",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (delay)",
+        "position": {
+          "x": 2190,
+          "y": 890
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "522",
+        "type": "TEXT",
+        "label": "Motivo del retraso (ej. TR_TRAIL_ISSUE) y nueva fecha/hora estimada. ",
+        "position": {
+          "x": 147.5,
+          "y": 2078.75
+        },
+        "parentId": "env-portic",
+        "width": 965,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "523",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (seal_update)",
+        "position": {
+          "x": 1550,
+          "y": 1400
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "524",
+        "type": "TEXT",
+        "label": "Datos del conductor: nombre, licencia, número de placa y teléfono de contacto. ",
+        "position": {
+          "x": 200,
+          "y": 2188.75
+        },
+        "parentId": "env-portic",
+        "width": 860,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "525",
+        "type": "OPERATION",
+        "label": "JSON Syncout / adaptar UNIGIS --> Maersk (driver_update)",
+        "position": {
+          "x": 2190,
+          "y": 1617.5
+        },
+        "parentId": "env-maersk",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "526",
+        "type": "TEXT",
+        "label": "Número de sello de seguridad (Seal Number) aplicado al contenedor. ",
+        "position": {
+          "x": 65,
+          "y": 2298.75
+        },
+        "parentId": "env-portic",
+        "width": 1130,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "527",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (IFTMIN-2)",
+        "position": {
+          "x": 2830,
+          "y": 2645
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "528",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (IFTMINE03)",
+        "position": {
+          "x": 2190,
+          "y": 2345
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "529",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (COPINOE04)",
+        "position": {
+          "x": 2190,
+          "y": 2485
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "530",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (COPINOE05)",
+        "position": {
+          "x": 2190,
+          "y": 2625
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "531",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (COPINOI06)",
+        "position": {
+          "x": 2190,
+          "y": 2765
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "532",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (COPINOI07)",
+        "position": {
+          "x": 2190,
+          "y": 2905
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "533",
+        "type": "OPERATION",
+        "label": "Unigis\n-> Portic (IFTMINE03)",
+        "position": {
+          "x": 2830,
+          "y": 3065
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "534",
+        "type": "TEXT",
+        "label": "indica las instrucciones de recogida de contenedores o mercancías en la Terminal y su entrega al importador.",
+        "position": {
+          "x": 252.5,
+          "y": 2408.75
+        },
+        "parentId": "env-portic",
+        "width": 755,
+        "height": 200,
+        "additionalData": {}
+      },
+      {
+        "id": "535",
+        "type": "OPERATION",
+        "label": "GPS Adapter Unigis\n-> Webfleet (showVehicleReportExtern)",
+        "position": {
+          "x": 1550,
+          "y": 1540
+        },
+        "parentId": "env-webfleet",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "536",
+        "type": "OPERATION",
+        "label": "GPS Adapter Unigis\n-> (showTripReportExtern) ",
+        "position": {
+          "x": 1550,
+          "y": 1680
+        },
+        "parentId": "env-webfleet",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "537",
+        "type": "OPERATION",
+        "label": "GPS Adapter Unigis\n-> (showWorkingTimes) ",
+        "position": {
+          "x": 1550,
+          "y": 1820
+        },
+        "parentId": "env-webfleet",
+        "width": 300,
+        "height": 75,
+        "additionalData": {}
+      },
+      {
+        "id": "538",
+        "type": "TEXT",
+        "label": "Se envían o disponibilizan los datos de la posición de los vehículos, según parametros TSP.",
+        "position": {
+          "x": 4485,
+          "y": 1320
+        },
+        "parentId": "env-portic",
+        "width": 345,
+        "height": 105,
+        "additionalData": {}
+      },
+      {
+        "id": "539",
+        "type": "TEXT",
+        "label": "TMS informa al ERP de cualquier actuación o modificación del estado de los pedidos.",
+        "position": {
+          "x": 4410,
+          "y": 1710
+        },
+        "parentId": "env-portic",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "540",
+        "type": "TEXT",
+        "label": " contiene todos los detalles asociados a la recuperar las Instrucciones de recogida de contenedores vacíos en la Terminal.",
+        "position": {
+          "x": 215,
+          "y": 2983.75
+        },
+        "parentId": "env-portic",
+        "width": 830,
+        "height": 30,
+        "additionalData": {}
+      },
+      {
+        "id": "541",
+        "type": "TEXT",
+        "label": "El mensaje COPINO (Container pre-notification message), será enviado por la empresa de transporte terrestre al Dépot o Terminal como notificación de recogida de contenedores vacíos.",
+        "position": {
+          "x": 200,
+          "y": 3093.75
+        },
+        "parentId": "env-portic",
+        "width": 860,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "542",
+        "type": "TEXT",
+        "label": "El mensaje COPINO (Container pre-notification message), será enviado por la empresa de transporte terrestre a la Terminal como notificación de devolución de contenedor cargado",
+        "position": {
+          "x": 192.5,
+          "y": 3253.75
+        },
+        "parentId": "env-webfleet",
+        "width": 875,
+        "height": 125,
+        "additionalData": {}
+      },
+      {
+        "id": "543",
+        "type": "TEXT",
+        "label": "comunicar, por parte de la empresa de transportes o transportista autónomo a la Terminal de carga, la previsión de recogida de mercancías en una fecha determinada.",
+        "position": {
+          "x": 192.5,
+          "y": 3458.75
+        },
+        "parentId": "env-webfleet",
+        "width": 875,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "544",
+        "type": "TEXT",
+        "label": "comunicar, por parte de la empresa de transportes o transportista autónomo al dépot, la previsión de devolución del contenedor vacío en una fecha determinada.",
+        "position": {
+          "x": 200,
+          "y": 3618.75
+        },
+        "parentId": "env-webfleet",
+        "width": 860,
+        "height": 125,
+        "additionalData": {}
+      },
+      {
+        "id": "545",
+        "type": "TEXT",
+        "label": "indica las instrucciones de recogida de contenedores vacíos en la Terminal y su entrega al importador.",
+        "position": {
+          "x": 267.5,
+          "y": 3823.75
+        },
+        "parentId": "env-webfleet",
+        "width": 725,
+        "height": 185,
+        "additionalData": {}
+      },
+      {
+        "id": "546",
+        "type": "TEXT",
+        "label": "Indica información técnica del Camión",
+        "position": {
+          "x": 1830,
+          "y": 3105
+        },
+        "parentId": "env-webfleet",
+        "width": 725,
+        "height": 200,
+        "additionalData": {}
+      },
+      {
+        "id": "547",
+        "type": "TEXT",
+        "label": "Captura notificaciones, alertas y eventos críticos del viaje utilizando la información recopilada del método (showVehiculeReportExtern)",
+        "position": {
+          "x": 65,
+          "y": 4368.75
+        },
+        "parentId": "env-webfleet",
+        "width": 1130,
+        "height": 185,
+        "additionalData": {}
+      },
+      {
+        "id": "548",
+        "type": "TEXT",
+        "label": "Indica la información continua de los viajes realizados, incluyendo datos de telemetría, ubicación, consumo de combustible e indicadores de eficiencia.",
+        "position": {
+          "x": 72.5,
+          "y": 4633.75
+        },
+        "parentId": "env-webfleet",
+        "width": 1115,
+        "height": 200,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778531618218",
+        "type": "TEXT",
+        "label": "Formato de integración XML",
+        "position": {
+          "x": 505,
+          "y": 5638.75
+        },
+        "parentId": "env-webfleet",
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "549",
+        "type": "TEXT",
+        "label": "Formato de integración Json",
+        "position": {
+          "x": 505,
+          "y": 4913.75
+        },
+        "parentId": "env-webfleet",
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778531940810",
+        "type": "TEXT",
+        "label": "Integración vía API REST",
+        "position": {
+          "x": 505,
+          "y": 5818.75
+        },
+        "parentId": "env-webfleet",
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "550",
+        "type": "OPERATION",
+        "label": "GPS Adapter Unigis\n-> Webfleet (showEventReportExtern)",
+        "position": {
+          "x": 1550,
+          "y": 1975
+        },
+        "parentId": "env-webfleet",
+        "width": 300,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "551",
+        "type": "TEXT",
+        "label": "Informa sobre los cambios en los estados de trabajo y la jornada laboral de los conductores mediante datos de ubicación y del tacógrafo digital.",
+        "position": {
+          "x": 57.5,
+          "y": 5093.75
+        },
+        "parentId": "env-webfleet",
+        "width": 1145,
+        "height": 200,
+        "additionalData": {}
+      },
+      {
+        "id": "552",
+        "type": "OPERATION",
+        "label": "GPS Adapter Unigis\n-> (getRemainingDrivingTimesEU)",
+        "position": {
+          "x": 1550,
+          "y": 2135
+        },
+        "parentId": "env-webfleet",
+        "width": 300,
+        "height": 60,
+        "additionalData": {}
+      },
+      {
+        "id": "553",
+        "type": "TEXT",
+        "label": "Determina los tiempos de conducción y descanso restantes para los conductores basándose estrictamente en la normativa de la Unión Europea.",
+        "position": {
+          "x": 65,
+          "y": 5373.75
+        },
+        "parentId": "env-webfleet",
+        "width": 1130,
+        "height": 185,
+        "additionalData": {}
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1778593176,
+      "_nanoseconds": 157000000
+    }
+  },
+  {
+    "id": "draft-1777298024225",
+    "schemaVersion": 4,
+    "createdBy": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "name": "New Flow",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "showGrid": true,
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1777298024,
+        "nanoseconds": 225000000
+      },
+      "updatedAt": {
+        "seconds": 1777298024,
+        "nanoseconds": 225000000
+      }
+    },
+    "nodes": [
+      {
+        "id": "1",
+        "type": "OPERATION",
+        "label": "CAMBIO ESTADO PARADA",
+        "position": {
+          "y": 220,
+          "x": 270
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "2",
+        "type": "DECISION",
+        "label": "TENGO ACTION MASIVO?",
+        "position": {
+          "y": 220,
+          "x": 490
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "3",
+        "type": "OPERATION",
+        "label": "FUNCION ESTANDARD CAMBIO ESTADO UNITARIO",
+        "position": {
+          "y": -30,
+          "x": 375
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "4",
+        "type": "START",
+        "label": "Inicio",
+        "position": {
+          "y": 220,
+          "x": 50
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "5",
+        "type": "TERMINAL",
+        "label": "CAMBIO ESTADO UNITARIO",
+        "position": {
+          "x": 645,
+          "y": -30
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "6",
+        "type": "STATE",
+        "label": "FOTO Y MOTIVO PARA TODAS LAS PARADAS",
+        "position": {
+          "x": 705,
+          "y": 315
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "7",
+        "type": "DECISION",
+        "label": "PARAMETRO DOMICILIO?",
+        "position": {
+          "x": 1035,
+          "y": 300
+        },
+        "width": 120,
+        "height": 110,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777299426624",
+        "type": "DECISION",
+        "label": "FLAG DOMICILIO?",
+        "position": {
+          "y": 480,
+          "x": 135
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "8",
+        "type": "STATE",
+        "label": "CAMBIO ESTADO  POR DOMICILIO + FOTO+ MOTIVO",
+        "position": {
+          "y": 915,
+          "x": 675
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777299759527",
+        "type": "DECISION",
+        "label": "TRANSICION REQUIERE MOTIVO?",
+        "position": {
+          "y": 645,
+          "x": 135
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777299803123",
+        "type": "DECISION",
+        "label": "TRANSICION REQUIERE  FOTO?",
+        "position": {
+          "y": 210,
+          "x": 1590
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "9",
+        "type": "STATE",
+        "label": "CAMBIO ESTADO MASIVO POR DOMICILIO REPLICANDO FOTO",
+        "position": {
+          "y": 130,
+          "x": 1810
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777299985286",
+        "type": "DECISION",
+        "label": "MOTIVO REQUIERE FOTO?",
+        "position": {
+          "y": 795,
+          "x": 135
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777300685581",
+        "type": "DECISION",
+        "label": "TRANSICION REQUIERE FOTO?",
+        "position": {
+          "y": 450,
+          "x": 1810
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "10",
+        "type": "STATE",
+        "label": "CAMBIO ESTADO MASIVO POR DOMICILIO REPLICANDO MOTIVO",
+        "position": {
+          "y": 450,
+          "x": 2030
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "node-1777301066765",
+        "type": "DECISION",
+        "label": "MOTIVO PERMITE CAMBIO MASIVO?",
+        "position": {
+          "y": 915,
+          "x": 405
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "11",
+        "type": "STATE",
+        "label": "CAMBIO ESTADO MASIVO POR DOMICILIO",
+        "position": {
+          "y": 290,
+          "x": 1810
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-1-2-1777298066165",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-3-1777298111463",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-4-1-1777298192858",
+        "source": "4",
+        "target": "1",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-3-5-1777298209462",
+        "source": "3",
+        "target": "5",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-7-node-1777299426624",
+        "source": "7",
+        "target": "node-1777299426624",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299426624-3-1777299592478",
+        "source": "node-1777299426624",
+        "target": "3",
+        "sourceHandle": "right-c",
+        "targetHandle": "bottom-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299426624-node-1777299759527",
+        "source": "node-1777299426624",
+        "target": "node-1777299759527",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299759527-node-1777299803123",
+        "source": "node-1777299759527",
+        "target": "node-1777299803123",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299803123-9-1777299934735",
+        "source": "node-1777299803123",
+        "target": "9",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299759527-node-1777299985286",
+        "source": "node-1777299759527",
+        "target": "node-1777299985286",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777299985286-node-1777300685581",
+        "source": "node-1777299985286",
+        "target": "node-1777300685581",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777300685581-10-1777300736646",
+        "source": "node-1777300685581",
+        "target": "10",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-node-1777298264850-node-1777301066765-1777301508453",
+        "source": "node-1777298264850",
+        "target": "node-1777301066765",
+        "sourceHandle": "right-c",
+        "targetHandle": "bottom-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__node-1777301066765right-c-8left-c",
+        "source": "node-1777301066765",
+        "target": "8",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__node-1777299803123bottom-c-11left-c",
+        "source": "node-1777299803123",
+        "target": "11",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "left-c",
+        "label": "NO",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__2bottom-c-6left-c",
+        "source": "2",
+        "target": "6",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "left-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__node-1777299985286bottom-c-node-1777301066765left-c",
+        "source": "node-1777299985286",
+        "target": "node-1777301066765",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "left-c",
+        "label": "SI",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__6right-c-7left-c",
+        "source": "6",
+        "target": "7",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1778059436,
+      "_nanoseconds": 84000000
+    }
+  },
+  {
+    "id": "draft-1777899015174",
+    "schemaVersion": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "showGrid": true,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1777898823,
+        "nanoseconds": 845000000
+      },
+      "updatedAt": {
+        "seconds": 1777898823,
+        "nanoseconds": 845000000
+      }
+    },
+    "name": "FLujo Generix",
+    "edges": [
+      {
+        "id": "e-1-2-1777899066961",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-3-1777900870011",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-4-1777900873790",
+        "source": "2",
+        "target": "4",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "height": 20,
+          "width": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-4-6",
+        "source": "4",
+        "target": "6",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-3-9",
+        "source": "3",
+        "target": "9",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-9-14-1777907199373",
+        "source": "9",
+        "target": "14",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-6-14-1777907205808",
+        "source": "6",
+        "target": "14",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-19-15-1777907392342",
+        "source": "19",
+        "target": "15",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "height": 20,
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-20-16-1777907676981",
+        "source": "20",
+        "target": "16",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-21-17-1777907777130",
+        "source": "21",
+        "target": "17",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-22-18-1777907828543",
+        "source": "22",
+        "target": "18",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__15right-c-20left-c",
+        "source": "15",
+        "target": "20",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__14right-c-19left-c",
+        "source": "14",
+        "target": "19",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__16right-c-21left-c",
+        "source": "16",
+        "target": "21",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "height": 20,
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__17right-c-22left-c",
+        "source": "17",
+        "target": "22",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "height": 20,
+          "width": 20,
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__18right-c-23left-c",
+        "source": "18",
+        "target": "23",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      }
+    ],
+    "nodes": [
+      {
+        "id": "1",
+        "type": "ICON",
+        "label": "Sistemas externos // Clientes",
+        "position": {
+          "x": -735,
+          "y": -765
+        },
+        "width": 64,
+        "height": 64,
+        "targetFlowId": "",
+        "targetNodeId": "",
+        "additionalData": {}
+      },
+      {
+        "id": "2",
+        "type": "ICON",
+        "label": "Generix",
+        "position": {
+          "y": -765,
+          "x": -375
+        },
+        "width": 64,
+        "height": 64,
+        "targetFlowId": "",
+        "targetNodeId": "",
+        "additionalData": {}
+      },
+      {
+        "id": "text-1777899069511",
+        "type": "TEXT",
+        "label": "Comiunican pedidos de recogida o de Inbound",
+        "position": {
+          "x": -600,
+          "y": -810
+        },
+        "width": 205,
+        "height": 130,
+        "additionalData": {}
+      },
+      {
+        "id": "3",
+        "type": "OPERATION",
+        "label": "Pedidos de Inbound",
+        "position": {
+          "x": 0,
+          "y": -930
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "4",
+        "type": "OPERATION",
+        "label": "Recogidas, pedidos externos",
+        "position": {
+          "x": 0,
+          "y": -585
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1777900880308",
+        "type": "TEXT",
+        "label": "Pedidos de Inbound, Si hay pedido de recogida para almacen generan en TMS",
+        "position": {
+          "x": -345,
+          "y": -975
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "5",
+        "type": "TEXT",
+        "label": "Pedidos de recogida,  se generan en TMS. Siempre pasan por almacen.",
+        "position": {
+          "x": -345,
+          "y": -525
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "6",
+        "type": "OPERATION",
+        "label": "Se envian las salidas a TMS para su preparación",
+        "position": {
+          "x": 210,
+          "y": -585
+        },
+        "width": 210,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "8",
+        "type": "ICON",
+        "label": "TMS",
+        "position": {
+          "x": 1785,
+          "y": -825
+        },
+        "width": 64,
+        "height": 64,
+        "targetFlowId": "",
+        "targetNodeId": "",
+        "additionalData": {}
+      },
+      {
+        "id": "9",
+        "type": "OPERATION",
+        "label": "Se envian las salidas a TMS para su preparación",
+        "position": {
+          "y": -930,
+          "x": 210
+        },
+        "width": 210,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "14",
+        "type": "OPERATION",
+        "label": "Primera vuelta -- Alta // actualización",
+        "position": {
+          "x": 615,
+          "y": -1080
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "15",
+        "type": "OPERATION",
+        "label": "Segunda vuelta -- Asignar stock",
+        "position": {
+          "x": 615,
+          "y": -870
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "16",
+        "type": "OPERATION",
+        "label": "Tercera vuelta - Definitiva -- Informa de la preparación final con remontada",
+        "position": {
+          "x": 615,
+          "y": -690
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "17",
+        "type": "OPERATION",
+        "label": "Cuarta vuelta -- SGA devuelve numero de tracking de proveedor",
+        "position": {
+          "x": 600,
+          "y": -540
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "18",
+        "type": "OPERATION",
+        "label": "Quinta vuelta -- SGA confima carga en vehículo",
+        "position": {
+          "x": 600,
+          "y": -375
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "19",
+        "type": "OPERATION",
+        "label": "TMS devuelve las agrupaciones de rutas",
+        "position": {
+          "x": 870,
+          "y": -1080
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "20",
+        "type": "OPERATION",
+        "label": "TMS confirma rutas y asigna terceros",
+        "position": {
+          "x": 885,
+          "y": -870
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "21",
+        "type": "OPERATION",
+        "label": "TMS actualzia la información de los pedidos con los bultos finales",
+        "position": {
+          "x": 885,
+          "y": -690
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "22",
+        "type": "OPERATION",
+        "label": "TMS actuliza el Nº de seguimiento de los pedidos",
+        "position": {
+          "x": 885,
+          "y": -540
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "23",
+        "type": "OPERATION",
+        "label": "TMS cierra las rutas con la información recibida",
+        "position": {
+          "x": 885,
+          "y": -375
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "24",
+        "type": "ICON",
+        "label": "Sistema externo",
+        "position": {
+          "x": 1245,
+          "y": -1245
+        },
+        "width": 64,
+        "height": 64,
+        "targetFlowId": "",
+        "targetNodeId": "",
+        "additionalData": {}
+      },
+      {
+        "id": "text-1777913325816",
+        "type": "TEXT",
+        "label": "Salida SGA",
+        "position": {
+          "x": 645,
+          "y": -1155
+        },
+        "width": 100,
+        "height": 70,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1777913373777",
+        "type": "TEXT",
+        "label": "Salida TMS",
+        "position": {
+          "x": 900,
+          "y": -1155
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "25",
+        "type": "ENVIRONMENT",
+        "label": "Área / Grupo",
+        "position": {
+          "x": 585,
+          "y": -1155
+        },
+        "isLocked": false,
+        "width": 400,
+        "height": 300,
+        "additionalData": {}
+      },
+      {
+        "id": "26",
+        "type": "ENVIRONMENT",
+        "label": "Área / Grupo",
+        "position": {
+          "x": 825,
+          "y": -1155
+        },
+        "width": 400,
+        "height": 300,
+        "additionalData": {}
+      }
+    ],
+    "lockedBy": {
+      "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+      "name": "Daniel Tenant Admin",
+      "updatedAtStr": "2026-05-12T11:48:39.154Z",
+      "timestamp": 1778586519154
+    },
+    "updatedAt": {
+      "_seconds": 1778586479,
+      "_nanoseconds": 315000000
+    }
+  },
+  {
+    "id": "draft-1777915337457",
+    "metadata": {
+      "createdAt": {
+        "_seconds": 1777913175,
+        "_nanoseconds": 983000000
+      },
+      "authorId": "user",
+      "version": "0.1",
+      "updatedAt": {
+        "_seconds": 1777913175,
+        "_nanoseconds": 983000000
+      }
+    },
+    "schemaVersion": 4,
+    "docType": "mermaid",
+    "edges": [],
+    "mermaidCode": "sequenceDiagram\n    participant Ext as Sistema Externo\n    participant TMS as TMS (Core)\n    participant Mob as Mobile (Chofer)\n\n    Note over Ext, TMS: Paso 1: Alta de Pedido\n    Ext-->>TMS: Envío de pedidos\n    TMS-->>TMS: Estado: INGRESADO\n    Note right of TMS: Paso 2Bis: Documentación\n    TMS-->>TMS: Validación de Integración\n\n    alt Pedido KO\n        TMS-->>TMS: Estado: ERROR (Requiere Corrección)\n        Note right of TMS: Paso 3: Gestión de Errores\n    else Pedido OK\n        TMS-->>TMS: Estado: GRABADO\n    end\n\n    TMS-->>TMS: Customer Service CONFIRMA\n    Note right of TMS: Paso 4: Confirmación Planificación\n\n    alt Pedido KO\n        TMS-->>TMS: Estado: ERROR (Requiere Corrección)\n        Note right of TMS: Paso 4bis: Gestión de Errores\n    else Pedido OK\n        TMS-->>TMS: Estado: CONFIRMADO\n    end\n\n    Note over TMS: Paso 5: Generación de Viajes\n    TMS-->>TMS: Estado: EN PLANIFICACIÓN / Viaje Inactivo\n    TMS-->>TMS: Asignación de Medios (Pedido PLANIFICADO)\n\n    Note over TMS, Mob: Paso 6: Ejecución\n    TMS-->>Mob: Viaje disponible en Mobile\n    Mob-->>TMS: Chofer activa viaje (Estado: ACTIVO)\n    \n    rect rgb(240, 240, 240)\n        Note right of Mob: TRACKING ACTIVO\n        Mob-->>Ext: Coordenadas accesibles en tiempo real\n    end\n\n    Note over Mob: Paso 7: Control de Carga\n    Mob-->>Mob: Revisión Doc / Recepción PIN\n\n    alt Viaje KO\n        Mob-->>TMS: Estado: ERROR (Requiere Corrección)\n    else Viaje OK\n        Mob-->>TMS: Estado: CONTENEDOR RECOGIDO\n        TMS-->>Ext: Notificación: CONTENEDOR RECOGIDO\n    end\n\n    Note over Mob: Paso 8: Gestión de Entregas\n    Mob-->>Ext: Comunicación de estados y posición\n\n    Note over Mob: Finalización\n    Mob-->>Mob: Devolución a Depot\n    Mob-->>Ext: Estado: ENTREGADO / CIERRE DE PEDIDO\n    \n    Note over TMS: Paso 9 y 10: Liquidación\n    TMS-->>TMS: Validación de incidencias\n    TMS-->>TMS: Generación de liquidación (Cobro/Pago)\n    TMS-->>TMS: CIERRE DEL VIAJE",
+    "nodes": [],
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "distribución mermaid",
+    "tenantId": "3",
+    "mermaidEngine": "sequence",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "updatedAt": {
+      "_seconds": 1777915337,
+      "_nanoseconds": 626000000
+    }
+  },
+  {
+    "id": "draft-1778239301819",
+    "schemaVersion": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "showGrid": false,
+    "metadata": {
+      "authorId": "user",
+      "version": "0.1",
+      "createdAt": {
+        "seconds": 1778239290,
+        "nanoseconds": 321000000
+      },
+      "updatedAt": {
+        "seconds": 1778239290,
+        "nanoseconds": 321000000
+      }
+    },
+    "name": "e-Cmr flujo Tiva entrada excel",
+    "edges": [
+      {
+        "id": "e-1-2",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-5-1778249613860",
+        "source": "2",
+        "target": "5",
+        "sourceHandle": "top-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-5-2-1778249679050",
+        "source": "5",
+        "target": "2",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-6-7",
+        "source": "6",
+        "target": "7",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-6-8",
+        "source": "6",
+        "target": "8",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "width": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-6-9",
+        "source": "6",
+        "target": "9",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "type": "arrowclosed",
+          "width": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-9-5-1778250084871",
+        "source": "9",
+        "target": "5",
+        "sourceHandle": "right-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-8-5-1778250088770",
+        "source": "8",
+        "target": "5",
+        "sourceHandle": "right-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "width": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-7-5-1778250100384",
+        "source": "7",
+        "target": "5",
+        "sourceHandle": "right-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "markerEnd": {
+          "height": 20,
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "width": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-10-1778250553588",
+        "source": "2",
+        "target": "10",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "width": 20,
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-10-6-1778250555782",
+        "source": "10",
+        "target": "6",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "color": "#94a3b8",
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "xy-edge__5top-c-1top-c",
+        "source": "5",
+        "target": "1",
+        "sourceHandle": "top-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#94a3b8",
+          "width": 20,
+          "height": 20
+        },
+        "pathPoints": []
+      }
+    ],
+    "nodes": [
+      {
+        "id": "1",
+        "type": "OPERATION",
+        "label": "Sistema externo",
+        "position": {
+          "y": 60,
+          "x": -390
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "2",
+        "type": "OPERATION",
+        "label": "UNIGIS // TMS",
+        "position": {
+          "y": 60,
+          "x": 30
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778249458526",
+        "type": "TEXT",
+        "label": "La comunicación con el TMS se propone vía Excel",
+        "position": {
+          "x": -240,
+          "y": 30
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "5",
+        "type": "ICON",
+        "label": "Nube",
+        "position": {
+          "y": -195,
+          "x": 390
+        },
+        "width": 64,
+        "height": 64,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778249619334",
+        "type": "TEXT",
+        "label": "Unigis empaqueta la información y solicita certificación de los viajes y sus paradas a entidad certificadora",
+        "position": {
+          "x": 120,
+          "y": -105
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778249683812",
+        "type": "TEXT",
+        "label": "Se recibe la respuesta OK / KO desde la entidad certificadora. Quedando registro de resultado y anunciando a usuario para posible gestión.",
+        "position": {
+          "x": 210,
+          "y": 135
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "6",
+        "type": "OPERATION",
+        "label": "Chofer",
+        "position": {
+          "x": 30,
+          "y": 435
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778249750431",
+        "type": "TEXT",
+        "label": "Chofer recibe la notificación con información del transporte y el QR que permite validar la certifiación de cada parada. ",
+        "position": {
+          "x": -270,
+          "y": 420
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "7",
+        "type": "OPERATION",
+        "label": "Parada 1",
+        "position": {
+          "x": 465,
+          "y": 300
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "8",
+        "type": "OPERATION",
+        "label": "Parada 2",
+        "position": {
+          "x": 465,
+          "y": 435
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "9",
+        "type": "OPERATION",
+        "label": "\nParada 3",
+        "position": {
+          "y": 570,
+          "x": 465
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778249964443",
+        "type": "TEXT",
+        "label": "Cada parada es tratada a nivel individual y el resultado de la entrega / recogida es comunicada a la entidad certificadora. Actualizando el estado del registro y posibles cambios en cantidades de carga",
+        "position": {
+          "x": 150,
+          "y": 645
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778250161379",
+        "type": "TEXT",
+        "label": "La información de las paradas queda registrada en el TMS pero también es accesible desde la entidad certificadora por parte del cliente cargador.",
+        "position": {
+          "y": -210,
+          "x": -255
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      },
+      {
+        "id": "10",
+        "type": "DATA",
+        "label": "Envío push de viaje y QR",
+        "position": {
+          "y": 255,
+          "x": 30
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "text-1778250557429",
+        "type": "TEXT",
+        "label": "Toda vez que el e-Cmr esta integrado y es OK, se puede enviar al chofer, bien por acción manual o automatica según condiciones definidas.",
+        "position": {
+          "y": 240,
+          "x": -255
+        },
+        "width": 250,
+        "height": 100,
+        "additionalData": {}
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1778484539,
+      "_nanoseconds": 355000000
+    }
+  },
+  {
+    "id": "draft-1778573722053",
+    "metadata": {
+      "createdAt": {
+        "_seconds": 1778573648,
+        "_nanoseconds": 362000000
+      },
+      "authorId": "user",
+      "version": "0.1",
+      "updatedAt": {
+        "_seconds": 1778573648,
+        "_nanoseconds": 362000000
+      }
+    },
+    "schemaVersion": 4,
+    "createdBy": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "name": "Nuevo Flujo",
+    "tenantId": "3",
+    "showGrid": true,
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "nodes": [
+      {
+        "id": "1",
+        "type": "START",
+        "label": "Inicio",
+        "position": {
+          "x": -465,
+          "y": 15
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "2",
+        "type": "OPERATION",
+        "label": "Operación",
+        "position": {
+          "x": -150,
+          "y": 15
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "3",
+        "type": "OPERATION",
+        "label": "Operación",
+        "position": {
+          "x": 105,
+          "y": 15
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "4",
+        "type": "OPERATION",
+        "label": "Operación",
+        "position": {
+          "x": 105,
+          "y": 225
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      },
+      {
+        "id": "5",
+        "type": "OPERATION",
+        "label": "Operación",
+        "position": {
+          "x": -120,
+          "y": 225
+        },
+        "width": 120,
+        "height": 80,
+        "additionalData": {}
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-1-2-1778573747303",
+        "source": "1",
+        "target": "2",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "style": {
+          "stroke": "#94a3b8",
+          "strokeWidth": 2
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-2-3",
+        "source": "2",
+        "target": "3",
+        "sourceHandle": "right-c",
+        "targetHandle": "left-c",
+        "animated": false,
+        "style": {
+          "stroke": "#94a3b8",
+          "strokeWidth": 2
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-3-4",
+        "source": "3",
+        "target": "4",
+        "sourceHandle": "bottom-c",
+        "targetHandle": "top-c",
+        "animated": false,
+        "style": {
+          "stroke": "#94a3b8",
+          "strokeWidth": 2
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      },
+      {
+        "id": "e-4-5",
+        "source": "4",
+        "target": "5",
+        "sourceHandle": "left-c",
+        "targetHandle": "right-c",
+        "animated": false,
+        "style": {
+          "stroke": "#94a3b8",
+          "strokeWidth": 2
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "width": 20,
+          "height": 20,
+          "color": "#94a3b8"
+        },
+        "pathPoints": []
+      }
+    ],
+    "updatedAt": {
+      "_seconds": 1778573736,
+      "_nanoseconds": 811000000
+    }
+  }
+]

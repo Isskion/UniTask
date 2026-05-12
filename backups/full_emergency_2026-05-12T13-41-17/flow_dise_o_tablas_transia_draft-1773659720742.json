@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "createdAt": {
+      "_seconds": 1773659714,
+      "_nanoseconds": 880000000
+    },
+    "authorId": "user",
+    "version": "0.1",
+    "updatedAt": {
+      "_seconds": 1773659714,
+      "_nanoseconds": 880000000
+    }
+  },
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "docType": "mermaid",
+  "edges": [],
+  "name": "Diseño tablas TransIA",
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1773659720742",
+  "mermaidCode": "sequenceDiagram\n    \n    Pedido-->>Paradas: Cada Pedido tiene N paradas, <br> siendo carga y descarga obligatorias\n    Pedido-->>Pedido: Tras guardar se lanza tarificación\n    Ventas->>Pedido: Se registra el resueltado de tarificar <br>en diferentes lineas, una por concepto.\n    Pedido-->>Tramo:Se genera un tramo identico al pedido al crear pedido, <br>mismo origen, edstino y unidades de carga.\n    Tramo-->>Tramo: Se asignan medios al tramo (vehículo, conductor...)\n    Tramo-->>Viaje: Nace el viaje tras asignación de medios.\n    Viaje-->>Viaje: Se tarifica el viaje si procede\n    Viaje-->>Compra: Nacen las lineas de coste, una por concepto\n    Compra-->>Reparto: Se crean las lineas de reparto según parametro al crearse la compra.\n    Reparto-->>Tramo: Se asocian las lineas de reparto al Tramo.",
+  "projectId": "HKnZypXlGdM0VjRLOysB",
+  "updatedAt": {
+    "_seconds": 1773659731,
+    "_nanoseconds": 565000000
+  }
+}

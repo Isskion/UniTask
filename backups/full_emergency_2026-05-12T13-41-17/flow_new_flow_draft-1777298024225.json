@@ -1,0 +1,516 @@
+{
+  "schemaVersion": 4,
+  "createdBy": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+  "name": "New Flow",
+  "tenantId": "3",
+  "id": "draft-1777298024225",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "showGrid": true,
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1777298024,
+      "nanoseconds": 225000000
+    },
+    "updatedAt": {
+      "seconds": 1777298024,
+      "nanoseconds": 225000000
+    }
+  },
+  "nodes": [
+    {
+      "id": "1",
+      "type": "OPERATION",
+      "label": "CAMBIO ESTADO PARADA",
+      "position": {
+        "y": 220,
+        "x": 270
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "2",
+      "type": "DECISION",
+      "label": "TENGO ACTION MASIVO?",
+      "position": {
+        "y": 220,
+        "x": 490
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "3",
+      "type": "OPERATION",
+      "label": "FUNCION ESTANDARD CAMBIO ESTADO UNITARIO",
+      "position": {
+        "y": -30,
+        "x": 375
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "4",
+      "type": "START",
+      "label": "Inicio",
+      "position": {
+        "y": 220,
+        "x": 50
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "5",
+      "type": "TERMINAL",
+      "label": "CAMBIO ESTADO UNITARIO",
+      "position": {
+        "x": 645,
+        "y": -30
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "6",
+      "type": "STATE",
+      "label": "FOTO Y MOTIVO PARA TODAS LAS PARADAS",
+      "position": {
+        "x": 705,
+        "y": 315
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "7",
+      "type": "DECISION",
+      "label": "PARAMETRO DOMICILIO?",
+      "position": {
+        "x": 1035,
+        "y": 300
+      },
+      "width": 120,
+      "height": 110,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777299426624",
+      "type": "DECISION",
+      "label": "FLAG DOMICILIO?",
+      "position": {
+        "y": 480,
+        "x": 135
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "8",
+      "type": "STATE",
+      "label": "CAMBIO ESTADO  POR DOMICILIO + FOTO+ MOTIVO",
+      "position": {
+        "y": 915,
+        "x": 675
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777299759527",
+      "type": "DECISION",
+      "label": "TRANSICION REQUIERE MOTIVO?",
+      "position": {
+        "y": 645,
+        "x": 135
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777299803123",
+      "type": "DECISION",
+      "label": "TRANSICION REQUIERE  FOTO?",
+      "position": {
+        "y": 210,
+        "x": 1590
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "9",
+      "type": "STATE",
+      "label": "CAMBIO ESTADO MASIVO POR DOMICILIO REPLICANDO FOTO",
+      "position": {
+        "y": 130,
+        "x": 1810
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777299985286",
+      "type": "DECISION",
+      "label": "MOTIVO REQUIERE FOTO?",
+      "position": {
+        "y": 795,
+        "x": 135
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777300685581",
+      "type": "DECISION",
+      "label": "TRANSICION REQUIERE FOTO?",
+      "position": {
+        "y": 450,
+        "x": 1810
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "10",
+      "type": "STATE",
+      "label": "CAMBIO ESTADO MASIVO POR DOMICILIO REPLICANDO MOTIVO",
+      "position": {
+        "y": 450,
+        "x": 2030
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "node-1777301066765",
+      "type": "DECISION",
+      "label": "MOTIVO PERMITE CAMBIO MASIVO?",
+      "position": {
+        "y": 915,
+        "x": 405
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "11",
+      "type": "STATE",
+      "label": "CAMBIO ESTADO MASIVO POR DOMICILIO",
+      "position": {
+        "y": 290,
+        "x": 1810
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-1-2-1777298066165",
+      "source": "1",
+      "target": "2",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-2-3-1777298111463",
+      "source": "2",
+      "target": "3",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-4-1-1777298192858",
+      "source": "4",
+      "target": "1",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-3-5-1777298209462",
+      "source": "3",
+      "target": "5",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-7-node-1777299426624",
+      "source": "7",
+      "target": "node-1777299426624",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "top-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299426624-3-1777299592478",
+      "source": "node-1777299426624",
+      "target": "3",
+      "sourceHandle": "right-c",
+      "targetHandle": "bottom-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299426624-node-1777299759527",
+      "source": "node-1777299426624",
+      "target": "node-1777299759527",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "top-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299759527-node-1777299803123",
+      "source": "node-1777299759527",
+      "target": "node-1777299803123",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299803123-9-1777299934735",
+      "source": "node-1777299803123",
+      "target": "9",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299759527-node-1777299985286",
+      "source": "node-1777299759527",
+      "target": "node-1777299985286",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "top-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777299985286-node-1777300685581",
+      "source": "node-1777299985286",
+      "target": "node-1777300685581",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777300685581-10-1777300736646",
+      "source": "node-1777300685581",
+      "target": "10",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-node-1777298264850-node-1777301066765-1777301508453",
+      "source": "node-1777298264850",
+      "target": "node-1777301066765",
+      "sourceHandle": "right-c",
+      "targetHandle": "bottom-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__node-1777301066765right-c-8left-c",
+      "source": "node-1777301066765",
+      "target": "8",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__node-1777299803123bottom-c-11left-c",
+      "source": "node-1777299803123",
+      "target": "11",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "left-c",
+      "label": "NO",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__2bottom-c-6left-c",
+      "source": "2",
+      "target": "6",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "left-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__node-1777299985286bottom-c-node-1777301066765left-c",
+      "source": "node-1777299985286",
+      "target": "node-1777301066765",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "left-c",
+      "label": "SI",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__6right-c-7left-c",
+      "source": "6",
+      "target": "7",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    }
+  ],
+  "updatedAt": {
+    "_seconds": 1778059436,
+    "_nanoseconds": 84000000
+  }
+}

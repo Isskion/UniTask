@@ -1,0 +1,29 @@
+{
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "docType": "mermaid",
+  "edges": [],
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1775823048921",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1775823025,
+      "nanoseconds": 678000000
+    },
+    "updatedAt": {
+      "seconds": 1775823025,
+      "nanoseconds": 678000000
+    }
+  },
+  "name": "Flujo LS",
+  "schemaVersion": 4,
+  "mermaidCode": "sequenceDiagram\n\n    participant COM as Comercial (CRM/SF)\n    participant ERP as SID LS\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MAN as Manual\n    participant SMA as Semiautomatico\n    participant AUT as Automatico\n    participant MCFS as MulticapacityFlowSolver\n    participant MOB as Unigis App (X Deliveries)\n\n    COM->>ERP: Alta de Pedidos\n    ERP->>TMS: Envío de Pedido Confirmado\n\nNote over COM, MOB: ORDER MANAGEMENT (Entidades: Pedidos de Client)\n    TMS-->>TMS: Recibe pedido : Estado INICIAL\n    TMS-->>TMS: Validación de datos <br> Validar campos (solo de TMS)\n  alt Pedido con Incidencias\n    TMS->>ERP: Actualiza a INGRESADO - BLOQUEADO <br> Incluir información en falta o <br> corrigir información incorrecta \n    Note right of TMS: Gestión en Back Office / Créditos\n    ERP->>TMS: Liberación -> Actualiza a CONFIRMADO <br> Alteración de estado de los pedidos para confirmado, <br>liberando para programación.\n  else Datos OK\n    TMS-->>TMS: Estado: CONFIRMADO\n  end\n    \n  alt ¿Tiene Cita?\n    TMS->>TMS: Si tiene Cita!\n    Note right of TMS: Añadir datos de cita y volvemos a validar pedido\n  else Datos OK\n    TMS-->TMS: Estado: REGISTRADO OK\n  end\nNote over TMS, MCFS : Tipo de programación(Entidades: Pedidos de Client)\nNote over MAN, MAN: Planificación Manual \n    MAN-->>MAN: Atribución del estado de pedido manualmente<br>pedido a pedido o massivamente \n    MAN-->>MAN: Estado pedido 'PLANIFICAR'\n\nNote over SMA,SMA: Planificación Semiautomatica\n    MAN-->>MAN: *4 Estado pedido - Reglas : Seleción massiva de pedidos y <br>realizar proceso especial.<br>Atribución de lo estado de<br>pedido por reglas parametrizadas <br>(por ejemplo por volumen, o numero paletes) Matriz decisión\n    MAN-->>MAN: Crear Ruta: <br> Estado Ruta: INICIAL\n\n\n\n\n\n\n\n  alt Necesidad de hacer cambios al roteo?\n    MAN->>MAN: ANADIR O BORRAR: *7 Cambios Ruta\n    MAN->>MAN: CAMBIAR RUTA: Edición massiva de ruta\n    MAN->>MAN: REORDENAR SEQUENCIA: Reordenação Automática\n  else Sin cambios necesario\n    MAN-->>MAN: Estado: CONFIRMADO\n  end\n  alt ¿Vehículo definido?\n    MAN->>MAN: Asignar Vehiculo\n  else Vehículo asginado\n    MAN-->>MAN: Confirmación de Ruta: Estado 'CONFIRMADA'\n  end\n\n\n\nNote over TMS, MAN: PLANIFICACIÓN MANUAL (Entidades: Pedidos de Client)\n    MAN-->>MAN: Selección de ordenes : Selecionar las ordens para rotear. \n    MAN-->>MAN: Crear Ruta: <br> Estado Ruta: INICIAL\n\n  alt ¿Vehículo definido?\n    MAN->>MAN: Asignar Vehiculo\n  else Vehículo asginado\n    MAN-->>MAN: Confirmación de Ruta: Estado 'CONFIRMADA'\n  end",
+  "updatedAt": {
+    "_seconds": 1776434652,
+    "_nanoseconds": 319000000
+  }
+}

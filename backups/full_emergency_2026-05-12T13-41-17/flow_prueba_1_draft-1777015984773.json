@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 4,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "tenantId": "3",
+  "id": "draft-1777015984773",
+  "projectId": "sZDav2CndgdmhfYc8BTt",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1777015984,
+      "nanoseconds": 773000000
+    },
+    "updatedAt": {
+      "seconds": 1777015984,
+      "nanoseconds": 773000000
+    }
+  },
+  "name": "Prueba 1",
+  "edges": [
+    {
+      "id": "e-6-7-1777016773925",
+      "source": "6",
+      "target": "7",
+      "sourceHandle": "left-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-7-5-1777016777164",
+      "source": "7",
+      "target": "5",
+      "sourceHandle": "top-c",
+      "targetHandle": "top-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-5-node-1777016036653-1777016780231",
+      "source": "5",
+      "target": "node-1777016036653",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "bottom-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    }
+  ],
+  "showGrid": true,
+  "nodes": [
+    {
+      "label": "1. Sistema 1",
+      "width": 400,
+      "height": 300,
+      "additionalData": {},
+      "type": "ENVIRONMENT",
+      "id": "1",
+      "position": {
+        "y": 50,
+        "x": 50
+      }
+    },
+    {
+      "id": "2",
+      "type": "ENVIRONMENT",
+      "additionalData": {},
+      "position": {
+        "x": 500,
+        "y": 50
+      },
+      "width": 400,
+      "height": 300,
+      "label": "2. Sistema 2"
+    },
+    {
+      "label": "3. Sistema 3",
+      "height": 300,
+      "width": 400,
+      "type": "ENVIRONMENT",
+      "additionalData": {},
+      "id": "3",
+      "position": {
+        "x": 950,
+        "y": 50
+      }
+    },
+    {
+      "id": "4",
+      "additionalData": {},
+      "type": "ENVIRONMENT",
+      "position": {
+        "x": 45,
+        "y": 495
+      },
+      "width": 400,
+      "height": 300,
+      "label": "4. Sistema 4"
+    },
+    {
+      "position": {
+        "x": 630,
+        "y": 150
+      },
+      "targetFlowId": "draft-1777280096725",
+      "id": "5",
+      "targetNodeId": "3",
+      "height": 80,
+      "width": 120,
+      "label": "Estado",
+      "additionalData": {},
+      "type": "STATE"
+    },
+    {
+      "id": "6",
+      "position": {
+        "y": 615,
+        "x": 195
+      },
+      "targetFlowId": "draft-1777280096725",
+      "width": 120,
+      "height": 80,
+      "label": "Inicio",
+      "targetNodeId": "10",
+      "type": "START",
+      "additionalData": {}
+    },
+    {
+      "additionalData": {},
+      "type": "ERROR",
+      "targetNodeId": "2",
+      "label": "Error",
+      "height": 80,
+      "width": 120,
+      "targetFlowId": "draft-1777280096725",
+      "position": {
+        "y": 150,
+        "x": 180
+      },
+      "id": "7"
+    },
+    {
+      "additionalData": {},
+      "type": "STATE",
+      "height": 80,
+      "width": 120,
+      "label": "Estado",
+      "targetNodeId": "4",
+      "id": "node-1777016036653",
+      "position": {
+        "y": 150,
+        "x": 1080
+      },
+      "targetFlowId": "draft-1777280096725"
+    },
+    {
+      "height": 100,
+      "width": 250,
+      "label": "Prueba de persistencia de comentario",
+      "position": {
+        "x": 165,
+        "y": 405
+      },
+      "id": "text-1777017417517",
+      "additionalData": {},
+      "type": "TEXT"
+    }
+  ],
+  "lockedBy": {
+    "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Daniel Tenant Admin",
+    "updatedAtStr": "2026-05-11T15:43:12.138Z",
+    "timestamp": 1778514192138
+  },
+  "updatedAt": {
+    "_seconds": 1778586512,
+    "_nanoseconds": 628000000
+  }
+}

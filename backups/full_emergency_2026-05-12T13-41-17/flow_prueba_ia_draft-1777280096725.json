@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 4,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "tenantId": "3",
+  "id": "draft-1777280096725",
+  "projectId": "sZDav2CndgdmhfYc8BTt",
+  "name": "Prueba IA",
+  "edges": [
+    {
+      "id": "1",
+      "source": "1",
+      "target": "2",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "2",
+      "source": "2",
+      "target": "3",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "3",
+      "source": "3",
+      "target": "4",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "4",
+      "source": "4",
+      "target": "5",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "5",
+      "source": "5",
+      "target": "6",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "6",
+      "source": "6",
+      "target": "7",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "7",
+      "source": "7",
+      "target": "8",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "8",
+      "source": "8",
+      "target": "9",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "9",
+      "source": "9",
+      "target": "10",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "10",
+      "source": "10",
+      "target": "11",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "11",
+      "source": "11",
+      "target": "12",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "12",
+      "source": "5",
+      "target": "12",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    }
+  ],
+  "showGrid": true,
+  "nodes": [
+    {
+      "position": {
+        "y": 250,
+        "x": 0
+      },
+      "id": "1",
+      "additionalData": {},
+      "type": "START",
+      "width": 120,
+      "height": 80,
+      "label": "Recepción y Validación en TMS"
+    },
+    {
+      "type": "OPERATION",
+      "additionalData": {},
+      "label": "Grabación y Envío a Preparación (TMS/ERP/SGA)",
+      "width": 120,
+      "height": 80,
+      "targetNodeId": "7",
+      "id": "2",
+      "targetFlowId": "draft-1777015984773",
+      "position": {
+        "x": 200,
+        "y": 150
+      }
+    },
+    {
+      "targetFlowId": "draft-1777015984773",
+      "position": {
+        "x": 400,
+        "y": 150
+      },
+      "id": "3",
+      "targetNodeId": "5",
+      "label": "Finalización Preparación (TMS/ERP/SGA)",
+      "width": 120,
+      "height": 80,
+      "additionalData": {},
+      "type": "OPERATION"
+    },
+    {
+      "position": {
+        "x": 600,
+        "y": 150
+      },
+      "targetFlowId": "draft-1777015984773",
+      "id": "4",
+      "targetNodeId": "node-1777016036653",
+      "width": 120,
+      "height": 80,
+      "label": "Planificación de Rutas (TMS/ERP)",
+      "additionalData": {},
+      "type": "OPERATION"
+    },
+    {
+      "additionalData": {},
+      "type": "OPERATION",
+      "targetNodeId": "6",
+      "width": 120,
+      "height": 80,
+      "label": "Asignación de Recursos (TMS)",
+      "position": {
+        "x": 800,
+        "y": 250
+      },
+      "targetFlowId": "draft-1777015984773",
+      "id": "5"
+    },
+    {
+      "height": 80,
+      "width": 120,
+      "label": "Generación del Viaje (TMS)",
+      "id": "6",
+      "type": "OPERATION",
+      "additionalData": {},
+      "position": {
+        "x": 600,
+        "y": 350
+      }
+    },
+    {
+      "id": "7",
+      "type": "OPERATION",
+      "additionalData": {},
+      "position": {
+        "y": 350,
+        "x": 400
+      },
+      "height": 80,
+      "width": 120,
+      "label": "Sincronización a Móvil (TMS/MOBILE)"
+    },
+    {
+      "additionalData": {},
+      "type": "OPERATION",
+      "id": "8",
+      "position": {
+        "y": 350,
+        "x": 200
+      },
+      "label": "Inicio de Viaje (MOBILE)",
+      "height": 80,
+      "width": 120
+    },
+    {
+      "width": 120,
+      "height": 80,
+      "label": "Gestión de Parada (Entrega) (MOBILE)",
+      "id": "9",
+      "additionalData": {},
+      "type": "OPERATION",
+      "position": {
+        "y": 450,
+        "x": 400
+      }
+    },
+    {
+      "position": {
+        "x": 600,
+        "y": 450
+      },
+      "id": "10",
+      "type": "OPERATION",
+      "additionalData": {},
+      "width": 120,
+      "height": 80,
+      "label": "Cierre Automático de Viaje (TMS)",
+      "targetFlowId": "draft-1777015984773",
+      "targetNodeId": "6"
+    },
+    {
+      "position": {
+        "x": 800,
+        "y": 450
+      },
+      "id": "11",
+      "type": "OPERATION",
+      "additionalData": {},
+      "height": 80,
+      "width": 120,
+      "label": "Liquidación / Retorno (TMS/ERP)"
+    },
+    {
+      "position": {
+        "x": 1000,
+        "y": 250
+      },
+      "additionalData": {},
+      "type": "TERMINAL",
+      "id": "12",
+      "label": "CIERRE FINAL (Confirmación en ERP)",
+      "width": 120,
+      "height": 80
+    }
+  ],
+  "lockedBy": {
+    "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Daniel Tenant Admin",
+    "updatedAtStr": "2026-05-12T11:48:54.757Z",
+    "timestamp": 1778586534757
+  },
+  "updatedAt": {
+    "_seconds": 1778586500,
+    "_nanoseconds": 536000000
+  }
+}

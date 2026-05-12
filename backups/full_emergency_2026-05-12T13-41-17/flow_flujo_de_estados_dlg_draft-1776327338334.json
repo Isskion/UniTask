@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "createdAt": {
+      "_seconds": 1776327304,
+      "_nanoseconds": 229000000
+    },
+    "authorId": "user",
+    "version": "0.1",
+    "updatedAt": {
+      "_seconds": 1776327304,
+      "_nanoseconds": 229000000
+    }
+  },
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "docType": "mermaid",
+  "edges": [],
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1776327338334",
+  "projectId": "Au1xfXgivgl6VYj2zscs",
+  "mermaidCode": "sequenceDiagram\n\n    participant COM as Comercial (CRM/SF)\n    participant ERP as ERP Delgado\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MOB as Unigis App (X Deliveries)\n\nNote over COM, MOB: Proceso de INTERFASE 1: Creación y Validación\n    COM->>ERP: Alta de Pedidos\n    ERP->>TMS: Envío de Pedido grabado\n    TMS-->>TMS: Recibe pedido : Estado INGRESADO\n\n    alt Pedido con Incidencias\n        TMS-->>ERP: Actualiza a INGRESADO - BLOQUEADO\n        Note right of TMS: Gestión en Back Office / Créditos\n        ERP-->>TMS: Liberación -> Actualiza a INGRESADO\n    end\n    \n TMS->>TMS: Validación de datos operativos\n    alt Faltan datos\n        TMS->>TMS: Estado: ERROR-REQUIERE AJUSTE\n        Note right of TMS: Ajuste manual en Unigis OM\n        TMS->>TMS: Cambio a estado GRABADO\n    else Datos OK\n        TMS->>TMS: Estado: GRABADO\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Envío Preparación\n    TMS->>TMS: Evalúa lógica de Preparación\n    TMS->>ERP: Envío de integración al ERP (Estado Pedido: ENVIADO A PREPARACION)\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Preparación\n    ERP->>ERP: Almacén confirma carga en pallets con SGA\n    ERP->>ERP: Envío de actualización de viaje preparada\n    ERP->>TMS: WS ?? (Estado Pedido: PREPARADO + Albarán)\n\n    Note over COM, MOB: Paso 4: Planificación \n    TMS->>TMS: Filtro por estado y cambio a POR RUTEAR\n    TMS->>TMS: Geocodificación y Consolidación de paradas\n    TMS->>TMS: Se crean las ordenes al recibir el estado (Estado Orden: POR RUTEAR)\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Ruteado de ordenes y envío a ERP\n    TMS->>TMS: Creación de Viaje <br> (Estado Ruta: PLANIFICADO) <br> (Estado Orden: RUTEADA) <br> (Estado Pedido: RUTEADO)\n      alt Cambios de ordenes en rutas\n        TMS->>ERP: Estado RUTA: INFORMAR CAMBIOS\n      end   \n    TMS->>TMS: Estado RUTA: VALIDADA\n   \n\n    Note over COM, MOB: Proceso de INTERFASE ??: Asignación y Viaje\n    TMS->>TMS: Asignan los medios a las rutas\n    TMS->>TMS: Creación de Viaje (Estado: PENDIENTE DE CARGA)  <br> (Estado Orden: PENDIENTE DE CARGA)\n    TMS->>MOB: Envío automático a Operación/Transportista\n\n    Note over COM, MOB: Paso 7: Carga del Camión \n    MOB->>MOB: Conductor valida ítems y secuencia en App\n    alt Carga Exitosa\n        MOB->>TMS: (Estado Parada: PENDIENTE REPARTO)\n    else Incidencia de carga\n        MOB->>TMS: (Estado Parada: CARGADO <br> Estado Viaje: CARGADO)\n        TMS->>ERP: Enviamos los datos de carga para actualizar en ERP\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Ejecución\n    MOB->>TMS: Registro de POD y estado final (Estado Parada: EN REPARTO)  <br> (Estado Parada: ENTREGADO) <br>  (Estado Parada: ENTREGA PARCIAL) <br> (Estado Parada: NO ENTREGADO)  <br> (Estado Orden: PENDIENTE DE CARGA) <br> (Estado Orden: CARGADA) <br> (Estado Orden: ENTREGADO) <br> (Estado Orden: ENTREGADO PARCIAL) <br> (Estado Orden: NO ENTREGADO)\n    TMS->>ERP: Envío de estados y valores cobrados. Totales entregados por parada.\n    TMS->>ERP: Cuando todas las paradas se han finalizado (Estado Viaje: FIN REPARTO)\n    TMS->>TMS: Cuando hay paradas no tratadas, pero el chofer llega a Deposito (Estado Viaje: VIAJE INCOMPLETO) <br> Notificamos que el viaje llega con Paradas sin gestionar\n\n    Note over COM, MOB: Proceso de INTERFASE ??: Fin de viaje\n    MOB->>TMS: Se detecta la entrada en la Geocerca del deposito de llegada\n    TMS->>ERP: (Estado Viaje: FIN DE DÍA)",
+  "name": "Flujo de estados DLG",
+  "updatedAt": {
+    "_seconds": 1776334159,
+    "_nanoseconds": 365000000
+  },
+  "lockedBy": {
+    "uid": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "name": "Jesus Marquez",
+    "timestamp": 1778573700297,
+    "updatedAtStr": "2026-05-12T08:15:00.297Z"
+  }
+}

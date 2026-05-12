@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "createdAt": {
+      "_seconds": 1777913175,
+      "_nanoseconds": 983000000
+    },
+    "authorId": "user",
+    "version": "0.1",
+    "updatedAt": {
+      "_seconds": 1777913175,
+      "_nanoseconds": 983000000
+    }
+  },
+  "schemaVersion": 4,
+  "docType": "mermaid",
+  "edges": [],
+  "mermaidCode": "sequenceDiagram\n    participant Ext as Sistema Externo\n    participant TMS as TMS (Core)\n    participant Mob as Mobile (Chofer)\n\n    Note over Ext, TMS: Paso 1: Alta de Pedido\n    Ext-->>TMS: Envío de pedidos\n    TMS-->>TMS: Estado: INGRESADO\n    Note right of TMS: Paso 2Bis: Documentación\n    TMS-->>TMS: Validación de Integración\n\n    alt Pedido KO\n        TMS-->>TMS: Estado: ERROR (Requiere Corrección)\n        Note right of TMS: Paso 3: Gestión de Errores\n    else Pedido OK\n        TMS-->>TMS: Estado: GRABADO\n    end\n\n    TMS-->>TMS: Customer Service CONFIRMA\n    Note right of TMS: Paso 4: Confirmación Planificación\n\n    alt Pedido KO\n        TMS-->>TMS: Estado: ERROR (Requiere Corrección)\n        Note right of TMS: Paso 4bis: Gestión de Errores\n    else Pedido OK\n        TMS-->>TMS: Estado: CONFIRMADO\n    end\n\n    Note over TMS: Paso 5: Generación de Viajes\n    TMS-->>TMS: Estado: EN PLANIFICACIÓN / Viaje Inactivo\n    TMS-->>TMS: Asignación de Medios (Pedido PLANIFICADO)\n\n    Note over TMS, Mob: Paso 6: Ejecución\n    TMS-->>Mob: Viaje disponible en Mobile\n    Mob-->>TMS: Chofer activa viaje (Estado: ACTIVO)\n    \n    rect rgb(240, 240, 240)\n        Note right of Mob: TRACKING ACTIVO\n        Mob-->>Ext: Coordenadas accesibles en tiempo real\n    end\n\n    Note over Mob: Paso 7: Control de Carga\n    Mob-->>Mob: Revisión Doc / Recepción PIN\n\n    alt Viaje KO\n        Mob-->>TMS: Estado: ERROR (Requiere Corrección)\n    else Viaje OK\n        Mob-->>TMS: Estado: CONTENEDOR RECOGIDO\n        TMS-->>Ext: Notificación: CONTENEDOR RECOGIDO\n    end\n\n    Note over Mob: Paso 8: Gestión de Entregas\n    Mob-->>Ext: Comunicación de estados y posición\n\n    Note over Mob: Finalización\n    Mob-->>Mob: Devolución a Depot\n    Mob-->>Ext: Estado: ENTREGADO / CIERRE DE PEDIDO\n    \n    Note over TMS: Paso 9 y 10: Liquidación\n    TMS-->>TMS: Validación de incidencias\n    TMS-->>TMS: Generación de liquidación (Cobro/Pago)\n    TMS-->>TMS: CIERRE DEL VIAJE",
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "name": "distribución mermaid",
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1777915337457",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "updatedAt": {
+    "_seconds": 1777915337,
+    "_nanoseconds": 626000000
+  }
+}

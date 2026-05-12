@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 4,
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "tenantId": "3",
+  "id": "draft-1778239301819",
+  "projectId": "HKnZypXlGdM0VjRLOysB",
+  "showGrid": false,
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1778239290,
+      "nanoseconds": 321000000
+    },
+    "updatedAt": {
+      "seconds": 1778239290,
+      "nanoseconds": 321000000
+    }
+  },
+  "name": "e-Cmr flujo Tiva entrada excel",
+  "edges": [
+    {
+      "id": "e-1-2",
+      "source": "1",
+      "target": "2",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-2-5-1778249613860",
+      "source": "2",
+      "target": "5",
+      "sourceHandle": "top-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-5-2-1778249679050",
+      "source": "5",
+      "target": "2",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-6-7",
+      "source": "6",
+      "target": "7",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-6-8",
+      "source": "6",
+      "target": "8",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "width": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-6-9",
+      "source": "6",
+      "target": "9",
+      "sourceHandle": "right-c",
+      "targetHandle": "left-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "type": "arrowclosed",
+        "width": 20,
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-9-5-1778250084871",
+      "source": "9",
+      "target": "5",
+      "sourceHandle": "right-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-8-5-1778250088770",
+      "source": "8",
+      "target": "5",
+      "sourceHandle": "right-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "width": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8"
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-7-5-1778250100384",
+      "source": "7",
+      "target": "5",
+      "sourceHandle": "right-c",
+      "targetHandle": "right-c",
+      "animated": false,
+      "markerEnd": {
+        "height": 20,
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "width": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-2-10-1778250553588",
+      "source": "2",
+      "target": "10",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "top-c",
+      "animated": false,
+      "markerEnd": {
+        "width": 20,
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "e-10-6-1778250555782",
+      "source": "10",
+      "target": "6",
+      "sourceHandle": "bottom-c",
+      "targetHandle": "top-c",
+      "animated": false,
+      "markerEnd": {
+        "color": "#94a3b8",
+        "type": "arrowclosed",
+        "width": 20,
+        "height": 20
+      },
+      "pathPoints": []
+    },
+    {
+      "id": "xy-edge__5top-c-1top-c",
+      "source": "5",
+      "target": "1",
+      "sourceHandle": "top-c",
+      "targetHandle": "top-c",
+      "animated": false,
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#94a3b8",
+        "width": 20,
+        "height": 20
+      },
+      "pathPoints": []
+    }
+  ],
+  "nodes": [
+    {
+      "id": "1",
+      "type": "OPERATION",
+      "label": "Sistema externo",
+      "position": {
+        "y": 60,
+        "x": -390
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "2",
+      "type": "OPERATION",
+      "label": "UNIGIS // TMS",
+      "position": {
+        "y": 60,
+        "x": 30
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778249458526",
+      "type": "TEXT",
+      "label": "La comunicación con el TMS se propone vía Excel",
+      "position": {
+        "x": -240,
+        "y": 30
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "5",
+      "type": "ICON",
+      "label": "Nube",
+      "position": {
+        "y": -195,
+        "x": 390
+      },
+      "width": 64,
+      "height": 64,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778249619334",
+      "type": "TEXT",
+      "label": "Unigis empaqueta la información y solicita certificación de los viajes y sus paradas a entidad certificadora",
+      "position": {
+        "x": 120,
+        "y": -105
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778249683812",
+      "type": "TEXT",
+      "label": "Se recibe la respuesta OK / KO desde la entidad certificadora. Quedando registro de resultado y anunciando a usuario para posible gestión.",
+      "position": {
+        "x": 210,
+        "y": 135
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "6",
+      "type": "OPERATION",
+      "label": "Chofer",
+      "position": {
+        "x": 30,
+        "y": 435
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778249750431",
+      "type": "TEXT",
+      "label": "Chofer recibe la notificación con información del transporte y el QR que permite validar la certifiación de cada parada. ",
+      "position": {
+        "x": -270,
+        "y": 420
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "7",
+      "type": "OPERATION",
+      "label": "Parada 1",
+      "position": {
+        "x": 465,
+        "y": 300
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "8",
+      "type": "OPERATION",
+      "label": "Parada 2",
+      "position": {
+        "x": 465,
+        "y": 435
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "9",
+      "type": "OPERATION",
+      "label": "\nParada 3",
+      "position": {
+        "y": 570,
+        "x": 465
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778249964443",
+      "type": "TEXT",
+      "label": "Cada parada es tratada a nivel individual y el resultado de la entrega / recogida es comunicada a la entidad certificadora. Actualizando el estado del registro y posibles cambios en cantidades de carga",
+      "position": {
+        "x": 150,
+        "y": 645
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778250161379",
+      "type": "TEXT",
+      "label": "La información de las paradas queda registrada en el TMS pero también es accesible desde la entidad certificadora por parte del cliente cargador.",
+      "position": {
+        "y": -210,
+        "x": -255
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    },
+    {
+      "id": "10",
+      "type": "DATA",
+      "label": "Envío push de viaje y QR",
+      "position": {
+        "y": 255,
+        "x": 30
+      },
+      "width": 120,
+      "height": 80,
+      "additionalData": {}
+    },
+    {
+      "id": "text-1778250557429",
+      "type": "TEXT",
+      "label": "Toda vez que el e-Cmr esta integrado y es OK, se puede enviar al chofer, bien por acción manual o automatica según condiciones definidas.",
+      "position": {
+        "y": 240,
+        "x": -255
+      },
+      "width": 250,
+      "height": 100,
+      "additionalData": {}
+    }
+  ],
+  "updatedAt": {
+    "_seconds": 1778484539,
+    "_nanoseconds": 355000000
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 4,
+  "docType": "mermaid",
+  "edges": [],
+  "mermaidCode": "sequenceDiagram\n    autonumber\n    participant ERP as ERP / SGA\n    participant EAL as MiddleWare-EAL\n    participant OM as Unigis OM\n    participant TMS as Unigis TMS (Planning)\n    participant FLT as Unigis Fleet (Flota)\n    participant MOB as Unigis App (X Deliveries)\n\n    Note over FLT, TMS: GESTIÓN DE RECURSOS (Fleet)\n    FLT->>FLT: Registro de Vehículos y Conductores\n    FLT->>FLT: Estado: DISPONIBLE / EN MANTENIMIENTO\n    FLT->>TMS: Sincronización de Recursos Activos\n    Note right of FLT: Incluye Documentación y Vencimientos\n\n    Note over ERP, OM: FASE 1: DEMANDA (Interfaz 1)\n    ERP->>EAL: Envío de Pedidos\n    EAL->>OM: Recepción Interfaz 1\n    \n    rect rgb(240, 240, 240)\n    Note right of OM: Proceso de Domicilios (Destinatarios)\n    OM->>OM: Creación de Domicilio\n    OM->>OM: Validación Geocodificación (Automático)\n    OM->>OM: Asociación al Maestro\n    alt Error de Geocodificación\n        OM-->>OM: Estado PEDIDO: ERROR-REQUIERE AJUSTE\n        Note right of OM: Acción Manual: Corrección de coordenadas\n    else Geocodificación OK\n        OM->>OM: Estado PEDIDO: LISTO PARA PLANIFICAR\n    end\n    end\n\n    Note over OM, TMS: FASE 2: PLANIFICACIÓN (Entidad RUTA/VIAJE)\n    OM->>TMS: Traspaso de Pedidos a Órdenes\n    \n    rect rgb(235, 245, 235)\n    Note right of TMS: Filtros: Fecha, Depósito, Muelle\n    \n    alt Camino A: MANUAL\n        TMS->>TMS: Selección de Órdenes (Manual)\n        TMS->>TMS: Creación de Unidad/Viaje\n        TMS->>TMS: Arrastre (Drag & Drop) de Paradas\n    else Camino B: SEMIAUTOMÁTICO\n        TMS->>TMS: Agrupación por Zonas Lógicas\n        TMS->>TMS: Generación de Propuesta de Ruta\n    else Camino C: MCFS (Optimización)\n        TMS->>TMS: Configuración Restricciones (Ventanas/Costes)\n        TMS->>TMS: Ejecución Motor Algorítmico MCFS\n    end\n    end\n\n    TMS->>TMS: Estado RUTA/VIAJE: PLANIFICADO\n    TMS->>TMS: Validación de Viaje (Acción Usuario)\n    TMS->>TMS: Estado RUTA/VIAJE: VALIDADO / CONFIRMADO\n\n    Note over TMS, MOB: FASE 3: EJECUCIÓN (Interfaz 2)\n    TMS->>MOB: Envío a App (Despacho de Viaje)\n    MOB->>MOB: Estado VIAJE: ASIGNADO\n    \n    rect rgb(255, 245, 245)\n    Note right of MOB: Operativa en Ruta\n    MOB->>MOB: Inicio de Viaje (Estado: EN VIAJE)\n    MOB->>MOB: Llegada a Parada (Geocerca/Manual)\n    MOB->>MOB: Estado PARADA: EN CURSO\n    MOB->>MOB: Confirmación Entrega (POD/Firma/Foto)\n    MOB->>MOB: Estado PARADA: VISITADO (Entregado/Rechazado)\n    end\n\n    Note over MOB, ERP: FASE 4: CIERRE (Interfaz 4)\n    MOB->>TMS: Sincronización de Eventos Real-Time\n    TMS->>TMS: Estado VIAJE: FINALIZADO\n    TMS->>EAL: Envío de Estados y Valores Finales\n    EAL->>ERP: Actualización Final",
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "name": "Flujo Gemini completo",
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1776435106494",
+  "projectId": "OH4sjML9byhLuzMXSTss",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1776434954,
+      "nanoseconds": 97000000
+    },
+    "updatedAt": {
+      "seconds": 1776434954,
+      "nanoseconds": 97000000
+    }
+  },
+  "updatedAt": {
+    "_seconds": 1778059484,
+    "_nanoseconds": 958000000
+  }
+}

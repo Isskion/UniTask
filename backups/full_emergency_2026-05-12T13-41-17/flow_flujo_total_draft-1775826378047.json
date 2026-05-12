@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "createdAt": {
+      "_seconds": 1775823025,
+      "_nanoseconds": 678000000
+    },
+    "authorId": "user",
+    "version": "0.1",
+    "updatedAt": {
+      "_seconds": 1775823025,
+      "_nanoseconds": 678000000
+    }
+  },
+  "nodes": [],
+  "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+  "docType": "mermaid",
+  "edges": [],
+  "name": "Flujo total",
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1775826378047",
+  "mermaidCode": "sequenceDiagram\n    participant COM as Comercial (CRM/SF)\n    participant ERP as ERP Europastry\n    participant INT as Interfaz (Middleware)\n    participant TMS as Unigis TMS (OM/Planning)\n    participant MOB as Unigis App (X Deliveries)\n\n    Note over COM, MOB: Proceso de INTERFASE 1: Creación y Validación\n    COM->>ERP: Alta de Pedidos\n    ERP->>INT: Envío de Pedido grabado\n    INT->>INT: Consolida y normaliza datos\n    INT->>TMS: WS CrearOrdenesPedido (Estado: INGRESADO)\n\n    alt Pedido con Incidencias\n        INT->>TMS: Actualiza a INGRESADO - BLOQUEADO\n        Note right of INT: Gestión en Back Office / Créditos\n        INT->>TMS: Liberación -> Actualiza a INGRESADO\n    end\n\n    TMS->>TMS: Validación de datos operativos\n    alt Faltan datos\n        TMS->>TMS: Estado: ERROR-REQUIERE AJUSTE\n        Note right of TMS: Ajuste manual en Unigis OM\n        TMS->>TMS: Cambio a estado GRABADO\n    else Datos OK\n        TMS->>TMS: Estado: GRABADO\n    end\n\n    Note over COM, MOB: Proceso de INTERFASE 2: Adelanto Preparación\n    TMS->>TMS: Evalúa lógica de adelantos\n    TMS->>INT: Asigna Grupo Ruta (Estado: ENVIADO A PREPARACION)\n    INT->>ERP: Envío de integración al ERP\n\n    Note over COM, MOB: Proceso de INTERFASE 3: Confirmación y VL\n    ERP->>ERP: Proceso de confirmación (Bloquea ediciones)\n    ERP->>INT: Genera VL y envía a TMS\n    INT->>TMS: WS CrearOrdenesPedido (Estado: EN PREPARACION)\n\n    Note over COM, MOB: Paso 4: Planificación (Aprox 18:00 hrs)\n    TMS->>TMS: Filtro por estado y cambio a PLANIFICAR\n    TMS->>TMS: Geocodificación y Consolidación de paradas\n    TMS->>TMS: Ruteo Automático (Reglas de negocio)\n    \n    Note over COM, MOB: Proceso de INTERFASE 4: Asignación y Viaje\n    TMS->>TMS: Cambio a CONFIRMADA (Valida Medios)\n    TMS->>TMS: Creación de Viaje (Estado: PLANIFICADO EN PREPARACION)\n    TMS->>ERP: Envío de viaje y paradas al ERP\n    TMS-->>COM: Email automático a Operación/Transportista\n\n    Note over COM, MOB: Proceso de INTERFASE 5: Preparación\n    ERP->>ERP: Almacén confirma carga en pallets\n    ERP->>INT: Envío de actualización de viaje preparada\n    INT->>TMS: WS CrearViajeCompleto7 (Estado: PREPARADO + Albarán)\n\n    Note over COM, MOB: Paso 7: Carga del Camión (Madrugada)\n    MOB->>MOB: Conductor valida ítems y secuencia en App\n    alt Carga Exitosa\n        MOB->>TMS: Estado Parada: CARGADO\n    else Incidencia de carga\n        MOB->>TMS: Estado: CARGADO PARCIAL / NO CARGADO\n        TMS->>TMS: Generación Hoja de Faltantes\n    end\n\n    Note over COM, MOB: Paso 9: Activación del viaje\n    MOB->>TMS: Conductor activa viaje (Estado: ACTIVO)\n    TMS->>TMS: Pedidos pasan a EN RUTA / POR COBRAR / POR RECOGER\n\n    Note over COM, MOB: Proceso de INTERFASE 6: Ejecución y Visita\n    TMS->>TMS: Geocerca activa estado VISITADO automáticamente\n    MOB->>TMS: Registro de POD y estado final (Entregado/Rechazado)\n    MOB->>INT: Envío de estados y valores cobrados\n    INT->>ERP: Interfaz de liquidación al ERP\n\n    Note over COM, MOB: Proceso de INTERFASE 7: Depósito en Banco\n    MOB->>TMS: Parada Depósito -> DEPOSITO REALIZADO\n    TMS->>ERP: Envío de liquidaciones y foto de comprobante\n\n    Note over COM, MOB: Proceso de INTERFASE 8: Rendición en Almacén\n    MOB->>TMS: Generación parada Rendición (No entregados/Recogidos)\n    Note right of TMS: Usuario Almacén valida en Tracking\n    TMS->>TMS: Estado: RENDIDO\n    TMS->>ERP: Interfaz de reingreso automático de productos\n\n    Note over COM, MOB: Paso 14: Liquidación\n    TMS->>TMS: Aprobación de incidencias de viaje\n    TMS->>TMS: Estado Viaje: LIQUIDABLE (Cálculo de tarifas)\n    \n    Note over COM, MOB: Proceso de INTERFASE 9: Pago a Proveedores\n    TMS->>TMS: Generación Liquidación (Estado: CONFIRMADA)\n    TMS->>ERP: Envío de preliquidaciones de pago por interfaz\n    TMS->>TMS: Estado Viaje: LIQUIDADO",
+  "projectId": "9iqygviz3AGJnbJOLc8E",
+  "updatedAt": {
+    "_seconds": 1775826611,
+    "_nanoseconds": 552000000
+  },
+  "lockedBy": {
+    "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "Daniel Tenant Admin",
+    "timestamp": 1778581990607,
+    "updatedAtStr": "2026-05-12T10:33:10.607Z"
+  }
+}

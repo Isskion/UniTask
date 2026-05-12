@@ -1,0 +1,28 @@
+{
+  "nodes": [],
+  "docType": "mermaid",
+  "edges": [],
+  "name": "Flujo Transpais Intermodal",
+  "tenantId": "3",
+  "mermaidEngine": "sequence",
+  "id": "draft-1773130707186",
+  "projectId": "aAb2HIajQVhXnLAzmVo8",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1773130664,
+      "nanoseconds": 227000000
+    },
+    "updatedAt": {
+      "seconds": 1773130664,
+      "nanoseconds": 227000000
+    }
+  },
+  "mermaidCode": "sequenceDiagram\n    Sistema Externo-->>TMS:Envio de pedidos // Paso 1 Alta de pedido\n    TMS-->>TMS:Pedido Estado INGRESADO\n    TMS-->>TMS:Paso 2Bis: Recepción de documentación\n    TMS-->>TMS:Validación interna Paso 2: Validación de Integración\nalt pedido KO\n    TMS-->>TMS: Pedido estado ERROR - REQUIERE CORRECION\n    TMS-->>TMS: Paso 3: Gestión de Errores (Si aplica)\n    TMS-->>TMS:Validación interna\nelse pedido OK\n    TMS-->>TMS: Pedido estado Grabado\nend\n    TMS-->>TMS: Customer service CONFIRMA pedido\n    TMS-->>TMS: Validación interna Paso 4: Confirmación Planificación\nalt pedido KO\n    TMS-->>TMS: Pedido estado ERROR - REQUIERE CORRECION \n    TMS-->>TMS: Paso 4bis: Gestión de Errores   \n    TMS-->>TMS:Validación interna\n    else pedido OK\n    TMS-->>TMS: Pedido estado CONFIRMADO\nend\n    TMS-->>TMS: Planificador cambia estado de pedidos y genera viajes <br> Paso 5:Generación de viajes\n    TMS-->>TMS: Pedido estado EN PLANIFICACIÓN, <BR/> Viaje estado Inactivo\n    TMS-->>TMS: Planificador asigna medios a los viajes <BR/> Pedido PLANIFICADO <br>  Viaje INACTIVO\n    TMS-->>Mobile: El viaje queda disponible para chofer en Mobile. \n    Mobile-->>TMS: Chofer activa el viaje <br> Paso 6: Chofer activa el viaje, estado de viaje ACTIVO\n    Mobile-->>Mobile: COMIENZA SEGUIMIENTO TRACKING DEL VEHÍCULO\n    Mobile-->>Sistema Externo: Las coordenadas son accesibles / enviadas  en todo momento mientras el viaje esté activo\n    Mobile-->>Mobile: Chofer realiza control de carga <BR/>  Paso 7:Tras activación del viaje, impresión y/o revisión de documentación <BR/> Recepción de PIN\nalt Viaje KO\n    Mobile-->>TMS: Viaje estado ERROR - REQUIERE CORRECIÓN\nelse pedido OK\n    Mobile-->>TMS: Viaje estado CONTENEDOR RECOGIDO\nend\n    TMS-->>TMS: Estado Pedido CONTENEDOR RECOGIDO\n    TMS-->>Sistema Externo: Estado Pedido CONTENEDOR RECOGIDO\n    Mobile-->>Mobile: El chofer realiza las diferentes paradas del viaje\n    Mobile-->>Mobile: Paso 8: Gestión de Entregas \n    Mobile-->>Sistema Externo:Los estados se comunican para informar a los sistemas externos <BR/> Junto a la posición del vehículo\n    Mobile-->>Mobile: El contenedor se devuelve a depot con cambio de estado DEVOLUCIÓN DE CONTENEDOR<BR/> Estado del pedido ENTREGADO <BR/> Estado viaje VIAJE FINALIZADO\n    Mobile-->>Sistema Externo: El cambio de estado se informa a Sistema Externo. Cierre de pedido\n    TMS-->>TMS: Paso 9: Validación de incidencias y viaje liquidable\n    TMS-->>TMS: Paso 10: Generación de la liquidación de cobro y de pago \n    TMS-->>TMS: Cierre del viaje",
+  "schemaVersion": 4,
+  "updatedAt": {
+    "_seconds": 1777915295,
+    "_nanoseconds": 71000000
+  }
+}

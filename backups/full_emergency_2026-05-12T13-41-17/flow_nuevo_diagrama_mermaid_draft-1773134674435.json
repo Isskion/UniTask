@@ -1,0 +1,27 @@
+{
+  "nodes": [],
+  "docType": "mermaid",
+  "edges": [],
+  "name": "Nuevo Diagrama Mermaid",
+  "tenantId": "3",
+  "mermaidEngine": "flowchart",
+  "id": "draft-1773134674435",
+  "projectId": "Au1xfXgivgl6VYj2zscs",
+  "metadata": {
+    "authorId": "user",
+    "version": "0.1",
+    "createdAt": {
+      "seconds": 1773134479,
+      "nanoseconds": 204000000
+    },
+    "updatedAt": {
+      "seconds": 1773134479,
+      "nanoseconds": 204000000
+    }
+  },
+  "mermaidCode": "%%{init: {'theme': 'base', 'themeVariables': { 'fontFamily': 'sans-serif', 'lineColor': '#64748b'}}}%%\ngraph TD\n    %% --- ESTILOS DE ALTA FIDELIDAD ---\n    classDef sistema fill:#0f172a,stroke:#3b82f6,stroke-width:3px,color:#ffffff,font-weight:bold,font-size:18px;\n    classDef apiOut fill:#eff6ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a,font-size:14px;\n    classDef apiIn fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#14532d,font-size:14px;\n    classDef logica fill:#fffbeb,stroke:#d97706,stroke-width:2px,color:#92400e,font-size:14px;\n\n    %% --- CAPA SUPERIOR: SISTEMA ORIGEN ---\n    ERP([fa:fa-building ERP CORPORATIVO]):::sistema\n\n    %% --- CAPA INTERMEDIA: INTERFACES ---\n    subgraph MIDDLEWARE [Capa de Integración y Reglas de Negocio]\n        direction LR\n\n        subgraph SALIDA [📤 Flujo de Salida: ERP ➔ TMS]\n            direction TB\n            I1(\"<b>[01] Crear Órdenes</b><br/><i>API POST</i>\"):::apiOut\n            I3(\"<b>[03] Actualizar Estado</b><br/><i>API PUT</i>\"):::apiOut\n            I8(\"<b>[08] Crear Recursos</b><br/><i>API POST</i>\"):::apiOut\n            I9(\"<b>[09] Formas de Pago</b><br/><i>API POST</i>\"):::apiOut\n            \n            D1{\"¿Sufrió<br/>cambios?\"}:::logica\n            I5(\"<b>[05] Viaje Completo</b><br/><i>API PUT</i>\"):::apiOut\n            \n            D1 -->|Sí| I5\n        end\n\n        subgraph RETORNO [📥 Flujo de Retorno: TMS ➔ ERP]\n            direction TB\n            R2(\"<b>[02] Datos de Pedidos</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R4(\"<b>[04] Viaje Creado</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R6(\"<b>[06] Parada Tratada</b><br/><i>Webhook JSON</i>\"):::apiIn\n            R7(\"<b>[07] Retornables</b><br/><i>Webhook JSON</i>\"):::apiIn\n        end\n    end\n\n    %% --- CAPA INFERIOR: SISTEMA DESTINO ---\n    TMS([fa:fa-truck-moving TMS UNIGIS]):::sistema\n\n    %% --- CONEXIONES PRINCIPALES ---\n    \n    %% Flujo de bajada (Líneas continuas)\n    ERP ==>|Envío de Peticiones| I1 & I3 & I8 & I9 & D1\n    I1 & I3 & I8 & I9 & I5 ==>|Ejecución en Destino| TMS\n\n    %% Flujo de subida (Líneas punteadas para eventos asíncronos)\n    TMS -.->|Disparo de Eventos| R2 & R4 & R6 & R7\n    R2 & R4 & R6 & R7 -.->|Actualización| ERP",
+  "updatedAt": {
+    "_seconds": 1773153935,
+    "_nanoseconds": 535000000
+  }
+}
