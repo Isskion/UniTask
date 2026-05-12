@@ -82,17 +82,22 @@ export async function POST(req: Request) {
     try {
         const body = await req.text();
         const contentType = req.headers.get('content-type') || 'application/json';
+        const forwardedHeaders = getForwardHeaders(req, contentType);
 
-        console.log(`[Proxy POST] → ${url} | Content-Type: ${contentType}`);
+        console.log(`[Proxy POST] → ${url}`);
+        console.log(`[Proxy POST] Headers enviados:`, JSON.stringify(forwardedHeaders));
+        console.log(`[Proxy POST] Body (primeros 300 chars):`, body.slice(0, 300));
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: getForwardHeaders(req, contentType),
+            headers: forwardedHeaders,
             body: body
         });
 
         const responseContentType = response.headers.get('content-type') || 'text/plain';
         const responseData = await response.text();
+
+        console.log(`[Proxy POST] ← ${response.status} | Response:`, responseData.slice(0, 200));
 
         return new NextResponse(responseData, {
             status: response.status,
