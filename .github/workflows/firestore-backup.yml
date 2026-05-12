@@ -31,10 +31,26 @@ jobs:
         run: node scripts/run-dated-backup.js
 
       - name: 💾 Commit and Push Backup
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           git config --global user.name "UniTask Backup Bot"
           git config --global user.email "backup-bot@unitask.ai"
+          
+          # Stage new files
           git add backups/
-          git commit -m "🛡️ Auto-backup: $(date +'%Y-%m-%d %H:%M')" || echo "No changes to commit"
-          git pull --rebase origin main
-          git push origin main
+          
+          # Atomic sync to Remote HEAD while preserving uncommitted local changes in the working tree
+          git fetch origin main
+          git reset --mixed origin/main
+          
+          # Restage files for current HEAD index
+          git add backups/
+          
+          # Only commit and push if there are diffs
+          if git status --porcelain | grep . > /dev/null; then
+            git commit -m "🛡️ Auto-backup: $(date +'%Y-%m-%d %H:%M')"
+            git push origin main
+          else
+            echo "No backup changes detected. Nothing to push."
+          fi

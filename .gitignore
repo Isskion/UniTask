@@ -49,6 +49,8 @@ repair-env.js
 backup_*/
 serviceAccountKey.json
 serviceAccountKey.json.json
+!backups/
+!backups/**
 
 # Firebase Admin Keys
 minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json

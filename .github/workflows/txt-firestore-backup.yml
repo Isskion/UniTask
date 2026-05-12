@@ -43,12 +43,30 @@ jobs:
           node scripts/refresh-txt-backups.js
 
       - name: 💾 Commit and Push TXT backups
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           set -euo pipefail
           git config --global user.name "UniTask Backup Bot"
           git config --global user.email "backup-bot@unitask.ai"
-          git add users_list.txt all_projects.txt project_ids.txt sites_list.txt projects.txt || true
-          git commit -m "📝 TXT backup: $(date +'%Y-%m-%d %H:%M %Z')" || echo "No changes to commit"
-          git pull --rebase origin main
-          git push origin main
+          
+          TARGET_FILES="users_list.txt all_projects.txt project_ids.txt sites_list.txt projects.txt"
+          
+          # Stage generation output
+          git add $TARGET_FILES || true
+          
+          # Force sync with HEAD and prevent merge/rebase deadlocks
+          git fetch origin main
+          git reset --mixed origin/main
+          
+          # Re-stage against fresh HEAD index
+          git add $TARGET_FILES || true
+          
+          # Deploy only if payload changed
+          if git status --porcelain $TARGET_FILES | grep . > /dev/null; then
+             git commit -m "📝 TXT backup: $(date +'%Y-%m-%d %H:%M %Z')"
+             git push origin main
+          else
+             echo "No TXT backup content modified. Exiting cleanly."
+          fi
 
