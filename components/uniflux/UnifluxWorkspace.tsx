@@ -365,13 +365,9 @@ export default function UnifluxWorkspace() {
         dateEl.style.letterSpacing = 'normal';
         titleEl.appendChild(dateEl);
         
-        /*
         viewport.appendChild(titleEl);
-        */
 
         // 3.5 Inject temporary logo watermark if it exists
-        /* 
-        TEMPORARILY DISABLED TO PROTECT VDOM INTEGRITY DURING EXPORT
         let watermarkEl: HTMLImageElement | null = null;
         if (tenantLogoUrl) {
             watermarkEl = document.createElement('img');
@@ -389,9 +385,9 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
             watermarkEl.style.opacity = '0.10';
             watermarkEl.style.zIndex = '-1';
+            watermarkEl.style.pointerEvents = 'none';
             viewport.insertBefore(watermarkEl, viewport.firstChild);
         }
-        */
 
         // 4. Configure explicit transform mapping logical coordinates to output view
         const config = {
@@ -416,8 +412,8 @@ export default function UnifluxWorkspace() {
         };
 
         const cleanup = () => {
-            // if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
-            // if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
+            if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
+            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
         };
 
         // Determine function based on format
