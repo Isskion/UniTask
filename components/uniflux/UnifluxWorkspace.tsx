@@ -463,9 +463,16 @@ export default function UnifluxWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [undo, redo]);
 
-    // Auto-save effect
+    // Auto-save effect — with critical guard against saving empty state
     useEffect(() => {
         if (!isDirty || !user || !tenantId || !selectedProjectId || isSaving) return;
+
+        // CRITICAL GUARD: Never auto-save if nodes array is empty but we have a real flow loaded.
+        // This prevents F5/reload from wiping Firestore data before the flow is restored.
+        if (nodes.length === 0 && graph.id && graph.id !== INITIAL_GRAPH.id) {
+            console.warn("[uniflux] Auto-save BLOCKED: nodes are empty but graph has a real ID. Likely mid-reload.");
+            return;
+        }
 
         const timer = setTimeout(() => {
             console.log("[uniflux] Auto-saving...");
@@ -473,7 +480,7 @@ export default function UnifluxWorkspace() {
         }, 5000); // 5 seconds of inactivity triggers auto-save
 
         return () => clearTimeout(timer);
-    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving]);
+    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving, graph.id]);
 
     // Local backup effect (every 2 seconds if dirty)
     useEffect(() => {
@@ -737,19 +744,40 @@ export default function UnifluxWorkspace() {
         return () => { isMounted = false; };
     }, [tenantId]);
 
-    // Fetch Projects
+    // Fetch Projects — and auto-restore last active session on mount
+    const hasRestoredSession = useRef(false);
     useEffect(() => {
         if (!user) return;
         const tenantToUse = tenantId || '1';
-        getActiveProjects(tenantToUse, user.uid).then(data => {
+        getActiveProjects(tenantToUse, user.uid).then(async (data) => {
             setProjects(data);
+
+            // Try to restore the last active session from localStorage (survives F5)
+            const savedProjectId = localStorage.getItem('uniflux_active_project_id');
+            const savedFlowId = localStorage.getItem('uniflux_active_flow_id');
+
             if (data.length > 0 && !selectedProjectId) {
-                // Default to the first project naturally or keep empty
-                // For a seamless experience, let's select the first by default if we have none active
-                setSelectedProjectId(graph.projectId || data[0].id);
+                // Prefer the persisted project, fall back to graph.projectId, then first project
+                const projectToSelect = (savedProjectId && data.some(p => p.id === savedProjectId))
+                    ? savedProjectId
+                    : (graph.projectId || data[0].id);
+                setSelectedProjectId(projectToSelect);
+            }
+
+            // Auto-restore the last flow ONCE on mount
+            if (savedFlowId && !hasRestoredSession.current && !isWorkflowInitialized) {
+                hasRestoredSession.current = true;
+                console.log('[uniflux] Auto-restoring last active flow:', savedFlowId);
+                // Small delay to let project state settle before loading
+                setTimeout(() => {
+                    handleLoadFlow(savedFlowId).catch(err => {
+                        console.warn('[uniflux] Failed to auto-restore flow:', err);
+                    });
+                }, 300);
             }
         });
-    }, [user, tenantId, graph.projectId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, tenantId]);
 
     // Fetch Flows when project changes
     useEffect(() => {
@@ -809,6 +837,12 @@ export default function UnifluxWorkspace() {
             
             // V11 Fix: syncNodesFromGraph handles setting exact nodes AND atomic history seeding
             syncNodesFromGraph(flowInfo, true);
+
+            // PERSIST session: remember which flow & project was active so F5 can restore it
+            try {
+                localStorage.setItem('uniflux_active_flow_id', flowId);
+                localStorage.setItem('uniflux_active_project_id', flowInfo.projectId || selectedProjectId);
+            } catch (e) { /* localStorage may be full or disabled */ }
         }
     }, [tenantId, user, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
 
@@ -1501,6 +1535,13 @@ export default function UnifluxWorkspace() {
 
         if (!selectedProjectId) {
             if (!isAutoSave) alert("Por favor selecciona un proyecto primero.");
+            return;
+        }
+
+        // SAFETY NET: Never persist an empty nodes array for an existing flow.
+        // This catches any edge case where auto-save or manual save fires before flow data loads.
+        if (graph.docType !== 'mermaid' && nodes.length === 0 && graph.nodes && graph.nodes.length > 0) {
+            console.warn("[uniflux] Save ABORTED: React Flow nodes are empty but graph has data. Preventing data wipe.");
             return;
         }
 
