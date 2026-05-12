@@ -6,16 +6,27 @@ import { NextResponse } from 'next/server';
  * Bypasses CORS and handles SSL for UNIGIS endpoints.
  */
 
+// Mapa de nombres correctos de headers para UNIGIS (Next.js normaliza a minúsculas)
+const HEADER_CASING: Record<string, string> = {
+    'mapitoken':    'MapiToken',
+    'apikey':       'ApiKey',
+    'x-apikey':     'X-ApiKey',
+    'authorization':'Authorization',
+    'token':        'Token',
+    'soapaction':   'SOAPAction',
+};
+
 function getForwardHeaders(req: Request, contentType: string) {
     const headersToForward: Record<string, string> = {
         'Content-Type': contentType,
         'Accept': 'application/json, text/plain, */*',
     };
 
-    const allowList = ['x-apikey', 'apikey', 'authorization', 'token', 'soapaction', 'mapitoken'];
     req.headers.forEach((value, key) => {
-        if (allowList.includes(key.toLowerCase())) {
-            headersToForward[key] = value;
+        const lowerKey = key.toLowerCase();
+        if (HEADER_CASING[lowerKey]) {
+            // Reenviar con la capitalización correcta que espera UNIGIS
+            headersToForward[HEADER_CASING[lowerKey]] = value;
         }
     });
 
