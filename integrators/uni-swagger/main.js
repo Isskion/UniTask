@@ -330,7 +330,7 @@ async function handleLogin() {
         const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
         // Fix for 404: The Login method is typically under Auth/service.asmx
         const loginEndpoint = `${baseUrl}/Mapi/SOAP/Auth/service.asmx/Login`;
-        const proxyUrl = `/proxy?url=${encodeURIComponent(loginEndpoint)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(loginEndpoint)}`;
 
         const response = await fetch(proxyUrl, {
             method: 'POST',
@@ -464,7 +464,7 @@ async function loadSwagger(url) {
     toggleLoading(true);
     try {
         // Use local proxy to bypass CORS automatically
-        const proxyUrl = `/proxy?url=${encodeURIComponent(finalUrl)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(finalUrl)}`;
         const response = await fetch(proxyUrl);
 
         if (!response.ok) throw new Error('No se pudo obtener el Swagger');
@@ -1182,7 +1182,7 @@ async function executeServiceCall(body, current = null, total = null) {
         targetUrl = `${cleanBase}/Mapi/SOAP/LogisticAsync/${methodName}`;
     }
 
-    const proxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     const apikey = els.apiKey.value;
 
     // --- Auto Inject ApiKey in body if root schema asks for it ---
@@ -1217,7 +1217,7 @@ async function executeServiceCall(body, current = null, total = null) {
         targetUrl = `${targetUrl}${separator}ApiKey=${apikey}`;
     }
 
-    const finalProxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
 
     // Preparar el Body y Headers de la petición
     let fetchBody;

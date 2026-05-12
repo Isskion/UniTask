@@ -1216,7 +1216,7 @@ async function executeServiceCall(body, current = null, total = null) {
         targetUrl = `${cleanBase}/Mapi/SOAP/LogisticAsync/${methodName}`;
     }
 
-    const proxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     const apikey = els.apiKey.value;
 
     // --- Auto Inject ApiKey in body if root schema asks for it ---
@@ -1251,7 +1251,7 @@ async function executeServiceCall(body, current = null, total = null) {
         targetUrl = `${targetUrl}${separator}ApiKey=${apikey}`;
     }
 
-    const finalProxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
 
     // Preparar el Body y Headers de la petición
     let fetchBody;

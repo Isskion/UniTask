@@ -340,7 +340,7 @@ async function handleLogin() {
         const baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
         // Fix for 404: The Login method is typically under Auth/service.asmx
         const loginEndpoint = `${baseUrl}/Mapi/SOAP/Auth/service.asmx/Login`;
-        const proxyUrl = `/proxy?url=${encodeURIComponent(loginEndpoint)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(loginEndpoint)}`;
 
         const response = await fetch(proxyUrl, {
             method: 'POST',
@@ -463,7 +463,7 @@ async function loadWsdl(baseUrl) {
     notify(`Cargando WSDL desde: ${wsdlUrl}`, 'info');
     toggleLoading(true);
     try {
-        const proxyUrl = `/proxy?url=${encodeURIComponent(wsdlUrl)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(wsdlUrl)}`;
         const response = await fetch(proxyUrl);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const xmlText = await response.text();
@@ -1354,7 +1354,7 @@ async function executeServiceCall(body, current = null, total = null) {
     const { name } = state.selectedMethod;
     const cleanBase = state.baseUrl.endsWith('/') ? state.baseUrl.slice(0, -1) : state.baseUrl;
     const targetUrl = `${cleanBase}/Mapi/SOAP/Logistic/Service.asmx`;
-    const finalProxyUrl = `/proxy?url=${encodeURIComponent(targetUrl)}`;
+    const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     const apikey = els.apiKey.value;
     const soapXml = buildSoapXml(name, body, apikey);
 
