@@ -14,7 +14,8 @@ import {
     serverTimestamp,
     getDocs,
     increment,
-    updateDoc
+    updateDoc,
+    setDoc
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -165,6 +166,83 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}h`;
     }, [dailyTotalMinutes]);
 
+    // 1.5 Remote Timer State Subscription (Ensures sync across tabs / F5 resilience)
+    useEffect(() => {
+        if (!user || !currentTenantId || currentTenantId === "unknown") return;
+
+        const timerDocRef = doc(db, "activeTimers", user.uid);
+        const unsubTimer = onSnapshot(timerDocRef, (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                
+                // Update local input fields only if the incoming data is strictly defined
+                if (data.projectId) setNowProject(data.projectId);
+                if (data.taskTypeId) {
+                    const matchedCat = taskTypes.find(t => t.id === data.taskTypeId);
+                    if (matchedCat) setNowCategory(matchedCat);
+                }
+                if (data.details !== undefined) setNowDetails(data.details);
+
+                // Force local state variables
+                const isCurrentlyRunning = !!data.isRunning;
+                setTimerActive(isCurrentlyRunning);
+
+                // Recalculate exact absolute elapsed time from snapshot anchor
+                let elapsed = Number(data.accumulatedSeconds || 0);
+                if (isCurrentlyRunning && data.startTime) {
+                    // Using simple numeric timestamp from client written via syncTimerToFirestore
+                    const startedAt = Number(data.startTime);
+                    const now = Date.now();
+                    if (now > startedAt) {
+                        elapsed += Math.floor((now - startedAt) / 1000);
+                    }
+                }
+                setSecondsElapsed(elapsed);
+            } else {
+                // If active timer cleared centrally, force local pause reset
+                setTimerActive(false);
+                setSecondsElapsed(0);
+            }
+        }, (err) => {
+            console.error("Timer Snapshot Error", err);
+        });
+
+        return () => unsubTimer();
+    }, [user, currentTenantId, taskTypes]); // Trigger again once taskTypes load to properly map category reference
+
+    // --- Timer Firestore Sync Helper ---
+    const syncTimerToFirestore = async (nextRunningState: boolean, resetting = false) => {
+        if (!user || !currentTenantId) return;
+        const docRef = doc(db, "activeTimers", user.uid);
+
+        if (resetting) {
+            try { await deleteDoc(docRef); } catch (e) { console.error(e); }
+            return;
+        }
+
+        const selectedProjectObj = projects.find((p) => p.id === nowProject);
+        
+        try {
+            await setDoc(docRef, {
+                userId: user.uid,
+                userName: user.displayName || "Consultor",
+                tenantId: currentTenantId,
+                projectId: nowProject,
+                projectName: selectedProjectObj?.name || "",
+                taskTypeId: nowCategory?.id || "",
+                taskTypeName: nowCategory?.name || "",
+                details: nowDetails,
+                isRunning: nextRunningState,
+                // Store exact standard milliseconds epoch for ultra-fast client parsing without Firestore timestamp drift
+                startTime: nextRunningState ? Date.now() : null, 
+                accumulatedSeconds: secondsElapsed, 
+                updatedAt: serverTimestamp()
+            });
+        } catch (e) {
+            console.error("Firestore Timer Sync Error", e);
+        }
+    };
+
     // 2. Timer effect (Reliable implementation resistant to background tab throttling)
     useEffect(() => {
         let id: NodeJS.Timeout | null = null;
@@ -202,14 +280,16 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
 
-    // Actions: Timer start/pause
+    // Actions: Timer start/pause (Persists state to Remote to survive F5/Navigation)
     const handleStartTimer = () => {
         setTimerActive(true);
-        showToast("Widget de Tareas", "Temporizador iniciado", "success");
+        syncTimerToFirestore(true); // Persist immediately
+        showToast("Widget de Tareas", "Temporizador iniciado (protegido)", "success");
     };
 
     const handlePauseTimer = () => {
         setTimerActive(false);
+        syncTimerToFirestore(false); // Persist state + accumulated time
     };
 
     // Action: Save real-time Task
@@ -236,7 +316,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             setIsSaving(true);
             const durationMinutes = Math.max(Math.round(secondsElapsed / 60), 1);
 
-            // Add task
+            // Add final task record
             await addDoc(collection(db, "consultantTasks"), {
                 userId: user.uid,
                 userName: user.displayName || "Consultor",
@@ -251,6 +331,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 createdAt: serverTimestamp()
             });
 
+            // Clear the persistent remote timer object (It did its job!)
+            await syncTimerToFirestore(false, true); 
+
             // Increment usage count on taskType
             await updateDoc(doc(db, "taskTypes", nowCategory.id), {
                 usageCount: increment(1)
@@ -260,7 +343,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2500);
 
-            // Reset
+            // Reset Local UI
             setTimerActive(false);
             setSecondsElapsed(0);
             setNowDetails("");

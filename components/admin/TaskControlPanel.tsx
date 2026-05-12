@@ -85,6 +85,7 @@ export default function TaskControlPanel() {
 
     // Tracking States
     const [consultantTasks, setConsultantTasks] = useState<any[]>([]);
+    const [activeTimersList, setActiveTimersList] = useState<any[]>([]); // Track running timers
     const [loadingTasks, setLoadingTasks] = useState(false);
     const [activeSubTab, setActiveSubTab] = useState<"categories" | "tracking">(() => {
         if (typeof window !== "undefined") {
@@ -351,6 +352,39 @@ export default function TaskControlPanel() {
 
         return () => unsubscribe();
     }, [currentTenantId]);
+
+    // Fetch ALL Active Timers for live monitoring
+    useEffect(() => {
+        if (!currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") return;
+
+        const q = query(
+            collection(db, "activeTimers"),
+            where("tenantId", "==", currentTenantId),
+            where("isRunning", "==", true)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const active: any[] = [];
+            snapshot.forEach((doc) => {
+                active.push({ id: doc.id, ...doc.data() });
+            });
+            setActiveTimersList(active);
+        });
+
+        return () => unsubscribe();
+    }, [currentTenantId]);
+
+    const handleForceStopTimer = async (userId: string, name: string) => {
+        if (!confirm(`¿Estás seguro de que deseas DETENER FORZADAMENTE el temporizador de ${name}? El progreso no guardado se perderá.`)) return;
+        
+        try {
+            await deleteDoc(doc(db, "activeTimers", userId));
+            showToast("Monitorización", "Temporizador detenido correctamente", "success");
+        } catch (e) {
+            console.error("Err forcing stop", e);
+            showToast("Error", "No se pudo detener el temporizador", "error");
+        }
+    };
 
     const handleDeleteConsultantTask = async (id: string) => {
         if (!confirm("¿Estás seguro de que deseas eliminar este registro de actividad?")) return;
@@ -803,6 +837,58 @@ export default function TaskControlPanel() {
             {/* TRACKING SUB-TAB CONTENT */}
             {activeSubTab === "tracking" && (
                 <div className="space-y-6 animate-in fade-in duration-300">
+                    
+                    {/* LIVE MONITOR: ACTIVE TIMERS */}
+                    {activeTimersList.length > 0 && (
+                        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-3xl p-6 shadow-xl backdrop-blur-md relative animate-in slide-in-from-bottom-4">
+                            <div className="absolute -top-3.5 left-8 bg-emerald-600 text-white px-4 py-1 rounded-lg text-[9px] font-black tracking-[0.2em] shadow-lg flex items-center gap-2">
+                                <Lucide.Activity className="w-3 h-3 animate-pulse" />
+                                EN CURSO AHORA MISMO
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                {activeTimersList.map((timer) => (
+                                    <div key={timer.id} className="bg-card border border-border/60 hover:border-emerald-500/40 p-4 rounded-2xl shadow-sm flex flex-col gap-3 transition-all group relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-emerald-500/10 to-transparent pointer-events-none" />
+                                        
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center border border-emerald-500/20">
+                                                    <Lucide.User className="w-4 h-4 text-emerald-600" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-black text-foreground truncate max-w-[140px]">{timer.userName || 'Desconocido'}</h4>
+                                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-600 font-black px-1.5 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1 mt-0.5 w-fit">
+                                                        <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" /> EJECUTANDO
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleForceStopTimer(timer.id, timer.userName)}
+                                                className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all shadow-sm"
+                                                title="Detener Forzadamente"
+                                            >
+                                                <Lucide.Square className="w-3.5 h-3.5 fill-current" />
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-background/50 border border-border/50 rounded-xl p-2.5 space-y-1.5">
+                                            <p className="text-[9px] font-black text-primary uppercase tracking-wider truncate">{timer.projectName || 'Sin Proyecto'}</p>
+                                            <p className="text-[10px] font-bold text-foreground/80 flex items-center gap-1.5">
+                                                <Lucide.Tag className="w-3 h-3 text-muted-foreground" />
+                                                {timer.taskTypeName || 'General'}
+                                            </p>
+                                            {timer.details && (
+                                                <p className="text-[10px] text-muted-foreground italic border-t border-border/50 pt-1.5 mt-1.5 line-clamp-1">
+                                                    "{timer.details}"
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     {/* Filters Panel */}
                     <div className="bg-card/40 border border-border rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
