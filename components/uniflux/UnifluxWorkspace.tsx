@@ -317,7 +317,17 @@ export default function UnifluxWorkspace() {
         if (!viewport) return;
         
         // 1. Get bounding box of flow elements using React Flow utilities
-        const nodesBounds = getNodesBounds(nodes);
+        // FIX: Explicitly flatten position graph to absolute viewport coordinates BEFORE bounding.
+        // Prevents child relative coordinates in grouping environments from exploding derived dimensions.
+        const absoluteNodes = nodes.map(n => {
+            const absX = (n as any).computed?.positionAbsolute?.x ?? (n as any).positionAbsolute?.x ?? n.position.x;
+            const absY = (n as any).computed?.positionAbsolute?.y ?? (n as any).positionAbsolute?.y ?? n.position.y;
+            return {
+                ...n,
+                position: { x: absX, y: absY }
+            };
+        });
+        const nodesBounds = getNodesBounds(absoluteNodes);
         
         // 2. Define canvas space with explicit padding and dedicated title buffer
         const padding = 60;
