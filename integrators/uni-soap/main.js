@@ -1352,7 +1352,14 @@ async function executeServiceCall(body, current = null, total = null) {
     if (!state.selectedMethod) return;
 
     const { name } = state.selectedMethod;
-    const cleanBase = state.baseUrl.endsWith('/') ? state.baseUrl.slice(0, -1) : state.baseUrl;
+    let baseUrl = state.baseUrl || '';
+    if (!baseUrl || baseUrl === '.' || baseUrl === './') {
+        baseUrl = els.loginUrl && els.loginUrl.value ? els.loginUrl.value.trim() : '';
+    }
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'https://' + baseUrl;
+    }
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const targetUrl = `${cleanBase}/Mapi/SOAP/Logistic/Service.asmx`;
     const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     const apikey = els.apiKey.value;

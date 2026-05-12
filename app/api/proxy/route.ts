@@ -6,6 +6,22 @@ import { NextResponse } from 'next/server';
  * Bypasses CORS and handles SSL for UNIGIS endpoints.
  */
 
+function getForwardHeaders(req: Request, contentType: string) {
+    const headersToForward: Record<string, string> = {
+        'Content-Type': contentType,
+        'Accept': 'application/json, text/plain, */*',
+    };
+
+    const allowList = ['x-apikey', 'apikey', 'authorization', 'token', 'soapaction'];
+    req.headers.forEach((value, key) => {
+        if (allowList.includes(key.toLowerCase())) {
+            headersToForward[key] = value;
+        }
+    });
+
+    return headersToForward;
+}
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const url = searchParams.get('url');
@@ -16,16 +32,16 @@ export async function GET(req: Request) {
 
     try {
         console.log(`[Proxy GET] → ${url}`);
+        const contentType = req.headers.get('content-type') || 'application/json';
+        
         const response = await fetch(url, {
-            headers: {
-                'Accept': 'application/json, text/plain, */*',
-            }
+            headers: getForwardHeaders(req, contentType)
         });
 
-        const contentType = response.headers.get('content-type') || '';
+        const resContentType = response.headers.get('content-type') || '';
         let data;
 
-        if (contentType.includes('application/json')) {
+        if (resContentType.includes('application/json')) {
             data = await response.json();
         } else {
             data = await response.text();
@@ -34,7 +50,7 @@ export async function GET(req: Request) {
         return new NextResponse(typeof data === 'string' ? data : JSON.stringify(data), {
             status: response.status,
             headers: {
-                'Content-Type': contentType,
+                'Content-Type': resContentType,
                 'Access-Control-Allow-Origin': '*',
             }
         });
@@ -60,10 +76,7 @@ export async function POST(req: Request) {
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': contentType,
-                'Accept': 'application/json, text/plain, */*',
-            },
+            headers: getForwardHeaders(req, contentType),
             body: body
         });
 
@@ -91,8 +104,8 @@ export async function OPTIONS() {
         status: 204,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, ApiKey, X-ApiKey, Token, SOAPAction',
         }
     });
 }

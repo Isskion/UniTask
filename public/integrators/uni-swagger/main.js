@@ -1194,7 +1194,13 @@ async function sendUnitaryRequest() {
 
 async function executeServiceCall(body, current = null, total = null) {
     const { path, verb, definition } = state.selectedMethod;
-    const baseUrl = els.swaggerUrl.value.split('/swagger')[0];
+    let baseUrl = els.swaggerUrl.value.split('/swagger')[0];
+    if (!baseUrl || baseUrl === '.' || baseUrl === './') {
+        baseUrl = els.loginUrl.value ? els.loginUrl.value.trim() : '';
+    }
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'https://' + baseUrl;
+    }
 
     let targetUrl = baseUrl + path;
 
@@ -1291,6 +1297,23 @@ async function executeServiceCall(body, current = null, total = null) {
 
         const isUnitary = !current;
         const msg = isUnitary ? 'Petición unitaria' : `Registro ${current}/${total}`;
+        const time = new Date().toLocaleTimeString();
+        const isError = !response.ok || (isJson && (String(data) !== "1" && (data.Result !== undefined && String(data.Result) !== "1")));
+
+        const logContainer = document.getElementById('logContent');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${isError ? 'error' : 'success'}`;
+        
+        let html = `<strong>[${time}]</strong> ${msg}: ${!response.ok ? 'Error HTTP ' + response.status : (isError ? 'Error en lógica' : 'Completado')}`;
+        
+        html += `<details style="margin-top: 5px; cursor: pointer;">`;
+        html += `<summary style="font-size: 0.85em; color: #888;">Ver Payload Enviado</summary>`;
+        html += `<pre style="background: #111; padding: 5px; font-size: 0.75em; border-radius: 3px;">${fetchBody.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+        html += `</details>`;
+
+        html += `<div style="font-size: 0.85em; margin-top: 5px;"><strong>Response:</strong> ${isJson ? JSON.stringify(data) : data}</div>`;
+        entry.innerHTML = html;
+        logContainer.prepend(entry);
 
         if (isUnitary) {
             const outEl = document.getElementById('exampleOutput');

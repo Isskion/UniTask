@@ -1200,7 +1200,13 @@ async function sendUnitaryRequest() {
 
 async function executeServiceCall(body, current = null, total = null) {
     const { path, verb, definition } = state.selectedMethod;
-    const baseUrl = els.swaggerUrl.value.split('/swagger')[0];
+    let baseUrl = els.swaggerUrl.value.split('/swagger')[0];
+    if (!baseUrl || baseUrl === '.' || baseUrl === './') {
+        baseUrl = els.loginUrl.value ? els.loginUrl.value.trim() : '';
+    }
+    if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'https://' + baseUrl;
+    }
 
     let targetUrl = baseUrl + path;
 
