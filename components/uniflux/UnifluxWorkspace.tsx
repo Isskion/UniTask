@@ -365,34 +365,33 @@ export default function UnifluxWorkspace() {
         dateEl.style.letterSpacing = 'normal';
         titleEl.appendChild(dateEl);
         
+        /*
         viewport.appendChild(titleEl);
+        */
 
         // 3.5 Inject temporary logo watermark if it exists
+        /* 
+        TEMPORARILY DISABLED TO PROTECT VDOM INTEGRITY DURING EXPORT
         let watermarkEl: HTMLImageElement | null = null;
         if (tenantLogoUrl) {
             watermarkEl = document.createElement('img');
             watermarkEl.src = tenantLogoUrl;
-            watermarkEl.crossOrigin = "anonymous"; // Crucial for remote assets in canvas rendering
+            watermarkEl.crossOrigin = "anonymous";
             watermarkEl.style.position = 'absolute';
-            
-            // Locate logic center of the flow
             const centerX = nodesBounds.x + nodesBounds.width / 2;
             const centerY = nodesBounds.y + nodesBounds.height / 2;
-            
-            // Derive aesthetic scaling (70% cover capped at safe performance limit)
             const baseSize = Math.max(nodesBounds.width, nodesBounds.height) * 0.7;
             const watermarkSize = Math.min(1600, Math.max(400, baseSize));
-            
             watermarkEl.style.width = `${watermarkSize}px`;
             watermarkEl.style.height = `${watermarkSize}px`;
             watermarkEl.style.objectFit = 'contain';
             watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
             watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
-            watermarkEl.style.opacity = '0.10'; // Extreme transparency for maximum contrast
-            watermarkEl.style.zIndex = '-1'; // Render behind SVG edges and node markup
-            
+            watermarkEl.style.opacity = '0.10';
+            watermarkEl.style.zIndex = '-1';
             viewport.insertBefore(watermarkEl, viewport.firstChild);
         }
+        */
 
         // 4. Configure explicit transform mapping logical coordinates to output view
         const config = {
@@ -417,8 +416,8 @@ export default function UnifluxWorkspace() {
         };
 
         const cleanup = () => {
-            if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
-            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
+            // if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
+            // if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
         };
 
         // Determine function based on format
