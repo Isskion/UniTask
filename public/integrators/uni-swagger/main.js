@@ -1240,6 +1240,7 @@ async function executeServiceCall(body, current = null, total = null) {
                         if (lowProp === 'apikey') {
                             // Siempre forzar la API Key si el schema la define, sobreescribiendo si existiera
                             dataNode[prop] = apikey;
+                            if (prop !== 'ApiKey') dataNode['ApiKey'] = apikey; // Forzar mayúscula también
                         } else if (dataNode[prop] !== undefined) {
                             injectApiKey(dataNode[prop], sNode.properties[prop]);
                         }
@@ -1254,7 +1255,12 @@ async function executeServiceCall(body, current = null, total = null) {
     if (apikey) {
         // Añade ?ApiKey=... o &ApiKey=...
         const separator = targetUrl.includes('?') ? '&' : '?';
-        targetUrl = `${targetUrl}${separator}ApiKey=${apikey}`;
+        targetUrl = `${targetUrl}${separator}ApiKey=${encodeURIComponent(apikey)}`;
+    }
+    
+    // Si la petición no tiene ApiKey explícita en la raíz pero la requiere, la forzamos
+    if (body && typeof body === 'object' && !body.ApiKey && !body.apiKey) {
+        body.ApiKey = apikey;
     }
 
     const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
