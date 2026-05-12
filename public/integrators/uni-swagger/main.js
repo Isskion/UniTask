@@ -375,22 +375,24 @@ async function handleLogin() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(rawResponse, "text/xml");
             
-            // Buscar nodos comunes de UNIGIS login — MapiToken tiene prioridad sobre Token genérico
+            // Buscar nodos comunes de UNIGIS login
+            // NOTA: 'Token' contiene el token completo (Base64@MAC). 'MapiToken' es solo el MAC corto.
             const resultNode = xmlDoc.getElementsByTagName("Result")[0];
+            const fullTokenNode = xmlDoc.getElementsByTagName("Token")[0] || xmlDoc.getElementsByTagName("JMT")[0] || xmlDoc.getElementsByTagName("JWT")[0];
             const mapiTokenNode = xmlDoc.getElementsByTagName("MapiToken")[0];
-            const genericTokenNode = xmlDoc.getElementsByTagName("Token")[0] || xmlDoc.getElementsByTagName("JWT")[0] || xmlDoc.getElementsByTagName("JMT")[0];
             const messageNode = xmlDoc.getElementsByTagName("Message")[0];
 
             if (resultNode) {
+                const fullToken = fullTokenNode ? fullTokenNode.textContent : '';
                 const mapiToken = mapiTokenNode ? mapiTokenNode.textContent : '';
-                const fallbackToken = genericTokenNode ? genericTokenNode.textContent : '';
                 data = {
                     Result: resultNode.textContent.toLowerCase() === 'true',
-                    MapiToken: mapiToken || fallbackToken,
-                    Token: fallbackToken,
+                    Token: fullToken,
+                    MapiToken: fullToken || mapiToken,  // Usar el token completo para autenticar
                     Message: messageNode ? messageNode.textContent : ''
                 };
-                console.log('[Login XML] MapiToken encontrado:', mapiToken ? 'SÍ' : 'NO', '| Token genérico:', fallbackToken ? 'SÍ' : 'NO');
+                console.log('[Login XML] Token completo:', fullToken ? fullToken.slice(0, 30) + '...' : 'NO encontrado');
+                console.log('[Login XML] MapiToken (MAC):', mapiToken || 'NO encontrado');
             } else {
                 throw new Error("Respuesta del servidor no es JSON ni XML válido: " + rawResponse.slice(0, 100));
             }
@@ -1255,12 +1257,8 @@ async function executeServiceCall(body, current = null, total = null) {
         }
     }
 
-    // Asegurar que el ApiKey vaya en la URL obligatoriamente
-    if (apikey) {
-        // Añade ?ApiKey=... o &ApiKey=...
-        const separator = targetUrl.includes('?') ? '&' : '?';
-        targetUrl = `${targetUrl}${separator}ApiKey=${encodeURIComponent(apikey)}`;
-    }
+    // NO agregar ApiKey como query param en la URL REST — interfiere con el routing del servidor UNIGIS
+    // La autenticación va SIEMPRE por header MapiToken y por el cuerpo JSON
     
     // Si la petición no tiene ApiKey explícita en la raíz pero la requiere, la forzamos
     if (body && typeof body === 'object' && !body.ApiKey && !body.apiKey) {
