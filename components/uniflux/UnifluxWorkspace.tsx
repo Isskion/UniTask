@@ -110,6 +110,10 @@ export default function UnifluxWorkspace() {
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [isDeletingFlow, setIsDeletingFlow] = useState(false);
 
+    // Tracks whether the user has active selected/created a flow since initialization.
+    // Controls the display of the welcome startup screen.
+    const [isWorkflowInitialized, setIsWorkflowInitialized] = useState(false);
+
     // Tracks the source Mermaid flow ID when a conversion draft is active.
     // Cleared on explicit save or when loading a different flow.
     const [sourceMermaidFlowId, setSourceMermaidFlowId] = useState<string | null>(null);
@@ -793,6 +797,7 @@ export default function UnifluxWorkspace() {
             setIsSidebarOpen(false);
             setShowWizard(false);
             setSourceMermaidFlowId(null);
+            setIsWorkflowInitialized(true); // Deactivate welcome screen
             if (flowInfo.docType === 'c4' && flowInfo.c4Level) {
                 setActiveC4Level(flowInfo.c4Level as 1 | 2 | 3);
             }
@@ -853,6 +858,7 @@ export default function UnifluxWorkspace() {
         setHistoryIndex(0);
         historyIndexRef.current = 0;
         setIsDirty(false);
+        setIsWorkflowInitialized(true);
     };
 
     const handleNewC4Flow = () => {
@@ -877,6 +883,7 @@ export default function UnifluxWorkspace() {
         setHistoryIndex(0);
         historyIndexRef.current = 0;
         setIsDirty(false);
+        setIsWorkflowInitialized(true);
     };
 
     const handleApplyC4Template = (tplNodes: FlowNode[], tplEdges: FlowEdge[]) => {
@@ -944,6 +951,7 @@ export default function UnifluxWorkspace() {
         setEdges([]);
         setShowWizard(false);
         setSourceMermaidFlowId(null);
+        setIsWorkflowInitialized(true);
     };
 
     const handleDeleteFlow = async (flowId: string) => {
@@ -1665,6 +1673,14 @@ export default function UnifluxWorkspace() {
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
             <header className="h-14 bg-slate-950 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between z-20 shadow-lg">
                 <div className="flex items-center gap-4">
+                    <img 
+                        src="/uniflux_logo.svg" 
+                        alt="UniFlux Logo" 
+                        className="h-6 w-auto invert brightness-0 opacity-80 mr-1 hidden sm:block select-none"
+                    />
+                    
+                    <div className="h-6 w-px bg-slate-800 mr-1 hidden sm:block"></div>
+
                     <button
                         onClick={() => setIsSidebarOpen(true)}
                         className="p-2 -ml-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2"
@@ -2479,6 +2495,71 @@ export default function UnifluxWorkspace() {
                                 </button>
                             </>
                         )}
+                    </div>
+                )}
+                {/* WELCOME SPLASH SCREEN: Renders until explicit interaction initializing/loading a flow */}
+                {!isWorkflowInitialized && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 z-40 overflow-hidden">
+                        {/* Premium Aesthetic Grid Overlay */}
+                        <div 
+                            className="absolute inset-0 opacity-[0.04] pointer-events-none" 
+                            style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+                        />
+                        
+                        <div className="relative flex flex-col items-center max-w-2xl w-full px-6 text-center animate-in fade-in zoom-in-95 duration-700">
+                            {/* Giant Hero Logo */}
+                            <div className="relative group mb-12 drop-shadow-[0_20px_50px_rgba(24,95,165,0.15)] transition-all duration-500 hover:drop-shadow-[0_25px_60px_rgba(24,95,165,0.25)]">
+                                <img 
+                                    src="/uniflux_logo.svg" 
+                                    alt="UniFlux Workspace" 
+                                    className="w-80 md:w-[420px] h-auto select-none transition-transform duration-500 group-hover:scale-[1.02]"
+                                />
+                            </div>
+                            
+                            <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-3">
+                                Bienvenid@ al <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Diseñador de Flujos</span>
+                            </h1>
+                            
+                            <p className="text-slate-500 text-sm md:text-lg mb-12 max-w-lg font-medium leading-relaxed">
+                                Comienza a estructurar tus arquitecturas C4, flujos de procesos lógicos y modelos técnicos impulsados por IA.
+                            </p>
+
+                            {/* Hero Quick Actions Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-lg">
+                                <button
+                                    onClick={() => setIsSidebarOpen(true)}
+                                    className="group relative flex flex-col items-center justify-center p-8 bg-white border border-slate-200 rounded-3xl shadow-lg hover:shadow-2xl hover:border-blue-400 hover:-translate-y-1.5 transition-all duration-300 text-center overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full -mr-8 -mt-8 blur-2xl group-hover:bg-blue-100/50 transition-colors" />
+                                    
+                                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm shadow-blue-100">
+                                        <Folder className="w-7 h-7" />
+                                    </div>
+                                    
+                                    <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-blue-700 transition-colors">Explorar Diseños</h3>
+                                    <p className="text-sm text-slate-500 mt-1.5 font-medium">Recuperar y editar flujos guardados</p>
+                                </button>
+
+                                <button
+                                    onClick={handleNewFlow}
+                                    className="group relative flex flex-col items-center justify-center p-8 bg-white border border-slate-200 rounded-3xl shadow-lg hover:shadow-2xl hover:border-purple-400 hover:-translate-y-1.5 transition-all duration-300 text-center overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-purple-50/50 rounded-full -mr-8 -mt-8 blur-2xl group-hover:bg-purple-100/50 transition-colors" />
+                                    
+                                    <div className="w-14 h-14 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-sm shadow-purple-100">
+                                        <Plus className="w-7 h-7" />
+                                    </div>
+                                    
+                                    <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-purple-700 transition-colors">Nuevo Flujo</h3>
+                                    <p className="text-sm text-slate-500 mt-1.5 font-medium">Crear un lienzo en blanco desde cero</p>
+                                </button>
+                            </div>
+                            
+                            <div className="mt-12 flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-[0.2em] select-none">
+                                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                                 Motor Gráfico Listo
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
