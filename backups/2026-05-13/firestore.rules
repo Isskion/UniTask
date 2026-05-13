@@ -30,8 +30,9 @@ service cloud.firestore {
 
     // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
     function docTenantMatches(docData) {
-      return string(docData.get('tenantId', '1')) == getRealTenantId() || 
-             (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(docData.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')));
+      return getRealTenantId() != "__DENY__" 
+        ? string(docData.get('tenantId', '1')) == getRealTenantId()
+        : (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(docData.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')));
     }
 
     // [SAM] Integrity Check: Key must match dimensions
@@ -384,6 +385,17 @@ service cloud.firestore {
                     int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) <= 80 &&
                     // Cannot change a user's tenant
                     request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
+
+      // 4. [NEW] PM / Global PM (60) managing non-admin users in their tenant
+      allow update: if isAuthenticated() && 
+                    getRealRole() >= 60 && 
+                    docTenantMatches(resource.data) && 
+                    // The user being edited MUST NOT currently be an Admin/SuperAdmin (Level >= 80)
+                    int(resource.data.get('roleLevel', 0)) < 80 &&
+                    // Cannot promote the user to Admin/SuperAdmin (Level >= 80)
+                    int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) < 80 &&
+                    // Cannot change a user's tenant
+                    request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
       
       // Users cannot DELETE or CREATE their own full docs via client (handled by backend/admin)
       // Exception: If you have a specific creation flow, verify it here. Assuming backend does creation on auth.
@@ -664,6 +676,25 @@ service cloud.firestore {
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
       allow update: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+    }
+
+    // --- AGENDA SEMANAL DE CONSULTORES ---
+    // Aislamiento por tenant garantizado en el cliente (where tenantId == tid).
+    // getRealTenantId() falla cuando el token no tiene custom claim, por eso usamos
+    // isAuthenticated() como guardia principal para esta herramienta interna.
+    match /agenda_entries/{entryId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /agenda_consultants/{consultantId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // --- ACTIVE TIMERS (TaskControllerWidget) ---
+    match /activeTimers/{userId} {
+      // Cada usuario solo puede leer/escribir su propio timer
+      allow read:   if isAuthenticated() && (isSuperAdmin() || request.auth.uid == userId);
+      allow write:  if isAuthenticated() && request.auth.uid == userId;
     }
 
     // --- SYSTEM DATA (Counters, etc.) ---
