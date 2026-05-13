@@ -74,6 +74,8 @@ export const en = {
         "tenant-management": "Tenant Management",
         dispoplan: "DispoPlan",
         availability_registry: "Availability Registry",
+        "availability-registry": "Availability Registry",
+        "agenda-semanal": "Weekly Schedule",
         organizations: "Tenants",
         tasks: "Tasks",
         users: "Users",

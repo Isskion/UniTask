@@ -76,6 +76,8 @@ export const fr: Dictionary = {
         "tenant-management": "Gestion des locataires",
         dispoplan: "DispoPlan",
         availability_registry: "Registre des disponibilités",
+        "availability-registry": "Registro Indisponibilidades",
+        "agenda-semanal": "Agenda Semanal",
         organizations: "Locataires",
         tasks: "Tâches",
         users: "Utilisateurs",

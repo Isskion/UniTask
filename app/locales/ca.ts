@@ -76,6 +76,8 @@ export const ca: Dictionary = {
         "tenant-management": "Gestió de Tenants",
         dispoplan: "DispoPlan",
         availability_registry: "Registre Indisponibilitats",
+        "availability-registry": "Registro Indisponibilidades",
+        "agenda-semanal": "Agenda Semanal",
         organizations: "Tenants",
         tasks: "Tasques",
         users: "Usuaris",

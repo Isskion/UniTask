@@ -76,6 +76,8 @@ export const de: Dictionary = {
         "tenant-management": "Mandantenverwaltung",
         dispoplan: "DispoPlan",
         availability_registry: "Verfügbarkeitsregister",
+        "availability-registry": "Registro Indisponibilidades",
+        "agenda-semanal": "Agenda Semanal",
         organizations: "Mandanten",
         tasks: "Aufgaben",
         users: "Benutzer",
