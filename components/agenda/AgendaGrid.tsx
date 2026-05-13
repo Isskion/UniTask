@@ -158,8 +158,8 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                             return (
                                 <tr key={consultant.id} className="group/row" style={{ height: '1px' }}>
                                     {/* ── Consultant name ─────────────────────── */}
-                                    <td className="sticky left-0 z-10 h-full bg-card border-r border-b border-border px-3 py-2 align-top group-hover/row:bg-accent/30">
-                                        <div className="flex flex-col h-full justify-start">
+                                    <td className="sticky left-0 z-10 bg-card border-r border-b border-border px-3 py-2 align-top group-hover/row:bg-accent/30">
+                                        <div className="flex flex-col justify-start">
                                             <span className="text-foreground font-semibold text-[11px] truncate">{consultant.name}</span>
                                             <span className={cn(
                                                 "text-[9px] mt-0.5 font-medium uppercase tracking-wider",
@@ -175,7 +175,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                         const key  = `${consultant.userId}::${iso}`;
                                         const cellEntries = entryMap.get(key) || [];
                                         return (
-                                            <td key={iso} className="p-0 h-full">
+                                            <td key={iso} className="align-top p-0">
                                                 <AgendaCell
                                                     consultant={consultant}
                                                     date={date}
@@ -189,7 +189,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                     })}
 
                                     {/* ── Row total ───────────────────────────── */}
-                                    <td className="border-b border-l border-border h-full px-2 py-2 text-center align-middle bg-muted/20">
+                                    <td className="border-b border-l border-border px-2 py-2 text-center align-middle bg-muted/20">
                                         {rowTotal > 0 ? (
                                             <span className="text-indigo-300 font-semibold">{formatHours(rowTotal)}</span>
                                         ) : (
