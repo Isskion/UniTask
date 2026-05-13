@@ -1,6 +1,23 @@
-export const APP_VERSION = "14.4.0";
+export const APP_VERSION = "14.5.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.5.0",
+        date: "2026-05-13",
+        features: [
+            "Agenda Semanal: Nuevo módulo de seguimiento semanal de consultores en tiempo real — reemplaza el Excel AGENDA SEMANAL 2026.",
+            "Agenda · Grilla semanal: Vista 7 días × N consultores con entradas por celda, totales automáticos por fila y columna, y colaboración en tiempo real vía Firestore.",
+            "Agenda · ABM de entradas: Modal de creación/edición con selector de tipo de actividad (9 tipos con código de colores), comentario con extracción automática de CLIENTE/DESCRIPCION, selector de horario por desplegables (06:00–22:00 en pasos de 30 min), botón 'Día completo' (09:00–18:00) y 5 presets rápidos.",
+            "Agenda · Proyecto: Selector de proyecto con búsqueda por nombre, código y cliente. Preparado para filtrado SAM por región/división cuando se active.",
+            "Agenda · Resumen: Dashboard semanal con KPIs, tabla consultor × actividad, distribución por proyecto con barras proporcionales, desglose por tipo y estado.",
+            "Agenda · Exportación: CSV para Jira (formato 'Tipo: CLIENTE->DESCRIPCION') y CSV para MS Project (% completado según estado) con BOM UTF-8 para compatibilidad Excel.",
+            "Agenda · Gestión de consultores: Panel para añadir/retirar usuarios del tenant como consultores, configurar región (IBERIA/LATAM) y orden de aparición en la grilla.",
+            "Agenda · Filtros: Panel de filtrado por región, consultor, tipo de actividad y estado. Aplica en grilla y resumen simultáneamente.",
+            "Firestore: Nuevas reglas para agenda_entries, agenda_consultants y activeTimers (TaskControllerWidget).",
+            "Fix traducción: Clave nav.availability-registry añadida al locale es.ts.",
+            "Navegación: Acceso directo 'Agenda Semanal' en sección Administración del sidebar (abre en pestaña nueva). Incluido en CommandMenu (Alt+S)."
+        ]
+    },
     {
         version: "14.4.0",
         date: "2026-05-08",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Command } from "cmdk";
-import { Loader2, Search, Layout, FolderGit2, FolderPlus, Trash2, Home, ArrowRight, Shield } from "lucide-react";
+import { Loader2, Search, Layout, FolderGit2, FolderPlus, Trash2, Home, ArrowRight, Shield, CalendarDays } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useUI } from "@/context/UIContext";
 import { useRouter } from "next/navigation";
@@ -220,6 +220,15 @@ export function CommandMenu() {
                                     >
                                         <Layout className="mr-3 h-4 w-4 text-zinc-400" />
                                         <span>Ir a Editor</span>
+                                    </Command.Item>
+                                    <Command.Item
+                                        value="Agenda Semanal Consultores Weekly Schedule Planning"
+                                        onSelect={() => runCommand(() => router.push('/agenda'))}
+                                        className="group relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm text-zinc-200 outline-none aria-selected:bg-indigo-600/30 aria-selected:text-white transition-all"
+                                    >
+                                        <CalendarDays className="mr-3 h-4 w-4 text-indigo-400 group-aria-selected:text-white" />
+                                        <span>Agenda Semanal</span>
+                                        <span className="ml-auto text-xs opacity-40">Consultores</span>
                                     </Command.Item>
                                 </Command.Group>
 

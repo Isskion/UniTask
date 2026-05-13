@@ -28,6 +28,7 @@ import {
     Lightbulb,
     BookMarked,
     Sparkles,
+    CalendarDays,
     Calendar,
     LayoutTemplate,
     Settings2,
@@ -410,6 +411,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.administration') || t('nav.admin')}</p>
                                 </div>
                                 <div className="nav-section-island">
+                                    {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                        <NavLink href="/agenda" icon={CalendarDays} label="Agenda Semanal" target="_blank" />
+                                    )}
                                     {userRole === 'superadmin' && (
                                         <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                                     )}
