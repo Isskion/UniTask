@@ -67,7 +67,7 @@ export default function UserManagement() {
     const [isSavingSAM, setIsSavingSAM] = useState(false);
 
     useEffect(() => {
-        if (getRoleLevel(userRole) < 70) {
+        if (getRoleLevel(userRole) < 60) {
             setLoading(false);
             return;
         }
@@ -390,8 +390,8 @@ export default function UserManagement() {
         showToast("Copied", "Link copied to clipboard", "success");
     };
 
-    if (getRoleLevel(userRole) < 70) {
-        return <div className="p-8 text-center text-zinc-500">Restricted Access</div>;
+    if (getRoleLevel(userRole) < 60) {
+        return <div className="p-8 text-center text-zinc-500">Restricted Access (Role: {userRole || 'N/A'} / Lvl: {getRoleLevel(userRole)})</div>;
     }
 
     return (
@@ -490,15 +490,17 @@ export default function UserManagement() {
                                     )}>
                                         {u.role}
                                     </span>
-                                    <button
-                                        onClick={() => startEditing(u)}
-                                        className={cn(
-                                            "p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full",
-                                            isLight ? "text-zinc-400 hover:text-red-600 hover:bg-red-50" : "text-zinc-500 hover:text-white"
-                                        )}
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
+                                    {(getRoleLevel(userRole) >= 80 || getRoleLevel(u.role) < 80) && (
+                                        <button
+                                            onClick={() => startEditing(u)}
+                                            className={cn(
+                                                "p-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full",
+                                                isLight ? "text-zinc-400 hover:text-red-600 hover:bg-red-50" : "text-zinc-500 hover:text-white"
+                                            )}
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -794,7 +796,7 @@ export default function UserManagement() {
                                         }}
                                     >
                                         <optgroup label="System Roles">
-                                            {ROLES.map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
+                                            {ROLES.filter(r => getRoleLevel(userRole) >= 80 || getRoleLevel(r.value) < 80).map(r => <option key={r.value} value={r.value} className={isLight ? "text-black" : "text-white"}>{r.label}</option>)}
                                         </optgroup>
                                         {availableGroups.length > 0 && (
                                             <optgroup label="Custom Roles">

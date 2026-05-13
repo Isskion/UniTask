@@ -1,0 +1,162 @@
+# 🧠 MEMORIA TÉCNICA Y DE SEGURIDAD — UNITASK PLATINUM
+
+Este documento constituye el repertorio central de seguridad y conocimiento del ecosistema **UniTask Platinum** (anteriormente Weekly Tracker), consolidando la arquitectura, modelo de datos, seguridad e historial de intervenciones críticas.
+
+**Última Actualización:** 13 de Mayo de 2026
+**Estado:** Activo y Optimizado (Entorno de Producción)
+
+---
+
+## 📋 1. Arquitectura del Ecosistema
+
+UniTask Platinum es una solución SaaS empresarial multi-tenant diseñada para la gestión inteligente de proyectos, tareas automatizadas con IA y la integración con herramientas logísticas de UNIGIS.
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                    FRONTEND (Next.js 16 + App Router)         │
+│   - Dashboard Principal (Weekly Tracker)                      │
+│   - UNIGIS Order Creator Web (Mapeador de Pedidos)            │
+│   - UI con TailwindCSS 4, React 19 y Zustand / Context        │
+└───────────────────────────────────────────────┬───────────────┘
+                                                │ (Autenticación / SDK)
+                                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                    BACKEND & INFRAESTRUCTURA (Firebase)       │
+│   - Firebase Auth: Google OAuth + Custom Claims de Tenant     │
+│   - Cloud Functions: Node.js 20, europe-west1 (IA & APIs)     │
+│   - Firestore: Base de datos NoSQL Multi-tenant               │
+│   - Firestore Rules: Seguridad y aislamiento física/lógica    │
+└───────────────────────────────────────────────┬───────────────┘
+                                                │
+                                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                    INTEGRACIONES EXTERNAS & IA                │
+│   - Google Gemini API: Extracción de tareas NLP y Chat        │
+│   - UNIGIS Logistic Services: Soap Proxy para pedidos         │
+│   - Base de Datos UNIGIS EUP: SP de asignación de recursos    │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ 2. Stack Tecnológico Consolidado
+
+| Capa | Tecnología | Versión | Propósito |
+| :--- | :--- | :--- | :--- |
+| **Framework** | Next.js | 16.1.6 | Servidor SSR, API Routes y App Router |
+| **UI** | React | 19.2.4 | Librería reactiva principal |
+| **Estilos** | Tailwind CSS | 4.2.1 | Estilos de alto rendimiento con PostCSS |
+| **Estado** | Zustand + Context | v5+ | Manejo de estado global del cliente |
+| **BD / Serverless**| Firebase / Firestore | v12.8.0 | SDK cliente y administrador de la DB |
+| **Backend Admin** | Firebase Cloud Functions| Node.js 20 | Endpoints seguros (Gemini, emails) |
+| **IA** | Google Gemini / SDK AI | @google/generative-ai | Motor NLP para notas y chats |
+| **Despliegue** | Vercel + Firebase | - | CI/CD de frontend y funciones de servidor |
+
+---
+
+## 📊 3. Esquema de Base de Datos (Colecciones Firestore)
+
+El sistema aplica **Aislamiento Físico y Lógico (SAM Architecture)** mediante `tenantId` y jerarquías de scopes:
+
+1.  **`projects`**: Proyectos activos globales, códigos de negocio y colores identificativos.
+2.  **`tasks`**: Tareas semanales, estimación de esfuerzos (XS-XL) y estados.
+3.  **`users`**: Perfiles de usuario, avatares y roles (`app_admin`, `global_pm`, `consultor`, `usuario_base`).
+4.  **`journal_entries` / `weekly_entries`**: Registro histórico de notas semanales de PMs y conclusiones NLP.
+5.  **`uniflux_flows`**: Flujos gráficos diseñados en la herramienta integrada UniFlux.
+6.  **`unileaks_folders` / `unileaks_notes`**: Repositorio documental estructurado del módulo UniLeaks.
+7.  **`master_data` / `attribute_definitions`**: Parámetros de configuración del sistema.
+
+---
+
+## 🔐 4. Sistema de Seguridad y Jerarquía de Roles
+
+### Niveles de Privilegio (Custom Claims):
+*   **SuperAdmin (>=100)**: Acceso absoluto a todos los tenants del sistema.
+*   **Admin App (>=80)**: Gestión de usuarios, proyectos e invitaciones dentro de **su propio tenant**.
+*   **Project Manager (>=60)**: Creación de proyectos, tareas e importaciones.
+*   **Consultor**: Acceso y modificación únicamente de sus tareas y proyectos asignados.
+*   **Usuario Externo / Cliente**: Vista restringida de solo lectura.
+
+---
+
+## 🚀 5. Historial Reciente de Intervenciones (13 de Mayo de 2026)
+
+En esta sesión crítica de mantenimiento en vivo sobre el entorno de producción, se abordaron con éxito los siguientes hitos:
+
+### 📂 A. Optimización Crítica de Rendimiento de Firestore
+*   **Problema**: Latencia excesiva al crear y leer carpetas y notas en UniLeaks.
+*   **Diagnóstico**: Las reglas de seguridad realizaban una comprobación recursiva `docTenantMatches()`. Si no se leía el token de forma estricta, se forzaba un `get()` encubierto sobre `/users/{uid}` por cada elemento procesado, colapsando Firestore en operaciones de lote.
+*   **Solución**: Se refactorizó `firestore.rules` introduciendo una evaluación ternaria optimizada:
+    ```javascript
+    function docTenantMatches(docData) {
+      return getRealTenantId() != "__DENY__" 
+        ? string(docData.get('tenantId', '1')) == getRealTenantId()
+        : (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(docData.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')));
+    }
+    ```
+    Si el usuario posee un Custom Claim válido en su Token, el sistema **NUNCA** realiza consultas de base de datos, eliminando la latencia y convirtiendo la validación en una operación de milisegundos.
+
+### 💾 B. Resolución de Backups y Soporte Git
+*   **Problema**: Las copias de seguridad de Firestore en un único archivo JSON masivo en una línea congelaban Git por exceso de consumo de memoria en los Diff.
+*   **Solución**: Se creó el script `scripts/format-backup-for-git.js` que:
+    1.  Trocea el backup consolidado por colecciones en archivos `.json` individuales.
+    2.  Aplica **Pretty Print** (sangrado de 2 espacios) para garantizar diffs legibles.
+    3.  Ordena los documentos por ID para evitar cambios artificiales de línea.
+    4.  Los archivos resultantes se guardan en `git_backup_data/`, listos para subidas instantáneas a Git.
+
+### 🚛 C. Diagnóstico UNIGIS EUP (Asignación de Vehículos - Jornada 73)
+*   **Escenario**: Rutas de la Zona 002 (Barcelona) sin asignar a pesar de disponer de 29 recursos libres de Tipo 12.
+*   **Hallazgo**: El SP `Z_SP_ProponerVehiculoViaje` actúa correctamente. El cruce contra la tabla `dbo.Conductor_Dyn` reveló que los 29 conductores libres carecen de la Zona `002` en sus preferencias (`ZonaOpcionA`, `B` o `C`). La inmensa mayoría está vinculada de forma exclusiva a la Zona `001`, `003` o `004`.
+*   **Recomendación**: Actualizar las fichas dinámicas de los conductores libres en los Datos Maestros para incluir la Zona `002`.
+
+### 👥 D. Habilitación de Gestión de Usuarios para Project Managers (Level >= 60)
+*   **Problema**: Los roles Project Manager / Global PM (Level 60) sufrían una pantalla de bloqueo de "Restricted Access" en el frontend y no podían editar fichas de usuario en la base de datos.
+*   **Solución Backend**: Se implementó una nueva regla explícita de tipo `allow update` en `firestore.rules` bajo `/users/{userId}` para habilitar la escritura bajo condiciones estrictas (no tocar admins y no elevar roles).
+*   **Solución Frontend**: Se parcheó [UserManagement.tsx](file:///C:/Users/daniel.delamo/.gemini/antigravity/scratch/UniTask/components/UserManagement.tsx):
+    1.  **Acceso al Módulo**: Se rebajó el filtro de `getRoleLevel(userRole) < 70` a `< 60` permitiendo a los PMs entrar y cargar los datos.
+    2.  **Restricción Visual (UX)**: Se ocultó el botón de editar (`Edit2`) para aquellos usuarios cuya ficha tenga nivel `>= 80` (Admins) si quien visualiza es un PM.
+    3.  **Prevención de Escalada (UX)**: Se filtró el listado de roles en el modal de edición para omitir la selección de `app_admin` y `superadmin` cuando el usuario activo es un PM.
+    4.  **Diagnósticos Visuales (Depuración)**: Se enriqueció el mensaje de "Restricted Access" para inyectar en caliente el Rol y Nivel activo para auditoría visual inmediata ante problemas de caché (`Role: X / Lvl: Y`).
+*   **Validación**: Se ha compilado la aplicación con éxito (`npm run build` -> exit code 0 con Turbopack) garantizando la integridad de tipos e imports. Los cambios están listos para el despliegue de hosting.
+*   **Políticas de Seguridad Aplicadas**: Los PMs ahora pueden autogestionar sus equipos con fluidez, pero **tienen bloqueado** tanto por interfaz como por backend interferir con rangos de administración.
+
+
+---
+
+## 📂 6. Estructura Principal de Archivos del Workspace
+
+```
+UniTask/
+├── app/                    ← Páginas del router Next.js y Server Actions
+├── components/             ← Módulos React (Editor, Kanban, Calendario)
+├── functions/              ← Cloud Functions TypeScript (IA, auth, purgas)
+├── git_backup_data/        ← Backups formateados para subidas limpias a Git
+├── scripts/                ← Scripts de administración (backups, formateo)
+│   ├── run-dated-backup.js       ← Backup diario crudo en JSON
+│   └── format-backup-for-git.js  ← Generador de backups amigables con Git
+├── firestore.rules         ← Reglas de seguridad optimizadas en vivo
+├── package.json            ← Definición del ecosistema node_modules
+└── memoria.mdm             ← ← ESTE ARCHIVO (Resguardo de Seguridad)
+```
+
+---
+
+## 📋 7. Protocolos de Recuperación y Mantenimiento
+
+### Realizar una copia de seguridad de emergencia apta para Git:
+Para asegurar la información de producción y guardarla en el repositorio, ejecuta la siguiente secuencia en consola:
+
+```bash
+# 1. Generar el snapshot crudo de Firestore
+node scripts/run-dated-backup.js
+
+# 2. Procesar y dividir el JSON para hacerlo compatible con Git
+node scripts/format-backup-for-git.js
+
+# 3. Realizar el commit en el repositorio
+git add git_backup_data/
+git commit -m "chore: backup automatizado de base de datos UniTask [Producción]"
+```
+
+---
+*Memoria certificada y securizada para fines de auditoría técnica del proyecto UniTask Platinum.*

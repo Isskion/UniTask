@@ -385,6 +385,17 @@ service cloud.firestore {
                     int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) <= 80 &&
                     // Cannot change a user's tenant
                     request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
+
+      // 4. [NEW] PM / Global PM (60) managing non-admin users in their tenant
+      allow update: if isAuthenticated() && 
+                    getRealRole() >= 60 && 
+                    docTenantMatches(resource.data) && 
+                    // The user being edited MUST NOT currently be an Admin/SuperAdmin (Level >= 80)
+                    int(resource.data.get('roleLevel', 0)) < 80 &&
+                    // Cannot promote the user to Admin/SuperAdmin (Level >= 80)
+                    int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) < 80 &&
+                    // Cannot change a user's tenant
+                    request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
       
       // Users cannot DELETE or CREATE their own full docs via client (handled by backend/admin)
       // Exception: If you have a specific creation flow, verify it here. Assuming backend does creation on auth.
