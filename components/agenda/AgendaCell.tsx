@@ -22,10 +22,14 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
     const totalHours = entries.reduce((sum, e) => sum + (e.scheduledHours || 0), 0);
 
     return (
+        // h-full stretches the cell to match row height when sibling cells grow taller.
+        // min-h-[80px] ensures a minimum usable click area on empty days.
         <div
             className={cn(
-                "min-h-[80px] p-1.5 flex flex-col gap-1 border-r border-b border-white/5 relative group transition-colors",
-                isWeekend ? "bg-zinc-900/60" : isHoliday ? "bg-red-950/20" : "bg-transparent hover:bg-white/[0.02]",
+                "h-full min-h-[80px] p-1.5 flex flex-col gap-1 border-r border-b border-border relative group transition-colors",
+                isWeekend ? "bg-muted/30"
+                    : isHoliday ? "bg-red-950/20"
+                    : "bg-transparent hover:bg-accent/20",
             )}
         >
             {/* Entries list */}
@@ -53,45 +57,47 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                                     className="w-1.5 h-1.5 rounded-full shrink-0"
                                     style={{ backgroundColor: entry.projectColor || '#6b7280' }}
                                 />
-                                <span className="text-[9px] font-mono text-zinc-500 truncate">{entry.projectCode}</span>
+                                <span className={cn("text-[9px] font-mono truncate", actCfg.textClass, "opacity-70")}>
+                                    {entry.projectCode}
+                                </span>
                             </div>
                         )}
                         {entry.client && (
-                            <p className="text-zinc-400 truncate">{entry.client}</p>
+                            <p className={cn("truncate", actCfg.textClass, "opacity-80")}>{entry.client}</p>
                         )}
                         {entry.scheduledHours > 0 && (
-                            <p className="text-zinc-500 mt-0.5">{formatHours(entry.scheduledHours)}</p>
+                            <p className={cn("mt-0.5", actCfg.textClass, "opacity-60")}>{formatHours(entry.scheduledHours)}</p>
                         )}
                     </button>
                 );
             })}
 
-            {/* Total hours badge (appears when there are entries) */}
+            {/* Total hours badge */}
             {entries.length > 1 && totalHours > 0 && (
-                <div className="text-[9px] text-zinc-500 font-mono px-1">
+                <div className="text-[9px] text-muted-foreground font-mono px-1">
                     Total: {formatHours(totalHours)}
                 </div>
             )}
 
-            {/* Add button — visible on hover if not disabled */}
+            {/* Add button */}
             {!isDisabled && (
                 <button
                     onClick={onAdd}
                     className={cn(
-                        "absolute bottom-1.5 right-1.5 w-5 h-5 rounded-md bg-white/5 border border-white/10 flex items-center justify-center transition-all",
-                        "opacity-0 group-hover:opacity-100 hover:bg-indigo-600/30 hover:border-indigo-500/40 hover:text-indigo-300",
+                        "absolute bottom-1.5 right-1.5 w-5 h-5 rounded-md bg-secondary/50 border border-border flex items-center justify-center transition-all",
+                        "opacity-0 group-hover:opacity-100 hover:bg-indigo-600/30 hover:border-indigo-500/40 hover:text-indigo-400",
                     )}
                     title="Añadir entrada"
                 >
-                    <Plus className="w-3 h-3 text-zinc-400" />
+                    <Plus className="w-3 h-3 text-muted-foreground" />
                 </button>
             )}
 
-            {/* Holiday/Weekend label */}
+            {/* FDS / DNH label */}
             {isDisabled && (
                 <span className={cn(
-                    "text-[9px] font-medium uppercase tracking-wider px-1",
-                    isHoliday ? "text-red-500/60" : "text-zinc-600",
+                    "text-[9px] font-medium uppercase tracking-wider px-1 mt-auto",
+                    isHoliday ? "text-red-500/60" : "text-muted-foreground/40",
                 )}>
                     {DAY_TYPE_CONFIG[dayType].label}
                 </span>

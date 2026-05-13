@@ -141,17 +141,17 @@ export function AgendaView() {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={goBack}
-                        className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                        className="w-8 h-8 rounded-lg bg-secondary/50 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </button>
 
                     <div className="text-center">
-                        <div className="text-sm font-semibold text-white capitalize">{weekLabel}</div>
+                        <div className="text-sm font-semibold text-foreground capitalize">{weekLabel}</div>
                         <div className={cn(
                             "text-[10px] font-medium uppercase tracking-wider mt-0.5",
-                            isCurrentWeek ? "text-indigo-400" :
-                            weekMark === 'Futuro' ? "text-amber-400/70" : "text-zinc-500"
+                            isCurrentWeek ? "text-indigo-500" :
+                            weekMark === 'Futuro' ? "text-amber-500" : "text-muted-foreground"
                         )}>
                             {weekMark} · Semana {weekNumber}
                         </div>
@@ -159,7 +159,7 @@ export function AgendaView() {
 
                     <button
                         onClick={goForward}
-                        className="w-8 h-8 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                        className="w-8 h-8 rounded-lg bg-secondary/50 border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
                     >
                         <ChevronRight className="w-4 h-4" />
                     </button>
@@ -167,7 +167,7 @@ export function AgendaView() {
                     {!isCurrentWeek && (
                         <button
                             onClick={goToday}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30 transition-all"
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 border border-indigo-600 text-white hover:bg-indigo-700 transition-all"
                         >
                             Hoy
                         </button>
@@ -181,14 +181,14 @@ export function AgendaView() {
                     )}
 
                     {/* View toggle */}
-                    <div className="flex items-center bg-white/5 border border-white/8 rounded-lg p-0.5">
+                    <div className="flex items-center bg-secondary/40 border border-border rounded-lg p-0.5">
                         <button
                             onClick={() => setViewMode('grid')}
                             className={cn(
                                 "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all",
                                 viewMode === 'grid'
-                                    ? "bg-white/10 text-white"
-                                    : "text-zinc-500 hover:text-zinc-300"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
@@ -199,8 +199,8 @@ export function AgendaView() {
                             className={cn(
                                 "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all",
                                 viewMode === 'resumen'
-                                    ? "bg-white/10 text-white"
-                                    : "text-zinc-500 hover:text-zinc-300"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <BarChart3 className="w-3.5 h-3.5" />
@@ -223,8 +223,8 @@ export function AgendaView() {
                         className={cn(
                             "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
                             showFilters || activeFilterCount > 0
-                                ? "bg-indigo-600/20 border-indigo-500/30 text-indigo-300"
-                                : "bg-white/5 border-white/8 text-zinc-400 hover:text-white hover:bg-white/10"
+                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                         )}
                     >
                         <Filter className="w-3.5 h-3.5" />
@@ -240,7 +240,7 @@ export function AgendaView() {
                     <button
                         onClick={handleExportJira}
                         disabled={entries.length === 0}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 border border-white/8 text-zinc-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Exportar CSV para Jira"
                     >
                         <Download className="w-3.5 h-3.5" />
@@ -251,7 +251,7 @@ export function AgendaView() {
                     <button
                         onClick={handleExportMSProject}
                         disabled={entries.length === 0}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 border border-white/8 text-zinc-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Exportar CSV para MS Project"
                     >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -261,7 +261,7 @@ export function AgendaView() {
                     {/* Manage consultants */}
                     <button
                         onClick={() => setShowConsultantsManager(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 border border-white/8 text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
                         title="Gestionar consultores de la agenda"
                     >
                         <Settings2 className="w-3.5 h-3.5" />
@@ -293,7 +293,7 @@ export function AgendaView() {
 
                     {/* Region */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Región</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Región</p>
                         <div className="flex gap-1.5">
                             {(['ALL', 'IBERIA', 'LATAM'] as const).map(r => (
                                 <button
@@ -302,8 +302,8 @@ export function AgendaView() {
                                     className={cn(
                                         "px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
                                         filters.region === r
-                                            ? "bg-indigo-600/30 border-indigo-500/40 text-indigo-200"
-                                            : "bg-white/3 border-white/8 text-zinc-500 hover:text-zinc-300"
+                                            ? "bg-indigo-600 border-indigo-600 text-white"
+                                            : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                     )}
                                 >
                                     {r === 'ALL' ? 'Todas' : r}
@@ -315,7 +315,7 @@ export function AgendaView() {
                     {/* Consultants */}
                     {consultants.length > 0 && (
                         <div className="space-y-1.5">
-                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Consultores</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Consultores</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {consultants.map(c => (
                                     <button
@@ -324,8 +324,8 @@ export function AgendaView() {
                                         className={cn(
                                             "px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
                                             filters.consultantIds.includes(c.userId)
-                                                ? "bg-indigo-600/30 border-indigo-500/40 text-indigo-200"
-                                                : "bg-white/3 border-white/8 text-zinc-500 hover:text-zinc-300"
+                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                         )}
                                     >
                                         {c.name}
@@ -337,7 +337,7 @@ export function AgendaView() {
 
                     {/* Activities */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Actividad</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Actividad</p>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.values(ActivityType).map(t => {
                                 const cfg = ACTIVITY_CONFIG[t];
@@ -350,7 +350,7 @@ export function AgendaView() {
                                             "px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
                                             selected
                                                 ? `${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass}`
-                                                : "bg-white/3 border-white/8 text-zinc-500 hover:text-zinc-300"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                         )}
                                     >
                                         {cfg.label}
@@ -362,7 +362,7 @@ export function AgendaView() {
 
                     {/* Results */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Estado</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Estado</p>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.values(ResultStatus).map(r => {
                                 const cfg = RESULT_CONFIG[r];
@@ -374,8 +374,8 @@ export function AgendaView() {
                                         className={cn(
                                             "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
                                             selected
-                                                ? "bg-white/10 border-white/20 text-white"
-                                                : "bg-white/3 border-white/8 text-zinc-500 hover:text-zinc-300"
+                                                ? "bg-secondary border-border text-foreground font-semibold"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                         )}
                                     >
                                         <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dotClass)} />
@@ -391,7 +391,7 @@ export function AgendaView() {
                         <div className="flex items-end">
                             <button
                                 onClick={clearFilters}
-                                className="px-3 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/8 transition-all"
+                                className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent hover:border-border transition-all"
                             >
                                 Limpiar filtros
                             </button>
