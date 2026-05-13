@@ -156,7 +156,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                         {visibleConsultants.map(consultant => {
                             const rowTotal = rowTotals.get(consultant.userId) || 0;
                             return (
-                                <tr key={consultant.id} className="group/row" style={{ height: '1px' }}>
+                                <tr key={consultant.id} className="group/row">
                                     {/* ── Consultant name ─────────────────────── */}
                                     <td className="sticky left-0 z-10 bg-card border-r border-b border-border px-3 py-2 align-top group-hover/row:bg-accent/30">
                                         <div className="flex flex-col justify-start">
@@ -175,7 +175,15 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                         const key  = `${consultant.userId}::${iso}`;
                                         const cellEntries = entryMap.get(key) || [];
                                         return (
-                                            <td key={iso} className="align-top p-0">
+                                            <td
+                                                key={iso}
+                                                className={cn(
+                                                    "align-top p-0 border-r border-b border-border group",
+                                                    type === DayType.FDS  ? "bg-muted/30" :
+                                                    type === DayType.DNH  ? "bg-red-950/20" :
+                                                    "hover:bg-accent/20"
+                                                )}
+                                            >
                                                 <AgendaCell
                                                     consultant={consultant}
                                                     date={date}

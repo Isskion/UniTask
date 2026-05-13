@@ -22,16 +22,9 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
     const totalHours = entries.reduce((sum, e) => sum + (e.scheduledHours || 0), 0);
 
     return (
-        // h-full stretches the cell to match row height when sibling cells grow taller.
-        // min-h-[80px] ensures a minimum usable click area on empty days.
-        <div
-            className={cn(
-                "h-full min-h-[80px] p-1.5 flex flex-col gap-1 border-r border-b border-border relative group transition-colors",
-                isWeekend ? "bg-muted/30"
-                    : isHoliday ? "bg-red-950/20"
-                    : "bg-transparent hover:bg-accent/20",
-            )}
-        >
+        // bg, border and hover live on the parent <td> in AgendaGrid so they always
+        // fill the full row height. This div only manages content layout.
+        <div className="min-h-[80px] p-1.5 flex flex-col gap-1 relative transition-colors">
             {/* Entries list */}
             {entries.map(entry => {
                 const actCfg = ACTIVITY_CONFIG[entry.activityType];
