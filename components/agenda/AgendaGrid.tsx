@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, AgendaFilters, ACTIVITY_CONFIG } from "@/types/agenda";
 import { getDayType, formatDayHeader, formatHours } from "@/lib/agenda-utils";
+import { useLanguage } from "@/context/LanguageContext";
 import { AgendaCell } from "./AgendaCell";
 import { AgendaEntryModal } from "./AgendaEntryModal";
 
@@ -25,7 +26,7 @@ interface ModalState {
 const CLOSED_MODAL: ModalState = { open: false, consultant: null, date: null, entry: null };
 
 export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }: Props) {
-
+    const { t } = useLanguage();
     const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 
     // ── Apply filters ──────────────────────────────────────────────────────────
@@ -103,7 +104,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
     if (visibleConsultants.length === 0) {
         return (
             <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-24">
-                No hay consultores que coincidan con los filtros activos.
+                {t('agenda.noConsultantsFilter')}
             </div>
         );
     }
@@ -122,7 +123,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                     <thead className="sticky top-0 z-20">
                         <tr>
                             <th className="bg-card border-r border-b border-border px-3 py-2 text-left text-muted-foreground font-medium">
-                                Consultor
+                                {t('agenda.consultantCol')}
                             </th>
                             {dayMeta.map(({ date, type, header }) => {
                                 const isWeekend = type === DayType.FDS;
@@ -147,7 +148,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                 );
                             })}
                             <th className="bg-card border-b border-border px-2 py-2 text-center text-muted-foreground font-medium">
-                                Total
+                                {t('agenda.totalCol')}
                             </th>
                         </tr>
                     </thead>
@@ -211,7 +212,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                         {/* ── Column totals row ───────────────────────────────── */}
                         <tr className="bg-muted/30 border-t border-border">
                             <td className="sticky left-0 z-10 bg-muted/30 border-r border-border px-3 py-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
-                                Total semana
+                                {t('agenda.weekTotal')}
                             </td>
                             {colTotals.map((total, i) => (
                                 <td key={i} className="border-r border-white/8 px-2 py-2 text-center">

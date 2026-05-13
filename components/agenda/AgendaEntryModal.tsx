@@ -13,6 +13,8 @@ import {
 import { createAgendaEntry, updateAgendaEntry, deleteAgendaEntry, CreateEntryInput } from "@/lib/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { auth, db } from "@/lib/firebase";
+import { useLanguage } from "@/context/LanguageContext";
+import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { filterBySAMScope } from "@/lib/projects";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
@@ -79,6 +81,7 @@ function parseScheduleToTimes(raw: string): { timeStart: string; timeEnd: string
 
 export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, tenantId }: Props) {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const accessScopes = useAccessScopes(); // SAM scope — null = sin restricción
     const isEdit = !!entry;
 
@@ -221,8 +224,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
             console.error("[agenda] save error:", e);
             const isPermission = e?.code === 'permission-denied' || String(e).includes('permissions');
             setSaveError(isPermission
-                ? 'Error de permisos. Pulsa ↺ en la barra de la agenda para limpiar caché y recargar.'
-                : 'Error al guardar. Inténtalo de nuevo.'
+                ? t('agenda.permissionError')
+                : t('agenda.saveError')
             );
         } finally {
             setSaving(false);
@@ -231,7 +234,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
 
     async function handleDelete() {
         if (!entry) return;
-        if (!confirm('¿Eliminar esta entrada?')) return;
+        if (!confirm(t('agenda.deleteConfirm'))) return;
         setDeleting(true);
         try {
             await deleteAgendaEntry(entry.id);
@@ -253,7 +256,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                 <div className="flex items-start justify-between p-5 border-b border-border shrink-0">
                     <div>
                         <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">
-                            {isEdit ? 'Editar entrada' : 'Nueva entrada'}
+                            {isEdit ? t('agenda.editEntry') : t('agenda.newEntry')}
                         </p>
                         <h2 className="text-foreground font-semibold text-base leading-tight">{consultant.name}</h2>
                         <p className="text-muted-foreground text-sm mt-0.5 capitalize">
@@ -272,7 +275,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                     <div className="space-y-2">
                         <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                             <Tag className="w-3.5 h-3.5" />
-                            Tipo de actividad
+                            {t('agenda.activityType')}
                         </label>
                         <div className="grid grid-cols-3 gap-1.5">
                             {Object.values(ActivityType).map(type => {
@@ -289,7 +292,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                                 : "bg-white/3 text-zinc-500 border-white/5 hover:bg-white/6 hover:text-zinc-300"
                                         )}
                                     >
-                                        {cfg.label}
+                                        {t(ACTIVITY_TKEYS[type]) || cfg.label}
                                     </button>
                                 );
                             })}
@@ -300,8 +303,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                     <div className="space-y-2">
                         <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                             <AlignLeft className="w-3.5 h-3.5" />
-                            Comentario
-                            <span className="text-zinc-600 font-normal normal-case">CLIENTE / DESCRIPCION</span>
+                            {t('agenda.comment')}
+                            <span className="text-zinc-600 font-normal normal-case">{t('agenda.commentHint')}</span>
                         </label>
                         <input
                             type="text"
@@ -312,8 +315,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                         />
                         {(client || description) && (
                             <div className="flex gap-3 text-xs">
-                                <span className="text-zinc-500">Cliente: <span className="text-zinc-300 font-mono">{client || '—'}</span></span>
-                                <span className="text-zinc-500">Desc: <span className="text-zinc-300 font-mono">{description || '—'}</span></span>
+                                <span className="text-zinc-500">{t('agenda.clientLabel')}: <span className="text-zinc-300 font-mono">{client || '—'}</span></span>
+                                <span className="text-zinc-500">{t('agenda.descLabel')}: <span className="text-zinc-300 font-mono">{description || '—'}</span></span>
                             </div>
                         )}
                     </div>
@@ -322,8 +325,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                     <div className="space-y-2">
                         <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                             <FolderGit2 className="w-3.5 h-3.5" />
-                            Proyecto
-                            <span className="text-zinc-600 font-normal normal-case">(opcional)</span>
+                            {t('agenda.project')}
+                            <span className="text-zinc-600 font-normal normal-case">{t('agenda.optional')}</span>
                         </label>
 
                         {/* Selected project chip */}
@@ -355,7 +358,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                 className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-zinc-300 hover:bg-white/8 transition-all text-sm"
                             >
                                 <Search className="w-3.5 h-3.5" />
-                                Seleccionar proyecto...
+                                {t('agenda.selectProject')}
                             </button>
                         )}
 
@@ -370,7 +373,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                         type="text"
                                         value={projectSearch}
                                         onChange={e => setProjectSearch(e.target.value)}
-                                        placeholder="Buscar por nombre, código o cliente..."
+                                        placeholder={t('agenda.searchProjectPh')}
                                         className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none"
                                     />
                                 </div>
@@ -384,7 +387,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                             className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-zinc-500 hover:bg-white/5 transition-colors"
                                         >
                                             <span className="w-2.5 h-2.5 rounded-full bg-zinc-700" />
-                                            Sin proyecto
+                                            {t('agenda.noProject')}
                                         </button>
                                     )}
 
@@ -429,9 +432,9 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                         <div className="flex items-center justify-between">
                             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                                 <Clock className="w-3.5 h-3.5" />
-                                Horario
+                                {t('agenda.schedule')}
                             </label>
-                            {/* Día completo */}
+                            {/* Full day button */}
                             <button
                                 onClick={setFullDay}
                                 className={cn(
@@ -443,7 +446,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                 title="09:00 a 18:00 — 8h trabajo + 1h comida"
                             >
                                 <Sun className="w-3.5 h-3.5" />
-                                Día completo
+                                {t('agenda.fullDay')}
                             </button>
                         </div>
 
@@ -461,7 +464,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                         !form.timeStart && "text-zinc-500"
                                     )}
                                 >
-                                    <option value="" disabled className="bg-zinc-900">Inicio</option>
+                                    <option value="" disabled className="bg-zinc-900">{t('agenda.timeStartPh')}</option>
                                     {TIME_OPTIONS.map(t => (
                                         <option key={t} value={t} className="bg-zinc-900">{t}</option>
                                     ))}
@@ -484,7 +487,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                         !form.timeEnd && "text-zinc-500"
                                     )}
                                 >
-                                    <option value="" disabled className="bg-zinc-900">Fin</option>
+                                    <option value="" disabled className="bg-zinc-900">{t('agenda.timeEndPh')}</option>
                                     {endOptions.map(t => (
                                         <option key={t} value={t} className="bg-zinc-900">{t}</option>
                                     ))}
@@ -496,7 +499,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                             {hours > 0 && (
                                 <div className="shrink-0 text-center bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-2 min-w-[60px]">
                                     <p className="text-indigo-300 font-bold text-sm leading-none">{formatHours(hours)}</p>
-                                    <p className="text-indigo-500 text-[9px] mt-0.5">planif.</p>
+                                    <p className="text-indigo-500 text-[9px] mt-0.5">{t('agenda.plannedAbbr')}</p>
                                 </div>
                             )}
                         </div>
@@ -504,11 +507,11 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                         {/* Quick presets */}
                         <div className="flex flex-wrap gap-1.5">
                             {[
-                                { label: '1h',    start: '10:00', end: '11:00' },
-                                { label: '1h 30m', start: '10:00', end: '11:30' },
-                                { label: '2h',    start: '10:00', end: '12:00' },
-                                { label: 'Mañana', start: '09:00', end: '13:00' },
-                                { label: 'Tarde',  start: '14:00', end: '18:00' },
+                                { label: '1h',                      start: '10:00', end: '11:00' },
+                                { label: '1h 30m',                  start: '10:00', end: '11:30' },
+                                { label: '2h',                      start: '10:00', end: '12:00' },
+                                { label: t('agenda.presetMorning'), start: '09:00', end: '13:00' },
+                                { label: t('agenda.presetAfternoon'), start: '14:00', end: '18:00' },
                             ].map(p => (
                                 <button
                                     key={p.label}
@@ -530,7 +533,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                     <div className="space-y-2">
                         <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Estado
+                            {t('agenda.statusLabel')}
                         </label>
                         <div className="flex gap-2 flex-wrap">
                             {Object.values(ResultStatus).map(status => {
@@ -548,7 +551,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                                         )}
                                     >
                                         <span className={cn("w-2 h-2 rounded-full", cfg.dotClass)} />
-                                        {cfg.label}
+                                        {t(RESULT_TKEYS[status]) || cfg.label}
                                     </button>
                                 );
                             })}
@@ -567,7 +570,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                         <div className="rounded-lg bg-zinc-900 border border-white/5 p-3">
                             <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                                 <ExternalLink className="w-3 h-3" />
-                                Registro Jira generado
+                                {t('agenda.jiraRecordLabel')}
                             </p>
                             <p className="text-xs text-zinc-300 font-mono break-all leading-relaxed">
                                 {jiraPreview}
@@ -585,7 +588,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all disabled:opacity-50"
                         >
                             {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                            Eliminar
+                            {t('agenda.delete')}
                         </button>
                     ) : <span />}
 
@@ -594,7 +597,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                             onClick={onClose}
                             className="px-4 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
                         >
-                            Cancelar
+                            {t('agenda.cancel')}
                         </button>
                         <button
                             onClick={handleSave}
@@ -602,7 +605,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {isEdit ? 'Guardar cambios' : 'Añadir entrada'}
+                            {isEdit ? t('agenda.saveChanges') : t('agenda.addEntry')}
                         </button>
                     </div>
                 </div>

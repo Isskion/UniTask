@@ -6,6 +6,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { createConsultant, updateConsultant } from "@/lib/agenda";
 import { AgendaConsultant, ConsultantRegion } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import {
     Users, Plus, Check, X, GripVertical, Globe, ChevronDown, Loader2, UserCheck, UserX,
@@ -26,6 +27,7 @@ interface Props {
 
 export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Props) {
     const { user } = useAuth();
+    const { t } = useLanguage();
 
     const [tenantUsers, setTenantUsers] = useState<TenantUser[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
@@ -112,10 +114,10 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                     <div>
                         <h2 className="text-white font-semibold text-base flex items-center gap-2">
                             <Users className="w-5 h-5 text-indigo-400" />
-                            Gestión de Consultores
+                            {t('agenda.manageTitle')}
                         </h2>
                         <p className="text-zinc-500 text-xs mt-0.5">
-                            Selecciona los usuarios del tenant que aparecerán en la agenda semanal
+                            {t('agenda.manageHint')}
                         </p>
                     </div>
                     <button onClick={onClose} className="text-zinc-500 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors">
@@ -129,7 +131,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                     {activeConsultants.length > 0 && (
                         <div className="p-5 border-b border-white/5">
                             <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-3">
-                                Consultores activos en la agenda ({activeConsultants.length})
+                                {t('agenda.activeInAgenda')} ({activeConsultants.length})
                             </p>
                             <div className="space-y-1.5">
                                 {activeConsultants.map((c, idx) => (
@@ -175,7 +177,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                                             onClick={() => toggleConsultant({ uid: c.userId, displayName: c.name, email: '' })}
                                             disabled={saving === c.id}
                                             className="text-zinc-600 hover:text-red-400 transition-colors p-1"
-                                            title="Quitar de la agenda"
+                                            title={t('agenda.removeFromSchedule')}
                                         >
                                             {saving === c.id
                                                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -191,7 +193,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                     {/* All tenant users */}
                     <div className="p-5">
                         <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-3">
-                            Usuarios del tenant
+                            {t('agenda.tenantUsers')}
                         </p>
 
                         {loadingUsers ? (
@@ -200,7 +202,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                             </div>
                         ) : tenantUsers.length === 0 ? (
                             <p className="text-xs text-zinc-600 py-4 text-center">
-                                No se encontraron usuarios en este tenant.
+                                {t('agenda.noUsers')}
                             </p>
                         ) : (
                             <div className="space-y-1.5">
@@ -242,12 +244,12 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                                             ) : isActive ? (
                                                 <span className="flex items-center gap-1 text-[10px] text-indigo-400 shrink-0">
                                                     <UserCheck className="w-3.5 h-3.5" />
-                                                    En agenda
+                                                    {t('agenda.inSchedule')}
                                                 </span>
                                             ) : (
                                                 <span className="text-[10px] text-zinc-600 shrink-0 flex items-center gap-1">
                                                     <Plus className="w-3 h-3" />
-                                                    Añadir
+                                                    {t('agenda.addToSchedule')}
                                                 </span>
                                             )}
                                         </button>
@@ -261,13 +263,13 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                 {/* Footer */}
                 <div className="p-4 border-t border-white/8 shrink-0 flex justify-between items-center">
                     <p className="text-[10px] text-zinc-600">
-                        Haz click en un usuario para añadirlo/quitarlo · Click en la región para cambiarla entre IBERIA y LATAM
+                        {t('agenda.manageFooter')}
                     </p>
                     <button
                         onClick={onClose}
                         className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
                     >
-                        Cerrar
+                        {t('agenda.close')}
                     </button>
                 </div>
             </div>

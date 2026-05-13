@@ -5,8 +5,10 @@ import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
     ActivityType, ACTIVITY_CONFIG, RESULT_CONFIG, ResultStatus,
+    ACTIVITY_TKEYS, RESULT_TKEYS,
 } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
+import { useLanguage } from "@/context/LanguageContext";
 import { Timestamp } from "firebase/firestore";
 
 interface Props {
@@ -37,6 +39,7 @@ function filterEntries(entries: AgendaEntry[], filters: AgendaFilters): AgendaEn
 }
 
 export function AgendaResumen({ entries, consultants, filters, weekLabel }: Props) {
+    const { t } = useLanguage();
     const visible = useMemo(() => filterEntries(entries, filters), [entries, filters]);
 
     // ── 1. Por consultor ──────────────────────────────────────────────────────
@@ -91,13 +94,13 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
     const totalEntries = visible.length;
 
     const usedActivityTypes = useMemo(() =>
-        Object.values(ActivityType).filter(t => byConsultant.some(r => (r.byActivity[t] || 0) > 0)),
+        Object.values(ActivityType).filter(actType => byConsultant.some(r => (r.byActivity[actType] || 0) > 0)),
     [byConsultant]);
 
     if (visible.length === 0) {
         return (
             <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-24">
-                Sin datos para esta semana con los filtros actuales.
+                {t('agenda.noData')}
             </div>
         );
     }
@@ -107,28 +110,28 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
 
             {/* ── KPIs ─────────────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Kpi label="Horas planificadas" value={formatHours(totalHours)} accent="indigo" />
-                <Kpi label="Entradas registradas" value={String(totalEntries)} accent="zinc" />
-                <Kpi label="Consultores activos" value={String(byConsultant.length)} accent="zinc" />
-                <Kpi label="Proyectos en agenda" value={String(byProject.length)} accent="zinc" />
+                <Kpi label={t('agenda.hoursPlanned')} value={formatHours(totalHours)} accent="indigo" />
+                <Kpi label={t('agenda.totalEntries')} value={String(totalEntries)} accent="zinc" />
+                <Kpi label={t('agenda.activeCount')} value={String(byConsultant.length)} accent="zinc" />
+                <Kpi label={t('agenda.projectsCount')} value={String(byProject.length)} accent="zinc" />
             </div>
 
             {/* ── Tabla consultores × actividad ─────────────────────────────── */}
             <section>
-                <SectionTitle>Horas por consultor</SectionTitle>
+                <SectionTitle>{t('agenda.hoursByConsultant')}</SectionTitle>
                 <div className="overflow-x-auto rounded-xl border border-white/5">
                     <table className="w-full text-xs border-collapse" style={{ minWidth: '600px' }}>
                         <thead>
                             <tr className="bg-white/3 border-b border-white/5">
-                                <th className="text-left px-4 py-2.5 text-zinc-400 font-semibold w-40">Consultor</th>
-                                {usedActivityTypes.map(t => (
-                                    <th key={t} className="px-3 py-2.5 text-center">
-                                        <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-semibold", ACTIVITY_CONFIG[t].bgClass, ACTIVITY_CONFIG[t].textClass)}>
-                                            {ACTIVITY_CONFIG[t].label}
+                                <th className="text-left px-4 py-2.5 text-zinc-400 font-semibold w-40">{t('agenda.consultantCol')}</th>
+                                {usedActivityTypes.map(actType => (
+                                    <th key={actType} className="px-3 py-2.5 text-center">
+                                        <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-semibold", ACTIVITY_CONFIG[actType].bgClass, ACTIVITY_CONFIG[actType].textClass)}>
+                                            {t(ACTIVITY_TKEYS[actType]) || ACTIVITY_CONFIG[actType].label}
                                         </span>
                                     </th>
                                 ))}
-                                <th className="px-4 py-2.5 text-right text-zinc-400 font-semibold">Total</th>
+                                <th className="px-4 py-2.5 text-right text-zinc-400 font-semibold">{t('agenda.totalCol')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -142,10 +145,10 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
                                             <span className="text-zinc-200 font-medium truncate">{consultant.name}</span>
                                         </div>
                                     </td>
-                                    {usedActivityTypes.map(t => (
-                                        <td key={t} className="px-3 py-2.5 text-center">
-                                            {(byActivity[t] || 0) > 0
-                                                ? <span className={cn("font-semibold", ACTIVITY_CONFIG[t].textClass)}>{formatHours(byActivity[t]!)}</span>
+                                    {usedActivityTypes.map(actType => (
+                                        <td key={actType} className="px-3 py-2.5 text-center">
+                                            {(byActivity[actType] || 0) > 0
+                                                ? <span className={cn("font-semibold", ACTIVITY_CONFIG[actType].textClass)}>{formatHours(byActivity[actType]!)}</span>
                                                 : <span className="text-zinc-700">—</span>
                                             }
                                         </td>
@@ -156,11 +159,11 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
                         </tbody>
                         <tfoot>
                             <tr className="bg-white/3 border-t border-white/10">
-                                <td className="px-4 py-2.5 text-zinc-400 font-semibold text-xs uppercase tracking-wider">Total</td>
-                                {usedActivityTypes.map(t => {
-                                    const total = byConsultant.reduce((s, r) => s + (r.byActivity[t] || 0), 0);
+                                <td className="px-4 py-2.5 text-zinc-400 font-semibold text-xs uppercase tracking-wider">{t('agenda.totalCol')}</td>
+                                {usedActivityTypes.map(actType => {
+                                    const total = byConsultant.reduce((s, r) => s + (r.byActivity[actType] || 0), 0);
                                     return (
-                                        <td key={t} className="px-3 py-2.5 text-center">
+                                        <td key={actType} className="px-3 py-2.5 text-center">
                                             {total > 0 ? <span className="text-zinc-300 font-semibold">{formatHours(total)}</span> : <span className="text-zinc-700">—</span>}
                                         </td>
                                     );
@@ -175,7 +178,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
             {/* ── Proyectos ─────────────────────────────────────────────────── */}
             {byProject.length > 0 && (
                 <section>
-                    <SectionTitle>Distribución por proyecto</SectionTitle>
+                    <SectionTitle>{t('agenda.byProject')}</SectionTitle>
                     <div className="space-y-2">
                         {byProject.map(p => {
                             const pct = totalHours > 0 ? (p.hours / totalHours) * 100 : 0;
@@ -203,7 +206,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
                                 <div className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-white/5 opacity-60">
                                     <span className="w-3 h-3 rounded-full bg-zinc-700 shrink-0" />
                                     <span className="text-[10px] font-mono text-zinc-600 w-12 shrink-0">—</span>
-                                    <span className="text-sm text-zinc-500 flex-1">Sin proyecto asignado</span>
+                                    <span className="text-sm text-zinc-500 flex-1">{t('agenda.noProjectAssigned')}</span>
                                     <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden shrink-0">
                                         <div className="h-full bg-zinc-600 rounded-full" style={{ width: `${pct}%` }} />
                                     </div>
@@ -220,7 +223,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
 
                 {/* Actividad */}
                 <section>
-                    <SectionTitle>Horas por tipo de actividad</SectionTitle>
+                    <SectionTitle>{t('agenda.byActivity')}</SectionTitle>
                     <div className="space-y-1.5">
                         {byActivity.map(([type, hours]) => {
                             const cfg = ACTIVITY_CONFIG[type];
@@ -228,7 +231,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
                             return (
                                 <div key={type} className="flex items-center gap-3">
                                     <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded w-36 truncate text-center", cfg.bgClass, cfg.textClass)}>
-                                        {cfg.label}
+                                        {t(ACTIVITY_TKEYS[type]) || cfg.label}
                                     </span>
                                     <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: cfg.color }} />
@@ -242,7 +245,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
 
                 {/* Estado */}
                 <section>
-                    <SectionTitle>Entradas por estado</SectionTitle>
+                    <SectionTitle>{t('agenda.byStatus')}</SectionTitle>
                     <div className="space-y-1.5">
                         {byResult.map(([status, count]) => {
                             const cfg = RESULT_CONFIG[status];
@@ -251,7 +254,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel }: Prop
                                 <div key={status} className="flex items-center gap-3">
                                     <div className="flex items-center gap-2 w-36 shrink-0">
                                         <span className={cn("w-2 h-2 rounded-full shrink-0", cfg.dotClass)} />
-                                        <span className="text-xs text-zinc-300 truncate">{cfg.label}</span>
+                                        <span className="text-xs text-zinc-300 truncate">{t(RESULT_TKEYS[status]) || cfg.label}</span>
                                     </div>
                                     <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
                                         <div className={cn("h-full rounded-full", cfg.dotClass)} style={{ width: `${pct}%` }} />

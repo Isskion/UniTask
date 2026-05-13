@@ -2,8 +2,9 @@
 
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AgendaEntry, AgendaConsultant, DayType, ACTIVITY_CONFIG, RESULT_CONFIG, DAY_TYPE_CONFIG } from "@/types/agenda";
+import { AgendaEntry, AgendaConsultant, DayType, ACTIVITY_CONFIG, RESULT_CONFIG, DAY_TKEYS } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface Props {
     consultant: AgendaConsultant;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }: Props) {
+    const { t } = useLanguage();
     const isWeekend  = dayType === DayType.FDS;
     const isHoliday  = dayType === DayType.DNH;
     const isDisabled = isWeekend || isHoliday;
@@ -80,7 +82,7 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                         "absolute bottom-1.5 right-1.5 w-5 h-5 rounded-md bg-secondary/50 border border-border flex items-center justify-center transition-all",
                         "opacity-0 group-hover:opacity-100 hover:bg-indigo-600/30 hover:border-indigo-500/40 hover:text-indigo-400",
                     )}
-                    title="Añadir entrada"
+                    title={t('agenda.addEntry')}
                 >
                     <Plus className="w-3 h-3 text-muted-foreground" />
                 </button>
@@ -92,7 +94,7 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                     "text-[9px] font-medium uppercase tracking-wider px-1 mt-auto",
                     isHoliday ? "text-red-500/60" : "text-muted-foreground/40",
                 )}>
-                    {DAY_TYPE_CONFIG[dayType].label}
+                    {t(DAY_TKEYS[dayType])}
                 </span>
             )}
         </div>

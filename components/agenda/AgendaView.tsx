@@ -25,12 +25,14 @@ import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
+import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 
 export function AgendaView() {
     const { tenantId } = useAuth();
+    const { t } = useLanguage();
     const tid = tenantId || "";
-    // Initialise theme from localStorage so the new tab picks up the user's preference
     useTheme();
 
     // ── Week navigation ────────────────────────────────────────────────────────
@@ -93,12 +95,12 @@ export function AgendaView() {
                 : [...f.consultantIds, id],
         }));
     }
-    function toggleActivity(t: ActivityType) {
+    function toggleActivity(act: ActivityType) {
         setFilters(f => ({
             ...f,
-            activityTypes: f.activityTypes.includes(t)
-                ? f.activityTypes.filter(x => x !== t)
-                : [...f.activityTypes, t],
+            activityTypes: f.activityTypes.includes(act)
+                ? f.activityTypes.filter(x => x !== act)
+                : [...f.activityTypes, act],
         }));
     }
     function toggleResult(r: ResultStatus) {
@@ -153,7 +155,7 @@ export function AgendaView() {
                             isCurrentWeek ? "text-indigo-500" :
                             weekMark === 'Futuro' ? "text-amber-500" : "text-muted-foreground"
                         )}>
-                            {weekMark} · Semana {weekNumber}
+                            {isCurrentWeek ? t('agenda.currentWeek') : weekMark === 'Futuro' ? t('agenda.future') : t('agenda.previousWeek')} · {t('agenda.week')} {weekNumber}
                         </div>
                     </div>
 
@@ -169,7 +171,7 @@ export function AgendaView() {
                             onClick={goToday}
                             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 border border-indigo-600 text-white hover:bg-indigo-700 transition-all"
                         >
-                            Hoy
+                            {t('agenda.today')}
                         </button>
                     )}
                 </div>
@@ -192,7 +194,7 @@ export function AgendaView() {
                             )}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
-                            Grilla
+                            {t('agenda.grid')}
                         </button>
                         <button
                             onClick={() => setViewMode('resumen')}
@@ -204,7 +206,7 @@ export function AgendaView() {
                             )}
                         >
                             <BarChart3 className="w-3.5 h-3.5" />
-                            Resumen
+                            {t('agenda.resumen')}
                         </button>
                     </div>
 
@@ -228,7 +230,7 @@ export function AgendaView() {
                         )}
                     >
                         <Filter className="w-3.5 h-3.5" />
-                        Filtros
+                        {t('agenda.filters')}
                         {activeFilterCount > 0 && (
                             <span className="bg-indigo-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">
                                 {activeFilterCount}
@@ -244,7 +246,7 @@ export function AgendaView() {
                         title="Exportar CSV para Jira"
                     >
                         <Download className="w-3.5 h-3.5" />
-                        Jira CSV
+                        {t('agenda.jiraCsv')}
                     </button>
 
                     {/* Export MS Project */}
@@ -255,7 +257,7 @@ export function AgendaView() {
                         title="Exportar CSV para MS Project"
                     >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
-                        MS Project
+                        {t('agenda.msProject')}
                     </button>
 
                     {/* Manage consultants */}
@@ -265,7 +267,7 @@ export function AgendaView() {
                         title="Gestionar consultores de la agenda"
                     >
                         <Settings2 className="w-3.5 h-3.5" />
-                        Consultores
+                        {t('agenda.manageBtn')}
                     </button>
 
                     {/* Theme selector */}
@@ -277,11 +279,11 @@ export function AgendaView() {
                     <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-border text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
-                            {consultants.length} consultores
+                            {consultants.length} {t('agenda.nConsultants')}
                         </span>
                         <span className="flex items-center gap-1">
                             <CalendarDays className="w-3.5 h-3.5" />
-                            {entries.length} entradas
+                            {entries.length} {t('agenda.nEntries')}
                         </span>
                     </div>
                 </div>
@@ -293,7 +295,7 @@ export function AgendaView() {
 
                     {/* Region */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Región</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.region')}</p>
                         <div className="flex gap-1.5">
                             {(['ALL', 'IBERIA', 'LATAM'] as const).map(r => (
                                 <button
@@ -306,7 +308,7 @@ export function AgendaView() {
                                             : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                     )}
                                 >
-                                    {r === 'ALL' ? 'Todas' : r}
+                                    {r === 'ALL' ? t('agenda.allRegions') : r}
                                 </button>
                             ))}
                         </div>
@@ -315,7 +317,7 @@ export function AgendaView() {
                     {/* Consultants */}
                     {consultants.length > 0 && (
                         <div className="space-y-1.5">
-                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Consultores</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.manageBtn')}</p>
                             <div className="flex flex-wrap gap-1.5">
                                 {consultants.map(c => (
                                     <button
@@ -337,15 +339,15 @@ export function AgendaView() {
 
                     {/* Activities */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Actividad</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.activityFilter')}</p>
                         <div className="flex flex-wrap gap-1.5">
-                            {Object.values(ActivityType).map(t => {
-                                const cfg = ACTIVITY_CONFIG[t];
-                                const selected = filters.activityTypes.includes(t);
+                            {Object.values(ActivityType).map(act => {
+                                const cfg = ACTIVITY_CONFIG[act];
+                                const selected = filters.activityTypes.includes(act);
                                 return (
                                     <button
-                                        key={t}
-                                        onClick={() => toggleActivity(t)}
+                                        key={act}
+                                        onClick={() => toggleActivity(act)}
                                         className={cn(
                                             "px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
                                             selected
@@ -353,7 +355,7 @@ export function AgendaView() {
                                                 : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                         )}
                                     >
-                                        {cfg.label}
+                                        {t(ACTIVITY_TKEYS[act]) || cfg.label}
                                     </button>
                                 );
                             })}
@@ -362,7 +364,7 @@ export function AgendaView() {
 
                     {/* Results */}
                     <div className="space-y-1.5">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Estado</p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.statusFilter')}</p>
                         <div className="flex flex-wrap gap-1.5">
                             {Object.values(ResultStatus).map(r => {
                                 const cfg = RESULT_CONFIG[r];
@@ -379,7 +381,7 @@ export function AgendaView() {
                                         )}
                                     >
                                         <span className={cn("w-1.5 h-1.5 rounded-full", cfg.dotClass)} />
-                                        {cfg.label}
+                                        {t(RESULT_TKEYS[r]) || cfg.label}
                                     </button>
                                 );
                             })}
@@ -393,7 +395,7 @@ export function AgendaView() {
                                 onClick={clearFilters}
                                 className="px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent hover:border-border transition-all"
                             >
-                                Limpiar filtros
+                                {t('agenda.clearFilters')}
                             </button>
                         </div>
                     )}
@@ -405,17 +407,15 @@ export function AgendaView() {
                 <div className="flex-1 flex flex-col items-center justify-center text-center text-zinc-600 gap-4 py-24">
                     <Users className="w-10 h-10 opacity-20" />
                     <div>
-                        <p className="text-sm text-zinc-400">No hay consultores configurados para este tenant.</p>
-                        <p className="text-xs text-zinc-600 mt-1">
-                            Añade los usuarios que aparecerán en la agenda semanal.
-                        </p>
+                        <p className="text-sm text-zinc-400">{t('agenda.noConsultants')}</p>
+                        <p className="text-xs text-zinc-600 mt-1">{t('agenda.noConsultantsHint')}</p>
                     </div>
                     <button
                         onClick={() => setShowConsultantsManager(true)}
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
                     >
                         <UserPlus className="w-4 h-4" />
-                        Configurar consultores
+                        {t('agenda.configureBtn')}
                     </button>
                 </div>
             ) : viewMode === 'resumen' ? (

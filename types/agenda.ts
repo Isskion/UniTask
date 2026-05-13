@@ -93,10 +93,37 @@ export interface AgendaConsultant {
     createdAt: Timestamp;
 }
 
+// ─── Translation key maps (use with t(ACTIVITY_TKEYS[type])) ─────────────────
+
+export const ACTIVITY_TKEYS: Record<ActivityType, string> = {
+    [ActivityType.REUNION_CLIENTE]:    'agenda.actMeetingClient',
+    [ActivityType.REUNION_UNIGIS]:     'agenda.actMeetingUnigis',
+    [ActivityType.REUNION_PRESENCIAL]: 'agenda.actMeetingPresential',
+    [ActivityType.REUNION_INTERNA]:    'agenda.actMeetingInternal',
+    [ActivityType.COMERCIAL]:          'agenda.actCommercial',
+    [ActivityType.TAREAS_A_REALIZAR]:  'agenda.actTask',
+    [ActivityType.VACACIONES]:         'agenda.actVacation',
+    [ActivityType.VIAJE]:              'agenda.actTravel',
+    [ActivityType.ESPECIAL]:           'agenda.actSpecial',
+};
+
+export const RESULT_TKEYS: Record<ResultStatus, string> = {
+    [ResultStatus.POR_HACER]: 'agenda.resPending',
+    [ResultStatus.EN_PAUSA]:  'agenda.resOnHold',
+    [ResultStatus.HECHO]:     'agenda.resDone',
+    [ResultStatus.CANCELADO]: 'agenda.resCancelled',
+};
+
+export const DAY_TKEYS: Record<DayType, string> = {
+    [DayType.DH]:  'agenda.workday',
+    [DayType.DNH]: 'agenda.holiday',
+    [DayType.FDS]: 'agenda.weekend',
+};
+
 // ─── Display Configuration ────────────────────────────────────────────────────
 
 export interface ActivityConfig {
-    label: string;
+    label: string;   // Spanish fallback label (also used for Jira export format reference)
     color: string;
     bgClass: string;
     textClass: string;
