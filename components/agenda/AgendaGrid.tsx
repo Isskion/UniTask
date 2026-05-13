@@ -156,7 +156,6 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                         {visibleConsultants.map(consultant => {
                             const rowTotal = rowTotals.get(consultant.userId) || 0;
                             return (
-                                {/* height:1px on <tr> lets child <td> use h-full correctly */}
                                 <tr key={consultant.id} className="group/row" style={{ height: '1px' }}>
                                     {/* ── Consultant name ─────────────────────── */}
                                     <td className="sticky left-0 z-10 h-full bg-card border-r border-b border-border px-3 py-2 align-top group-hover/row:bg-accent/30">
