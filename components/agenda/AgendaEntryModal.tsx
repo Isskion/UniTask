@@ -247,16 +247,16 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-            <div className="w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-150">
 
                 {/* ── Header ─────────────────────────────────────────────────── */}
-                <div className="flex items-start justify-between p-5 border-b border-white/8 shrink-0">
+                <div className="flex items-start justify-between p-5 border-b border-border shrink-0">
                     <div>
                         <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">
                             {isEdit ? 'Editar entrada' : 'Nueva entrada'}
                         </p>
-                        <h2 className="text-white font-semibold text-base leading-tight">{consultant.name}</h2>
-                        <p className="text-zinc-400 text-sm mt-0.5 capitalize">
+                        <h2 className="text-foreground font-semibold text-base leading-tight">{consultant.name}</h2>
+                        <p className="text-muted-foreground text-sm mt-0.5 capitalize">
                             {format(date, "EEEE d 'de' MMMM yyyy", { locale: es })}
                         </p>
                     </div>
@@ -361,7 +361,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
 
                         {/* Dropdown */}
                         {projectOpen && (
-                            <div className="rounded-xl border border-white/10 bg-[#111113] shadow-2xl overflow-hidden">
+                            <div className="rounded-xl border border-border bg-popover shadow-2xl overflow-hidden">
                                 {/* Search */}
                                 <div className="flex items-center gap-2 px-3 py-2 border-b border-white/8">
                                     <Search className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
@@ -577,7 +577,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────────────── */}
-                <div className="p-5 border-t border-white/8 shrink-0 flex items-center justify-between gap-3">
+                <div className="p-5 border-t border-border shrink-0 flex items-center justify-between gap-3">
                     {isEdit ? (
                         <button
                             onClick={handleDelete}

@@ -23,11 +23,15 @@ import { db } from "@/lib/firebase";
 import { AgendaGrid } from "./AgendaGrid";
 import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
+import { ThemeSelector } from "@/components/ThemeSelector";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
 
 export function AgendaView() {
     const { tenantId } = useAuth();
     const tid = tenantId || "";
+    // Initialise theme from localStorage so the new tab picks up the user's preference
+    useTheme();
 
     // ── Week navigation ────────────────────────────────────────────────────────
     const [weekStartIso, setWeekStartIso] = useState<string>(getCurrentWeekStart);
@@ -128,10 +132,10 @@ export function AgendaView() {
     function handleExportMSProject() { exportMSProject(entries); }
 
     return (
-        <div className="flex flex-col h-full bg-[#0a0a0c] text-white">
+        <div className="flex flex-col h-full bg-background text-foreground">
 
             {/* ── Toolbar ──────────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-white/8 shrink-0 gap-3 flex-wrap">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 gap-3 flex-wrap bg-card/50">
 
                 {/* Left: Week navigation */}
                 <div className="flex items-center gap-2">
@@ -264,8 +268,13 @@ export function AgendaView() {
                         Consultores
                     </button>
 
+                    {/* Theme selector */}
+                    <div className="pl-1 border-l border-border">
+                        <ThemeSelector />
+                    </div>
+
                     {/* Stats */}
-                    <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-white/8 text-xs text-zinc-500">
+                    <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-border text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
                             {consultants.length} consultores
@@ -280,7 +289,7 @@ export function AgendaView() {
 
             {/* ── Filter panel ─────────────────────────────────────────────── */}
             {showFilters && (
-                <div className="border-b border-white/8 bg-[#0f0f12] px-4 py-3 flex flex-wrap gap-6 shrink-0 animate-in slide-in-from-top-2 duration-150">
+                <div className="border-b border-border bg-card px-4 py-3 flex flex-wrap gap-6 shrink-0 animate-in slide-in-from-top-2 duration-150">
 
                     {/* Region */}
                     <div className="space-y-1.5">

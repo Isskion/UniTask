@@ -121,7 +121,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                     {/* ── Day headers ────────────────────────────────────────── */}
                     <thead className="sticky top-0 z-20">
                         <tr>
-                            <th className="bg-[#111113] border-r border-b border-white/8 px-3 py-2 text-left text-zinc-500 font-medium">
+                            <th className="bg-card border-r border-b border-border px-3 py-2 text-left text-muted-foreground font-medium">
                                 Consultor
                             </th>
                             {dayMeta.map(({ date, type, header }) => {
@@ -131,10 +131,10 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                     <th
                                         key={date.toISOString()}
                                         className={cn(
-                                            "border-r border-b border-white/8 px-2 py-2 text-center font-medium",
+                                            "border-r border-b border-border px-2 py-2 text-center font-medium",
                                             isHoliday ? "bg-red-900/40 text-red-200" :
-                                            isWeekend ? "bg-zinc-900/80 text-zinc-500" :
-                                                        "bg-[#111113] text-zinc-200"
+                                            isWeekend ? "bg-muted/40 text-muted-foreground" :
+                                                        "bg-card text-foreground"
                                         )}
                                     >
                                         <div className="text-[10px] uppercase tracking-widest opacity-60">{header.abbr}</div>
@@ -146,7 +146,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                     </th>
                                 );
                             })}
-                            <th className="bg-[#111113] border-b border-white/8 px-2 py-2 text-center text-zinc-500 font-medium">
+                            <th className="bg-card border-b border-border px-2 py-2 text-center text-muted-foreground font-medium">
                                 Total
                             </th>
                         </tr>
@@ -158,7 +158,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                             return (
                                 <tr key={consultant.id} className="group/row">
                                     {/* ── Consultant name ─────────────────────── */}
-                                    <td className="sticky left-0 z-10 bg-[#111113] border-r border-b border-white/8 px-3 py-2 align-top group-hover/row:bg-[#141416]">
+                                    <td className="sticky left-0 z-10 bg-card border-r border-b border-border px-3 py-2 align-top group-hover/row:bg-accent/30">
                                         <div className="flex flex-col">
                                             <span className="text-zinc-200 font-semibold text-[11px] truncate">{consultant.name}</span>
                                             <span className={cn(
@@ -189,7 +189,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                     })}
 
                                     {/* ── Row total ───────────────────────────── */}
-                                    <td className="border-b border-l border-white/8 px-2 py-2 text-center align-middle bg-[#0f0f11]">
+                                    <td className="border-b border-l border-border px-2 py-2 text-center align-middle bg-muted/20">
                                         {rowTotal > 0 ? (
                                             <span className="text-indigo-300 font-semibold">{formatHours(rowTotal)}</span>
                                         ) : (
@@ -201,8 +201,8 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                         })}
 
                         {/* ── Column totals row ───────────────────────────────── */}
-                        <tr className="bg-[#0d0d10] border-t border-white/10">
-                            <td className="sticky left-0 z-10 bg-[#0d0d10] border-r border-white/8 px-3 py-2 text-zinc-500 text-[10px] font-semibold uppercase tracking-wider">
+                        <tr className="bg-muted/30 border-t border-border">
+                            <td className="sticky left-0 z-10 bg-muted/30 border-r border-border px-3 py-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider">
                                 Total semana
                             </td>
                             {colTotals.map((total, i) => (
