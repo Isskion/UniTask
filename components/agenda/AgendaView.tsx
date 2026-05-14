@@ -28,11 +28,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 
 export function AgendaView() {
     const { tenantId } = useAuth();
     const { t } = useLanguage();
     const tid = tenantId || "";
+    const accessScopes = useAccessScopes();
     useTheme();
 
     // ── Week navigation ────────────────────────────────────────────────────────
@@ -80,16 +82,22 @@ export function AgendaView() {
         if (!tid) return;
         loadSAMRegions(tid).then(setSamRegions);
     }, [tid]);
-    const availableRegions = samRegions.map(r => r.name);
+    // ── Access-scoped regions: solo las regiones que el usuario puede ver ────────
+    const availableRegions = useMemo(() => {
+        const allNames = samRegions.map(r => r.name);
+        if (!accessScopes || accessScopes.regionIds.includes('*')) return allNames;
+        return samRegions.filter(r => accessScopes.regionIds.includes(r.id)).map(r => r.name);
+    }, [samRegions, accessScopes]);
 
-    // ── Normalize consultant region: ID ("ES") → name ("España") ─────────────
-    const normalizedConsultants = useMemo(() =>
-        consultants.map(c => {
-            const match = samRegions.find(r => r.id === c.region || r.name === c.region);
-            return match ? { ...c, region: match.name } : c;
-        }),
-        [consultants, samRegions]
-    );
+    // ── Access-scoped consultants: solo los de las regiones permitidas ─────────
+    const accessibleConsultants = useMemo(() => {
+        if (!accessScopes || accessScopes.regionIds.includes('*')) return consultants;
+        return consultants.filter(c => {
+            const samR = samRegions.find(r => r.id === c.region || r.name === c.region);
+            const regionId = samR?.id ?? c.region;
+            return accessScopes.regionIds.includes(regionId);
+        });
+    }, [consultants, accessScopes, samRegions]);
 
     // ── Filters ───────────────────────────────────────────────────────────────
     const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
@@ -438,7 +446,7 @@ export function AgendaView() {
             ) : viewMode === 'resumen' ? (
                 <AgendaResumen
                     entries={entries}
-                    consultants={consultants}
+                    consultants={accessibleConsultants}
                     filters={filters}
                     weekLabel={weekLabel}
                     samRegions={samRegions}
@@ -446,7 +454,7 @@ export function AgendaView() {
             ) : (
                 <AgendaGrid
                     weekDays={weekDays}
-                    consultants={consultants}
+                    consultants={accessibleConsultants}
                     entries={entries}
                     filters={filters}
                     tenantId={tid}
@@ -456,7 +464,7 @@ export function AgendaView() {
 
             {showConsultantsManager && (
                 <AgendaConsultantsManager
-                    consultants={consultants}
+                    consultants={accessibleConsultants}
                     tenantId={tid}
                     samRegions={samRegions}
                     onClose={() => setShowConsultantsManager(false)}
