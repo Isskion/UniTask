@@ -350,11 +350,11 @@ export function AgendaView() {
                     </div>
 
                     {/* Consultants */}
-                    {consultants.length > 0 && (
+                    {filteredConsultants.length > 0 && (
                         <div className="space-y-1.5">
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.manageBtn')}</p>
                             <div className="flex flex-wrap gap-1.5">
-                                {consultants.map(c => (
+                                {filteredConsultants.map(c => (
                                     <button
                                         key={c.id}
                                         onClick={() => toggleConsultant(c.userId)}
