@@ -27,7 +27,7 @@ export enum DayType {
     FDS = 'FDS', // Fin de Semana
 }
 
-export type ConsultantRegion = 'IBERIA' | 'LATAM';
+export type ConsultantRegion = string;
 
 // ─── Core Documents ───────────────────────────────────────────────────────────
 

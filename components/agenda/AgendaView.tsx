@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
@@ -73,6 +73,12 @@ export function AgendaView() {
         });
         return unsub;
     }, [tid, weekStartIso]);
+
+    // ── Regions derived from loaded consultants (dynamic, no hardcoding) ────────
+    const availableRegions = useMemo(
+        () => [...new Set(consultants.map(c => c.region).filter(Boolean))].sort(),
+        [consultants]
+    );
 
     // ── Filters ───────────────────────────────────────────────────────────────
     const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
@@ -297,7 +303,7 @@ export function AgendaView() {
                     <div className="space-y-1.5">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.region')}</p>
                         <div className="flex gap-1.5">
-                            {(['ALL', 'IBERIA', 'LATAM'] as const).map(r => (
+                            {(['ALL', ...availableRegions]).map(r => (
                                 <button
                                     key={r}
                                     onClick={() => setFilters(f => ({ ...f, region: r }))}
