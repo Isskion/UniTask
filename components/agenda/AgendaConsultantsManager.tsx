@@ -160,19 +160,27 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
                                         <span className="flex-1 text-sm font-medium text-zinc-200">{c.name}</span>
 
                                         {/* Region select */}
-                                        <select
-                                            value={c.region}
-                                            disabled={saving === c.id}
-                                            onChange={e => changeRegion(c, e.target.value)}
-                                            className="bg-white/5 border border-white/10 rounded text-[10px] font-bold text-indigo-300 px-1.5 py-0.5 cursor-pointer disabled:opacity-40"
-                                        >
-                                            {samRegions.length === 0
-                                                ? <option value={c.region}>{c.region}</option>
-                                                : samRegions.map(r => (
-                                                    <option key={r.id} value={r.name}>{r.name}</option>
-                                                ))
-                                            }
-                                        </select>
+                                        <div className="flex flex-col items-end gap-0.5">
+                                            <select
+                                                value={c.region}
+                                                disabled={saving === c.id}
+                                                onChange={e => changeRegion(c, e.target.value)}
+                                                className="bg-white/5 border border-white/10 rounded text-[10px] font-bold text-indigo-300 px-1.5 py-0.5 cursor-pointer disabled:opacity-40"
+                                            >
+                                                {samRegions.length === 0
+                                                    ? <option value={c.region}>{c.region}</option>
+                                                    : <>
+                                                        {!samRegions.some(r => r.name === c.region || r.id === c.region) && (
+                                                            <option value={c.region} disabled>⚠ {c.region || '(vacío)'}</option>
+                                                        )}
+                                                        {samRegions.map(r => (
+                                                            <option key={r.id} value={r.name}>{r.name}</option>
+                                                        ))}
+                                                      </>
+                                                }
+                                            </select>
+                                            <span className="text-[8px] text-zinc-600 font-mono">bd:{c.region || '∅'}</span>
+                                        </div>
 
                                         {/* Remove */}
                                         <button
