@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, ACTIVITY_CONFIG, RESULT_CONFIG, DAY_TKEYS } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
 import { useLanguage } from "@/context/LanguageContext";
+import { useTheme } from "@/hooks/useTheme";
 
 interface Props {
     consultant: AgendaConsultant;
@@ -17,6 +18,8 @@ interface Props {
 
 export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }: Props) {
     const { t } = useLanguage();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark' || theme === 'red';
     const isWeekend  = dayType === DayType.FDS;
     const isHoliday  = dayType === DayType.DNH;
     const isDisabled = isWeekend || isHoliday;
@@ -38,6 +41,7 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                         className={cn(
                             "w-full text-left rounded-md px-2 py-1.5 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
                             actCfg.bgClass, actCfg.borderClass,
+                            isDark ? "text-white" : actCfg.textClass,
                         )}
                     >
                         <div className="flex items-center justify-between gap-1 mb-0.5">
