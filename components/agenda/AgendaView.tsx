@@ -82,6 +82,15 @@ export function AgendaView() {
     }, [tid]);
     const availableRegions = samRegions.map(r => r.name);
 
+    // ── Normalize consultant region: ID ("ES") → name ("España") ─────────────
+    const normalizedConsultants = useMemo(() =>
+        consultants.map(c => {
+            const match = samRegions.find(r => r.id === c.region || r.name === c.region);
+            return match ? { ...c, region: match.name } : c;
+        }),
+        [consultants, samRegions]
+    );
+
     // ── Filters ───────────────────────────────────────────────────────────────
     const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
@@ -429,14 +438,14 @@ export function AgendaView() {
             ) : viewMode === 'resumen' ? (
                 <AgendaResumen
                     entries={entries}
-                    consultants={consultants}
+                    consultants={normalizedConsultants}
                     filters={filters}
                     weekLabel={weekLabel}
                 />
             ) : (
                 <AgendaGrid
                     weekDays={weekDays}
-                    consultants={consultants}
+                    consultants={normalizedConsultants}
                     entries={entries}
                     filters={filters}
                     tenantId={tid}
