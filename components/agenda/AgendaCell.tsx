@@ -92,7 +92,7 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
             {isDisabled && (
                 <span className={cn(
                     "text-[9px] font-medium uppercase tracking-wider px-1 mt-auto",
-                    isHoliday ? "text-red-500/60" : "text-muted-foreground/40",
+                    isHoliday ? "text-red-600/80" : "text-muted-foreground/70",
                 )}>
                     {t(DAY_TKEYS[dayType])}
                 </span>
