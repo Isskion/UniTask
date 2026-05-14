@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, AgendaFilters, ACTIVITY_CONFIG } from "@/types/agenda";
+import { SAMRegion } from "@/lib/agenda";
 import { getDayType, formatDayHeader, formatHours } from "@/lib/agenda-utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { AgendaCell } from "./AgendaCell";
@@ -27,6 +28,7 @@ interface Props {
     entries: AgendaEntry[];
     filters: AgendaFilters;
     tenantId: string;
+    samRegions: SAMRegion[];
 }
 
 interface ModalState {
@@ -38,18 +40,25 @@ interface ModalState {
 
 const CLOSED_MODAL: ModalState = { open: false, consultant: null, date: null, entry: null };
 
-export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }: Props) {
+export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, samRegions }: Props) {
     const { t } = useLanguage();
     const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 
     // ── Apply filters ──────────────────────────────────────────────────────────
     const visibleConsultants = useMemo(() => {
         return consultants.filter(c => {
-            if (filters.region !== 'ALL' && c.region !== filters.region) return false;
+            if (filters.region !== 'ALL') {
+                // Match by region name OR by SAM region ID — handles any stored value
+                const samR = samRegions.find(r => r.name === filters.region);
+                const regionMatches = samR
+                    ? (c.region === samR.name || c.region === samR.id)
+                    : (c.region === filters.region);
+                if (!regionMatches) return false;
+            }
             if (filters.consultantIds.length > 0 && !filters.consultantIds.includes(c.userId)) return false;
             return true;
         });
-    }, [consultants, filters]);
+    }, [consultants, filters, samRegions]);
 
     // ── Build lookup: consultantId + dateISO → entries[] ──────────────────────
     const entryMap = useMemo(() => {

@@ -438,17 +438,19 @@ export function AgendaView() {
             ) : viewMode === 'resumen' ? (
                 <AgendaResumen
                     entries={entries}
-                    consultants={normalizedConsultants}
+                    consultants={consultants}
                     filters={filters}
                     weekLabel={weekLabel}
+                    samRegions={samRegions}
                 />
             ) : (
                 <AgendaGrid
                     weekDays={weekDays}
-                    consultants={normalizedConsultants}
+                    consultants={consultants}
                     entries={entries}
                     filters={filters}
                     tenantId={tid}
+                    samRegions={samRegions}
                 />
             )}
 

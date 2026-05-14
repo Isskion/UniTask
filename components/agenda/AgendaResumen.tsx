@@ -8,6 +8,7 @@ import {
     ACTIVITY_TKEYS, RESULT_TKEYS,
 } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
+import { SAMRegion } from "@/lib/agenda";
 import { useLanguage } from "@/context/LanguageContext";
 import { Timestamp } from "firebase/firestore";
 
@@ -16,6 +17,7 @@ interface Props {
     consultants: AgendaConsultant[];
     filters:     AgendaFilters;
     weekLabel:   string;
+    samRegions:  SAMRegion[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -27,10 +29,17 @@ function toDate(ts: any): Date {
     return new Date(ts);
 }
 
-function filterEntries(entries: AgendaEntry[], filters: AgendaFilters): AgendaEntry[] {
+function regionMatches(value: string, filterRegion: string, samRegions: SAMRegion[]): boolean {
+    const samR = samRegions.find(r => r.name === filterRegion);
+    return samR
+        ? (value === samR.name || value === samR.id)
+        : (value === filterRegion);
+}
+
+function filterEntries(entries: AgendaEntry[], filters: AgendaFilters, samRegions: SAMRegion[]): AgendaEntry[] {
     return entries.filter(e => {
         if (e.isActive === false) return false;
-        if (filters.region !== 'ALL' && e.region !== filters.region) return false;
+        if (filters.region !== 'ALL' && !regionMatches(e.region, filters.region, samRegions)) return false;
         if (filters.consultantIds.length  && !filters.consultantIds.includes(e.consultantId))    return false;
         if (filters.activityTypes.length  && !filters.activityTypes.includes(e.activityType))    return false;
         if (filters.results.length        && !filters.results.includes(e.result))                return false;
@@ -38,9 +47,9 @@ function filterEntries(entries: AgendaEntry[], filters: AgendaFilters): AgendaEn
     });
 }
 
-export function AgendaResumen({ entries, consultants, filters, weekLabel }: Props) {
+export function AgendaResumen({ entries, consultants, filters, weekLabel, samRegions }: Props) {
     const { t } = useLanguage();
-    const visible = useMemo(() => filterEntries(entries, filters), [entries, filters]);
+    const visible = useMemo(() => filterEntries(entries, filters, samRegions), [entries, filters, samRegions]);
 
     // ── 1. Por consultor ──────────────────────────────────────────────────────
     const byConsultant = useMemo(() => {
