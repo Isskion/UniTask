@@ -84,7 +84,7 @@ export interface CreateEntryInput {
     consultantId: string;
     consultantName: string;
     consultantOrder: number;
-    region: 'IBERIA' | 'LATAM';
+    region: string;
     date: Date;
     activityType: ActivityType;
     comment: string;

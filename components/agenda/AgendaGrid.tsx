@@ -8,6 +8,19 @@ import { useLanguage } from "@/context/LanguageContext";
 import { AgendaCell } from "./AgendaCell";
 import { AgendaEntryModal } from "./AgendaEntryModal";
 
+const REGION_COLOR_LIST = [
+    "text-indigo-500", "text-emerald-500", "text-amber-500",
+    "text-cyan-500",   "text-rose-500",    "text-violet-500",
+];
+const regionColorCache = new Map<string, string>();
+function REGION_COLORS(region: string): string {
+    if (!regionColorCache.has(region)) {
+        const idx = [...region].reduce((acc, c) => acc + c.charCodeAt(0), 0) % REGION_COLOR_LIST.length;
+        regionColorCache.set(region, REGION_COLOR_LIST[idx]);
+    }
+    return regionColorCache.get(region)!;
+}
+
 interface Props {
     weekDays: Date[];
     consultants: AgendaConsultant[];
@@ -164,7 +177,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                             <span className="text-foreground font-semibold text-[11px] truncate">{consultant.name}</span>
                                             <span className={cn(
                                                 "text-[9px] mt-0.5 font-medium uppercase tracking-wider",
-                                                consultant.region === 'IBERIA' ? "text-indigo-500" : "text-emerald-500"
+                                                REGION_COLORS[consultant.region] ?? "text-violet-500"
                                             )}>
                                                 {consultant.region}
                                             </span>
