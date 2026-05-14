@@ -177,7 +177,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                                             <span className="text-foreground font-semibold text-[11px] truncate">{consultant.name}</span>
                                             <span className={cn(
                                                 "text-[9px] mt-0.5 font-medium uppercase tracking-wider",
-                                                REGION_COLORS[consultant.region] ?? "text-violet-500"
+                                                REGION_COLORS(consultant.region)
                                             )}>
                                                 {consultant.region}
                                             </span>
