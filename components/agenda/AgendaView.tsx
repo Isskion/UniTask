@@ -17,7 +17,7 @@ import {
     getCurrentWeekStart, getWeekDays, getWeekMark, getWeekNumber,
     getYearMonth, getWeekMonth, getWeekLabel,
 } from "@/lib/agenda-utils";
-import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSProject } from "@/lib/agenda";
+import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSProject, loadSAMRegions, SAMRegion } from "@/lib/agenda";
 import { clearIndexedDbPersistence, terminate } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AgendaGrid } from "./AgendaGrid";
@@ -74,11 +74,13 @@ export function AgendaView() {
         return unsub;
     }, [tid, weekStartIso]);
 
-    // ── Regions derived from loaded consultants (dynamic, no hardcoding) ────────
-    const availableRegions = useMemo(
-        () => [...new Set(consultants.map(c => c.region).filter(Boolean))].sort(),
-        [consultants]
-    );
+    // ── SAM regions (source of truth for filter buttons) ─────────────────────
+    const [samRegions, setSamRegions] = useState<SAMRegion[]>([]);
+    useEffect(() => {
+        if (!tid) return;
+        loadSAMRegions(tid).then(setSamRegions);
+    }, [tid]);
+    const availableRegions = samRegions.map(r => r.name);
 
     // ── Filters ───────────────────────────────────────────────────────────────
     const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
@@ -445,6 +447,7 @@ export function AgendaView() {
                 <AgendaConsultantsManager
                     consultants={consultants}
                     tenantId={tid}
+                    samRegions={samRegions}
                     onClose={() => setShowConsultantsManager(false)}
                 />
             )}

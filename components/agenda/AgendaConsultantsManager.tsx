@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { createConsultant, updateConsultant } from "@/lib/agenda";
-import { AgendaConsultant, ConsultantRegion } from "@/types/agenda";
+import { createConsultant, updateConsultant, SAMRegion } from "@/lib/agenda";
+import { AgendaConsultant } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -22,10 +22,11 @@ interface TenantUser {
 interface Props {
     consultants: AgendaConsultant[];
     tenantId: string;
+    samRegions: SAMRegion[];
     onClose: () => void;
 }
 
-export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Props) {
+export function AgendaConsultantsManager({ consultants, tenantId, samRegions, onClose }: Props) {
     const { user } = useAuth();
     const { t } = useLanguage();
 
@@ -73,7 +74,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                     userId:     u.uid,
                     name:       u.displayName.toUpperCase(),
                     sortOrder:  maxOrder + 1,
-                    region:     'IBERIA',
+                    region:     samRegions[0]?.name ?? '',
                     isActive:   true,
                 });
             }
@@ -84,7 +85,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
         }
     }
 
-    async function changeRegion(consultant: AgendaConsultant, region: ConsultantRegion) {
+    async function changeRegion(consultant: AgendaConsultant, region: string) {
         setSaving(consultant.id);
         try {
             await updateConsultant(consultant.id, { region });
@@ -158,19 +159,20 @@ export function AgendaConsultantsManager({ consultants, tenantId, onClose }: Pro
                                         {/* Name */}
                                         <span className="flex-1 text-sm font-medium text-zinc-200">{c.name}</span>
 
-                                        {/* Region toggle */}
-                                        <button
-                                            onClick={() => changeRegion(c, c.region === 'IBERIA' ? 'LATAM' : 'IBERIA')}
+                                        {/* Region select */}
+                                        <select
+                                            value={c.region}
                                             disabled={saving === c.id}
-                                            className={cn(
-                                                "px-2 py-0.5 rounded text-[10px] font-bold border transition-all",
-                                                c.region === 'IBERIA'
-                                                    ? "bg-indigo-600/20 border-indigo-500/30 text-indigo-300"
-                                                    : "bg-emerald-600/20 border-emerald-500/30 text-emerald-300"
-                                            )}
+                                            onChange={e => changeRegion(c, e.target.value)}
+                                            className="bg-white/5 border border-white/10 rounded text-[10px] font-bold text-indigo-300 px-1.5 py-0.5 cursor-pointer disabled:opacity-40"
                                         >
-                                            {c.region}
-                                        </button>
+                                            {samRegions.length === 0
+                                                ? <option value={c.region}>{c.region}</option>
+                                                : samRegions.map(r => (
+                                                    <option key={r.id} value={r.name}>{r.name}</option>
+                                                ))
+                                            }
+                                        </select>
 
                                         {/* Remove */}
                                         <button

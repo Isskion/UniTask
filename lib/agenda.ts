@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebase";
 import {
-    collection, addDoc, updateDoc, doc,
+    collection, addDoc, updateDoc, doc, getDoc,
     query, where, onSnapshot, getDocs,
     serverTimestamp, Timestamp,
 } from "firebase/firestore";
@@ -268,3 +268,19 @@ export function exportMSProject(entries: AgendaEntry[], filename?: string): void
     const csv = generateMSProjectCSV(rows);
     downloadCSV(csv, filename || `msproject-export-${format(new Date(), 'yyyyMMdd')}.csv`);
 }
+
+// ─── SAM Masters ──────────────────────────────────────────────────────────────
+
+export interface SAMRegion { id: string; name: string; }
+
+export async function loadSAMRegions(tenantId: string): Promise<SAMRegion[]> {
+    try {
+        const snap = await getDoc(doc(db, 'global_data', `regions_${tenantId}`));
+        if (!snap.exists()) return [];
+        return (snap.data().items as SAMRegion[]) || [];
+    } catch (err) {
+        console.error('[agenda] loadSAMRegions:', err);
+        return [];
+    }
+}
+
