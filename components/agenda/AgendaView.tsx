@@ -99,6 +99,10 @@ export function AgendaView() {
         });
     }, [consultants, accessScopes, samRegions]);
 
+    // ── Filters ───────────────────────────────────────────────────────────────
+    const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
+    const [showFilters, setShowFilters] = useState(false);
+
     // ── Region filter aplicado aquí (donde samRegions es estado, sin timing) ────
     const filteredConsultants = useMemo(() => {
         if (filters.region === 'ALL') return accessibleConsultants;
@@ -108,10 +112,6 @@ export function AgendaView() {
                  : c.region === filters.region
         );
     }, [accessibleConsultants, filters.region, samRegions]);
-
-    // ── Filters ───────────────────────────────────────────────────────────────
-    const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
-    const [showFilters, setShowFilters] = useState(false);
 
     const activeFilterCount = [
         filters.consultantIds.length > 0,
