@@ -1,0 +1,22 @@
+// Field tooltip descriptions for the mapper UI
+export const FIELD_DESCRIPTIONS: Record<string, string> = {
+    'Orden.RefDocumento': 'Identificador único del pedido (ej. número de factura o pedido).',
+    'Orden.Fecha': 'Fecha de creación del pedido. Formato recomendado: YYYY-MM-DD.',
+    'Orden.Cliente.RefCliente': 'Código único del cliente en el sistema.',
+    'Orden.Cliente.RazonSocial': 'Nombre o razón social del cliente.',
+    'Orden.Cliente.Domicilio.Calle': 'Nombre de la calle de entrega.',
+    'Orden.Cliente.Domicilio.NumeroPuerta': 'Número exterior del domicilio.',
+    'Orden.Cliente.Domicilio.Colonia': 'Barrio o colonia de entrega.',
+    'Orden.Cliente.Domicilio.Localidad': 'Ciudad o municipio.',
+    'Orden.Cliente.Domicilio.Provincia': 'Estado o provincia.',
+    'Orden.Cliente.Domicilio.Pais': 'País de entrega (ej. MX, AR, ES).',
+    'Orden.Cliente.Telefono': 'Teléfono de contacto del cliente.',
+    'Orden.Cliente.Email': 'Correo electrónico para notificaciones.',
+    'Orden.FechaEntrega': 'Fecha solicitada de entrega. Formato: YYYY-MM-DD.',
+    'Orden.FranjaHoraria': 'Horario preferente de entrega (ej. 09:00 - 18:00).',
+    'Orden.Volumen': 'Volumen total del pedido (m³).',
+    'Orden.Peso': 'Peso total del pedido (kg).',
+    'Orden.Bultos': 'Cantidad de bultos o cajas.',
+    'Orden.ValorDeclarado': 'Valor monetario de la mercancía.',
+    'Orden.Observaciones': 'Notas o instrucciones especiales para el conductor.',
+};

@@ -381,6 +381,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                 )}
 
+                                {can('uniordercreator', 'views') && (
+                                    <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
+                                )}
+
                                 {can('swagger', 'views') && (
                                     <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
                                 )}
@@ -618,6 +622,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     )}
                                     {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
                                         <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                    )}
+                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
+                                        <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
                                     )}
                                     {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
                                         <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
