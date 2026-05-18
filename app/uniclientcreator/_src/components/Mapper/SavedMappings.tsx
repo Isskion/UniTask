@@ -98,6 +98,11 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                 mapping,
                 booleanOverrides,
                 dynamicFieldCounts,
+                multiSheetConfig: {
+                    mainSheet: '',
+                    mainKey: '',
+                    relations: [],
+                },
             });
             setFeedback({ type: 'success', msg: 'âœ… Plantilla guardada exitosamente' });
             setSaveName('');
