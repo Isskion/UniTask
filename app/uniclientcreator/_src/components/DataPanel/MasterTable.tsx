@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useCallback, useState, useRef } from 'react';
 import { useAppStore } from '../../store/appStore';
 
@@ -99,7 +99,7 @@ const TableRow = React.memo(function TableRow({
 
 // import { validateOrderRow, buildDuplicateMap } from '../../utils/validation'; // not used in UniClientCreator
 const validateOrderRow = (_row: any, _mapping: any) => ({ errors: [], warnings: [] });
-const buildDuplicateMap = (_rows: any[], _col: string) => new Map<string, number[]>();
+const buildDuplicateMap = (_rows: any[], _mapping: any) => new Map<string, number[]>();
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
