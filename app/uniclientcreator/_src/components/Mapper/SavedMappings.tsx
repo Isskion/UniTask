@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, useCallback } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { isFirebaseConfigured } from '@/app/uniordercreator/_lib/firebase';
@@ -98,11 +98,6 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                 mapping,
                 booleanOverrides,
                 dynamicFieldCounts,
-                // multiSheetConfig not used in UniClientCreator
-                    mainSheet: { mainSheet: '', mainKey: '', relations: [] }.mainSheet,
-                    mainKey: { mainSheet: '', mainKey: '', relations: [] }.mainKey,
-                    relations: { mainSheet: '', mainKey: '', relations: [] }.relations,
-                },
             });
             setFeedback({ type: 'success', msg: 'âœ… Plantilla guardada exitosamente' });
             setSaveName('');
@@ -136,17 +131,7 @@ export default function SavedMappings({ isOpen, onClose, initialMode = 'list', t
                 store.setDynamicFieldCount(k, v as number);
             }
         }
-        // Restore Multi-Sheet configuration if it exists
-//         if (tpl.multiSheetConfig) {
-//             store.setMultiSheet({
-//                 enabled: !!tpl.multiSheetConfig.mainSheet,
-//                 config: {
-//                     mainSheet: tpl.multiSheetConfig.mainSheet || '',
-//                     mainKey: tpl.multiSheetConfig.mainKey || '',
-//                     relations: tpl.multiSheetConfig.relations || [],
-//                 }
-            });
-        }
+        // Restore Multi-Sheet configuration if it exists (not used in UniClientCreator)
         setFeedback({ type: 'success', msg: `âœ… Plantilla "${tpl.name}" cargada` });
         setTimeout(() => setFeedback(null), 3000);
     };
