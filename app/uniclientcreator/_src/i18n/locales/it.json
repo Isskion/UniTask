@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Connetti",
+        "connected": "Connesso",
+        "notConnected": "Non connesso"
+    },
+    "login": {
+        "title": "Accedi",
+        "url": "URL del Servizio",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Utente",
+        "password": "Password",
+        "domain": "Dominio",
+        "domainPlaceholder": "TEST",
+        "connecting": "Connessione in corso...",
+        "loginButton": "Connetti",
+        "language": "Lingua"
+    },
+    "buttons": {
+        "loadExcel": "Carica Excel",
+        "sendSelected": "Invia Selezionati",
+        "sendAll": "Invia Tutti",
+        "save": "Salva",
+        "load": "Carica",
+        "close": "Chiudi"
+    },
+    "header": {
+        "dataPanel": "Pannello Dati",
+        "xmlPreview": "Anteprima XML",
+        "mapper": "Mappatore di Campi"
+    },
+    "mapper": {
+        "title": "Mappatore di Campi",
+        "search": "Cerca campo...",
+        "noFields": "Nessun campo in questa sezione",
+        "noResults": "Nessun campo trovato per",
+        "loadExcelFirst": "Carica prima un file Excel",
+        "noMapping": "-- Non mappare --",
+        "noForce": "-- Non forzare --"
+    },
+    "tabs": {
+        "order": "Ordine Globale",
+        "customer": "Cliente",
+        "address": "Indirizzo",
+        "items": "Articoli",
+        "booleans": "Booleani"
+    },
+    "table": {
+        "selectAll": "Seleziona tutti",
+        "noData": "Nessun dato caricato"
+    },
+    "messages": {
+        "confirmSendAll": "Sei sicuro di voler inviare tutti gli ordini?",
+        "confirmSendSelected": "Sei sicuro di voler inviare {count} ordini selezionati?",
+        "sendingOrders": "Invio ordini...",
+        "successSent": "✅ {count} ordini inviati con successo",
+        "errorsSent": "❌ {errors} errori su {total} ordini",
+        "loginSuccess": "Connesso con successo",
+        "loginError": "Errore di connessione",
+        "noSelection": "Seleziona almeno un ordine",
+        "notAuthenticated": "Devi connetterti prima"
+    },
+    "errors": {
+        "title": "Registro Errori",
+        "reference": "Riferimento",
+        "error": "Errore",
+        "xmlSent": "XML Inviato",
+        "response": "Risposta del Server"
+    }
+}
