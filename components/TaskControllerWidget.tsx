@@ -104,6 +104,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             snap.forEach((doc) => list.push({ id: doc.id, ...doc.data() } as TaskType));
             setTaskTypes(list);
             if (list.length > 0 && !nowCategory) setNowCategory(list[0]);
+        }, (error) => {
+            console.error("Error fetching taskTypes categories:", error);
         });
 
         // Fetch Projects (active only)
@@ -126,6 +128,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 setNowProject(prev => prev || list[0].id);
                 setRetroProject(prev => prev || list[0].id);
             }
+        }, (error) => {
+            console.error("Error fetching projects:", error);
         });
 
         // Fetch Today's Tasks
@@ -148,6 +152,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 }
             });
             setTodayTasks(list);
+        }, (error) => {
+            console.error("Error fetching consultantTasks today:", error);
         });
 
         return () => {

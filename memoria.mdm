@@ -120,6 +120,15 @@ En esta sesión crítica de mantenimiento en vivo sobre el entorno de producció
 *   **Validación**: Se ha compilado la aplicación con éxito (`npm run build` -> exit code 0 con Turbopack) garantizando la integridad de tipos e imports. Los cambios están listos para el despliegue de hosting.
 *   **Políticas de Seguridad Aplicadas**: Los PMs ahora pueden autogestionar sus equipos con fluidez, pero **tienen bloqueado** tanto por interfaz como por backend interferir con rangos de administración.
 
+### 🚚 E. Resolución y Activación de Parada de Rendición (Viaje ID 76)
+*   **Problema**: Creación de viaje con entrega parcial que no generaba la Parada de Rendición (`IdTipoParada = 10`) esperada.
+*   **Diagnóstico Realizado**:
+    1.  Los datos de la base de datos eran 100% correctos. Se validó con el script diagnóstico ad-hoc que la parada 367 arrojaba un sobrante neto de 2 unidades de `Bijoux` (Original: 4, Entregado: 2), activando el flag de validación positiva.
+    2.  Se identificó que el procedimiento no saltó automáticamente debido a que no existe un trigger automático registrado en UNIGIS para la transición de estado a `101` (Entrega Parcial).
+    3.  Se descubrió que la versión de producción del SP era anterior a la v2.3 y seguía exigiendo el parámetro obsoleto `@IdUsuario`.
+*   **Solución**: 
+    1.  Se forzó la ejecución manual pasándole el usuario ficticio `1` a la firma antigua (`EXEC Z_SP_GenerarRendicion_V2 367, 1`) haciendo que "nazca" la parada de rendición en directo de forma exitosa.
+    2.  Se consolidó y certificó la versión definitiva libre de dependencias en [Z_SP_GenerarRendicion_V2_Definitivo.sql](file:///C:/Users/daniel.delamo/.gemini/antigravity/scratch/UniTask/docs/db/Z_SP_GenerarRendicion_V2_Definitivo.sql) para su posterior re-compilación.
 
 ---
 

@@ -102,6 +102,9 @@ export default function UnifluxWorkspace() {
     // Flow Management State
     const [projects, setProjects] = useState<Project[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [copyTargetFlow, setCopyTargetFlow] = useState<FlowGraph | null>(null);
+    const [copyTargetProjectId, setCopyTargetProjectId] = useState<string>('');
+    const [isCopyingFlow, setIsCopyingFlow] = useState(false);
     const [savedFlows, setSavedFlows] = useState<FlowGraph[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isLoadingFlows, setIsLoadingFlows] = useState(false);
@@ -490,14 +493,14 @@ export default function UnifluxWorkspace() {
             const backup = {
                 nodes,
                 edges,
-                projectId: selectedProjectId,
+                projectId: graph.projectId || selectedProjectId,
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(`uniflux_backup_${graph.id}`, JSON.stringify(backup));
         }, 2000);
 
         return () => clearTimeout(timer);
-    }, [nodes, edges, isDirty, graph.id, selectedProjectId]);
+    }, [nodes, edges, isDirty, graph.id, graph.projectId, selectedProjectId]);
 
     // V9: Handle cross-flow navigation with auto-centering
     useEffect(() => {
@@ -1015,6 +1018,75 @@ export default function UnifluxWorkspace() {
         }
     };
 
+    const handleDuplicateFlow = async (flowToDuplicate: FlowGraph) => {
+        if (!user || !tenantId) return;
+        const tenantToUse = tenantId || '1';
+        
+        const newFlowId = `flow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        const duplicatedGraph: FlowGraph = {
+            ...flowToDuplicate,
+            id: newFlowId,
+            name: `${flowToDuplicate.name} (Copia)`,
+            nodes: JSON.parse(JSON.stringify(flowToDuplicate.nodes || [])),
+            edges: JSON.parse(JSON.stringify(flowToDuplicate.edges || [])),
+            metadata: {
+                ...flowToDuplicate.metadata,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                authorId: user.uid
+            },
+            createdBy: user.uid
+        } as any;
+
+        try {
+            await saveFlowDraft(tenantToUse, duplicatedGraph, user.uid);
+            const flows = await listProjectFlows(tenantToUse, selectedProjectId);
+            setSavedFlows(flows as FlowGraph[]);
+            alert(`✓ Flujo duplicado con éxito: "${duplicatedGraph.name}"`);
+        } catch (e) {
+            console.error("Failed to duplicate flow", e);
+            alert("Error al duplicar el flujo");
+        }
+    };
+
+    const handleCopyToOtherProject = async () => {
+        if (!copyTargetFlow || !copyTargetProjectId || !user || !tenantId) return;
+        const tenantToUse = tenantId || '1';
+        setIsCopyingFlow(true);
+
+        const newFlowId = `flow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const targetProjectName = projects.find(p => p.id === copyTargetProjectId)?.name || 'otro proyecto';
+
+        const duplicatedGraph: FlowGraph = {
+            ...copyTargetFlow,
+            id: newFlowId,
+            projectId: copyTargetProjectId,
+            name: `${copyTargetFlow.name} (Copia)`,
+            nodes: JSON.parse(JSON.stringify(copyTargetFlow.nodes || [])),
+            edges: JSON.parse(JSON.stringify(copyTargetFlow.edges || [])),
+            metadata: {
+                ...copyTargetFlow.metadata,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                authorId: user.uid
+            },
+            createdBy: user.uid
+        } as any;
+
+        try {
+            await saveFlowDraft(tenantToUse, duplicatedGraph, user.uid);
+            alert(`✓ Flujo copiado con éxito al proyecto "${targetProjectName}"`);
+            setCopyTargetFlow(null);
+            setCopyTargetProjectId('');
+        } catch (e) {
+            console.error("Failed to copy flow to other project", e);
+            alert("Error al copiar el flujo al proyecto");
+        } finally {
+            setIsCopyingFlow(false);
+        }
+    };
+
     const handleMermaidChange = useCallback((code: string) => {
         setGraph(prev => ({ ...prev, mermaidCode: code }));
     }, []);
@@ -1029,7 +1101,7 @@ export default function UnifluxWorkspace() {
         const newGraph: FlowGraph = {
             id: `draft-${Date.now()}`,
             tenantId: tenantId || '',
-            ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
+            projectId: graph.projectId || selectedProjectId,
             name: `${graph.name} (Visual)`,
             docType: 'visual',
             nodes: vNodes,
@@ -1044,7 +1116,7 @@ export default function UnifluxWorkspace() {
         setGraph(newGraph);
         setIsSidebarOpen(false);
         setShowWizard(false);
-    }, [graph.id, graph.name, selectedProjectId, tenantId, user]);
+    }, [graph.id, graph.projectId, graph.name, selectedProjectId, tenantId, user]);
 
     const handleNameRename = () => {
         if (!editNameValue.trim()) {
@@ -1533,7 +1605,8 @@ export default function UnifluxWorkspace() {
         if (!user || !tenantId) return;
         const tenantToUse = tenantId || '1';
 
-        if (!selectedProjectId) {
+        const activeProjectId = graph.projectId || selectedProjectId;
+        if (!activeProjectId) {
             if (!isAutoSave) alert("Por favor selecciona un proyecto primero.");
             return;
         }
@@ -1555,7 +1628,7 @@ export default function UnifluxWorkspace() {
                 // Mermaid flows: persist code directly, no RF serialization
                 finalGraph = {
                     ...graph,
-                    ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
+                    projectId: activeProjectId,
                     schemaVersion: CURRENT_SCHEMA_VERSION,
                 };
             } else {
@@ -1618,7 +1691,7 @@ export default function UnifluxWorkspace() {
 
                 finalGraph = {
                     ...graph,
-                    ...(selectedProjectId ? { projectId: selectedProjectId } : {}),
+                    projectId: activeProjectId,
                     nodes: updatedGraphNodes,
                     edges: updatedGraphEdges,
                     showGrid,
@@ -1644,7 +1717,7 @@ export default function UnifluxWorkspace() {
             localStorage.removeItem(`uniflux_backup_${graph.id}`);
 
             // Refresh sidebar flows
-            listProjectFlows(tenantToUse, selectedProjectId).then(f => setSavedFlows(f as FlowGraph[]));
+            listProjectFlows(tenantToUse, activeProjectId).then(f => setSavedFlows(f as FlowGraph[]));
         } catch (e) {
             console.error("Failed to save draft", e);
             setSaveStatus('idle');
@@ -1992,7 +2065,24 @@ export default function UnifluxWorkspace() {
                                                         </div>
                                                     </button>
                                                     <div className="flex items-center gap-1 shrink-0">
-                                                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                                                        {isActive && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-1" />}
+                                                        
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleDuplicateFlow(flow); }}
+                                                            className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                            title="Duplicar flujo en este proyecto"
+                                                        >
+                                                            <Copy className="w-3.5 h-3.5" />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setCopyTargetFlow(flow); }}
+                                                            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                            title="Copiar flujo a otro proyecto"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                        </button>
+
                                                         {/* Visible solo si admin (≥80) o creador del flujo */}
                                                         {(roleLevel >= 80 || (flow as any).createdBy === user?.uid) && (
                                                             <button
@@ -2473,6 +2563,65 @@ export default function UnifluxWorkspace() {
                     </Panel>
                 </ReactFlow>}
                 </div>
+
+                {/* Modal para copiar flujo a otro proyecto */}
+                {copyTargetFlow && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-gray-950/50 backdrop-blur-sm p-4">
+                        <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 animate-in fade-in zoom-in duration-200">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                                <Copy className="w-5 h-5 text-purple-600" />
+                                Copiar a otro proyecto
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-4">
+                                Selecciona el proyecto de destino para hacer una copia del flujo <span className="font-bold text-gray-700">"{copyTargetFlow.name}"</span>.
+                            </p>
+
+                            <div className="mb-6">
+                                <label className="text-xs font-bold text-gray-400 uppercase block mb-2">Proyecto de destino</label>
+                                <select
+                                    value={copyTargetProjectId}
+                                    onChange={(e) => setCopyTargetProjectId(e.target.value)}
+                                    className="w-full border bg-gray-50 border-gray-200 py-2 px-3 rounded-lg text-sm font-medium text-gray-800 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                                >
+                                    <option value="" disabled>Seleccionar proyecto...</option>
+                                    {projects
+                                        .filter(p => p.id !== copyTargetFlow.projectId)
+                                        .map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => { setCopyTargetFlow(null); setCopyTargetProjectId(''); }}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm"
+                                    disabled={isCopyingFlow}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyToOtherProject}
+                                    disabled={!copyTargetProjectId || isCopyingFlow}
+                                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:opacity-90 transition-all font-medium text-sm disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {isCopyingFlow ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Copiando...
+                                        </>
+                                    ) : (
+                                        'Copiar Flujo'
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Context Menu */}
                 {menu && (
                     <div
