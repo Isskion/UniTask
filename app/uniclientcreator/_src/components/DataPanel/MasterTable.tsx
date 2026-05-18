@@ -98,7 +98,10 @@ const TableRow = React.memo(function TableRow({
 });
 
 // import { validateOrderRow, buildDuplicateMap } from '../../utils/validation'; // not used in UniClientCreator
-const validateOrderRow = (_row: any, _mapping: any) => ({ errors: [], warnings: [] });
+const validateOrderRow = (_row: any, _index: number, _mapping: any, _duplicateMap: any) => ({
+    isValid: true,
+    issues: [] as { severity: 'error' | 'warning'; message: string }[]
+});
 const buildDuplicateMap = (_rows: any[], _mapping: any) => new Map<string, number[]>();
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
