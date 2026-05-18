@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { useAppStore } from '../../store/appStore';
@@ -123,12 +123,12 @@ export default function LayoutExporter({ isOpen, onClose, initialMode = 'export'
             metaRows.push([section, String(count)]);
         }
         // Include multi-sheet config
-        if (false && { mainSheet: '', mainKey: '', relations: [] }.mainSheet) {
+        if (false && { mainSheet: '', mainKey: '', relations: [] as any[] }.mainSheet) {
             metaRows.push([]);
             metaRows.push(['__MULTI_SHEET_CONFIG__']);
-            metaRows.push(['mainSheet', { mainSheet: '', mainKey: '', relations: [] }.mainSheet]);
-            metaRows.push(['mainKey', { mainSheet: '', mainKey: '', relations: [] }.mainKey]);
-            for (const rel of { mainSheet: '', mainKey: '', relations: [] }.relations) {
+            metaRows.push(['mainSheet', { mainSheet: '', mainKey: '', relations: [] as any[] }.mainSheet]);
+            metaRows.push(['mainKey', { mainSheet: '', mainKey: '', relations: [] as any[] }.mainKey]);
+            for (const rel of { mainSheet: '', mainKey: '', relations: [] as any[] }.relations) {
                 metaRows.push(['relation', rel.sheet, rel.key, rel.targetPath, rel.itemTag]);
             }
         }
