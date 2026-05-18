@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Matrículas TMS — UNIGIS & HESA</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', 'monospace'],
+                        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        h1, h2, h3, .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+        /* Custom scrollbar for premium feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-indigo-600 to-purple-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        Validador de Matrículas
+                        <span class="text-xs font-semibold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">TMS Edition</span>
+                    </h1>
+                    <p class="text-[10px] text-slate-400 font-medium">Motor de Calidad de Datos Logísticos · UNIGIS & HESA</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 hidden sm:inline-flex items-center gap-1.5 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Iberian Peninsula Supported
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Left Side: Workspace (Single / Batch Validation) -->
+        <div class="flex-1 flex flex-col gap-6 lg:w-2/3">
+            
+            <!-- Workspace Mode Header & Country Selector Segmented Control -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <!-- Tab Controls -->
+                <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 flex gap-2 w-full sm:w-fit">
+                    <button id="tab-single" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        Validación Individual
+                    </button>
+                    <button id="tab-batch" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Validación en Lote
+                    </button>
+                </div>
+
+                <!-- Country Selector Segmented Control -->
+                <div class="bg-slate-900 p-1.5 rounded-xl border border-slate-800 flex gap-2 w-full sm:w-fit self-end">
+                    <button id="btn-country-es" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10">
+                        <span>🇪🇸</span> España
+                    </button>
+                    <button id="btn-country-pt" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+                        <span>🇵🇹</span> Portugal
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 1: INDIVIDUAL MODE -->
+            <div id="panel-single" class="space-y-6">
+                <!-- Validation Workspace Card -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl -z-10"></div>
+                    
+                    <div class="text-center space-y-2">
+                        <h2 class="text-xl font-bold text-white">Introduce la matrícula para verificar</h2>
+                        <p id="single-panel-desc" class="text-sm text-slate-400 max-w-md mx-auto">Soporta formatos vigentes, provinciales clásicos, provisionales y detección de formatos extranjeros.</p>
+                    </div>
+
+                    <!-- LICENSE PLATE VISUAL PREVIEW -->
+                    <div class="flex justify-center py-4">
+                        <div id="plate-visual-container" class="relative bg-white text-slate-900 rounded-xl border-[4px] border-slate-400 px-3 py-3 w-72 sm:w-80 shadow-2xl flex items-center select-none transition-all duration-300 transform">
+                            <!-- EU/Country Left Blue Bar -->
+                            <div class="absolute left-0 top-0 bottom-0 w-7 bg-[#003399] rounded-l-[6px] flex flex-col items-center justify-between py-2 text-white">
+                                <!-- Circle of Yellow Stars (EU Logo) -->
+                                <div class="grid grid-cols-3 gap-0.5 scale-75 opacity-90">
+                                    <span class="text-[6px] text-yellow-300">★</span><span class="text-[6px] text-yellow-300">★</span><span class="text-[6px] text-yellow-300">★</span>
+                                    <span class="text-[6px] text-yellow-300">★</span><span class="text-[6px] text-transparent">★</span><span class="text-[6px] text-yellow-300">★</span>
+                                    <span class="text-[6px] text-yellow-300">★</span><span class="text-[6px] text-yellow-300">★</span><span class="text-[6px] text-yellow-300">★</span>
+                                </div>
+                                <!-- Country Code "E" or "P" -->
+                                <span id="plate-country-code" class="font-outfit font-extrabold text-sm tracking-tighter leading-none mb-1">E</span>
+                            </div>
+                            
+                            <!-- Plate Text Field -->
+                            <div class="flex-1 text-center font-mono font-extrabold text-3xl sm:text-4xl tracking-widest pl-6 uppercase text-slate-950 drop-shadow-sm select-all">
+                                <span id="plate-visual-text" class="text-slate-300">1234-BCD</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Controls -->
+                    <div class="max-w-md mx-auto w-full space-y-4">
+                        <div class="relative group">
+                            <input 
+                                type="text" 
+                                id="input-plate"
+                                placeholder="Escribe aquí (ej. 1234-BCD)"
+                                class="w-full text-center bg-slate-950 border border-slate-800 px-6 py-4 rounded-xl font-mono text-2xl font-bold uppercase tracking-wider text-white placeholder-slate-600 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                                autocomplete="off"
+                                spellcheck="false"
+                                maxlength="12"
+                            />
+                            
+                            <!-- Status Indicator Badge (Top Right of Input) -->
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                                <span id="status-icon" class="text-xl opacity-40">📝</span>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Message -->
+                        <div id="feedback-container" class="bg-slate-950 border border-slate-800/60 rounded-xl p-4 flex gap-3 transition-all duration-300">
+                            <div class="text-2xl shrink-0" id="feedback-emoji">ℹ️</div>
+                            <div class="flex-1 space-y-1">
+                                <h4 class="text-sm font-bold text-slate-200" id="feedback-title">Esperando datos</h4>
+                                <p class="text-xs text-slate-400" id="feedback-desc">Introduce una combinación alfanumérica para validar el formato.</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3 justify-center">
+                            <button 
+                                id="btn-copy-norm" 
+                                disabled
+                                class="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-900/40 disabled:text-slate-600 text-slate-300 font-semibold px-4 py-3 rounded-lg border border-slate-700 disabled:border-slate-800/40 text-xs sm:text-sm transition-all active:scale-[0.98]"
+                            >
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Copiar Normalizada
+                            </button>
+                            <button 
+                                id="btn-copy-format" 
+                                disabled
+                                class="flex-1 flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-900/40 disabled:text-slate-600 text-slate-300 font-semibold px-4 py-3 rounded-lg border border-slate-700 disabled:border-slate-800/40 text-xs sm:text-sm transition-all active:scale-[0.98]"
+                            >
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Copiar Con Guion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: BATCH MODE -->
+            <div id="panel-batch" class="space-y-6 hidden">
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 rounded-full blur-3xl -z-10"></div>
+                    
+                    <div class="space-y-2">
+                        <h2 class="text-xl font-bold text-white">Validación masiva de matrículas (Lote)</h2>
+                        <p class="text-sm text-slate-400">Pega tu lista de matrículas (soporta saltos de línea, comas, espacios o punto y coma). El sistema detecta y valida de forma cruzada España y Portugal.</p>
+                    </div>
+
+                    <!-- Textarea Area -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Lista de entrada</label>
+                        <textarea 
+                            id="textarea-batch"
+                            rows="6"
+                            placeholder="Introduce por ejemplo:&#10;1234-BCD&#10;AA-11-BB&#10;MA-8659-BB&#10;99-ZZ-11"
+                            class="w-full bg-slate-950 border border-slate-800/80 rounded-xl p-4 font-mono text-sm text-white placeholder-slate-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all shadow-inner"
+                            spellcheck="false"
+                        ></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button 
+                            id="btn-validate-batch"
+                            class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-indigo-600/10 hover:shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Validar Lote Completo
+                        </button>
+                        <button 
+                            id="btn-clear-batch"
+                            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-3 rounded-xl border border-slate-700 transition-all active:scale-[0.99]"
+                        >
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BATCH RESULTS AREA -->
+                <div id="batch-results-container" class="space-y-6 hidden">
+                    
+                    <!-- SUMMARY CARDS GRID -->
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                        
+                        <!-- Total Card -->
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 p-2.5 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Analizado</p>
+                                <h3 id="stat-total" class="text-2xl font-black text-white leading-none mt-1">0</h3>
+                            </div>
+                        </div>
+
+                        <!-- Validas Card -->
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 p-2.5 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Válidas</p>
+                                <h3 id="stat-valid" class="text-2xl font-black text-emerald-400 leading-none mt-1">0</h3>
+                            </div>
+                        </div>
+
+                        <!-- Advertencias Card -->
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div class="bg-amber-500/10 text-amber-400 border border-amber-500/20 p-2.5 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Advertencias</p>
+                                <h3 id="stat-warning" class="text-2xl font-black text-amber-400 leading-none mt-1">0</h3>
+                            </div>
+                        </div>
+
+                        <!-- Invalidas Card -->
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <div class="bg-rose-500/10 text-rose-400 border border-rose-500/20 p-2.5 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Inválidas</p>
+                                <h3 id="stat-invalid" class="text-2xl font-black text-rose-400 leading-none mt-1">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESULTS TABLE CARD -->
+                    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+                        
+                        <!-- Table Top Control Actions -->
+                        <div class="px-6 py-4 bg-slate-900/50 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                Resultados de la Validación
+                            </h3>
+                            
+                            <!-- Action Export Buttons -->
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <button 
+                                    id="btn-copy-invalid-batch"
+                                    class="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold px-4 py-2 rounded-lg text-xs transition-all active:scale-[0.98]"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    Copiar solo inválidas
+                                </button>
+                                <button 
+                                    id="btn-export-csv"
+                                    class="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all active:scale-[0.98] shadow-sm shadow-emerald-600/10"
+                                >
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Exportar CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Main Table Element -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-950/60 border-b border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-wider font-outfit">
+                                        <th class="px-6 py-4.5">Entrada</th>
+                                        <th class="px-6 py-4.5">País</th>
+                                        <th class="px-6 py-4.5">Normalizada</th>
+                                        <th class="px-6 py-4.5">Estado</th>
+                                        <th class="px-6 py-4.5">Tipo</th>
+                                        <th class="px-6 py-4.5">Detalles del Mensaje</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batch-table-body" class="divide-y divide-slate-800/60 text-xs">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Sidebar Panel (Reference / Rules) -->
+        <div class="lg:w-1/3 flex flex-col gap-6">
+            
+            <!-- Mnemonics & Reference Section -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col gap-6 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-2xl -z-10"></div>
+                
+                <div class="border-b border-slate-800 pb-4">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        Referencia de Formatos
+                    </h3>
+                    <p id="ref-subtitle" class="text-xs text-slate-400 mt-1">Guía rápida de patrones admitidos en España</p>
+                </div>
+
+                <!-- Mnemonic Rule Box -->
+                <div class="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4">
+                    <h4 id="ref-mnemonic-title" class="text-xs font-bold text-indigo-400 uppercase tracking-wide flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                        Regla Mnemotécnica (España)
+                    </h4>
+                    <p id="ref-mnemonic-desc" class="text-sm font-semibold text-white mt-2 leading-relaxed">
+                        "4 dígitos y 3 consonantes sin vocales, Ñ ni Q"
+                    </p>
+                </div>
+
+                <!-- Allowed Characters List (Only displayed for ES since PT allows all) -->
+                <div id="ref-allowed-container" class="space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">Letras Permitidas (20 en total)</span>
+                        <span class="text-slate-400 bg-slate-800 border border-slate-700/50 px-1.5 py-0.5 rounded text-[10px]">Vocales, Q y Ñ excluidas</span>
+                    </div>
+                    <div class="grid grid-cols-10 gap-1.5">
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">B</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">C</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">D</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">F</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">G</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">H</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">J</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">K</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">L</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">M</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">N</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">P</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">R</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">S</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">T</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">V</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">W</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">X</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">Y</span>
+                        <span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">Z</span>
+                    </div>
+                </div>
+
+                <!-- Examples Showcase -->
+                <div class="space-y-3">
+                    <span class="text-xs font-bold text-slate-300 block">Ejemplos y Patrones de Validación</span>
+                    <div id="ref-examples-list" class="space-y-2.5">
+                        <!-- Filled dynamically based on active country -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Notice Block -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 p-6 flex flex-col gap-4 shadow-xl">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <span class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                    Para Integradores UNIGIS
+                </h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    El algoritmo de validación tanto de España como el de Portugal está completamente encapsulado en la etiqueta <code class="font-mono text-indigo-400 bg-slate-950 px-1 rounded">&lt;script id="validation-engine"&gt;</code>. Puede extraerse y pegarse directamente en el portal del TMS sin requerir adaptaciones de interfaz.
+                </p>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Footer Page -->
+    <footer class="border-t border-slate-800 bg-slate-950/80 backdrop-blur-md px-4 py-6 text-center text-xs text-slate-500 mt-auto">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>© 2026 UNIGIS Data Quality Engine. Diseñado para alta velocidad logística.</p>
+            <p class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Autónomo y listo para uso offline
+            </p>
+        </div>
+    </footer>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         BLOC 1: ALGORITMO DE VALIDACIÓN (Aislado para copiar y pegar en TMS)
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <script id="validation-engine">
+        /**
+         * Algoritmo Oficial de Validación de Matrículas (España & Portugal)
+         * Versión certificada para UNIGIS TMS
+         */
+
+        // --- MOTOR ESPAÑA ---
+        const LETRAS_VALIDAS = new Set('BCDFGHJKLMNPRSTVWXYZ'.split(''));
+        const RE_ACTUAL      = /^\d{4}[BCDFGHJKLMNPRSTVWXYZ]{3}$/;
+        const RE_PROVINCIAL  = /^[A-Z]{1,3}\d{4,5}[A-Z]{2}$/;
+        const RE_PROVISIONAL = /^[A-Z]\d{4,5}[A-Z]{3}$/;
+
+        function normalizarMatricula(input) {
+            return input.replace(/[\s\-\.]/g, '').toUpperCase().trim();
+        }
+
+        function validarMatriculaES(input) {
+            if (!input?.trim()) return { estado: 'invalida', mensaje: 'Matrícula requerida' };
+
+            const norm = normalizarMatricula(input);
+
+            if (RE_ACTUAL.test(norm))
+                return { estado: 'valida', tipo: 'actual', normalizada: norm, mensaje: 'Matrícula española vigente (1234-BCD)' };
+
+            if (/^\d{4}[A-Z]{3}$/.test(norm)) {
+                const invalidas = norm.slice(4).split('').filter(c => !LETRAS_VALIDAS.has(c));
+                return { estado: 'invalida', tipo: 'invalida', normalizada: norm,
+                    mensaje: `Letras no permitidas: ${invalidas.join(', ')} — se excluyen vocales, Q y Ñ` };
+            }
+
+            if (RE_PROVINCIAL.test(norm))
+                return { estado: 'advertencia', tipo: 'provincial', normalizada: norm,
+                    mensaje: 'Formato provincial (anterior a 2000)' };
+
+            if (RE_PROVISIONAL.test(norm))
+                return { estado: 'advertencia', tipo: 'provisional', normalizada: norm,
+                    mensaje: 'Posible matrícula provisional o de exportación' };
+
+            if (/^[A-Z0-9]{2,10}$/.test(norm))
+                return { estado: 'advertencia', tipo: 'extranjera', normalizada: norm,
+                    mensaje: 'Formato no español — ¿matrícula extranjera?' };
+
+            return { estado: 'invalida', tipo: 'invalida', normalizada: norm, mensaje: 'Formato no reconocido' };
+        }
+
+        // --- MOTOR PORTUGAL ---
+        function validarMatriculaPT(input) {
+            if (!input?.trim()) return { estado: 'invalida', mensaje: 'Matrícula requerida' };
+
+            // Forzar mayúsculas y asegurar formato homogéneo con guiones
+            let clean = input.toUpperCase().replace(/[\s\-\.]/g, '').trim();
+            if (clean.length === 6) {
+                clean = `${clean.slice(0, 2)}-${clean.slice(2, 4)}-${clean.slice(4, 6)}`;
+            }
+
+            // Patrón que engloba los 4 formatos históricos y actuales
+            const RE_PORTUGAL = /^(?:[A-Z]{2}-\d{2}-\d{2}|\d{2}-[A-Z]{2}-\d{2}|\d{2}-\d{2}-[A-Z]{2}|[A-Z]{2}-\d{2}-[A-Z]{2})$/;
+
+            const esValida = RE_PORTUGAL.test(clean);
+
+            if (esValida) {
+                const esActual = /^[A-Z]{2}-\d{2}-[A-Z]{2}$/.test(clean);
+                return {
+                    estado: 'valida',
+                    tipo: esActual ? 'actual' : 'historica',
+                    normalizada: clean.replace(/-/g, ''),
+                    formateada: clean,
+                    mensaje: esActual ? 'Matrícula portuguesa vigente (Formato AA-00-AA)' : 'Matrícula portuguesa histórica válida'
+                };
+            }
+
+            // Advertencia o no válida
+            if (clean.replace(/-/g, '').length === 6) {
+                return {
+                    estado: 'invalida',
+                    tipo: 'invalida',
+                    normalizada: clean.replace(/-/g, ''),
+                    formateada: clean,
+                    mensaje: 'Estructura portuguesa incorrecta (debe ser pares de letras/números: AA-00-00, 00-AA-00, 00-00-AA o AA-00-AA)'
+                };
+            }
+
+            // Advertencia para otros formatos de longitud diferente
+            if (/^[A-Z0-9]{2,10}$/.test(clean.replace(/-/g, ''))) {
+                return {
+                    estado: 'advertencia',
+                    tipo: 'extranjera',
+                    normalizada: clean.replace(/-/g, ''),
+                    formateada: clean,
+                    mensaje: 'Formato no portugués — ¿matrícula extranjera?'
+                };
+            }
+
+            return {
+                estado: 'invalida',
+                tipo: 'invalida',
+                normalizada: clean.replace(/-/g, ''),
+                formateada: clean,
+                mensaje: 'Formato de matrícula portuguesa no válido'
+            };
+        }
+
+        // --- ENRUTADOR/DETECTOR AUTOMÁTICO ---
+        function validarMatricula(input, pais = 'ES') {
+            if (pais === 'PT') {
+                return validarMatriculaPT(input);
+            }
+            return validarMatriculaES(input);
+        }
+
+        // Detector inteligente para Lotes (auto-completa si es ES o PT)
+        function detectarPaisYValidar(input) {
+            const norm = input.replace(/[\s\-\.]/g, '').toUpperCase().trim();
+            
+            // Si coincide con patrón exacto de Portugal de 6 caracteres
+            const cleanPT = norm.length === 6 ? `${norm.slice(0, 2)}-${norm.slice(2, 4)}-${norm.slice(4, 6)}` : norm;
+            const RE_PORTUGAL = /^(?:[A-Z]{2}-\d{2}-\d{2}|\d{2}-[A-Z]{2}-\d{2}|\d{2}-\d{2}-[A-Z]{2}|[A-Z]{2}-\d{2}-[A-Z]{2})$/;
+            
+            if (RE_PORTUGAL.test(cleanPT)) {
+                return { ...validarMatriculaPT(input), paisIdentificado: 'PT' };
+            }
+
+            // Si es formato español actual
+            if (/^\d{4}[A-Z]{3}$/.test(norm)) {
+                return { ...validarMatriculaES(input), paisIdentificado: 'ES' };
+            }
+
+            // Fallback a España
+            return { ...validarMatriculaES(input), paisIdentificado: 'ES' };
+        }
+    </script>
+
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         BLOC 2: CONTROLADOR DE INTERFAZ DE USUARIO (Doble Clic Local)
+         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <script id="ui-controller">
+        // Active Country Context
+        let currentCountry = 'ES'; // 'ES' or 'PT'
+
+        // DOM Elements Toggles
+        const tabSingle = document.getElementById('tab-single');
+        const tabBatch = document.getElementById('tab-batch');
+        const panelSingle = document.getElementById('panel-single');
+        const panelBatch = document.getElementById('panel-batch');
+
+        // Country Toggle Buttons
+        const btnCountryEs = document.getElementById('btn-country-es');
+        const btnCountryPt = document.getElementById('btn-country-pt');
+
+        // Individual Mode Elements
+        const inputPlate = document.getElementById('input-plate');
+        const plateVisualText = document.getElementById('plate-visual-text');
+        const plateVisualContainer = document.getElementById('plate-visual-container');
+        const plateCountryCode = document.getElementById('plate-country-code');
+        const singlePanelDesc = document.getElementById('single-panel-desc');
+        const statusIcon = document.getElementById('status-icon');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackEmoji = document.getElementById('feedback-emoji');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackDesc = document.getElementById('feedback-desc');
+        const btnCopyNorm = document.getElementById('btn-copy-norm');
+        const btnCopyFormat = document.getElementById('btn-copy-format');
+
+        // Sidebar Reference Elements
+        const refSubtitle = document.getElementById('ref-subtitle');
+        const refMnemonicTitle = document.getElementById('ref-mnemonic-title');
+        const refMnemonicDesc = document.getElementById('ref-mnemonic-desc');
+        const refAllowedContainer = document.getElementById('ref-allowed-container');
+        const refExamplesList = document.getElementById('ref-examples-list');
+
+        // Batch Mode Elements
+        const textareaBatch = document.getElementById('textarea-batch');
+        const btnValidateBatch = document.getElementById('btn-validate-batch');
+        const btnClearBatch = document.getElementById('btn-clear-batch');
+        const batchResultsContainer = document.getElementById('batch-results-container');
+        const statTotal = document.getElementById('stat-total');
+        const statValid = document.getElementById('stat-valid');
+        const statWarning = document.getElementById('stat-warning');
+        const statInvalid = document.getElementById('stat-invalid');
+        const btnCopyInvalidBatch = document.getElementById('btn-copy-invalid-batch');
+        const btnExportCsv = document.getElementById('btn-export-csv');
+        const batchTableBody = document.getElementById('batch-table-body');
+
+        // Reference Data
+        const refData = {
+            ES: {
+                subtitle: 'Guía rápida de patrones admitidos en España',
+                mnemonicTitle: 'Regla Mnemotécnica (España)',
+                mnemonicDesc: '"4 dígitos y 3 consonantes sin vocales, Ñ ni Q"',
+                examples: [
+                    { val: '1234-BCD', desc: 'Formato actual español (2000-Hoy)', state: 'valida', label: 'Válido' },
+                    { val: 'MA-1234-AB', desc: 'Provincial Clásico (Hasta 2000)', state: 'advertencia', label: 'Advertencia' },
+                    { val: 'P-1234-ABC', desc: 'Matrícula Provisional / Temporal', state: 'advertencia', label: 'Advertencia' },
+                    { val: 'DE-XY-1234', desc: 'Matrícula extranjera o no-española', state: 'advertencia', label: 'Advertencia' },
+                    { val: '1234-BAE', desc: 'Vocal no permitida (\'A\' y \'E\')', state: 'invalida', label: 'Inválido' }
+                ]
+            },
+            PT: {
+                subtitle: 'Guía rápida de patrones admitidos en Portugal',
+                mnemonicTitle: 'Regla Mnemotécnica (Portugal)',
+                mnemonicDesc: '"3 pares de letras/números (AA-00-00, 00-AA-00, 00-00-AA o AA-00-AA) con guiones"',
+                examples: [
+                    { val: 'AA-11-BB', desc: 'Formato vigente portugués (2020-Hoy)', state: 'valida', label: 'Válido' },
+                    { val: '99-ZZ-11', desc: 'Formato clásico antiguo (1992-2005)', state: 'valida', label: 'Válido' },
+                    { val: '99-99-ZZ', desc: 'Formato histórico intermedio (2005-2020)', state: 'valida', label: 'Válido' },
+                    { val: 'AA-99-99', desc: 'Formato histórico original (1937-1992)', state: 'valida', label: 'Válido' },
+                    { val: '1234BBB', desc: 'Formato español no válido en Portugal', state: 'invalida', label: 'Inválido' }
+                ]
+            }
+        };
+
+        // Render Reference Sidebar
+        function renderReferencePanel() {
+            const data = refData[currentCountry];
+            refSubtitle.textContent = data.subtitle;
+            refMnemonicTitle.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span> ${data.mnemonicTitle}`;
+            refMnemonicDesc.textContent = data.mnemonicDesc;
+
+            if (currentCountry === 'ES') {
+                refAllowedContainer.classList.remove('hidden');
+            } else {
+                refAllowedContainer.classList.add('hidden'); // Portugal doesn't restrict specific consonants
+            }
+
+            refExamplesList.innerHTML = '';
+            data.examples.forEach(item => {
+                let badgeClass = "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20";
+                let hoverClass = "hover:border-emerald-500/30";
+                let textClass = "group-hover:text-emerald-400";
+                if (item.state === 'advertencia') {
+                    badgeClass = "text-amber-400 bg-amber-500/10 border border-amber-500/20";
+                    hoverClass = "hover:border-amber-500/30";
+                    textClass = "group-hover:text-amber-400";
+                } else if (item.state === 'invalida') {
+                    badgeClass = "text-rose-400 bg-rose-500/10 border border-rose-500/20";
+                    hoverClass = "hover:border-rose-500/30";
+                    textClass = "group-hover:text-rose-400";
+                }
+
+                refExamplesList.innerHTML += `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800 ${hoverClass} transition-all group cursor-pointer" onclick="setInputAndValidate('${item.val}')">
+                        <div>
+                            <span class="font-mono text-xs font-bold text-white ${textClass} transition-colors">${item.val}</span>
+                            <span class="block text-[10px] text-slate-400 mt-0.5">${item.desc}</span>
+                        </div>
+                        <span class="${badgeClass} px-2 py-0.5 rounded text-[10px] font-bold">${item.label}</span>
+                    </div>
+                `;
+            });
+        }
+
+        // Quick set input from reference click
+        window.setInputAndValidate = function(val) {
+            inputPlate.value = val;
+            updateIndividualFeedback(val);
+        };
+
+        // Switch Active Country
+        function setCountry(country) {
+            currentCountry = country;
+            if (country === 'ES') {
+                btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+                btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+                
+                plateCountryCode.textContent = "E";
+                inputPlate.placeholder = "Escribe aquí (ej. 1234-BCD)";
+                singlePanelDesc.textContent = "Soporta formatos vigentes, provinciales clásicos, provisionales y detección de formatos extranjeros.";
+            } else {
+                btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+                btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+                
+                plateCountryCode.textContent = "P";
+                inputPlate.placeholder = "Escribe aquí (ej. AA-12-BB)";
+                singlePanelDesc.textContent = "Soporta formato vigente actual (AA-00-AA), formatos históricos españoles y provisionales.";
+            }
+
+            renderReferencePanel();
+            updateIndividualFeedback(inputPlate.value);
+        }
+
+        btnCountryEs.addEventListener('click', () => setCountry('ES'));
+        btnCountryPt.addEventListener('click', () => setCountry('PT'));
+
+        // Tab Switching State logic
+        tabSingle.addEventListener('click', () => {
+            tabSingle.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+            tabBatch.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800";
+            panelSingle.classList.remove('hidden');
+            panelBatch.classList.add('hidden');
+        });
+
+        tabBatch.addEventListener('click', () => {
+            tabBatch.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+            tabSingle.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 text-slate-400 hover:text-white hover:bg-slate-800";
+            panelBatch.classList.remove('hidden');
+            panelSingle.classList.add('hidden');
+        });
+
+        // Helper to format visual plate
+        function formatLicensePlateText(text) {
+            const clean = text.toUpperCase().replace(/[\s\-\.]/g, '').trim();
+            if (currentCountry === 'PT') {
+                if (clean.length === 6) {
+                    return `${clean.slice(0, 2)}-${clean.slice(2, 4)}-${clean.slice(4, 6)}`;
+                }
+                return clean;
+            } else {
+                if (/^\d{4}[A-Z]{3}$/.test(clean)) {
+                    return `${clean.slice(0, 4)}-${clean.slice(4)}`;
+                }
+                return clean;
+            }
+        }
+
+        // Live validation on Input
+        inputPlate.addEventListener('input', (e) => {
+            let val = e.target.value.toUpperCase();
+            e.target.value = val;
+            updateIndividualFeedback(val);
+        });
+
+        // Blur event formatting
+        inputPlate.addEventListener('blur', (e) => {
+            let val = e.target.value;
+            if (!val.trim()) return;
+
+            const norm = val.toUpperCase().replace(/[\s\-\.]/g, '').trim();
+            
+            if (currentCountry === 'PT') {
+                if (norm.length === 6) {
+                    const formatted = `${norm.slice(0, 2)}-${norm.slice(2, 4)}-${norm.slice(4, 6)}`;
+                    inputPlate.value = formatted;
+                    updateIndividualFeedback(formatted);
+                } else {
+                    inputPlate.value = norm;
+                    updateIndividualFeedback(norm);
+                }
+            } else {
+                if (RE_ACTUAL.test(norm)) {
+                    const formatted = `${norm.slice(0, 4)}-${norm.slice(4)}`;
+                    inputPlate.value = formatted;
+                    updateIndividualFeedback(formatted);
+                } else {
+                    inputPlate.value = norm;
+                    updateIndividualFeedback(norm);
+                }
+            }
+        });
+
+        function updateIndividualFeedback(value) {
+            const val = value.trim();
+            if (!val) {
+                plateVisualText.textContent = currentCountry === 'PT' ? "AA-12-BB" : "1234-BCD";
+                plateVisualText.className = "text-slate-300";
+                plateVisualContainer.className = "relative bg-white text-slate-900 rounded-xl border-[4px] border-slate-400 px-3 py-3 w-72 sm:w-80 shadow-2xl flex items-center select-none transition-all duration-300 transform";
+                statusIcon.textContent = "📝";
+                
+                feedbackContainer.className = "bg-slate-950 border border-slate-800/60 rounded-xl p-4 flex gap-3 transition-all duration-300";
+                feedbackEmoji.textContent = "ℹ️";
+                feedbackTitle.textContent = "Esperando datos";
+                feedbackTitle.className = "text-sm font-bold text-slate-200";
+                feedbackDesc.textContent = "Introduce una combinación alfanumérica para validar el formato.";
+                
+                btnCopyNorm.disabled = true;
+                btnCopyFormat.disabled = true;
+                return;
+            }
+
+            const result = validarMatricula(val, currentCountry);
+            const norm = result.normalizada;
+            
+            // Render text in the physical plate preview
+            plateVisualText.textContent = formatLicensePlateText(val);
+            plateVisualText.className = "text-slate-950";
+
+            // Update UI styles depending on the status
+            if (result.estado === 'valida') {
+                plateVisualContainer.className = "relative bg-white text-slate-900 rounded-xl border-[4px] border-emerald-500 px-3 py-3 w-72 sm:w-80 shadow-2xl shadow-emerald-500/10 flex items-center select-none transition-all duration-300 transform scale-[1.02]";
+                statusIcon.textContent = "✅";
+                
+                feedbackContainer.className = "bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 flex gap-3 transition-all duration-300";
+                feedbackEmoji.textContent = "✅";
+                feedbackTitle.textContent = "Matrícula Válida";
+                feedbackTitle.className = "text-sm font-bold text-emerald-400";
+                feedbackDesc.textContent = result.mensaje;
+                
+                btnCopyNorm.disabled = false;
+                btnCopyFormat.disabled = false;
+
+            } else if (result.estado === 'advertencia') {
+                plateVisualContainer.className = "relative bg-white text-slate-900 rounded-xl border-[4px] border-amber-500 px-3 py-3 w-72 sm:w-80 shadow-2xl shadow-amber-500/10 flex items-center select-none transition-all duration-300 transform";
+                statusIcon.textContent = "⚠️";
+                
+                feedbackContainer.className = "bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex gap-3 transition-all duration-300";
+                feedbackEmoji.textContent = "⚠️";
+                feedbackTitle.textContent = "Advertencia de Formato";
+                feedbackTitle.className = "text-sm font-bold text-amber-400";
+                feedbackDesc.textContent = result.mensaje;
+                
+                btnCopyNorm.disabled = false;
+                btnCopyFormat.disabled = false;
+
+            } else {
+                plateVisualContainer.className = "relative bg-white text-slate-900 rounded-xl border-[4px] border-rose-500 px-3 py-3 w-72 sm:w-80 shadow-2xl shadow-rose-500/10 flex items-center select-none transition-all duration-300 transform scale-[0.98]";
+                statusIcon.textContent = "❌";
+                
+                feedbackContainer.className = "bg-rose-500/5 border border-rose-500/20 rounded-xl p-4 flex gap-3 transition-all duration-300";
+                feedbackEmoji.textContent = "❌";
+                feedbackTitle.textContent = "Matrícula Inválida";
+                feedbackTitle.className = "text-sm font-bold text-rose-400";
+                feedbackDesc.textContent = result.mensaje;
+                
+                btnCopyNorm.disabled = true;
+                btnCopyFormat.disabled = true;
+            }
+        }
+
+        // Copy actions
+        btnCopyNorm.addEventListener('click', () => {
+            const val = inputPlate.value;
+            const norm = val.toUpperCase().replace(/[\s\-\.]/g, '').trim();
+            navigator.clipboard.writeText(norm).then(() => {
+                const originalText = btnCopyNorm.innerHTML;
+                btnCopyNorm.innerHTML = `✓ ¡Copiada!`;
+                btnCopyNorm.classList.add('bg-emerald-600', 'text-white');
+                setTimeout(() => {
+                    btnCopyNorm.innerHTML = originalText;
+                    btnCopyNorm.classList.remove('bg-emerald-600', 'text-white');
+                }, 1500);
+            });
+        });
+
+        btnCopyFormat.addEventListener('click', () => {
+            const val = inputPlate.value;
+            const formatted = formatLicensePlateText(val);
+            navigator.clipboard.writeText(formatted).then(() => {
+                const originalText = btnCopyFormat.innerHTML;
+                btnCopyFormat.innerHTML = `✓ ¡Copiada!`;
+                btnCopyFormat.classList.add('bg-emerald-600', 'text-white');
+                setTimeout(() => {
+                    btnCopyFormat.innerHTML = originalText;
+                    btnCopyFormat.classList.remove('bg-emerald-600', 'text-white');
+                }, 1500);
+            });
+        });
+
+
+        // BATCH MODE LOGIC
+        let lastBatchResults = [];
+
+        btnValidateBatch.addEventListener('click', () => {
+            const text = textareaBatch.value;
+            if (!text.trim()) {
+                alert("Por favor introduce alguna matrícula para validar.");
+                return;
+            }
+
+            const rawItems = text.split(/[\n,;]+/).map(item => item.trim()).filter(item => item.length > 0);
+            
+            if (rawItems.length === 0) {
+                alert("No se encontraron matrículas válidas para analizar.");
+                return;
+            }
+
+            lastBatchResults = [];
+            let counts = { valida: 0, advertencia: 0, invalida: 0 };
+
+            batchTableBody.innerHTML = ''; 
+
+            rawItems.forEach(item => {
+                // Auto-detect country based on the plate style dynamically
+                const result = detectarPaisYValidar(item);
+                lastBatchResults.push({
+                    entrada: item,
+                    pais: result.paisIdentificado,
+                    normalizada: result.normalizada,
+                    estado: result.estado,
+                    tipo: result.tipo || 'invalida',
+                    mensaje: result.mensaje
+                });
+
+                counts[result.estado]++;
+            });
+
+            // Update stats
+            statTotal.textContent = lastBatchResults.length;
+            statValid.textContent = counts.valida;
+            statWarning.textContent = counts.advertencia;
+            statInvalid.textContent = counts.invalida;
+
+            // Fill rows in target table
+            lastBatchResults.forEach(item => {
+                const row = document.createElement('tr');
+                let rowBgClass = "";
+                let statusBadge = "";
+                
+                if (item.estado === 'valida') {
+                    rowBgClass = "bg-emerald-950/10 hover:bg-emerald-950/20 transition-colors";
+                    statusBadge = `<span class="bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 font-extrabold px-2.5 py-0.5 rounded text-[10px] tracking-wider uppercase">Válido</span>`;
+                } else if (item.estado === 'advertencia') {
+                    rowBgClass = "bg-amber-950/10 hover:bg-amber-950/20 transition-colors";
+                    statusBadge = `<span class="bg-amber-500/15 border border-amber-500/20 text-amber-400 font-extrabold px-2.5 py-0.5 rounded text-[10px] tracking-wider uppercase">Advertencia</span>`;
+                } else {
+                    rowBgClass = "bg-rose-950/10 hover:bg-rose-950/20 transition-colors";
+                    statusBadge = `<span class="bg-rose-500/15 border border-rose-500/20 text-rose-400 font-extrabold px-2.5 py-0.5 rounded text-[10px] tracking-wider uppercase">Inválido</span>`;
+                }
+
+                row.className = `${rowBgClass} border-b border-slate-800/40`;
+                
+                const flagEmoji = item.pais === 'PT' ? '🇵🇹 PT' : '🇪🇸 ES';
+
+                row.innerHTML = `
+                    <td class="px-6 py-3.5 font-mono font-bold text-slate-300 uppercase">${item.entrada}</td>
+                    <td class="px-6 py-3.5 font-semibold text-slate-400 text-xs">${flagEmoji}</td>
+                    <td class="px-6 py-3.5 font-mono font-bold text-slate-100 uppercase">${item.normalizada}</td>
+                    <td class="px-6 py-3.5">${statusBadge}</td>
+                    <td class="px-6 py-3.5 text-slate-400 font-semibold uppercase text-[10px] tracking-wide">${item.tipo}</td>
+                    <td class="px-6 py-3.5 text-slate-300 font-medium">${item.mensaje}</td>
+                `;
+
+                batchTableBody.appendChild(row);
+            });
+
+            batchResultsContainer.classList.remove('hidden');
+            batchResultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Clear batch inputs
+        btnClearBatch.addEventListener('click', () => {
+            textareaBatch.value = '';
+            batchResultsContainer.classList.add('hidden');
+            lastBatchResults = [];
+        });
+
+        // Export to CSV Functionality
+        btnExportCsv.addEventListener('click', () => {
+            if (lastBatchResults.length === 0) return;
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Entrada,Pais,Normalizada,Estado,Tipo,Mensaje\r\n";
+
+            lastBatchResults.forEach(row => {
+                const line = [
+                    `"${row.entrada}"`,
+                    `"${row.pais}"`,
+                    `"${row.normalizada}"`,
+                    `"${row.estado.toUpperCase()}"`,
+                    `"${row.tipo.toUpperCase()}"`,
+                    `"${row.mensaje.replace(/"/g, '""')}"`
+                ].join(",");
+                csvContent += line + "\r\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const downloadLink = document.createElement("a");
+            downloadLink.setAttribute("href", encodedUri);
+            downloadLink.setAttribute("download", `validacion_matriculas_${Date.now()}.csv`);
+            document.body.appendChild(downloadLink);
+            
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+
+        // Copy only invalid plates to review
+        btnCopyInvalidBatch.addEventListener('click', () => {
+            const invalids = lastBatchResults
+                .filter(row => row.estado === 'invalida')
+                .map(row => row.entrada);
+
+            if (invalids.length === 0) {
+                alert("✓ No hay matrículas inválidas en este lote.");
+                return;
+            }
+
+            const rawText = invalids.join("\n");
+            navigator.clipboard.writeText(rawText).then(() => {
+                const originalText = btnCopyInvalidBatch.innerHTML;
+                btnCopyInvalidBatch.innerHTML = `✓ ${invalids.length} Copiadas`;
+                btnCopyInvalidBatch.classList.add('bg-rose-600', 'text-white');
+                setTimeout(() => {
+                    btnCopyInvalidBatch.innerHTML = originalText;
+                    btnCopyInvalidBatch.classList.remove('bg-rose-600', 'text-white');
+                }, 2000);
+            });
+        });
+
+        // Initialize UI
+        setCountry('ES');
+    </script>
+</body>
+</html>
