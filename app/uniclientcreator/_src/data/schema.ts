@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type SchemaValue = '' | 'bool';
+export type SchemaValue = '' | 'bool' | { _default: string } | string;
 export interface ArraySchema { _isArray: true; _itemTag: string; _fields: Record<string, any>; }
 export interface SchemaNode { [key: string]: SchemaValue | SchemaNode | ArraySchema; }
 

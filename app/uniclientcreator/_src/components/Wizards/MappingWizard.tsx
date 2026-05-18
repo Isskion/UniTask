@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '../../store/appStore';
@@ -341,6 +341,11 @@ export default function MappingWizard({ isOpen, headers, onComplete, onClose, te
                 mapping,
                 booleanOverrides,
                 dynamicFieldCounts,
+                multiSheetConfig: {
+                    mainSheet: '',
+                    mainKey: '',
+                    relations: [],
+                },
             });
             setFeedback({ type: 'success', msg: 'âœ… Plantilla guardada' });
             setShowSaveForm(false);
