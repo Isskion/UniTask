@@ -68,7 +68,7 @@
             <div class="flex items-center gap-3">
                 <span class="text-xs text-slate-400 hidden sm:inline-flex items-center gap-1.5 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Iberian Peninsula Supported
+                    ES, PT & IT Supported
                 </span>
             </div>
         </div>
@@ -105,6 +105,9 @@
                     </button>
                     <button id="btn-country-pt" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
                         <span>🇵🇹</span> Portugal
+                    </button>
+                    <button id="btn-country-it" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+                        <span>🇮🇹</span> Italia
                     </button>
                 </div>
             </div>
@@ -551,29 +554,94 @@
             };
         }
 
+        // --- MOTOR ITALIA ---
+        const LETRAS_PROHIBIDAS_IT = new Set('IOQU'.split(''));
+        const RE_ITALIA = /^[A-HJ-NP-TV-Z]{2}\d{3}[A-HJ-NP-TV-Z]{2}$/;
+
+        function validarMatriculaIT(input) {
+            if (!input?.trim()) return { estado: 'invalida', mensaje: 'Matrícula requerida' };
+
+            const norm = normalizarMatricula(input);
+
+            if (RE_ITALIA.test(norm)) {
+                return {
+                    estado: 'valida',
+                    tipo: 'actual',
+                    normalizada: norm,
+                    formateada: `${norm.slice(0, 2)} ${norm.slice(2, 5)} ${norm.slice(5, 7)}`,
+                    mensaje: 'Matrícula italiana vigente (AA 123 AA)'
+                };
+            }
+
+            // Detectar si contiene letras no permitidas
+            const letras = norm.replace(/[^A-Z]/g, '');
+            const prohibidas = letras.split('').filter(c => LETRAS_PROHIBIDAS_IT.has(c));
+            if (prohibidas.length > 0) {
+                return {
+                    estado: 'invalida',
+                    tipo: 'invalida',
+                    normalizada: norm,
+                    mensaje: `Letras no permitidas: ${Array.from(new Set(prohibidas)).join(', ')} — se excluyen I, O, Q, U`
+                };
+            }
+
+            // Soporte para remolques antiguos (XA o RIMORCHIO)
+            if (norm.startsWith('RIMORCHIO') || norm.startsWith('XA')) {
+                return {
+                    estado: 'advertencia',
+                    tipo: 'remolque',
+                    normalizada: norm,
+                    mensaje: 'Posible matrícula de remolque italiano antiguo o histórico'
+                };
+            }
+
+            if (/^[A-Z0-9]{2,10}$/.test(norm)) {
+                return {
+                    estado: 'advertencia',
+                    tipo: 'extranjera',
+                    normalizada: norm,
+                    mensaje: 'Formato no italiano — ¿matrícula extranjera?'
+                };
+            }
+
+            return { estado: 'invalida', tipo: 'invalida', normalizada: norm, mensaje: 'Formato no reconocido' };
+        }
+
         // --- ENRUTADOR/DETECTOR AUTOMÁTICO ---
         function validarMatricula(input, pais = 'ES') {
             if (pais === 'PT') {
                 return validarMatriculaPT(input);
             }
+            if (pais === 'IT') {
+                return validarMatriculaIT(input);
+            }
             return validarMatriculaES(input);
         }
 
-        // Detector inteligente para Lotes (auto-completa si es ES o PT)
+        // Detector inteligente para Lotes (auto-completa si es ES, PT o IT)
         function detectarPaisYValidar(input) {
             const norm = input.replace(/[\s\-\.]/g, '').toUpperCase().trim();
             
             // Si coincide con patrón exacto de Portugal de 6 caracteres
             const cleanPT = norm.length === 6 ? `${norm.slice(0, 2)}-${norm.slice(2, 4)}-${norm.slice(4, 6)}` : norm;
             const RE_PORTUGAL = /^(?:[A-Z]{2}-\d{2}-\d{2}|\d{2}-[A-Z]{2}-\d{2}|\d{2}-\d{2}-[A-Z]{2}|[A-Z]{2}-\d{2}-[A-Z]{2})$/;
-            
             if (RE_PORTUGAL.test(cleanPT)) {
                 return { ...validarMatriculaPT(input), paisIdentificado: 'PT' };
+            }
+
+            // Si es formato italiano actual (LL NNN LL) sin letras prohibidas
+            if (RE_ITALIA.test(norm)) {
+                return { ...validarMatriculaIT(input), paisIdentificado: 'IT' };
             }
 
             // Si es formato español actual
             if (/^\d{4}[A-Z]{3}$/.test(norm)) {
                 return { ...validarMatriculaES(input), paisIdentificado: 'ES' };
+            }
+
+            // Heurística rápida: si es LL NNN LL pero contiene letras prohibidas, probablemente es IT
+            if (/^[A-Z]{2}\d{3}[A-Z]{2}$/.test(norm)) {
+                return { ...validarMatriculaIT(input), paisIdentificado: 'IT' };
             }
 
             // Fallback a España
@@ -587,7 +655,7 @@
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
     <script id="ui-controller">
         // Active Country Context
-        let currentCountry = 'ES'; // 'ES' or 'PT'
+        let currentCountry = 'ES'; // 'ES', 'PT' or 'IT'
 
         // DOM Elements Toggles
         const tabSingle = document.getElementById('tab-single');
@@ -598,6 +666,7 @@
         // Country Toggle Buttons
         const btnCountryEs = document.getElementById('btn-country-es');
         const btnCountryPt = document.getElementById('btn-country-pt');
+        const btnCountryIt = document.getElementById('btn-country-it');
 
         // Individual Mode Elements
         const inputPlate = document.getElementById('input-plate');
@@ -639,6 +708,9 @@
                 subtitle: 'Guía rápida de patrones admitidos en España',
                 mnemonicTitle: 'Regla Mnemotécnica (España)',
                 mnemonicDesc: '"4 dígitos y 3 consonantes sin vocales, Ñ ni Q"',
+                allowedLetters: 'BCDFGHJKLMNPRSTVWXYZ'.split(''),
+                allowedLettersNotice: 'Vocales, Q y Ñ excluidas',
+                allowedLettersLabel: 'Letras Permitidas (20 en total)',
                 examples: [
                     { val: '1234-BCD', desc: 'Formato actual español (2000-Hoy)', state: 'valida', label: 'Válido' },
                     { val: 'MA-1234-AB', desc: 'Provincial Clásico (Hasta 2000)', state: 'advertencia', label: 'Advertencia' },
@@ -651,12 +723,28 @@
                 subtitle: 'Guía rápida de patrones admitidos en Portugal',
                 mnemonicTitle: 'Regla Mnemotécnica (Portugal)',
                 mnemonicDesc: '"3 pares de letras/números (AA-00-00, 00-AA-00, 00-00-AA o AA-00-AA) con guiones"',
+                allowedLetters: null,
                 examples: [
                     { val: 'AA-11-BB', desc: 'Formato vigente portugués (2020-Hoy)', state: 'valida', label: 'Válido' },
                     { val: '99-ZZ-11', desc: 'Formato clásico antiguo (1992-2005)', state: 'valida', label: 'Válido' },
                     { val: '99-99-ZZ', desc: 'Formato histórico intermedio (2005-2020)', state: 'valida', label: 'Válido' },
                     { val: 'AA-99-99', desc: 'Formato histórico original (1937-1992)', state: 'valida', label: 'Válido' },
                     { val: '1234BBB', desc: 'Formato español no válido en Portugal', state: 'invalida', label: 'Inválido' }
+                ]
+            },
+            IT: {
+                subtitle: 'Guía rápida de patrones admitidos en Italia',
+                mnemonicTitle: 'Regla Mnemotécnica (Italia)',
+                mnemonicDesc: '"2 letras, 3 números, 2 letras (AA 123 AA) excluyendo I, O, Q, U"',
+                allowedLetters: 'ABCDEFGHJKLMNPRSTVWXYZ'.split(''),
+                allowedLettersNotice: 'I, O, Q y U excluidas',
+                allowedLettersLabel: 'Letras Permitidas (22 en total)',
+                examples: [
+                    { val: 'AB 123 CD', desc: 'Formato vigente italiano (1994-Hoy)', state: 'valida', label: 'Válido' },
+                    { val: 'AA 000 ZZ', desc: 'Formato vigente italiano', state: 'valida', label: 'Válido' },
+                    { val: 'XA 123 AA', desc: 'Histórico / Remolque antiguo', state: 'advertencia', label: 'Advertencia' },
+                    { val: 'AI 123 CD', desc: 'Vocal prohibida \'I\'', state: 'invalida', label: 'Inválido' },
+                    { val: 'AB 123 QD', desc: 'Letra prohibida \'Q\'', state: 'invalida', label: 'Inválido' }
                 ]
             }
         };
@@ -668,10 +756,19 @@
             refMnemonicTitle.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span> ${data.mnemonicTitle}`;
             refMnemonicDesc.textContent = data.mnemonicDesc;
 
-            if (currentCountry === 'ES') {
+            if (data.allowedLetters) {
+                refAllowedContainer.innerHTML = `
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-300">${data.allowedLettersLabel}</span>
+                        <span class="text-slate-400 bg-slate-800 border border-slate-700/50 px-1.5 py-0.5 rounded text-[10px]">${data.allowedLettersNotice}</span>
+                    </div>
+                    <div class="grid grid-cols-11 gap-1.5">
+                        ${data.allowedLetters.map(letter => `<span class="bg-slate-950 border border-slate-800 text-indigo-400 font-mono font-bold text-xs py-1.5 rounded text-center">${letter}</span>`).join('')}
+                    </div>
+                `;
                 refAllowedContainer.classList.remove('hidden');
             } else {
-                refAllowedContainer.classList.add('hidden'); // Portugal doesn't restrict specific consonants
+                refAllowedContainer.classList.add('hidden');
             }
 
             refExamplesList.innerHTML = '';
@@ -710,20 +807,25 @@
         // Switch Active Country
         function setCountry(country) {
             currentCountry = country;
+            btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+            btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+            btnCountryIt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+
             if (country === 'ES') {
-                btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
-                btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
-                
+                btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
                 plateCountryCode.textContent = "E";
                 inputPlate.placeholder = "Escribe aquí (ej. 1234-BCD)";
                 singlePanelDesc.textContent = "Soporta formatos vigentes, provinciales clásicos, provisionales y detección de formatos extranjeros.";
-            } else {
-                btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
-                btnCountryEs.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
-                
+            } else if (country === 'PT') {
+                btnCountryPt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
                 plateCountryCode.textContent = "P";
                 inputPlate.placeholder = "Escribe aquí (ej. AA-12-BB)";
                 singlePanelDesc.textContent = "Soporta formato vigente actual (AA-00-AA), formatos históricos españoles y provisionales.";
+            } else if (country === 'IT') {
+                btnCountryIt.className = "flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-md shadow-indigo-600/10";
+                plateCountryCode.textContent = "I";
+                inputPlate.placeholder = "Escribe aquí (ej. AA 123 AA)";
+                singlePanelDesc.textContent = "Soporta formato vigente secuencial (AA 123 AA) con exclusión estricta de letras I, O, Q y U.";
             }
 
             renderReferencePanel();
@@ -732,6 +834,7 @@
 
         btnCountryEs.addEventListener('click', () => setCountry('ES'));
         btnCountryPt.addEventListener('click', () => setCountry('PT'));
+        btnCountryIt.addEventListener('click', () => setCountry('IT'));
 
         // Tab Switching State logic
         tabSingle.addEventListener('click', () => {
@@ -754,6 +857,11 @@
             if (currentCountry === 'PT') {
                 if (clean.length === 6) {
                     return `${clean.slice(0, 2)}-${clean.slice(2, 4)}-${clean.slice(4, 6)}`;
+                }
+                return clean;
+            } else if (currentCountry === 'IT') {
+                if (clean.length === 7) {
+                    return `${clean.slice(0, 2)} ${clean.slice(2, 5)} ${clean.slice(5, 7)}`;
                 }
                 return clean;
             } else {
@@ -787,6 +895,15 @@
                     inputPlate.value = norm;
                     updateIndividualFeedback(norm);
                 }
+            } else if (currentCountry === 'IT') {
+                if (norm.length === 7) {
+                    const formatted = `${norm.slice(0, 2)} ${norm.slice(2, 5)} ${norm.slice(5, 7)}`;
+                    inputPlate.value = formatted;
+                    updateIndividualFeedback(formatted);
+                } else {
+                    inputPlate.value = norm;
+                    updateIndividualFeedback(norm);
+                }
             } else {
                 if (RE_ACTUAL.test(norm)) {
                     const formatted = `${norm.slice(0, 4)}-${norm.slice(4)}`;
@@ -802,7 +919,7 @@
         function updateIndividualFeedback(value) {
             const val = value.trim();
             if (!val) {
-                plateVisualText.textContent = currentCountry === 'PT' ? "AA-12-BB" : "1234-BCD";
+                plateVisualText.textContent = currentCountry === 'PT' ? "AA-12-BB" : (currentCountry === 'IT' ? "AA 123 AA" : "1234-BCD");
                 plateVisualText.className = "text-slate-300";
                 plateVisualContainer.className = "relative bg-white text-slate-900 rounded-xl border-[4px] border-slate-400 px-3 py-3 w-72 sm:w-80 shadow-2xl flex items-center select-none transition-all duration-300 transform";
                 statusIcon.textContent = "📝";
@@ -822,7 +939,7 @@
             const norm = result.normalizada;
             
             // Render text in the physical plate preview
-            plateVisualText.textContent = formatLicensePlateText(val);
+            plateVisualText.textContent = result.formateada || formatLicensePlateText(val);
             plateVisualText.className = "text-slate-950";
 
             // Update UI styles depending on the status
@@ -959,7 +1076,7 @@
 
                 row.className = `${rowBgClass} border-b border-slate-800/40`;
                 
-                const flagEmoji = item.pais === 'PT' ? '🇵🇹 PT' : '🇪🇸 ES';
+                const flagEmoji = item.pais === 'PT' ? '🇵🇹 PT' : (item.pais === 'IT' ? '🇮🇹 IT' : '🇪🇸 ES');
 
                 row.innerHTML = `
                     <td class="px-6 py-3.5 font-mono font-bold text-slate-300 uppercase">${item.entrada}</td>
