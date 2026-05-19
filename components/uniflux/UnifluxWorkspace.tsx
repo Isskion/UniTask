@@ -214,6 +214,15 @@ export default function UnifluxWorkspace() {
     // V12: Bridge reference to allow history hydration access to node handlers without circular dependencies
     const onResizeStopRef = useRef<any>(null);
 
+    // Track active flow ID dynamically to prevent background save race conditions
+    const currentGraphIdRef = useRef(graph.id);
+    useEffect(() => {
+        currentGraphIdRef.current = graph.id;
+    }, [graph.id]);
+
+    // Keep handleSave reference updated to avoid stale closures in event listeners
+    const handleSaveRef = useRef<any>(null);
+
     // Sync showGrid when loading a flow
     useEffect(() => {
         if (graph.showGrid !== undefined) {
@@ -458,7 +467,7 @@ export default function UnifluxWorkspace() {
                 redo();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                handleSave(false);
+                handleSaveRef.current?.(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -1641,6 +1650,8 @@ export default function UnifluxWorkspace() {
             return;
         }
 
+        const savingGraphId = graph.id;
+
         setIsSaving(true);
         setSaveStatus('saving');
 
@@ -1725,6 +1736,14 @@ export default function UnifluxWorkspace() {
             }
 
             await saveFlowDraft(tenantToUse, finalGraph, user.uid);
+
+            // If the user transitioned to a different flow while the async save operation
+            // was in progress, abort updating local workspace states to avoid overwriting data.
+            if (currentGraphIdRef.current !== savingGraphId) {
+                console.warn(`[uniflux] Background save completed for flow ${savingGraphId}, but active flow has changed to ${currentGraphIdRef.current}. Aborting UI state update.`);
+                return;
+            }
+
             setGraph(finalGraph);
             setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
 
@@ -1739,7 +1758,7 @@ export default function UnifluxWorkspace() {
             }
 
             // Remove local backup after successful cloud save
-            localStorage.removeItem(`uniflux_backup_${graph.id}`);
+            localStorage.removeItem(`uniflux_backup_${savingGraphId}`);
 
             // Refresh sidebar flows
             listProjectFlows(tenantToUse, activeProjectId).then(f => setSavedFlows(f as FlowGraph[]));
@@ -1752,6 +1771,10 @@ export default function UnifluxWorkspace() {
             setIsSaving(false);
         }
     };
+
+    useEffect(() => {
+        handleSaveRef.current = handleSave;
+    }, [handleSave]);
 
     // Always-fresh graph that reflects the current canvas state (not just last save).
     // Passed to UnifluxToolbar so the AI always sees unsaved node moves/additions.
