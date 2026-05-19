@@ -26,6 +26,17 @@ export default function UnifluxMovableEdge({
     const { setEdges, screenToFlowPosition } = useReactFlow();
     const draggingRef = useRef<{ index: number } | null>(null);
 
+    const fontStyleMap: Record<string, string> = {
+        'Garamond': '"EB Garamond", Garamond, Georgia, serif',
+        'Outfit': 'Outfit, sans-serif',
+        'Inter': 'Inter, sans-serif',
+        'Montserrat': 'Montserrat, sans-serif',
+        'Playfair Display': '"Playfair Display", serif'
+    };
+
+    const textColor = (data?.textColor as string) || '#000000';
+    const fontFamily = fontStyleMap[data?.fontFamily as string] || fontStyleMap['Garamond'];
+
     // 1. Path Calculation
     // For a truly professional look, we should route through pathPoints.
     // However, getSmoothStepPath only supports source/target.
@@ -157,7 +168,14 @@ export default function UnifluxMovableEdge({
                             pointerEvents: 'none',
                         }}
                     >
-                        <div className="bg-white/95 backdrop-blur-sm border border-slate-200 px-2 py-0.5 rounded shadow-sm text-[10px] font-bold text-slate-700 select-none">
+                        <div 
+                            className="bg-white/95 backdrop-blur-sm border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none text-center"
+                            style={{
+                                color: textColor,
+                                fontFamily: fontFamily,
+                                borderColor: selected ? '#6366f1' : '#cbd5e1',
+                            }}
+                        >
                             {label}
                         </div>
                     </div>

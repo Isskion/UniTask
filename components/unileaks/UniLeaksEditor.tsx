@@ -181,30 +181,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const isSettingContentRef = useRef<boolean>(false);
     const downloadMenuRef = useRef<HTMLDivElement>(null);
 
-    // Image zoom: click on any img inside the editor opens the lightbox
-    useEffect(() => {
-        const handleImageClick = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'IMG') {
-                const imgEl = target as HTMLImageElement;
-                const src = imgEl.src;
-                // Load image to get native dimensions and compute fit-to-viewport scale
-                const tmpImg = new window.Image();
-                tmpImg.onload = () => {
-                    const vw = window.innerWidth * 0.95;
-                    const vh = window.innerHeight * 0.95;
-                    const fitScale = Math.min(vw / tmpImg.naturalWidth, vh / tmpImg.naturalHeight, 1);
-                    setNativeSize({ w: tmpImg.naturalWidth, h: tmpImg.naturalHeight });
-                    setZoomScale(fitScale);
-                    setPanOffset({ x: 0, y: 0 });
-                    setZoomedImage(src);
-                };
-                tmpImg.src = src;
-            }
-        };
-        document.addEventListener('click', handleImageClick);
-        return () => document.removeEventListener('click', handleImageClick);
-    }, []);
+    // Image zoom click is now handled in handleDOMEvents below
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -323,6 +300,27 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                 return false;
             },
             handleDOMEvents: {
+                click: (view, event) => {
+                    const target = event.target as HTMLElement;
+                    if (target.tagName === 'IMG') {
+                        const imgEl = target as HTMLImageElement;
+                        const src = imgEl.src;
+                        
+                        const tmpImg = new window.Image();
+                        tmpImg.onload = () => {
+                            const vw = window.innerWidth * 0.95;
+                            const vh = window.innerHeight * 0.95;
+                            const fitScale = Math.min(vw / tmpImg.naturalWidth, vh / tmpImg.naturalHeight, 1);
+                            setNativeSize({ w: tmpImg.naturalWidth, h: tmpImg.naturalHeight });
+                            setZoomScale(fitScale);
+                            setPanOffset({ x: 0, y: 0 });
+                            setZoomedImage(src);
+                        };
+                        tmpImg.src = src;
+                        return false;
+                    }
+                    return false;
+                },
                 contextmenu: (view, event) => {
                     event.preventDefault();
 
@@ -753,6 +751,45 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             showToast("Error", "No se pudo añadir al diccionario", "error");
         }
     }, [currentTenantId, user, editor, showToast]);
+
+    const handleDeleteZoomedImage = useCallback(() => {
+        if (!editor || !zoomedImage) return;
+        
+        // Prefer selection if active
+        const { selection } = editor.state;
+        if (selection && (selection as any).node && (selection as any).node.type.name === 'image' && (selection as any).node.attrs.src === zoomedImage) {
+            editor.chain().focus().deleteSelection().run();
+        } else {
+            // Fallback to searching by src
+            let deleted = false;
+            editor.state.doc.descendants((node, pos) => {
+                if (!deleted && node.type.name === 'image' && node.attrs.src === zoomedImage) {
+                    editor.chain().focus().deleteRange({ from: pos, to: pos + node.nodeSize }).run();
+                    deleted = true;
+                }
+            });
+        }
+        
+        setZoomedImage(null);
+        showToast("Eliminada", "Imagen eliminada correctamente", "success");
+    }, [editor, zoomedImage, showToast]);
+
+    const handleCopyZoomedImage = useCallback(async () => {
+        if (!zoomedImage) return;
+        try {
+            const response = await fetch(zoomedImage);
+            const blob = await response.blob();
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob
+                })
+            ]);
+            showToast("Copiada", "Imagen copiada al portapapeles", "success");
+        } catch (error) {
+            console.error("Error al copiar imagen:", error);
+            showToast("Aviso", "No se pudo copiar la imagen automáticamente (posible restricción del navegador).", "warning");
+        }
+    }, [zoomedImage, showToast]);
 
     // --- EXCEL IMPORTER ---
     const importSheetToEditor = useCallback((workbook: XLSX.WorkBook, sheetName: string) => {
@@ -1310,12 +1347,26 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                     </div>
                     <div className="absolute top-4 right-4 flex gap-2">
                         <button
+                            className="bg-black/60 text-white flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleCopyZoomedImage(); }}
+                            title="Copiar Imagen"
+                        >
+                            <ClipboardCopy className="w-3.5 h-3.5" /> Copiar
+                        </button>
+                        <button
+                            className="bg-black/60 text-red-400 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteZoomedImage(); }}
+                            title="Borrar Imagen"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" /> Borrar
+                        </button>
+                        <button
                             className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
-                            onClick={() => { setZoomScale(1); setPanOffset({ x: 0, y: 0 }); }}
+                            onClick={(e) => { e.stopPropagation(); setZoomScale(1); setPanOffset({ x: 0, y: 0 }); }}
                         >Reset</button>
                         <button
                             className="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full hover:bg-black/80 transition-colors"
-                            onClick={() => setZoomedImage(null)}
+                            onClick={(e) => { e.stopPropagation(); setZoomedImage(null); hasDragged.current = false; }}
                         >✕ Cerrar</button>
                     </div>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full pointer-events-none">

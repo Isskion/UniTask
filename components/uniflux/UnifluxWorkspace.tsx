@@ -534,6 +534,8 @@ export default function UnifluxWorkspace() {
     const [edgeLineType, setEdgeLineType] = useState<string>('smoothstep');
     const [edgeAnimated, setEdgeAnimated] = useState<boolean>(true);
     const [edgeColor, setEdgeColor] = useState<string>('#94a3b8');
+    const [edgeTextColor, setEdgeTextColor] = useState<string>('#000000');
+    const [edgeFontFamily, setEdgeFontFamily] = useState<string>('Garamond');
 
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
@@ -701,10 +703,18 @@ export default function UnifluxWorkspace() {
                 labelBgStyle: { fill: '#ffffff', stroke: edgeDimmed ? '#f3f4f6' : '#cbd5e1', strokeWidth: 1.5, fillOpacity: 0.95 },
                 labelBgPadding: [10, 5] as [number, number],
                 labelBgBorderRadius: 6,
-                data: isC4Edge ? { c4RelType: e.c4RelType, protocol: e.protocol, c4Description: e.c4Description } : {
+                data: isC4Edge ? { 
+                    c4RelType: e.c4RelType, 
+                    protocol: e.protocol, 
+                    c4Description: e.c4Description,
+                    textColor: e.textColor || '#000000',
+                    fontFamily: e.fontFamily || 'Garamond'
+                } : {
                     animated: e.animated,
                     style: e.style,
                     markerEnd: e.markerEnd,
+                    textColor: e.textColor || '#000000',
+                    fontFamily: e.fontFamily || 'Garamond'
                 },
             };
         });
@@ -1322,6 +1332,8 @@ export default function UnifluxWorkspace() {
         setEdgeLineType(edge.type || 'smoothstep');
         setEdgeAnimated(edge.animated || false);
         setEdgeColor(edge.style?.stroke || '#94a3b8');
+        setEdgeTextColor((edge.data?.textColor as string) || '#000000');
+        setEdgeFontFamily((edge.data?.fontFamily as string) || 'Garamond');
     };
 
     const handleEdgeLabelSave = () => {
@@ -1332,7 +1344,18 @@ export default function UnifluxWorkspace() {
             const updated = {
                 ...e,
                 label: isC4 ? (edgeProtocol || edgeEditValue || undefined) : edgeEditValue,
-                data: isC4 ? { ...e.data, c4RelType: edgeRelType, protocol: edgeProtocol, c4Description: edgeEditValue } : e.data,
+                data: isC4 ? { 
+                    ...e.data, 
+                    c4RelType: edgeRelType, 
+                    protocol: edgeProtocol, 
+                    c4Description: edgeEditValue,
+                    textColor: edgeTextColor,
+                    fontFamily: edgeFontFamily
+                } : {
+                    ...e.data,
+                    textColor: edgeTextColor,
+                    fontFamily: edgeFontFamily
+                },
                 ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
                 type: isC4 ? e.type : edgeLineType,
                 animated: isC4 ? (edgeRelType === 'async' || edgeRelType === 'event') : edgeAnimated,
@@ -1686,7 +1709,9 @@ export default function UnifluxWorkspace() {
                     ...(e.data?.c4RelType ? { c4RelType: e.data.c4RelType as any } : {}),
                     ...(e.data?.protocol ? { protocol: e.data.protocol as string } : {}),
                     ...(e.data?.c4Description ? { c4Description: e.data.c4Description as string } : {}),
-                    pathPoints: (e.data?.pathPoints as any[]) || []
+                    pathPoints: (e.data?.pathPoints as any[]) || [],
+                    textColor: (e.data?.textColor as string) || '#000000',
+                    fontFamily: (e.data?.fontFamily as string) || 'Garamond',
                 }));
 
                 finalGraph = {
@@ -1778,6 +1803,8 @@ export default function UnifluxWorkspace() {
             animated: e.animated,
             style: e.style,
             markerEnd: e.markerEnd,
+            textColor: (e.data?.textColor as string) || '#000000',
+            fontFamily: (e.data?.fontFamily as string) || 'Garamond',
         }));
 
         // For C4: trim to only what's visible at the current level so the AI gets clean context
@@ -2356,6 +2383,43 @@ export default function UnifluxWorkspace() {
                                 </div>
                             </>
                         )}
+
+                        {/* Estilo de Texto Section */}
+                        <div className="border-t border-gray-100 pt-3 mt-1 mb-3">
+                            <div className="flex gap-2">
+                                <div className="flex-1">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Tipografía</label>
+                                    <select
+                                        value={edgeFontFamily}
+                                        onChange={e => setEdgeFontFamily(e.target.value)}
+                                        className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-purple-400"
+                                        style={{ 
+                                            fontFamily: edgeFontFamily === 'Garamond' 
+                                                ? '"EB Garamond", Garamond, Georgia, serif' 
+                                                : edgeFontFamily === 'Playfair Display' 
+                                                    ? '"Playfair Display", serif'
+                                                    : `${edgeFontFamily}, sans-serif`
+                                        }}
+                                    >
+                                        <option value="Garamond">Garamond</option>
+                                        <option value="Outfit">Outfit</option>
+                                        <option value="Inter">Inter</option>
+                                        <option value="Montserrat">Montserrat</option>
+                                        <option value="Playfair Display">Playfair Display</option>
+                                    </select>
+                                </div>
+                                <div className="w-20">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Color Texto</label>
+                                    <input
+                                        type="color"
+                                        value={edgeTextColor}
+                                        onChange={e => setEdgeTextColor(e.target.value)}
+                                        className="w-full h-[28px] border border-gray-200 rounded-lg cursor-pointer p-0.5 bg-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex gap-2">
                             <button onClick={handleEdgeLabelSave} className="flex-1 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity">
                                 Guardar

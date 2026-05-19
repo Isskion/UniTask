@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BaseEdge, EdgeProps, getSmoothStepPath } from '@xyflow/react';
+import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer } from '@xyflow/react';
 
 export default function UnifluxOrthogonalEdge({
     id,
@@ -14,11 +14,8 @@ export default function UnifluxOrthogonalEdge({
     style = {},
     markerEnd,
     label,
-    labelStyle,
-    labelBgStyle,
-    labelBgPadding,
-    labelBgBorderRadius,
     selected,
+    data,
 }: EdgeProps) {
     const [edgePath, labelX, labelY] = getSmoothStepPath({
         sourceX,
@@ -29,6 +26,17 @@ export default function UnifluxOrthogonalEdge({
         targetPosition,
         borderRadius: 16, // Softer turns
     });
+
+    const fontStyleMap: Record<string, string> = {
+        'Garamond': '"EB Garamond", Garamond, Georgia, serif',
+        'Outfit': 'Outfit, sans-serif',
+        'Inter': 'Inter, sans-serif',
+        'Montserrat': 'Montserrat, sans-serif',
+        'Playfair Display': '"Playfair Display", serif'
+    };
+
+    const textColor = (data?.textColor as string) || '#000000';
+    const fontFamily = fontStyleMap[data?.fontFamily as string] || fontStyleMap['Garamond'];
 
     return (
         <>
@@ -43,31 +51,27 @@ export default function UnifluxOrthogonalEdge({
                 }} 
             />
             {label && (
-                <text
-                    x={labelX}
-                    y={labelY}
-                    style={{
-                        ...labelStyle,
-                        fontSize: 10,
-                        fontWeight: 700,
-                        fill: selected ? '#4f46e5' : '#64748b',
-                        textAnchor: 'middle',
-                        dominantBaseline: 'central',
-                    }}
-                >
-                    <tspan 
-                        style={{ 
-                            ...labelBgStyle, 
-                            fill: '#fff', 
-                            stroke: selected ? '#4f46e5' : '#e2e8f0',
-                            strokeWidth: 1,
+                <EdgeLabelRenderer>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+                            pointerEvents: 'none',
                         }}
-                        dx={0} 
-                        dy={0}
+                        className="nodrag nopan"
                     >
-                        {label}
-                    </tspan>
-                </text>
+                        <div 
+                            className="bg-white/95 backdrop-blur-sm border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none text-center"
+                            style={{
+                                color: textColor,
+                                fontFamily: fontFamily,
+                                borderColor: selected ? '#4f46e5' : '#cbd5e1',
+                            }}
+                        >
+                            {label}
+                        </div>
+                    </div>
+                </EdgeLabelRenderer>
             )}
         </>
     );

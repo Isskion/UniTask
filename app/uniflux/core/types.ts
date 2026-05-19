@@ -89,6 +89,9 @@ export interface FlowEdge {
     markerEnd?: any;
     // V8: Manual path points for draggable edges
     pathPoints?: { x: number; y: number }[];
+    // V9: Customizable label styles
+    textColor?: string;
+    fontFamily?: string;
 }
 
 export type MermaidEngine = 'sequence' | 'flowchart';
