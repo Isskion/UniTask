@@ -34,35 +34,38 @@ export default function UnifluxOrthogonalEdge({
     const fontFamily = fontStyleMap[data?.fontFamily as string] || fontStyleMap['Garamond'];
     const bendOffset = data?.bendOffset as { x: number; y: number } | undefined;
 
-    // Midpoint used as drag reference base — recomputed when nodes move (coherence guaranteed)
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
 
-    // Center override for getSmoothStepPath: midpoint + relative bend offset
-    const centerX = bendOffset ? midX + bendOffset.x : undefined;
-    const centerY = bendOffset ? midY + bendOffset.y : undefined;
+    // When bent: quadratic bezier (responds to both X and Y drag).
+    // When straight: smoothstep (current visual, orthogonal corners).
+    // getSmoothStepPath centerX/centerY only affects one axis depending on edge direction,
+    // so we switch to a proper bezier for full 2D control when the user bends the edge.
+    const [edgePath, labelX, labelY] = useMemo((): [string, number, number] => {
+        if (bendOffset) {
+            const cx = midX + bendOffset.x;
+            const cy = midY + bendOffset.y;
+            // Bezier midpoint at t=0.5: 0.25·source + 0.5·control + 0.25·target
+            const lx = 0.25 * sourceX + 0.5 * cx + 0.25 * targetX;
+            const ly = 0.25 * sourceY + 0.5 * cy + 0.25 * targetY;
+            return [`M ${sourceX},${sourceY} Q ${cx},${cy} ${targetX},${targetY}`, lx, ly];
+        }
+        return getSmoothStepPath({
+            sourceX, sourceY, sourcePosition,
+            targetX, targetY, targetPosition,
+            borderRadius: 16,
+        });
+    }, [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
 
-    const [edgePath, labelX, labelY] = useMemo(() => getSmoothStepPath({
-        sourceX,
-        sourceY,
-        sourcePosition,
-        targetX,
-        targetY,
-        targetPosition,
-        borderRadius: 16,
-        ...(centerX !== undefined && centerY !== undefined ? { centerX, centerY } : {}),
-    }), [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, centerX, centerY]);
-
-    // Visual handle sits at the actual bend center
-    const handleX = centerX ?? midX;
-    const handleY = centerY ?? midY;
+    // Handle sits at the control point (or geometric midpoint before first bend)
+    const handleX = bendOffset ? midX + bendOffset.x : midX;
+    const handleY = bendOffset ? midY + bendOffset.y : midY;
 
     const onHandleMouseDown = (e: React.MouseEvent) => {
         e.stopPropagation();
         draggingRef.current = true;
         markDirty();
 
-        // Capture midpoint at drag start — offset is relative to THIS base
         const startMidX = midX;
         const startMidY = midY;
 
@@ -121,7 +124,7 @@ export default function UnifluxOrthogonalEdge({
                     ...style,
                     strokeWidth: selected ? 3.5 : 2.5,
                     stroke: selected ? '#4f46e5' : (style.stroke || '#94a3b8'),
-                    transition: 'stroke-width 0.2s, stroke 0.2s',
+                    transition: bendOffset ? 'none' : 'stroke-width 0.2s, stroke 0.2s',
                 }}
             />
             {selected && (
