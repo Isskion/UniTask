@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useMemo, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { BaseEdge, EdgeProps, getSmoothStepPath, EdgeLabelRenderer, useReactFlow } from '@xyflow/react';
 import { UnifluxDirtyContext } from '../UnifluxContext';
 
@@ -15,7 +15,6 @@ function jornadaColor(j?: string) {
     return j ? (JORNADA_COLORS[j.toLowerCase().trim()] ?? '#64748b') : '#64748b';
 }
 
-// Compact labeled value: "Label: value" — truncated with title tooltip
 function LabeledValue({ label, value, color = '#475569' }: { label: string; value: string; color?: string }) {
     return (
         <span style={{ color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
@@ -31,9 +30,7 @@ export default function UnifluxOrthogonalEdge({
     sourcePosition, targetPosition,
     style = {}, markerEnd, label, selected, data,
 }: EdgeProps) {
-    const { setEdges, screenToFlowPosition } = useReactFlow();
-    const { markDirty, showLogisticsLabels } = useContext(UnifluxDirtyContext);
-    const draggingRef = useRef(false);
+    const { showLogisticsLabels } = useContext(UnifluxDirtyContext);
     const [hovered, setHovered] = useState(false);
 
     const fontStyleMap: Record<string, string> = {
@@ -46,7 +43,6 @@ export default function UnifluxOrthogonalEdge({
 
     const textColor    = (data?.textColor    as string) || '#000000';
     const fontFamily   = fontStyleMap[data?.fontFamily as string] || fontStyleMap['Garamond'];
-    const bendOffset   = data?.bendOffset    as { x: number; y: number } | undefined;
     const pickupType   = data?.pickupType    as string | undefined;
     const deliveryType = data?.deliveryType  as string | undefined;
     const jornada      = data?.jornada       as string | undefined;
@@ -57,74 +53,19 @@ export default function UnifluxOrthogonalEdge({
     const centerFields = [estadoPedido, jornada, operacion, fecha].filter(Boolean);
     const hasLogistics = pickupType || deliveryType || centerFields.length > 0;
 
-    const midX = (sourceX + targetX) / 2;
-    const midY = (sourceY + targetY) / 2;
-
-    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] => {
-        if (bendOffset) {
-            // Bezier cuadrático cuando hay bend: responde a X e Y en cualquier dirección
-            const cx = midX + bendOffset.x;
-            const cy = midY + bendOffset.y;
-            // Punto en t=0.5 de la bezier cuadrática: 0.25·S + 0.5·C + 0.25·T
-            const lx = 0.25 * sourceX + 0.5 * cx + 0.25 * targetX;
-            const ly = 0.25 * sourceY + 0.5 * cy + 0.25 * targetY;
-            return [`M ${sourceX},${sourceY} Q ${cx},${cy} ${targetX},${targetY}`, lx, ly];
-        }
-        return getSmoothStepPath({
-            sourceX, sourceY, sourcePosition,
-            targetX, targetY, targetPosition,
-            borderRadius: 16,
-        });
-    }, [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
+    const [edgePath, labelX, labelY] = getSmoothStepPath({
+        sourceX, sourceY, sourcePosition,
+        targetX, targetY, targetPosition,
+        borderRadius: 16,
+    });
 
     // Chip positions: linear interpolation along source→target
     const srcX = sourceX + (targetX - sourceX) * 0.2;
     const srcY = sourceY + (targetY - sourceY) * 0.2;
     const tgtX = sourceX + (targetX - sourceX) * 0.8;
     const tgtY = sourceY + (targetY - sourceY) * 0.8;
-
     const logCenterY = label ? labelY + 22 : labelY;
-    // Handle siempre sobre el path: labelX/Y cuando no hay bend (punto visual real del path),
-    // control point cuando sí hay bend
-    const handleX = bendOffset ? midX + bendOffset.x : labelX;
-    const handleY = bendOffset ? midY + bendOffset.y : labelY;
     const accentColor = jornadaColor(jornada);
-
-    // ── Bend drag ──────────────────────────────────────────────────────────────
-    const onHandleMouseDown = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        draggingRef.current = true;
-        markDirty();
-        const startMidX = midX;
-        const startMidY = midY;
-        const onMouseMove = (mv: MouseEvent) => {
-            if (!draggingRef.current) return;
-            const fp = screenToFlowPosition({ x: mv.clientX, y: mv.clientY });
-            setEdges(eds => eds.map(edge =>
-                edge.id !== id ? edge : {
-                    ...edge,
-                    data: { ...edge.data, bendOffset: { x: fp.x - startMidX, y: fp.y - startMidY } },
-                }
-            ));
-        };
-        const onMouseUp = () => {
-            draggingRef.current = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    };
-
-    const onHandleDoubleClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEdges(eds => eds.map(edge => {
-            if (edge.id !== id) return edge;
-            const { bendOffset: _r, ...rest } = (edge.data || {}) as any;
-            return { ...edge, data: rest };
-        }));
-        markDirty();
-    };
 
     const chipBase: React.CSSProperties = {
         position: 'absolute',
@@ -135,6 +76,7 @@ export default function UnifluxOrthogonalEdge({
     return (
         <>
             <g onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+                {/* White halo — bridge effect at crossings */}
                 <path d={edgePath} fill="none" stroke="white"
                     strokeWidth={selected ? 11 : 9} strokeLinecap="round"
                     style={{ pointerEvents: 'none' }} />
@@ -147,17 +89,6 @@ export default function UnifluxOrthogonalEdge({
             </g>
 
             <EdgeLabelRenderer>
-                {/* Bend handle */}
-                {selected && (
-                    <div style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${handleX}px,${handleY}px)`, pointerEvents: 'all', zIndex: 30 }}
-                        className="nodrag nopan" title="Arrastra para ajustar · Doble clic para resetear"
-                        onMouseDown={onHandleMouseDown} onDoubleClick={onHandleDoubleClick}>
-                        <div className="w-4 h-4 bg-white border-2 border-indigo-500 rounded-full shadow-md cursor-move hover:scale-125 transition-transform flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                        </div>
-                    </div>
-                )}
-
                 {/* Free-text label */}
                 {label && (
                     <div style={{ position: 'absolute', transform: `translate(-50%,-50%) translate(${labelX}px,${labelY}px)`, pointerEvents: 'none' }} className="nodrag nopan">
@@ -168,10 +99,9 @@ export default function UnifluxOrthogonalEdge({
                     </div>
                 )}
 
-                {/* ── Logistics chips ── */}
+                {/* Logistics chips */}
                 {showLogisticsLabels && hasLogistics && (
                     <>
-                        {/* Pickup chip — source side */}
                         {pickupType && (
                             <div style={{ ...chipBase, transform: `translate(-50%,-50%) translate(${srcX}px,${srcY}px)`, maxWidth: hovered ? 160 : 100 }}>
                                 <div className="border rounded-full px-1.5 py-0.5 text-[9px] font-semibold select-none"
@@ -182,36 +112,34 @@ export default function UnifluxOrthogonalEdge({
                             </div>
                         )}
 
-                        {/* Center chip — jornada, operacion, estado, fecha */}
                         {centerFields.length > 0 && (
                             <div style={{ ...chipBase, transform: `translate(-50%,-50%) translate(${labelX}px,${logCenterY}px)`, maxWidth: hovered ? 220 : 150 }}>
                                 {hovered ? (
                                     <div className="border rounded-lg px-2 py-1.5 text-[9px] font-semibold select-none bg-white shadow-sm flex flex-col gap-0.5"
                                         style={{ borderColor: accentColor, minWidth: 100 }}>
                                         {estadoPedido && <LabeledValue label="Estado"    value={estadoPedido} color="#7c3aed" />}
-                                        {jornada      && <LabeledValue label="Jornada"  value={jornada}      color={accentColor} />}
-                                        {operacion    && <LabeledValue label="Operación" value={operacion}   color="#475569" />}
-                                        {fecha        && <LabeledValue label="Fecha"    value={fecha}         color="#0369a1" />}
+                                        {jornada      && <LabeledValue label="Jornada"   value={jornada}      color={accentColor} />}
+                                        {operacion    && <LabeledValue label="Operación" value={operacion}    color="#475569" />}
+                                        {fecha        && <LabeledValue label="Fecha"     value={fecha}        color="#0369a1" />}
                                     </div>
                                 ) : (
                                     <div className="border rounded-full px-1.5 py-0.5 text-[9px] font-semibold select-none bg-white flex flex-col gap-0"
                                         style={{ borderColor: accentColor, overflow: 'hidden' }}
                                         title={[
-                                            jornada      ? `Jornada: ${jornada}`       : '',
-                                            operacion    ? `Op: ${operacion}`           : '',
-                                            estadoPedido ? `Estado: ${estadoPedido}`   : '',
-                                            fecha        ? `Fecha: ${fecha}`           : '',
+                                            estadoPedido ? `Estado: ${estadoPedido}` : '',
+                                            jornada      ? `Jornada: ${jornada}`     : '',
+                                            operacion    ? `Op: ${operacion}`        : '',
+                                            fecha        ? `Fecha: ${fecha}`         : '',
                                         ].filter(Boolean).join(' · ')}>
                                         {estadoPedido && <LabeledValue label="Estado"   value={estadoPedido} color="#7c3aed" />}
                                         {jornada      && <LabeledValue label="Jornada"  value={jornada}      color={accentColor} />}
                                         {operacion    && <LabeledValue label="Op"       value={operacion}    color="#475569" />}
-                                        {fecha        && <LabeledValue label="Fecha"    value={fecha}         color="#0369a1" />}
+                                        {fecha        && <LabeledValue label="Fecha"    value={fecha}        color="#0369a1" />}
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Delivery chip — target side */}
                         {deliveryType && (
                             <div style={{ ...chipBase, transform: `translate(-50%,-50%) translate(${tgtX}px,${tgtY}px)`, maxWidth: hovered ? 160 : 100 }}>
                                 <div className="border rounded-full px-1.5 py-0.5 text-[9px] font-semibold select-none"
