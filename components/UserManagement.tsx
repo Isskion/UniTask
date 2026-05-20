@@ -289,6 +289,20 @@ export default function UserManagement() {
 
     const saveUserChanges = async () => {
         if (!editingUser) return;
+
+        // Validación de campos SAM obligatorios
+        const regionIds = formData.accessScopes?.regionIds || [];
+        const divisionIds = formData.accessScopes?.divisionIds || [];
+
+        if (regionIds.length === 0) {
+            showToast("Error de Validación", "La Región es obligatoria. Seleccione al menos una región o asigne acceso Global (*).", "error");
+            return;
+        }
+        if (divisionIds.length === 0) {
+            showToast("Error de Validación", "La División es obligatoria. Seleccione al menos una división o asigne acceso Global (*).", "error");
+            return;
+        }
+
         setUpdating(editingUser.uid);
         try {
             const payload = { ...formData };
@@ -921,7 +935,7 @@ export default function UserManagement() {
                                         {/* Regions Scope */}
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center">
-                                                <label className="text-[10px] font-black uppercase text-zinc-500">Regiones Permitidas</label>
+                                                <label className="text-[10px] font-black uppercase text-zinc-500">Regiones Permitidas <span className="text-red-500 font-bold">*</span></label>
                                                 <button 
                                                     onClick={() => setFormData(prev => ({ 
                                                         ...prev, 
@@ -970,7 +984,7 @@ export default function UserManagement() {
                                         {/* Divisions Scope */}
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center">
-                                                <label className="text-[10px] font-black uppercase text-zinc-500">Divisiones Permitidas</label>
+                                                <label className="text-[10px] font-black uppercase text-zinc-500">Divisiones Permitidas <span className="text-red-500 font-bold">*</span></label>
                                                 <button 
                                                     onClick={() => setFormData(prev => ({ 
                                                         ...prev, 

@@ -91,12 +91,39 @@ export function AgendaView() {
 
     // ── Access-scoped consultants: solo los de las regiones permitidas ─────────
     const accessibleConsultants = useMemo(() => {
-        if (!accessScopes || accessScopes.regionIds.includes('*')) return consultants;
-        return consultants.filter(c => {
-            const samR = samRegions.find(r => r.id === c.region || r.name === c.region);
-            const regionId = samR?.id ?? c.region;
-            return accessScopes.regionIds.includes(regionId);
+        // Filter out inactive ones
+        const activeOnly = consultants.filter(c => c.isActive !== false);
+
+        // Filter by accessScopes
+        const scoped = !accessScopes || accessScopes.regionIds.includes('*')
+            ? activeOnly
+            : activeOnly.filter(c => {
+                const samR = samRegions.find(r => r.id === c.region || r.name === c.region);
+                const regionId = samR?.id ?? c.region;
+                return accessScopes.regionIds.includes(regionId);
+            });
+
+        // Deduplicate by userId AND normalized name
+        const seenIds = new Set<string>();
+        const seenNames = new Set<string>();
+        const deduped: AgendaConsultant[] = [];
+        const sorted = [...scoped].sort((a, b) => {
+            const aReg = !!(a.region || '').trim();
+            const bReg = !!(b.region || '').trim();
+            if (aReg !== bReg) return aReg ? -1 : 1;
+            return a.sortOrder - b.sortOrder;
         });
+
+        for (const c of sorted) {
+            const normName = (c.name || '').trim().toLowerCase();
+            if (!seenIds.has(c.userId) && !seenNames.has(normName)) {
+                seenIds.add(c.userId);
+                seenNames.add(normName);
+                deduped.push(c);
+            }
+        }
+
+        return deduped.sort((a, b) => a.sortOrder - b.sortOrder);
     }, [consultants, accessScopes, samRegions]);
 
     // ── Filters ───────────────────────────────────────────────────────────────
@@ -314,7 +341,7 @@ export function AgendaView() {
                     <div className="hidden sm:flex items-center gap-3 pl-2 border-l border-border text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
-                            {consultants.length} {t('agenda.nConsultants')}
+                            {filteredConsultants.length} {t('agenda.nConsultants')}
                         </span>
                         <span className="flex items-center gap-1">
                             <CalendarDays className="w-3.5 h-3.5" />
@@ -438,7 +465,7 @@ export function AgendaView() {
             )}
 
             {/* ── Grid ─────────────────────────────────────────────────────── */}
-            {consultants.length === 0 && !loading ? (
+            {accessibleConsultants.length === 0 && !loading ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center text-zinc-600 gap-4 py-24">
                     <Users className="w-10 h-10 opacity-20" />
                     <div>
@@ -473,7 +500,7 @@ export function AgendaView() {
 
             {showConsultantsManager && (
                 <AgendaConsultantsManager
-                    consultants={accessibleConsultants}
+                    consultants={consultants}
                     tenantId={tid}
                     samRegions={samRegions}
                     onClose={() => setShowConsultantsManager(false)}

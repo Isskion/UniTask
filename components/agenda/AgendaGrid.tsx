@@ -252,6 +252,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                     isOpen={modal.open}
                     onClose={() => setModal(CLOSED_MODAL)}
                     consultant={modal.consultant}
+                    allConsultants={consultants}
                     date={modal.date}
                     entry={modal.entry}
                     tenantId={tenantId}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { X, Clock, Tag, AlignLeft, CheckCircle2, Loader2, Trash2, ExternalLink, Sun, FolderGit2, Search, ChevronDown } from "lucide-react";
+import { X, Clock, Tag, AlignLeft, CheckCircle2, Loader2, Trash2, ExternalLink, Sun, FolderGit2, Search, ChevronDown, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     ActivityType, ResultStatus, AgendaEntry, AgendaConsultant,
@@ -16,9 +16,9 @@ import { auth, db } from "@/lib/firebase";
 import { useLanguage } from "@/context/LanguageContext";
 import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { filterBySAMScope } from "@/lib/projects";
+import { filterBySAMScope, getActiveProjects } from "@/lib/projects";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
-import { Project } from "@/types";
+import { Project, getRoleLevel } from "@/types";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -26,6 +26,7 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     consultant: AgendaConsultant;
+    allConsultants?: AgendaConsultant[];
     date: Date;
     entry?: AgendaEntry | null;
     tenantId: string;
@@ -79,8 +80,8 @@ function parseScheduleToTimes(raw: string): { timeStart: string; timeEnd: string
     return { timeStart: '', timeEnd: '' };
 }
 
-export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, tenantId }: Props) {
-    const { user } = useAuth();
+export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants = [], date, entry, tenantId }: Props) {
+    const { user, userRole } = useAuth();
     const { t } = useLanguage();
     const accessScopes = useAccessScopes(); // SAM scope — null = sin restricción
     const isEdit = !!entry;
@@ -90,6 +91,12 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
     const [deleting, setDeleting] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
 
+    // Clone state
+    const [showClone, setShowClone] = useState(false);
+    const [cloneDate, setCloneDate] = useState<string>(format(date, 'yyyy-MM-dd'));
+    const [cloneConsultantId, setCloneConsultantId] = useState<string>(consultant.userId);
+    const [cloneSuccess, setCloneSuccess] = useState('');
+
     // ── Projects ──────────────────────────────────────────────────────────────
     const [projects,      setProjects]      = useState<Project[]>([]);
     const [projectSearch, setProjectSearch] = useState('');
@@ -97,16 +104,13 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
 
     useEffect(() => {
         if (!isOpen || !tenantId) return;
-        getDocs(query(
-            collection(db, 'projects'),
-            where('tenantId', '==', tenantId),
-            where('isActive', '==', true)
-        )).then(snap => {
-            const all = snap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
-            // Apply SAM scope: null = sin restricción (hoy), accessScopes cuando se active
-            setProjects(filterBySAMScope(all, accessScopes));
-        }).catch(console.error);
-    }, [isOpen, tenantId, accessScopes]);
+        getActiveProjects(tenantId, user?.uid, getRoleLevel(userRole))
+            .then(all => {
+                // Apply SAM scope: null = sin restricción (hoy), accessScopes cuando se active
+                setProjects(filterBySAMScope(all, accessScopes));
+            })
+            .catch(console.error);
+    }, [isOpen, tenantId, accessScopes, user, userRole]);
 
     const filteredProjects = useMemo(() => {
         if (!projectSearch.trim()) return projects;
@@ -243,6 +247,47 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
             console.error("[agenda] delete error:", e);
         } finally {
             setDeleting(false);
+        }
+    }
+
+    async function handleClone() {
+        if (!user || !cloneConsultantId || !cloneDate) return;
+        const targetC = allConsultants.find(c => c.userId === cloneConsultantId);
+        if (!targetC) return;
+
+        setSaving(true);
+        setSaveError(null);
+        try {
+            await auth.currentUser?.getIdToken(true);
+            const [y, m, d] = cloneDate.split('-').map(Number);
+            const targetDateObj = new Date(y, m - 1, d);
+
+            const input: CreateEntryInput = {
+                tenantId,
+                consultantId:    targetC.userId,
+                consultantName:  targetC.name,
+                consultantOrder: targetC.sortOrder,
+                region:          targetC.region,
+                date:            targetDateObj,
+                activityType:    form.activityType,
+                comment:         form.comment,
+                scheduleRaw,
+                result:          form.result,
+                projectId:       form.projectId    || undefined,
+                projectName:     form.projectName  || undefined,
+                projectCode:     form.projectCode  || undefined,
+                projectColor:    form.projectColor || undefined,
+                createdBy:       user.uid,
+            };
+            await createAgendaEntry(input);
+            setShowClone(false);
+            setCloneSuccess(`¡Tarea duplicada a ${targetC.name} para el ${cloneDate}!`);
+            setTimeout(() => setCloneSuccess(''), 4000);
+        } catch (e: any) {
+            console.error("[agenda] clone error:", e);
+            setSaveError(t('agenda.saveError'));
+        } finally {
+            setSaving(false);
         }
     }
 
@@ -577,19 +622,83 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, date, entry, ten
                             </p>
                         </div>
                     )}
+
+                    {/* Clone success message */}
+                    {cloneSuccess && (
+                        <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 mt-2 animate-in fade-in slide-in-from-bottom-2">
+                            <p className="text-sm font-medium text-emerald-400 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4" />
+                                {cloneSuccess}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Clone UI */}
+                    {showClone && isEdit && (
+                        <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-4 mt-2 animate-in fade-in slide-in-from-top-2">
+                            <h4 className="text-sm font-semibold text-indigo-300 mb-3 flex items-center gap-2">
+                                <Copy className="w-4 h-4" />
+                                Duplicar tarea
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs text-zinc-400 font-medium">Recurso destino</label>
+                                    <select
+                                        value={cloneConsultantId}
+                                        onChange={e => setCloneConsultantId(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                    >
+                                        {allConsultants.map(c => (
+                                            <option key={c.userId} value={c.userId}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs text-zinc-400 font-medium">Fecha destino</label>
+                                    <input
+                                        type="date"
+                                        value={cloneDate}
+                                        onChange={e => setCloneDate(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleClone}
+                                disabled={saving || !cloneDate || !cloneConsultantId}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-50"
+                            >
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                                Confirmar copia
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────────────── */}
                 <div className="p-5 border-t border-border shrink-0 flex items-center justify-between gap-3">
                     {isEdit ? (
-                        <button
-                            onClick={handleDelete}
-                            disabled={deleting}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all disabled:opacity-50"
-                        >
-                            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                            {t('agenda.delete')}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting || saving}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all disabled:opacity-50"
+                            >
+                                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                {t('agenda.delete')}
+                            </button>
+                            <button
+                                onClick={() => setShowClone(!showClone)}
+                                disabled={deleting || saving}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-all disabled:opacity-50",
+                                    showClone ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" : "text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/20"
+                                )}
+                            >
+                                <Copy className="w-4 h-4" />
+                                Duplicar
+                            </button>
+                        </div>
                     ) : <span />}
 
                     <div className="flex items-center gap-2">

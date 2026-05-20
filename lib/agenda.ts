@@ -68,7 +68,6 @@ export function subscribeToConsultants(
     return onSnapshot(q, snap => {
         const list = snap.docs
             .map(d => ({ id: d.id, ...d.data() } as AgendaConsultant))
-            .filter(c => c.isActive !== false)
             .sort((a, b) => a.sortOrder - b.sortOrder);
         callback(list);
     }, err => {
@@ -222,7 +221,6 @@ export async function getConsultants(tenantId: string): Promise<AgendaConsultant
     const snap = await getDocs(q);
     return snap.docs
         .map(d => ({ id: d.id, ...d.data() } as AgendaConsultant))
-        .filter(c => c.isActive !== false)
         .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 

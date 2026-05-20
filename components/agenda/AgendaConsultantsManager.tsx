@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { createConsultant, updateConsultant, SAMRegion } from "@/lib/agenda";
@@ -17,6 +17,10 @@ interface TenantUser {
     displayName: string;
     email: string;
     photoURL?: string;
+    accessScopes?: {
+        regionIds?: string[];
+        divisionIds?: string[];
+    };
 }
 
 interface Props {
@@ -40,16 +44,33 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
         setLoadingUsers(true);
         getDocs(query(collection(db, "users"), where("tenantId", "==", tenantId)))
             .then(snap => {
-                const users = snap.docs.map(d => {
-                    const data = d.data();
-                    return {
-                        uid:         d.id,
-                        displayName: data.displayName || data.email || d.id,
-                        email:       data.email || '',
-                        photoURL:    data.photoURL,
-                    };
-                });
-                setTenantUsers(users);
+                const users = snap.docs
+                    .map(d => {
+                        const data = d.data();
+                        return {
+                            uid:         d.id,
+                            displayName: data.displayName || data.email || d.id,
+                            email:       data.email || '',
+                            photoURL:    data.photoURL,
+                            accessScopes: data.accessScopes,
+                            role:        data.role,
+                        };
+                    })
+                    .filter(u => {
+                        const r = (u.role || '').toLowerCase();
+                        return r !== 'client' && r !== 'usuario_externo';
+                    });
+
+                const seenNames = new Set<string>();
+                const dedupedUsers = [];
+                for (const u of users) {
+                    const norm = (u.displayName || '').trim().toLowerCase();
+                    if (!seenNames.has(norm)) {
+                        seenNames.add(norm);
+                        dedupedUsers.push(u);
+                    }
+                }
+                setTenantUsers(dedupedUsers);
             })
             .catch(err => console.error("[agenda] load users:", err))
             .finally(() => setLoadingUsers(false));
@@ -64,17 +85,45 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
         setSaving(u.uid);
         try {
             if (existing) {
-                // Deactivate
-                await updateConsultant(existing.id, { isActive: !existing.isActive });
+                // Deactivate / Reactivate
+                const nextActive = !existing.isActive;
+                const updateData: any = { isActive: nextActive };
+
+                // If we are reactivating and the old doc has no region, set a default one
+                if (nextActive && !existing.region) {
+                    const userRegions = u.accessScopes?.regionIds || [];
+                    let detectedRegion = '';
+                    if (userRegions.length > 0 && !userRegions.includes('*')) {
+                        const matchedRegion = samRegions.find(r => r.id === userRegions[0]);
+                        detectedRegion = matchedRegion ? matchedRegion.name : userRegions[0];
+                    } else {
+                        detectedRegion = samRegions[0]?.name ?? '';
+                    }
+                    updateData.region = detectedRegion;
+                }
+
+                await updateConsultant(existing.id, updateData);
             } else {
                 // Add — sortOrder = next in line
                 const maxOrder = consultants.reduce((m, c) => Math.max(m, c.sortOrder), 0);
+
+                // Detección automática de la región del perfil del usuario
+                const userRegions = u.accessScopes?.regionIds || [];
+                let detectedRegion = '';
+
+                if (userRegions.length > 0 && !userRegions.includes('*')) {
+                    const matchedRegion = samRegions.find(r => r.id === userRegions[0]);
+                    detectedRegion = matchedRegion ? matchedRegion.name : userRegions[0];
+                } else {
+                    detectedRegion = samRegions[0]?.name ?? '';
+                }
+
                 await createConsultant({
                     tenantId,
                     userId:     u.uid,
                     name:       u.displayName.toUpperCase(),
                     sortOrder:  maxOrder + 1,
-                    region:     samRegions[0]?.name ?? '',
+                    region:     detectedRegion,
                     isActive:   true,
                 });
             }
@@ -104,7 +153,19 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
         }
     }
 
-    const activeConsultants = consultants.filter(c => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+    const activeConsultants = useMemo(() => {
+        const active = consultants.filter(c => c.isActive !== false).sort((a, b) => a.sortOrder - b.sortOrder);
+        const seenNames = new Set<string>();
+        const deduped = [];
+        for (const c of active) {
+            const norm = (c.name || '').trim().toLowerCase();
+            if (!seenNames.has(norm)) {
+                seenNames.add(norm);
+                deduped.push(c);
+            }
+        }
+        return deduped;
+    }, [consultants]);
 
     return (
         <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">

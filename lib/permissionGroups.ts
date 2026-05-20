@@ -413,6 +413,10 @@ export async function startTenantPopulation(targetTenantId: string, createdBy: s
                 'superadmin': 'Administrators',
                 'app_admin': 'Administrators',
                 'global_pm': 'Project Managers',
+                'team_member': 'Team Member',
+                'consultant': 'Consultant',
+                'client': 'External User',
+                // Fallbacks legacy en español
                 'usuario_base': 'Team Member',
                 'consultor': 'Consultant',
                 'usuario_externo': 'External User'
