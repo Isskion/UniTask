@@ -37,27 +37,21 @@ export default function UnifluxOrthogonalEdge({
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
 
-    // When bent: quadratic bezier (responds to both X and Y drag).
-    // When straight: smoothstep (current visual, orthogonal corners).
-    // getSmoothStepPath centerX/centerY only affects one axis depending on edge direction,
-    // so we switch to a proper bezier for full 2D control when the user bends the edge.
-    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] => {
-        if (bendOffset) {
-            const cx = midX + bendOffset.x;
-            const cy = midY + bendOffset.y;
-            // Bezier midpoint at t=0.5: 0.25·source + 0.5·control + 0.25·target
-            const lx = 0.25 * sourceX + 0.5 * cx + 0.25 * targetX;
-            const ly = 0.25 * sourceY + 0.5 * cy + 0.25 * targetY;
-            return [`M ${sourceX},${sourceY} Q ${cx},${cy} ${targetX},${targetY}`, lx, ly];
-        }
-        return getSmoothStepPath({
+    // Smoothstep with centerX/centerY override when bent.
+    // This stretches/compresses the orthogonal segments while keeping right-angle corners —
+    // professional diagram look, no bezier curves.
+    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] =>
+        getSmoothStepPath({
             sourceX, sourceY, sourcePosition,
             targetX, targetY, targetPosition,
             borderRadius: 16,
-        });
-    }, [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
+            ...(bendOffset ? {
+                centerX: midX + bendOffset.x,
+                centerY: midY + bendOffset.y,
+            } : {}),
+        }),
+    [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
 
-    // Handle sits at the control point (or geometric midpoint before first bend)
     const handleX = bendOffset ? midX + bendOffset.x : midX;
     const handleY = bendOffset ? midY + bendOffset.y : midY;
 
@@ -124,7 +118,7 @@ export default function UnifluxOrthogonalEdge({
                     ...style,
                     strokeWidth: selected ? 3.5 : 2.5,
                     stroke: selected ? '#4f46e5' : (style.stroke || '#94a3b8'),
-                    transition: bendOffset ? 'none' : 'stroke-width 0.2s, stroke 0.2s',
+                    transition: 'stroke-width 0.2s, stroke 0.2s',
                 }}
             />
             {selected && (
@@ -137,7 +131,7 @@ export default function UnifluxOrthogonalEdge({
                             zIndex: 30,
                         }}
                         className="nodrag nopan"
-                        title="Arrastra para doblar · Doble clic para enderezar"
+                        title="Arrastra para ajustar el recorrido · Doble clic para resetear"
                         onMouseDown={onHandleMouseDown}
                         onDoubleClick={onHandleDoubleClick}
                     >

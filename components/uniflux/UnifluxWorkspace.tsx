@@ -72,10 +72,11 @@ const nodeTypes = {
 const edgeTypes = {
     orthogonal: UnifluxOrthogonalEdge,
     smoothstep: UnifluxOrthogonalEdge,
-    default: UnifluxOrthogonalEdge,
     step: UnifluxOrthogonalEdge,
     straight: UnifluxOrthogonalEdge,
     movable: UnifluxOrthogonalEdge,
+    // 'default' is intentionally NOT overridden: C4 edges use type='default'
+    // and need React Flow's built-in bezier renderer with their own styled props.
 };
 
 // Initial placeholder graph
@@ -734,7 +735,7 @@ export default function UnifluxWorkspace() {
                 label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
                 type: isC4Edge ? 'default' : (e.type || 'orthogonal'),
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
-                style: isC4Edge ? edgeStyle.line : undefined,
+                style: isC4Edge ? edgeStyle.line : e.style,
                 markerEnd: isC4Edge 
                     ? (edgeStyle.markerEnd || { type: MarkerType.ArrowClosed, color: isC4Edge ? getC4EdgeStyle(e.c4RelType, edgeDimmed).line.stroke : '#94a3b8' }) 
                     : (e.markerEnd || { type: MarkerType.ArrowClosed, width: 20, height: 20, color: (e.style?.stroke || '#94a3b8') }),
