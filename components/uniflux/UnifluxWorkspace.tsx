@@ -844,26 +844,20 @@ export default function UnifluxWorkspace() {
     const handleLoadFlow = useCallback(async (flowId: string) => {
         if (!user) return;
         isLoadingFlowRef.current = true;
+        try {
         const tenantToUse = tenantId || '1';
         const rawFlowInfo = await getFlow(tenantToUse, flowId);
-        
+
         if (rawFlowInfo) {
             // --- CONCURRENCY LOCK CHECK ---
             if ((rawFlowInfo as any).lockedBy) {
                 const lock = (rawFlowInfo as any).lockedBy;
-                // Check if lock was created/updated within the last 3 minutes
+                // Block only if a DIFFERENT user has a fresh lock (< 3 min)
                 const isFresh = (Date.now() - lock.timestamp) < (1000 * 60 * 3);
-                const isOtherUser = isFresh && lock.uid !== user.uid;
-                const isSameUserOtherTab = isFresh && lock.uid === user.uid && lock.tabId && lock.tabId !== tabIdRef.current;
-                if (isOtherUser) {
+                if (isFresh && lock.uid !== user.uid) {
                     alert(`⚠️ ACCESO DENEGADO: Este flujo está siendo editado actualmente por "${lock.name}". \n\nPara evitar la pérdida de datos o sobreescrituras accidentales, no puedes abrirlo hasta que se libere.`);
                     setIsSidebarOpen(false);
                     return;
-                }
-                if (isSameUserOtherTab) {
-                    alert(`⚠️ ACCESO DENEGADO: Este flujo ya está abierto en otra pestaña de tu sesión. \n\nCierra esa pestaña antes de editarlo aquí para evitar sobreescrituras accidentales.`);
-                    setIsSidebarOpen(false);
-                    return; // BREAK HERE. Do not load graph.
                 }
             }
             
@@ -919,7 +913,9 @@ export default function UnifluxWorkspace() {
                 }
             } catch { /* ignore malformed backup */ }
         }
-        isLoadingFlowRef.current = false;
+        } finally {
+            isLoadingFlowRef.current = false;
+        }
     }, [tenantId, user, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
 
     // Restores nodes/edges and graph metadata from the localStorage backup for the current flow.
