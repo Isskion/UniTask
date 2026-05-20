@@ -60,14 +60,22 @@ export default function UnifluxOrthogonalEdge({
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
 
-    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] =>
-        getSmoothStepPath({
+    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] => {
+        if (bendOffset) {
+            // Bezier cuadrático cuando hay bend: responde a X e Y en cualquier dirección
+            const cx = midX + bendOffset.x;
+            const cy = midY + bendOffset.y;
+            // Punto en t=0.5 de la bezier cuadrática: 0.25·S + 0.5·C + 0.25·T
+            const lx = 0.25 * sourceX + 0.5 * cx + 0.25 * targetX;
+            const ly = 0.25 * sourceY + 0.5 * cy + 0.25 * targetY;
+            return [`M ${sourceX},${sourceY} Q ${cx},${cy} ${targetX},${targetY}`, lx, ly];
+        }
+        return getSmoothStepPath({
             sourceX, sourceY, sourcePosition,
             targetX, targetY, targetPosition,
             borderRadius: 16,
-            ...(bendOffset ? { centerX: midX + bendOffset.x, centerY: midY + bendOffset.y } : {}),
-        }),
-    [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
+        });
+    }, [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, midX, midY, bendOffset]);
 
     // Chip positions: linear interpolation along source→target
     const srcX = sourceX + (targetX - sourceX) * 0.2;
@@ -76,8 +84,10 @@ export default function UnifluxOrthogonalEdge({
     const tgtY = sourceY + (targetY - sourceY) * 0.8;
 
     const logCenterY = label ? labelY + 22 : labelY;
-    const handleX = bendOffset ? midX + bendOffset.x : midX;
-    const handleY = bendOffset ? midY + bendOffset.y : midY;
+    // Handle siempre sobre el path: labelX/Y cuando no hay bend (punto visual real del path),
+    // control point cuando sí hay bend
+    const handleX = bendOffset ? midX + bendOffset.x : labelX;
+    const handleY = bendOffset ? midY + bendOffset.y : labelY;
     const accentColor = jornadaColor(jornada);
 
     // ── Bend drag ──────────────────────────────────────────────────────────────
