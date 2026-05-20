@@ -223,6 +223,8 @@ export default function UnifluxWorkspace() {
     const currentGraphIdRef = useRef(graph.id);
     // Absolute barrier: block auto-save while a flow is being loaded into React state
     const isLoadingFlowRef = useRef(false);
+    // Bridge ref so effects declared before handleSave can always call the freshest version
+    const handleSaveRef = useRef<(isAutoSave: boolean) => void>(() => {});
     // Unique ID for this browser tab — used to block same-user multi-tab edits on the same flow
     const tabIdRef = useRef(crypto.randomUUID());
     useEffect(() => {
@@ -475,13 +477,13 @@ export default function UnifluxWorkspace() {
                 redo();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                handleSave(false);
+                handleSaveRef.current(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [undo, redo, handleSave]);
+    }, [undo, redo]);
 
     // Auto-save effect — with critical guard against saving empty state
     useEffect(() => {
@@ -502,11 +504,11 @@ export default function UnifluxWorkspace() {
 
         const timer = setTimeout(() => {
             console.log("[uniflux] Auto-saving...");
-            handleSave(true);
+            handleSaveRef.current(true);
         }, 5000); // 5 seconds of inactivity triggers auto-save
 
         return () => clearTimeout(timer);
-    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving, graph.id, handleSave]);
+    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving, graph.id]);
 
     // Local backup effect (every 2 seconds if dirty)
     // Stores a full snapshot including graph metadata so recovery can reconstruct
@@ -1849,6 +1851,10 @@ export default function UnifluxWorkspace() {
             setIsSaving(false);
         }
     }, [user, tenantId, selectedProjectId, graph, nodes, edges, showGrid]);
+
+    useEffect(() => {
+        handleSaveRef.current = handleSave;
+    }, [handleSave]);
 
     // Always-fresh graph that reflects the current canvas state (not just last save).
     // Passed to UnifluxToolbar so the AI always sees unsaved node moves/additions.
