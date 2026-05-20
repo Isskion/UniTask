@@ -283,6 +283,14 @@
 }
 
 /* --- UNIFLUX WORKSPACE STYLES --- */
+
+/* Edge labels (EdgeLabelRenderer) must appear above the SVG edge layer.
+   The react-flow__viewport transform creates a stacking context that can
+   cause SVG paths to visually overlap HTML labels without this. */
+.react-flow__edge-labels {
+  z-index: 20;
+}
+
 .react-flow__handle {
   width: 10px !important;
   height: 10px !important;

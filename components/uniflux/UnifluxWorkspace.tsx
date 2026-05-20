@@ -70,6 +70,7 @@ const nodeTypes = {
 
 const edgeTypes = {
     orthogonal: UnifluxOrthogonalEdge,
+    smoothstep: UnifluxOrthogonalEdge,
     movable: UnifluxOrthogonalEdge,
 };
 

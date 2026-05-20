@@ -178,7 +178,7 @@ export default function UnifluxMovableEdge({
                         }}
                     >
                         <div 
-                            className="bg-white/95 backdrop-blur-sm border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none text-center"
+                            className="bg-white border px-2 py-0.5 rounded shadow-sm text-[11px] font-bold select-none text-center"
                             style={{
                                 color: textColor,
                                 fontFamily: fontFamily,
