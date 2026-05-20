@@ -246,16 +246,14 @@ export async function createBidirectionalLink(
 /**
  * Sets a timed lock on the flow to indicate active editing by a specific user.
  */
-export async function lockFlow(flowId: string, userId: string, userName: string) {
+export async function lockFlow(flowId: string, userId: string, userName: string, tabId: string) {
     if (!flowId || !userId) return;
     const flowRef = doc(db, FLOWS_COLLECTION, flowId);
-    
-    // Dynamically import deleteField if needed, but we imported others at the top.
-    // Wait, I will need to add deleteField to the top imports in a multi-replace.
     await updateDoc(flowRef, {
         lockedBy: {
             uid: userId,
             name: userName || "Colaborador",
+            tabId,
             timestamp: Date.now(),
             updatedAtStr: new Date().toISOString()
         }

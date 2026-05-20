@@ -97,6 +97,7 @@ export default function UnifluxWorkspace() {
     const [isDirty, setIsDirty] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [showSaveToast, setShowSaveToast] = useState(false);
+    const [backupNotice, setBackupNotice] = useState<{ flowId: string; timestamp: string } | null>(null);
     const [tenantLogoUrl, setTenantLogoUrl] = useState<string | null>(null);
 
     // Flow Management State
@@ -177,16 +178,20 @@ export default function UnifluxWorkspace() {
     // Wrapped handlers to track dirtiness
     const onNodesChangeWrapped = useCallback((changes: any) => {
         onNodesChange(changes);
-        const hasMeaningfulChange = changes.some((c: any) => 
-            c.type === 'position' || c.type === 'dimensions' || c.type === 'remove' || c.type === 'add' || c.type === 'replace'
+        // 'dimensions' is excluded: React Flow fires it on initial DOM measurement,
+        // which would mark dirty before Firestore data loads (root cause of the F5 wipe bug).
+        // Actual user resizes are captured by onNodeResizeStop.
+        const hasMeaningfulChange = changes.some((c: any) =>
+            c.type === 'position' || c.type === 'remove' || c.type === 'add' || c.type === 'replace'
         );
         if (hasMeaningfulChange) setIsDirty(true);
     }, [onNodesChange]);
 
     const onEdgesChangeWrapped = useCallback((changes: any) => {
         onEdgesChange(changes);
-        const hasMeaningfulChange = changes.some((c: any) => 
-            c.type === 'remove' || c.type === 'add' || c.type === 'select'
+        // 'select' is excluded: clicking an edge to select it is not a persistable change.
+        const hasMeaningfulChange = changes.some((c: any) =>
+            c.type === 'remove' || c.type === 'add'
         );
         if (hasMeaningfulChange) setIsDirty(true);
     }, [onEdgesChange]);
@@ -216,12 +221,15 @@ export default function UnifluxWorkspace() {
 
     // Track active flow ID dynamically to prevent background save race conditions
     const currentGraphIdRef = useRef(graph.id);
+    // Absolute barrier: block auto-save while a flow is being loaded into React state
+    const isLoadingFlowRef = useRef(false);
+    // Unique ID for this browser tab — used to block same-user multi-tab edits on the same flow
+    const tabIdRef = useRef(crypto.randomUUID());
     useEffect(() => {
         currentGraphIdRef.current = graph.id;
     }, [graph.id]);
 
-    // Keep handleSave reference updated to avoid stale closures in event listeners
-    const handleSaveRef = useRef<any>(null);
+
 
     // Sync showGrid when loading a flow
     useEffect(() => {
@@ -467,17 +475,23 @@ export default function UnifluxWorkspace() {
                 redo();
             } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                handleSaveRef.current?.(false);
+                handleSave(false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [undo, redo]);
+    }, [undo, redo, handleSave]);
 
     // Auto-save effect — with critical guard against saving empty state
     useEffect(() => {
         if (!isDirty || !user || !tenantId || !selectedProjectId || isSaving) return;
+
+        // ABSOLUTE BARRIER: Never auto-save while a flow is being loaded into React state.
+        if (isLoadingFlowRef.current) {
+            console.warn("[uniflux] Auto-save BLOCKED: flow is currently loading.");
+            return;
+        }
 
         // CRITICAL GUARD: Never auto-save if nodes array is empty but we have a real flow loaded.
         // This prevents F5/reload from wiping Firestore data before the flow is restored.
@@ -492,9 +506,11 @@ export default function UnifluxWorkspace() {
         }, 5000); // 5 seconds of inactivity triggers auto-save
 
         return () => clearTimeout(timer);
-    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving, graph.id]);
+    }, [nodes, edges, isDirty, user, tenantId, selectedProjectId, isSaving, graph.id, handleSave]);
 
     // Local backup effect (every 2 seconds if dirty)
+    // Stores a full snapshot including graph metadata so recovery can reconstruct
+    // name, docType, and schema even if Firestore is unreachable.
     useEffect(() => {
         if (!isDirty || !graph.id) return;
 
@@ -502,6 +518,10 @@ export default function UnifluxWorkspace() {
             const backup = {
                 nodes,
                 edges,
+                name: graph.name,
+                docType: graph.docType,
+                c4Level: graph.c4Level,
+                schemaVersion: graph.schemaVersion,
                 projectId: graph.projectId || selectedProjectId,
                 timestamp: new Date().toISOString()
             };
@@ -821,6 +841,7 @@ export default function UnifluxWorkspace() {
     // Flow Loading & Reset Handlers
     const handleLoadFlow = useCallback(async (flowId: string) => {
         if (!user) return;
+        isLoadingFlowRef.current = true;
         const tenantToUse = tenantId || '1';
         const rawFlowInfo = await getFlow(tenantToUse, flowId);
         
@@ -829,16 +850,23 @@ export default function UnifluxWorkspace() {
             if ((rawFlowInfo as any).lockedBy) {
                 const lock = (rawFlowInfo as any).lockedBy;
                 // Check if lock was created/updated within the last 3 minutes
-                const isFresh = (Date.now() - lock.timestamp) < (1000 * 60 * 3); 
-                if (isFresh && lock.uid !== user.uid) {
+                const isFresh = (Date.now() - lock.timestamp) < (1000 * 60 * 3);
+                const isOtherUser = isFresh && lock.uid !== user.uid;
+                const isSameUserOtherTab = isFresh && lock.uid === user.uid && lock.tabId && lock.tabId !== tabIdRef.current;
+                if (isOtherUser) {
                     alert(`⚠️ ACCESO DENEGADO: Este flujo está siendo editado actualmente por "${lock.name}". \n\nPara evitar la pérdida de datos o sobreescrituras accidentales, no puedes abrirlo hasta que se libere.`);
+                    setIsSidebarOpen(false);
+                    return;
+                }
+                if (isSameUserOtherTab) {
+                    alert(`⚠️ ACCESO DENEGADO: Este flujo ya está abierto en otra pestaña de tu sesión. \n\nCierra esa pestaña antes de editarlo aquí para evitar sobreescrituras accidentales.`);
                     setIsSidebarOpen(false);
                     return; // BREAK HERE. Do not load graph.
                 }
             }
             
             // 1. Update remote lock to reserve this document immediately
-            await lockFlow(flowId, user.uid, user.displayName || user.email || "Desconocido");
+            await lockFlow(flowId, user.uid, user.displayName || user.email || "Desconocido", tabIdRef.current);
             
             // 2. Perform migration and clean slate rendering
             const flowInfo = needsMigration(rawFlowInfo) ? migrateGraph(rawFlowInfo) : rawFlowInfo;
@@ -865,15 +893,62 @@ export default function UnifluxWorkspace() {
                 localStorage.setItem('uniflux_active_flow_id', flowId);
                 localStorage.setItem('uniflux_active_project_id', flowInfo.projectId || selectedProjectId);
             } catch (e) { /* localStorage may be full or disabled */ }
+
+            // Check if there is a local backup newer than the server version.
+            // This happens when a previous session saved locally but Firestore write failed.
+            try {
+                const raw = localStorage.getItem(`uniflux_backup_${flowId}`);
+                if (raw) {
+                    const bk = JSON.parse(raw);
+                    const backupMs = new Date(bk.timestamp).getTime();
+                    const ua = (flowInfo as any).updatedAt;
+                    const serverMs = ua
+                        ? (typeof ua.toDate === 'function' ? ua.toDate().getTime()
+                            : ua instanceof Date ? ua.getTime()
+                            : typeof ua === 'string' ? new Date(ua).getTime()
+                            : (ua.seconds ? ua.seconds * 1000 : 0))
+                        : 0;
+                    if (backupMs > serverMs) {
+                        setBackupNotice({ flowId, timestamp: bk.timestamp });
+                    } else {
+                        // Backup is stale — server has same or newer data, clean up
+                        localStorage.removeItem(`uniflux_backup_${flowId}`);
+                    }
+                }
+            } catch { /* ignore malformed backup */ }
         }
+        isLoadingFlowRef.current = false;
     }, [tenantId, user, selectedProjectId, syncNodesFromGraph, takeSnapshot]);
+
+    // Restores nodes/edges and graph metadata from the localStorage backup for the current flow.
+    const handleRestoreBackup = useCallback(() => {
+        if (!backupNotice) return;
+        try {
+            const raw = localStorage.getItem(`uniflux_backup_${backupNotice.flowId}`);
+            if (!raw) return;
+            const bk = JSON.parse(raw);
+            if (bk.nodes) setNodes(bk.nodes);
+            if (bk.edges) setEdges(bk.edges);
+            setGraph(prev => ({
+                ...prev,
+                ...(bk.name ? { name: bk.name } : {}),
+                ...(bk.docType ? { docType: bk.docType } : {}),
+                ...(bk.c4Level !== undefined ? { c4Level: bk.c4Level } : {}),
+                ...(bk.schemaVersion !== undefined ? { schemaVersion: bk.schemaVersion } : {}),
+            }));
+            setIsDirty(true);
+            setBackupNotice(null);
+        } catch (e) {
+            console.error('[uniflux] Failed to restore backup', e);
+        }
+    }, [backupNotice, setNodes, setEdges]);
 
     // V11 Heartbeat: Maintain active edit lock every minute
     useEffect(() => {
         if (!user || !graph.id || graph.id.includes('draft-')) return; 
         
         const renewLock = () => {
-            lockFlow(graph.id, user.uid, user.displayName || user.email || "Desconocido");
+            lockFlow(graph.id, user.uid, user.displayName || user.email || "Desconocido", tabIdRef.current);
         };
         
         const interval = setInterval(renewLock, 60 * 1000);
@@ -1633,7 +1708,7 @@ export default function UnifluxWorkspace() {
     };
 
     // Handle manual save
-    const handleSave = async (isAutoSave: boolean = false) => {
+    const handleSave = useCallback(async (isAutoSave: boolean = false) => {
         if (!user || !tenantId) return;
         const tenantToUse = tenantId || '1';
 
@@ -1735,14 +1810,14 @@ export default function UnifluxWorkspace() {
                 };
             }
 
-            await saveFlowDraft(tenantToUse, finalGraph, user.uid);
-
-            // If the user transitioned to a different flow while the async save operation
-            // was in progress, abort updating local workspace states to avoid overwriting data.
+            // Guard BEFORE the write: if the active flow changed while we were serializing,
+            // the finalGraph we built is stale. Abort entirely — no write, no UI update.
             if (currentGraphIdRef.current !== savingGraphId) {
-                console.warn(`[uniflux] Background save completed for flow ${savingGraphId}, but active flow has changed to ${currentGraphIdRef.current}. Aborting UI state update.`);
+                console.warn(`[uniflux] Active flow changed to ${currentGraphIdRef.current} while serializing ${savingGraphId}. Save aborted.`);
                 return;
             }
+
+            await saveFlowDraft(tenantToUse, finalGraph, user.uid);
 
             setGraph(finalGraph);
             setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
@@ -1765,16 +1840,15 @@ export default function UnifluxWorkspace() {
         } catch (e) {
             console.error("Failed to save draft", e);
             setSaveStatus('idle');
-            // Basic error handling - could connect to a global toast system later
-            alert("Error al guardar el flujo");
+            const hasBackup = !!localStorage.getItem(`uniflux_backup_${savingGraphId}`);
+            alert(
+                `Error al guardar el flujo en la nube.` +
+                (hasBackup ? '\n\nTus cambios están a salvo en una copia local. Se ofrecerá restaurarlos la próxima vez que abras este flujo.' : '')
+            );
         } finally {
             setIsSaving(false);
         }
-    };
-
-    useEffect(() => {
-        handleSaveRef.current = handleSave;
-    }, [handleSave]);
+    }, [user, tenantId, selectedProjectId, graph, nodes, edges, showGrid]);
 
     // Always-fresh graph that reflects the current canvas state (not just last save).
     // Passed to UnifluxToolbar so the AI always sees unsaved node moves/additions.
@@ -2493,6 +2567,34 @@ export default function UnifluxWorkspace() {
                             Deshacer
                         </button>
                         <button onClick={() => setShowAiBanner(false)} className="p-1 text-purple-400 hover:text-white">
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Backup Recovery Banner */}
+                {backupNotice && (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-amber-50 border border-amber-200 shadow-xl rounded-xl px-4 py-3 animate-fade-in max-w-md w-full">
+                        <RotateCcw className="w-4 h-4 text-amber-500 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-amber-900">Cambios locales sin guardar</p>
+                            <p className="text-xs text-amber-700 truncate">
+                                Backup del {new Date(backupNotice.timestamp).toLocaleString()} — la nube puede estar desactualizada.
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleRestoreBackup}
+                            className="text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg shrink-0"
+                        >
+                            Restaurar
+                        </button>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem(`uniflux_backup_${backupNotice.flowId}`);
+                                setBackupNotice(null);
+                            }}
+                            className="p-1 text-amber-300 hover:text-amber-500 shrink-0"
+                        >
                             <X className="w-3 h-3" />
                         </button>
                     </div>
