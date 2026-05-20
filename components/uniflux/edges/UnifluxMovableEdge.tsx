@@ -123,16 +123,25 @@ export default function UnifluxMovableEdge({
 
     return (
         <>
-            <BaseEdge 
-                path={edgePath} 
-                markerEnd={markerEnd} 
+            {/* White halo — creates visual bridge where edges cross */}
+            <path
+                d={edgePath}
+                fill="none"
+                stroke="white"
+                strokeWidth={selected ? 12 : 9}
+                strokeLinecap="round"
+                style={{ pointerEvents: 'none' }}
+            />
+            <BaseEdge
+                path={edgePath}
+                markerEnd={markerEnd}
                 style={{
                     ...style,
                     strokeWidth: selected ? 4 : 2.5,
                     stroke: selected ? '#6366f1' : (style.stroke || '#94a3b8'),
                     transition: pathPoints.length === 0 ? 'stroke-width 0.2s, stroke 0.2s' : 'none',
                     cursor: 'crosshair'
-                }} 
+                }}
             />
             
             <EdgeLabelRenderer>

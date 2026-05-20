@@ -40,15 +40,24 @@ export default function UnifluxOrthogonalEdge({
 
     return (
         <>
-            <BaseEdge 
-                path={edgePath} 
-                markerEnd={markerEnd} 
+            {/* White halo — creates visual bridge where edges cross */}
+            <path
+                d={edgePath}
+                fill="none"
+                stroke="white"
+                strokeWidth={selected ? 11 : 9}
+                strokeLinecap="round"
+                style={{ pointerEvents: 'none' }}
+            />
+            <BaseEdge
+                path={edgePath}
+                markerEnd={markerEnd}
                 style={{
                     ...style,
                     strokeWidth: selected ? 3.5 : 2.5,
                     stroke: selected ? '#4f46e5' : (style.stroke || '#94a3b8'),
                     transition: 'stroke-width 0.2s, stroke 0.2s',
-                }} 
+                }}
             />
             {label && (
                 <EdgeLabelRenderer>
