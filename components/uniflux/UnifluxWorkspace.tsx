@@ -39,6 +39,7 @@ import ImageNode from './nodes/ImageNode';
 import UnifluxProNode from './nodes/UnifluxProNode';
 import UnifluxTextNode from './nodes/UnifluxTextNode';
 import UnifluxOrthogonalEdge from './edges/UnifluxOrthogonalEdge';
+import { UnifluxDirtyContext } from './UnifluxContext';
 import UnifluxAlignmentGuides, { AlignmentGuide, DistanceIndicator } from './UnifluxAlignmentGuides';
 
 // Derived from modes.ts — workspace doesn't need to know C4 node names directly
@@ -215,6 +216,9 @@ export default function UnifluxWorkspace() {
     const pendingNavigationNodeId = useRef<string | null>(null);
     const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
     
+    // Stable callback exposed via context so edge components can signal dirtiness
+    const markDirty = useCallback(() => setIsDirty(true), []);
+
     // Break circular dependency: syncNodesFromGraph -> handleJumpToFlow -> handleLoadFlow -> syncNodesFromGraph
     const jumpToFlowRef = useRef<(flowId: string, nodeId?: string) => Promise<void>>(null as any);
     // V12: Bridge reference to allow history hydration access to node handlers without circular dependencies
@@ -746,7 +750,8 @@ export default function UnifluxWorkspace() {
                     style: e.style,
                     markerEnd: e.markerEnd,
                     textColor: e.textColor || '#000000',
-                    fontFamily: e.fontFamily || 'Garamond'
+                    fontFamily: e.fontFamily || 'Garamond',
+                    ...(e.bendOffset ? { bendOffset: e.bendOffset } : {}),
                 },
             };
         });
@@ -1798,6 +1803,7 @@ export default function UnifluxWorkspace() {
                     pathPoints: (e.data?.pathPoints as any[]) || [],
                     textColor: (e.data?.textColor as string) || '#000000',
                     fontFamily: (e.data?.fontFamily as string) || 'Garamond',
+                    ...(e.data?.bendOffset ? { bendOffset: e.data.bendOffset } : {}),
                 }));
 
                 finalGraph = {
@@ -1917,6 +1923,7 @@ export default function UnifluxWorkspace() {
     }, [graph, nodes, edges, activeC4Level]);
 
     return (
+        <UnifluxDirtyContext.Provider value={markDirty}>
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
             <header className="h-14 bg-slate-950 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between z-20 shadow-lg">
                 <div className="flex items-center gap-4">
@@ -2952,6 +2959,7 @@ export default function UnifluxWorkspace() {
                 )}
             </div>
         </div>
+        </UnifluxDirtyContext.Provider>
     );
 }
 
