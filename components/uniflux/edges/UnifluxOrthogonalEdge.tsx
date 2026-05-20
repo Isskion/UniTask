@@ -54,7 +54,7 @@ export default function UnifluxOrthogonalEdge({
     const estadoPedido = data?.estadoPedido  as string | undefined;
     const fecha        = data?.fecha         as string | undefined;
 
-    const centerFields = [jornada, operacion, estadoPedido, fecha].filter(Boolean);
+    const centerFields = [estadoPedido, jornada, operacion, fecha].filter(Boolean);
     const hasLogistics = pickupType || deliveryType || centerFields.length > 0;
 
     const midX = (sourceX + targetX) / 2;
@@ -178,9 +178,9 @@ export default function UnifluxOrthogonalEdge({
                                 {hovered ? (
                                     <div className="border rounded-lg px-2 py-1.5 text-[9px] font-semibold select-none bg-white shadow-sm flex flex-col gap-0.5"
                                         style={{ borderColor: accentColor, minWidth: 100 }}>
+                                        {estadoPedido && <LabeledValue label="Estado"    value={estadoPedido} color="#7c3aed" />}
                                         {jornada      && <LabeledValue label="Jornada"  value={jornada}      color={accentColor} />}
                                         {operacion    && <LabeledValue label="Operación" value={operacion}   color="#475569" />}
-                                        {estadoPedido && <LabeledValue label="Estado"   value={estadoPedido} color="#7c3aed" />}
                                         {fecha        && <LabeledValue label="Fecha"    value={fecha}         color="#0369a1" />}
                                     </div>
                                 ) : (
@@ -192,9 +192,9 @@ export default function UnifluxOrthogonalEdge({
                                             estadoPedido ? `Estado: ${estadoPedido}`   : '',
                                             fecha        ? `Fecha: ${fecha}`           : '',
                                         ].filter(Boolean).join(' · ')}>
+                                        {estadoPedido && <LabeledValue label="Estado"   value={estadoPedido} color="#7c3aed" />}
                                         {jornada      && <LabeledValue label="Jornada"  value={jornada}      color={accentColor} />}
                                         {operacion    && <LabeledValue label="Op"       value={operacion}    color="#475569" />}
-                                        {estadoPedido && <LabeledValue label="Estado"   value={estadoPedido} color="#7c3aed" />}
                                         {fecha        && <LabeledValue label="Fecha"    value={fecha}         color="#0369a1" />}
                                     </div>
                                 )}
