@@ -415,14 +415,28 @@ export default function UnifluxWorkspace() {
             // 4. Composite watermark via canvas (reliable, no DOM z-index issues)
             // Skipped for SVG — compositing SVG is complex and the logo is a raster image.
             // Composite watermark using pre-fetched base64 data URL (no CORS taint)
-            // Composite watermark using pre-fetched base64 data URL or fallback to raw URL
+            // Composite watermark using pre-fetched base64 data URL
             let finalDataUrl = rawDataUrl;
-            let logoToUse = tenantLogoBase64 || tenantLogoUrl;
-            if (logoToUse && logoToUse.startsWith('http')) {
-                // Prevent CORS cache bug for raw URLs
-                logoToUse += (logoToUse.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+            let logoDataUrl = tenantLogoBase64;
+            
+            // If base64 isn't ready (e.g. useEffect failed or is still loading), fetch it now
+            if (!logoDataUrl && tenantLogoUrl) {
+                try {
+                    const noCacheUrl = tenantLogoUrl + (tenantLogoUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+                    const r = await fetch(noCacheUrl, { mode: 'cors' });
+                    const blob = await r.blob();
+                    logoDataUrl = await new Promise<string>((res, rej) => {
+                        const reader = new FileReader();
+                        reader.onload = () => res(reader.result as string);
+                        reader.onerror = rej;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("Fallback logo fetch failed:", e);
+                }
             }
-            if (format !== 'svg' && logoToUse) {
+
+            if (format !== 'svg' && logoDataUrl) {
                 finalDataUrl = await new Promise<string>((resolve) => {
                     const canvas = document.createElement('canvas');
                     canvas.width  = imageWidth  * pixelRatio;
@@ -431,7 +445,9 @@ export default function UnifluxWorkspace() {
 
                     const flowImg = new Image();
                     flowImg.onload = () => {
-                        ctx.drawImage(flowImg, 0, 0);
+                        // Fix: draw at exact canvas dimensions to prevent devicePixelRatio scaling bugs
+                        // which caused the image to be cropped/shifted, making the title appear in the middle.
+                        ctx.drawImage(flowImg, 0, 0, canvas.width, canvas.height);
 
                         const logoImg = new Image();
                         const stamp = () => {
@@ -461,13 +477,12 @@ export default function UnifluxWorkspace() {
                             }
                             resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
                         };
-                        logoImg.crossOrigin = 'anonymous'; // Prevent taint if using fallback URL
                         logoImg.onload  = stamp;
                         logoImg.onerror = () => {
                             console.error('Failed to load watermark logo for export');
                             stamp(); // resolve without watermark
                         };
-                        logoImg.src = logoToUse; 
+                        logoImg.src = logoDataUrl; 
                     };
                     flowImg.onerror = () => resolve(rawDataUrl);
                     flowImg.src = rawDataUrl;
