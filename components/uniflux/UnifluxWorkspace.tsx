@@ -343,96 +343,52 @@ export default function UnifluxWorkspace() {
         setTimeout(() => reactFlowInstance?.fitView({ duration: 500, padding: 0.2 }), 50);
     }, [nodes, edges, reactFlowInstance, takeSnapshot, setNodes, setEdges]);
 
-    const handleExport = useCallback((format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
+    const handleExport = useCallback(async (format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
         if (!nodes || nodes.length === 0) return;
 
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
         if (!viewport) return;
-        
-        // 1. Get bounding box of flow elements using React Flow utilities
-        // FIX: Explicitly flatten position graph to absolute viewport coordinates BEFORE bounding.
-        // Prevents child relative coordinates in grouping environments from exploding derived dimensions.
+
+        // 1. Bounding box in absolute coords
         const absoluteNodes = nodes.map(n => {
             const absX = (n as any).computed?.positionAbsolute?.x ?? (n as any).positionAbsolute?.x ?? n.position.x;
             const absY = (n as any).computed?.positionAbsolute?.y ?? (n as any).positionAbsolute?.y ?? n.position.y;
-            return {
-                ...n,
-                position: { x: absX, y: absY }
-            };
+            return { ...n, position: { x: absX, y: absY } };
         });
         const nodesBounds = getNodesBounds(absoluteNodes);
-        
-        // 2. Define canvas space with explicit padding and dedicated title buffer
+
         const padding = 60;
-        const titlePaddingTop = 120; // Higher safety buffer to prevent overlap with high curves/nodes
-        
-        // Final derived pixel dimensions
-        const imageWidth = nodesBounds.width + padding * 2;
+        const titlePaddingTop = 120;
+        const imageWidth  = nodesBounds.width  + padding * 2;
         const imageHeight = nodesBounds.height + padding * 2 + titlePaddingTop;
-        
-        // 3. Inject temporary visual title directly into viewport coordinates
+        const pixelRatio  = format === 'svg' ? 1 : 3;
+
+        // 2. Inject title (no watermark DOM injection — done via canvas compositing instead)
         const titleEl = document.createElement('div');
-        titleEl.id = 'temp-export-title';
         titleEl.innerText = graph.name || 'Flujo UniFlux';
-        titleEl.style.position = 'absolute';
-        // Positioned closely to the absolute top edge of our padded zone
-        titleEl.style.top = `${nodesBounds.y - titlePaddingTop + 25}px`; 
-        // Align strictly to the far-left boundary of our visible area
-        titleEl.style.left = `${nodesBounds.x - padding + 25}px`;
-        titleEl.style.width = 'auto'; // Allow self-sizing
-        titleEl.style.maxWidth = `${Math.max(400, imageWidth / 2)}px`; // Safe capping
-        titleEl.style.textAlign = 'left';
-        titleEl.style.fontSize = '36px';
-        titleEl.style.fontWeight = '800';
-        titleEl.style.color = '#0f172a'; // Slate 900
-        titleEl.style.fontFamily = 'Inter, system-ui, sans-serif';
-        titleEl.style.letterSpacing = '-0.02em';
-        
-        // Subtitle (Date & Origin)
+        titleEl.style.cssText = `
+            position:absolute;
+            top:${nodesBounds.y - titlePaddingTop + 25}px;
+            left:${nodesBounds.x - padding + 25}px;
+            max-width:${Math.max(400, imageWidth / 2)}px;
+            font-size:36px; font-weight:800; color:#0f172a;
+            font-family:Inter,system-ui,sans-serif; letter-spacing:-0.02em;
+        `;
         const dateEl = document.createElement('div');
         dateEl.innerText = `${new Date().toLocaleDateString()} · Generado en UniFlux`;
-        dateEl.style.fontSize = '16px';
-        dateEl.style.fontWeight = '500';
-        dateEl.style.color = '#64748b'; // Slate 500
-        dateEl.style.marginTop = '6px';
-        dateEl.style.letterSpacing = 'normal';
+        dateEl.style.cssText = 'font-size:16px;font-weight:500;color:#64748b;margin-top:6px;';
         titleEl.appendChild(dateEl);
-        
         viewport.appendChild(titleEl);
 
-        // 3.5 Inject temporary logo watermark if it exists
-        let watermarkEl: HTMLImageElement | null = null;
-        if (tenantLogoUrl) {
-            watermarkEl = document.createElement('img');
-            watermarkEl.src = tenantLogoUrl;
-            watermarkEl.crossOrigin = "anonymous";
-            watermarkEl.style.position = 'absolute';
-            const centerX = nodesBounds.x + nodesBounds.width / 2;
-            const centerY = nodesBounds.y + nodesBounds.height / 2;
-            const baseSize = Math.max(nodesBounds.width, nodesBounds.height) * 0.7;
-            const watermarkSize = Math.min(1600, Math.max(400, baseSize));
-            watermarkEl.style.width = `${watermarkSize}px`;
-            watermarkEl.style.height = `${watermarkSize}px`;
-            watermarkEl.style.objectFit = 'contain';
-            watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
-            watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
-            watermarkEl.style.opacity = '0.10';
-            watermarkEl.style.zIndex = '-1';
-            watermarkEl.style.pointerEvents = 'none';
-            viewport.insertBefore(watermarkEl, viewport.firstChild);
-        }
-
-        // 4. Configure explicit transform mapping logical coordinates to output view
         const config = {
             backgroundColor: '#ffffff',
             width: imageWidth,
             height: imageHeight,
-            pixelRatio: format === 'svg' ? 1 : 3, // Optimized for quality and performance
+            pixelRatio,
             cacheBust: true,
             style: {
-                width: `${imageWidth}px`,
+                width:  `${imageWidth}px`,
                 height: `${imageHeight}px`,
-                // Shift everything so visual starts exactly at padded bounds
                 transform: `translate(${-nodesBounds.x + padding}px, ${-nodesBounds.y + titlePaddingTop}px) scale(1)`,
             },
         };
@@ -444,38 +400,79 @@ export default function UnifluxWorkspace() {
             a.click();
         };
 
-        const cleanup = () => {
-            if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
-            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
-        };
+        try {
+            // 3. Capture raw flow (SVG or raster)
+            let rawDataUrl: string;
+            if (format === 'svg') {
+                rawDataUrl = await toSvg(viewport, config);
+            } else if (format === 'jpeg') {
+                rawDataUrl = await toJpeg(viewport, config);
+            } else {
+                rawDataUrl = await toPng(viewport, config);
+            }
 
-        // Determine function based on format
-        let capturePromise;
-        if (format === 'svg') {
-            capturePromise = toSvg(viewport, config);
-        } else if (format === 'jpeg') {
-            capturePromise = toJpeg(viewport, config);
-        } else {
-            capturePromise = toPng(viewport, config);
-        }
+            // 4. Composite watermark via canvas (reliable, no DOM z-index issues)
+            // Skipped for SVG — compositing SVG is complex and the logo is a raster image.
+            let finalDataUrl = rawDataUrl;
+            if (format !== 'svg' && tenantLogoUrl) {
+                finalDataUrl = await new Promise<string>((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = imageWidth  * pixelRatio;
+                    canvas.height = imageHeight * pixelRatio;
+                    const ctx = canvas.getContext('2d')!;
 
-        capturePromise.then((dataUrl) => {
+                    const flowImg = new Image();
+                    flowImg.onload = () => {
+                        // Draw the captured flow at full canvas size
+                        ctx.drawImage(flowImg, 0, 0);
+
+                        const logoImg = new Image();
+                        logoImg.crossOrigin = 'anonymous';
+
+                        const stamp = () => {
+                            if (logoImg.naturalWidth > 0) {
+                                const baseSize = Math.max(imageWidth, imageHeight) * 0.7;
+                                const wmLogical = Math.min(1600, Math.max(400, baseSize));
+                                const wmPx = wmLogical * pixelRatio;
+                                const cx = (canvas.width  - wmPx) / 2;
+                                const cy = (canvas.height - wmPx) / 2;
+                                ctx.globalAlpha = 0.10;
+                                ctx.drawImage(logoImg, cx, cy, wmPx, wmPx);
+                                ctx.globalAlpha = 1.0;
+                            }
+                            try {
+                                resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
+                            } catch {
+                                resolve(rawDataUrl); // tainted canvas fallback
+                            }
+                        };
+
+                        logoImg.onload  = stamp;
+                        logoImg.onerror = stamp; // proceed without logo if it fails
+                        logoImg.src = tenantLogoUrl;
+                    };
+                    flowImg.onerror = () => resolve(rawDataUrl);
+                    flowImg.src = rawDataUrl;
+                });
+            }
+
+            // 5. Download or generate PDF
             if (format === 'pdf') {
                 const pdf = new jsPDF({
                     orientation: imageWidth > imageHeight ? 'landscape' : 'portrait',
                     unit: 'px',
-                    format: [imageWidth, imageHeight]
+                    format: [imageWidth, imageHeight],
                 });
-                pdf.addImage(dataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
+                pdf.addImage(finalDataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
                 pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
             } else {
-                downloadFile(dataUrl, format === 'jpeg' ? 'jpg' : format);
+                downloadFile(finalDataUrl, format === 'jpeg' ? 'jpg' : format);
             }
-        })
-        .catch(err => {
-            console.error("Falló la exportación del flujo:", err);
-        })
-        .finally(cleanup);
+        } catch (err) {
+            console.error('Falló la exportación del flujo:', err);
+        } finally {
+            if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
+        }
     }, [graph.name, nodes, tenantLogoUrl]);
 
     // Keyboard Shortcuts
