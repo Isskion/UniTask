@@ -433,11 +433,27 @@ export default function UnifluxWorkspace() {
                                 const baseSize = Math.max(imageWidth, imageHeight) * 0.7;
                                 const wmLogical = Math.min(1600, Math.max(400, baseSize));
                                 const wmPx = wmLogical * pixelRatio;
-                                const cx = (canvas.width  - wmPx) / 2;
-                                const cy = (canvas.height - wmPx) / 2;
-                                ctx.globalAlpha = 0.10;
-                                ctx.drawImage(logoImg, cx, cy, wmPx, wmPx);
+                                
+                                // Preserve aspect ratio
+                                const wmRatio = logoImg.naturalWidth / logoImg.naturalHeight;
+                                let drawW = wmPx;
+                                let drawH = wmPx;
+                                if (wmRatio > 1) {
+                                    drawH = wmPx / wmRatio;
+                                } else {
+                                    drawW = wmPx * wmRatio;
+                                }
+                                
+                                const cx = (canvas.width  - drawW) / 2;
+                                const cy = (canvas.height - drawH) / 2;
+                                
+                                // Multiply blending removes white backgrounds from JPEGs
+                                // and makes the watermark blend naturally with diagram elements.
+                                ctx.globalCompositeOperation = 'multiply';
+                                ctx.globalAlpha = 0.15;
+                                ctx.drawImage(logoImg, cx, cy, drawW, drawH);
                                 ctx.globalAlpha = 1.0;
+                                ctx.globalCompositeOperation = 'source-over';
                             }
                             resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
                         };
