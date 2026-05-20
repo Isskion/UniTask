@@ -105,6 +105,7 @@ export default function UnifluxWorkspace() {
     const [showSaveToast, setShowSaveToast] = useState(false);
     const [backupNotice, setBackupNotice] = useState<{ flowId: string; timestamp: string } | null>(null);
     const [tenantLogoUrl, setTenantLogoUrl] = useState<string | null>(null);
+    const [tenantLogoBase64, setTenantLogoBase64] = useState<string | null>(null);
 
     // Flow Management State
     const [projects, setProjects] = useState<Project[]>([]);
@@ -413,8 +414,9 @@ export default function UnifluxWorkspace() {
 
             // 4. Composite watermark via canvas (reliable, no DOM z-index issues)
             // Skipped for SVG — compositing SVG is complex and the logo is a raster image.
+            // Composite watermark using pre-fetched base64 data URL (no CORS taint)
             let finalDataUrl = rawDataUrl;
-            if (format !== 'svg' && tenantLogoUrl) {
+            if (format !== 'svg' && tenantLogoBase64) {
                 finalDataUrl = await new Promise<string>((resolve) => {
                     const canvas = document.createElement('canvas');
                     canvas.width  = imageWidth  * pixelRatio;
@@ -423,12 +425,9 @@ export default function UnifluxWorkspace() {
 
                     const flowImg = new Image();
                     flowImg.onload = () => {
-                        // Draw the captured flow at full canvas size
                         ctx.drawImage(flowImg, 0, 0);
 
                         const logoImg = new Image();
-                        logoImg.crossOrigin = 'anonymous';
-
                         const stamp = () => {
                             if (logoImg.naturalWidth > 0) {
                                 const baseSize = Math.max(imageWidth, imageHeight) * 0.7;
@@ -440,16 +439,11 @@ export default function UnifluxWorkspace() {
                                 ctx.drawImage(logoImg, cx, cy, wmPx, wmPx);
                                 ctx.globalAlpha = 1.0;
                             }
-                            try {
-                                resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
-                            } catch {
-                                resolve(rawDataUrl); // tainted canvas fallback
-                            }
+                            resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
                         };
-
                         logoImg.onload  = stamp;
-                        logoImg.onerror = stamp; // proceed without logo if it fails
-                        logoImg.src = tenantLogoUrl;
+                        logoImg.onerror = stamp;
+                        logoImg.src = tenantLogoBase64; // data URL — same-origin, no taint
                     };
                     flowImg.onerror = () => resolve(rawDataUrl);
                     flowImg.src = rawDataUrl;
@@ -473,7 +467,7 @@ export default function UnifluxWorkspace() {
         } finally {
             if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
         }
-    }, [graph.name, nodes, tenantLogoUrl]);
+    }, [graph.name, nodes, tenantLogoBase64]);
 
     // Keyboard Shortcuts
     useEffect(() => {
@@ -807,6 +801,25 @@ export default function UnifluxWorkspace() {
         fetchLogo();
         return () => { isMounted = false; };
     }, [tenantId]);
+
+    // Convert logo URL to base64 data URL so canvas compositing never hits CORS taint.
+    // fetch() can retrieve the resource; FileReader converts the blob to a data URL
+    // which is always same-origin — canvas.toDataURL() will never throw.
+    useEffect(() => {
+        if (!tenantLogoUrl) { setTenantLogoBase64(null); return; }
+        let cancelled = false;
+        fetch(tenantLogoUrl)
+            .then(r => r.blob())
+            .then(blob => new Promise<string>((res, rej) => {
+                const reader = new FileReader();
+                reader.onload  = () => res(reader.result as string);
+                reader.onerror = rej;
+                reader.readAsDataURL(blob);
+            }))
+            .then(b64 => { if (!cancelled) setTenantLogoBase64(b64); })
+            .catch(() => { if (!cancelled) setTenantLogoBase64(null); });
+        return () => { cancelled = true; };
+    }, [tenantLogoUrl]);
 
     // Fetch Projects — and auto-restore last active session on mount
     const hasRestoredSession = useRef(false);
