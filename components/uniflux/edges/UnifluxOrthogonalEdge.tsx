@@ -41,7 +41,7 @@ export default function UnifluxOrthogonalEdge({
     // When straight: smoothstep (current visual, orthogonal corners).
     // getSmoothStepPath centerX/centerY only affects one axis depending on edge direction,
     // so we switch to a proper bezier for full 2D control when the user bends the edge.
-    const [edgePath, labelX, labelY] = useMemo((): [string, number, number] => {
+    const [edgePath, labelX, labelY] = useMemo((): [string, number, number, ...number[]] => {
         if (bendOffset) {
             const cx = midX + bendOffset.x;
             const cy = midY + bendOffset.y;
