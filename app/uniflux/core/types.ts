@@ -84,6 +84,7 @@ export interface FlowEdge {
     payload?: string;        // e.g. "OrderEvent{orderId, items, total}"
     sla?: string;            // e.g. "<200ms P99", "eventually consistent"
     // V7: Visual persistence for non-C4 diagrams
+    type?: string;
     animated?: boolean;
     style?: any;
     markerEnd?: any;
