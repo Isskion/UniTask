@@ -16,7 +16,7 @@ import { getActiveProjects } from '@/lib/projects';
 import { Project } from '@/types';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink, ArrowLeftRight } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, Folder, Plus, File, X, ListTree, Pencil, RotateCcw, GitBranch, Trash2, Building2, Map, LayoutTemplate, Download, Copy, Type, LayoutGrid, MousePointer2, Hand, Settings, Link as LinkIcon, ExternalLink, ArrowLeftRight, Tags } from 'lucide-react';
 import { getLayoutedElements } from '@/app/uniflux/core/graphLayoutUtils';
 import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
@@ -204,6 +204,7 @@ export default function UnifluxWorkspace() {
 
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
     const [showGrid, setShowGrid] = useState<boolean>(graph.showGrid ?? true);
+    const [showLogisticsLabels, setShowLogisticsLabels] = useState(true);
     const [interactionMode, setInteractionMode] = useState<'pan' | 'selection'>('pan');
     
     // V10: Alignment Guides
@@ -222,6 +223,7 @@ export default function UnifluxWorkspace() {
     
     // Stable callback exposed via context so edge components can signal dirtiness
     const markDirty = useCallback(() => setIsDirty(true), []);
+    const edgeCtxValue = useMemo(() => ({ markDirty, showLogisticsLabels }), [markDirty, showLogisticsLabels]);
 
     // Break circular dependency: syncNodesFromGraph -> handleJumpToFlow -> handleLoadFlow -> syncNodesFromGraph
     const jumpToFlowRef = useRef<(flowId: string, nodeId?: string) => Promise<void>>(null as any);
@@ -576,6 +578,10 @@ export default function UnifluxWorkspace() {
     const [edgeColor, setEdgeColor] = useState<string>('#94a3b8');
     const [edgeTextColor, setEdgeTextColor] = useState<string>('#000000');
     const [edgeFontFamily, setEdgeFontFamily] = useState<string>('Garamond');
+    const [edgePickupType, setEdgePickupType] = useState<string>('');
+    const [edgeDeliveryType, setEdgeDeliveryType] = useState<string>('');
+    const [edgeJornada, setEdgeJornada] = useState<string>('');
+    const [edgeOperacion, setEdgeOperacion] = useState<string>('');
 
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
@@ -755,7 +761,11 @@ export default function UnifluxWorkspace() {
                     markerEnd: e.markerEnd,
                     textColor: e.textColor || '#000000',
                     fontFamily: e.fontFamily || 'Garamond',
-                    ...(e.bendOffset ? { bendOffset: e.bendOffset } : {}),
+                    ...(e.bendOffset    ? { bendOffset:    e.bendOffset    } : {}),
+                    ...(e.pickupType   ? { pickupType:   e.pickupType   } : {}),
+                    ...(e.deliveryType ? { deliveryType: e.deliveryType } : {}),
+                    ...(e.jornada      ? { jornada:      e.jornada      } : {}),
+                    ...(e.operacion    ? { operacion:    e.operacion    } : {}),
                 },
             };
         });
@@ -1426,6 +1436,10 @@ export default function UnifluxWorkspace() {
         setEdgeColor(edge.style?.stroke || '#94a3b8');
         setEdgeTextColor((edge.data?.textColor as string) || '#000000');
         setEdgeFontFamily((edge.data?.fontFamily as string) || 'Garamond');
+        setEdgePickupType((edge.data?.pickupType as string) || '');
+        setEdgeDeliveryType((edge.data?.deliveryType as string) || '');
+        setEdgeJornada((edge.data?.jornada as string) || '');
+        setEdgeOperacion((edge.data?.operacion as string) || '');
     };
 
     const handleEdgeLabelSave = () => {
@@ -1446,7 +1460,11 @@ export default function UnifluxWorkspace() {
                 } : {
                     ...e.data,
                     textColor: edgeTextColor,
-                    fontFamily: edgeFontFamily
+                    fontFamily: edgeFontFamily,
+                    pickupType: edgePickupType || undefined,
+                    deliveryType: edgeDeliveryType || undefined,
+                    jornada: edgeJornada || undefined,
+                    operacion: edgeOperacion || undefined,
                 },
                 ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
                 type: isC4 ? e.type : edgeLineType,
@@ -1807,7 +1825,11 @@ export default function UnifluxWorkspace() {
                     pathPoints: (e.data?.pathPoints as any[]) || [],
                     textColor: (e.data?.textColor as string) || '#000000',
                     fontFamily: (e.data?.fontFamily as string) || 'Garamond',
-                    ...(e.data?.bendOffset ? { bendOffset: e.data.bendOffset as { x: number; y: number } } : {}),
+                    ...(e.data?.bendOffset    ? { bendOffset:    e.data.bendOffset    as { x: number; y: number } } : {}),
+                    ...(e.data?.pickupType   ? { pickupType:   e.data.pickupType   as string } : {}),
+                    ...(e.data?.deliveryType ? { deliveryType: e.data.deliveryType as string } : {}),
+                    ...(e.data?.jornada      ? { jornada:      e.data.jornada      as string } : {}),
+                    ...(e.data?.operacion    ? { operacion:    e.data.operacion    as string } : {}),
                 }));
 
                 finalGraph = {
@@ -1927,7 +1949,7 @@ export default function UnifluxWorkspace() {
     }, [graph, nodes, edges, activeC4Level]);
 
     return (
-        <UnifluxDirtyContext.Provider value={markDirty}>
+        <UnifluxDirtyContext.Provider value={edgeCtxValue}>
         <div className="w-full h-screen bg-gray-50 flex flex-col relative overflow-hidden">
             <header className="h-14 bg-slate-950 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between z-20 shadow-lg">
                 <div className="flex items-center gap-4">
@@ -2493,6 +2515,52 @@ export default function UnifluxWorkspace() {
                                         />
                                     </div>
                                 </div>
+                                {/* ── Logística ── */}
+                                <div className="border-t border-gray-100 pt-3 mt-1">
+                                    <div className="text-[10px] font-bold text-amber-500 uppercase mb-2 flex items-center gap-1">
+                                        <span>◈</span> Datos logísticos (opcional)
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Pickup (origen)</label>
+                                            <input
+                                                value={edgePickupType}
+                                                onChange={e => setEdgePickupType(e.target.value)}
+                                                placeholder="Ej: FTL, LTL, Parcial"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Delivery (destino)</label>
+                                            <input
+                                                value={edgeDeliveryType}
+                                                onChange={e => setEdgeDeliveryType(e.target.value)}
+                                                placeholder="Ej: FTL, LTL, Parcial"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Tipo de jornada</label>
+                                            <input
+                                                value={edgeJornada}
+                                                onChange={e => setEdgeJornada(e.target.value)}
+                                                placeholder="Ej: Completa, Nocturna"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Operación</label>
+                                            <input
+                                                value={edgeOperacion}
+                                                onChange={e => setEdgeOperacion(e.target.value)}
+                                                placeholder="Ej: #1234, OP-99"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </>
                         )}
 
@@ -2735,13 +2803,21 @@ export default function UnifluxWorkspace() {
                             </button>
                         </div>
                         <div className="w-px h-4 bg-slate-200 mr-1"></div>
-                        <button 
-                            onClick={() => setShowGrid(!showGrid)} 
+                        <button
+                            onClick={() => setShowGrid(!showGrid)}
                             className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${showGrid ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-slate-600 hover:bg-slate-100'}`}
                             title={showGrid ? 'Ocultar Cuadrícula' : 'Mostrar Cuadrícula'}
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
                             Grid
+                        </button>
+                        <button
+                            onClick={() => setShowLogisticsLabels(v => !v)}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all ${showLogisticsLabels ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' : 'text-slate-600 hover:bg-slate-100'}`}
+                            title={showLogisticsLabels ? 'Ocultar etiquetas logísticas' : 'Mostrar etiquetas logísticas'}
+                        >
+                            <Tags className="w-3.5 h-3.5" />
+                            Logística
                         </button>
                         <div className="w-px h-4 bg-slate-200"></div>
                         <button onClick={() => triggerAutoLayout('LR')} className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg flex items-center gap-1.5 transition-colors" title="Diagrama Horizontal">

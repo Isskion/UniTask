@@ -92,6 +92,11 @@ export interface FlowEdge {
     pathPoints?: { x: number; y: number }[];
     // V10: Single bend control — relative offset from edge midpoint, coherent when nodes move
     bendOffset?: { x: number; y: number };
+    // V11: Logistics metadata
+    pickupType?: string;
+    deliveryType?: string;
+    jornada?: string;
+    operacion?: string;
     // V9: Customizable label styles
     textColor?: string;
     fontFamily?: string;

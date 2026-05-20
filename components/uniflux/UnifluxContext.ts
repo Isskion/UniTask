@@ -1,4 +1,11 @@
 import { createContext } from 'react';
 
-// Exposed to edge components so they can signal dirtiness without prop drilling.
-export const UnifluxDirtyContext = createContext<() => void>(() => {});
+export interface UnifluxContextValue {
+    markDirty: () => void;
+    showLogisticsLabels: boolean;
+}
+
+export const UnifluxDirtyContext = createContext<UnifluxContextValue>({
+    markDirty: () => {},
+    showLogisticsLabels: true,
+});
