@@ -97,6 +97,8 @@ export interface FlowEdge {
     deliveryType?: string;
     jornada?: string;
     operacion?: string;
+    estadoPedido?: string;
+    fecha?: string;
     // V9: Customizable label styles
     textColor?: string;
     fontFamily?: string;

@@ -582,6 +582,8 @@ export default function UnifluxWorkspace() {
     const [edgeDeliveryType, setEdgeDeliveryType] = useState<string>('');
     const [edgeJornada, setEdgeJornada] = useState<string>('');
     const [edgeOperacion, setEdgeOperacion] = useState<string>('');
+    const [edgeEstadoPedido, setEdgeEstadoPedido] = useState<string>('');
+    const [edgeFecha, setEdgeFecha] = useState<string>('');
 
     // Post-AI banner — reminds user they can undo
     const [showAiBanner, setShowAiBanner] = useState(false);
@@ -764,8 +766,10 @@ export default function UnifluxWorkspace() {
                     ...(e.bendOffset    ? { bendOffset:    e.bendOffset    } : {}),
                     ...(e.pickupType   ? { pickupType:   e.pickupType   } : {}),
                     ...(e.deliveryType ? { deliveryType: e.deliveryType } : {}),
-                    ...(e.jornada      ? { jornada:      e.jornada      } : {}),
-                    ...(e.operacion    ? { operacion:    e.operacion    } : {}),
+                    ...(e.jornada       ? { jornada:       e.jornada       } : {}),
+                    ...(e.operacion     ? { operacion:     e.operacion     } : {}),
+                    ...(e.estadoPedido  ? { estadoPedido:  e.estadoPedido  } : {}),
+                    ...(e.fecha         ? { fecha:         e.fecha         } : {}),
                 },
             };
         });
@@ -1440,6 +1444,8 @@ export default function UnifluxWorkspace() {
         setEdgeDeliveryType((edge.data?.deliveryType as string) || '');
         setEdgeJornada((edge.data?.jornada as string) || '');
         setEdgeOperacion((edge.data?.operacion as string) || '');
+        setEdgeEstadoPedido((edge.data?.estadoPedido as string) || '');
+        setEdgeFecha((edge.data?.fecha as string) || '');
     };
 
     const handleEdgeLabelSave = () => {
@@ -1461,10 +1467,12 @@ export default function UnifluxWorkspace() {
                     ...e.data,
                     textColor: edgeTextColor,
                     fontFamily: edgeFontFamily,
-                    pickupType: edgePickupType || undefined,
+                    pickupType:   edgePickupType   || undefined,
                     deliveryType: edgeDeliveryType || undefined,
-                    jornada: edgeJornada || undefined,
-                    operacion: edgeOperacion || undefined,
+                    jornada:      edgeJornada      || undefined,
+                    operacion:    edgeOperacion    || undefined,
+                    estadoPedido: edgeEstadoPedido || undefined,
+                    fecha:        edgeFecha        || undefined,
                 },
                 ...getC4EdgeStyle(isC4 ? edgeRelType : undefined, false),
                 type: isC4 ? e.type : edgeLineType,
@@ -1828,8 +1836,10 @@ export default function UnifluxWorkspace() {
                     ...(e.data?.bendOffset    ? { bendOffset:    e.data.bendOffset    as { x: number; y: number } } : {}),
                     ...(e.data?.pickupType   ? { pickupType:   e.data.pickupType   as string } : {}),
                     ...(e.data?.deliveryType ? { deliveryType: e.data.deliveryType as string } : {}),
-                    ...(e.data?.jornada      ? { jornada:      e.data.jornada      as string } : {}),
-                    ...(e.data?.operacion    ? { operacion:    e.data.operacion    as string } : {}),
+                    ...(e.data?.jornada       ? { jornada:       e.data.jornada       as string } : {}),
+                    ...(e.data?.operacion     ? { operacion:     e.data.operacion     as string } : {}),
+                    ...(e.data?.estadoPedido  ? { estadoPedido:  e.data.estadoPedido  as string } : {}),
+                    ...(e.data?.fecha         ? { fecha:         e.data.fecha         as string } : {}),
                 }));
 
                 finalGraph = {
@@ -2540,7 +2550,7 @@ export default function UnifluxWorkspace() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-2">
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
                                         <div>
                                             <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Tipo de jornada</label>
                                             <input
@@ -2556,6 +2566,26 @@ export default function UnifluxWorkspace() {
                                                 value={edgeOperacion}
                                                 onChange={e => setEdgeOperacion(e.target.value)}
                                                 placeholder="Ej: #1234, OP-99"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Estado pedido</label>
+                                            <input
+                                                value={edgeEstadoPedido}
+                                                onChange={e => setEdgeEstadoPedido(e.target.value)}
+                                                placeholder="Ej: Pendiente, Cerrado"
+                                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Fecha / Plazo</label>
+                                            <input
+                                                value={edgeFecha}
+                                                onChange={e => setEdgeFecha(e.target.value)}
+                                                placeholder="Ej: +3, D+1, 15/06"
                                                 className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-amber-400"
                                             />
                                         </div>
