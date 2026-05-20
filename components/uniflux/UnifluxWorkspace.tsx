@@ -380,6 +380,46 @@ export default function UnifluxWorkspace() {
         dateEl.style.cssText = 'font-size:16px;font-weight:500;color:#64748b;margin-top:6px;';
         titleEl.appendChild(dateEl);
         viewport.appendChild(titleEl);
+        
+        let watermarkEl: HTMLImageElement | null = null;
+        let logoDataUrl = tenantLogoBase64;
+        
+        if (!logoDataUrl && tenantLogoUrl) {
+            try {
+                const noCacheUrl = tenantLogoUrl + (tenantLogoUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+                const r = await fetch(noCacheUrl, { mode: 'cors' });
+                const blob = await r.blob();
+                logoDataUrl = await new Promise<string>((res, rej) => {
+                    const reader = new FileReader();
+                    reader.onload = () => res(reader.result as string);
+                    reader.onerror = rej;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.error("Fallback logo fetch failed:", e);
+            }
+        }
+
+        if (logoDataUrl) {
+            watermarkEl = document.createElement('img');
+            watermarkEl.src = logoDataUrl;
+            watermarkEl.style.position = 'absolute';
+            const centerX = nodesBounds.x + nodesBounds.width / 2;
+            const centerY = nodesBounds.y + nodesBounds.height / 2;
+            const baseSize = Math.max(nodesBounds.width, nodesBounds.height) * 0.7;
+            const watermarkSize = Math.min(1600, Math.max(400, baseSize));
+            watermarkEl.style.width = `${watermarkSize}px`;
+            watermarkEl.style.height = `${watermarkSize}px`;
+            watermarkEl.style.objectFit = 'contain';
+            watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
+            watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
+            watermarkEl.style.opacity = '0.20';
+            watermarkEl.style.zIndex = '-1';
+            watermarkEl.style.pointerEvents = 'none';
+            // Attempt to use multiply blend mode for white backgrounds
+            watermarkEl.style.mixBlendMode = 'multiply';
+            viewport.insertBefore(watermarkEl, viewport.firstChild);
+        }
 
         const config = {
             backgroundColor: '#ffffff',
@@ -402,7 +442,7 @@ export default function UnifluxWorkspace() {
         };
 
         try {
-            // 3. Capture raw flow (SVG or raster)
+            // 3. Capture raw flow (SVG or raster) with everything inside the DOM natively
             let rawDataUrl: string;
             if (format === 'svg') {
                 rawDataUrl = await toSvg(viewport, config);
@@ -412,83 +452,6 @@ export default function UnifluxWorkspace() {
                 rawDataUrl = await toPng(viewport, config);
             }
 
-            // 4. Composite watermark via canvas (reliable, no DOM z-index issues)
-            // Skipped for SVG — compositing SVG is complex and the logo is a raster image.
-            // Composite watermark using pre-fetched base64 data URL (no CORS taint)
-            // Composite watermark using pre-fetched base64 data URL
-            let finalDataUrl = rawDataUrl;
-            let logoDataUrl = tenantLogoBase64;
-            
-            // If base64 isn't ready (e.g. useEffect failed or is still loading), fetch it now
-            if (!logoDataUrl && tenantLogoUrl) {
-                try {
-                    const noCacheUrl = tenantLogoUrl + (tenantLogoUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
-                    const r = await fetch(noCacheUrl, { mode: 'cors' });
-                    const blob = await r.blob();
-                    logoDataUrl = await new Promise<string>((res, rej) => {
-                        const reader = new FileReader();
-                        reader.onload = () => res(reader.result as string);
-                        reader.onerror = rej;
-                        reader.readAsDataURL(blob);
-                    });
-                } catch (e) {
-                    console.error("Fallback logo fetch failed:", e);
-                }
-            }
-
-            if (format !== 'svg' && logoDataUrl) {
-                finalDataUrl = await new Promise<string>((resolve) => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width  = imageWidth  * pixelRatio;
-                    canvas.height = imageHeight * pixelRatio;
-                    const ctx = canvas.getContext('2d')!;
-
-                    const flowImg = new Image();
-                    flowImg.onload = () => {
-                        // Fix: draw at exact canvas dimensions to prevent devicePixelRatio scaling bugs
-                        // which caused the image to be cropped/shifted, making the title appear in the middle.
-                        ctx.drawImage(flowImg, 0, 0, canvas.width, canvas.height);
-
-                        const logoImg = new Image();
-                        const stamp = () => {
-                            if (logoImg.naturalWidth > 0) {
-                                const baseSize = Math.max(imageWidth, imageHeight) * 0.7;
-                                const wmLogical = Math.min(1600, Math.max(400, baseSize));
-                                const wmPx = wmLogical * pixelRatio;
-                                
-                                // Preserve aspect ratio
-                                const wmRatio = logoImg.naturalWidth / logoImg.naturalHeight;
-                                let drawW = wmPx;
-                                let drawH = wmPx;
-                                if (wmRatio > 1) {
-                                    drawH = wmPx / wmRatio;
-                                } else {
-                                    drawW = wmPx * wmRatio;
-                                }
-                                
-                                const cx = (canvas.width  - drawW) / 2;
-                                const cy = (canvas.height - drawH) / 2;
-                                
-                                // Draw watermark at 20% opacity. 
-                                // Removed complex blending to guarantee it renders regardless of whether it's a JPEG or PNG.
-                                ctx.globalAlpha = 0.20;
-                                ctx.drawImage(logoImg, cx, cy, drawW, drawH);
-                                ctx.globalAlpha = 1.0;
-                            }
-                            resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
-                        };
-                        logoImg.onload  = stamp;
-                        logoImg.onerror = () => {
-                            console.error('Failed to load watermark logo for export');
-                            stamp(); // resolve without watermark
-                        };
-                        logoImg.src = logoDataUrl; 
-                    };
-                    flowImg.onerror = () => resolve(rawDataUrl);
-                    flowImg.src = rawDataUrl;
-                });
-            }
-
             // 5. Download or generate PDF
             if (format === 'pdf') {
                 const pdf = new jsPDF({
@@ -496,16 +459,17 @@ export default function UnifluxWorkspace() {
                     unit: 'px',
                     format: [imageWidth, imageHeight],
                 });
-                pdf.addImage(finalDataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
+                pdf.addImage(rawDataUrl, 'PNG', 0, 0, imageWidth, imageHeight);
                 pdf.save(`uniflux-${graph.name.toLowerCase().replace(/\s/g, '-')}.pdf`);
             } else {
-                downloadFile(finalDataUrl, format === 'jpeg' ? 'jpg' : format);
+                downloadFile(rawDataUrl, format === 'jpeg' ? 'jpg' : format);
             }
         } catch (err) {
             console.error('Falló la exportación del flujo:', err);
         } finally {
             if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
-        }
+            if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
+        };
     }, [graph.name, nodes, tenantLogoBase64]);
 
     // Keyboard Shortcuts
