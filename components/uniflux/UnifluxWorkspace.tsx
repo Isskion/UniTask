@@ -1803,7 +1803,7 @@ export default function UnifluxWorkspace() {
                     pathPoints: (e.data?.pathPoints as any[]) || [],
                     textColor: (e.data?.textColor as string) || '#000000',
                     fontFamily: (e.data?.fontFamily as string) || 'Garamond',
-                    ...(e.data?.bendOffset ? { bendOffset: e.data.bendOffset } : {}),
+                    ...(e.data?.bendOffset ? { bendOffset: e.data.bendOffset as { x: number; y: number } } : {}),
                 }));
 
                 finalGraph = {
