@@ -724,7 +724,7 @@ export default function UnifluxWorkspace() {
                 ...(e.sourceHandle ? { sourceHandle: e.sourceHandle } : {}),
                 ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                 label: e.label || (isC4Edge && e.protocol ? e.protocol : undefined),
-                type: isC4Edge ? 'default' : 'orthogonal',
+                type: isC4Edge ? 'default' : (e.type || 'orthogonal'),
                 animated: isC4Edge ? (e.c4RelType === 'async' || e.c4RelType === 'event') : false,
                 style: isC4Edge ? edgeStyle.line : undefined,
                 markerEnd: isC4Edge 
@@ -1790,6 +1790,7 @@ export default function UnifluxWorkspace() {
                     ...(e.targetHandle ? { targetHandle: e.targetHandle } : {}),
                     ...(e.label ? { label: e.label as string } : {}),
                     // Persist visual styles
+                    type: e.type,
                     animated: e.animated,
                     style: e.style,
                     markerEnd: e.markerEnd,
