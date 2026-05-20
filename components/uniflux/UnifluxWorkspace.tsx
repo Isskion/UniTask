@@ -416,8 +416,6 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.opacity = '0.20';
             watermarkEl.style.zIndex = '-1';
             watermarkEl.style.pointerEvents = 'none';
-            // Attempt to use multiply blend mode for white backgrounds
-            watermarkEl.style.mixBlendMode = 'multiply';
             viewport.insertBefore(watermarkEl, viewport.firstChild);
         }
 
