@@ -343,7 +343,7 @@ export default function UnifluxWorkspace() {
         setTimeout(() => reactFlowInstance?.fitView({ duration: 500, padding: 0.2 }), 50);
     }, [nodes, edges, reactFlowInstance, takeSnapshot, setNodes, setEdges]);
 
-    const handleExport = useCallback(async (format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
+    const handleExport = useCallback((format: 'png' | 'jpeg' | 'svg' | 'pdf') => {
         if (!nodes || nodes.length === 0) return;
 
         const viewport = document.querySelector('.react-flow__viewport') as HTMLElement;
@@ -404,6 +404,7 @@ export default function UnifluxWorkspace() {
         let watermarkEl: HTMLImageElement | null = null;
         if (tenantLogoUrl) {
             watermarkEl = document.createElement('img');
+            watermarkEl.src = tenantLogoUrl;
             watermarkEl.crossOrigin = "anonymous";
             watermarkEl.style.position = 'absolute';
             const centerX = nodesBounds.x + nodesBounds.width / 2;
@@ -416,20 +417,9 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
             watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
             watermarkEl.style.opacity = '0.10';
-            // No negative z-index: html-to-image canvas doesn't render z-index < 0 reliably.
-            // DOM insertion as first child already places it behind sibling elements.
+            watermarkEl.style.zIndex = '-1';
             watermarkEl.style.pointerEvents = 'none';
             viewport.insertBefore(watermarkEl, viewport.firstChild);
-            // Wait for image load before capturing — prevents blank watermark on cold cache
-            await new Promise<void>(resolve => {
-                if (watermarkEl!.complete && watermarkEl!.naturalWidth > 0) {
-                    resolve();
-                } else {
-                    watermarkEl!.onload  = () => resolve();
-                    watermarkEl!.onerror = () => resolve(); // continue even if logo fails
-                    watermarkEl!.src = tenantLogoUrl;      // set src after handlers
-                }
-            });
         }
 
         // 4. Configure explicit transform mapping logical coordinates to output view
