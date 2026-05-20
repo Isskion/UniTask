@@ -415,8 +415,14 @@ export default function UnifluxWorkspace() {
             // 4. Composite watermark via canvas (reliable, no DOM z-index issues)
             // Skipped for SVG — compositing SVG is complex and the logo is a raster image.
             // Composite watermark using pre-fetched base64 data URL (no CORS taint)
+            // Composite watermark using pre-fetched base64 data URL or fallback to raw URL
             let finalDataUrl = rawDataUrl;
-            if (format !== 'svg' && tenantLogoBase64) {
+            let logoToUse = tenantLogoBase64 || tenantLogoUrl;
+            if (logoToUse && logoToUse.startsWith('http')) {
+                // Prevent CORS cache bug for raw URLs
+                logoToUse += (logoToUse.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+            }
+            if (format !== 'svg' && logoToUse) {
                 finalDataUrl = await new Promise<string>((resolve) => {
                     const canvas = document.createElement('canvas');
                     canvas.width  = imageWidth  * pixelRatio;
@@ -447,19 +453,21 @@ export default function UnifluxWorkspace() {
                                 const cx = (canvas.width  - drawW) / 2;
                                 const cy = (canvas.height - drawH) / 2;
                                 
-                                // Multiply blending removes white backgrounds from JPEGs
-                                // and makes the watermark blend naturally with diagram elements.
-                                ctx.globalCompositeOperation = 'multiply';
-                                ctx.globalAlpha = 0.15;
+                                // Draw watermark at 20% opacity. 
+                                // Removed complex blending to guarantee it renders regardless of whether it's a JPEG or PNG.
+                                ctx.globalAlpha = 0.20;
                                 ctx.drawImage(logoImg, cx, cy, drawW, drawH);
                                 ctx.globalAlpha = 1.0;
-                                ctx.globalCompositeOperation = 'source-over';
                             }
                             resolve(canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png'));
                         };
+                        logoImg.crossOrigin = 'anonymous'; // Prevent taint if using fallback URL
                         logoImg.onload  = stamp;
-                        logoImg.onerror = stamp;
-                        logoImg.src = tenantLogoBase64; // data URL — same-origin, no taint
+                        logoImg.onerror = () => {
+                            console.error('Failed to load watermark logo for export');
+                            stamp(); // resolve without watermark
+                        };
+                        logoImg.src = logoToUse; 
                     };
                     flowImg.onerror = () => resolve(rawDataUrl);
                     flowImg.src = rawDataUrl;
@@ -824,7 +832,8 @@ export default function UnifluxWorkspace() {
     useEffect(() => {
         if (!tenantLogoUrl) { setTenantLogoBase64(null); return; }
         let cancelled = false;
-        fetch(tenantLogoUrl)
+        const noCacheUrl = tenantLogoUrl + (tenantLogoUrl.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+        fetch(noCacheUrl, { mode: 'cors' })
             .then(r => r.blob())
             .then(blob => new Promise<string>((res, rej) => {
                 const reader = new FileReader();
