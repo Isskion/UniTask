@@ -420,6 +420,8 @@ export default function UnifluxWorkspace() {
 
             try {
                 await watermarkEl.decode();
+                // Permitir que el navegador pinte la imagen en el DOM antes de capturar
+                await new Promise(resolve => setTimeout(resolve, 300));
             } catch (err) {
                 console.warn("Watermark decode failed:", err);
             }
