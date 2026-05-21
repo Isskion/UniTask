@@ -414,9 +414,15 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.left = `${centerX - watermarkSize / 2}px`;
             watermarkEl.style.top = `${centerY - watermarkSize / 2}px`;
             watermarkEl.style.opacity = '0.20';
-            watermarkEl.style.zIndex = '-1';
+            watermarkEl.style.zIndex = '0';
             watermarkEl.style.pointerEvents = 'none';
             viewport.insertBefore(watermarkEl, viewport.firstChild);
+
+            try {
+                await watermarkEl.decode();
+            } catch (err) {
+                console.warn("Watermark decode failed:", err);
+            }
         }
 
         const config = {
