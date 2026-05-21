@@ -62,6 +62,10 @@ export interface AgendaEntry {
     scheduleEnd: string;    // '11:30'
     scheduledHours: number; // 2.5
 
+    // Division
+    divisionId:   string;   // e.g. 'Consultoría'
+    divisionName: string;   // display name (same as id for now)
+
     // Result
     result: ResultStatus;
 
@@ -89,6 +93,7 @@ export interface AgendaConsultant {
     name: string;
     sortOrder: number;
     region: ConsultantRegion;
+    divisions: string[];    // e.g. ['Consultoría'] or ['Consultoría', 'Tecnología']
     isActive: boolean;
     createdAt: Timestamp;
 }
@@ -255,6 +260,7 @@ export interface AgendaFilters {
     activityTypes: ActivityType[];
     results: ResultStatus[];
     region: ConsultantRegion | 'ALL';
+    divisions: string[];        // empty = all
 }
 
 export const DEFAULT_FILTERS: AgendaFilters = {
@@ -262,6 +268,7 @@ export const DEFAULT_FILTERS: AgendaFilters = {
     activityTypes: [],
     results: [],
     region: 'ALL',
+    divisions: [],
 };
 
 // ─── Export ───────────────────────────────────────────────────────────────────

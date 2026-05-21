@@ -654,7 +654,7 @@ export const de: Dictionary = {
         noConsultantsFilter:"Keine Berater entsprechen den aktiven Filtern.",
         noConsultants:"Keine Berater für diesen Tenant konfiguriert.",
         noConsultantsHint:"Fügen Sie die Benutzer hinzu, die im Wochenplan erscheinen sollen.",
-        configureBtn:"Berater konfigurieren",region:"Region",allRegions:"Alle",
+        configureBtn:"Berater konfigurieren",region:"Region",allRegions:"Alle",division:"Abteilung",divisionFilter:"Abteilung",
         activityFilter:"Aktivität",statusFilter:"Status",workday:"Arbeitstag",
         holiday:"Feiertag",weekend:"Wochenende",newEntry:"Neuer Eintrag",
         editEntry:"Eintrag bearbeiten",activityType:"Aktivitätstyp",comment:"Kommentar",

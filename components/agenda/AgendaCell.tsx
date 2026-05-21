@@ -61,6 +61,9 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                                 </span>
                             </div>
                         )}
+                        {entry.divisionName && (
+                            <p className="text-[8px] font-bold uppercase tracking-wider text-violet-500/80 truncate">{entry.divisionName}</p>
+                        )}
                         {entry.client && (
                             <p className={cn("truncate", actCfg.textClass, "opacity-80")}>{entry.client}</p>
                         )}

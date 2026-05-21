@@ -84,6 +84,8 @@ export interface CreateEntryInput {
     consultantName: string;
     consultantOrder: number;
     region: string;
+    divisionId:   string;
+    divisionName: string;
     date: Date;
     activityType: ActivityType;
     comment: string;
@@ -124,6 +126,8 @@ export async function createAgendaEntry(input: CreateEntryInput): Promise<string
         consultantName:  input.consultantName,
         consultantOrder: input.consultantOrder,
         region:          input.region,
+        divisionId:      input.divisionId,
+        divisionName:    input.divisionName,
         activityType:    input.activityType,
         comment:         input.comment,
         client,
@@ -154,6 +158,8 @@ export interface UpdateEntryInput {
     comment?: string;
     scheduleRaw?: string;
     result?: ResultStatus;
+    divisionId?:   string;
+    divisionName?: string;
     projectId?:    string | null;
     projectName?:  string | null;
     projectCode?:  string | null;
@@ -166,6 +172,8 @@ export async function updateAgendaEntry(id: string, input: UpdateEntryInput): Pr
 
     if (input.activityType !== undefined) updates.activityType = input.activityType;
     if (input.result       !== undefined) updates.result       = input.result;
+    if (input.divisionId   !== undefined) updates.divisionId   = input.divisionId;
+    if (input.divisionName !== undefined) updates.divisionName = input.divisionName;
     if (input.linkedTaskId !== undefined) updates.linkedTaskId = input.linkedTaskId;
     if (input.projectId    !== undefined) updates.projectId    = input.projectId;
     if (input.projectName  !== undefined) updates.projectName  = input.projectName;
@@ -209,7 +217,7 @@ export async function createConsultant(data: Omit<AgendaConsultant, 'id' | 'crea
     return ref.id;
 }
 
-export async function updateConsultant(id: string, data: Partial<Pick<AgendaConsultant, 'name' | 'sortOrder' | 'region' | 'isActive'>>): Promise<void> {
+export async function updateConsultant(id: string, data: Partial<Pick<AgendaConsultant, 'name' | 'sortOrder' | 'region' | 'isActive' | 'divisions'>>): Promise<void> {
     await updateDoc(doc(db, CONSULTANTS_COLLECTION, id), data);
 }
 

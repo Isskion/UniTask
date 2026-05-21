@@ -30,6 +30,7 @@ const ALL_COLS: ColDef[] = [
     { key: 'estado',      label: 'Estado',         width: 14, enabled: true  },
     { key: 'proyecto',    label: 'Proyecto',       width: 22, enabled: true  },
     { key: 'codProyecto', label: 'Cód. Proyecto',  width: 14, enabled: true  },
+    { key: 'division',    label: 'División',       width: 18, enabled: false },
     { key: 'dia',         label: 'Día semana',     width: 13, enabled: false },
     { key: 'region',      label: 'Región',         width: 14, enabled: false },
     { key: 'semana',      label: 'Semana',         width: 18, enabled: false },
@@ -42,6 +43,7 @@ function getVal(e: AgendaEntry, key: string, dateObj: Date): string {
         case 'dia':         return format(dateObj, 'EEEE', { locale: es });
         case 'consultor':   return e.consultantName;
         case 'region':      return e.region        || '';
+        case 'division':    return e.divisionName  || '';
         case 'actividad':   return e.activityType;
         case 'cliente':     return e.client;
         case 'descripcion': return e.description;

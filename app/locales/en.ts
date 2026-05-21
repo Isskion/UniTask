@@ -679,6 +679,8 @@ export const en = {
         // Filters panel
         region:             "Region",
         allRegions:         "All",
+        division:           "Division",
+        divisionFilter:     "Division",
         activityFilter:     "Activity",
         statusFilter:       "Status",
         // Day types

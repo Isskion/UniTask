@@ -678,6 +678,8 @@ export const es: Dictionary = {
         configureBtn:       "Configurar consultores",
         region:             "Región",
         allRegions:         "Todas",
+        division:           "División",
+        divisionFilter:     "División",
         activityFilter:     "Actividad",
         statusFilter:       "Estado",
         workday:            "Día Hábil",

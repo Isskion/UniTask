@@ -654,7 +654,7 @@ export const pt: Dictionary = {
         noConsultantsFilter:"Nenhum consultor corresponde aos filtros ativos.",
         noConsultants:"Nenhum consultor configurado para este tenant.",
         noConsultantsHint:"Adicione os usuários que aparecerão na agenda semanal.",
-        configureBtn:"Configurar consultores",region:"Região",allRegions:"Todas",
+        configureBtn:"Configurar consultores",region:"Região",allRegions:"Todas",division:"Divisão",divisionFilter:"Divisão",
         activityFilter:"Atividade",statusFilter:"Estado",workday:"Dia Útil",
         holiday:"Feriado",weekend:"Fim de Semana",newEntry:"Nova entrada",
         editEntry:"Editar entrada",activityType:"Tipo de atividade",comment:"Comentário",

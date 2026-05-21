@@ -118,12 +118,17 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
                     detectedRegion = samRegions[0]?.name ?? '';
                 }
 
+                // Derive divisions from user's accessScopes.divisionIds, falling back to default
+                const divIds = u.accessScopes?.divisionIds || [];
+                const detectedDivisions = divIds.length > 0 ? divIds : ['Consultoría'];
+
                 await createConsultant({
                     tenantId,
                     userId:     u.uid,
                     name:       u.displayName.toUpperCase(),
                     sortOrder:  maxOrder + 1,
                     region:     detectedRegion,
+                    divisions:  detectedDivisions,
                     isActive:   true,
                 });
             }

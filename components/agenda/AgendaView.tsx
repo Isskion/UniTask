@@ -141,11 +141,28 @@ export function AgendaView() {
         );
     }, [accessibleConsultants, filters.region, samRegions]);
 
+    // Available divisions derived from current week's entries
+    const availableDivisions = useMemo(() => {
+        const seen = new Set<string>();
+        entries.forEach(e => { if (e.divisionName) seen.add(e.divisionName); });
+        return Array.from(seen).sort();
+    }, [entries]);
+
+    function toggleDivision(div: string) {
+        setFilters(f => ({
+            ...f,
+            divisions: f.divisions.includes(div)
+                ? f.divisions.filter(x => x !== div)
+                : [...f.divisions, div],
+        }));
+    }
+
     const activeFilterCount = [
         filters.consultantIds.length > 0,
         filters.activityTypes.length > 0,
         filters.results.length > 0,
         filters.region !== 'ALL',
+        filters.divisions.length > 0,
     ].filter(Boolean).length;
 
     function clearFilters() { setFilters(DEFAULT_FILTERS); }
@@ -462,6 +479,29 @@ export function AgendaView() {
                             })}
                         </div>
                     </div>
+
+                    {/* Divisions */}
+                    {availableDivisions.length > 0 && (
+                        <div className="space-y-1.5">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{t('agenda.divisionFilter')}</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {availableDivisions.map(div => (
+                                    <button
+                                        key={div}
+                                        onClick={() => toggleDivision(div)}
+                                        className={cn(
+                                            "px-2.5 py-1 rounded-md text-xs font-medium border transition-all",
+                                            filters.divisions.includes(div)
+                                                ? "bg-violet-600 border-violet-600 text-white"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        {div}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Clear */}
                     {activeFilterCount > 0 && (

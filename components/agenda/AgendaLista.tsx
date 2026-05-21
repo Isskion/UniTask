@@ -36,6 +36,7 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
         if (filters.consultantIds.length > 0 && !filters.consultantIds.includes(e.consultantId)) return false;
         if (filters.activityTypes.length > 0 && !filters.activityTypes.includes(e.activityType)) return false;
         if (filters.results.length > 0       && !filters.results.includes(e.result))             return false;
+        if (filters.divisions?.length > 0    && !filters.divisions.includes(e.divisionName))     return false;
         return true;
     }), [entries, filters]);
 

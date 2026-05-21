@@ -654,7 +654,7 @@ export const ca: Dictionary = {
         noConsultantsFilter:"Cap consultor coincideix amb els filtres actius.",
         noConsultants:"No hi ha consultors configurats per a aquest tenant.",
         noConsultantsHint:"Afegeix els usuaris que apareixeran a l'agenda setmanal.",
-        configureBtn:"Configurar consultors",region:"Regió",allRegions:"Totes",
+        configureBtn:"Configurar consultors",region:"Regió",allRegions:"Totes",division:"Divisió",divisionFilter:"Divisió",
         activityFilter:"Activitat",statusFilter:"Estat",workday:"Dia Laborable",
         holiday:"Festiu",weekend:"Cap de Setmana",newEntry:"Nova entrada",
         editEntry:"Editar entrada",activityType:"Tipus d'activitat",comment:"Comentari",

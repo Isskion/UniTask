@@ -45,12 +45,16 @@ const TIME_OPTIONS: string[] = (() => {
 const FULL_DAY_START = '09:00';
 const FULL_DAY_END   = '18:00';
 
+const DEFAULT_DIVISION = 'Consultoría';
+
 interface FormState {
     activityType:  ActivityType;
     comment:       string;
     timeStart:     string;
     timeEnd:       string;
     result:        ResultStatus;
+    divisionId:    string;
+    divisionName:  string;
     projectId:     string;
     projectName:   string;
     projectCode:   string;
@@ -63,6 +67,8 @@ const EMPTY_FORM: FormState = {
     timeStart:     '',
     timeEnd:       '',
     result:        ResultStatus.POR_HACER,
+    divisionId:    DEFAULT_DIVISION,
+    divisionName:  DEFAULT_DIVISION,
     projectId:     '',
     projectName:   '',
     projectCode:   '',
@@ -135,6 +141,11 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
     }
 
     // ── Sync form on open ─────────────────────────────────────────────────────
+    // Consultant's divisions — resolved at open time so the picker always reflects current data
+    const consultantDivisions = consultant.divisions?.length
+        ? consultant.divisions
+        : [DEFAULT_DIVISION];
+
     useEffect(() => {
         if (!isOpen) return;
         setSaveError(null);
@@ -148,14 +159,18 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                 timeStart,
                 timeEnd,
                 result:        entry.result,
+                divisionId:    entry.divisionId   || consultantDivisions[0],
+                divisionName:  entry.divisionName || consultantDivisions[0],
                 projectId:     entry.projectId    || '',
                 projectName:   entry.projectName  || '',
                 projectCode:   entry.projectCode  || '',
                 projectColor:  entry.projectColor || '',
             });
         } else {
-            setForm(EMPTY_FORM);
+            // Auto-fill with consultant's first (or only) division
+            setForm({ ...EMPTY_FORM, divisionId: consultantDivisions[0], divisionName: consultantDivisions[0] });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, entry]);
 
     // ── Derived values ────────────────────────────────────────────────────────
@@ -198,6 +213,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                     comment:      form.comment,
                     scheduleRaw,
                     result:       form.result,
+                    divisionId:   form.divisionId,
+                    divisionName: form.divisionName,
                     projectId:    form.projectId    || null,
                     projectName:  form.projectName  || null,
                     projectCode:  form.projectCode  || null,
@@ -210,6 +227,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                     consultantName:  consultant.name,
                     consultantOrder: consultant.sortOrder,
                     region:          consultant.region,
+                    divisionId:      form.divisionId,
+                    divisionName:    form.divisionName,
                     date,
                     activityType:    form.activityType,
                     comment:         form.comment,
@@ -262,12 +281,15 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
             const [y, m, d] = cloneDate.split('-').map(Number);
             const targetDateObj = new Date(y, m - 1, d);
 
+            const targetDivisions = targetC.divisions?.length ? targetC.divisions : [DEFAULT_DIVISION];
             const input: CreateEntryInput = {
                 tenantId,
                 consultantId:    targetC.userId,
                 consultantName:  targetC.name,
                 consultantOrder: targetC.sortOrder,
                 region:          targetC.region,
+                divisionId:      form.divisionId   || targetDivisions[0],
+                divisionName:    form.divisionName || targetDivisions[0],
                 date:            targetDateObj,
                 activityType:    form.activityType,
                 comment:         form.comment,
@@ -573,6 +595,40 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                             ))}
                         </div>
                     </div>
+
+                    {/* Division — shown as read-only badge when 1 division, picker when 2+ */}
+                    {consultantDivisions.length > 1 ? (
+                        <div className="space-y-2">
+                            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <Tag className="w-3.5 h-3.5" />
+                                {t('agenda.division')}
+                            </label>
+                            <div className="flex gap-2 flex-wrap">
+                                {consultantDivisions.map(div => (
+                                    <button
+                                        key={div}
+                                        onClick={() => setForm(f => ({ ...f, divisionId: div, divisionName: div }))}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+                                            form.divisionId === div
+                                                ? "bg-violet-600/20 border-violet-500/40 text-violet-300"
+                                                : "bg-white/3 border-white/5 text-zinc-500 hover:text-zinc-300 hover:bg-white/6"
+                                        )}
+                                    >
+                                        {div}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Tag className="w-3.5 h-3.5 text-zinc-600" />
+                            <span className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('agenda.division')}:</span>
+                            <span className="text-xs font-medium text-violet-400 bg-violet-600/10 border border-violet-500/20 px-2 py-0.5 rounded-full">
+                                {form.divisionName || consultantDivisions[0]}
+                            </span>
+                        </div>
+                    )}
 
                     {/* Result */}
                     <div className="space-y-2">

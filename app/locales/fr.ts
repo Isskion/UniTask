@@ -654,7 +654,7 @@ export const fr: Dictionary = {
         noConsultantsFilter:"Aucun consultant ne correspond aux filtres actifs.",
         noConsultants:"Aucun consultant configuré pour ce tenant.",
         noConsultantsHint:"Ajoutez les utilisateurs qui apparaîtront dans le planning hebdomadaire.",
-        configureBtn:"Configurer les consultants",region:"Région",allRegions:"Toutes",
+        configureBtn:"Configurer les consultants",region:"Région",allRegions:"Toutes",division:"Division",divisionFilter:"Division",
         activityFilter:"Activité",statusFilter:"Statut",workday:"Jour Ouvré",
         holiday:"Jour Férié",weekend:"Week-end",newEntry:"Nouvelle entrée",
         editEntry:"Modifier l'entrée",activityType:"Type d'activité",comment:"Commentaire",

@@ -64,7 +64,10 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
             const filteredResult = filters.results.length > 0
                 ? filtered.filter(f => filters.results.includes(f.result))
                 : filtered;
-            map.get(key)!.push(...filteredResult);
+            const filteredDiv = filters.divisions?.length > 0
+                ? filteredResult.filter(f => filters.divisions.includes(f.divisionName))
+                : filteredResult;
+            map.get(key)!.push(...filteredDiv);
         });
         return map;
     }, [entries, filters]);
