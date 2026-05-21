@@ -7,6 +7,7 @@ import { createConsultant, updateConsultant, SAMRegion, SAMDivision } from "@/li
 import { AgendaConsultant } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { getRoleLevel } from "@/types";
 import { cn } from "@/lib/utils";
 import {
     Users, Plus, Check, X, GripVertical, Globe, ChevronDown, Loader2, UserCheck, UserX,
@@ -17,6 +18,7 @@ interface TenantUser {
     displayName: string;
     email: string;
     photoURL?: string;
+    role?: string;
     accessScopes?: {
         regionIds?: string[];
         divisionIds?: string[];
@@ -111,9 +113,10 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                     updateData.divisions = ['Consultoría'];
                 }
 
-                // Sync regions from current accessScopes so filter stays accurate
+                // Sync regions — admins (role >= 80) or wildcard scope are always global
                 const rawRegIds = u.accessScopes?.regionIds || [];
-                if (rawRegIds.includes('*')) {
+                const isGlobal  = getRoleLevel(u.role) >= 80 || rawRegIds.includes('*');
+                if (isGlobal) {
                     updateData.regions = ['*'];
                 } else if (rawRegIds.length > 0) {
                     updateData.regions = rawRegIds.map(id => samRegions.find(r => r.id === id)?.name ?? id);
@@ -124,26 +127,20 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                 // Add — sortOrder = next in line
                 const maxOrder = consultants.reduce((m, c) => Math.max(m, c.sortOrder), 0);
 
-                // Resolve primary region (first non-wildcard region, or first in catalog)
+                // Resolve primary region and all regions — admins are always global
                 const userRegionIds = u.accessScopes?.regionIds || [];
-                let detectedRegion = '';
-                if (userRegionIds.includes('*')) {
-                    detectedRegion = samRegions[0]?.name ?? '';
-                } else if (userRegionIds.length > 0) {
+                const isGlobalNew   = getRoleLevel(u.role) >= 80 || userRegionIds.includes('*');
+                let detectedRegion  = '';
+                if (!isGlobalNew && userRegionIds.length > 0) {
                     detectedRegion = samRegions.find(r => r.id === userRegionIds[0])?.name ?? userRegionIds[0];
                 } else {
                     detectedRegion = samRegions[0]?.name ?? '';
                 }
-
-                // Resolve all regions for multi-region filtering
-                let detectedRegions: string[];
-                if (userRegionIds.includes('*')) {
-                    detectedRegions = ['*'];
-                } else if (userRegionIds.length > 0) {
-                    detectedRegions = userRegionIds.map(id => samRegions.find(r => r.id === id)?.name ?? id);
-                } else {
-                    detectedRegions = detectedRegion ? [detectedRegion] : [];
-                }
+                const detectedRegions: string[] = isGlobalNew
+                    ? ['*']
+                    : userRegionIds.length > 0
+                        ? userRegionIds.map(id => samRegions.find(r => r.id === id)?.name ?? id)
+                        : (detectedRegion ? [detectedRegion] : []);
 
                 // Resolve division IDs → names
                 const rawDivIds = (u.accessScopes?.divisionIds || []).filter(id => id !== '*');
@@ -255,7 +252,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                                         {/* Name */}
                                         <span className="flex-1 text-sm font-medium text-zinc-200">{c.name}</span>
 
-                                        {/* Region select */}
+                                        {/* Region select + regions badge */}
                                         <div className="flex flex-col items-end gap-0.5">
                                             <select
                                                 value={c.region}
@@ -275,7 +272,21 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                                                       </>
                                                 }
                                             </select>
-                                            <span className="text-[8px] text-zinc-600 font-mono">bd:{c.region || '∅'}</span>
+                                            {/* regions[] badge — shows multi-region or global state */}
+                                            <span className={cn(
+                                                "text-[8px] font-bold px-1 py-px rounded",
+                                                c.regions?.includes('*')
+                                                    ? "bg-emerald-500/20 text-emerald-400"
+                                                    : c.regions?.length
+                                                        ? "bg-indigo-500/20 text-indigo-400"
+                                                        : "text-zinc-700"
+                                            )}>
+                                                {c.regions?.includes('*')
+                                                    ? '★ global'
+                                                    : c.regions?.length
+                                                        ? c.regions.join(', ')
+                                                        : 'sin sync'}
+                                            </span>
                                         </div>
 
                                         {/* Remove */}
