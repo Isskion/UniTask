@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
@@ -22,16 +22,30 @@ interface AgendaListaProps {
     consultants: AgendaConsultant[];
     filters:     AgendaFilters;
     weekLabel:   string;
+    weekDays:    Date[];
 }
 
-export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
-    const { t } = useLanguage();
-    const [search,      setSearch]      = useState('');
-    const [sortField,   setSortField]   = useState<SortField>('date');
-    const [sortDir,     setSortDir]     = useState<SortDir>('asc');
-    const [showExport,  setShowExport]  = useState(false);
+function toIso(date: Date): string {
+    return format(date, 'yyyy-MM-dd');
+}
 
-    // Apply global filters (mirrors AgendaGrid logic)
+function entryIso(e: AgendaEntry): string {
+    const d = e.date instanceof Timestamp ? e.date.toDate() : new Date(e.date as unknown as string);
+    return toIso(d);
+}
+
+export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaListaProps) {
+    const { t } = useLanguage();
+
+    // ── Local filter state ────────────────────────────────────────────────────
+    const [search,          setSearch]         = useState('');
+    const [selectedDays,    setSelectedDays]   = useState<string[]>([]);   // ISO dates
+    const [selectedProjects,setSelectedProjects] = useState<string[]>([]);  // projectIds
+    const [sortField,       setSortField]      = useState<SortField>('date');
+    const [sortDir,         setSortDir]        = useState<SortDir>('asc');
+    const [showExport,      setShowExport]     = useState(false);
+
+    // ── 1. Global filters (from AgendaView panel) ─────────────────────────────
     const baseFiltered = useMemo(() => entries.filter(e => {
         if (filters.consultantIds.length > 0 && !filters.consultantIds.includes(e.consultantId)) return false;
         if (filters.activityTypes.length > 0 && !filters.activityTypes.includes(e.activityType)) return false;
@@ -40,20 +54,47 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
         return true;
     }), [entries, filters]);
 
-    // Local text search
+    // ── 2. Day filter ─────────────────────────────────────────────────────────
+    const dayFiltered = useMemo(() => {
+        if (selectedDays.length === 0) return baseFiltered;
+        return baseFiltered.filter(e => selectedDays.includes(entryIso(e)));
+    }, [baseFiltered, selectedDays]);
+
+    // ── 3. Project filter ─────────────────────────────────────────────────────
+    const availableProjects = useMemo(() => {
+        const map = new Map<string, { id: string; code: string; name: string; color: string }>();
+        baseFiltered.forEach(e => {
+            if (e.projectId && !map.has(e.projectId)) {
+                map.set(e.projectId, {
+                    id:    e.projectId,
+                    code:  e.projectCode  || e.projectId,
+                    name:  e.projectName  || '',
+                    color: e.projectColor || '#6b7280',
+                });
+            }
+        });
+        return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
+    }, [baseFiltered]);
+
+    const projectFiltered = useMemo(() => {
+        if (selectedProjects.length === 0) return dayFiltered;
+        return dayFiltered.filter(e => e.projectId && selectedProjects.includes(e.projectId));
+    }, [dayFiltered, selectedProjects]);
+
+    // ── 4. Text search ────────────────────────────────────────────────────────
     const searched = useMemo(() => {
-        if (!search.trim()) return baseFiltered;
+        if (!search.trim()) return projectFiltered;
         const q = search.toLowerCase();
-        return baseFiltered.filter(e =>
-            e.consultantName.toLowerCase().includes(q)   ||
-            e.client.toLowerCase().includes(q)           ||
-            e.description.toLowerCase().includes(q)      ||
-            (e.projectName || '').toLowerCase().includes(q) ||
+        return projectFiltered.filter(e =>
+            e.consultantName.toLowerCase().includes(q)       ||
+            e.client.toLowerCase().includes(q)               ||
+            e.description.toLowerCase().includes(q)          ||
+            (e.projectName || '').toLowerCase().includes(q)  ||
             e.activityType.toLowerCase().includes(q)
         );
-    }, [baseFiltered, search]);
+    }, [projectFiltered, search]);
 
-    // Sort
+    // ── 5. Sort ───────────────────────────────────────────────────────────────
     const sorted = useMemo(() => [...searched].sort((a, b) => {
         let va: string | number;
         let vb: string | number;
@@ -76,9 +117,30 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
 
     const totalHours = sorted.reduce((acc, e) => acc + (e.scheduledHours || 0), 0);
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function handleSort(field: SortField) {
         if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         else { setSortField(field); setSortDir('asc'); }
+    }
+
+    function toggleDay(iso: string) {
+        setSelectedDays(prev =>
+            prev.includes(iso) ? prev.filter(d => d !== iso) : [...prev, iso]
+        );
+    }
+
+    function toggleProject(id: string) {
+        setSelectedProjects(prev =>
+            prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+        );
+    }
+
+    const hasLocalFilters = selectedDays.length > 0 || selectedProjects.length > 0 || search.trim().length > 0;
+
+    function clearLocalFilters() {
+        setSelectedDays([]);
+        setSelectedProjects([]);
+        setSearch('');
     }
 
     function SortIcon({ field }: { field: SortField }) {
@@ -90,22 +152,22 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
 
     type ColDef = { field: SortField | null; label: string };
     const columns: ColDef[] = [
-        { field: 'date',          label: 'Fecha'                     },
-        { field: 'consultant',    label: t('agenda.consultantCol')   },
-        { field: 'activityType',  label: t('agenda.activityFilter')  },
-        { field: 'client',        label: t('agenda.clientLabel')     },
-        { field: null,            label: t('agenda.descLabel')       },
-        { field: null,            label: t('agenda.schedule')        },
-        { field: 'scheduledHours',label: t('agenda.plannedAbbr')    },
-        { field: 'result',        label: t('agenda.statusLabel')     },
-        { field: 'projectName',   label: t('agenda.project')        },
+        { field: 'date',          label: 'Fecha'                    },
+        { field: 'consultant',    label: t('agenda.consultantCol')  },
+        { field: 'activityType',  label: t('agenda.activityFilter') },
+        { field: 'client',        label: t('agenda.clientLabel')    },
+        { field: null,            label: t('agenda.descLabel')      },
+        { field: null,            label: t('agenda.schedule')       },
+        { field: 'scheduledHours',label: t('agenda.plannedAbbr')   },
+        { field: 'result',        label: t('agenda.statusLabel')    },
+        { field: 'projectName',   label: t('agenda.project')       },
     ];
 
     return (
         <>
             <div className="flex flex-col flex-1 overflow-hidden">
 
-                {/* Sub-toolbar */}
+                {/* ── Sub-toolbar ───────────────────────────────────────────── */}
                 <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card/30 shrink-0 flex-wrap">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -114,13 +176,23 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
                             placeholder={t('agenda.listSearch')}
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="pl-8 pr-3 py-1.5 w-56 text-xs bg-secondary/40 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50"
+                            className="pl-8 pr-3 py-1.5 w-52 text-xs bg-secondary/40 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50"
                         />
                     </div>
 
                     <span className="text-xs text-muted-foreground ml-auto">
                         {sorted.length} {t('agenda.nEntries')} · <span className="font-semibold text-foreground">{formatHours(totalHours)}</span> {t('agenda.plannedAbbr')}
                     </span>
+
+                    {hasLocalFilters && (
+                        <button
+                            onClick={clearLocalFilters}
+                            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <X className="w-3 h-3" />
+                            {t('agenda.clearFilters')}
+                        </button>
+                    )}
 
                     <button
                         onClick={() => setShowExport(true)}
@@ -132,7 +204,72 @@ export function AgendaLista({ entries, filters, weekLabel }: AgendaListaProps) {
                     </button>
                 </div>
 
-                {/* Table */}
+                {/* ── Filter strip ──────────────────────────────────────────── */}
+                <div className="flex flex-wrap gap-x-6 gap-y-2 px-4 py-2 border-b border-border bg-card/20 shrink-0">
+
+                    {/* Day filter */}
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider shrink-0">Días</span>
+                        <div className="flex gap-1">
+                            {weekDays.map(day => {
+                                const iso      = toIso(day);
+                                const active   = selectedDays.includes(iso);
+                                const abbr     = format(day, 'EEE', { locale: es }).slice(0, 2).toUpperCase();
+                                const num      = format(day, 'd');
+                                const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                                return (
+                                    <button
+                                        key={iso}
+                                        onClick={() => toggleDay(iso)}
+                                        className={cn(
+                                            "flex flex-col items-center px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all leading-tight min-w-[28px]",
+                                            active
+                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                : isWeekend
+                                                    ? "bg-secondary/20 border-border text-muted-foreground/50"
+                                                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        <span className="font-bold">{abbr}</span>
+                                        <span className="opacity-70">{num}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Project filter — only when there are projects in the current data */}
+                    {availableProjects.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider shrink-0">{t('agenda.project')}</span>
+                            <div className="flex flex-wrap gap-1">
+                                {availableProjects.map(p => {
+                                    const active = selectedProjects.includes(p.id);
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => toggleProject(p.id)}
+                                            className={cn(
+                                                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                                active
+                                                    ? "bg-secondary border-border text-foreground font-semibold"
+                                                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                            )}
+                                        >
+                                            <span
+                                                className={cn("w-1.5 h-1.5 rounded-sm shrink-0", !active && "bg-muted-foreground/40")}
+                                                style={active ? { backgroundColor: p.color } : undefined}
+                                            />
+                                            {p.code}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Table ─────────────────────────────────────────────────── */}
                 <div className="flex-1 overflow-auto">
                     {sorted.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground gap-3">

@@ -634,6 +634,7 @@ export function AgendaView() {
                     consultants={filteredConsultants}
                     filters={filters}
                     weekLabel={weekLabel}
+                    weekDays={weekDays}
                 />
             ) : (
                 <AgendaGrid
