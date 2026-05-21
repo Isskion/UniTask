@@ -17,7 +17,7 @@ import {
     getCurrentWeekStart, getWeekDays, getWeekMark, getWeekNumber,
     getYearMonth, getWeekMonth, getWeekLabel,
 } from "@/lib/agenda-utils";
-import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSProject, loadSAMRegions, SAMRegion } from "@/lib/agenda";
+import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSProject, loadSAMRegions, loadSAMDivisions, SAMRegion, SAMDivision } from "@/lib/agenda";
 import { clearIndexedDbPersistence, terminate } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AgendaGrid } from "./AgendaGrid";
@@ -78,10 +78,12 @@ export function AgendaView() {
     }, [tid, weekStartIso]);
 
     // ── SAM regions (source of truth for filter buttons) ─────────────────────
-    const [samRegions, setSamRegions] = useState<SAMRegion[]>([]);
+    const [samRegions,    setSamRegions]    = useState<SAMRegion[]>([]);
+    const [samDivisions,  setSamDivisions]  = useState<SAMDivision[]>([]);
     useEffect(() => {
         if (!tid) return;
         loadSAMRegions(tid).then(setSamRegions);
+        loadSAMDivisions(tid).then(setSamDivisions);
     }, [tid]);
     // ── Access-scoped regions: solo las regiones que el usuario puede ver ────────
     const availableRegions = useMemo(() => {
@@ -141,12 +143,22 @@ export function AgendaView() {
         );
     }, [accessibleConsultants, filters.region, samRegions]);
 
-    // Available divisions derived from current week's entries
+    // Available divisions: from SAM catalog (authoritative) filtered to those the user can access.
+    // Falls back to names found in entries if catalog is empty (e.g. not yet configured).
     const availableDivisions = useMemo(() => {
+        if (samDivisions.length > 0) {
+            if (!accessScopes || accessScopes.divisionIds.includes('*')) {
+                return samDivisions.map(d => d.name);
+            }
+            return samDivisions
+                .filter(d => accessScopes.divisionIds.includes(d.id))
+                .map(d => d.name);
+        }
+        // Fallback: collect from live entries
         const seen = new Set<string>();
         entries.forEach(e => { if (e.divisionName) seen.add(e.divisionName); });
         return Array.from(seen).sort();
-    }, [entries]);
+    }, [samDivisions, accessScopes, entries]);
 
     function toggleDivision(div: string) {
         setFilters(f => ({
@@ -555,6 +567,7 @@ export function AgendaView() {
                     entries={entries}
                     filters={filters}
                     tenantId={tid}
+                    samDivisions={samDivisions}
                 />
             )}
 
@@ -563,6 +576,7 @@ export function AgendaView() {
                     consultants={consultants}
                     tenantId={tid}
                     samRegions={samRegions}
+                    samDivisions={samDivisions}
                     onClose={() => setShowConsultantsManager(false)}
                 />
             )}

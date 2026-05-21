@@ -19,6 +19,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { filterBySAMScope, getActiveProjects } from "@/lib/projects";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { Project, getRoleLevel } from "@/types";
+import { SAMDivision } from "@/lib/agenda";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -30,6 +31,7 @@ interface Props {
     date: Date;
     entry?: AgendaEntry | null;
     tenantId: string;
+    samDivisions?: SAMDivision[];
 }
 
 // ── Time options: 06:00 → 22:00 in 30-min steps ──────────────────────────────
@@ -86,7 +88,7 @@ function parseScheduleToTimes(raw: string): { timeStart: string; timeEnd: string
     return { timeStart: '', timeEnd: '' };
 }
 
-export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants = [], date, entry, tenantId }: Props) {
+export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants = [], date, entry, tenantId, samDivisions = [] }: Props) {
     const { user, userRole } = useAuth();
     const { t } = useLanguage();
     const accessScopes = useAccessScopes(); // SAM scope — null = sin restricción
@@ -141,10 +143,21 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
     }
 
     // ── Sync form on open ─────────────────────────────────────────────────────
-    // Consultant's divisions — resolved at open time so the picker always reflects current data
-    const consultantDivisions = consultant.divisions?.length
-        ? consultant.divisions
-        : [DEFAULT_DIVISION];
+    // Consultant's divisions, resolved to names:
+    // 1. If divisions field has values → use them (names stored by ConsultantsManager post-fix)
+    // 2. If empty and SAM catalog available → show all catalog divisions (user assigns)
+    // 3. Absolute fallback → ['Consultoría']
+    const consultantDivisions = useMemo(() => {
+        if (consultant.divisions?.length) {
+            // Might be IDs (stored before name-resolution fix) — resolve via catalog if possible
+            return consultant.divisions.map(d => {
+                const match = samDivisions.find(s => s.id === d || s.name === d);
+                return match ? match.name : d;
+            });
+        }
+        if (samDivisions.length > 0) return samDivisions.map(d => d.name);
+        return [DEFAULT_DIVISION];
+    }, [consultant.divisions, samDivisions]);
 
     useEffect(() => {
         if (!isOpen) return;

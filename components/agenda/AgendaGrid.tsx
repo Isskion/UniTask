@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, AgendaFilters, ACTIVITY_CONFIG } from "@/types/agenda";
+import { SAMDivision } from "@/lib/agenda";
 import { getDayType, formatDayHeader, formatHours } from "@/lib/agenda-utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { AgendaCell } from "./AgendaCell";
@@ -27,6 +28,7 @@ interface Props {
     entries: AgendaEntry[];
     filters: AgendaFilters;
     tenantId: string;
+    samDivisions: SAMDivision[];
 }
 
 interface ModalState {
@@ -38,7 +40,7 @@ interface ModalState {
 
 const CLOSED_MODAL: ModalState = { open: false, consultant: null, date: null, entry: null };
 
-export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }: Props) {
+export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, samDivisions }: Props) {
     const { t } = useLanguage();
     const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 
@@ -259,6 +261,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId }
                     date={modal.date}
                     entry={modal.entry}
                     tenantId={tenantId}
+                    samDivisions={samDivisions}
                 />
             )}
         </>

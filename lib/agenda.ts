@@ -277,7 +277,8 @@ export function exportMSProject(entries: AgendaEntry[], filename?: string): void
 
 // ─── SAM Masters ──────────────────────────────────────────────────────────────
 
-export interface SAMRegion { id: string; name: string; }
+export interface SAMRegion   { id: string; name: string; }
+export interface SAMDivision { id: string; name: string; }
 
 export async function loadSAMRegions(tenantId: string): Promise<SAMRegion[]> {
     try {
@@ -286,6 +287,17 @@ export async function loadSAMRegions(tenantId: string): Promise<SAMRegion[]> {
         return (snap.data().items as SAMRegion[]) || [];
     } catch (err) {
         console.error('[agenda] loadSAMRegions:', err);
+        return [];
+    }
+}
+
+export async function loadSAMDivisions(tenantId: string): Promise<SAMDivision[]> {
+    try {
+        const snap = await getDoc(doc(db, 'global_data', `divisions_${tenantId}`));
+        if (!snap.exists()) return [];
+        return (snap.data().items as SAMDivision[]) || [];
+    } catch (err) {
+        console.error('[agenda] loadSAMDivisions:', err);
         return [];
     }
 }

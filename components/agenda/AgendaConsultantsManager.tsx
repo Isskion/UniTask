@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { createConsultant, updateConsultant, SAMRegion } from "@/lib/agenda";
+import { createConsultant, updateConsultant, SAMRegion, SAMDivision } from "@/lib/agenda";
 import { AgendaConsultant } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/context/LanguageContext";
@@ -27,10 +27,11 @@ interface Props {
     consultants: AgendaConsultant[];
     tenantId: string;
     samRegions: SAMRegion[];
+    samDivisions: SAMDivision[];
     onClose: () => void;
 }
 
-export function AgendaConsultantsManager({ consultants, tenantId, samRegions, onClose }: Props) {
+export function AgendaConsultantsManager({ consultants, tenantId, samRegions, samDivisions, onClose }: Props) {
     const { user } = useAuth();
     const { t } = useLanguage();
 
@@ -102,6 +103,18 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
                     updateData.region = detectedRegion;
                 }
 
+                // Always sync divisions from the user's current accessScopes so changes
+                // in UserManagement are reflected without needing to re-add the consultant.
+                const rawDivIds = (u.accessScopes?.divisionIds || []).filter(id => id !== '*');
+                if (rawDivIds.length > 0) {
+                    updateData.divisions = rawDivIds.map(id => {
+                        const match = samDivisions.find(d => d.id === id);
+                        return match ? match.name : id;
+                    });
+                } else if (!existing.divisions?.length) {
+                    updateData.divisions = ['Consultoría'];
+                }
+
                 await updateConsultant(existing.id, updateData);
             } else {
                 // Add — sortOrder = next in line
@@ -118,9 +131,16 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, on
                     detectedRegion = samRegions[0]?.name ?? '';
                 }
 
-                // Derive divisions from user's accessScopes.divisionIds, falling back to default
-                const divIds = u.accessScopes?.divisionIds || [];
-                const detectedDivisions = divIds.length > 0 ? divIds : ['Consultoría'];
+                // Resolve division IDs → names using the SAM catalog.
+                // accessScopes.divisionIds contains IDs (e.g. 'abc123'), not display names.
+                // If the catalog hasn't loaded yet or a division is unknown, keep the ID as fallback.
+                const rawDivIds = (u.accessScopes?.divisionIds || []).filter(id => id !== '*');
+                const detectedDivisions = rawDivIds.length > 0
+                    ? rawDivIds.map(id => {
+                        const match = samDivisions.find(d => d.id === id);
+                        return match ? match.name : id;
+                    })
+                    : ['Consultoría'];
 
                 await createConsultant({
                     tenantId,
