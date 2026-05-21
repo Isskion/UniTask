@@ -55,6 +55,15 @@ function getC4ReactFlowType(c4Type: string): string {
     return 'C4_SYSTEM';
 }
 
+function getReactFlowNodeType(type: string): string {
+    if (type === 'ENVIRONMENT') return 'ENVIRONMENT';
+    if (type === 'ICON') return 'ICON';
+    if (type === 'IMAGE') return 'IMAGE';
+    if (type === 'TEXT') return 'TEXT';
+    if (type === 'PRO_NODE') return 'PRO_NODE';
+    return 'visioShape';
+}
+
 const nodeTypes = {
     ENVIRONMENT: UnifluxEnvironmentNode,
     visioShape: VisioShapeNode,
@@ -684,7 +693,7 @@ export default function UnifluxWorkspace() {
             const opacity = n.isLocked ? 0.8 : OPACITY[visTier];
             return {
                 id: n.id,
-                type: isC4 ? getC4ReactFlowType(n.type) : (n.type === 'ENVIRONMENT' ? 'ENVIRONMENT' : n.type === 'ICON' ? 'ICON' : n.type === 'IMAGE' ? 'IMAGE' : n.type === 'TEXT' ? 'TEXT' : 'visioShape'),
+                type: isC4 ? getC4ReactFlowType(n.type) : getReactFlowNodeType(n.type),
                 position: n.position || { x: 0, y: 0 },
                 data: isC4 ? {
                     label: n.label,
@@ -719,7 +728,7 @@ export default function UnifluxWorkspace() {
                          ? { ...getNodeStyle(n.type), width: n.width, height: n.height, opacity: n.isLocked ? 0.8 : 1, pointerEvents: 'all' }
                          : n.type === 'ICON' || n.type === 'IMAGE'
                          ? { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 64, height: n.height ?? 64, opacity: n.isLocked ? 0.8 : 1 }
-                         : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? 120, height: n.height ?? 80, opacity: n.isLocked ? 0.8 : 1 }
+                         : { background: 'transparent', border: 'none', padding: 0, width: n.width ?? (n.type === 'PRO_NODE' ? 200 : 120), height: n.height ?? (n.type === 'PRO_NODE' ? 100 : n.type === 'TEXT' ? 50 : 80), opacity: n.isLocked ? 0.8 : 1 }
                       ),
                 parentId: n.parentId || undefined,
                 draggable: !n.isLocked && visTier === 'full',
@@ -1270,7 +1279,7 @@ export default function UnifluxWorkspace() {
             if (node.id === nodeId) {
                 return {
                     ...node,
-                    type: newType, // Make sure the React Flow type is updated
+                    type: getReactFlowNodeType(newType), // Make sure the React Flow type is updated
                     data: { 
                         ...node.data, 
                         label: (newType === 'ICON' || newType === 'IMAGE') ? newLabel : `${node.id}. ${newLabel}`, 
@@ -1278,9 +1287,9 @@ export default function UnifluxWorkspace() {
                         onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                         ...additionalData 
                     },
-                    style: (newType === 'ICON' || newType === 'IMAGE' || newType === 'PRO_NODE')
-                        ? { background: 'transparent', border: 'none', padding: 0, width: node.style?.width ?? (newType === 'PRO_NODE' ? 200 : 64), height: node.style?.height ?? (newType === 'PRO_NODE' ? 100 : 64), opacity: node.data.isLocked ? 0.8 : 1 }
-                        : { ...getNodeStyle(newType), width: node.style?.width, height: node.style?.height, opacity: node.data.isLocked ? 0.8 : 1 }
+                    style: (newType === 'ENVIRONMENT')
+                        ? { ...getNodeStyle(newType), width: node.style?.width ?? 400, height: node.style?.height ?? 300, border: '2px dashed #94a3b8', borderRadius: '12px', opacity: node.data.isLocked ? 0.8 : 1, pointerEvents: 'all' }
+                        : { background: 'transparent', border: 'none', padding: 0, width: node.style?.width ?? (newType === 'PRO_NODE' ? 200 : newType === 'ICON' || newType === 'IMAGE' ? 64 : 120), height: node.style?.height ?? (newType === 'PRO_NODE' ? 100 : newType === 'ICON' || newType === 'IMAGE' ? 64 : newType === 'TEXT' ? 50 : 80), opacity: node.data.isLocked ? 0.8 : 1 }
                 };
             }
             return node;
@@ -1572,14 +1581,12 @@ export default function UnifluxWorkspace() {
             } else {
                 newNode = {
                     id: newNodeId,
-                    type: type === 'ENVIRONMENT' ? 'ENVIRONMENT' : type === 'ICON' ? 'ICON' : type === 'IMAGE' ? 'IMAGE' : 'visioShape',
+                    type: getReactFlowNodeType(type),
                     position,
                     data: { label, type, onNavigate: handleJumpToFlow, ...additionalData },
                     style: type === 'ENVIRONMENT' 
                         ? { ...getNodeStyle(type), width: 400, height: 300, border: '2px dashed #94a3b8', borderRadius: '12px' } 
-                        : type === 'ICON' || type === 'IMAGE'
-                        ? { background: 'transparent', border: 'none', padding: 0, width: 64, height: 64 }
-                        : { background: 'transparent', border: 'none', padding: 0, width: 120, height: 80 },
+                        : { background: 'transparent', border: 'none', padding: 0, width: type === 'PRO_NODE' ? 200 : type === 'ICON' || type === 'IMAGE' ? 64 : 120, height: type === 'PRO_NODE' ? 100 : type === 'ICON' || type === 'IMAGE' ? 64 : type === 'TEXT' ? 50 : 80 },
                     sourcePosition: Position.Right,
                     targetPosition: Position.Left,
                 };
