@@ -2439,6 +2439,10 @@ export default function UnifluxWorkspace() {
                             onDelete={handleNodeDelete}
                             onToggleLock={selectedNode.data.type === 'ENVIRONMENT' ? handleToggleLock : undefined}
                             availableFlows={savedFlows}
+                            projectId={graph.projectId || selectedProjectId}
+                            tenantId={tenantId || undefined}
+                            currentUserId={user?.uid || undefined}
+                            roleLevel={roleLevel}
                           />
                 )}
 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
 import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons, ExternalLink, GitBranch } from 'lucide-react';
+import { getProjectNotes } from '@/lib/unileaks';
 
 const POPULAR_ICONS = [
     'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',
@@ -23,9 +24,28 @@ interface UnifluxNodeEditorProps {
     onDelete: (nodeId: string) => void;
     onToggleLock?: (nodeId: string, locked: boolean) => void;
     availableFlows?: { id: string, name: string }[];
+    projectId?: string;
+    tenantId?: string;
+    currentUserId?: string;
+    roleLevel?: number;
 }
 
-export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, initialData, isLocked, onSave, onClose, onDelete, onToggleLock, availableFlows }: UnifluxNodeEditorProps) {
+export default function UnifluxNodeEditor({
+    nodeId,
+    initialLabel,
+    initialType,
+    initialData,
+    isLocked,
+    onSave,
+    onClose,
+    onDelete,
+    onToggleLock,
+    availableFlows,
+    projectId,
+    tenantId,
+    currentUserId,
+    roleLevel = 0
+}: UnifluxNodeEditorProps) {
     const [label, setLabel] = useState(initialLabel);
     const [type, setType] = useState<NodeType>(initialType);
     const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || '');
@@ -37,6 +57,33 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
     const [targetFlowId, setTargetFlowId] = useState(initialData?.targetFlowId || '');
     const [targetNodeId, setTargetNodeId] = useState(initialData?.targetNodeId || '');
 
+    // Unileaks document and accessory icon states
+    const [unileaksNoteId, setUnileaksNoteId] = useState(initialData?.unileaksNoteId || '');
+    const [unileaksNoteTitle, setUnileaksNoteTitle] = useState(initialData?.unileaksNoteTitle || '');
+    const [accessoryIcons, setAccessoryIcons] = useState<string[]>(initialData?.accessoryIcons || []);
+    const [notes, setNotes] = useState<any[]>([]);
+    const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+
+    // Fetch project notes
+    useEffect(() => {
+        if (!tenantId || !projectId) return;
+        let active = true;
+        setIsLoadingNotes(true);
+        const isInternalViewer = roleLevel >= 2;
+        getProjectNotes(tenantId, projectId, currentUserId || '', isInternalViewer)
+            .then(fetchedNotes => {
+                if (active) {
+                    setNotes(fetchedNotes);
+                    setIsLoadingNotes(false);
+                }
+            })
+            .catch(err => {
+                console.error("Error loading Unileaks notes:", err);
+                if (active) setIsLoadingNotes(false);
+            });
+        return () => { active = false; };
+    }, [tenantId, projectId, currentUserId, roleLevel]);
+
     // Sync if props change
     useEffect(() => {
         setLabel(initialLabel);
@@ -47,6 +94,9 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
         setItems(initialData?.items || []);
         setTargetFlowId(initialData?.targetFlowId || '');
         setTargetNodeId(initialData?.targetNodeId || '');
+        setUnileaksNoteId(initialData?.unileaksNoteId || '');
+        setUnileaksNoteTitle(initialData?.unileaksNoteTitle || '');
+        setAccessoryIcons(initialData?.accessoryIcons || []);
     }, [initialLabel, initialType, initialData]);
 
     const handleSave = () => {
@@ -56,7 +106,10 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
             color, 
             items,
             targetFlowId,
-            targetNodeId
+            targetNodeId,
+            unileaksNoteId,
+            unileaksNoteTitle,
+            accessoryIcons
         });
     };
 
@@ -118,7 +171,7 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                 </button>
             </div>
 
-            <div className="p-4 flex flex-col gap-4">
+            <div className="p-4 flex flex-col gap-4 overflow-y-auto max-h-[70vh] custom-scrollbar">
                 <div>
                     <label className="text-xs font-bold text-gray-500 uppercase mb-1.5 block">Nombre / Etiqueta</label>
                     <input
@@ -345,6 +398,100 @@ export default function UnifluxNodeEditor({ nodeId, initialLabel, initialType, i
                         <p className="text-[9px] text-purple-400 mt-1 italic">
                             Añade un icono de acceso directo al nodo para saltar a este flujo.
                         </p>
+                    </div>
+                </div>
+
+                {/* Unileaks Document Link */}
+                <div className="bg-cyan-50/50 rounded-xl p-3 border border-cyan-100 mt-2">
+                    <label className="text-[10px] font-bold text-cyan-700 uppercase mb-2 flex items-center gap-1.5">
+                        <LucideIcons.FileText className="w-3.5 h-3.5" />
+                        Vincular Documento Unileaks
+                    </label>
+                    {isLoadingNotes ? (
+                        <p className="text-[10px] text-cyan-600 animate-pulse">Cargando documentos...</p>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            <select
+                                value={unileaksNoteId}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    setUnileaksNoteId(selectedId);
+                                    const note = notes.find(n => n.id === selectedId);
+                                    setUnileaksNoteTitle(note ? note.title : '');
+                                }}
+                                className="w-full border border-cyan-200 bg-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
+                            >
+                                <option value="">-- Sin documento --</option>
+                                {notes.map(n => (
+                                    <option key={n.id} value={n.id}>{n.title || 'Sin título'}</option>
+                                ))}
+                            </select>
+                            {unileaksNoteId && (
+                                <div className="flex items-center justify-between bg-white px-2 py-1 rounded border border-cyan-150 text-[10px]">
+                                    <span className="text-cyan-800 font-medium truncate max-w-[180px]">
+                                        Vínculo activo
+                                    </span>
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            setUnileaksNoteId('');
+                                            setUnileaksNoteTitle('');
+                                        }}
+                                        className="text-red-400 hover:text-red-650"
+                                    >
+                                        Quitar
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Accessory Iconography */}
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 mt-2">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase mb-2 flex items-center gap-1.5">
+                        <LucideIcons.Tags className="w-3.5 h-3.5" />
+                        Iconografía Accesoria
+                    </label>
+                    <p className="text-[9px] text-slate-400 mb-2 italic">
+                        Selecciona indicadores para la esquina superior derecha:
+                    </p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {[
+                            { name: 'User', label: 'Manual' },
+                            { name: 'Monitor', label: 'Interfaz' },
+                            { name: 'Database', label: 'Datos' },
+                            { name: 'Cpu', label: 'Sistema' },
+                            { name: 'Zap', label: 'Auto' },
+                            { name: 'Clock', label: 'Tiempo' },
+                            { name: 'Shield', label: 'Seguro' },
+                            { name: 'AlertTriangle', label: 'Alerta' }
+                        ].map(item => {
+                            const Icon = (LucideIcons as any)[item.name];
+                            const isSelected = accessoryIcons.includes(item.name);
+                            return (
+                                <button
+                                    key={item.name}
+                                    type="button"
+                                    onClick={() => {
+                                        if (isSelected) {
+                                            setAccessoryIcons(prev => prev.filter(i => i !== item.name));
+                                        } else {
+                                            setAccessoryIcons(prev => [...prev, item.name]);
+                                        }
+                                    }}
+                                    className={`flex flex-col items-center justify-center p-1.5 rounded-lg border transition-all ${
+                                        isSelected 
+                                            ? 'bg-slate-800 text-white border-slate-800 shadow-sm' 
+                                            : 'bg-white text-slate-500 border-slate-200 hover:border-slate-350 hover:bg-slate-50'
+                                    }`}
+                                    title={item.label}
+                                >
+                                    {Icon ? <Icon className="w-4 h-4 mb-1" /> : null}
+                                    <span className="text-[8px] font-medium leading-none truncate max-w-full">{item.label}</span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

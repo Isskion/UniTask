@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Link } from 'lucide-react';
+import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Link, FileText, icons as LucideIcons } from 'lucide-react';
 
 // Common handle style
 const handleStyle = {
@@ -350,22 +350,51 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                {/* V9: Navigation Link */}
-                {data.targetFlowId && (
+                {/* Unileaks Document Link */}
+                {data.unileaksNoteId && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                            window.open(`/unileaks?noteId=${data.unileaksNoteId}`, '_blank');
                         }}
-                        className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[90] border-2 border-white pointer-events-auto"
-                        title="Ver flujo relacionado"
+                        className="absolute -top-3 -left-3 w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all z-[90] border-2 border-white pointer-events-auto"
+                        title={`Abrir documento Unileaks: ${data.unileaksNoteTitle || 'Documento'}`}
                     >
-                        <ExternalLink className="w-4 h-4" />
+                        <FileText className="w-4 h-4" />
                     </button>
                 )}
 
+                {/* Top-Right Badges Container (Accessory Icons + Navigation Link) */}
+                <div className="absolute -top-3 -right-3 flex items-center gap-1 z-[90] pointer-events-auto">
+                    {data.accessoryIcons?.map((name: string) => {
+                        const IconComponent = (LucideIcons as any)[name];
+                        if (!IconComponent) return null;
+                        return (
+                            <div
+                                key={name}
+                                className="w-8 h-8 bg-slate-800 text-white border-2 border-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                                title={`Indicador: ${name}`}
+                            >
+                                <IconComponent className="w-4 h-4 text-white" />
+                            </div>
+                        );
+                    })}
+                    {data.targetFlowId && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                            }}
+                            className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform border-2 border-white"
+                            title="Ver flujo relacionado"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+
                 {/* Node ID Badge */}
-                <div className="absolute -top-2 -left-2 bg-slate-800 text-white text-[9px] font-mono px-1.5 py-0.5 rounded border border-slate-700 shadow-sm z-10 opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className={`absolute -top-2 bg-slate-800 text-white text-[9px] font-mono px-1.5 py-0.5 rounded border border-slate-700 shadow-sm z-10 opacity-60 group-hover:opacity-100 transition-opacity ${data.unileaksNoteId ? 'left-6' : '-left-2'}`}>
                     #{id}
                 </div>
 

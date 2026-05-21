@@ -2,7 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText, icons as LucideIcons } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -21,7 +21,7 @@ const UnifluxProNode = ({ data, selected }: any) => {
     const [isResizing, setIsResizing] = useState(false);
 
     return (
-        <div className="group w-full h-full">
+        <div className="group w-full h-full relative">
             {!isLocked && (
                 <NodeResizer
                     color={color}
@@ -33,6 +33,49 @@ const UnifluxProNode = ({ data, selected }: any) => {
                     onResizeEnd={() => setIsResizing(false)}
                 />
             )}
+            
+            {/* Unileaks Document Link */}
+            {data.unileaksNoteId && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`/unileaks?noteId=${data.unileaksNoteId}`, '_blank');
+                    }}
+                    className="absolute -top-3 -left-3 w-8 h-8 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all z-[90] border-2 border-white pointer-events-auto"
+                    title={`Abrir documento Unileaks: ${data.unileaksNoteTitle || 'Documento'}`}
+                >
+                    <FileText className="w-4 h-4" />
+                </button>
+            )}
+
+            {/* Top-Right Badges Container (Accessory Icons + Navigation Link) */}
+            <div className="absolute -top-3 -right-3 flex items-center gap-1 z-50 pointer-events-auto">
+                {data.accessoryIcons?.map((name: string) => {
+                    const IconComponent = (LucideIcons as any)[name];
+                    if (!IconComponent) return null;
+                    return (
+                        <div
+                            key={name}
+                            className="w-8 h-8 bg-slate-800 text-white border-2 border-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                            title={`Indicador: ${name}`}
+                        >
+                            <IconComponent className="w-4 h-4 text-white" />
+                        </div>
+                    );
+                })}
+                {data.targetFlowId && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
+                        }}
+                        className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform border-2 border-white"
+                        title="Ver flujo relacionado"
+                    >
+                        <ExternalLink className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
             
             <div 
                 className="bg-white rounded-xl shadow-lg border-2 border-slate-200 overflow-hidden flex flex-col transition-all group-hover:border-indigo-400 min-w-[200px] w-full h-full"
@@ -55,20 +98,6 @@ const UnifluxProNode = ({ data, selected }: any) => {
                 <div className="p-3">
                     <div className="font-bold text-slate-800 text-sm mb-1">{data.label}</div>
                     {data.description && <div className="text-[10px] text-slate-500 line-clamp-2 mb-2">{data.description}</div>}
-                    
-                    {/* V9: Navigation Link */}
-                    {data.targetFlowId && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (data.onNavigate) data.onNavigate(data.targetFlowId, data.targetNodeId);
-                            }}
-                            className="absolute -top-3 -right-3 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 border-2 border-white"
-                            title="Ver flujo relacionado"
-                        >
-                            <ExternalLink className="w-4 h-4" />
-                        </button>
-                    )}
                     
                     {/* Items Table */}
                     {items.length > 0 && (
