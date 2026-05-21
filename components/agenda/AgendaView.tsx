@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
@@ -17,9 +17,10 @@ import {
     getCurrentWeekStart, getWeekDays, getWeekMark, getWeekNumber,
     getYearMonth, getWeekMonth, getWeekLabel,
 } from "@/lib/agenda-utils";
-import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSProject, loadSAMRegions, loadSAMDivisions, SAMRegion, SAMDivision } from "@/lib/agenda";
-import { clearIndexedDbPersistence, terminate } from "firebase/firestore";
+import { subscribeToWeekEntries, subscribeToConsultants, updateConsultant, exportJira, exportMSProject, loadSAMRegions, loadSAMDivisions, SAMRegion, SAMDivision } from "@/lib/agenda";
+import { clearIndexedDbPersistence, terminate, getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { getRoleLevel } from "@/types";
 import { AgendaGrid } from "./AgendaGrid";
 import { AgendaLista } from "./AgendaLista";
 import { AgendaResumen } from "./AgendaResumen";
@@ -85,6 +86,45 @@ export function AgendaView() {
         loadSAMRegions(tid).then(setSamRegions);
         loadSAMDivisions(tid).then(setSamDivisions);
     }, [tid]);
+
+    // Auto-sync consultant regions from user profiles once per session.
+    // This ensures the region filter always reflects the ABM de personas configuration
+    // without requiring manual toggles in the ConsultantsManager.
+    const hasAutoSyncedRegions = useRef(false);
+    useEffect(() => {
+        if (!tid || samRegions.length === 0 || hasAutoSyncedRegions.current) return;
+        const active = consultants.filter(c => c.isActive !== false);
+        if (active.length === 0) return;
+        hasAutoSyncedRegions.current = true;
+
+        active.forEach(async (consultant) => {
+            try {
+                const snap = await getDoc(doc(db, 'users', consultant.userId));
+                if (!snap.exists()) return;
+                const data      = snap.data();
+                const roleLevel = getRoleLevel(data?.role);
+                const regionIds: string[] = data?.accessScopes?.regionIds || [];
+
+                let newRegions: string[];
+                if (roleLevel >= 80 || regionIds.includes('*')) {
+                    newRegions = ['*'];
+                } else if (regionIds.length > 0) {
+                    newRegions = regionIds.map(id => samRegions.find(r => r.id === id)?.name ?? id);
+                } else {
+                    newRegions = [consultant.region].filter(Boolean);
+                }
+
+                // Only write if different from what Firestore already has
+                const cur  = consultant.regions || [];
+                const same = cur.length === newRegions.length && newRegions.every(r => cur.includes(r));
+                if (!same) {
+                    await updateConsultant(consultant.id, { regions: newRegions });
+                }
+            } catch (e) {
+                console.warn('[agenda] auto-sync regions:', consultant.id, e);
+            }
+        });
+    }, [tid, consultants, samRegions]);
     // ── Access-scoped regions: solo las regiones que el usuario puede ver ────────
     const availableRegions = useMemo(() => {
         const allNames = samRegions.map(r => r.name);
