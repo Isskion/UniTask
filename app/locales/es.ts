@@ -647,6 +647,9 @@ export const es: Dictionary = {
     },
     agenda: {
         grid:               "Grilla",
+        lista:              "Lista",
+        exportExcel:        "Exportar Excel",
+        listSearch:         "Buscar...",
         resumen:            "Resumen",
         filters:            "Filtros",
         clearFilters:       "Limpiar filtros",

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
-    LayoutGrid, BarChart3,
+    LayoutGrid, BarChart3, List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addWeeks, subWeeks } from "date-fns";
@@ -21,6 +21,7 @@ import { subscribeToWeekEntries, subscribeToConsultants, exportJira, exportMSPro
 import { clearIndexedDbPersistence, terminate } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { AgendaGrid } from "./AgendaGrid";
+import { AgendaLista } from "./AgendaLista";
 import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -175,7 +176,7 @@ export function AgendaView() {
     }
 
     // ── View mode ─────────────────────────────────────────────────────────────
-    const [viewMode, setViewMode] = useState<'grid' | 'resumen'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'lista' | 'resumen'>('grid');
 
     // ── Consultants manager ───────────────────────────────────────────────────
     const [showConsultantsManager, setShowConsultantsManager] = useState(false);
@@ -257,6 +258,18 @@ export function AgendaView() {
                         >
                             <LayoutGrid className="w-3.5 h-3.5" />
                             {t('agenda.grid')}
+                        </button>
+                        <button
+                            onClick={() => setViewMode('lista')}
+                            className={cn(
+                                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all",
+                                viewMode === 'lista'
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <List className="w-3.5 h-3.5" />
+                            {t('agenda.lista')}
                         </button>
                         <button
                             onClick={() => setViewMode('resumen')}
@@ -487,6 +500,13 @@ export function AgendaView() {
                     filters={filters}
                     weekLabel={weekLabel}
                     samRegions={samRegions}
+                />
+            ) : viewMode === 'lista' ? (
+                <AgendaLista
+                    entries={entries}
+                    consultants={filteredConsultants}
+                    filters={filters}
+                    weekLabel={weekLabel}
                 />
             ) : (
                 <AgendaGrid

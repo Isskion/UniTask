@@ -646,6 +646,9 @@ export const en = {
     agenda: {
         // Toolbar
         grid:               "Grid",
+        lista:              "List",
+        exportExcel:        "Export Excel",
+        listSearch:         "Search...",
         resumen:            "Summary",
         filters:            "Filters",
         clearFilters:       "Clear filters",
