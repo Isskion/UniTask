@@ -101,6 +101,16 @@ export function AgendaView() {
         const scoped = !accessScopes || accessScopes.regionIds.includes('*')
             ? activeOnly
             : activeOnly.filter(c => {
+                // Global consultants (regions: ['*']) are always accessible
+                if (c.regions?.includes('*')) return true;
+                // Multi-region: check if any of consultant's regions is in user's scope
+                if (c.regions?.length) {
+                    return c.regions.some(rName => {
+                        const samR = samRegions.find(r => r.name === rName || r.id === rName);
+                        return accessScopes.regionIds.includes(samR?.id ?? rName);
+                    });
+                }
+                // Fallback: legacy single-region field
                 const samR = samRegions.find(r => r.id === c.region || r.name === c.region);
                 const regionId = samR?.id ?? c.region;
                 return accessScopes.regionIds.includes(regionId);
@@ -133,14 +143,22 @@ export function AgendaView() {
     const [filters, setFilters] = useState<AgendaFilters>(DEFAULT_FILTERS);
     const [showFilters, setShowFilters] = useState(false);
 
-    // ── Region filter aplicado aquí (donde samRegions es estado, sin timing) ────
+    // ── Region filter — supports multi-region consultants and global ('*') ───────
     const filteredConsultants = useMemo(() => {
         if (filters.region === 'ALL') return accessibleConsultants;
-        const samR = samRegions.find(r => r.name === filters.region);
-        return accessibleConsultants.filter(c =>
-            samR ? (c.region === samR.name || c.region === samR.id)
-                 : c.region === filters.region
-        );
+        const filterName = filters.region;
+        const samR = samRegions.find(r => r.name === filterName);
+        return accessibleConsultants.filter(c => {
+            // Consultant with '*' in regions is global — appears in every region filter
+            if (c.regions?.includes('*')) return true;
+            // Multi-region: check the regions array first (names or IDs)
+            if (c.regions?.length) {
+                return c.regions.some(r => r === filterName || (samR && r === samR.id));
+            }
+            // Fallback: legacy single-region field
+            return samR ? (c.region === samR.name || c.region === samR.id)
+                        : c.region === filterName;
+        });
     }, [accessibleConsultants, filters.region, samRegions]);
 
     // Available divisions: from SAM catalog (authoritative) filtered to those the user can access.

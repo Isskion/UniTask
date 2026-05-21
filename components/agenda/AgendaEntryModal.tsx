@@ -391,7 +391,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                             value={form.comment}
                             onChange={e => setForm(f => ({ ...f, comment: e.target.value }))}
                             placeholder="LUIS SIMOES / Sesión de diseño de solución"
-                            className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/60 focus:bg-white/7 transition-all"
+                            className="w-full px-3 py-2.5 bg-secondary/40 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-indigo-500/60 transition-all"
                         />
                         {(client || description) && (
                             <div className="flex gap-3 text-xs">
@@ -435,7 +435,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                         ) : (
                             <button
                                 onClick={() => setProjectOpen(v => !v)}
-                                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/10 bg-white/5 text-zinc-500 hover:text-zinc-300 hover:bg-white/8 transition-all text-sm"
+                                className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border bg-secondary/40 text-muted-foreground hover:text-foreground hover:bg-accent transition-all text-sm"
                             >
                                 <Search className="w-3.5 h-3.5" />
                                 {t('agenda.selectProject')}
@@ -454,7 +454,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                                         value={projectSearch}
                                         onChange={e => setProjectSearch(e.target.value)}
                                         placeholder={t('agenda.searchProjectPh')}
-                                        className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-600 focus:outline-none"
+                                        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                                     />
                                 </div>
 
@@ -538,10 +538,10 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                                     value={form.timeStart}
                                     onChange={e => handleStartChange(e.target.value)}
                                     className={cn(
-                                        "w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white",
+                                        "w-full px-3 py-2.5 bg-secondary/40 border border-border rounded-lg text-sm text-foreground",
                                         "focus:outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer",
                                         "font-mono",
-                                        !form.timeStart && "text-zinc-500"
+                                        !form.timeStart && "text-muted-foreground"
                                     )}
                                 >
                                     <option value="" disabled className="bg-zinc-900">{t('agenda.timeStartPh')}</option>
@@ -561,10 +561,10 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                                     onChange={e => setForm(f => ({ ...f, timeEnd: e.target.value }))}
                                     disabled={!form.timeStart}
                                     className={cn(
-                                        "w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white",
+                                        "w-full px-3 py-2.5 bg-secondary/40 border border-border rounded-lg text-sm text-foreground",
                                         "focus:outline-none focus:border-indigo-500/60 transition-all appearance-none cursor-pointer",
                                         "font-mono disabled:opacity-40 disabled:cursor-not-allowed",
-                                        !form.timeEnd && "text-zinc-500"
+                                        !form.timeEnd && "text-muted-foreground"
                                     )}
                                 >
                                     <option value="" disabled className="bg-zinc-900">{t('agenda.timeEndPh')}</option>
@@ -715,7 +715,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                                     <select
                                         value={cloneConsultantId}
                                         onChange={e => setCloneConsultantId(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                        className="w-full bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-indigo-500 transition-colors"
                                     >
                                         {allConsultants.map(c => (
                                             <option key={c.userId} value={c.userId}>{c.name}</option>
@@ -728,7 +728,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                                         type="date"
                                         value={cloneDate}
                                         onChange={e => setCloneDate(e.target.value)}
-                                        className="w-full bg-zinc-900 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                        className="w-full bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:border-indigo-500 transition-colors"
                                     />
                                 </div>
                             </div>

@@ -217,7 +217,7 @@ export async function createConsultant(data: Omit<AgendaConsultant, 'id' | 'crea
     return ref.id;
 }
 
-export async function updateConsultant(id: string, data: Partial<Pick<AgendaConsultant, 'name' | 'sortOrder' | 'region' | 'isActive' | 'divisions'>>): Promise<void> {
+export async function updateConsultant(id: string, data: Partial<Pick<AgendaConsultant, 'name' | 'sortOrder' | 'region' | 'regions' | 'isActive' | 'divisions'>>): Promise<void> {
     await updateDoc(doc(db, CONSULTANTS_COLLECTION, id), data);
 }
 

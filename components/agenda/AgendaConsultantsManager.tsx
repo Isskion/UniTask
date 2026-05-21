@@ -103,16 +103,20 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                     updateData.region = detectedRegion;
                 }
 
-                // Always sync divisions from the user's current accessScopes so changes
-                // in UserManagement are reflected without needing to re-add the consultant.
+                // Sync divisions from current accessScopes
                 const rawDivIds = (u.accessScopes?.divisionIds || []).filter(id => id !== '*');
                 if (rawDivIds.length > 0) {
-                    updateData.divisions = rawDivIds.map(id => {
-                        const match = samDivisions.find(d => d.id === id);
-                        return match ? match.name : id;
-                    });
+                    updateData.divisions = rawDivIds.map(id => samDivisions.find(d => d.id === id)?.name ?? id);
                 } else if (!existing.divisions?.length) {
                     updateData.divisions = ['Consultoría'];
+                }
+
+                // Sync regions from current accessScopes so filter stays accurate
+                const rawRegIds = u.accessScopes?.regionIds || [];
+                if (rawRegIds.includes('*')) {
+                    updateData.regions = ['*'];
+                } else if (rawRegIds.length > 0) {
+                    updateData.regions = rawRegIds.map(id => samRegions.find(r => r.id === id)?.name ?? id);
                 }
 
                 await updateConsultant(existing.id, updateData);
@@ -120,26 +124,31 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                 // Add — sortOrder = next in line
                 const maxOrder = consultants.reduce((m, c) => Math.max(m, c.sortOrder), 0);
 
-                // Detección automática de la región del perfil del usuario
-                const userRegions = u.accessScopes?.regionIds || [];
+                // Resolve primary region (first non-wildcard region, or first in catalog)
+                const userRegionIds = u.accessScopes?.regionIds || [];
                 let detectedRegion = '';
-
-                if (userRegions.length > 0 && !userRegions.includes('*')) {
-                    const matchedRegion = samRegions.find(r => r.id === userRegions[0]);
-                    detectedRegion = matchedRegion ? matchedRegion.name : userRegions[0];
+                if (userRegionIds.includes('*')) {
+                    detectedRegion = samRegions[0]?.name ?? '';
+                } else if (userRegionIds.length > 0) {
+                    detectedRegion = samRegions.find(r => r.id === userRegionIds[0])?.name ?? userRegionIds[0];
                 } else {
                     detectedRegion = samRegions[0]?.name ?? '';
                 }
 
-                // Resolve division IDs → names using the SAM catalog.
-                // accessScopes.divisionIds contains IDs (e.g. 'abc123'), not display names.
-                // If the catalog hasn't loaded yet or a division is unknown, keep the ID as fallback.
+                // Resolve all regions for multi-region filtering
+                let detectedRegions: string[];
+                if (userRegionIds.includes('*')) {
+                    detectedRegions = ['*'];
+                } else if (userRegionIds.length > 0) {
+                    detectedRegions = userRegionIds.map(id => samRegions.find(r => r.id === id)?.name ?? id);
+                } else {
+                    detectedRegions = detectedRegion ? [detectedRegion] : [];
+                }
+
+                // Resolve division IDs → names
                 const rawDivIds = (u.accessScopes?.divisionIds || []).filter(id => id !== '*');
                 const detectedDivisions = rawDivIds.length > 0
-                    ? rawDivIds.map(id => {
-                        const match = samDivisions.find(d => d.id === id);
-                        return match ? match.name : id;
-                    })
+                    ? rawDivIds.map(id => samDivisions.find(d => d.id === id)?.name ?? id)
                     : ['Consultoría'];
 
                 await createConsultant({
@@ -148,6 +157,7 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                     name:       u.displayName.toUpperCase(),
                     sortOrder:  maxOrder + 1,
                     region:     detectedRegion,
+                    regions:    detectedRegions,
                     divisions:  detectedDivisions,
                     isActive:   true,
                 });

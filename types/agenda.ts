@@ -92,8 +92,9 @@ export interface AgendaConsultant {
     userId: string;         // Firebase uid — links to UserProfile
     name: string;
     sortOrder: number;
-    region: ConsultantRegion;
-    divisions: string[];    // e.g. ['Consultoría'] or ['Consultoría', 'Tecnología']
+    region: ConsultantRegion;  // primary region (display, legacy single-region)
+    regions?: string[];        // all regions this consultant covers; '*' means global
+    divisions: string[];       // e.g. ['Consultoría'] or ['Consultoría', 'Tecnología']
     isActive: boolean;
     createdAt: Timestamp;
 }
