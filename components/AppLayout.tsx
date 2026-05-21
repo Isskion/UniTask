@@ -421,7 +421,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     {userRole === 'superadmin' && (
                                         <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                                     )}
-                                    {(taskControlEnabled || userRole === 'superadmin') && (userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                    {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
                                         <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
                                     )}
                                     {getRoleLevel(userRole) >= RoleLevel.PM && (
@@ -668,7 +668,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                         <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                     </>
                                 )}
-                                {(taskControlEnabled || userRole === 'superadmin') && (userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
                                     <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
                                 )}
                             </div>

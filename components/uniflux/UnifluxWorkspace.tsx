@@ -400,18 +400,6 @@ export default function UnifluxWorkspace() {
             }
         }
 
-        let bgEl: HTMLDivElement | null = null;
-        // Inyectamos un fondo blanco explícito en el DOM para evitar que html-to-image lo dibuje por encima del zIndex -1
-        bgEl = document.createElement('div');
-        bgEl.style.position = 'absolute';
-        bgEl.style.left = `${nodesBounds.x - padding}px`;
-        bgEl.style.top = `${nodesBounds.y - titlePaddingTop}px`;
-        bgEl.style.width = `${imageWidth}px`;
-        bgEl.style.height = `${imageHeight}px`;
-        bgEl.style.backgroundColor = '#ffffff';
-        bgEl.style.zIndex = '-2';
-        viewport.insertBefore(bgEl, viewport.firstChild);
-
         if (logoDataUrl) {
             watermarkEl = document.createElement('img');
             watermarkEl.src = logoDataUrl;
@@ -428,10 +416,9 @@ export default function UnifluxWorkspace() {
             watermarkEl.style.opacity = '0.10';
             // Convertimos el logo a negro (por si es blanco) para que destaque como marca de agua en fondo blanco
             watermarkEl.style.filter = 'brightness(0)';
-            watermarkEl.style.zIndex = '-1';
+            watermarkEl.style.zIndex = '0';
             watermarkEl.style.pointerEvents = 'none';
-            // Insertar después del fondo blanco
-            viewport.insertBefore(watermarkEl, bgEl.nextSibling);
+            viewport.insertBefore(watermarkEl, viewport.firstChild);
 
             try {
                 await watermarkEl.decode();
@@ -443,7 +430,7 @@ export default function UnifluxWorkspace() {
         }
 
         const config = {
-            // No seteamos backgroundColor aquí para que no tape el zIndex negativo
+            backgroundColor: '#ffffff',
             width: imageWidth,
             height: imageHeight,
             pixelRatio,
@@ -490,7 +477,6 @@ export default function UnifluxWorkspace() {
         } finally {
             if (viewport.contains(titleEl)) viewport.removeChild(titleEl);
             if (watermarkEl && viewport.contains(watermarkEl)) viewport.removeChild(watermarkEl);
-            if (bgEl && viewport.contains(bgEl)) viewport.removeChild(bgEl);
         };
     }, [graph.name, nodes, tenantLogoBase64]);
 
