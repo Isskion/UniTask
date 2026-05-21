@@ -1282,7 +1282,7 @@ export default function UnifluxWorkspace() {
                     type: getReactFlowNodeType(newType), // Make sure the React Flow type is updated
                     data: { 
                         ...node.data, 
-                        label: (newType === 'ICON' || newType === 'IMAGE') ? newLabel : `${node.id}. ${newLabel}`, 
+                        label: newLabel, 
                         type: newType,
                         onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
                         ...additionalData 
