@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow } from '@xyflow/react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Link, FileText, icons as LucideIcons } from 'lucide-react';
+import { Check, Edit2, Palette, Copy, Trash, ArrowRight, ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Link, FileText, Maximize2, icons as LucideIcons } from 'lucide-react';
 
 // Common handle style
 const handleStyle = {
@@ -447,6 +447,24 @@ const VisioShapeNode = ({ id, data, selected }: any) => {
                     )}
 
                 </div>
+
+                {/* Attached Image — positioned to the right, same size as node */}
+                {data.attachedImage && (
+                    <div
+                        className="absolute top-0 z-[5] group/img cursor-zoom-in"
+                        style={{ left: 'calc(100% + 12px)', width: '100%', height: '100%' }}
+                        onClick={(e) => { e.stopPropagation(); data.onZoomImage?.(data.attachedImage); }}
+                    >
+                        <img
+                            src={data.attachedImage}
+                            alt="Adjunto"
+                            className="w-full h-full object-contain rounded-lg shadow-md"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/25 transition-all rounded-lg flex items-center justify-center pointer-events-none">
+                            <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow-lg" />
+                        </div>
+                    </div>
+                )}
 
                 {/* Universal Handles (16 points: Sides + Corners + Midpoints) */}
                 {/* Visual rule: Only show main centers on select, show all on hover, hide all on resizing */}

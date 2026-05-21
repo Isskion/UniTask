@@ -108,6 +108,7 @@ export default function UnifluxWorkspace() {
     const roleLevel = viewContext?.activeRole ?? 0;
     const [graph, setGraph] = useState<FlowGraph>(INITIAL_GRAPH);
     const [isSaving, setIsSaving] = useState(false);
+    const [zoomedImage, setZoomedImage] = useState<string | null>(null);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
     const [isDirty, setIsDirty] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -281,7 +282,13 @@ export default function UnifluxWorkspace() {
         snapshotDebounceRef.current = setTimeout(() => {
             setNodes(nds => {
                 setEdges(eds => {
-                    const snapshot = { nodes: JSON.parse(JSON.stringify(nds)), edges: JSON.parse(JSON.stringify(eds)) };
+                    // Strip attachedImage from history: base64 strings can be 150KB+ each.
+                    // The image persists in Firestore; undo just restores node structure/position.
+                    const stripped = nds.map(n => n.data?.attachedImage
+                        ? { ...n, data: { ...n.data, attachedImage: undefined } }
+                        : n
+                    );
+                    const snapshot = { nodes: JSON.parse(JSON.stringify(stripped)), edges: JSON.parse(JSON.stringify(eds)) };
                     const currentIndex = historyIndexRef.current;
                     setHistory(prev => {
                         const newHistory = prev.slice(0, currentIndex + 1);
@@ -505,6 +512,8 @@ export default function UnifluxWorkspace() {
             } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 handleSaveRef.current(false);
+            } else if (e.key === 'Escape') {
+                setZoomedImage(null);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -724,6 +733,7 @@ export default function UnifluxWorkspace() {
                     targetFlowId: n.targetFlowId,
                     targetNodeId: n.targetNodeId,
                     onNavigate: (fid: string, nid?: string) => jumpToFlowRef.current?.(fid, nid),
+                    onZoomImage: (url: string) => setZoomedImage(url),
                     ...n.additionalData
                 },
                 zIndex: isBoundaryLike ? (n.isLocked ? -10 : -1) : 1,
@@ -1892,6 +1902,7 @@ export default function UnifluxWorkspace() {
                             ...(n.data.unileaksNoteId ? { unileaksNoteId: n.data.unileaksNoteId } : {}),
                             ...(n.data.unileaksNoteTitle ? { unileaksNoteTitle: n.data.unileaksNoteTitle } : {}),
                             ...(n.data.accessoryIcons ? { accessoryIcons: n.data.accessoryIcons } : {}),
+                            ...(n.data.attachedImage ? { attachedImage: n.data.attachedImage } : {}),
                         }
                     };
                 });
@@ -2026,6 +2037,7 @@ export default function UnifluxWorkspace() {
                     ...(n.data.unileaksNoteId ? { unileaksNoteId: n.data.unileaksNoteId } : {}),
                     ...(n.data.unileaksNoteTitle ? { unileaksNoteTitle: n.data.unileaksNoteTitle } : {}),
                     ...(n.data.accessoryIcons ? { accessoryIcons: n.data.accessoryIcons } : {}),
+                    ...(n.data.attachedImage ? { attachedImage: n.data.attachedImage } : {}),
                 }
             };
         });
@@ -3167,6 +3179,27 @@ export default function UnifluxWorkspace() {
                 )}
             </div>
         </div>
+
+        {/* Lightbox — full-screen image viewer */}
+        {zoomedImage && (
+            <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 backdrop-blur-md"
+                onClick={() => setZoomedImage(null)}
+            >
+                <button
+                    onClick={() => setZoomedImage(null)}
+                    className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all border border-white/20"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+                <img
+                    src={zoomedImage}
+                    alt="Vista ampliada"
+                    className="max-w-[90vw] max-h-[90vh] object-contain rounded-xl shadow-2xl ring-1 ring-white/10"
+                    onClick={(e) => e.stopPropagation()}
+                />
+            </div>
+        )}
         </UnifluxDirtyContext.Provider>
     );
 }

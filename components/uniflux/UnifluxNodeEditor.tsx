@@ -1,8 +1,23 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { NodeType } from '@/app/uniflux/core/types';
-import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons, ExternalLink, GitBranch } from 'lucide-react';
+import { X, Check, Lock, Unlock, Upload, Search, Link, ListTree, icons as LucideIcons, ExternalLink, GitBranch, ImageIcon } from 'lucide-react';
 import { getProjectNotes } from '@/lib/unileaks';
+
+async function compressToJpeg(dataUrl: string, maxPx = 800, quality = 0.72): Promise<string> {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = dataUrl;
+    });
+}
 
 const POPULAR_ICONS = [
     'Box', 'User', 'Settings', 'Database', 'Cloud', 'Server', 'Globe', 'Mail', 'Phone', 'MapPin',
@@ -57,6 +72,8 @@ export default function UnifluxNodeEditor({
     const [targetFlowId, setTargetFlowId] = useState(initialData?.targetFlowId || '');
     const [targetNodeId, setTargetNodeId] = useState(initialData?.targetNodeId || '');
 
+    const [attachedImage, setAttachedImage] = useState<string>(initialData?.attachedImage || '');
+
     // Unileaks document and accessory icon states
     const [unileaksNoteId, setUnileaksNoteId] = useState(initialData?.unileaksNoteId || '');
     const [unileaksNoteTitle, setUnileaksNoteTitle] = useState(initialData?.unileaksNoteTitle || '');
@@ -97,19 +114,32 @@ export default function UnifluxNodeEditor({
         setUnileaksNoteId(initialData?.unileaksNoteId || '');
         setUnileaksNoteTitle(initialData?.unileaksNoteTitle || '');
         setAccessoryIcons(initialData?.accessoryIcons || []);
+        setAttachedImage(initialData?.attachedImage || '');
     }, [initialLabel, initialType, initialData]);
 
+    const handleAttachedImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const compressed = await compressToJpeg(reader.result as string);
+            setAttachedImage(compressed);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleSave = () => {
-        onSave(nodeId, label, type, { 
-            imageUrl, 
-            iconName, 
-            color, 
+        onSave(nodeId, label, type, {
+            imageUrl,
+            iconName,
+            color,
             items,
             targetFlowId,
             targetNodeId,
             unileaksNoteId,
             unileaksNoteTitle,
-            accessoryIcons
+            accessoryIcons,
+            attachedImage: attachedImage || undefined,
         });
     };
 
@@ -492,6 +522,46 @@ export default function UnifluxNodeEditor({
                                 </button>
                             );
                         })}
+                    </div>
+                </div>
+
+                {/* Attached Image */}
+                <div className="bg-amber-50/50 rounded-xl p-3 border border-amber-100 mt-2">
+                    <label className="text-[10px] font-bold text-amber-700 uppercase mb-2 flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        Imagen adjunta
+                    </label>
+                    <div className="flex flex-col gap-2">
+                        <label className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-amber-200 rounded-lg p-3 cursor-pointer hover:border-amber-400 hover:bg-amber-100/50 transition-all text-amber-600 group">
+                            <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            <span className="text-xs font-medium">Subir desde PC</span>
+                            <input type="file" className="hidden" accept="image/*" onChange={handleAttachedImageUpload} />
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-amber-100" /></div>
+                            <div className="relative flex justify-center text-[10px]"><span className="bg-white px-2 text-amber-400">o URL externa</span></div>
+                        </div>
+                        <input
+                            value={attachedImage.startsWith('data:') ? '' : attachedImage}
+                            onChange={(e) => setAttachedImage(e.target.value)}
+                            className="w-full border border-amber-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                            placeholder="https://ejemplo.com/captura.png"
+                        />
+                        {attachedImage && (
+                            <div className="flex items-center justify-between bg-white p-2 rounded-lg border border-amber-100">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-12 h-12 rounded overflow-hidden shrink-0 border border-amber-100">
+                                        <img src={attachedImage} alt="preview" className="w-full h-full object-contain" />
+                                    </div>
+                                    <span className="text-[10px] text-amber-600 font-medium truncate">
+                                        {attachedImage.startsWith('data:') ? 'Imagen local (comprimida)' : 'URL externa'}
+                                    </span>
+                                </div>
+                                <button onClick={() => setAttachedImage('')} className="text-red-400 hover:text-red-600 ml-2 shrink-0">
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

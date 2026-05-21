@@ -2,7 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import { Handle, Position, NodeResizer } from '@xyflow/react';
-import { ExternalLink, FileText, icons as LucideIcons } from 'lucide-react';
+import { ExternalLink, FileText, Maximize2, icons as LucideIcons } from 'lucide-react';
 
 const handleStyle = {
     width: 8,
@@ -120,6 +120,24 @@ const UnifluxProNode = ({ data, selected }: any) => {
                     </div>
                 )}
             </div>
+
+            {/* Attached Image — positioned to the right, same size as node */}
+            {data.attachedImage && (
+                <div
+                    className="absolute top-0 z-[5] group/img cursor-zoom-in"
+                    style={{ left: 'calc(100% + 12px)', width: '100%', height: '100%' }}
+                    onClick={(e) => { e.stopPropagation(); data.onZoomImage?.(data.attachedImage); }}
+                >
+                    <img
+                        src={data.attachedImage}
+                        alt="Adjunto"
+                        className="w-full h-full object-contain rounded-xl shadow-md"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/25 transition-all rounded-xl flex items-center justify-center pointer-events-none">
+                        <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity drop-shadow-lg" />
+                    </div>
+                </div>
+            )}
 
             {/* Universal Handles (12 points: Sides + Midpoints) */}
             {/* Visual rule: Only show main centers on select, show all on hover, hide all on resizing */}
