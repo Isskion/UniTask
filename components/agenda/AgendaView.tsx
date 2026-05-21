@@ -635,6 +635,14 @@ export function AgendaView() {
                     filters={filters}
                     weekLabel={weekLabel}
                     weekDays={weekDays}
+                    availableRegions={availableRegions}
+                    availableDivisions={availableDivisions}
+                    onToggleConsultant={toggleConsultant}
+                    onToggleActivity={toggleActivity}
+                    onToggleResult={toggleResult}
+                    onToggleDivision={toggleDivision}
+                    onSetRegion={r => setFilters(f => ({ ...f, region: r }))}
+                    onClearGlobalFilters={clearFilters}
                 />
             ) : (
                 <AgendaGrid

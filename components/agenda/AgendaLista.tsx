@@ -8,6 +8,7 @@ import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X } fro
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
+    ActivityType, ResultStatus,
     ACTIVITY_CONFIG, RESULT_CONFIG, ACTIVITY_TKEYS, RESULT_TKEYS,
 } from "@/types/agenda";
 import { useLanguage } from "@/context/LanguageContext";
@@ -18,34 +19,44 @@ type SortField = 'date' | 'consultant' | 'activityType' | 'client' | 'scheduledH
 type SortDir   = 'asc' | 'desc';
 
 interface AgendaListaProps {
-    entries:     AgendaEntry[];
-    consultants: AgendaConsultant[];
-    filters:     AgendaFilters;
-    weekLabel:   string;
-    weekDays:    Date[];
+    entries:              AgendaEntry[];
+    consultants:          AgendaConsultant[];
+    filters:              AgendaFilters;
+    weekLabel:            string;
+    weekDays:             Date[];
+    availableRegions:     string[];
+    availableDivisions:   string[];
+    onToggleConsultant:   (id: string) => void;
+    onToggleActivity:     (act: ActivityType) => void;
+    onToggleResult:       (r: ResultStatus) => void;
+    onToggleDivision:     (div: string) => void;
+    onSetRegion:          (r: string) => void;
+    onClearGlobalFilters: () => void;
 }
 
-function toIso(date: Date): string {
-    return format(date, 'yyyy-MM-dd');
-}
-
+function toIso(date: Date): string { return format(date, 'yyyy-MM-dd'); }
 function entryIso(e: AgendaEntry): string {
     const d = e.date instanceof Timestamp ? e.date.toDate() : new Date(e.date as unknown as string);
     return toIso(d);
 }
 
-export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaListaProps) {
+export function AgendaLista({
+    entries, consultants, filters, weekLabel, weekDays,
+    availableRegions, availableDivisions,
+    onToggleConsultant, onToggleActivity, onToggleResult,
+    onToggleDivision, onSetRegion, onClearGlobalFilters,
+}: AgendaListaProps) {
     const { t } = useLanguage();
 
-    // ── Local filter state ────────────────────────────────────────────────────
-    const [search,          setSearch]         = useState('');
-    const [selectedDays,    setSelectedDays]   = useState<string[]>([]);   // ISO dates
-    const [selectedProjects,setSelectedProjects] = useState<string[]>([]);  // projectIds
-    const [sortField,       setSortField]      = useState<SortField>('date');
-    const [sortDir,         setSortDir]        = useState<SortDir>('asc');
-    const [showExport,      setShowExport]     = useState(false);
+    // ── Local filter state (lista-only) ───────────────────────────────────────
+    const [search,           setSearch]           = useState('');
+    const [selectedDays,     setSelectedDays]     = useState<string[]>([]);
+    const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+    const [sortField,        setSortField]        = useState<SortField>('date');
+    const [sortDir,          setSortDir]          = useState<SortDir>('asc');
+    const [showExport,       setShowExport]       = useState(false);
 
-    // ── 1. Global filters (from AgendaView panel) ─────────────────────────────
+    // ── 1. Global filters (from AgendaView) ───────────────────────────────────
     const baseFiltered = useMemo(() => entries.filter(e => {
         if (filters.consultantIds.length > 0 && !filters.consultantIds.includes(e.consultantId)) return false;
         if (filters.activityTypes.length > 0 && !filters.activityTypes.includes(e.activityType)) return false;
@@ -55,41 +66,38 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
     }), [entries, filters]);
 
     // ── 2. Day filter ─────────────────────────────────────────────────────────
-    const dayFiltered = useMemo(() => {
-        if (selectedDays.length === 0) return baseFiltered;
-        return baseFiltered.filter(e => selectedDays.includes(entryIso(e)));
-    }, [baseFiltered, selectedDays]);
+    const dayFiltered = useMemo(() =>
+        selectedDays.length === 0 ? baseFiltered
+            : baseFiltered.filter(e => selectedDays.includes(entryIso(e)))
+    , [baseFiltered, selectedDays]);
 
     // ── 3. Project filter ─────────────────────────────────────────────────────
     const availableProjects = useMemo(() => {
         const map = new Map<string, { id: string; code: string; name: string; color: string }>();
         baseFiltered.forEach(e => {
-            if (e.projectId && !map.has(e.projectId)) {
+            if (e.projectId && !map.has(e.projectId))
                 map.set(e.projectId, {
-                    id:    e.projectId,
-                    code:  e.projectCode  || e.projectId,
-                    name:  e.projectName  || '',
-                    color: e.projectColor || '#6b7280',
+                    id: e.projectId, code: e.projectCode || e.projectId,
+                    name: e.projectName || '', color: e.projectColor || '#6b7280',
                 });
-            }
         });
         return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
     }, [baseFiltered]);
 
-    const projectFiltered = useMemo(() => {
-        if (selectedProjects.length === 0) return dayFiltered;
-        return dayFiltered.filter(e => e.projectId && selectedProjects.includes(e.projectId));
-    }, [dayFiltered, selectedProjects]);
+    const projectFiltered = useMemo(() =>
+        selectedProjects.length === 0 ? dayFiltered
+            : dayFiltered.filter(e => e.projectId && selectedProjects.includes(e.projectId))
+    , [dayFiltered, selectedProjects]);
 
     // ── 4. Text search ────────────────────────────────────────────────────────
     const searched = useMemo(() => {
         if (!search.trim()) return projectFiltered;
         const q = search.toLowerCase();
         return projectFiltered.filter(e =>
-            e.consultantName.toLowerCase().includes(q)       ||
-            e.client.toLowerCase().includes(q)               ||
-            e.description.toLowerCase().includes(q)          ||
-            (e.projectName || '').toLowerCase().includes(q)  ||
+            e.consultantName.toLowerCase().includes(q)     ||
+            e.client.toLowerCase().includes(q)             ||
+            e.description.toLowerCase().includes(q)        ||
+            (e.projectName || '').toLowerCase().includes(q)||
             e.activityType.toLowerCase().includes(q)
         );
     }, [projectFiltered, search]);
@@ -99,10 +107,7 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
         let va: string | number;
         let vb: string | number;
         switch (sortField) {
-            case 'date':
-                va = (a.date as Timestamp).seconds ?? 0;
-                vb = (b.date as Timestamp).seconds ?? 0;
-                break;
+            case 'date':          va = (a.date as Timestamp).seconds ?? 0; vb = (b.date as Timestamp).seconds ?? 0; break;
             case 'consultant':    va = a.consultantName;    vb = b.consultantName;    break;
             case 'activityType':  va = a.activityType;      vb = b.activityType;      break;
             case 'client':        va = a.client;            vb = b.client;            break;
@@ -122,25 +127,18 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
         if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
         else { setSortField(field); setSortDir('asc'); }
     }
+    const toggleDay     = (iso: string) => setSelectedDays(p => p.includes(iso) ? p.filter(d => d !== iso) : [...p, iso]);
+    const toggleProject = (id: string)  => setSelectedProjects(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
 
-    function toggleDay(iso: string) {
-        setSelectedDays(prev =>
-            prev.includes(iso) ? prev.filter(d => d !== iso) : [...prev, iso]
-        );
-    }
+    const localActive  = selectedDays.length > 0 || selectedProjects.length > 0 || search.trim().length > 0;
+    const globalActive = filters.consultantIds.length > 0 || filters.activityTypes.length > 0 ||
+                         filters.results.length > 0 || filters.region !== 'ALL' || (filters.divisions?.length ?? 0) > 0;
 
-    function toggleProject(id: string) {
-        setSelectedProjects(prev =>
-            prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-        );
-    }
-
-    const hasLocalFilters = selectedDays.length > 0 || selectedProjects.length > 0 || search.trim().length > 0;
-
-    function clearLocalFilters() {
+    function clearAll() {
         setSelectedDays([]);
         setSelectedProjects([]);
         setSearch('');
+        onClearGlobalFilters();
     }
 
     function SortIcon({ field }: { field: SortField }) {
@@ -152,22 +150,23 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
 
     type ColDef = { field: SortField | null; label: string };
     const columns: ColDef[] = [
-        { field: 'date',          label: 'Fecha'                    },
-        { field: 'consultant',    label: t('agenda.consultantCol')  },
-        { field: 'activityType',  label: t('agenda.activityFilter') },
-        { field: 'client',        label: t('agenda.clientLabel')    },
-        { field: null,            label: t('agenda.descLabel')      },
-        { field: null,            label: t('agenda.schedule')       },
-        { field: 'scheduledHours',label: t('agenda.plannedAbbr')   },
-        { field: 'result',        label: t('agenda.statusLabel')    },
-        { field: 'projectName',   label: t('agenda.project')       },
+        { field: 'date',           label: 'Fecha'                    },
+        { field: 'consultant',     label: t('agenda.consultantCol')  },
+        { field: 'activityType',   label: t('agenda.activityFilter') },
+        { field: 'client',         label: t('agenda.clientLabel')    },
+        { field: null,             label: t('agenda.descLabel')      },
+        { field: null,             label: t('agenda.schedule')       },
+        { field: 'scheduledHours', label: t('agenda.plannedAbbr')   },
+        { field: 'result',         label: t('agenda.statusLabel')    },
+        { field: 'projectName',    label: t('agenda.project')       },
     ];
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
             <div className="flex flex-col flex-1 overflow-hidden">
 
-                {/* ── Sub-toolbar ───────────────────────────────────────────── */}
+                {/* ── Toolbar ───────────────────────────────────────────────── */}
                 <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-card/30 shrink-0 flex-wrap">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -184,9 +183,9 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                         {sorted.length} {t('agenda.nEntries')} · <span className="font-semibold text-foreground">{formatHours(totalHours)}</span> {t('agenda.plannedAbbr')}
                     </span>
 
-                    {hasLocalFilters && (
+                    {(localActive || globalActive) && (
                         <button
-                            onClick={clearLocalFilters}
+                            onClick={clearAll}
                             className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <X className="w-3 h-3" />
@@ -205,11 +204,11 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                 </div>
 
                 {/* ── Filter strip ──────────────────────────────────────────── */}
-                <div className="flex flex-wrap gap-x-6 gap-y-2 px-4 py-2 border-b border-border bg-card/20 shrink-0">
+                <div className="flex flex-col gap-2 px-4 py-2.5 border-b border-border bg-card/20 shrink-0">
 
-                    {/* Day filter */}
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider shrink-0">Días</span>
+                    {/* Row 1: Days */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">Días</span>
                         <div className="flex gap-1">
                             {weekDays.map(day => {
                                 const iso      = toIso(day);
@@ -218,42 +217,35 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                                 const num      = format(day, 'd');
                                 const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                                 return (
-                                    <button
-                                        key={iso}
-                                        onClick={() => toggleDay(iso)}
+                                    <button key={iso} onClick={() => toggleDay(iso)}
                                         className={cn(
-                                            "flex flex-col items-center px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all leading-tight min-w-[28px]",
-                                            active
-                                                ? "bg-indigo-600 border-indigo-600 text-white"
-                                                : isWeekend
-                                                    ? "bg-secondary/20 border-border text-muted-foreground/50"
-                                                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                            "flex flex-col items-center px-1.5 py-0.5 rounded text-[10px] font-medium border transition-all min-w-[28px]",
+                                            active    ? "bg-indigo-600 border-indigo-600 text-white"
+                                            : isWeekend ? "bg-secondary/20 border-border text-muted-foreground/40"
+                                            : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                         )}
                                     >
-                                        <span className="font-bold">{abbr}</span>
-                                        <span className="opacity-70">{num}</span>
+                                        <span className="font-bold leading-none">{abbr}</span>
+                                        <span className="opacity-70 leading-none mt-0.5">{num}</span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Project filter — only when there are projects in the current data */}
+                    {/* Row 2: Projects (only if any exist in data) */}
                     {availableProjects.length > 0 && (
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider shrink-0">{t('agenda.project')}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.project')}</span>
                             <div className="flex flex-wrap gap-1">
                                 {availableProjects.map(p => {
                                     const active = selectedProjects.includes(p.id);
                                     return (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => toggleProject(p.id)}
+                                        <button key={p.id} onClick={() => toggleProject(p.id)}
                                             className={cn(
-                                                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
-                                                active
-                                                    ? "bg-secondary border-border text-foreground font-semibold"
-                                                    : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                                active ? "bg-secondary border-border text-foreground font-semibold"
+                                                       : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                                             )}
                                         >
                                             <span
@@ -264,6 +256,114 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                                         </button>
                                     );
                                 })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Row 3: Activity types */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.activityFilter')}</span>
+                        <div className="flex flex-wrap gap-1">
+                            {Object.values(ActivityType).map(act => {
+                                const cfg      = ACTIVITY_CONFIG[act];
+                                const selected = filters.activityTypes.includes(act);
+                                return (
+                                    <button key={act} onClick={() => onToggleActivity(act)}
+                                        className={cn(
+                                            "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                            selected ? `${cfg.bgClass} ${cfg.textClass} ${cfg.borderClass}`
+                                                     : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        {t(ACTIVITY_TKEYS[act]) || cfg.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Row 4: Status */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.statusFilter')}</span>
+                        <div className="flex flex-wrap gap-1">
+                            {Object.values(ResultStatus).map(r => {
+                                const cfg      = RESULT_CONFIG[r];
+                                const selected = filters.results.includes(r);
+                                return (
+                                    <button key={r} onClick={() => onToggleResult(r)}
+                                        className={cn(
+                                            "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                            selected ? "bg-secondary border-border text-foreground font-semibold"
+                                                     : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dotClass)} />
+                                        {t(RESULT_TKEYS[r]) || cfg.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Row 5: Region (only if >1 available) */}
+                    {availableRegions.length > 1 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.region')}</span>
+                            <div className="flex flex-wrap gap-1">
+                                {(['ALL', ...availableRegions]).map(r => (
+                                    <button key={r} onClick={() => onSetRegion(r)}
+                                        className={cn(
+                                            "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                            filters.region === r
+                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        {r === 'ALL' ? t('agenda.allRegions') : r}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Row 6: Division (only if >1 available) */}
+                    {availableDivisions.length > 1 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.divisionFilter')}</span>
+                            <div className="flex flex-wrap gap-1">
+                                {availableDivisions.map(div => (
+                                    <button key={div} onClick={() => onToggleDivision(div)}
+                                        className={cn(
+                                            "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                            filters.divisions?.includes(div)
+                                                ? "bg-violet-600 border-violet-600 text-white"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        {div}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Row 7: Consultants */}
+                    {consultants.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.manageBtn')}</span>
+                            <div className="flex flex-wrap gap-1">
+                                {consultants.map(c => (
+                                    <button key={c.id} onClick={() => onToggleConsultant(c.userId)}
+                                        className={cn(
+                                            "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                            filters.consultantIds.includes(c.userId)
+                                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                                : "bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                                        )}
+                                    >
+                                        {c.name}
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
@@ -281,9 +381,7 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                             <thead className="sticky top-0 z-10 bg-card border-b border-border shadow-sm">
                                 <tr>
                                     {columns.map(({ field, label }, i) => (
-                                        <th
-                                            key={i}
-                                            onClick={() => field && handleSort(field)}
+                                        <th key={i} onClick={() => field && handleSort(field)}
                                             className={cn(
                                                 "px-3 py-2.5 text-left font-semibold text-[10px] uppercase tracking-wider text-muted-foreground whitespace-nowrap",
                                                 field && "cursor-pointer hover:text-foreground select-none"
@@ -304,13 +402,10 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                                     const actCfg = ACTIVITY_CONFIG[e.activityType];
                                     const resCfg = RESULT_CONFIG[e.result];
                                     return (
-                                        <tr
-                                            key={e.id}
-                                            className={cn(
-                                                "border-b border-border/40 transition-colors hover:bg-accent/40",
-                                                idx % 2 !== 0 && "bg-secondary/10"
-                                            )}
-                                        >
+                                        <tr key={e.id} className={cn(
+                                            "border-b border-border/40 transition-colors hover:bg-accent/40",
+                                            idx % 2 !== 0 && "bg-secondary/10"
+                                        )}>
                                             <td className="px-3 py-2 whitespace-nowrap">
                                                 <div className="font-medium text-foreground">{format(date, 'dd/MM/yyyy')}</div>
                                                 <div className="text-[10px] text-muted-foreground capitalize">{format(date, 'EEE', { locale: es })}</div>
@@ -344,7 +439,7 @@ export function AgendaLista({ entries, filters, weekLabel, weekDays }: AgendaLis
                                                 {e.projectCode ? (
                                                     <span className="inline-flex items-center gap-1.5">
                                                         {e.projectColor && (
-                                                            <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ backgroundColor: e.projectColor }} />
+                                                            <span className="w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: e.projectColor }} />
                                                         )}
                                                         <span className="font-medium text-foreground">{e.projectCode}</span>
                                                         {e.projectName && (
