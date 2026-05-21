@@ -646,7 +646,7 @@ export const pt: Dictionary = {
         }
     },
     agenda: {
-        grid:"Grelha",lista:"Lista",exportExcel:"Exportar Excel",listSearch:"Pesquisar...",resumen:"Resumo",filters:"Filtros",clearFilters:"Limpar filtros",
+        grid:"Grelha",lista:"Lista",exportBtn:"Exportar...",exportConfig:"Configurar exportação",exportFormat:"Formato de saída",exportColumns:"Campos e ordem",exportSelectAll:"Todos",exportSelectNone:"Nenhum",exportNoneWarning:"Selecione pelo menos um campo",listSearch:"Pesquisar...",resumen:"Resumo",filters:"Filtros",clearFilters:"Limpar filtros",
         today:"Hoje",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Consultores",
         nConsultants:"consultores",nEntries:"entradas",week:"Semana",
         currentWeek:"Semana Atual",previousWeek:"Semana Anterior",future:"Futuro",

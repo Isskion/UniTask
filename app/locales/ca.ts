@@ -646,7 +646,7 @@ export const ca: Dictionary = {
         }
     },
     agenda: {
-        grid:"Graella",lista:"Llista",exportExcel:"Exportar Excel",listSearch:"Cercar...",resumen:"Resum",filters:"Filtres",clearFilters:"Netejar filtres",
+        grid:"Graella",lista:"Llista",exportBtn:"Exportar...",exportConfig:"Configurar exportació",exportFormat:"Format de sortida",exportColumns:"Camps i ordre",exportSelectAll:"Tots",exportSelectNone:"Cap",exportNoneWarning:"Seleccioneu almenys un camp",listSearch:"Cercar...",resumen:"Resum",filters:"Filtres",clearFilters:"Netejar filtres",
         today:"Avui",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Consultors",
         nConsultants:"consultors",nEntries:"entrades",week:"Setmana",
         currentWeek:"Setmana Actual",previousWeek:"Setmana Anterior",future:"Futur",
