@@ -87,15 +87,16 @@ export function AgendaView() {
         loadSAMDivisions(tid).then(setSamDivisions);
     }, [tid]);
 
-    // Auto-sync consultant regions from user profiles once per session.
-    // This ensures the region filter always reflects the ABM de personas configuration
-    // without requiring manual toggles in the ConsultantsManager.
-    const hasAutoSyncedRegions = useRef(false);
+    // Auto-sync consultant regions AND divisions from user profiles once per session.
+    // Ensures both filters always reflect the ABM de personas configuration without
+    // requiring manual toggles in the ConsultantsManager.
+    const hasAutoSynced = useRef(false);
     useEffect(() => {
-        if (!tid || samRegions.length === 0 || hasAutoSyncedRegions.current) return;
+        // Wait until both catalogs are loaded before resolving IDs → names
+        if (!tid || samRegions.length === 0 || samDivisions.length === 0 || hasAutoSynced.current) return;
         const active = consultants.filter(c => c.isActive !== false);
         if (active.length === 0) return;
-        hasAutoSyncedRegions.current = true;
+        hasAutoSynced.current = true;
 
         active.forEach(async (consultant) => {
             try {
@@ -103,8 +104,10 @@ export function AgendaView() {
                 if (!snap.exists()) return;
                 const data      = snap.data();
                 const roleLevel = getRoleLevel(data?.role);
-                const regionIds: string[] = data?.accessScopes?.regionIds || [];
+                const regionIds:   string[] = data?.accessScopes?.regionIds   || [];
+                const divisionIds: string[] = (data?.accessScopes?.divisionIds || []).filter((id: string) => id !== '*');
 
+                // ── Regions ─────────────────────────────────────────────────────
                 let newRegions: string[];
                 if (roleLevel >= 80 || regionIds.includes('*')) {
                     newRegions = ['*'];
@@ -114,17 +117,31 @@ export function AgendaView() {
                     newRegions = [consultant.region].filter(Boolean);
                 }
 
-                // Only write if different from what Firestore already has
-                const cur  = consultant.regions || [];
-                const same = cur.length === newRegions.length && newRegions.every(r => cur.includes(r));
-                if (!same) {
-                    await updateConsultant(consultant.id, { regions: newRegions });
+                // ── Divisions ────────────────────────────────────────────────────
+                let newDivisions: string[];
+                if (divisionIds.length > 0) {
+                    newDivisions = divisionIds.map(id => samDivisions.find(d => d.id === id)?.name ?? id);
+                } else {
+                    newDivisions = consultant.divisions?.length ? consultant.divisions : ['Consultoría'];
+                }
+
+                // ── Only write if something changed ──────────────────────────────
+                const curR = consultant.regions   || [];
+                const curD = consultant.divisions || [];
+                const sameR = curR.length === newRegions.length   && newRegions.every(r => curR.includes(r));
+                const sameD = curD.length === newDivisions.length && newDivisions.every(d => curD.includes(d));
+
+                if (!sameR || !sameD) {
+                    const update: Record<string, string[]> = {};
+                    if (!sameR) update.regions   = newRegions;
+                    if (!sameD) update.divisions = newDivisions;
+                    await updateConsultant(consultant.id, update);
                 }
             } catch (e) {
-                console.warn('[agenda] auto-sync regions:', consultant.id, e);
+                console.warn('[agenda] auto-sync:', consultant.id, e);
             }
         });
-    }, [tid, consultants, samRegions]);
+    }, [tid, consultants, samRegions, samDivisions]);
     // ── Access-scoped regions: solo las regiones que el usuario puede ver ────────
     const availableRegions = useMemo(() => {
         const allNames = samRegions.map(r => r.name);
