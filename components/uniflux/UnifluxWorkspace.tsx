@@ -245,9 +245,14 @@ export default function UnifluxWorkspace() {
     // Absolute barrier: block auto-save while a flow is being loaded into React state
     const isLoadingFlowRef = useRef(false);
     // Bridge ref so effects declared before handleSave can always call the freshest version
-    const handleSaveRef = useRef<(isAutoSave: boolean) => void>(() => {});
+    const handleSaveRef = useRef<(isAutoSave: boolean) => Promise<void>>(async () => {});
     // Unique ID for this browser tab — used to block same-user multi-tab edits on the same flow
     const tabIdRef = useRef(crypto.randomUUID());
+    // Mirrors isDirty synchronously so handleLoadFlow/handleNewFlow (useCallback closures that
+    // don't list isDirty as a dependency) can always read the freshest value without stale closure.
+    const isDirtyRef = useRef(false);
+    useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+    // Fallback sync: keeps currentGraphIdRef up-to-date for paths not explicitly covered below.
     useEffect(() => {
         currentGraphIdRef.current = graph.id;
     }, [graph.id]);
@@ -897,6 +902,29 @@ export default function UnifluxWorkspace() {
     // Flow Loading & Reset Handlers
     const handleLoadFlow = useCallback(async (flowId: string) => {
         if (!user) return;
+
+        // PRE-SWITCH SAVE: persist the current flow before abandoning it.
+        // isDirtyRef is used instead of isDirty to avoid the stale closure problem
+        // (handleLoadFlow's useCallback deps don't include isDirty).
+        // We only save if the target is a different flow AND the current one is dirty.
+        if (
+            currentGraphIdRef.current &&
+            currentGraphIdRef.current !== flowId &&
+            isDirtyRef.current
+        ) {
+            console.log(`[uniflux] Pre-switch save: saving ${currentGraphIdRef.current} before loading ${flowId}`);
+            try {
+                await handleSaveRef.current(true);
+            } catch (e) {
+                console.error('[uniflux] Pre-switch save failed — continuing to load new flow', e);
+            }
+        }
+
+        // SYNCHRONOUS ref update: set the new active flow ID immediately so any in-flight
+        // save (whose Firestore write may be completing right now) hits the post-write guard
+        // and does NOT call setGraph() for the old flow after we've already moved to the new one.
+        currentGraphIdRef.current = flowId;
+
         isLoadingFlowRef.current = true;
         try {
         const tenantToUse = tenantId || '1';
@@ -1028,13 +1056,26 @@ export default function UnifluxWorkspace() {
         jumpToFlowRef.current = handleJumpToFlow;
     }, [handleJumpToFlow]);
 
-    const handleNewFlow = () => {
+    const handleNewFlow = async () => {
+        // PRE-NEW SAVE: persist current flow before discarding it, same logic as handleLoadFlow.
+        if (currentGraphIdRef.current && isDirtyRef.current) {
+            console.log(`[uniflux] Pre-new save: saving ${currentGraphIdRef.current} before creating new flow`);
+            try {
+                await handleSaveRef.current(true);
+            } catch (e) {
+                console.error('[uniflux] Pre-new save failed — continuing to create new flow', e);
+            }
+        }
+
         const newTemplate = {
             ...INITIAL_GRAPH,
             id: `draft-${Date.now()}`,
             projectId: selectedProjectId,
             name: 'Nuevo Flujo'
         };
+        // Synchronous ref update: must happen AFTER the pre-save so the save guard for the
+        // old flow still passes, and BEFORE setGraph so no in-flight saves race against us.
+        currentGraphIdRef.current = newTemplate.id;
         setGraph(newTemplate);
         setShowGrid(true);
         setIsSidebarOpen(false);
@@ -1049,7 +1090,16 @@ export default function UnifluxWorkspace() {
         setIsWorkflowInitialized(true);
     };
 
-    const handleNewC4Flow = () => {
+    const handleNewC4Flow = async () => {
+        if (currentGraphIdRef.current && isDirtyRef.current) {
+            console.log(`[uniflux] Pre-new save: saving ${currentGraphIdRef.current} before creating C4 flow`);
+            try {
+                await handleSaveRef.current(true);
+            } catch (e) {
+                console.error('[uniflux] Pre-new save failed — continuing to create C4 flow', e);
+            }
+        }
+
         const newTemplate: FlowGraph = {
             ...INITIAL_GRAPH,
             id: `draft-${Date.now()}`,
@@ -1059,6 +1109,7 @@ export default function UnifluxWorkspace() {
             c4Level: 1,
             schemaVersion: 3,
         };
+        currentGraphIdRef.current = newTemplate.id;
         setGraph(newTemplate);
         setShowGrid(true);
         setIsSidebarOpen(false);
@@ -1838,6 +1889,9 @@ export default function UnifluxWorkspace() {
                             ...(n.data.bgColor ? { bgColor: n.data.bgColor } : {}),
                             ...(n.data.strokeColor ? { strokeColor: n.data.strokeColor } : {}),
                             ...(n.data.items ? { items: n.data.items } : {}),
+                            ...(n.data.unileaksNoteId ? { unileaksNoteId: n.data.unileaksNoteId } : {}),
+                            ...(n.data.unileaksNoteTitle ? { unileaksNoteTitle: n.data.unileaksNoteTitle } : {}),
+                            ...(n.data.accessoryIcons ? { accessoryIcons: n.data.accessoryIcons } : {}),
                         }
                     };
                 });
@@ -1887,6 +1941,16 @@ export default function UnifluxWorkspace() {
             }
 
             await saveFlowDraft(tenantToUse, finalGraph, user.uid);
+
+            // Guard POST-write: the Firestore write succeeded but if the active flow changed
+            // while the write was in-flight, do NOT update local React state for the old flow.
+            // Without this, setGraph(finalGraph) would revert the canvas to the old flow, and
+            // the next auto-save would write the new flow's nodes under the old flow's Firestore ID.
+            if (currentGraphIdRef.current !== savingGraphId) {
+                console.warn(`[uniflux] Flow changed to ${currentGraphIdRef.current} while writing ${savingGraphId}. Post-write state update aborted.`);
+                setIsSaving(false);
+                return;
+            }
 
             setGraph(finalGraph);
             setSourceMermaidFlowId(null); // draft is now saved — no longer a conversion draft
@@ -1959,6 +2023,9 @@ export default function UnifluxWorkspace() {
                     ...(n.data.bgColor ? { bgColor: n.data.bgColor } : {}),
                     ...(n.data.strokeColor ? { strokeColor: n.data.strokeColor } : {}),
                     ...(n.data.items ? { items: n.data.items } : {}),
+                    ...(n.data.unileaksNoteId ? { unileaksNoteId: n.data.unileaksNoteId } : {}),
+                    ...(n.data.unileaksNoteTitle ? { unileaksNoteTitle: n.data.unileaksNoteTitle } : {}),
+                    ...(n.data.accessoryIcons ? { accessoryIcons: n.data.accessoryIcons } : {}),
                 }
             };
         });
