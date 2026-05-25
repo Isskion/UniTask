@@ -11,6 +11,7 @@ import {
     addDoc,
     deleteDoc,
     doc,
+    setDoc,
     serverTimestamp,
     increment,
     updateDoc,
@@ -388,60 +389,64 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     // ── Actions ───────────────────────────────────────────────────────────────
 
-    const handleNewTimer = async () => {
+    const handleNewTimer = () => {
         if (!user || !currentTenantId) return;
-        isLoadingTimerRef.current = true;
         const defaultProject = projects[0];
         const defaultCategory = taskTypes[0];
-        try {
-            const ref = await addDoc(collection(db, "activeTimers"), {
-                userId: user.uid,
-                userName: user.displayName || "Consultor",
-                tenantId: currentTenantId,
-                projectId: defaultProject?.id || "",
-                projectName: defaultProject?.name || "",
-                taskTypeId: defaultCategory?.id || "",
-                taskTypeName: defaultCategory?.name || "",
-                details: "",
-                isRunning: false,
-                startTime: null,
-                accumulatedSeconds: 0,
-                writerTabId: tabIdRef.current,
-                agendaEntryId: null,
-                agendaEntryLabel: null,
-                updatedAt: serverTimestamp()
-            });
 
-            // Optimistic: add to local state only if Firestore's local snapshot hasn't added it yet
-            // (Firestore fires the local-write snapshot before addDoc resolves, so usually it's already there)
-            const optimisticTimer: ActiveTimer = {
-                id: ref.id,
-                userId: user.uid,
-                tenantId: currentTenantId,
-                projectId: defaultProject?.id || "",
-                projectName: defaultProject?.name || "",
-                taskTypeId: defaultCategory?.id || "",
-                taskTypeName: defaultCategory?.name || "",
-                details: "",
-                isRunning: false,
-                startTime: null,
-                accumulatedSeconds: 0,
-                writerTabId: tabIdRef.current,
-                agendaEntryId: null,
-                agendaEntryLabel: null,
-                updatedAt: null,
-            };
-            setActiveTimers(prev => prev.find(t => t.id === ref.id) ? prev : [...prev, optimisticTimer]);
-            setSelectedTimerId(ref.id);
-            setNowProject(defaultProject?.id || "");
-            setNowCategory(defaultCategory ?? null);
-            setNowDetails("");
-            setLinkedAgendaEntryId(null);
-            setLinkedAgendaEntryLabel(null);
-            setShowAgendaCreator(false);
-        } finally {
-            isLoadingTimerRef.current = false;
-        }
+        // Generate document reference locally — ID is available immediately, no async needed.
+        // This eliminates the 1-3s server round-trip window where auth context changes
+        // (e.g. the 3-second token refresh in AuthContext) could reset the timer listener
+        // before addDoc resolved, causing activeTimers to clear and the form to disappear.
+        const newDocRef = doc(collection(db, "activeTimers"));
+        const timerId = newDocRef.id;
+
+        const optimisticTimer: ActiveTimer = {
+            id: timerId,
+            userId: user.uid,
+            tenantId: currentTenantId,
+            projectId: defaultProject?.id || "",
+            projectName: defaultProject?.name || "",
+            taskTypeId: defaultCategory?.id || "",
+            taskTypeName: defaultCategory?.name || "",
+            details: "",
+            isRunning: false,
+            startTime: null,
+            accumulatedSeconds: 0,
+            writerTabId: tabIdRef.current,
+            agendaEntryId: null,
+            agendaEntryLabel: null,
+            updatedAt: null,
+        };
+
+        // Synchronous optimistic update — form is visible before the network write fires
+        setActiveTimers(prev => [...prev, optimisticTimer]);
+        setSelectedTimerId(timerId);
+        setNowProject(defaultProject?.id || "");
+        setNowCategory(defaultCategory ?? null);
+        setNowDetails("");
+        setLinkedAgendaEntryId(null);
+        setLinkedAgendaEntryLabel(null);
+        setShowAgendaCreator(false);
+
+        // Fire-and-forget write to Firestore
+        setDoc(newDocRef, {
+            userId: user.uid,
+            userName: user.displayName || "Consultor",
+            tenantId: currentTenantId,
+            projectId: defaultProject?.id || "",
+            projectName: defaultProject?.name || "",
+            taskTypeId: defaultCategory?.id || "",
+            taskTypeName: defaultCategory?.name || "",
+            details: "",
+            isRunning: false,
+            startTime: null,
+            accumulatedSeconds: 0,
+            writerTabId: tabIdRef.current,
+            agendaEntryId: null,
+            agendaEntryLabel: null,
+            updatedAt: serverTimestamp()
+        }).catch(err => console.error("[timer] Failed to persist new timer:", err));
     };
 
     const handleSelectTimer = (timerId: string) => {
