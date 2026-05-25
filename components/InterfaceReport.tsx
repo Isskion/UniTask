@@ -114,7 +114,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                         __html: `
                         @media print {
                             @page {
-                                margin: 2cm;
+                                margin: 1cm !important;
                                 size: auto;
                             }
                             html, body {
@@ -147,13 +147,65 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                             }
                             #unitask-interface-report * {
                                 color: black !important;
-                                border-color: #eee !important;
+                                border-color: #ddd !important;
+                            }
+                            /* Evitar saltos de página dentro de la tarjeta de la interfaz */
+                            #unitask-interface-report section {
+                                page-break-inside: avoid !important;
+                                break-inside: avoid !important;
+                                margin-bottom: 2rem !important;
+                                padding-bottom: 1.5rem !important;
+                                border-bottom: 1px dashed #ddd !important;
+                            }
+                            /* Compactar espaciado al imprimir */
+                            #unitask-interface-report .max-w-5xl {
+                                padding: 0 !important;
+                                margin: 0 !important;
+                                max-width: none !important;
+                            }
+                            #unitask-interface-report .p-8, #unitask-interface-report .p-12 {
+                                padding: 0 !important;
+                            }
+                            #unitask-interface-report .mb-8 {
+                                margin-bottom: 1rem !important;
+                                padding-bottom: 1rem !important;
+                            }
+                            #unitask-interface-report .mb-12 {
+                                margin-bottom: 1.5rem !important;
+                            }
+                            #unitask-interface-report .p-6 {
+                                padding: 1rem !important;
+                                border-radius: 1rem !important;
+                            }
+                            #unitask-interface-report pre {
+                                padding: 0.5rem 0.75rem !important;
+                                font-size: 10px !important;
+                                border-radius: 0.5rem !important;
+                                margin-top: 0.5rem !important;
+                                background-color: #f4f4f5 !important;
+                            }
+                            #unitask-interface-report .space-y-12 > :not([hidden]) ~ :not([hidden]) {
+                                margin-top: 1.5rem !important;
+                            }
+                            #unitask-interface-report .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+                                margin-top: 0.75rem !important;
+                            }
+                            #unitask-interface-report .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+                                margin-top: 0.5rem !important;
+                            }
+                            #unitask-interface-report .gap-6 {
+                                gap: 0.75rem !important;
+                            }
+                            #unitask-interface-report .text-2xl {
+                                font-size: 1.25rem !important;
+                            }
+                            #unitask-interface-report .text-3xl {
+                                font-size: 1.5rem !important;
                             }
                             /* Forzar fondo claro en bloques de código y contenedores oscuros para que el texto negro sea visible */
                             #unitask-interface-report .bg-black,
                             #unitask-interface-report .bg-zinc-950,
-                            #unitask-interface-report .bg-zinc-900,
-                            #unitask-interface-report pre {
+                            #unitask-interface-report .bg-zinc-900 {
                                 background-color: #f4f4f5 !important;
                             }
                             .text-primary {
@@ -246,8 +298,8 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                         </span>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="md:col-span-2 space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-6 print:gap-4">
+                                        <div className="md:col-span-2 print:col-span-2 space-y-4 print:space-y-3">
                                             <div className={cn("p-6 rounded-2xl border space-y-4 shadow-sm", isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900 border-white/5")}>
                                                 <div className="flex items-center gap-2 text-[9px] font-bold uppercase text-muted-foreground tracking-widest">
                                                     <Link className="w-3 h-3" />
@@ -290,7 +342,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                             </div>
                                         </div>
 
-                                        <div className={cn("p-6 rounded-2xl border flex flex-col justify-between shadow-sm", isLight ? "bg-white border-zinc-200" : "bg-card/50 border-white/5")}>
+                                        <div className={cn("p-6 print:p-4 rounded-2xl border flex flex-col justify-between shadow-sm print:h-fit", isLight ? "bg-white border-zinc-200" : "bg-card/50 border-white/5")}>
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[9px] font-bold uppercase opacity-50 tracking-tighter">Estado Operativo</span>
