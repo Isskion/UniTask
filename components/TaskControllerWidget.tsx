@@ -616,6 +616,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         optimisticTimerIdsRef.current.delete(timerId);
         if (selectedTimerId === timerId) suppressAutoSelectRef.current = true;
         await deleteDoc(doc(db, "activeTimers", timerId));
+        setActiveTimers(prev => prev.filter(t => t.id !== timerId));
         if (selectedTimerId === timerId) setSelectedTimerId(null);
     };
 
@@ -634,7 +635,6 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     const handleSaveNowTask = async () => {
         if (isSaving || !selectedTimer) return;
-        suppressAutoSelectRef.current = true;
 
         if (secondsElapsed < 10) {
             showToast("Widget de Tareas", "La tarea debe durar al menos 10 segundos", "warning");
@@ -674,7 +674,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
             await updateDoc(doc(db, "taskTypes", nowCategory.id), { usageCount: increment(1) });
             optimisticTimerIdsRef.current.delete(selectedTimer.id);
+            suppressAutoSelectRef.current = true;
             await deleteDoc(doc(db, "activeTimers", selectedTimer.id));
+            setActiveTimers(prev => prev.filter(t => t.id !== selectedTimer.id));
 
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2500);
