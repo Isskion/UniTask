@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, FileJson, FileCode, FileText, CheckCircle2, History, Trash2, CloudUpload, Loader2, ExternalLink, Edit2, X } from "lucide-react";
+import { Plus, FileJson, FileCode, FileText, CheckCircle2, History, Trash2, CloudUpload, Loader2, ExternalLink, Edit2, X, ArrowRightLeft } from "lucide-react";
 import { InterfaceEntry, InterfaceVersion, Project } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
 import { useToast } from "@/context/ToastContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, orderBy, serverTimestamp, Timestamp, doc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, serverTimestamp, Timestamp, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { AttachmentManager } from "@/components/AttachmentManager";
 import { useFileUploader } from "@/hooks/useFileUploader";
@@ -41,10 +41,37 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     const [formatContent, setFormatContent] = useState("");
     const [formatType, setFormatType] = useState<"json" | "xml" | "txt">("json");
 
+    // Integration Flow States
+    const [direction, setDirection] = useState<'entrada' | 'salida' | ''>("");
+    const [source, setSource] = useState("");
+    const [destination, setDestination] = useState("");
+    const [method, setMethod] = useState("");
+    const [interfaceTypeSelect, setInterfaceTypeSelect] = useState("");
+    const [customInterfaceType, setCustomInterfaceType] = useState("");
+
+    const [projectCode, setProjectCode] = useState("");
+
     const [selectedInterface, setSelectedInterface] = useState<InterfaceEntry | null>(null);
     const [isAddingVersion, setIsAddingVersion] = useState(false);
     const [versionName, setVersionName] = useState("");
     const [versionNotes, setVersionNotes] = useState("");
+
+    // Fetch Project Code for Autocompletion
+    useEffect(() => {
+        if (!projectId) return;
+        const fetchProject = async () => {
+            try {
+                const docRef = doc(db, "projects", projectId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setProjectCode(docSnap.data().code || "");
+                }
+            } catch (error) {
+                console.error("Error fetching project code:", error);
+            }
+        };
+        fetchProject();
+    }, [projectId]);
 
     // Reset Form
     const resetForm = () => {
@@ -55,6 +82,12 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
         setClientSecret("");
         setFormatContent("");
         setFormatType("json");
+        setDirection("");
+        setSource("");
+        setDestination("");
+        setMethod("");
+        setInterfaceTypeSelect("");
+        setCustomInterfaceType("");
         setIsCreating(false);
         setEditingInterface(null);
     };
@@ -89,10 +122,25 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
     }, [projectId, tenantId]);
 
     // --- CREATE/UPDATE INTERFACE ---
+    const handleDirectionChange = (val: 'entrada' | 'salida' | '') => {
+        setDirection(val);
+        if (val === 'salida') {
+            setSource("TMS");
+            setDestination(projectCode);
+        } else if (val === 'entrada') {
+            setSource(projectCode);
+            setDestination("TMS");
+        } else {
+            setSource("");
+            setDestination("");
+        }
+    };
+
     const handleSaveInterface = async () => {
         if (!newName.trim() || !user) return;
 
         try {
+            const finalType = interfaceTypeSelect === "Otro" ? customInterfaceType : interfaceTypeSelect;
             const interfaceData = {
                 name: newName,
                 description: description,
@@ -101,6 +149,11 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                 clientSecret: clientSecret,
                 formatContent: formatContent,
                 formatType: formatType,
+                direction: direction || null,
+                source: source || null,
+                destination: destination || null,
+                method: method || null,
+                interfaceType: finalType || null,
                 updatedAt: serverTimestamp()
             };
 
@@ -134,6 +187,22 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
         setClientSecret(intf.clientSecret || "");
         setFormatContent(intf.formatContent || "");
         setFormatType((intf.formatType as any) || "json");
+        setDirection(intf.direction || "");
+        setSource(intf.source || "");
+        setDestination(intf.destination || "");
+        setMethod(intf.method || "");
+        if (intf.interfaceType) {
+            if (["MAPI", "JsonSyncout", "SOAP", "REST API", "FTP / CSV"].includes(intf.interfaceType)) {
+                setInterfaceTypeSelect(intf.interfaceType);
+                setCustomInterfaceType("");
+            } else {
+                setInterfaceTypeSelect("Otro");
+                setCustomInterfaceType(intf.interfaceType);
+            }
+        } else {
+            setInterfaceTypeSelect("");
+            setCustomInterfaceType("");
+        }
         setIsCreating(true);
     };
 
@@ -299,6 +368,95 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                             />
                         </div>
 
+                        {/* Dirección y Flujo de Datos */}
+                        <div className="grid grid-cols-3 gap-4 md:col-span-2">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Dirección</label>
+                                <select
+                                    value={direction}
+                                    onChange={(e) => handleDirectionChange(e.target.value as 'entrada' | 'salida' | '')}
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    <option value="entrada">Entrada</option>
+                                    <option value="salida">Salida</option>
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Origen (Entrada)</label>
+                                <input
+                                    type="text"
+                                    value={source}
+                                    onChange={(e) => setSource(e.target.value)}
+                                    placeholder="Origen"
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Destino (Salida)</label>
+                                <input
+                                    type="text"
+                                    value={destination}
+                                    onChange={(e) => setDestination(e.target.value)}
+                                    placeholder="Destino"
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Método y Tipo de Interfaz */}
+                        <div className="grid grid-cols-2 gap-4 md:col-span-2">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Método</label>
+                                <input
+                                    type="text"
+                                    value={method}
+                                    onChange={(e) => setMethod(e.target.value)}
+                                    placeholder="ej: webhook, RFC, REST POST (mín. 30 caracteres)..."
+                                    maxLength={150}
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                />
+                                {method && method.length < 30 && (
+                                    <p className="text-[9px] text-yellow-500 font-semibold mt-0.5 ml-1">Se recomiendan al menos 30 caracteres descriptivos ({method.length}/30)</p>
+                                )}
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Tipo de Interfaz</label>
+                                <select
+                                    value={interfaceTypeSelect}
+                                    onChange={(e) => {
+                                        setInterfaceTypeSelect(e.target.value);
+                                        if (e.target.value !== "Otro") {
+                                            setCustomInterfaceType("");
+                                        }
+                                    }}
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-3 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                >
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="MAPI">MAPI</option>
+                                    <option value="JsonSyncout">JsonSyncout</option>
+                                    <option value="SOAP">SOAP</option>
+                                    <option value="REST API">REST API</option>
+                                    <option value="FTP / CSV">FTP / CSV</option>
+                                    <option value="Otro">Otro (Escribir a mano)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Tipo de Interfaz Personalizado */}
+                        {interfaceTypeSelect === "Otro" && (
+                            <div className="space-y-1.5 md:col-span-2 animate-in slide-in-from-top-2 duration-200">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Escribir Tipo de Interfaz *</label>
+                                <input
+                                    type="text"
+                                    value={customInterfaceType}
+                                    onChange={(e) => setCustomInterfaceType(e.target.value)}
+                                    placeholder="ej: SyncoutCustom"
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-sm ring-primary focus:ring-1 outline-none transition-all"
+                                />
+                            </div>
+                        )}
+
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1">Client ID / Key</label>
                             <input
@@ -386,7 +544,39 @@ export default function InterfaceManager({ projectId, projectName }: InterfaceMa
                                         <h3 className="font-bold text-white text-lg">{intf.name}</h3>
                                         {intf.url && <span className="text-[8px] px-1.5 py-0.5 bg-zinc-800 text-zinc-500 rounded-md font-mono uppercase tracking-tighter">API</span>}
                                     </div>
-                                    <div className="flex items-center gap-3">
+
+                                    {/* Flujo e Integración resumen en tarjeta */}
+                                    {(intf.direction || intf.source || intf.destination || intf.interfaceType || intf.method) && (
+                                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-1">
+                                            {intf.direction && (
+                                                <span className={cn(
+                                                    "text-[8px] font-black uppercase px-1.5 py-0.5 rounded",
+                                                    intf.direction === 'salida' ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
+                                                )}>
+                                                    {intf.direction === 'salida' ? 'Salida' : 'Entrada'}
+                                                </span>
+                                            )}
+                                            {(intf.source || intf.destination) && (
+                                                <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                    {intf.source || '?'}
+                                                    <span>→</span>
+                                                    {intf.destination || '?'}
+                                                </span>
+                                            )}
+                                            {intf.interfaceType && (
+                                                <span className="text-[8px] font-bold bg-zinc-500/10 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-500/15">
+                                                    {intf.interfaceType}
+                                                </span>
+                                            )}
+                                            {intf.method && (
+                                                <span className="text-[8px] font-mono text-zinc-500 max-w-[150px] truncate" title={intf.method}>
+                                                    {intf.method}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-3 mt-1">
                                         <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{intf.versions?.length || 0} Versiones</p>
                                         {intf.clientId && <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Credentialed</p>}
                                     </div>

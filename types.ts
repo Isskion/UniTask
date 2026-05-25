@@ -587,6 +587,11 @@ export interface InterfaceEntry {
     isActive: boolean;
     createdAt: any;
     updatedAt: any;
+    direction?: 'entrada' | 'salida';
+    source?: string;
+    destination?: string;
+    method?: string;
+    interfaceType?: string;
 }
 
 export interface UniLeakFolder {

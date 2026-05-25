@@ -302,6 +302,41 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                                         {iface.versions.find(v => v.isProduction)?.versionName || "v1.0.0"}
                                                     </span>
                                                 </div>
+                                                {iface.direction && (
+                                                    <div className="flex items-center justify-between pt-2 border-t border-dashed border-zinc-200 dark:border-white/5">
+                                                        <span className="text-[9px] font-bold uppercase opacity-50 tracking-tighter">Dirección</span>
+                                                        <span className={cn(
+                                                            "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded font-black",
+                                                            iface.direction === 'salida' ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
+                                                        )}>
+                                                            {iface.direction === 'salida' ? 'Salida' : 'Entrada'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {(iface.source || iface.destination) && (
+                                                    <div className="flex items-center justify-between pt-2 border-t border-dashed border-zinc-200 dark:border-white/5">
+                                                        <span className="text-[9px] font-bold uppercase opacity-50 tracking-tighter">Flujo (Ori → Dest)</span>
+                                                        <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                                            {iface.source || '?'} → {iface.destination || '?'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {iface.interfaceType && (
+                                                    <div className="flex items-center justify-between pt-2 border-t border-dashed border-zinc-200 dark:border-white/5">
+                                                        <span className="text-[9px] font-bold uppercase opacity-50 tracking-tighter">Tipo Interfaz</span>
+                                                        <span className="text-[9px] font-mono font-bold text-zinc-600 dark:text-zinc-400">
+                                                            {iface.interfaceType}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {iface.method && (
+                                                    <div className="flex flex-col gap-1 pt-2 border-t border-dashed border-zinc-200 dark:border-white/5">
+                                                        <span className="text-[9px] font-bold uppercase opacity-50 tracking-tighter text-left">Método</span>
+                                                        <span className="text-[9px] font-mono text-zinc-600 dark:text-zinc-450 bg-zinc-50 dark:bg-zinc-950 p-2 rounded border border-zinc-100 dark:border-zinc-800 break-all leading-normal text-left">
+                                                            {iface.method}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="pt-4">
                                                 <div className="text-[8px] font-bold uppercase opacity-20 text-center tracking-[0.2em]">

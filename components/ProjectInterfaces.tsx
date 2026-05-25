@@ -78,8 +78,16 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
         tenantId: tenantId,
         isActive: true,
         versions: [],
-        mapping: ""
+        mapping: "",
+        direction: undefined,
+        source: "",
+        destination: "",
+        method: "",
+        interfaceType: ""
     });
+
+    const [interfaceTypeSelect, setInterfaceTypeSelect] = useState("");
+    const [customInterfaceType, setCustomInterfaceType] = useState("");
 
     const loadInterfaces = useCallback(async () => {
         setLoading(true);
@@ -112,16 +120,54 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
             tenantId: tenantId,
             isActive: true,
             versions: [],
-            mapping: ""
+            mapping: "",
+            direction: undefined,
+            source: "",
+            destination: "",
+            method: "",
+            interfaceType: ""
         });
+        setInterfaceTypeSelect("");
+        setCustomInterfaceType("");
         setIsEditing(false);
+    };
+
+    const handleDirectionChange = (val: 'entrada' | 'salida' | '') => {
+        if (val === 'salida') {
+            setNewInterface(prev => ({
+                ...prev,
+                direction: 'salida',
+                source: "TMS",
+                destination: project.code || ""
+            }));
+        } else if (val === 'entrada') {
+            setNewInterface(prev => ({
+                ...prev,
+                direction: 'entrada',
+                source: project.code || "",
+                destination: "TMS"
+            }));
+        } else {
+            setNewInterface(prev => ({
+                ...prev,
+                direction: undefined,
+                source: "",
+                destination: ""
+            }));
+        }
     };
 
     const handleCreate = async () => {
         if (!newInterface.name) return showToast("Interfaces", "El nombre es obligatorio", "error");
         setSaving(true);
         try {
-            const finalData = { ...newInterface, projectId: project.id, tenantId };
+            const finalType = interfaceTypeSelect === "Otro" ? customInterfaceType : interfaceTypeSelect;
+            const finalData = { 
+                ...newInterface, 
+                interfaceType: finalType,
+                projectId: project.id, 
+                tenantId 
+            };
             await saveInterface(project.id, finalData);
             showToast("Interfaces", isEditing ? "Interfaz actualizada con éxito" : "Interfaz creada con éxito", "success");
             setShowCreateModal(false);
@@ -138,6 +184,18 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
     const handleEdit = (intf: InterfaceEntry, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         setNewInterface({ ...intf });
+        if (intf.interfaceType) {
+            if (["MAPI", "JsonSyncout", "SOAP", "REST API", "FTP / CSV"].includes(intf.interfaceType)) {
+                setInterfaceTypeSelect(intf.interfaceType);
+                setCustomInterfaceType("");
+            } else {
+                setInterfaceTypeSelect("Otro");
+                setCustomInterfaceType(intf.interfaceType);
+            }
+        } else {
+            setInterfaceTypeSelect("");
+            setCustomInterfaceType("");
+        }
         setIsEditing(true);
         setShowCreateModal(true);
     };
@@ -311,6 +369,95 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                         <CloudUpload className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 opacity-20" />
                                     </div>
                                 </div>
+
+                                {/* Dirección y Flujo de Datos */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Dirección</label>
+                                        <select
+                                            value={newInterface.direction || ""}
+                                            onChange={e => handleDirectionChange(e.target.value as 'entrada' | 'salida' | '')}
+                                            className={cn("w-full border rounded-xl px-3 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                        >
+                                            <option value="">Seleccionar...</option>
+                                            <option value="entrada">Entrada</option>
+                                            <option value="salida">Salida</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Origen (Entrada)</label>
+                                        <input
+                                            type="text"
+                                            value={newInterface.source || ""}
+                                            onChange={e => setNewInterface({ ...newInterface, source: e.target.value })}
+                                            className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                            placeholder="Origen"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Destino (Salida)</label>
+                                        <input
+                                            type="text"
+                                            value={newInterface.destination || ""}
+                                            onChange={e => setNewInterface({ ...newInterface, destination: e.target.value })}
+                                            className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                            placeholder="Destino"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Método y Tipo de Interfaz */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Método</label>
+                                        <input
+                                            type="text"
+                                            value={newInterface.method || ""}
+                                            onChange={e => setNewInterface({ ...newInterface, method: e.target.value })}
+                                            className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                            placeholder="ej: webhook, RFC, REST POST (mín. 30 caracteres)..."
+                                            maxLength={150}
+                                        />
+                                        {newInterface.method && newInterface.method.length < 30 && (
+                                            <p className="text-[9px] text-yellow-500 font-semibold mt-0.5">Se recomiendan al menos 30 caracteres descriptivos ({newInterface.method.length}/30)</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Tipo de Interfaz</label>
+                                        <select
+                                            value={interfaceTypeSelect}
+                                            onChange={e => {
+                                                setInterfaceTypeSelect(e.target.value);
+                                                if (e.target.value !== "Otro") {
+                                                    setCustomInterfaceType("");
+                                                }
+                                            }}
+                                            className={cn("w-full border rounded-xl px-3 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                        >
+                                            <option value="">Seleccionar tipo...</option>
+                                            <option value="MAPI">MAPI</option>
+                                            <option value="JsonSyncout">JsonSyncout</option>
+                                            <option value="SOAP">SOAP</option>
+                                            <option value="REST API">REST API</option>
+                                            <option value="FTP / CSV">FTP / CSV</option>
+                                            <option value="Otro">Otro (Escribir a mano)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Tipo de Interfaz Personalizado */}
+                                {interfaceTypeSelect === "Otro" && (
+                                    <div className="space-y-1 animate-in slide-in-from-top-2 duration-200">
+                                        <label className="text-[10px] uppercase font-bold text-muted-foreground">Escribir Tipo de Interfaz *</label>
+                                        <input
+                                            type="text"
+                                            value={customInterfaceType}
+                                            onChange={e => setCustomInterfaceType(e.target.value)}
+                                            className={cn("w-full border rounded-xl px-4 py-2 text-sm outline-none transition-all", isLight ? "bg-zinc-50 focus:bg-white focus:border-primary/50" : "bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50")}
+                                            placeholder="ej: SyncoutCustom"
+                                        />
+                                    </div>
+                                )}
 
                                 {compact ? (
                                     <div className="grid grid-cols-1 gap-4">
@@ -550,6 +697,52 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {/* Integration Flow Metadata */}
+                    {(selectedInterface.direction || selectedInterface.source || selectedInterface.destination || selectedInterface.method || selectedInterface.interfaceType) && (
+                        <div className={cn("p-5 rounded-2xl border grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-4 duration-500",
+                            isLight ? "bg-zinc-50 border-zinc-200 text-zinc-800" : "bg-zinc-900/50 border-white/5 text-zinc-100")}>
+                            {selectedInterface.direction && (
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground block">Dirección</label>
+                                    <span className={cn(
+                                        "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
+                                        selectedInterface.direction === 'salida' 
+                                            ? "bg-red-500/10 text-red-500" 
+                                            : "bg-blue-500/10 text-blue-500"
+                                    )}>
+                                        {selectedInterface.direction === 'salida' ? 'Salida (Out)' : 'Entrada (In)'}
+                                    </span>
+                                </div>
+                            )}
+                            {(selectedInterface.source || selectedInterface.destination) && (
+                                <div className="space-y-1 md:col-span-2">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground block">Flujo de Datos</label>
+                                    <div className="flex items-center gap-2 text-xs font-bold font-mono">
+                                        <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded">{selectedInterface.source || '?'}</span>
+                                        <ArrowRightLeft className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                                        <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded">{selectedInterface.destination || '?'}</span>
+                                    </div>
+                                </div>
+                            )}
+                            {selectedInterface.interfaceType && (
+                                <div className="space-y-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground block">Tipo de Interfaz</label>
+                                    <span className="text-xs font-bold font-mono bg-zinc-500/10 text-zinc-400 px-2.5 py-0.5 rounded-lg border border-zinc-500/20">
+                                        {selectedInterface.interfaceType}
+                                    </span>
+                                </div>
+                            )}
+                            {selectedInterface.method && (
+                                <div className="space-y-1 col-span-2 md:col-span-4 border-t border-dashed border-zinc-200 dark:border-white/5 pt-3 mt-1">
+                                    <label className="text-[10px] uppercase font-bold text-muted-foreground block">Método de Integración</label>
+                                    <div className="text-xs font-mono font-medium opacity-80 bg-black/5 dark:bg-black/30 p-2.5 rounded-xl break-all">
+                                        {selectedInterface.method}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Credentials Banner */}
                     {(selectedInterface.clientId || selectedInterface.clientSecret) && (
                         <div className={cn("p-4 rounded-xl border flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500",
@@ -861,6 +1054,33 @@ export function ProjectInterfaces({ project, tenantId, compact }: ProjectInterfa
                                 </div>
                             </div>
                             <h3 className="text-lg font-bold mb-1 group-hover:text-primary transition-colors">{i.name}</h3>
+                            
+                            {/* Flujo e Integración resumen en tarjeta */}
+                            {(i.direction || i.source || i.destination || i.interfaceType) && (
+                                <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
+                                    {i.direction && (
+                                        <span className={cn(
+                                            "text-[8px] font-black uppercase px-1.5 py-0.5 rounded",
+                                            i.direction === 'salida' ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
+                                        )}>
+                                            {i.direction === 'salida' ? 'Salida' : 'Entrada'}
+                                        </span>
+                                    )}
+                                    {(i.source || i.destination) && (
+                                        <span className="text-[9px] font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded flex items-center gap-1">
+                                            {i.source || '?'}
+                                            <span>→</span>
+                                            {i.destination || '?'}
+                                        </span>
+                                    )}
+                                    {i.interfaceType && (
+                                        <span className="text-[8px] font-bold bg-zinc-500/10 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-500/15">
+                                            {i.interfaceType}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
                             <p className="text-xs text-muted-foreground line-clamp-2 mb-4 h-8">
                                 {i.description || "Sin descripción"}
                             </p>
