@@ -246,10 +246,6 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                         </span>
                                     </div>
 
-                                    <p className="text-sm opacity-80 leading-relaxed max-w-3xl font-medium">
-                                        {iface.description || "Sin descripción proporcionada."}
-                                    </p>
-
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="md:col-span-2 space-y-4">
                                             <div className={cn("p-6 rounded-2xl border space-y-4 shadow-sm", isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900 border-white/5")}>
@@ -261,28 +257,34 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                                     {iface.url || "URL no especificada"}
                                                 </div>
 
-                                                {(iface.clientId || iface.clientSecret) && (
-                                                    <div className="pt-4 mt-4 border-t border-dashed border-primary/10 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {iface.clientId && (
-                                                            <div className="space-y-1">
-                                                                <div className="flex items-center gap-1.5 text-[8px] font-bold uppercase text-muted-foreground opacity-60">
-                                                                    <Shield className="w-2.5 h-2.5" /> Client ID
-                                                                </div>
-                                                                <div className="font-mono text-[11px] select-all bg-black/5 p-2 rounded-lg border border-black/5 text-zinc-600 dark:text-zinc-400">
-                                                                    {maskCredential(iface.clientId)}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                        {iface.clientSecret && (
-                                                            <div className="space-y-1">
-                                                                <div className="flex items-center gap-1.5 text-[8px] font-bold uppercase text-muted-foreground opacity-60">
-                                                                    <Shield className="w-2.5 h-2.5" /> API Secret
-                                                                </div>
-                                                                <div className="font-mono text-[11px] p-2 bg-black/5 rounded-lg border border-black/5 text-zinc-600 dark:text-zinc-400">
-                                                                    ••••••••••••••••••••
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                <div className="pt-4 mt-4 border-t border-dashed border-primary/10 space-y-2">
+                                                    <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-muted-foreground tracking-widest">
+                                                        <FileText className="w-3.5 h-3.5" /> Descripción de la Interfaz
+                                                    </div>
+                                                    <p className="text-sm opacity-90 leading-relaxed font-medium">
+                                                        {iface.description || "Sin descripción proporcionada."}
+                                                    </p>
+                                                </div>
+
+                                                {iface.formatContent && (
+                                                    <div className="pt-4 mt-4 border-t border-dashed border-primary/10 space-y-2">
+                                                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-muted-foreground tracking-widest">
+                                                            <Code className="w-3.5 h-3.5" /> Especificación Técnica ({iface.formatType})
+                                                        </div>
+                                                        <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed bg-black/5 dark:bg-black/20 p-4 rounded-xl border border-black/5 text-zinc-650 dark:text-zinc-400">
+                                                            {iface.formatContent}
+                                                        </pre>
+                                                    </div>
+                                                )}
+
+                                                {iface.mapping && iface.mapping.length > 0 && (
+                                                    <div className="pt-4 mt-4 border-t border-dashed border-primary/10 space-y-2">
+                                                        <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase text-muted-foreground tracking-widest">
+                                                            <ArrowRightLeft className="w-3.5 h-3.5" /> Mapeo de Campos
+                                                        </div>
+                                                        <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed bg-black/5 dark:bg-black/20 p-4 rounded-xl border border-black/5 text-zinc-650 dark:text-zinc-400">
+                                                            {iface.mapping}
+                                                        </pre>
                                                     </div>
                                                 )}
                                             </div>
@@ -346,34 +348,7 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                         </div>
                                     </div>
 
-                                    {iface.formatContent && (
-                                        <div className={cn("rounded-2xl border overflow-hidden shadow-sm print:!bg-zinc-50", isLight ? "bg-zinc-950 text-zinc-300 border-zinc-900" : "bg-black border-white/10 text-zinc-400")}>
-                                            <div className="px-4 py-2 border-b border-white/5 flex items-center justify-between bg-white/5 print:!bg-zinc-200">
-                                                <div className="flex items-center gap-2">
-                                                    <Code className="w-3 h-3 text-primary" />
-                                                    <span className="text-[9px] font-bold uppercase font-mono tracking-widest opacity-60">Payload Spec ({iface.formatType})</span>
-                                                </div>
-                                            </div>
-                                            <div className="p-6">
-                                                <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed text-zinc-400">
-                                                    {iface.formatContent}
-                                                </pre>
-                                            </div>
-                                        </div>
-                                    )}
 
-                                    {iface.mapping && iface.mapping.length > 0 && (
-                                        <div className="space-y-3 pt-4 break-inside-avoid">
-                                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-muted-foreground tracking-widest px-1">
-                                                <ArrowRightLeft className="w-3 h-3" /> Mapeo Lógico de Datos
-                                            </div>
-                                            <div className={cn("rounded-2xl border p-6 shadow-sm print:!bg-zinc-50", isLight ? "bg-white border-zinc-200" : "bg-zinc-900 border-white/5")}>
-                                                <pre className="text-[11px] font-mono whitespace-pre-wrap break-all leading-relaxed opacity-80">
-                                                    {iface.mapping}
-                                                </pre>
-                                            </div>
-                                        </div>
-                                    )}
                                 </section>
                             ))}
                         </div>
