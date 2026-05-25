@@ -22,7 +22,9 @@ import { useToast } from "@/context/ToastContext";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { DynamicLucideIcon } from "./admin/TaskControlPanel";
-import type { AgendaEntry } from "@/types/agenda";
+import type { AgendaEntry, AgendaConsultant } from "@/types/agenda";
+import { ActivityType, ResultStatus } from "@/types/agenda";
+import { createAgendaEntry } from "@/lib/agenda";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,6 +106,15 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     // Agenda entries for today
     const [todayAgendaEntries, setTodayAgendaEntries] = useState<AgendaEntry[]>([]);
+
+    // Agenda creator (shown when user hits Iniciar without a linked entry)
+    const [myConsultant, setMyConsultant] = useState<AgendaConsultant | null>(null);
+    const [showAgendaCreator, setShowAgendaCreator] = useState(false);
+    const [agendaCreatorType, setAgendaCreatorType] = useState<ActivityType>(ActivityType.TAREAS_A_REALIZAR);
+    const [agendaCreatorComment, setAgendaCreatorComment] = useState("");
+    const [agendaCreatorStart, setAgendaCreatorStart] = useState("");
+    const [agendaCreatorEnd, setAgendaCreatorEnd] = useState("");
+    const [isCreatingAgendaEntry, setIsCreatingAgendaEntry] = useState(false);
 
     // Tick — drives secondsElapsed via useMemo (F5 / tab-suspend resilient)
     const [tick, setTick] = useState(0);
@@ -255,6 +266,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         setNowDetails(selectedTimer.details ?? "");
         setLinkedAgendaEntryId(selectedTimer.agendaEntryId ?? null);
         setLinkedAgendaEntryLabel(selectedTimer.agendaEntryLabel ?? null);
+        setShowAgendaCreator(false);
         if (selectedTimer.taskTypeId && taskTypes.length > 0) {
             const match = taskTypes.find(t => t.id === selectedTimer.taskTypeId);
             if (match) setNowCategory(match);
@@ -287,7 +299,25 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         return () => unsub();
     }, [user, currentTenantId]);
 
-    // ── 5. Debounced auto-sync form → Firestore ───────────────────────────────
+    // ── 5. Load AgendaConsultant for current user ─────────────────────────────
+    useEffect(() => {
+        if (!user || !currentTenantId || currentTenantId === "unknown") return;
+        const unsub = onSnapshot(
+            query(
+                collection(db, "agenda_consultants"),
+                where("userId", "==", user.uid),
+                where("tenantId", "==", currentTenantId)
+            ),
+            snap => {
+                const doc0 = snap.docs[0];
+                setMyConsultant(doc0 ? ({ id: doc0.id, ...doc0.data() } as AgendaConsultant) : null);
+            },
+            err => console.error("agenda_consultants:", err)
+        );
+        return () => unsub();
+    }, [user, currentTenantId]);
+
+    // ── 6. Debounced auto-sync form → Firestore ───────────────────────────────
     useEffect(() => {
         if (!selectedTimerId || !user || !currentTenantId || currentTenantId === "unknown") return;
 
@@ -374,12 +404,33 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 agendaEntryLabel: null,
                 updatedAt: serverTimestamp()
             });
+
+            // Optimistic: add to local state immediately so form renders without waiting for snapshot
+            const optimisticTimer: ActiveTimer = {
+                id: ref.id,
+                userId: user.uid,
+                tenantId: currentTenantId,
+                projectId: defaultProject?.id || "",
+                projectName: defaultProject?.name || "",
+                taskTypeId: defaultCategory?.id || "",
+                taskTypeName: defaultCategory?.name || "",
+                details: "",
+                isRunning: false,
+                startTime: null,
+                accumulatedSeconds: 0,
+                writerTabId: tabIdRef.current,
+                agendaEntryId: null,
+                agendaEntryLabel: null,
+                updatedAt: null,
+            };
+            setActiveTimers(prev => [...prev, optimisticTimer]);
             setSelectedTimerId(ref.id);
             setNowProject(defaultProject?.id || "");
             setNowCategory(defaultCategory ?? null);
             setNowDetails("");
             setLinkedAgendaEntryId(null);
             setLinkedAgendaEntryLabel(null);
+            setShowAgendaCreator(false);
         } finally {
             isLoadingTimerRef.current = false;
         }
@@ -393,6 +444,17 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     const handleStartTimer = async () => {
         if (!selectedTimerId) return;
+        if (!linkedAgendaEntryId) {
+            const now = new Date();
+            const pad = (n: number) => String(n).padStart(2, "0");
+            const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+            setAgendaCreatorComment(nowDetails || "");
+            setAgendaCreatorStart(`${pad(now.getHours())}:${pad(now.getMinutes())}`);
+            setAgendaCreatorEnd(`${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`);
+            setAgendaCreatorType(ActivityType.TAREAS_A_REALIZAR);
+            setShowAgendaCreator(true);
+            return;
+        }
         await pauseAllOtherTimers(selectedTimerId);
         await updateDoc(doc(db, "activeTimers", selectedTimerId), {
             isRunning: true,
@@ -400,7 +462,61 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             writerTabId: tabIdRef.current,
             updatedAt: serverTimestamp()
         });
-        showToast("Widget de Tareas", "Temporizador iniciado (protegido)", "success");
+        showToast("Widget de Tareas", "Temporizador iniciado", "success");
+    };
+
+    const handleCreateAgendaAndStart = async () => {
+        if (!user || !selectedTimerId || isCreatingAgendaEntry) return;
+        if (!agendaCreatorComment.trim()) {
+            showToast("Error", "Escribe una descripción antes de iniciar", "warning");
+            return;
+        }
+        setIsCreatingAgendaEntry(true);
+        try {
+            const scheduleRaw = `${agendaCreatorStart} A ${agendaCreatorEnd}`;
+            const projectObj = projects.find(p => p.id === nowProject);
+            const entryId = await createAgendaEntry({
+                tenantId: currentTenantId,
+                consultantId: user.uid,
+                consultantName: myConsultant?.name || user.displayName || "Consultor",
+                consultantOrder: myConsultant?.sortOrder ?? 0,
+                region: myConsultant?.region || "",
+                divisionId: myConsultant?.divisions?.[0] || "",
+                divisionName: myConsultant?.divisions?.[0] || "",
+                date: new Date(),
+                activityType: agendaCreatorType,
+                comment: agendaCreatorComment,
+                scheduleRaw,
+                result: ResultStatus.POR_HACER,
+                projectId: projectObj?.id,
+                projectName: projectObj?.name,
+                createdBy: user.uid,
+            });
+            const label = `${agendaCreatorType}: ${agendaCreatorComment} ${agendaCreatorStart}–${agendaCreatorEnd}`;
+            setLinkedAgendaEntryId(entryId);
+            setLinkedAgendaEntryLabel(label);
+
+            await updateDoc(doc(db, "activeTimers", selectedTimerId), {
+                agendaEntryId: entryId,
+                agendaEntryLabel: label,
+                writerTabId: tabIdRef.current,
+                updatedAt: serverTimestamp()
+            });
+            await pauseAllOtherTimers(selectedTimerId);
+            await updateDoc(doc(db, "activeTimers", selectedTimerId), {
+                isRunning: true,
+                startTime: Date.now(),
+                writerTabId: tabIdRef.current,
+                updatedAt: serverTimestamp()
+            });
+            setShowAgendaCreator(false);
+            showToast("Agenda", "Entrada creada y temporizador iniciado", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Error", "No se pudo crear la entrada de agenda", "error");
+        } finally {
+            setIsCreatingAgendaEntry(false);
+        }
     };
 
     const handlePauseTimer = async () => {
@@ -864,7 +980,61 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                         </div>
                                     )}
 
+                                    {/* Agenda creator (shown when Iniciar pressed with no linked entry) */}
+                                    {showAgendaCreator && (
+                                        <div className="space-y-2.5 pt-2 border-t border-violet-500/20 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-violet-400 flex items-center gap-1">
+                                                    <Lucide.CalendarPlus className="w-3 h-3" />
+                                                    Crear entrada de agenda
+                                                </span>
+                                                <button type="button" onClick={() => setShowAgendaCreator(false)}
+                                                    className="text-zinc-500 hover:text-zinc-300 transition-colors">
+                                                    <Lucide.X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <select
+                                                value={agendaCreatorType}
+                                                onChange={e => setAgendaCreatorType(e.target.value as ActivityType)}
+                                                className="w-full bg-black/40 border border-violet-500/20 rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-violet-400 text-violet-200">
+                                                {Object.values(ActivityType).map(at => (
+                                                    <option key={at} value={at} className="bg-zinc-900 text-white">{at}</option>
+                                                ))}
+                                            </select>
+                                            <textarea
+                                                value={agendaCreatorComment}
+                                                onChange={e => setAgendaCreatorComment(e.target.value)}
+                                                placeholder="Descripción (ej: CLIENTE / Detalle de la tarea)"
+                                                rows={2}
+                                                className="w-full bg-black/40 border border-violet-500/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-violet-400 resize-none leading-relaxed text-violet-100 placeholder:text-zinc-500" />
+                                            <div className="flex gap-2 items-center">
+                                                <div className="flex-1 space-y-0.5">
+                                                    <label className="text-[9px] text-zinc-500 uppercase tracking-wider">Inicio</label>
+                                                    <input type="time" value={agendaCreatorStart}
+                                                        onChange={e => setAgendaCreatorStart(e.target.value)}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-violet-400" />
+                                                </div>
+                                                <Lucide.ArrowRight className="w-3 h-3 text-zinc-500 mt-4 shrink-0" />
+                                                <div className="flex-1 space-y-0.5">
+                                                    <label className="text-[9px] text-zinc-500 uppercase tracking-wider">Fin</label>
+                                                    <input type="time" value={agendaCreatorEnd}
+                                                        onChange={e => setAgendaCreatorEnd(e.target.value)}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-xs font-mono focus:outline-none focus:border-violet-400" />
+                                                </div>
+                                            </div>
+                                            <button type="button" onClick={handleCreateAgendaAndStart}
+                                                disabled={isCreatingAgendaEntry || !agendaCreatorComment.trim()}
+                                                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-violet-600/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                {isCreatingAgendaEntry
+                                                    ? <><Lucide.Loader2 className="w-3.5 h-3.5 animate-spin" /> Creando...</>
+                                                    : <><Lucide.Play className="w-3.5 h-3.5" /> Crear e Iniciar</>
+                                                }
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* Timer actions */}
+                                    {!showAgendaCreator && (
                                     <div className="flex gap-2.5 pt-1">
                                         {!timerActive ? (
                                             <button onClick={handleStartTimer}
@@ -883,6 +1053,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                             {isSaving ? "Guardando..." : "Guardar"}
                                         </button>
                                     </div>
+                                    )}
                                 </div>
                             )}
 
