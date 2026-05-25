@@ -89,6 +89,12 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     // without needing taskTypes in its dependency array (which would cause
     // the listener to recreate on every taskTypes load, dropping in-flight timers)
     const taskTypesRef = useRef<TaskType[]>([]);
+    // IDs of timers created optimistically (locally) that Firestore hasn't confirmed yet.
+    // Needed because the Firestore listener may recreate (e.g. when tenantId updates at ~3s
+    // after login due to token refresh) and return a snapshot that doesn't include the timer
+    // written under the previous tenantId. Keeping these IDs lets us merge them back so
+    // the form stays visible until Firestore confirms or the user navigates away.
+    const optimisticTimerIdsRef = useRef<Set<string>>(new Set());
 
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"now" | "retro" | "today" | "edit">("now");
@@ -235,11 +241,25 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             ),
             snap => {
                 const timers: ActiveTimer[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as ActiveTimer));
-                setActiveTimers(timers);
+                const fsIds = new Set(timers.map(t => t.id));
 
-                // Keep a valid selectedTimerId
+                // Promote confirmed timers out of the optimistic set
+                for (const id of optimisticTimerIdsRef.current) {
+                    if (fsIds.has(id)) optimisticTimerIdsRef.current.delete(id);
+                }
+
+                // Merge: Firestore timers + any still-optimistic local timers not yet in this snapshot.
+                // This survives listener recreations triggered by tenantId changes (e.g. the ~3s
+                // token-refresh in AuthContext) where the new query temporarily misses timers
+                // created under the previous tenantId.
+                setActiveTimers(prev => {
+                    const stillOptimistic = prev.filter(t => optimisticTimerIdsRef.current.has(t.id));
+                    return [...timers, ...stillOptimistic];
+                });
+
+                // Keep a valid selectedTimerId — also accept still-optimistic IDs
                 setSelectedTimerId(prev => {
-                    if (prev && timers.find(t => t.id === prev)) return prev;
+                    if (prev && (fsIds.has(prev) || optimisticTimerIdsRef.current.has(prev))) return prev;
                     return timers.find(t => t.isRunning)?.id ?? timers[0]?.id ?? null;
                 });
 
@@ -419,6 +439,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             updatedAt: null,
         };
 
+        // Mark as optimistic so the snapshot handler preserves it across listener recreations
+        optimisticTimerIdsRef.current.add(timerId);
+
         // Synchronous optimistic update — form is visible before the network write fires
         setActiveTimers(prev => [...prev, optimisticTimer]);
         setSelectedTimerId(timerId);
@@ -569,6 +592,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     };
 
     const handleDeleteTimer = async (timerId: string) => {
+        optimisticTimerIdsRef.current.delete(timerId);
         await deleteDoc(doc(db, "activeTimers", timerId));
         if (selectedTimerId === timerId) setSelectedTimerId(null);
     };
@@ -626,6 +650,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             }
 
             await updateDoc(doc(db, "taskTypes", nowCategory.id), { usageCount: increment(1) });
+            optimisticTimerIdsRef.current.delete(selectedTimer.id);
             await deleteDoc(doc(db, "activeTimers", selectedTimer.id));
 
             setSaveSuccess(true);
