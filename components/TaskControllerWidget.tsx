@@ -84,6 +84,10 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     // Stable tab identity — cursor safe (no re-render needed)
     const tabIdRef = useRef(Math.random().toString(36).slice(2));
     const isLoadingTimerRef = useRef(false);
+    // Ref so the timer listener closure can always read latest taskTypes
+    // without needing taskTypes in its dependency array (which would cause
+    // the listener to recreate on every taskTypes load, dropping in-flight timers)
+    const taskTypesRef = useRef<TaskType[]>([]);
 
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"now" | "retro" | "today" | "edit">("now");
@@ -160,6 +164,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         const id = setInterval(() => setTick(t => t + 1), 1000);
         return () => clearInterval(id);
     }, [timerActive]);
+
+    // Keep ref in sync so timer listener closure stays fresh without recreating
+    useEffect(() => { taskTypesRef.current = taskTypes; }, [taskTypes]);
 
     // ── 1. Master data ────────────────────────────────────────────────────────
     useEffect(() => {
@@ -247,7 +254,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                         if (t.taskTypeId) {
                             setNowCategory(prev =>
                                 prev?.id === t.taskTypeId ? prev :
-                                taskTypes.find(tt => tt.id === t.taskTypeId) ?? prev
+                                taskTypesRef.current.find(tt => tt.id === t.taskTypeId) ?? prev
                             );
                         }
                     }
@@ -257,7 +264,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         );
 
         return () => unsub();
-    }, [user, currentTenantId, taskTypes]);
+    }, [user, currentTenantId]); // intentionally omit taskTypes — use taskTypesRef to avoid listener recreation
 
     // ── 3. Sync form when switching selected timer ────────────────────────────
     useEffect(() => {
@@ -405,7 +412,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 updatedAt: serverTimestamp()
             });
 
-            // Optimistic: add to local state immediately so form renders without waiting for snapshot
+            // Optimistic: add to local state only if Firestore's local snapshot hasn't added it yet
+            // (Firestore fires the local-write snapshot before addDoc resolves, so usually it's already there)
             const optimisticTimer: ActiveTimer = {
                 id: ref.id,
                 userId: user.uid,
@@ -423,7 +431,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 agendaEntryLabel: null,
                 updatedAt: null,
             };
-            setActiveTimers(prev => [...prev, optimisticTimer]);
+            setActiveTimers(prev => prev.find(t => t.id === ref.id) ? prev : [...prev, optimisticTimer]);
             setSelectedTimerId(ref.id);
             setNowProject(defaultProject?.id || "");
             setNowCategory(defaultCategory ?? null);
