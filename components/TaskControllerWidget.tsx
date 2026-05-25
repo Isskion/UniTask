@@ -451,8 +451,12 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         setLinkedAgendaEntryLabel(null);
         setShowAgendaCreator(false);
 
-        // Fire-and-forget write to Firestore
-        setDoc(newDocRef, {
+        // Fire-and-forget write to Firestore with retry.
+        // Firestore uses experimentalForceLongPolling + persistentSingleTabManager; when the
+        // auth token refreshes (~3s after login) the long-poll connection briefly drops and
+        // writes that land in that window get a transient permission-denied. Retrying once
+        // after a short delay is enough to clear the reconnection window.
+        const timerPayload = {
             userId: user.uid,
             userName: user.displayName || "Consultor",
             tenantId: currentTenantId,
@@ -468,7 +472,14 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             agendaEntryId: null,
             agendaEntryLabel: null,
             updatedAt: serverTimestamp()
-        }).catch(err => console.error("[timer] Failed to persist new timer:", err));
+        };
+        setDoc(newDocRef, timerPayload).catch(() => {
+            setTimeout(() => {
+                setDoc(newDocRef, timerPayload).catch(err =>
+                    console.error("[timer] Failed to persist new timer after retry:", err)
+                );
+            }, 800);
+        });
     };
 
     const handleSelectTimer = (timerId: string) => {
