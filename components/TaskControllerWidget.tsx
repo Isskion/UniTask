@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import * as Lucide from "lucide-react";
 import {
     collection,
@@ -12,10 +12,9 @@ import {
     deleteDoc,
     doc,
     serverTimestamp,
-    getDocs,
     increment,
     updateDoc,
-    setDoc
+    writeBatch
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +22,9 @@ import { useToast } from "@/context/ToastContext";
 import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 import { DynamicLucideIcon } from "./admin/TaskControlPanel";
+import type { AgendaEntry } from "@/types/agenda";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TaskType {
     id: string;
@@ -48,340 +50,458 @@ interface ConsultantTask {
     taskTypeId: string;
     details: string;
     durationMinutes: number;
+    agendaEntryId?: string;
     createdAt: any;
 }
 
+interface ActiveTimer {
+    id: string;
+    userId: string;
+    tenantId: string;
+    projectId: string;
+    projectName: string;
+    taskTypeId: string;
+    taskTypeName: string;
+    details: string;
+    isRunning: boolean;
+    startTime: number | null;       // epoch ms, null when paused
+    accumulatedSeconds: number;
+    writerTabId: string;
+    agendaEntryId: string | null;
+    agendaEntryLabel: string | null;
+    updatedAt: any;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function TaskControllerWidget({ embedded = false }: { embedded?: boolean }) {
-    const { user, userRole, tenantId, loading: authLoading } = useAuth();
+    const { user, tenantId } = useAuth();
     const { showToast } = useToast();
     const { theme } = useTheme();
+
+    // Stable tab identity — cursor safe (no re-render needed)
+    const tabIdRef = useRef(Math.random().toString(36).slice(2));
+    const isLoadingTimerRef = useRef(false);
 
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"now" | "retro" | "today" | "edit">("now");
 
-    // Dynamic Lists
+    // Master data
     const [taskTypes, setTaskTypes] = useState<TaskType[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [todayTasks, setTodayTasks] = useState<ConsultantTask[]>([]);
 
-    // Form states - "Ahora mismo"
-    const [timerActive, setTimerActive] = useState(false);
-    const [secondsElapsed, setSecondsElapsed] = useState(0);
+    // Multi-timer
+    const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([]);
+    const [selectedTimerId, setSelectedTimerId] = useState<string | null>(null);
+
+    // Form fields for the selected timer
     const [nowProject, setNowProject] = useState("");
     const [nowCategory, setNowCategory] = useState<TaskType | null>(null);
     const [nowDetails, setNowDetails] = useState("");
+    const [linkedAgendaEntryId, setLinkedAgendaEntryId] = useState<string | null>(null);
+    const [linkedAgendaEntryLabel, setLinkedAgendaEntryLabel] = useState<string | null>(null);
 
-    // Form states - "Retroactivo"
+    // Agenda entries for today
+    const [todayAgendaEntries, setTodayAgendaEntries] = useState<AgendaEntry[]>([]);
+
+    // Tick — drives secondsElapsed via useMemo (F5 / tab-suspend resilient)
+    const [tick, setTick] = useState(0);
+
+    // Retroactive form
     const [retroProject, setRetroProject] = useState("");
     const [retroCategory, setRetroCategory] = useState<TaskType | null>(null);
     const [retroDetails, setRetroDetails] = useState("");
-    const [retroDuration, setRetroDuration] = useState(15); // Default 15 minutes
+    const [retroDuration, setRetroDuration] = useState(15);
 
-    // Form states - "Editar"
+    // Edit task form
     const [editingTask, setEditingTask] = useState<ConsultantTask | null>(null);
     const [editDuration, setEditDuration] = useState(15);
     const [editDetails, setEditDetails] = useState("");
 
-    // Inline success feedback
+    // UI
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
     const currentTenantId = tenantId || "";
 
-    // 1. Fetch Categories & Projects & Today's tasks
+    // ── Derived ───────────────────────────────────────────────────────────────
+
+    const selectedTimer = useMemo(
+        () => activeTimers.find(t => t.id === selectedTimerId) ?? null,
+        [activeTimers, selectedTimerId]
+    );
+
+    const timerActive = selectedTimer?.isRunning ?? false;
+
+    // Elapsed seconds recalculated from Firestore anchor on every tick
+    const secondsElapsed = useMemo(() => {
+        if (!selectedTimer) return 0;
+        const base = selectedTimer.accumulatedSeconds ?? 0;
+        if (!selectedTimer.isRunning || !selectedTimer.startTime) return base;
+        return base + Math.max(0, Math.floor((Date.now() - selectedTimer.startTime) / 1000));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tick, selectedTimer]);
+
+    // ── Tick interval ─────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (!timerActive) return;
+        const id = setInterval(() => setTick(t => t + 1), 1000);
+        return () => clearInterval(id);
+    }, [timerActive]);
+
+    // ── 1. Master data ────────────────────────────────────────────────────────
     useEffect(() => {
         if (!user || !currentTenantId || currentTenantId === "unknown" || currentTenantId === "__DENY__") return;
 
-        // Fetch categories (active only)
-        const qCategories = query(
-            collection(db, "taskTypes"),
-            where("tenantId", "==", currentTenantId),
-            where("active", "==", true)
+        const unsubCategories = onSnapshot(
+            query(collection(db, "taskTypes"), where("tenantId", "==", currentTenantId), where("active", "==", true)),
+            snap => {
+                const list: TaskType[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as TaskType));
+                setTaskTypes(list);
+                setNowCategory(prev => prev ?? list[0] ?? null);
+            },
+            err => console.error("taskTypes:", err)
         );
-        const unsubCategories = onSnapshot(qCategories, (snap) => {
-            const list: TaskType[] = [];
-            snap.forEach((doc) => list.push({ id: doc.id, ...doc.data() } as TaskType));
-            setTaskTypes(list);
-            if (list.length > 0 && !nowCategory) setNowCategory(list[0]);
-        }, (error) => {
-            console.error("Error fetching taskTypes categories:", error);
-        });
 
-        // Fetch Projects (active only)
-        const qProjects = query(
-            collection(db, "projects"),
-            where("tenantId", "==", currentTenantId)
-        );
-        const unsubProjects = onSnapshot(qProjects, (snap) => {
-            const list: Project[] = [];
-            snap.forEach((doc) => {
-                const data = doc.data();
-                if (data.status === "active") {
-                    list.push({ id: doc.id, name: data.name, code: data.code, status: data.status });
+        const unsubProjects = onSnapshot(
+            query(collection(db, "projects"), where("tenantId", "==", currentTenantId)),
+            snap => {
+                const list = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() } as Project))
+                    .filter(p => p.status === "active");
+                setProjects(list);
+                if (list.length > 0) {
+                    setNowProject(prev => prev || list[0].id);
+                    setRetroProject(prev => prev || list[0].id);
                 }
-            });
-            setProjects(list);
-            if (list.length > 0) {
-                // Critical Fix: Only set default project IF the value is currently empty (initial state),
-                // preventing overwrite of the hydrated value that came from persistent activeTimers.
-                setNowProject(prev => prev || list[0].id);
-                setRetroProject(prev => prev || list[0].id);
-            }
-        }, (error) => {
-            console.error("Error fetching projects:", error);
-        });
+            },
+            err => console.error("projects:", err)
+        );
 
-        // Fetch Today's Tasks
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
 
-        const qTasks = query(
-            collection(db, "consultantTasks"),
-            where("userId", "==", user.uid),
-            where("tenantId", "==", currentTenantId),
-            orderBy("createdAt", "desc")
+        const unsubTasks = onSnapshot(
+            query(
+                collection(db, "consultantTasks"),
+                where("userId", "==", user.uid),
+                where("tenantId", "==", currentTenantId),
+                orderBy("createdAt", "desc")
+            ),
+            snap => {
+                const list: ConsultantTask[] = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    const ts = data.createdAt?.toDate();
+                    if (ts && ts >= todayStart) list.push({ id: d.id, ...data } as ConsultantTask);
+                });
+                setTodayTasks(list);
+            },
+            err => console.error("consultantTasks:", err)
         );
-        const unsubTasks = onSnapshot(qTasks, (snap) => {
-            const list: ConsultantTask[] = [];
-            snap.forEach((doc) => {
-                const data = doc.data();
-                const ts = data.createdAt?.toDate();
-                if (ts && ts >= todayStart) {
-                    list.push({ id: doc.id, ...data } as ConsultantTask);
-                }
-            });
-            setTodayTasks(list);
-        }, (error) => {
-            console.error("Error fetching consultantTasks today:", error);
-        });
 
-        return () => {
-            unsubCategories();
-            unsubProjects();
-            unsubTasks();
-        };
-    }, [user, currentTenantId, nowCategory]);
+        return () => { unsubCategories(); unsubProjects(); unsubTasks(); };
+    }, [user, currentTenantId]);
 
-    // Calculate Daily Total Summation
-    const dailyTotalMinutes = useMemo(() => {
-        return todayTasks.reduce((sum, task) => sum + (Number(task.durationMinutes) || 0), 0);
-    }, [todayTasks]);
-
-    const formattedDailyTotal = useMemo(() => {
-        const hrs = Math.floor(dailyTotalMinutes / 60);
-        const mins = dailyTotalMinutes % 60;
-        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}h`;
-    }, [dailyTotalMinutes]);
-
-    // 1.5 Remote Timer State Subscription (Ensures sync across tabs / F5 resilience)
+    // ── 2. Multi-timer listener ───────────────────────────────────────────────
     useEffect(() => {
         if (!user || !currentTenantId || currentTenantId === "unknown") return;
 
-        const timerDocRef = doc(db, "activeTimers", user.uid);
-        const unsubTimer = onSnapshot(timerDocRef, (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                
-                // Update local input fields only if the incoming data is strictly defined
-                if (data.projectId) setNowProject(data.projectId);
-                if (data.taskTypeId) {
-                    const matchedCat = taskTypes.find(t => t.id === data.taskTypeId);
-                    if (matchedCat) setNowCategory(matchedCat);
-                }
-                if (data.details !== undefined) setNowDetails(data.details);
+        const unsub = onSnapshot(
+            query(
+                collection(db, "activeTimers"),
+                where("userId", "==", user.uid),
+                where("tenantId", "==", currentTenantId)
+            ),
+            snap => {
+                const timers: ActiveTimer[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as ActiveTimer));
+                setActiveTimers(timers);
 
-                // Force local state variables
-                const isCurrentlyRunning = !!data.isRunning;
-                setTimerActive(isCurrentlyRunning);
+                // Keep a valid selectedTimerId
+                setSelectedTimerId(prev => {
+                    if (prev && timers.find(t => t.id === prev)) return prev;
+                    return timers.find(t => t.isRunning)?.id ?? timers[0]?.id ?? null;
+                });
 
-                // Recalculate exact absolute elapsed time from snapshot anchor
-                let elapsed = Number(data.accumulatedSeconds || 0);
-                if (isCurrentlyRunning && data.startTime) {
-                    // Using simple numeric timestamp from client written via syncTimerToFirestore
-                    const startedAt = Number(data.startTime);
-                    const now = Date.now();
-                    if (now > startedAt) {
-                        elapsed += Math.floor((now - startedAt) / 1000);
+                // Cursor-safe: only sync form fields if the write came from another tab
+                snap.docChanges().forEach(change => {
+                    if (change.type === "removed") return;
+                    const t = change.doc.data() as ActiveTimer;
+                    if (t.writerTabId !== tabIdRef.current && !isLoadingTimerRef.current) {
+                        setNowProject(t.projectId || "");
+                        setNowDetails(t.details ?? "");
+                        setLinkedAgendaEntryId(t.agendaEntryId ?? null);
+                        setLinkedAgendaEntryLabel(t.agendaEntryLabel ?? null);
+                        if (t.taskTypeId) {
+                            setNowCategory(prev =>
+                                prev?.id === t.taskTypeId ? prev :
+                                taskTypes.find(tt => tt.id === t.taskTypeId) ?? prev
+                            );
+                        }
                     }
-                }
-                setSecondsElapsed(elapsed);
-            } else {
-                // If active timer cleared centrally, force local pause reset
-                setTimerActive(false);
-                setSecondsElapsed(0);
-            }
-        }, (err) => {
-            console.error("Timer Snapshot Error", err);
-        });
+                });
+            },
+            err => console.error("activeTimers:", err)
+        );
 
-        return () => unsubTimer();
-    }, [user, currentTenantId, taskTypes]); // Trigger again once taskTypes load to properly map category reference
+        return () => unsub();
+    }, [user, currentTenantId, taskTypes]);
 
-    // --- Timer Firestore Sync Helper ---
-    const syncTimerToFirestore = async (nextRunningState: boolean, resetting = false) => {
-        if (!user || !currentTenantId) return;
-        const docRef = doc(db, "activeTimers", user.uid);
-
-        if (resetting) {
-            try { await deleteDoc(docRef); } catch (e) { console.error(e); }
-            return;
-        }
-
-        const selectedProjectObj = projects.find((p) => p.id === nowProject);
-        
-        try {
-            await setDoc(docRef, {
-                userId: user.uid,
-                userName: user.displayName || "Consultor",
-                tenantId: currentTenantId,
-                projectId: nowProject,
-                projectName: selectedProjectObj?.name || "",
-                taskTypeId: nowCategory?.id || "",
-                taskTypeName: nowCategory?.name || "",
-                details: nowDetails,
-                isRunning: nextRunningState,
-                // Store exact standard milliseconds epoch for ultra-fast client parsing without Firestore timestamp drift
-                startTime: nextRunningState ? Date.now() : null, 
-                accumulatedSeconds: secondsElapsed, 
-                updatedAt: serverTimestamp()
-            });
-        } catch (e) {
-            console.error("Firestore Timer Sync Error", e);
-        }
-    };
-
-    // --- 1.7 Auto-Sync Input Fields (Mirrors selection to Firestore during runtime) ---
+    // ── 3. Sync form when switching selected timer ────────────────────────────
     useEffect(() => {
-        // Only sync live changes if a timer is explicitly running
-        if (!timerActive || !user || !currentTenantId || currentTenantId === "unknown") return;
+        if (!selectedTimer || isLoadingTimerRef.current) return;
+        setNowProject(selectedTimer.projectId || "");
+        setNowDetails(selectedTimer.details ?? "");
+        setLinkedAgendaEntryId(selectedTimer.agendaEntryId ?? null);
+        setLinkedAgendaEntryLabel(selectedTimer.agendaEntryLabel ?? null);
+        if (selectedTimer.taskTypeId && taskTypes.length > 0) {
+            const match = taskTypes.find(t => t.id === selectedTimer.taskTypeId);
+            if (match) setNowCategory(match);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTimerId]);
 
-        const timerId = setTimeout(async () => {
-            const timerDocRef = doc(db, "activeTimers", user.uid);
-            const selectedProjectObj = projects.find((p) => p.id === nowProject);
-            
+    // ── 4. Agenda entries for today ───────────────────────────────────────────
+    useEffect(() => {
+        if (!user || !currentTenantId || currentTenantId === "unknown") return;
+
+        const todayISO = new Date().toISOString().slice(0, 10);
+
+        const unsub = onSnapshot(
+            query(
+                collection(db, "agenda_entries"),
+                where("consultantId", "==", user.uid),
+                where("tenantId", "==", currentTenantId),
+                where("isActive", "==", true)
+            ),
+            snap => {
+                const entries: AgendaEntry[] = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() } as AgendaEntry))
+                    .filter(e => e.date?.toDate?.()?.toISOString?.().slice(0, 10) === todayISO);
+                setTodayAgendaEntries(entries);
+            },
+            err => console.error("agenda_entries today:", err)
+        );
+
+        return () => unsub();
+    }, [user, currentTenantId]);
+
+    // ── 5. Debounced auto-sync form → Firestore ───────────────────────────────
+    useEffect(() => {
+        if (!selectedTimerId || !user || !currentTenantId || currentTenantId === "unknown") return;
+
+        const id = setTimeout(async () => {
+            const projectObj = projects.find(p => p.id === nowProject);
             try {
-                // Use updateDoc to narrowly mutate fields without overwriting timestamps or duration anchors
-                await updateDoc(timerDocRef, {
+                await updateDoc(doc(db, "activeTimers", selectedTimerId), {
                     projectId: nowProject,
-                    projectName: selectedProjectObj?.name || "",
+                    projectName: projectObj?.name || "",
                     taskTypeId: nowCategory?.id || "",
                     taskTypeName: nowCategory?.name || "",
                     details: nowDetails,
+                    agendaEntryId: linkedAgendaEntryId,
+                    agendaEntryLabel: linkedAgendaEntryLabel,
+                    writerTabId: tabIdRef.current,
                     updatedAt: serverTimestamp()
                 });
-            } catch (err) {
-                // Fails silently if document was deleted mid-sync by admin force stop
+            } catch {
+                // Timer may have been deleted by admin force-stop — ignore silently
             }
-        }, 800); // 800ms debounce to avoid rapid consecutive writes during typing
+        }, 800);
 
-        return () => clearTimeout(timerId);
-    }, [nowProject, nowCategory, nowDetails, timerActive, projects.length > 0]);
-
-    // 2. Timer effect (Reliable implementation resistant to background tab throttling)
-    useEffect(() => {
-        let id: NodeJS.Timeout | null = null;
-
-        if (timerActive) {
-            // Recalculate origin timestamp relative to the absolute current time less any previously gathered durations.
-            // This allows pauses and resumes to maintain atomic accuracy via clock comparison rather than cycle accumulation.
-            const originTimestamp = Date.now() - (secondsElapsed * 1000);
-
-            id = setInterval(() => {
-                const currentDelta = Math.floor((Date.now() - originTimestamp) / 1000);
-                // Enforce strictly increasing non-regressive clock value to prevent render jitter
-                setSecondsElapsed(prev => Math.max(prev, currentDelta));
-            }, 1000);
-            timerRef.current = id;
-        } else {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-        }
-
-        return () => {
-            if (id) clearInterval(id);
-        };
+        return () => clearTimeout(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [timerActive]);
+    }, [nowProject, nowCategory, nowDetails, linkedAgendaEntryId, selectedTimerId]);
 
-    if (!user) return null;
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    // Helper: format duration to MM:SS
     const formatTimer = (totalSeconds: number) => {
-        const mins = Math.floor(totalSeconds / 60);
+        const hrs = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
         const secs = totalSeconds % 60;
+        if (hrs > 0) return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
         return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
 
-    // Actions: Timer start/pause (Persists state to Remote to survive F5/Navigation)
-    const handleStartTimer = () => {
-        setTimerActive(true);
-        syncTimerToFirestore(true); // Persist immediately
+    const getTimerElapsed = useCallback((timer: ActiveTimer) => {
+        const base = timer.accumulatedSeconds ?? 0;
+        if (!timer.isRunning || !timer.startTime) return base;
+        return base + Math.max(0, Math.floor((Date.now() - timer.startTime) / 1000));
+    }, []);
+
+    const pauseAllOtherTimers = useCallback(async (excludeTimerId: string) => {
+        const running = activeTimers.filter(t => t.isRunning && t.id !== excludeTimerId);
+        if (running.length === 0) return;
+        const batch = writeBatch(db);
+        const now = Date.now();
+        for (const t of running) {
+            const accumulated = (t.accumulatedSeconds ?? 0) +
+                (t.startTime ? Math.max(0, Math.floor((now - t.startTime) / 1000)) : 0);
+            batch.update(doc(db, "activeTimers", t.id), {
+                isRunning: false,
+                accumulatedSeconds: accumulated,
+                startTime: null,
+                writerTabId: tabIdRef.current,
+                updatedAt: serverTimestamp()
+            });
+        }
+        await batch.commit();
+    }, [activeTimers]);
+
+    // ── Actions ───────────────────────────────────────────────────────────────
+
+    const handleNewTimer = async () => {
+        if (!user || !currentTenantId) return;
+        isLoadingTimerRef.current = true;
+        const defaultProject = projects[0];
+        const defaultCategory = taskTypes[0];
+        try {
+            const ref = await addDoc(collection(db, "activeTimers"), {
+                userId: user.uid,
+                userName: user.displayName || "Consultor",
+                tenantId: currentTenantId,
+                projectId: defaultProject?.id || "",
+                projectName: defaultProject?.name || "",
+                taskTypeId: defaultCategory?.id || "",
+                taskTypeName: defaultCategory?.name || "",
+                details: "",
+                isRunning: false,
+                startTime: null,
+                accumulatedSeconds: 0,
+                writerTabId: tabIdRef.current,
+                agendaEntryId: null,
+                agendaEntryLabel: null,
+                updatedAt: serverTimestamp()
+            });
+            setSelectedTimerId(ref.id);
+            setNowProject(defaultProject?.id || "");
+            setNowCategory(defaultCategory ?? null);
+            setNowDetails("");
+            setLinkedAgendaEntryId(null);
+            setLinkedAgendaEntryLabel(null);
+        } finally {
+            isLoadingTimerRef.current = false;
+        }
+    };
+
+    const handleSelectTimer = (timerId: string) => {
+        isLoadingTimerRef.current = true;
+        setSelectedTimerId(timerId);
+        setTimeout(() => { isLoadingTimerRef.current = false; }, 150);
+    };
+
+    const handleStartTimer = async () => {
+        if (!selectedTimerId) return;
+        await pauseAllOtherTimers(selectedTimerId);
+        await updateDoc(doc(db, "activeTimers", selectedTimerId), {
+            isRunning: true,
+            startTime: Date.now(),
+            writerTabId: tabIdRef.current,
+            updatedAt: serverTimestamp()
+        });
         showToast("Widget de Tareas", "Temporizador iniciado (protegido)", "success");
     };
 
-    const handlePauseTimer = () => {
-        setTimerActive(false);
-        syncTimerToFirestore(false); // Persist state + accumulated time
+    const handlePauseTimer = async () => {
+        if (!selectedTimerId) return;
+        await updateDoc(doc(db, "activeTimers", selectedTimerId), {
+            isRunning: false,
+            accumulatedSeconds: secondsElapsed,
+            startTime: null,
+            writerTabId: tabIdRef.current,
+            updatedAt: serverTimestamp()
+        });
     };
 
-    // Action: Save real-time Task
+    const handleToggleTimer = async (timerId: string) => {
+        const timer = activeTimers.find(t => t.id === timerId);
+        if (!timer) return;
+        handleSelectTimer(timerId);
+        if (timer.isRunning) {
+            const accumulated = (timer.accumulatedSeconds ?? 0) +
+                (timer.startTime ? Math.max(0, Math.floor((Date.now() - timer.startTime) / 1000)) : 0);
+            await updateDoc(doc(db, "activeTimers", timerId), {
+                isRunning: false,
+                accumulatedSeconds: accumulated,
+                startTime: null,
+                writerTabId: tabIdRef.current,
+                updatedAt: serverTimestamp()
+            });
+        } else {
+            await pauseAllOtherTimers(timerId);
+            await updateDoc(doc(db, "activeTimers", timerId), {
+                isRunning: true,
+                startTime: Date.now(),
+                writerTabId: tabIdRef.current,
+                updatedAt: serverTimestamp()
+            });
+        }
+    };
+
+    const handleDeleteTimer = async (timerId: string) => {
+        await deleteDoc(doc(db, "activeTimers", timerId));
+        if (selectedTimerId === timerId) setSelectedTimerId(null);
+    };
+
+    const handleSelectAgendaEntry = (entry: AgendaEntry | null) => {
+        if (!entry) {
+            setLinkedAgendaEntryId(null);
+            setLinkedAgendaEntryLabel(null);
+            return;
+        }
+        setLinkedAgendaEntryId(entry.id);
+        setLinkedAgendaEntryLabel(
+            `${entry.activityType}: ${entry.client || entry.description} ${entry.scheduleStart}–${entry.scheduleEnd}`
+        );
+        if (entry.projectId && !nowProject) setNowProject(entry.projectId);
+    };
+
     const handleSaveNowTask = async () => {
-        if (isSaving) return;
+        if (isSaving || !selectedTimer) return;
 
         if (secondsElapsed < 10) {
-            showToast("Widget de Tareas", "La tarea debe durar al menos 10 segundos para guardarse", "warning");
+            showToast("Widget de Tareas", "La tarea debe durar al menos 10 segundos", "warning");
             return;
         }
 
-        const selectedProjectObj = projects.find((p) => p.id === nowProject);
-        if (!selectedProjectObj) {
-            showToast("Error", "Selecciona un proyecto válido", "error");
-            return;
-        }
-
-        if (!nowCategory) {
-            showToast("Error", "Selecciona un tipo de tarea", "error");
-            return;
-        }
+        const projectObj = projects.find(p => p.id === nowProject);
+        if (!projectObj) { showToast("Error", "Selecciona un proyecto válido", "error"); return; }
+        if (!nowCategory) { showToast("Error", "Selecciona un tipo de tarea", "error"); return; }
 
         try {
             setIsSaving(true);
             const durationMinutes = Math.max(Math.round(secondsElapsed / 60), 1);
 
-            // Add final task record
             await addDoc(collection(db, "consultantTasks"), {
-                userId: user.uid,
-                userName: user.displayName || "Consultor",
+                userId: user!.uid,
+                userName: user!.displayName || "Consultor",
                 tenantId: currentTenantId,
                 projectId: nowProject,
-                projectName: selectedProjectObj.name,
+                projectName: projectObj.name,
                 taskTypeId: nowCategory.id,
                 taskTypeName: nowCategory.name,
                 details: nowDetails,
                 durationMinutes,
+                agendaEntryId: linkedAgendaEntryId ?? null,
                 type: "live",
                 createdAt: serverTimestamp()
             });
 
-            // Clear the persistent remote timer object (It did its job!)
-            await syncTimerToFirestore(false, true); 
+            // Feedback to agenda entry
+            if (linkedAgendaEntryId) {
+                await updateDoc(doc(db, "agenda_entries", linkedAgendaEntryId), {
+                    actualMinutes: increment(durationMinutes),
+                    updatedAt: serverTimestamp()
+                });
+            }
 
-            // Increment usage count on taskType
-            await updateDoc(doc(db, "taskTypes", nowCategory.id), {
-                usageCount: increment(1)
-            });
+            await updateDoc(doc(db, "taskTypes", nowCategory.id), { usageCount: increment(1) });
+            await deleteDoc(doc(db, "activeTimers", selectedTimer.id));
 
-            // Trigger premium inline success feedback
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2500);
-
-            // Reset Local UI
-            setTimerActive(false);
-            setSecondsElapsed(0);
-            setNowDetails("");
+            setSelectedTimerId(null);
         } catch (err) {
             console.error(err);
             showToast("Error", "No se pudo registrar la tarea", "error");
@@ -390,30 +510,20 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
     };
 
-    // Action: Save Retroactive task
     const handleSaveRetroTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSaving) return;
-
-        const selectedProjectObj = projects.find((p) => p.id === retroProject);
-        if (!selectedProjectObj) {
-            showToast("Error", "Selecciona un proyecto válido", "error");
-            return;
-        }
-
-        if (!retroCategory) {
-            showToast("Error", "Selecciona un tipo de tarea", "error");
-            return;
-        }
-
+        const projectObj = projects.find(p => p.id === retroProject);
+        if (!projectObj) { showToast("Error", "Selecciona un proyecto válido", "error"); return; }
+        if (!retroCategory) { showToast("Error", "Selecciona un tipo de tarea", "error"); return; }
         try {
             setIsSaving(true);
             await addDoc(collection(db, "consultantTasks"), {
-                userId: user.uid,
-                userName: user.displayName || "Consultor",
+                userId: user!.uid,
+                userName: user!.displayName || "Consultor",
                 tenantId: currentTenantId,
                 projectId: retroProject,
-                projectName: selectedProjectObj.name,
+                projectName: projectObj.name,
                 taskTypeId: retroCategory.id,
                 taskTypeName: retroCategory.name,
                 details: retroDetails,
@@ -421,17 +531,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 type: "retroactive",
                 createdAt: serverTimestamp()
             });
-
-            // Increment usage count
-            await updateDoc(doc(db, "taskTypes", retroCategory.id), {
-                usageCount: increment(1)
-            });
-
-            // Success feedback
+            await updateDoc(doc(db, "taskTypes", retroCategory.id), { usageCount: increment(1) });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2500);
-
-            // Reset
             setRetroDetails("");
             setRetroDuration(15);
         } catch (err) {
@@ -442,7 +544,6 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
     };
 
-    // Action: Initialize Update flow
     const handleStartEditTask = (task: ConsultantTask) => {
         setEditingTask(task);
         setEditDuration(task.durationMinutes);
@@ -453,7 +554,6 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     const handleUpdateTask = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editingTask || isSaving) return;
-        
         try {
             setIsSaving(true);
             await updateDoc(doc(db, "consultantTasks", editingTask.id), {
@@ -461,28 +561,21 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 details: editDetails,
                 updatedAt: serverTimestamp()
             });
-            
-            showToast("Widget", "Tarea actualizada exitosamente", "success");
-            
-            // Return to list view
+            showToast("Widget", "Tarea actualizada", "success");
             setEditingTask(null);
             setActiveTab("today");
         } catch (err) {
-            console.error("Error updateWidgetTask:", err);
+            console.error(err);
             showToast("Error", "No se pudo guardar la modificación", "error");
         } finally {
             setIsSaving(false);
         }
     };
 
-    // Action: Undo/Delete Today's Task
     const handleUndoTask = async (id: string, taskTypeId: string) => {
         try {
             await deleteDoc(doc(db, "consultantTasks", id));
-            // Decrement usage count
-            await updateDoc(doc(db, "taskTypes", taskTypeId), {
-                usageCount: increment(-1)
-            });
+            await updateDoc(doc(db, "taskTypes", taskTypeId), { usageCount: increment(-1) });
             showToast("Widget de Tareas", "Registro eliminado", "info");
         } catch (err) {
             console.error(err);
@@ -490,48 +583,56 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         }
     };
 
-    // Action: Copy Today's Tasks in Markdown Format for Jira
     const handleCopyToClipboardMD = () => {
         if (todayTasks.length === 0) return;
-        
         const dateStr = new Date().toLocaleDateString();
         let md = `### 📋 Actividades Imputadas - ${dateStr}\n\n`;
-        todayTasks.forEach((task) => {
-            md += `* **[${task.projectName}]** _${task.taskTypeName}_ (${task.durationMinutes} min) - ${task.details || 'Sin detalles'}\n`;
+        todayTasks.forEach(t => {
+            md += `* **[${t.projectName}]** _${t.taskTypeName}_ (${t.durationMinutes} min) - ${t.details || "Sin detalles"}\n`;
         });
-        
-        navigator.clipboard.writeText(md).then(() => {
-            showToast("Copiado", "Actividades copiadas al portapapeles en formato Markdown para Jira", "success");
-        }).catch((err) => {
-            console.error("Error copying to clipboard:", err);
-            showToast("Error", "No se pudo copiar la información", "error");
-        });
+        navigator.clipboard.writeText(md)
+            .then(() => showToast("Copiado", "Actividades copiadas en formato Markdown para Jira", "success"))
+            .catch(() => showToast("Error", "No se pudo copiar la información", "error"));
     };
 
-    // Custom Triteme style settings for glass-panel
+    // ── Totals ────────────────────────────────────────────────────────────────
+
+    const dailyTotalMinutes = useMemo(
+        () => todayTasks.reduce((s, t) => s + (Number(t.durationMinutes) || 0), 0),
+        [todayTasks]
+    );
+
+    const formattedDailyTotal = useMemo(() => {
+        const hrs = Math.floor(dailyTotalMinutes / 60);
+        const mins = dailyTotalMinutes % 60;
+        return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}h`;
+    }, [dailyTotalMinutes]);
+
+    // ── Glass style ───────────────────────────────────────────────────────────
+
     const glassStyleClass = embedded
         ? cn(
             "w-full rounded-2xl border overflow-hidden flex flex-col mb-6 shadow-md transition-all duration-300",
-            theme === "light"
-                ? "bg-white border-zinc-200 text-zinc-900"
-                : theme === "red"
-                ? "bg-[#6A251A]/40 border-[#A33D2D]/20 text-white"
-                : "bg-card border-border text-white"
+            theme === "light" ? "bg-white border-zinc-200 text-zinc-900"
+            : theme === "red"  ? "bg-[#6A251A]/40 border-[#A33D2D]/20 text-white"
+            : "bg-card border-border text-white"
           )
         : cn(
             "fixed bottom-24 right-6 w-96 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 transform origin-bottom-right z-[100] overflow-hidden",
             isOpen ? "scale-100 opacity-100 translate-y-0" : "scale-75 opacity-0 translate-y-10 pointer-events-none",
-            theme === "light"
-                ? "bg-white/80 border-black/10 shadow-black/20 text-zinc-900"
-                : theme === "red"
-                ? "bg-[#6A251A]/90 border-[#A33D2D]/30 shadow-black/40 text-white"
-                : "bg-zinc-900/80 border-white/10 shadow-black/50 text-white"
+            theme === "light" ? "bg-white/80 border-black/10 shadow-black/20 text-zinc-900"
+            : theme === "red"  ? "bg-[#6A251A]/90 border-[#A33D2D]/30 shadow-black/40 text-white"
+            : "bg-zinc-900/80 border-white/10 shadow-black/50 text-white"
           );
+
+    if (!user) return null;
+
+    // ─── Render ───────────────────────────────────────────────────────────────
 
     return (
         <>
-            {/* The Floating Panel Glass card */}
             <div className={glassStyleClass}>
+
                 {/* Header */}
                 <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
                     <div className="flex items-center gap-2">
@@ -549,40 +650,22 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     )}
                 </div>
 
-                {/* Tab Selector */}
+                {/* Tabs */}
                 {activeTab !== "edit" && (
                     <div className="flex border-b border-white/5 text-center text-xs font-bold bg-white/2">
-                    <button
-                        onClick={() => setActiveTab("now")}
-                        className={cn(
-                            "flex-1 py-2.5 transition-all relative border-b-2",
-                            activeTab === "now" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        Ahora mismo
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("retro")}
-                        className={cn(
-                            "flex-1 py-2.5 transition-all relative border-b-2",
-                            activeTab === "retro" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        Bloque anterior
-                    </button>
-                    <button
-                        onClick={() => setActiveTab("today")}
-                        className={cn(
-                            "flex-1 py-2.5 transition-all relative border-b-2",
-                            activeTab === "today" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        Hoy ({todayTasks.length})
-                    </button>
-                </div>
+                        {(["now", "retro", "today"] as const).map(tab => (
+                            <button key={tab} onClick={() => setActiveTab(tab)}
+                                className={cn(
+                                    "flex-1 py-2.5 transition-all relative border-b-2",
+                                    activeTab === tab ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                                )}>
+                                {tab === "now" ? "Ahora mismo" : tab === "retro" ? "Bloque anterior" : `Hoy (${todayTasks.length})`}
+                            </button>
+                        ))}
+                    </div>
                 )}
 
-                {/* Dynamic Inline Success Notification */}
+                {/* Success banner */}
                 {saveSuccess && (
                     <div className="bg-emerald-500/20 border-b border-emerald-500/30 text-emerald-300 p-3 text-xs font-bold text-center flex items-center justify-center gap-2 animate-in slide-in-from-top-2 duration-300">
                         <Lucide.CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -590,23 +673,19 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     </div>
                 )}
 
-                {/* Content Box */}
-                <div className="p-4 max-h-96 overflow-y-auto custom-scrollbar">
-                    {/* 0. EDIT MODE VIEW */}
+                {/* Content */}
+                <div className="p-4 max-h-[32rem] overflow-y-auto custom-scrollbar">
+
+                    {/* ── EDIT ─────────────────────────────────────────────── */}
                     {activeTab === "edit" && editingTask && (
                         <form onSubmit={handleUpdateTask} className="space-y-4 animate-in slide-in-from-right-4 duration-200">
                             <div className="flex items-center justify-between pb-2 border-b border-white/10">
                                 <div className="flex items-center gap-2">
-                                    <div className="p-1.5 bg-primary/20 text-primary rounded-lg">
-                                        <Lucide.Edit2 className="w-3.5 h-3.5" />
-                                    </div>
+                                    <div className="p-1.5 bg-primary/20 text-primary rounded-lg"><Lucide.Edit2 className="w-3.5 h-3.5" /></div>
                                     <h3 className="text-xs font-black uppercase tracking-wide">Modificar Tarea</h3>
                                 </div>
-                                <button 
-                                    type="button"
-                                    onClick={() => { setEditingTask(null); setActiveTab("today"); }}
-                                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-all"
-                                >
+                                <button type="button" onClick={() => { setEditingTask(null); setActiveTab("today"); }}
+                                    className="text-[10px] font-bold text-muted-foreground hover:text-foreground bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-all">
                                     Volver
                                 </button>
                             </div>
@@ -616,54 +695,33 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                 <h4 className="text-xs font-bold text-zinc-200">{editingTask.taskTypeName}</h4>
                             </div>
 
-                            {/* Duration slider */}
                             <div className="space-y-1 bg-white/2 border border-white/5 p-2.5 rounded-xl">
                                 <div className="flex justify-between items-center text-[10px]">
                                     <span className="font-black text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                                        <Lucide.Clock className="w-3 h-3"/> Duración
+                                        <Lucide.Clock className="w-3 h-3" /> Duración
                                     </span>
-                                    <span className="font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">
-                                        {editDuration} min
-                                    </span>
+                                    <span className="font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded">{editDuration} min</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="240"
-                                    step="5"
-                                    value={editDuration}
-                                    onChange={(e) => setEditDuration(Number(e.target.value))}
-                                    className="w-full accent-emerald-500 mt-2"
-                                />
+                                <input type="range" min="1" max="240" step="5" value={editDuration}
+                                    onChange={e => setEditDuration(Number(e.target.value))} className="w-full accent-emerald-500 mt-2" />
                             </div>
 
-                            {/* Details area */}
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
-                                    <Lucide.FileText className="w-3 h-3"/> Detalles
+                                    <Lucide.FileText className="w-3 h-3" /> Detalles
                                 </label>
-                                <textarea
-                                    value={editDetails}
-                                    onChange={(e) => setEditDetails(e.target.value)}
-                                    placeholder="Actualiza la descripción de tu actividad..."
-                                    rows={4}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-foreground focus:outline-none focus:border-emerald-500 resize-none leading-relaxed font-medium"
-                                />
+                                <textarea value={editDetails} onChange={e => setEditDetails(e.target.value)}
+                                    placeholder="Actualiza la descripción..." rows={4}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-xs text-foreground focus:outline-none focus:border-emerald-500 resize-none leading-relaxed font-medium" />
                             </div>
 
                             <div className="flex gap-2 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => { setEditingTask(null); setActiveTab("today"); }}
-                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded-xl text-xs transition-all"
-                                >
+                                <button type="button" onClick={() => { setEditingTask(null); setActiveTab("today"); }}
+                                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded-xl text-xs transition-all">
                                     Cancelar
                                 </button>
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50"
-                                >
+                                <button type="submit" disabled={isSaving}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50">
                                     <Lucide.CheckCircle2 className="w-3.5 h-3.5" />
                                     {isSaving ? "Guardando..." : "Actualizar"}
                                 </button>
@@ -671,140 +729,196 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                         </form>
                     )}
 
-                    {/* 1. NOW TAB */}
+                    {/* ── NOW ──────────────────────────────────────────────── */}
                     {activeTab === "now" && (
-                        <div className="space-y-4">
-                            {/* Project Dropdown */}
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Proyecto</label>
-                                <select
-                                    value={nowProject}
-                                    onChange={(e) => setNowProject(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary"
-                                >
-                                    {projects.map((p) => (
-                                        <option key={p.id} value={p.id} className="bg-zinc-900 text-white">
-                                            {p.name}
-                                        </option>
-                                    ))}
-                                    {projects.length === 0 && (
-                                        <option value="" className="bg-zinc-900 text-zinc-500">No hay proyectos activos</option>
-                                    )}
-                                </select>
-                            </div>
+                        <div className="space-y-3">
 
-                            {/* Task Categories pills */}
-                            <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Actividad</label>
-                                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
-                                    {taskTypes.map((type) => {
-                                        const isSelected = nowCategory?.id === type.id;
+                            {/* Timer list */}
+                            {activeTimers.length > 0 && (
+                                <div className="space-y-1.5">
+                                    {activeTimers.map(timer => {
+                                        const elapsed = getTimerElapsed(timer);
+                                        const isSelected = timer.id === selectedTimerId;
                                         return (
-                                            <button
-                                                key={type.id}
-                                                type="button"
-                                                onClick={() => setNowCategory(type)}
+                                            <div key={timer.id} onClick={() => handleSelectTimer(timer.id)}
                                                 className={cn(
-                                                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all",
-                                                    isSelected
-                                                        ? "text-white scale-105 border-white/20"
-                                                        : "bg-black/20 text-muted-foreground border-white/5 hover:border-white/10 hover:text-foreground"
-                                                )}
-                                                style={{ backgroundColor: isSelected ? type.color : "" }}
-                                            >
-                                                <DynamicLucideIcon name={type.icon} className="w-3 h-3" />
-                                                {type.name}
-                                            </button>
+                                                    "flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition-all",
+                                                    isSelected ? "bg-primary/10 border-primary/30" : "bg-white/3 border-white/5 hover:border-white/10"
+                                                )}>
+                                                {/* Quick play/pause */}
+                                                <button type="button"
+                                                    onClick={e => { e.stopPropagation(); handleToggleTimer(timer.id); }}
+                                                    className={cn(
+                                                        "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                                                        timer.isRunning
+                                                            ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
+                                                            : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+                                                    )}>
+                                                    {timer.isRunning ? <Lucide.Pause className="w-3.5 h-3.5" /> : <Lucide.Play className="w-3.5 h-3.5" />}
+                                                </button>
+
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[10px] font-black text-primary truncate">{timer.projectName || "Sin proyecto"}</p>
+                                                    {timer.agendaEntryLabel && (
+                                                        <p className="text-[9px] text-violet-400 truncate flex items-center gap-1">
+                                                            <Lucide.CalendarCheck className="w-2.5 h-2.5 shrink-0" />
+                                                            {timer.agendaEntryLabel}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {/* Elapsed */}
+                                                <span className={cn(
+                                                    "text-[10px] font-mono font-black shrink-0",
+                                                    timer.isRunning ? "text-emerald-400" : "text-zinc-400"
+                                                )}>
+                                                    {formatTimer(elapsed)}
+                                                </span>
+
+                                                {/* Delete */}
+                                                <button type="button"
+                                                    onClick={e => { e.stopPropagation(); handleDeleteTimer(timer.id); }}
+                                                    className="w-6 h-6 rounded-md flex items-center justify-center text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0">
+                                                    <Lucide.Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
                                         );
                                     })}
-                                    {taskTypes.length === 0 && (
-                                        <p className="text-[10px] text-zinc-500 italic">No hay categorías configuradas por el admin</p>
-                                    )}
                                 </div>
-                            </div>
+                            )}
 
-                            {/* Memo Text area */}
-                            <div className="space-y-1">
-                                <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">¿Qué estás haciendo?</label>
-                                <textarea
-                                    value={nowDetails}
-                                    onChange={(e) => setNowDetails(e.target.value)}
-                                    placeholder="Describe brevemente tu labor actual..."
-                                    rows={3}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary resize-none leading-relaxed"
-                                />
-                            </div>
+                            {/* New timer */}
+                            <button onClick={handleNewTimer}
+                                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-black text-muted-foreground hover:text-foreground border border-dashed border-white/10 hover:border-white/20 rounded-xl transition-all">
+                                <Lucide.Plus className="w-3 h-3" />
+                                Nuevo temporizador
+                            </button>
 
-                            {/* Timer actions */}
-                            <div className="flex gap-2.5 pt-2">
-                                {!timerActive ? (
-                                    <button
-                                        onClick={handleStartTimer}
-                                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg"
-                                    >
-                                        <Lucide.Play className="w-3.5 h-3.5" />
-                                        Iniciar
-                                    </button>
-                                ) : (
-                                    <button
-                                        onClick={handlePauseTimer}
-                                        className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg"
-                                    >
-                                        <Lucide.Pause className="w-3.5 h-3.5" />
-                                        Pausar
-                                    </button>
-                                )}
+                            {/* Form for selected timer */}
+                            {selectedTimer && (
+                                <div className="space-y-3 pt-2 border-t border-white/5">
 
-                                <button
-                                    onClick={handleSaveNowTask}
-                                    disabled={secondsElapsed === 0}
-                                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    <Lucide.Save className="w-3.5 h-3.5" />
-                                    Guardar
-                                </button>
-                            </div>
+                                    {/* Project */}
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Proyecto</label>
+                                        <select value={nowProject} onChange={e => setNowProject(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary">
+                                            {projects.map(p => (
+                                                <option key={p.id} value={p.id} className="bg-zinc-900 text-white">{p.name}</option>
+                                            ))}
+                                            {projects.length === 0 && <option value="">No hay proyectos activos</option>}
+                                        </select>
+                                    </div>
+
+                                    {/* Activity pills */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Actividad</label>
+                                        <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto custom-scrollbar">
+                                            {taskTypes.map(type => {
+                                                const sel = nowCategory?.id === type.id;
+                                                return (
+                                                    <button key={type.id} type="button" onClick={() => setNowCategory(type)}
+                                                        className={cn(
+                                                            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all",
+                                                            sel ? "text-white scale-105 border-white/20" : "bg-black/20 text-muted-foreground border-white/5 hover:border-white/10 hover:text-foreground"
+                                                        )}
+                                                        style={{ backgroundColor: sel ? type.color : "" }}>
+                                                        <DynamicLucideIcon name={type.icon} className="w-3 h-3" />
+                                                        {type.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Details */}
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">¿Qué estás haciendo?</label>
+                                        <textarea value={nowDetails} onChange={e => setNowDetails(e.target.value)}
+                                            placeholder="Describe brevemente tu labor actual..." rows={3}
+                                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary resize-none leading-relaxed" />
+                                    </div>
+
+                                    {/* Agenda linkage selector */}
+                                    {todayAgendaEntries.length > 0 && (
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
+                                                <Lucide.CalendarCheck className="w-3 h-3 text-violet-400" />
+                                                Vincular a agenda de hoy
+                                            </label>
+                                            <select
+                                                value={linkedAgendaEntryId ?? ""}
+                                                onChange={e => {
+                                                    const entry = todayAgendaEntries.find(a => a.id === e.target.value) ?? null;
+                                                    handleSelectAgendaEntry(entry);
+                                                }}
+                                                className="w-full bg-black/40 border border-violet-500/20 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-violet-400 text-violet-300">
+                                                <option value="" className="bg-zinc-900 text-zinc-400">Sin vincular</option>
+                                                {todayAgendaEntries.map(entry => (
+                                                    <option key={entry.id} value={entry.id} className="bg-zinc-900 text-white">
+                                                        {entry.activityType}: {entry.client || entry.description} {entry.scheduleStart}–{entry.scheduleEnd}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {/* Timer actions */}
+                                    <div className="flex gap-2.5 pt-1">
+                                        {!timerActive ? (
+                                            <button onClick={handleStartTimer}
+                                                className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg">
+                                                <Lucide.Play className="w-3.5 h-3.5" /> Iniciar
+                                            </button>
+                                        ) : (
+                                            <button onClick={handlePauseTimer}
+                                                className="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg">
+                                                <Lucide.Pause className="w-3.5 h-3.5" /> Pausar
+                                            </button>
+                                        )}
+                                        <button onClick={handleSaveNowTask} disabled={secondsElapsed === 0}
+                                            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed">
+                                            <Lucide.Save className="w-3.5 h-3.5" />
+                                            {isSaving ? "Guardando..." : "Guardar"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTimers.length === 0 && (
+                                <div className="text-center py-8 text-zinc-500 text-xs italic">
+                                    Crea un temporizador para empezar a imputar
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* 2. RETRO TAB */}
+                    {/* ── RETRO ────────────────────────────────────────────── */}
                     {activeTab === "retro" && (
                         <form onSubmit={handleSaveRetroTask} className="space-y-4">
-                            {/* Project Dropdown */}
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Proyecto</label>
-                                <select
-                                    value={retroProject}
-                                    onChange={(e) => setRetroProject(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary"
-                                >
-                                    {projects.map((p) => (
-                                        <option key={p.id} value={p.id} className="bg-zinc-900 text-white">
-                                            {p.name}
-                                        </option>
+                                <select value={retroProject} onChange={e => setRetroProject(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary">
+                                    {projects.map(p => (
+                                        <option key={p.id} value={p.id} className="bg-zinc-900 text-white">{p.name}</option>
                                     ))}
                                 </select>
                             </div>
 
-                            {/* Task Categories pills */}
                             <div className="space-y-1.5">
                                 <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Actividad</label>
                                 <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
-                                    {taskTypes.map((type) => {
-                                        const isSelected = retroCategory?.id === type.id;
+                                    {taskTypes.map(type => {
+                                        const sel = retroCategory?.id === type.id;
                                         return (
-                                            <button
-                                                key={type.id}
-                                                type="button"
-                                                onClick={() => setRetroCategory(type)}
+                                            <button key={type.id} type="button" onClick={() => setRetroCategory(type)}
                                                 className={cn(
                                                     "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all",
-                                                    isSelected
-                                                        ? "text-white scale-105 border-white/20"
-                                                        : "bg-black/20 text-muted-foreground border-white/5 hover:border-white/10 hover:text-foreground"
+                                                    sel ? "text-white scale-105 border-white/20" : "bg-black/20 text-muted-foreground border-white/5 hover:border-white/10 hover:text-foreground"
                                                 )}
-                                                style={{ backgroundColor: isSelected ? type.color : "" }}
-                                            >
+                                                style={{ backgroundColor: sel ? type.color : "" }}>
                                                 <DynamicLucideIcon name={type.icon} className="w-3 h-3" />
                                                 {type.name}
                                             </button>
@@ -813,53 +927,35 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                 </div>
                             </div>
 
-                            {/* Duration slider */}
                             <div className="space-y-1 bg-white/2 border border-white/5 p-2 rounded-xl">
                                 <div className="flex justify-between items-center text-[10px]">
                                     <span className="font-black text-muted-foreground uppercase tracking-wider">Duración (minutos)</span>
                                     <span className="font-mono font-bold text-primary">{retroDuration} min</span>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="5"
-                                    max="240"
-                                    step="5"
-                                    value={retroDuration}
-                                    onChange={(e) => setRetroDuration(Number(e.target.value))}
-                                    className="w-full accent-primary mt-2"
-                                />
+                                <input type="range" min="5" max="240" step="5" value={retroDuration}
+                                    onChange={e => setRetroDuration(Number(e.target.value))} className="w-full accent-primary mt-2" />
                             </div>
 
-                            {/* Memo Text area */}
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Detalle</label>
-                                <textarea
-                                    value={retroDetails}
-                                    onChange={(e) => setRetroDetails(e.target.value)}
-                                    placeholder="¿Qué lograste hacer en este bloque de tiempo?..."
-                                    rows={3}
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary resize-none leading-relaxed"
-                                />
+                                <textarea value={retroDetails} onChange={e => setRetroDetails(e.target.value)}
+                                    placeholder="¿Qué lograste hacer en este bloque de tiempo?..." rows={3}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary resize-none leading-relaxed" />
                             </div>
 
-                            <button
-                                type="submit"
-                                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg mt-2"
-                            >
-                                <Lucide.Plus className="w-3.5 h-3.5" />
-                                Registrar Bloque
+                            <button type="submit"
+                                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg mt-2">
+                                <Lucide.Plus className="w-3.5 h-3.5" /> Registrar Bloque
                             </button>
                         </form>
                     )}
 
-                    {/* 3. TODAY TAB */}
+                    {/* ── TODAY ────────────────────────────────────────────── */}
                     {activeTab === "today" && (
                         <div className="space-y-3">
                             {todayTasks.length > 0 && (
-                                <button
-                                    onClick={handleCopyToClipboardMD}
-                                    className="w-full mb-3 flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 hover:border-primary/45 rounded-xl py-2 px-4 text-[10px] font-black uppercase tracking-wider transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] shadow-sm"
-                                >
+                                <button onClick={handleCopyToClipboardMD}
+                                    className="w-full mb-3 flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 hover:border-primary/45 rounded-xl py-2 px-4 text-[10px] font-black uppercase tracking-wider transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] shadow-sm">
                                     <Lucide.Copy className="w-3.5 h-3.5" />
                                     Copiar para Jira (Markdown)
                                 </button>
@@ -870,11 +966,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                     No has registrado tareas en el día de hoy
                                 </div>
                             ) : (
-                                todayTasks.map((task) => (
-                                    <div
-                                        key={task.id}
-                                        className="p-3 bg-white/2 border border-white/5 rounded-xl flex items-start justify-between gap-3 group/row hover:border-white/10 transition-colors"
-                                    >
+                                todayTasks.map(task => (
+                                    <div key={task.id}
+                                        className="p-3 bg-white/2 border border-white/5 rounded-xl flex items-start justify-between gap-3 group/row hover:border-white/10 transition-colors">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black max-w-[125px] truncate">
@@ -883,28 +977,27 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                                 <span className="text-[10px] bg-zinc-800 text-zinc-200 border border-white/10 px-2 py-0.5 rounded-full font-bold">
                                                     {task.taskTypeName}
                                                 </span>
-                                                <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-300 font-bold ml-auto shrink-0">
+                                                <span className="text-[10px] font-mono text-zinc-400 font-bold ml-auto shrink-0">
                                                     {task.durationMinutes} min
                                                 </span>
                                             </div>
+                                            {task.agendaEntryId && (
+                                                <p className="text-[9px] text-violet-400 mt-0.5 flex items-center gap-1 truncate">
+                                                    <Lucide.CalendarCheck className="w-2.5 h-2.5 shrink-0" />
+                                                    Vinculado a agenda
+                                                </p>
+                                            )}
                                             <p className="text-xs leading-relaxed mt-1.5 text-zinc-700 dark:text-zinc-200 font-medium break-words line-clamp-2">
-                                                {task.details || <span className="text-zinc-500 dark:text-zinc-600 italic">Sin detalle técnico</span>}
+                                                {task.details || <span className="text-zinc-500 italic">Sin detalle técnico</span>}
                                             </p>
                                         </div>
-
                                         <div className="opacity-0 group-hover/row:opacity-100 flex items-center gap-1 shrink-0 transition-all">
-                                            <button
-                                                onClick={() => handleStartEditTask(task)}
-                                                className="p-1.5 hover:bg-primary/10 text-zinc-500 hover:text-primary rounded transition-all"
-                                                title="Editar"
-                                            >
+                                            <button onClick={() => handleStartEditTask(task)}
+                                                className="p-1.5 hover:bg-primary/10 text-zinc-500 hover:text-primary rounded transition-all" title="Editar">
                                                 <Lucide.Edit2 className="w-3.5 h-3.5" />
                                             </button>
-                                            <button
-                                                onClick={() => handleUndoTask(task.id, task.taskTypeId)}
-                                                className="p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 rounded transition-all"
-                                                title="Deshacer / Borrar"
-                                            >
+                                            <button onClick={() => handleUndoTask(task.id, task.taskTypeId)}
+                                                className="p-1.5 hover:bg-red-500/10 text-zinc-500 hover:text-red-500 rounded transition-all" title="Eliminar">
                                                 <Lucide.Trash2 className="w-3.5 h-3.5" />
                                             </button>
                                         </div>
@@ -916,10 +1009,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 </div>
             </div>
 
-            {/* The Floating Action Button (FAB) */}
+            {/* FAB */}
             {!embedded && (
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
+                <button onClick={() => setIsOpen(!isOpen)}
                     className={cn(
                         "fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl hover:scale-110 active:scale-95 group z-[110] border border-white/10",
                         isOpen
@@ -927,8 +1019,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                             : theme === "red"
                             ? "bg-[#9E4839] text-white hover:bg-[#B15343] hover:shadow-[#9E4839]/30"
                             : "bg-primary text-white hover:bg-primary/95 hover:shadow-primary/30"
-                    )}
-                >
+                    )}>
                     <Lucide.Plus className="w-7 h-7 group-hover:scale-110 transition-transform" />
                 </button>
             )}

@@ -70,6 +70,26 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                         {entry.scheduledHours > 0 && (
                             <p className={cn("mt-0.5", actCfg.textClass, "opacity-60")}>{formatHours(entry.scheduledHours)}</p>
                         )}
+                        {/* Programado vs real */}
+                        {(entry as any).actualMinutes > 0 && entry.scheduledHours > 0 && (() => {
+                            const scheduledMins = Math.round(entry.scheduledHours * 60);
+                            const actualMins = (entry as any).actualMinutes as number;
+                            const pct = Math.min(100, Math.round((actualMins / scheduledMins) * 100));
+                            const over = actualMins > scheduledMins;
+                            return (
+                                <div className="mt-1 space-y-0.5">
+                                    <div className="w-full h-1 rounded-full bg-black/20 overflow-hidden">
+                                        <div
+                                            className={cn("h-full rounded-full transition-all", over ? "bg-red-400" : "bg-emerald-400")}
+                                            style={{ width: `${pct}%` }}
+                                        />
+                                    </div>
+                                    <p className={cn("text-[8px] font-mono", over ? "text-red-400" : "text-emerald-400")}>
+                                        {Math.floor(actualMins / 60)}h{String(actualMins % 60).padStart(2, "0")}m / {formatHours(entry.scheduledHours)}
+                                    </p>
+                                </div>
+                            );
+                        })()}
                     </button>
                 );
             })}
