@@ -243,21 +243,20 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 const timers: ActiveTimer[] = snap.docs.map(d => ({ id: d.id, ...d.data() } as ActiveTimer));
                 const fsIds = new Set(timers.map(t => t.id));
 
-                // Promote confirmed timers out of the optimistic set
-                for (const id of optimisticTimerIdsRef.current) {
-                    if (fsIds.has(id)) optimisticTimerIdsRef.current.delete(id);
-                }
-
-                // Merge: Firestore timers + any still-optimistic local timers not yet in this snapshot.
-                // This survives listener recreations triggered by tenantId changes (e.g. the ~3s
-                // token-refresh in AuthContext) where the new query temporarily misses timers
-                // created under the previous tenantId.
+                // Merge: Firestore timers + local timers NOT visible in this snapshot.
+                // IDs stay in optimisticTimerIdsRef until the timer is deleted or saved —
+                // NOT when Firestore confirms it. This is intentional: the listener may
+                // recreate seconds later (tenantId change from AuthContext ~3s token refresh)
+                // and the new query won't find the timer. By keeping the ID in the set we
+                // preserve the timer across that recreation even after Firestore confirmed it.
                 setActiveTimers(prev => {
-                    const stillOptimistic = prev.filter(t => optimisticTimerIdsRef.current.has(t.id));
-                    return [...timers, ...stillOptimistic];
+                    const localMissing = prev.filter(t =>
+                        optimisticTimerIdsRef.current.has(t.id) && !fsIds.has(t.id)
+                    );
+                    return [...timers, ...localMissing];
                 });
 
-                // Keep a valid selectedTimerId — also accept still-optimistic IDs
+                // Keep a valid selectedTimerId — also accept IDs still tracked locally
                 setSelectedTimerId(prev => {
                     if (prev && (fsIds.has(prev) || optimisticTimerIdsRef.current.has(prev))) return prev;
                     return timers.find(t => t.isRunning)?.id ?? timers[0]?.id ?? null;
