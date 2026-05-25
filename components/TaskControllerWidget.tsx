@@ -95,6 +95,9 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     // written under the previous tenantId. Keeping these IDs lets us merge them back so
     // the form stays visible until Firestore confirms or the user navigates away.
     const optimisticTimerIdsRef = useRef<Set<string>>(new Set());
+    // When the user explicitly saves or deletes the selected timer, block the snapshot
+    // handler from auto-selecting another timer (which would reshow the green bar).
+    const suppressAutoSelectRef = useRef(false);
 
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<"now" | "retro" | "today" | "edit">("now");
@@ -135,6 +138,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     const [retroCategory, setRetroCategory] = useState<TaskType | null>(null);
     const [retroDetails, setRetroDetails] = useState("");
     const [retroDuration, setRetroDuration] = useState(15);
+    const [retroLinkedAgendaEntryId, setRetroLinkedAgendaEntryId] = useState<string | null>(null);
+    const [retroLinkedAgendaEntryLabel, setRetroLinkedAgendaEntryLabel] = useState<string | null>(null);
 
     // Edit task form
     const [editingTask, setEditingTask] = useState<ConsultantTask | null>(null);
@@ -256,9 +261,15 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     return [...timers, ...localMissing];
                 });
 
-                // Keep a valid selectedTimerId — also accept IDs still tracked locally
+                // Keep a valid selectedTimerId — also accept IDs still tracked locally.
+                // If the user just saved/deleted the selected timer, don't auto-select
+                // another one (that would reshow the green bar unexpectedly).
                 setSelectedTimerId(prev => {
                     if (prev && (fsIds.has(prev) || optimisticTimerIdsRef.current.has(prev))) return prev;
+                    if (suppressAutoSelectRef.current) {
+                        suppressAutoSelectRef.current = false;
+                        return null;
+                    }
                     return timers.find(t => t.isRunning)?.id ?? timers[0]?.id ?? null;
                 });
 
@@ -603,6 +614,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     const handleDeleteTimer = async (timerId: string) => {
         optimisticTimerIdsRef.current.delete(timerId);
+        if (selectedTimerId === timerId) suppressAutoSelectRef.current = true;
         await deleteDoc(doc(db, "activeTimers", timerId));
         if (selectedTimerId === timerId) setSelectedTimerId(null);
     };
@@ -622,6 +634,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     const handleSaveNowTask = async () => {
         if (isSaving || !selectedTimer) return;
+        suppressAutoSelectRef.current = true;
 
         if (secondsElapsed < 10) {
             showToast("Widget de Tareas", "La tarea debe durar al menos 10 segundos", "warning");
@@ -692,14 +705,23 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                 taskTypeName: retroCategory.name,
                 details: retroDetails,
                 durationMinutes: Number(retroDuration),
+                agendaEntryId: retroLinkedAgendaEntryId ?? null,
                 type: "retroactive",
                 createdAt: serverTimestamp()
             });
+            if (retroLinkedAgendaEntryId) {
+                await updateDoc(doc(db, "agenda_entries", retroLinkedAgendaEntryId), {
+                    actualMinutes: increment(Number(retroDuration)),
+                    updatedAt: serverTimestamp()
+                });
+            }
             await updateDoc(doc(db, "taskTypes", retroCategory.id), { usageCount: increment(1) });
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2500);
             setRetroDetails("");
             setRetroDuration(15);
+            setRetroLinkedAgendaEntryId(null);
+            setRetroLinkedAgendaEntryLabel(null);
         } catch (err) {
             console.error(err);
             showToast("Error", "No se pudo registrar la tarea retroactiva", "error");
@@ -1145,6 +1167,45 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                     })}
                                 </div>
                             </div>
+
+                            {/* Agenda linkage — same concept as "now" tab but duration comes from slider */}
+                            {todayAgendaEntries.length > 0 && (
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1">
+                                        <Lucide.CalendarCheck className="w-3 h-3 text-violet-400" />
+                                        Vincular a agenda de hoy
+                                    </label>
+                                    <select
+                                        value={retroLinkedAgendaEntryId ?? ""}
+                                        onChange={e => {
+                                            const entry = todayAgendaEntries.find(a => a.id === e.target.value) ?? null;
+                                            if (!entry) {
+                                                setRetroLinkedAgendaEntryId(null);
+                                                setRetroLinkedAgendaEntryLabel(null);
+                                            } else {
+                                                setRetroLinkedAgendaEntryId(entry.id);
+                                                setRetroLinkedAgendaEntryLabel(
+                                                    `${entry.activityType}: ${entry.client || entry.description} ${entry.scheduleStart}–${entry.scheduleEnd}`
+                                                );
+                                                if (entry.projectId && !retroProject) setRetroProject(entry.projectId);
+                                            }
+                                        }}
+                                        className="w-full bg-black/40 border border-violet-500/20 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-violet-400 text-violet-300">
+                                        <option value="" className="bg-zinc-900 text-zinc-400">Sin vincular</option>
+                                        {todayAgendaEntries.map(entry => (
+                                            <option key={entry.id} value={entry.id} className="bg-zinc-900 text-white">
+                                                {entry.activityType}: {entry.client || entry.description} {entry.scheduleStart}–{entry.scheduleEnd}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {retroLinkedAgendaEntryId && (
+                                        <p className="text-[9px] text-violet-400 flex items-center gap-1">
+                                            <Lucide.Info className="w-2.5 h-2.5 shrink-0" />
+                                            Se añadirán {retroDuration} min a esta entrada de agenda
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="space-y-1 bg-white/2 border border-white/5 p-2 rounded-xl">
                                 <div className="flex justify-between items-center text-[10px]">
