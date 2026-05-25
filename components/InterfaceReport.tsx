@@ -177,12 +177,40 @@ export function InterfaceReport({ project, interfaces, onClose }: InterfaceRepor
                                 padding: 1rem !important;
                                 border-radius: 1rem !important;
                             }
+                            /* Forzar layout Flexbox en impresión/conversión para compatibilidad absoluta con PDF/Word */
+                            #unitask-interface-report .grid.print\\:grid-cols-3 {
+                                display: flex !important;
+                                flex-direction: row !important;
+                                flex-wrap: nowrap !important;
+                                justify-content: space-between !important;
+                                align-items: flex-start !important;
+                                gap: 1rem !important;
+                                width: 100% !important;
+                            }
+                            #unitask-interface-report .print\\:col-span-2 {
+                                width: 68% !important;
+                                max-width: 68% !important;
+                                flex: 0 0 68% !important;
+                                box-sizing: border-box !important;
+                            }
+                            #unitask-interface-report .print\\:h-fit {
+                                width: 29% !important;
+                                max-width: 29% !important;
+                                flex: 0 0 29% !important;
+                                box-sizing: border-box !important;
+                                height: auto !important;
+                            }
                             #unitask-interface-report pre {
                                 padding: 0.5rem 0.75rem !important;
                                 font-size: 10px !important;
                                 border-radius: 0.5rem !important;
                                 margin-top: 0.5rem !important;
                                 background-color: #f4f4f5 !important;
+                                max-width: 100% !important;
+                                overflow-x: auto !important;
+                                white-space: pre-wrap !important;
+                                word-break: break-all !important;
+                                box-sizing: border-box !important;
                             }
                             #unitask-interface-report .space-y-12 > :not([hidden]) ~ :not([hidden]) {
                                 margin-top: 1.5rem !important;
