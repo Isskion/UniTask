@@ -374,11 +374,11 @@ export default function TaskControlPanel() {
         return () => unsubscribe();
     }, [currentTenantId]);
 
-    const handleForceStopTimer = async (userId: string, name: string) => {
+    const handleForceStopTimer = async (timerId: string, name: string) => {
         if (!confirm(`¿Estás seguro de que deseas DETENER FORZADAMENTE el temporizador de ${name}? El progreso no guardado se perderá.`)) return;
         
         try {
-            await deleteDoc(doc(db, "activeTimers", userId));
+            await deleteDoc(doc(db, "activeTimers", timerId));
             showToast("Monitorización", "Temporizador detenido correctamente", "success");
         } catch (e) {
             console.error("Err forcing stop", e);
@@ -878,6 +878,12 @@ export default function TaskControlPanel() {
                                                 <Lucide.Tag className="w-3 h-3 text-muted-foreground" />
                                                 {timer.taskTypeName || 'General'}
                                             </p>
+                                            {timer.agendaEntryLabel && (
+                                                <p className="text-[10px] text-violet-400 flex items-center gap-1.5 border-t border-border/50 pt-1.5 mt-1.5 truncate">
+                                                    <Lucide.CalendarCheck className="w-3 h-3 shrink-0" />
+                                                    {timer.agendaEntryLabel}
+                                                </p>
+                                            )}
                                             {timer.details && (
                                                 <p className="text-[10px] text-muted-foreground italic border-t border-border/50 pt-1.5 mt-1.5 line-clamp-1">
                                                     "{timer.details}"
@@ -1048,6 +1054,7 @@ export default function TaskControlPanel() {
                                             <th className="px-6 py-2">Proyecto</th>
                                             <th className="px-6 py-2">Categoría</th>
                                             <th className="px-6 py-2">Detalle / Actividad</th>
+                                            <th className="px-6 py-2">Agenda</th>
                                             <th className="px-6 py-2 text-center">Duración</th>
                                             <th className="px-6 py-2 text-center">Fecha</th>
                                             <th className="px-6 py-2 text-right">Acciones</th>
@@ -1076,6 +1083,15 @@ export default function TaskControlPanel() {
                                                 </td>
                                                 <td className="px-6 py-4 bg-card/60 border-y border-border group-hover:bg-accent/50 transition-colors text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed max-w-xs truncate" title={task.details}>
                                                     {task.details || <span className="text-muted-foreground italic">Sin detalle técnico</span>}
+                                                </td>
+                                                <td className="px-6 py-4 bg-card/60 border-y border-border group-hover:bg-accent/50 transition-colors text-xs">
+                                                    {task.agendaEntryId
+                                                        ? <span className="flex items-center gap-1 text-violet-400 font-bold text-[10px]">
+                                                            <Lucide.CalendarCheck className="w-3 h-3 shrink-0" />
+                                                            Vinculado
+                                                          </span>
+                                                        : <span className="text-muted-foreground text-[10px]">—</span>
+                                                    }
                                                 </td>
                                                 <td className="px-6 py-4 bg-card/60 border-y border-border group-hover:bg-accent/50 transition-colors text-center text-xs font-mono font-bold text-foreground">
                                                     {task.durationMinutes} min
