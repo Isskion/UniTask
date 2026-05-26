@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
-    LayoutGrid, BarChart3, List,
+    LayoutGrid, BarChart3, List, FolderInput,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addWeeks, subWeeks } from "date-fns";
@@ -25,6 +25,7 @@ import { AgendaGrid } from "./AgendaGrid";
 import { AgendaLista } from "./AgendaLista";
 import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
+import { AgendaImportModal } from "./AgendaImportModal";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
@@ -33,7 +34,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 
 export function AgendaView() {
-    const { tenantId } = useAuth();
+    const { tenantId, user } = useAuth();
     const { t } = useLanguage();
     const tid = tenantId || "";
     const accessScopes = useAccessScopes();
@@ -305,6 +306,14 @@ export function AgendaView() {
 
     // ── Consultants manager ───────────────────────────────────────────────────
     const [showConsultantsManager, setShowConsultantsManager] = useState(false);
+    const [importFile, setImportFile] = useState<File | null>(null);
+    const importInputRef = useRef<HTMLInputElement>(null);
+
+    // ── Excel import handlers ──────────────────────────────────────────────────
+    function handleImportFile(file: File) {
+        if (!file.name.match(/\.(xlsx|xls)$/i)) return;
+        setImportFile(file);
+    }
 
     // ── Firestore cache reset (fixes corrupted SDK state) ──────────────────────
     async function handleResetCache() {
@@ -322,7 +331,11 @@ export function AgendaView() {
     function handleExportMSProject() { exportMSProject(entries); }
 
     return (
-        <div className="flex flex-col h-full bg-background text-foreground">
+        <div
+            className="flex flex-col h-full bg-background text-foreground"
+            onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
+            onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleImportFile(f); }}
+        >
 
             {/* ── Toolbar ──────────────────────────────────────────────────── */}
             <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0 gap-2 bg-card/50 overflow-x-auto">
@@ -459,6 +472,23 @@ export function AgendaView() {
                         <FileSpreadsheet className="w-3.5 h-3.5" />
                         {t('agenda.msProject')}
                     </button>
+
+                    {/* Import Excel */}
+                    <button
+                        onClick={() => importInputRef.current?.click()}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400 transition-all"
+                        title="Importar agenda desde Excel"
+                    >
+                        <FolderInput className="w-3.5 h-3.5" />
+                        Importar
+                    </button>
+                    <input
+                        ref={importInputRef}
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ''; }}
+                    />
 
                     {/* Manage consultants */}
                     <button
@@ -684,6 +714,19 @@ export function AgendaView() {
                     samRegions={samRegions}
                     samDivisions={samDivisions}
                     onClose={() => setShowConsultantsManager(false)}
+                />
+            )}
+
+            {importFile && (
+                <AgendaImportModal
+                    file={importFile}
+                    consultants={consultants}
+                    tenantId={tid}
+                    userId={user?.uid || ''}
+                    onClose={() => setImportFile(null)}
+                    onSuccess={written => {
+                        setImportFile(null);
+                    }}
                 />
             )}
         </div>

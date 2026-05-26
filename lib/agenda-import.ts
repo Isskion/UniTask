@@ -1,0 +1,256 @@
+"use client";
+
+import * as XLSX from "xlsx";
+import { ActivityType, ResultStatus, AgendaConsultant } from "@/types/agenda";
+import { db } from "@/lib/firebase";
+import {
+    collection, getDocs, writeBatch, doc, query, where,
+    serverTimestamp, Timestamp,
+} from "firebase/firestore";
+import {
+    normalizeSchedule, parseHours, buildJiraRecord,
+    getDayType, getWeekLabel, getWeekMonth, getWeekNumber,
+    getYearMonth, getWeekStart, parseComment,
+} from "@/lib/agenda-utils";
+import { format } from "date-fns";
+
+const ENTRIES_COLLECTION = "agenda_entries";
+
+// ─── Activity / Result maps ───────────────────────────────────────────────────
+
+const ACTIVIDAD_MAP: Record<string, ActivityType> = {
+    'Reunión Cliente':    ActivityType.REUNION_CLIENTE,
+    'Reunion Cliente':    ActivityType.REUNION_CLIENTE,
+    'Reunión UNIGIS':     ActivityType.REUNION_UNIGIS,
+    'Reunion UNIGIS':     ActivityType.REUNION_UNIGIS,
+    'Reunión Presencial': ActivityType.REUNION_PRESENCIAL,
+    'Reunion Presencial': ActivityType.REUNION_PRESENCIAL,
+    'Reunión Interna':    ActivityType.REUNION_INTERNA,
+    'Reunion Interna':    ActivityType.REUNION_INTERNA,
+    'Tareas a Realizar':  ActivityType.TAREAS_A_REALIZAR,
+    'Comercial':          ActivityType.COMERCIAL,
+    'Vacaciones':         ActivityType.VACACIONES,
+    'Viaje':              ActivityType.VIAJE,
+    'Especial':           ActivityType.ESPECIAL,
+};
+
+const RESULTADO_MAP: Record<string, ResultStatus> = {
+    'Por Hacer':  ResultStatus.POR_HACER,
+    'En pausa':   ResultStatus.EN_PAUSA,
+    'Hecho':      ResultStatus.HECHO,
+    'Cancelado':  ResultStatus.CANCELADO,
+};
+
+// Day column offsets (5 fields each: Fecha_T, Actividad, Comentario, Horario, Resultado)
+const DAY_OFFSETS = [2, 7, 12, 17, 22, 27, 32];
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ParsedExcelEntry {
+    consultantName: string;
+    date: Date;
+    activityType: ActivityType;
+    comment: string;
+    scheduleRaw: string;
+    result: ResultStatus;
+}
+
+export interface ImportPreview {
+    weekStart: string;
+    weekLabel: string;
+    entries: ParsedExcelEntry[];
+    unknownConsultants: string[];
+}
+
+export interface ImportResult {
+    written: number;
+    skipped: number;
+    unknownConsultants: string[];
+}
+
+// ─── Parse Excel ──────────────────────────────────────────────────────────────
+
+function parseExcelDate(raw: string): Date | null {
+    if (!raw) return null;
+    const parts = raw.toString().trim().split('/');
+    if (parts.length !== 3) return null;
+    const [d, m, y] = parts.map(Number);
+    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+    return new Date(2000 + y, m - 1, d);
+}
+
+export function parseAgendaExcel(file: File): Promise<ImportPreview> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const wb = XLSX.read(new Uint8Array(e.target!.result as ArrayBuffer), { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+                const weekLabel = String(rows[0]?.[2] || '').trim();
+                const entries: ParsedExcelEntry[] = [];
+
+                for (let ri = 3; ri < rows.length; ri++) {
+                    const row = rows[ri];
+                    const consultantName = String(row[1] || '').trim();
+                    if (!consultantName) continue;
+
+                    for (const base of DAY_OFFSETS) {
+                        const actividad  = String(row[base + 1] || '').trim();
+                        const comentario = String(row[base + 2] || '').trim();
+                        const horario    = String(row[base + 3] || '').trim();
+                        const resultado  = String(row[base + 4] || '').trim();
+
+                        if (!actividad || !horario) continue;
+
+                        const date = parseExcelDate(String(row[base] || ''));
+                        if (!date) continue;
+
+                        const activityType = ACTIVIDAD_MAP[actividad];
+                        if (!activityType) continue;
+
+                        entries.push({
+                            consultantName,
+                            date,
+                            activityType,
+                            comment: comentario,
+                            scheduleRaw: horario,
+                            result: RESULTADO_MAP[resultado] || ResultStatus.POR_HACER,
+                        });
+                    }
+                }
+
+                const weekStart = entries.length
+                    ? format(getWeekStart(entries[0].date), 'yyyy-MM-dd')
+                    : '';
+
+                // unknownConsultants resolved externally by caller (needs consultant list)
+                resolve({ weekStart, weekLabel, entries, unknownConsultants: [] });
+            } catch (err) {
+                reject(err);
+            }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+/** Returns the set of consultant names from the Excel that don't match any known consultant. */
+export function resolveUnknownConsultants(
+    entries: ParsedExcelEntry[],
+    consultants: AgendaConsultant[]
+): string[] {
+    const knownNames = new Set(consultants.map(c => c.name.toUpperCase()));
+    const excelNames = new Set(entries.map(e => e.consultantName.toUpperCase()));
+    return [...excelNames].filter(n => !knownNames.has(n));
+}
+
+// ─── Execute Import ───────────────────────────────────────────────────────────
+
+export async function executeImport(
+    preview: ImportPreview,
+    consultants: AgendaConsultant[],
+    tenantId: string,
+    userId: string,
+): Promise<ImportResult> {
+    const { entries, weekStart } = preview;
+
+    // Build name → consultant lookup (uppercase for case-insensitive match)
+    const nameMap = new Map<string, AgendaConsultant>();
+    consultants.forEach(c => nameMap.set(c.name.toUpperCase(), c));
+
+    // Load existing entries for the week to enable dedup
+    const existingQ = query(
+        collection(db, ENTRIES_COLLECTION),
+        where("tenantId",  "==", tenantId),
+        where("weekStart", "==", weekStart)
+    );
+    const existingSnap = await getDocs(existingQ);
+    const existingKeys = new Set<string>();
+    existingSnap.docs.forEach(d => {
+        const e = d.data();
+        const dateISO = (e.date as Timestamp).toDate().toISOString().split('T')[0];
+        const { scheduleRaw: norm } = normalizeSchedule(e.scheduleRaw || '');
+        existingKeys.add(`${e.consultantId}::${dateISO}::${e.activityType}::${norm}`);
+    });
+
+    const batch = writeBatch(db);
+    let written = 0;
+    let skipped = 0;
+    const unknownConsultants = new Set<string>();
+
+    for (const entry of entries) {
+        const consultant = nameMap.get(entry.consultantName.toUpperCase());
+        if (!consultant) {
+            unknownConsultants.add(entry.consultantName);
+            skipped++;
+            continue;
+        }
+
+        const { scheduleRaw, scheduleStart, scheduleEnd } = normalizeSchedule(entry.scheduleRaw);
+        const dateISO = entry.date.toISOString().split('T')[0];
+        const dedupKey = `${consultant.userId}::${dateISO}::${entry.activityType}::${scheduleRaw}`;
+
+        if (existingKeys.has(dedupKey)) {
+            skipped++;
+            continue;
+        }
+        existingKeys.add(dedupKey); // prevent duplicate within same import batch
+
+        const { client, description } = parseComment(entry.comment);
+        const weekDate  = getWeekStart(entry.date);
+        const weekLabel = getWeekLabel(entry.date);
+        const weekMonth = getWeekMonth(entry.date);
+        const yearMonth = getYearMonth(entry.date);
+
+        const payload = {
+            tenantId,
+            date:            Timestamp.fromDate(entry.date),
+            weekStart,
+            weekLabel,
+            weekMonth,
+            weekNumber:      getWeekNumber(entry.date),
+            yearMonth,
+            dayType:         getDayType(entry.date),
+            consultantId:    consultant.userId,
+            consultantName:  consultant.name,
+            consultantOrder: consultant.sortOrder,
+            region:          consultant.region,
+            divisionId:      '',
+            divisionName:    '',
+            activityType:    entry.activityType,
+            comment:         entry.comment,
+            client,
+            description,
+            scheduleRaw,
+            scheduleStart,
+            scheduleEnd,
+            scheduledHours:  parseHours(scheduleRaw),
+            result:          entry.result,
+            jiraRecord:      buildJiraRecord(entry.activityType, client, description),
+            projectId:       null,
+            projectName:     null,
+            projectCode:     null,
+            projectColor:    null,
+            linkedTaskId:    null,
+            createdBy:       userId,
+            createdAt:       serverTimestamp(),
+            updatedAt:       serverTimestamp(),
+            isActive:        true,
+            importedFromExcel: true,
+        };
+
+        batch.set(doc(collection(db, ENTRIES_COLLECTION)), payload);
+        written++;
+
+        // Firestore batch limit is 500
+        if (written % 490 === 0) {
+            await batch.commit();
+        }
+    }
+
+    await batch.commit();
+
+    return { written, skipped, unknownConsultants: [...unknownConsultants] };
+}
