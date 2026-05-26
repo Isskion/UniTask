@@ -203,13 +203,11 @@
     },
     "aiEnabled": false,
     "accessScopes": {
-      "divisionIds": [
-        "CON",
-        "GMC"
-      ],
       "regionIds": [
-        "ES",
-        "FR"
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
       ]
     }
   },
@@ -305,9 +303,6 @@
     "id": "GjkwIyjxsOXxj4OHH5D6KtV0DYt1",
     "uid": "GjkwIyjxsOXxj4OHH5D6KtV0DYt1",
     "email": "cursoiadaniel@gmail.com",
-    "displayName": "Daniel del Amo",
-    "role": "consultant",
-    "roleLevel": 40,
     "tenantId": "3",
     "isActive": true,
     "createdAt": {
@@ -335,14 +330,15 @@
     "syncId": 1775652346491,
     "aiEnabled": false,
     "address": "Pino Resinero, 46",
-    "assignedProjectIds": [
-      "OH4sjML9byhLuzMXSTss"
-    ],
     "company": "Secure Route",
-    "permissionGroupId": "zkHq8MpGD0SnkgAWdFbx",
+    "permissionGroupId": "",
+    "role": "team_member",
+    "assignedProjectIds": [],
+    "displayName": "Consultor pruebas",
+    "roleLevel": 0,
     "updatedAt": {
-      "_seconds": 1777292776,
-      "_nanoseconds": 607000000
+      "_seconds": 1779810971,
+      "_nanoseconds": 616000000
     }
   },
   {
