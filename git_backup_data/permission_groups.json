@@ -1,0 +1,1615 @@
+[
+  {
+    "id": "0K6YeKPij3FLS38gyiTG",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "name": "Consultor",
+    "taskAccess": {
+      "delete": true,
+      "assignedProjectsOnly": true,
+      "viewAll": false,
+      "edit": true,
+      "create": true
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "useCommandMenu": true,
+      "accessTrash": false
+    },
+    "exportAccess": {
+      "reports": false,
+      "projects": false,
+      "tasks": true
+    },
+    "projectAccess": {
+      "assignedOnly": true,
+      "edit": false,
+      "create": false,
+      "viewAll": false,
+      "archive": false
+    },
+    "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "2",
+    "color": "#6366f1",
+    "createdAt": {
+      "_seconds": 1768087848,
+      "_nanoseconds": 477000000
+    },
+    "viewAccess": {
+      "userManagement": false,
+      "dailyFollowUp": true,
+      "dashboard": true,
+      "taskManager": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "taskDashboard": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "1kfSX4c2nTxygGuKvHS5",
+    "name": "Project Managers",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+    "exportAccess": {
+      "tasks": true,
+      "projects": true,
+      "reports": true
+    },
+    "projectAccess": {
+      "assignedOnly": false,
+      "archive": false,
+      "create": true,
+      "edit": true,
+      "viewAll": true
+    },
+    "taskAccess": {
+      "assignedProjectsOnly": false,
+      "delete": true,
+      "edit": true,
+      "viewAll": true,
+      "create": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "2",
+    "specialPermissions": {
+      "accessTrash": true,
+      "viewAllUserProfiles": true,
+      "managePermissions": false,
+      "useCommandMenu": true
+    },
+    "color": "#3b82f6",
+    "createdAt": {
+      "_seconds": 1768087848,
+      "_nanoseconds": 762000000
+    },
+    "viewAccess": {
+      "taskManager": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "userManagement": true,
+      "taskDashboard": true,
+      "dashboard": true,
+      "dailyFollowUp": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "BOQNglpT9G6CTMizIVbo",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "color": "#6366f1",
+    "name": "Consultor",
+    "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "6",
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true,
+      "managePermissions": false,
+      "accessTrash": false
+    },
+    "exportAccess": {
+      "reports": false,
+      "projects": false,
+      "tasks": true
+    },
+    "taskAccess": {
+      "assignedProjectsOnly": true,
+      "viewAll": false,
+      "create": true,
+      "edit": true,
+      "delete": true
+    },
+    "projectAccess": {
+      "create": false,
+      "edit": false,
+      "viewAll": false,
+      "assignedOnly": true,
+      "archive": false
+    },
+    "createdAt": {
+      "_seconds": 1769082197,
+      "_nanoseconds": 859000000
+    },
+    "viewAccess": {
+      "taskManager": true,
+      "userManagement": false,
+      "dashboard": true,
+      "taskDashboard": true,
+      "dailyFollowUp": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "CzxVf8b4QEA0dAfE9qIH",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "name": "Administradores",
+    "exportAccess": {
+      "projects": true,
+      "reports": true,
+      "tasks": true
+    },
+    "projectAccess": {
+      "archive": true,
+      "viewAll": true,
+      "assignedOnly": false,
+      "create": true,
+      "edit": true
+    },
+    "tenantId": "3",
+    "taskAccess": {
+      "create": true,
+      "edit": true,
+      "viewAll": true,
+      "delete": true,
+      "assignedProjectsOnly": false
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "color": "#ef4444",
+    "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+    "specialPermissions": {
+      "useCommandMenu": true,
+      "managePermissions": true,
+      "accessTrash": true,
+      "viewAllUserProfiles": true
+    },
+    "createdAt": {
+      "_seconds": 1768087867,
+      "_nanoseconds": 700000000
+    },
+    "viewAccess": {
+      "taskManager": true,
+      "dashboard": true,
+      "dailyFollowUp": true,
+      "projectManagement": true,
+      "taskDashboard": true,
+      "userManagement": true,
+      "weeklyEditor": true,
+      "knowledgeBase": true,
+      "sprintManagement": true,
+      "dispoPlan": true,
+      "unavailabilityRegistry": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "DcPRzezxS9ashGKd1c2S",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "name": "Externo",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "color": "#6366f1",
+    "taskAccess": {
+      "create": false,
+      "delete": false,
+      "viewAll": false,
+      "edit": false,
+      "assignedProjectsOnly": true
+    },
+    "tenantId": "4",
+    "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+    "projectAccess": {
+      "archive": false,
+      "viewAll": false,
+      "edit": false,
+      "create": false,
+      "assignedOnly": true
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": false,
+      "reports": false
+    },
+    "specialPermissions": {
+      "managePermissions": false,
+      "accessTrash": false,
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true
+    },
+    "createdAt": {
+      "_seconds": 1768087664,
+      "_nanoseconds": 727000000
+    },
+    "viewAccess": {
+      "userManagement": false,
+      "weeklyEditor": false,
+      "taskManager": false,
+      "projectManagement": false,
+      "dailyFollowUp": true,
+      "taskDashboard": true,
+      "dashboard": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "EInljWJi4tBI3XaQ5X2p",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "taskAccess": {
+      "delete": false,
+      "edit": true,
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": true
+    },
+    "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+    "name": "Equipo",
+    "exportAccess": {
+      "projects": false,
+      "tasks": true,
+      "reports": false
+    },
+    "specialPermissions": {
+      "managePermissions": false,
+      "useCommandMenu": true,
+      "viewAllUserProfiles": false,
+      "accessTrash": false
+    },
+    "tenantId": "4",
+    "projectAccess": {
+      "create": false,
+      "assignedOnly": true,
+      "viewAll": false,
+      "edit": false,
+      "archive": false
+    },
+    "color": "#10b981",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768087665,
+      "_nanoseconds": 259000000
+    },
+    "viewAccess": {
+      "dashboard": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "taskDashboard": true,
+      "dailyFollowUp": true,
+      "taskManager": true,
+      "userManagement": false,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "EzwcMQ72J3gCSuRYt9XJ",
+    "name": "Consultor",
+    "color": "#6366f1",
+    "projectAccess": {
+      "viewAll": false,
+      "assignedOnly": true,
+      "create": false,
+      "edit": false,
+      "archive": false
+    },
+    "taskAccess": {
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": true,
+      "edit": true,
+      "delete": true
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": false,
+      "reports": false
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1767820266,
+      "_nanoseconds": 870000000
+    },
+    "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "1",
+    "specialPermissions": {
+      "managePermissions": false,
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true,
+      "accessTrash": true
+    },
+    "viewAccess": {
+      "dailyFollowUp": true,
+      "taskManager": true,
+      "taskDashboard": true,
+      "unavailabilityRegistry": true,
+      "dashboard": true,
+      "projectManagement": true,
+      "weeklyEditor": true,
+      "dispoPlan": true,
+      "knowledgeBase": true,
+      "userManagement": false,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "FJUMXCfI4VnMMj8b8mOT",
+    "name": "Project Managers",
+    "exportAccess": {
+      "projects": true,
+      "tasks": true,
+      "reports": true
+    },
+    "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+    "color": "#3b82f6",
+    "specialPermissions": {
+      "viewAllUserProfiles": true,
+      "managePermissions": false,
+      "accessTrash": true,
+      "useCommandMenu": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "projectAccess": {
+      "viewAll": true,
+      "archive": false,
+      "assignedOnly": false,
+      "edit": true,
+      "create": true
+    },
+    "taskAccess": {
+      "assignedProjectsOnly": false,
+      "viewAll": true,
+      "create": true,
+      "edit": true,
+      "delete": true
+    },
+    "tenantId": "4",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdAt": {
+      "_seconds": 1768087664,
+      "_nanoseconds": 917000000
+    },
+    "viewAccess": {
+      "weeklyEditor": true,
+      "dashboard": true,
+      "userManagement": true,
+      "taskDashboard": true,
+      "projectManagement": true,
+      "taskManager": true,
+      "dailyFollowUp": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "GFs78zFROnmqFLeRdKJ8",
+    "specialPermissions": {
+      "managePermissions": true,
+      "useCommandMenu": true,
+      "accessTrash": true,
+      "viewAllUserProfiles": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "exportAccess": {
+      "projects": true,
+      "tasks": true,
+      "reports": true
+    },
+    "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+    "color": "#ef4444",
+    "name": "Administradores",
+    "tenantId": "6",
+    "projectAccess": {
+      "edit": true,
+      "create": true,
+      "viewAll": true,
+      "archive": true,
+      "assignedOnly": false
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "taskAccess": {
+      "delete": true,
+      "assignedProjectsOnly": false,
+      "edit": true,
+      "create": true,
+      "viewAll": true
+    },
+    "createdAt": {
+      "_seconds": 1769082202,
+      "_nanoseconds": 750000000
+    },
+    "viewAccess": {
+      "dailyFollowUp": true,
+      "taskManager": true,
+      "projectManagement": true,
+      "dashboard": true,
+      "userManagement": true,
+      "taskDashboard": true,
+      "weeklyEditor": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "IkJ1KWGmzUDVTSxbzWGv",
+    "tenantId": "6",
+    "color": "#3b82f6",
+    "exportAccess": {
+      "reports": true,
+      "tasks": true,
+      "projects": true
+    },
+    "taskAccess": {
+      "edit": true,
+      "delete": true,
+      "create": true,
+      "viewAll": true,
+      "assignedProjectsOnly": false
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "specialPermissions": {
+      "managePermissions": false,
+      "viewAllUserProfiles": true,
+      "accessTrash": true,
+      "useCommandMenu": true
+    },
+    "projectAccess": {
+      "assignedOnly": false,
+      "edit": true,
+      "archive": false,
+      "viewAll": true,
+      "create": true
+    },
+    "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "name": "Project Managers",
+    "createdAt": {
+      "_seconds": 1769082200,
+      "_nanoseconds": 946000000
+    },
+    "viewAccess": {
+      "userManagement": true,
+      "weeklyEditor": true,
+      "taskDashboard": true,
+      "taskManager": true,
+      "dailyFollowUp": true,
+      "projectManagement": true,
+      "dashboard": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "K3o2Hvs9LwH0GoiHO4RG",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "name": "Project Managers",
+    "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+    "exportAccess": {
+      "tasks": true,
+      "projects": true,
+      "reports": true
+    },
+    "color": "#3b82f6",
+    "taskAccess": {
+      "assignedProjectsOnly": false,
+      "delete": true,
+      "edit": true,
+      "create": true,
+      "viewAll": true
+    },
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1768087867,
+      "_nanoseconds": 567000000
+    },
+    "specialPermissions": {
+      "managePermissions": true,
+      "useCommandMenu": true,
+      "viewAllUserProfiles": true,
+      "accessTrash": true,
+      "viewTechnicalInfo": true,
+      "viewAllProjectNotes": true
+    },
+    "projectAccess": {
+      "edit": true,
+      "create": true,
+      "viewAll": true,
+      "assignedOnly": false,
+      "archive": true
+    },
+    "viewAccess": {
+      "projectManagement": true,
+      "taskDashboard": true,
+      "sprintManagement": true,
+      "dispoPlan": true,
+      "weeklyEditor": true,
+      "dailyFollowUp": true,
+      "unileaks": true,
+      "knowledgeBase": true,
+      "inbox": false,
+      "dashboard": true,
+      "uniordercreator": true,
+      "unavailabilityRegistry": true,
+      "taskManager": true,
+      "uniflux": true,
+      "userManagement": true,
+      "unidocs": true,
+      "soap": true,
+      "swagger": true
+    },
+    "updatedAt": {
+      "_seconds": 1778676287,
+      "_nanoseconds": 326000000
+    }
+  },
+  {
+    "id": "Ql4anNhobE7QH2ZsbeRA",
+    "projectAccess": {
+      "create": false,
+      "assignedOnly": true,
+      "edit": false,
+      "archive": false,
+      "viewAll": false
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "2",
+    "color": "#6366f1",
+    "exportAccess": {
+      "reports": false,
+      "tasks": true,
+      "projects": false
+    },
+    "taskAccess": {
+      "assignedProjectsOnly": true,
+      "create": false,
+      "delete": false,
+      "edit": false,
+      "viewAll": false
+    },
+    "specialPermissions": {
+      "useCommandMenu": true,
+      "viewAllUserProfiles": false,
+      "accessTrash": false,
+      "managePermissions": false
+    },
+    "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+    "name": "Externo",
+    "createdAt": {
+      "_seconds": 1768087848,
+      "_nanoseconds": 629000000
+    },
+    "viewAccess": {
+      "weeklyEditor": false,
+      "taskManager": false,
+      "dashboard": true,
+      "projectManagement": false,
+      "dailyFollowUp": true,
+      "userManagement": false,
+      "taskDashboard": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "Tmu6u7CuMvwFguXiwDFh",
+    "name": "Externo",
+    "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+    "color": "#6366f1",
+    "projectAccess": {
+      "viewAll": false,
+      "assignedOnly": true,
+      "create": false,
+      "edit": false,
+      "archive": false
+    },
+    "taskAccess": {
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": false,
+      "edit": false,
+      "delete": false
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": false,
+      "reports": false
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "accessTrash": false,
+      "useCommandMenu": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1767820360,
+      "_nanoseconds": 375000000
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "1",
+    "viewAccess": {
+      "dashboard": true,
+      "taskManager": false,
+      "taskDashboard": true,
+      "projectManagement": false,
+      "userManagement": false,
+      "weeklyEditor": false,
+      "dailyFollowUp": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "VzPJO1DvbycTRxWDRvLx",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "name": "Equipo",
+    "tenantId": "2",
+    "projectAccess": {
+      "edit": false,
+      "create": false,
+      "viewAll": false,
+      "archive": false,
+      "assignedOnly": true
+    },
+    "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+    "taskAccess": {
+      "delete": false,
+      "assignedProjectsOnly": true,
+      "create": true,
+      "edit": true,
+      "viewAll": false
+    },
+    "color": "#10b981",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "exportAccess": {
+      "reports": false,
+      "projects": false,
+      "tasks": true
+    },
+    "specialPermissions": {
+      "accessTrash": false,
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "useCommandMenu": true
+    },
+    "createdAt": {
+      "_seconds": 1768087849,
+      "_nanoseconds": 47000000
+    },
+    "viewAccess": {
+      "taskDashboard": true,
+      "dashboard": true,
+      "userManagement": false,
+      "projectManagement": true,
+      "taskManager": true,
+      "weeklyEditor": true,
+      "dailyFollowUp": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "XTfDFnJLpUaVLDvXZg9T",
+    "specialPermissions": {
+      "accessTrash": false,
+      "managePermissions": false,
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true
+    },
+    "name": "Externo",
+    "tenantId": "3",
+    "exportAccess": {
+      "reports": false,
+      "tasks": true,
+      "projects": false
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+    "color": "#6366f1",
+    "createdAt": {
+      "_seconds": 1768087867,
+      "_nanoseconds": 357000000
+    },
+    "viewAccess": {
+      "userManagement": false,
+      "inbox": false,
+      "soap": true,
+      "projectManagement": false,
+      "unidocs": false,
+      "dailyFollowUp": false,
+      "swagger": true,
+      "weeklyEditor": false,
+      "taskManager": false,
+      "taskDashboard": false,
+      "dashboard": false,
+      "uniflux": false,
+      "unileaks": true,
+      "uniordercreator": true
+    },
+    "taskAccess": {
+      "delete": false,
+      "edit": false,
+      "create": false,
+      "assignedProjectsOnly": false,
+      "viewAll": false
+    },
+    "projectAccess": {
+      "assignedOnly": false,
+      "viewAll": false,
+      "create": false,
+      "edit": false,
+      "archive": false
+    },
+    "updatedAt": {
+      "_seconds": 1776273765,
+      "_nanoseconds": 387000000
+    }
+  },
+  {
+    "id": "XdO0dma2Ie6E8T1Xc6Ig",
+    "name": "Project Managers",
+    "color": "#3b82f6",
+    "projectAccess": {
+      "viewAll": true,
+      "assignedOnly": false,
+      "create": true,
+      "edit": true,
+      "archive": false
+    },
+    "taskAccess": {
+      "viewAll": true,
+      "assignedProjectsOnly": false,
+      "create": true,
+      "edit": true,
+      "delete": true
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": true,
+      "reports": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1767814925,
+      "_nanoseconds": 583000000
+    },
+    "description": "Gestores de proyecto. Pueden crear y administrar proyectos y tareas, gestionar usuarios pero no los  permisos de los grupos de usuario ni crear grupos nuevos.",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "1",
+    "specialPermissions": {
+      "useCommandMenu": true,
+      "managePermissions": false,
+      "accessTrash": true,
+      "viewAllUserProfiles": false
+    },
+    "viewAccess": {
+      "taskDashboard": true,
+      "userManagement": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "taskManager": true,
+      "dashboard": true,
+      "dailyFollowUp": true,
+      "knowledgeBase": true,
+      "sprintManagement": true,
+      "dispoPlan": true,
+      "unavailabilityRegistry": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "ZCtaBcx6DD62NC8Ka7W8",
+    "specialPermissions": {
+      "viewAllUserProfiles": true,
+      "managePermissions": true,
+      "useCommandMenu": true,
+      "accessTrash": true
+    },
+    "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "taskAccess": {
+      "viewAll": true,
+      "create": true,
+      "edit": true,
+      "delete": true,
+      "assignedProjectsOnly": false
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "name": "Administradores",
+    "tenantId": "2",
+    "exportAccess": {
+      "reports": true,
+      "tasks": true,
+      "projects": true
+    },
+    "color": "#ef4444",
+    "projectAccess": {
+      "edit": true,
+      "viewAll": true,
+      "assignedOnly": false,
+      "archive": true,
+      "create": true
+    },
+    "createdAt": {
+      "_seconds": 1768087848,
+      "_nanoseconds": 894000000
+    },
+    "viewAccess": {
+      "dailyFollowUp": true,
+      "taskDashboard": true,
+      "taskManager": true,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "userManagement": true,
+      "dashboard": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "dUAB0orOPWa1CHZVyJCk",
+    "name": "Administradores",
+    "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+    "color": "#ef4444",
+    "projectAccess": {
+      "viewAll": true,
+      "assignedOnly": false,
+      "create": true,
+      "edit": true,
+      "archive": true
+    },
+    "taskAccess": {
+      "viewAll": true,
+      "assignedProjectsOnly": false,
+      "create": true,
+      "edit": true,
+      "delete": true
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": true,
+      "reports": true
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": true,
+      "managePermissions": true,
+      "accessTrash": true,
+      "useCommandMenu": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1767814925,
+      "_nanoseconds": 417000000
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "1",
+    "viewAccess": {
+      "dashboard": true,
+      "taskManager": true,
+      "taskDashboard": true,
+      "projectManagement": true,
+      "userManagement": true,
+      "weeklyEditor": true,
+      "dailyFollowUp": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "hFIA31ETvC2NRPdBh4TC",
+    "tenantId": "4",
+    "exportAccess": {
+      "projects": true,
+      "reports": true,
+      "tasks": true
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "description": "Acceso total al sistema. Pueden gestionar usuarios, proyectos, tareas y permisos.",
+    "name": "Administradores",
+    "projectAccess": {
+      "assignedOnly": false,
+      "viewAll": true,
+      "edit": true,
+      "create": true,
+      "archive": true
+    },
+    "taskAccess": {
+      "viewAll": true,
+      "create": true,
+      "delete": true,
+      "assignedProjectsOnly": false,
+      "edit": true
+    },
+    "specialPermissions": {
+      "accessTrash": true,
+      "managePermissions": true,
+      "viewAllUserProfiles": true,
+      "useCommandMenu": true
+    },
+    "color": "#ef4444",
+    "createdAt": {
+      "_seconds": 1768087665,
+      "_nanoseconds": 48000000
+    },
+    "viewAccess": {
+      "projectManagement": true,
+      "taskManager": true,
+      "taskDashboard": true,
+      "userManagement": true,
+      "dailyFollowUp": true,
+      "dashboard": true,
+      "weeklyEditor": true,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "iz22hYtHaPkXhANRSLQr",
+    "name": "Equipo",
+    "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+    "color": "#10b981",
+    "projectAccess": {
+      "viewAll": false,
+      "assignedOnly": true,
+      "create": false,
+      "edit": false,
+      "archive": false
+    },
+    "taskAccess": {
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": true,
+      "edit": true,
+      "delete": false
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": false,
+      "reports": false
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "accessTrash": false,
+      "useCommandMenu": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1767814925,
+      "_nanoseconds": 742000000
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "tenantId": "1",
+    "viewAccess": {
+      "taskDashboard": true,
+      "dashboard": true,
+      "dailyFollowUp": true,
+      "userManagement": false,
+      "weeklyEditor": true,
+      "projectManagement": true,
+      "taskManager": true,
+      "dispoPlan": true,
+      "unavailabilityRegistry": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "jnTtJvEJjaqnPvyXOfG9",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+    "name": "Equipo",
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "specialPermissions": {
+      "managePermissions": false,
+      "viewAllUserProfiles": false,
+      "accessTrash": false,
+      "useCommandMenu": true
+    },
+    "projectAccess": {
+      "edit": false,
+      "assignedOnly": true,
+      "viewAll": false,
+      "create": false,
+      "archive": false
+    },
+    "exportAccess": {
+      "projects": false,
+      "reports": false,
+      "tasks": true
+    },
+    "tenantId": "6",
+    "color": "#10b981",
+    "taskAccess": {
+      "create": true,
+      "edit": true,
+      "delete": false,
+      "assignedProjectsOnly": true,
+      "viewAll": false
+    },
+    "createdAt": {
+      "_seconds": 1769082205,
+      "_nanoseconds": 149000000
+    },
+    "viewAccess": {
+      "userManagement": false,
+      "dailyFollowUp": true,
+      "taskManager": true,
+      "dashboard": true,
+      "weeklyEditor": true,
+      "taskDashboard": true,
+      "projectManagement": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "lXL2stBtlFrxNfUJQKFc",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "exportAccess": {
+      "reports": false,
+      "tasks": true,
+      "projects": false
+    },
+    "projectAccess": {
+      "archive": false,
+      "edit": false,
+      "assignedOnly": true,
+      "viewAll": false,
+      "create": false
+    },
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1768087867,
+      "_nanoseconds": 203000000
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "accessTrash": false,
+      "useCommandMenu": true
+    },
+    "color": "#e40c22",
+    "name": "Manager",
+    "description": "Grupo de dirección, solo visibilidad general.",
+    "taskAccess": {
+      "viewAll": true,
+      "edit": false,
+      "create": false,
+      "assignedProjectsOnly": false,
+      "delete": false
+    },
+    "viewAccess": {
+      "dispoPlan": true,
+      "dashboard": true,
+      "taskManager": true,
+      "unavailabilityRegistry": true,
+      "weeklyEditor": true,
+      "userManagement": false,
+      "knowledgeBase": true,
+      "dailyFollowUp": true,
+      "taskDashboard": true,
+      "projectManagement": false,
+      "sprintManagement": false,
+      "unileaks": true,
+      "uniordercreator": true,
+      "swagger": true,
+      "soap": true,
+      "unidocs": true,
+      "uniflux": true,
+      "inbox": true
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "muROjYMdZZr5wxYCt4m7",
+    "tenantId": "4",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "taskAccess": {
+      "delete": true,
+      "assignedProjectsOnly": true,
+      "edit": true,
+      "create": true,
+      "viewAll": false
+    },
+    "specialPermissions": {
+      "useCommandMenu": true,
+      "accessTrash": false,
+      "viewAllUserProfiles": false,
+      "managePermissions": false
+    },
+    "projectAccess": {
+      "assignedOnly": true,
+      "edit": false,
+      "viewAll": false,
+      "archive": false,
+      "create": false
+    },
+    "name": "Consultor",
+    "exportAccess": {
+      "projects": false,
+      "tasks": true,
+      "reports": false
+    },
+    "color": "#6366f1",
+    "description": "Responsable de la cuenta. Solo pueden ver y trabajar en proyectos asignados. Pueden eliminar tareas",
+    "createdAt": {
+      "_seconds": 1768087664,
+      "_nanoseconds": 582000000
+    },
+    "viewAccess": {
+      "taskDashboard": true,
+      "dashboard": true,
+      "projectManagement": true,
+      "weeklyEditor": true,
+      "taskManager": true,
+      "dailyFollowUp": true,
+      "userManagement": false,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "oZWWYUKGHjekBZz6mPMP",
+    "name": "Externo",
+    "description": "Usuario de acceso externo. Caracter temporal y asignados a un solo proyecto sin capacidad de gestión, solo consulta.",
+    "color": "#6366f1",
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "specialPermissions": {
+      "accessTrash": false,
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true,
+      "managePermissions": false
+    },
+    "tenantId": "6",
+    "taskAccess": {
+      "delete": false,
+      "create": false,
+      "viewAll": false,
+      "edit": false,
+      "assignedProjectsOnly": true
+    },
+    "exportAccess": {
+      "tasks": true,
+      "reports": false,
+      "projects": false
+    },
+    "projectAccess": {
+      "edit": false,
+      "assignedOnly": true,
+      "create": false,
+      "viewAll": false,
+      "archive": false
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769082199,
+      "_nanoseconds": 381000000
+    },
+    "viewAccess": {
+      "taskManager": false,
+      "taskDashboard": true,
+      "weeklyEditor": false,
+      "projectManagement": false,
+      "userManagement": false,
+      "dailyFollowUp": true,
+      "dashboard": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "uZkrxbxOcb9qvkfAsogN",
+    "taskAccess": {
+      "delete": false,
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": true,
+      "edit": true
+    },
+    "name": "Equipo",
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "useCommandMenu": true,
+      "accessTrash": false,
+      "managePermissions": false
+    },
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 953000000
+    },
+    "description": "Miembros del equipo. Solo pueden ver y trabajar en proyectos asignados. No pueden eliminar tareas ni gestionar proyectos.",
+    "tenantId": "3",
+    "exportAccess": {
+      "projects": false,
+      "reports": false,
+      "tasks": true
+    },
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "color": "#10b981",
+    "projectAccess": {
+      "viewAll": false,
+      "archive": false,
+      "create": false,
+      "assignedOnly": true,
+      "edit": false
+    },
+    "createdAt": {
+      "_seconds": 1768087867,
+      "_nanoseconds": 842000000
+    },
+    "viewAccess": {
+      "projectManagement": true,
+      "weeklyEditor": true,
+      "taskManager": true,
+      "dashboard": true,
+      "userManagement": false,
+      "taskDashboard": true,
+      "dailyFollowUp": true,
+      "knowledgeBase": true,
+      "dispoPlan": true,
+      "unavailabilityRegistry": true,
+      "unileaks": false,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false
+    },
+    "updatedAt": {
+      "_seconds": 1776264925,
+      "_nanoseconds": 126000000
+    }
+  },
+  {
+    "id": "zkHq8MpGD0SnkgAWdFbx",
+    "name": "Consultor",
+    "description": "Consultor externo. Puede ver y trabajar en proyectos asignados con permisos de edición limitada.",
+    "color": "#f59e0b",
+    "tenantId": "3",
+    "createdBy": "system_restore",
+    "projectAccess": {
+      "viewAll": false,
+      "assignedOnly": true,
+      "create": false,
+      "edit": false,
+      "archive": false
+    },
+    "taskAccess": {
+      "viewAll": false,
+      "assignedProjectsOnly": true,
+      "create": true,
+      "edit": true,
+      "delete": false
+    },
+    "exportAccess": {
+      "tasks": true,
+      "projects": false,
+      "reports": false
+    },
+    "createdAt": {
+      "_seconds": 1770884643,
+      "_nanoseconds": 380000000
+    },
+    "specialPermissions": {
+      "viewAllUserProfiles": false,
+      "managePermissions": false,
+      "accessTrash": false,
+      "useCommandMenu": true,
+      "viewAllProjectNotes": true
+    },
+    "viewAccess": {
+      "dashboard": true,
+      "taskManager": true,
+      "taskDashboard": true,
+      "projectManagement": false,
+      "userManagement": false,
+      "weeklyEditor": true,
+      "dailyFollowUp": true,
+      "knowledgeBase": true,
+      "sprintManagement": false,
+      "dispoPlan": true,
+      "unavailabilityRegistry": true,
+      "uniordercreator": false,
+      "swagger": false,
+      "soap": false,
+      "unidocs": false,
+      "uniflux": false,
+      "inbox": false,
+      "unileaks": true
+    },
+    "updatedAt": {
+      "_seconds": 1776420425,
+      "_nanoseconds": 875000000
+    }
+  }
+]

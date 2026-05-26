@@ -1,0 +1,85 @@
+[
+  {
+    "id": "5mDm9fwOeahf0iQSRf6v",
+    "name": "Alcance",
+    "color": "#8b5cf6",
+    "tenantId": "3",
+    "isActive": true,
+    "mappedField": "scope",
+    "createdAt": {
+      "_seconds": 1768748548,
+      "_nanoseconds": 687000000
+    }
+  },
+  {
+    "id": "BCQyrgYyOgz3P3puI0Ll",
+    "color": "#3b82f6",
+    "tenantId": "3",
+    "isActive": true,
+    "mappedField": "area",
+    "createdAt": {
+      "_seconds": 1768748548,
+      "_nanoseconds": 463000000
+    },
+    "name": "Area"
+  },
+  {
+    "id": "PfQlSB0A9ZsC4Lt7eFEo",
+    "name": "Prioridades",
+    "color": "#f59e0b",
+    "tenantId": "3",
+    "isActive": true,
+    "mappedField": "priority",
+    "createdAt": {
+      "_seconds": 1768748548,
+      "_nanoseconds": 319000000
+    }
+  },
+  {
+    "id": "QbJZv2kePsc0YqoYexw3",
+    "name": "Áreas",
+    "color": "#3b82f6",
+    "tenantId": "3",
+    "isActive": true,
+    "mappedField": "area",
+    "createdAt": {
+      "_seconds": 1768748548,
+      "_nanoseconds": 365000000
+    }
+  },
+  {
+    "id": "cc3JjWu50R6dYYVKVpPl",
+    "color": "#10b981",
+    "tenantId": "3",
+    "isActive": true,
+    "mappedField": "module",
+    "createdAt": {
+      "_seconds": 1768748710,
+      "_nanoseconds": 828000000
+    },
+    "name": "Circuito"
+  },
+  {
+    "id": "module",
+    "name": "CIRCUITO",
+    "color": "#10b981",
+    "tenantId": "1",
+    "isActive": true,
+    "mappedField": "module",
+    "createdAt": {
+      "_seconds": 1769604295,
+      "_nanoseconds": 470000000
+    }
+  },
+  {
+    "id": "ui5PprcLLUROTO3PDYuy",
+    "name": "Equipo responsable",
+    "color": "#ec4899",
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768747300,
+      "_nanoseconds": 568000000
+    }
+  }
+]

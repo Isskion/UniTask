@@ -1,0 +1,2266 @@
+[
+  {
+    "id": "0EFMjWASa351gj5Ei3yG",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-3 - \"Daniel: Documentar API CrearVehiculos\" ha alcanzado su fecha límite.",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+    "createdAt": {
+      "_seconds": 1768599548,
+      "_nanoseconds": 651000000
+    },
+    "read": true
+  },
+  {
+    "id": "0KbWFEQ3fNwJvOSZPn3n",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-3 - Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.",
+    "taskId": "SMSsyNSZhvNKpLKdjgbo",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769072993,
+      "_nanoseconds": 504000000
+    }
+  },
+  {
+    "id": "0VXA4ThnsuRmnPyBwjuG",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LSM-260140 - \"Definir una regla clara de partición para los pedidos de gran volumen.\" has reached its deadline.",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "link": "/?view=task-manager&taskId=317NAmdAhUO5uYgQUMgs",
+    "createdAt": {
+      "_seconds": 1770189368,
+      "_nanoseconds": 783000000
+    },
+    "read": true
+  },
+  {
+    "id": "0bqjGvjj1mZw9HRDQ3cn",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260101 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769875278,
+      "_nanoseconds": 829000000
+    }
+  },
+  {
+    "id": "0dsPt5OjmyAwHe8Z6opb",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-3 - \"Daniel: Documentar API CrearVehiculos\" ha alcanzado su fecha límite.",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+    "createdAt": {
+      "_seconds": 1768694068,
+      "_nanoseconds": 154000000
+    },
+    "read": true
+  },
+  {
+    "id": "0jMyxitMN06ZC26RuzAT",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260118 - \"Enviar consultas a Portic\" has reached its deadline.",
+    "taskId": "14LvREA1C4FKGS3GEphF",
+    "link": "/?view=task-manager&taskId=14LvREA1C4FKGS3GEphF",
+    "createdAt": {
+      "_seconds": 1770369020,
+      "_nanoseconds": 414000000
+    },
+    "read": true
+  },
+  {
+    "id": "1I2VG5ZuuPAbXnCiCoEx",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-5 - \"Revisar el diagrama de flujo de alto nivel con ajustes del viernes pasado (Clientes a credito , clientes contado).\" has reached its deadline.",
+    "taskId": "w0COL8OhStBLRFgwAjFE",
+    "read": false,
+    "link": "/?view=task-manager&taskId=w0COL8OhStBLRFgwAjFE",
+    "createdAt": {
+      "_seconds": 1771576554,
+      "_nanoseconds": 917000000
+    }
+  },
+  {
+    "id": "1OHvDIDGQCfjOOdicAby",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+    "taskId": "Ewv2oTpA0INs91mx9TA3",
+    "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+    "createdAt": {
+      "_seconds": 1768598171,
+      "_nanoseconds": 566000000
+    },
+    "read": true
+  },
+  {
+    "id": "1VCt8DTVhcXMYubng1V7",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-5 - \"UNIGIS. Compartir la documentación de las APIs que se van a utilizar.\" ha alcanzado su fecha límite.",
+    "taskId": "O2WpP5mcuIPlm9FljF5Z",
+    "link": "/?view=task-manager&taskId=O2WpP5mcuIPlm9FljF5Z",
+    "createdAt": {
+      "_seconds": 1768694067,
+      "_nanoseconds": 919000000
+    },
+    "read": true
+  },
+  {
+    "id": "1bYqaMtPVtcFTSmw6Uqo",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-10 - Enviar consultas a Portic",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237412,
+      "_nanoseconds": 297000000
+    }
+  },
+  {
+    "id": "2iA6GKvlyWoWuG16Nzao",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+    "createdAt": {
+      "_seconds": 1768598267,
+      "_nanoseconds": 521000000
+    },
+    "read": true
+  },
+  {
+    "id": "2iJcVS5jVrPP3XeUCK57",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565640,
+      "_nanoseconds": 327000000
+    }
+  },
+  {
+    "id": "33osubUduxLTuX8W5BCx",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260162 - Elección del sistema maestro documental (Repositorio Maestro)",
+    "taskId": "dcWuicYJIrGdURgVIKj5",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237752,
+      "_nanoseconds": 90000000
+    }
+  },
+  {
+    "id": "3HN8J51r6ThaSHMpZIw4",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TIE-1 - \"Generar informe sobre timepso de conducción para empezar analisis conjunto.\" has reached its deadline.",
+    "taskId": "jDNqa2VmBqHXhHLiGCv8",
+    "link": "/?view=task-manager&taskId=jDNqa2VmBqHXhHLiGCv8",
+    "createdAt": {
+      "_seconds": 1771571522,
+      "_nanoseconds": 647000000
+    },
+    "read": true
+  },
+  {
+    "id": "3incUb8fxE0I49Kf0sj6",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+    "createdAt": {
+      "_seconds": 1768694068,
+      "_nanoseconds": 74000000
+    },
+    "read": true
+  },
+  {
+    "id": "472iKi6Lj5qUOuglGKzI",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-4 - \"Jorge: ObtenerGuia\" ha alcanzado su fecha límite.",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "link": "/?view=task-manager&taskId=0ecjlhd3ZTFJLpRyG3Ij",
+    "createdAt": {
+      "_seconds": 1768599346,
+      "_nanoseconds": 168000000
+    },
+    "read": true
+  },
+  {
+    "id": "4fJquh8zUomr5f4NkxbV",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260149 - Definir un flujo de aprobación manual previo al pago de costes.",
+    "taskId": "YE5QrNnkBOzgGCnnCnfQ",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299698,
+      "_nanoseconds": 874000000
+    }
+  },
+  {
+    "id": "4mJDlIH1teDA4Ie8DxU8",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "mention",
+    "title": "Te han mencionado",
+    "message": "Daniel Del Amo te mencionó en una tarea",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769185461,
+      "_nanoseconds": 387000000
+    }
+  },
+  {
+    "id": "4wJn8HXObgqvu6evnbpx",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-9 - \"Revisar información recibidas de ordenes en la actualidad en ambiente productivo y enfocarla a los Pedidos.\" has reached its deadline.",
+    "taskId": "20E8FLIHK9GvUhpbb213",
+    "read": false,
+    "link": "/?view=task-manager&taskId=20E8FLIHK9GvUhpbb213",
+    "createdAt": {
+      "_seconds": 1771576551,
+      "_nanoseconds": 302000000
+    }
+  },
+  {
+    "id": "58HfCOT0MHn9RorZFfMl",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768736517,
+      "_nanoseconds": 407000000
+    }
+  },
+  {
+    "id": "5ELcAygwb1ylSw36otFM",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea EUR-1 - \"Jorge a insistir en la respuesta sobre Reglas de adelantamiento\" ha alcanzado su fecha límite.",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "link": "/?view=task-manager&taskId=ZU4IjyrXzursPv7vx09d",
+    "createdAt": {
+      "_seconds": 1768598267,
+      "_nanoseconds": 587000000
+    },
+    "read": true
+  },
+  {
+    "id": "5TEjVcY7m3UMw5ey5g9p",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+    "taskId": "Ewv2oTpA0INs91mx9TA3",
+    "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+    "createdAt": {
+      "_seconds": 1768694067,
+      "_nanoseconds": 832000000
+    },
+    "read": true
+  },
+  {
+    "id": "5jd8XuvjfApmVDLXawGf",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: TSK-2740 - Prueba de guardado",
+    "taskId": "qOmXFkkYJZpZGpA0A1XE",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769099094,
+      "_nanoseconds": 185000000
+    }
+  },
+  {
+    "id": "5kBWCBbE3tX5ugjZI46a",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+    "createdAt": {
+      "_seconds": 1768694067,
+      "_nanoseconds": 753000000
+    },
+    "read": true
+  },
+  {
+    "id": "6EywlHMnkCvdNpqVvNFb",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "createdAt": {
+      "_seconds": 1768561778,
+      "_nanoseconds": 728000000
+    },
+    "read": true
+  },
+  {
+    "id": "6GRlXyN0zJNqQo8wBni9",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-6 - \"Unigis a enviar documentación de los ws\" has reached its deadline.",
+    "taskId": "Ewv2oTpA0INs91mx9TA3",
+    "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+    "createdAt": {
+      "_seconds": 1769775974,
+      "_nanoseconds": 26000000
+    },
+    "read": true
+  },
+  {
+    "id": "6KaehlTpM6zgGBO4kdlb",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768567250,
+      "_nanoseconds": 967000000
+    }
+  },
+  {
+    "id": "6R3M4Mauqjn5Tl7m5AG0",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "mention",
+    "title": "Te han mencionado",
+    "message": "Danie el guapo te mencionó en una tarea",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769186310,
+      "_nanoseconds": 324000000
+    }
+  },
+  {
+    "id": "6iPRIpZjVT03ngYw2aqt",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-13 - \"Leonardo debe confirmar por correo que los distribuidores deben adaptarse al modelo de integración de Transpaís.\" has reached its deadline.",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "read": false,
+    "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+    "createdAt": {
+      "_seconds": 1769592421,
+      "_nanoseconds": 169000000
+    }
+  },
+  {
+    "id": "6uMrXMyUHfAdkEvxyVAG",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "2",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNT-260102 - \"Determinar la lógica de asignación de usuarios a tareas (quién puede asignar y qué ocurre al hacerlo).\" has reached its deadline.",
+    "taskId": "RSr2XRZQroJ4a5Aqa7xc",
+    "link": "/?view=task-manager&taskId=RSr2XRZQroJ4a5Aqa7xc",
+    "createdAt": {
+      "_seconds": 1769920510,
+      "_nanoseconds": 67000000
+    },
+    "read": true
+  },
+  {
+    "id": "6zwjIvqhc4gdeS9eNGJb",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260106 - Definir la lógica de pedidos de cobro.",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770209938,
+      "_nanoseconds": 587000000
+    }
+  },
+  {
+    "id": "73vSc2HpNqmn2jTxy0AY",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-10 - Enviar consultas a Portic",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770210643,
+      "_nanoseconds": 936000000
+    }
+  },
+  {
+    "id": "863i5KkmfJOSaHHYdkUx",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task EUP-260201 - \"proceso para diferentes transiciones\" has reached its deadline.",
+    "taskId": "E447Ral9p7RkHdmvZIl2",
+    "link": "/?view=task-manager&taskId=E447Ral9p7RkHdmvZIl2",
+    "createdAt": {
+      "_seconds": 1771473904,
+      "_nanoseconds": 145000000
+    },
+    "read": true
+  },
+  {
+    "id": "8DlsBbGRIJCCE7CKepVZ",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task SMSA-260104 - \"Evaluar alternativas presentadas por UNIGIS en conjunto con SMSA y SupplyNexus para alcanzar el MVP.\" has reached its deadline.",
+    "taskId": "M2kNIq9Xq490yqlJW6Lx",
+    "read": false,
+    "link": "/?view=task-manager&taskId=M2kNIq9Xq490yqlJW6Lx",
+    "createdAt": {
+      "_seconds": 1772012913,
+      "_nanoseconds": 584000000
+    }
+  },
+  {
+    "id": "8j5JtpPodg31g7rnoMLN",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-6 - \"Unigis a enviar documentación de los ws\" ha alcanzado su fecha límite.",
+    "taskId": "Ewv2oTpA0INs91mx9TA3",
+    "link": "/?view=task-manager&taskId=Ewv2oTpA0INs91mx9TA3",
+    "createdAt": {
+      "_seconds": 1768598171,
+      "_nanoseconds": 513000000
+    },
+    "read": true
+  },
+  {
+    "id": "8syAy1TmOOfk5wumeQYn",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260103 - \"Jorge: ObtenerGuia\" has reached its deadline.",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "link": "/?view=task-manager&taskId=0ecjlhd3ZTFJLpRyG3Ij",
+    "createdAt": {
+      "_seconds": 1770885977,
+      "_nanoseconds": 492000000
+    }
+  },
+  {
+    "id": "8xqJuPuHkbOp2UONl4RR",
+    "userId": "idTSjTprwnM1GkgUSIiSzcxyi932",
+    "tenantId": "1",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+    "taskId": "2YRMJjQbD3EXX2lFFtis",
+    "read": false,
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1768904192,
+      "_nanoseconds": 217000000
+    }
+  },
+  {
+    "id": "90Q8SfkFRqQrcbDffZCA",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768572085,
+      "_nanoseconds": 156000000
+    }
+  },
+  {
+    "id": "9EnO1pFnIZkxY95VLoib",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-10 - Enviar consultas a Portic",
+    "taskId": "14LvREA1C4FKGS3GEphF",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770277181,
+      "_nanoseconds": 737000000
+    }
+  },
+  {
+    "id": "9txb7SacNq79QngheOtg",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task VIS-5 - \"Validar la implementación de los métodos experimentales: CrearTransporte, CrearTipoVehiculo y CrearViajeCompleto.\" has reached its deadline.",
+    "taskId": "19sQVlaNoggO7ACPvYEL",
+    "read": false,
+    "link": "/?view=task-manager&taskId=19sQVlaNoggO7ACPvYEL",
+    "createdAt": {
+      "_seconds": 1772784117,
+      "_nanoseconds": 384000000
+    }
+  },
+  {
+    "id": "ATGogTkrpce96228KlI0",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "2",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNT-260112 - \"Prueba de guardado\" has reached its deadline.",
+    "taskId": "qOmXFkkYJZpZGpA0A1XE",
+    "link": "/?view=task-manager&taskId=qOmXFkkYJZpZGpA0A1XE",
+    "createdAt": {
+      "_seconds": 1769920510,
+      "_nanoseconds": 702000000
+    },
+    "read": true
+  },
+  {
+    "id": "BLTfB7ooMa5xXW0zspaQ",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" has reached its deadline.",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+    "createdAt": {
+      "_seconds": 1769775973,
+      "_nanoseconds": 2000000
+    },
+    "read": true
+  },
+  {
+    "id": "BUgBUcKTgdhdYlkFvt9o",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-2 - Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768564302,
+      "_nanoseconds": 307000000
+    }
+  },
+  {
+    "id": "C30r548cApaz5PUuIJYA",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565275,
+      "_nanoseconds": 756000000
+    }
+  },
+  {
+    "id": "DimApPkcztEQKw81cceb",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768566917,
+      "_nanoseconds": 728000000
+    }
+  },
+  {
+    "id": "DqR4Gy8iWtFtjJxybaPG",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260109 - \"Eric subirá a Teams un documento con el estado actual de las interfaces, próximos pasos y nivel de criticidad.\" has reached its deadline.",
+    "taskId": "IJeVtt6hPAk6b7TsoLWO",
+    "read": false,
+    "link": "/?view=task-manager&taskId=IJeVtt6hPAk6b7TsoLWO",
+    "createdAt": {
+      "_seconds": 1770396105,
+      "_nanoseconds": 713000000
+    }
+  },
+  {
+    "id": "EL2bRugDpS2tL7fevTzM",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260118 - Proceso CompletarPedido0 tiene que agregar dos ceros a la derecha en los horarios ",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770210670,
+      "_nanoseconds": 113000000
+    }
+  },
+  {
+    "id": "EN3Mw3JfIJCll7LdtpsR",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-14 - \"Envío de Mail a Aitana consultando sobre JSON de Facturas. Necesitamos información a que hace referencia los campos. Proponer sesión semana 26/01\" has reached its deadline.",
+    "taskId": "KhWjBZLvxEvpsP25pGhJ",
+    "link": "/?view=task-manager&taskId=KhWjBZLvxEvpsP25pGhJ",
+    "createdAt": {
+      "_seconds": 1769775974,
+      "_nanoseconds": 985000000
+    },
+    "read": true
+  },
+  {
+    "id": "EwykAlcmySQnDc3SU22V",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task SPR-260101 - \"El equipo de Spar-GC | Censocu revisará el listado de datos maestros de Vehículos y Tipos de Vehículo.\" has reached its deadline.",
+    "taskId": "2qkm0AlEM7zOc6KazVGz",
+    "link": "/?view=task-manager&taskId=2qkm0AlEM7zOc6KazVGz",
+    "createdAt": {
+      "_seconds": 1773048252,
+      "_nanoseconds": 541000000
+    },
+    "read": true
+  },
+  {
+    "id": "FBLzsqHFgdHvYFoWF35J",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-3 - \"Daniel: Documentar API CrearVehiculos\" has reached its deadline.",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "link": "/?view=task-manager&taskId=eDwFAzue5CSB96TVtcwy",
+    "createdAt": {
+      "_seconds": 1769083685,
+      "_nanoseconds": 227000000
+    },
+    "read": true
+  },
+  {
+    "id": "G3kHZdgZ6YrzdIhGWg5t",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565140,
+      "_nanoseconds": 693000000
+    }
+  },
+  {
+    "id": "G5FUvERscllxwviFLxtY",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Integración de pedidos -- Palletsystem (Analisis)",
+    "taskId": "RkydXqg5rV749YIhpNJj",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771226287,
+      "_nanoseconds": 774000000
+    }
+  },
+  {
+    "id": "GGjvz07ZeH5KlfslBbkQ",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260160 - Definición del modelo contable para los dos CIFs independientes (Modelo LSLI ES / PT)",
+    "taskId": "KHAZ59OkCB8I0utAgOja",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237843,
+      "_nanoseconds": 834000000
+    }
+  },
+  {
+    "id": "GPQNMFGmHj1rNRhX9QO3",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260108 - \"Flujo explicativo de la operativa de recogidas que quedan en el almacén para posterior distribución.\" has reached its deadline.",
+    "taskId": "ZyrwsETCzrcyst3SRpAT",
+    "read": false,
+    "link": "/?view=task-manager&taskId=ZyrwsETCzrcyst3SRpAT",
+    "createdAt": {
+      "_seconds": 1770885979,
+      "_nanoseconds": 451000000
+    }
+  },
+  {
+    "id": "HN044n2kbPJrSymbBwpy",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260108 - Definir tipos de Incidencias que puede cargar el conductor en su app",
+    "taskId": "SQAxCQcF9TAhqRMXIDoX",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770357704,
+      "_nanoseconds": 164000000
+    }
+  },
+  {
+    "id": "HO2xMFsUMMwLup9eHeBB",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-8 - \"Comentar de la existencia de los tipos de recurso existentes de cara a tenerlos en cuenta para la gestion de retornables (cantidades, tipologias,precios).\" has reached its deadline.",
+    "taskId": "eEXVgkDnedbPlEzLZHEa",
+    "read": false,
+    "link": "/?view=task-manager&taskId=eEXVgkDnedbPlEzLZHEa",
+    "createdAt": {
+      "_seconds": 1771576554,
+      "_nanoseconds": 43000000
+    }
+  },
+  {
+    "id": "I0RBDIXM6IoqeRFrcWgU",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "3",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Danie el guapo (daniel.delamo@unigis.com) ha enviado una solicitud de soporte desde users.",
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1769007518,
+      "_nanoseconds": 486000000
+    },
+    "read": true
+  },
+  {
+    "id": "IM80dmhPdiFXJiOtSEJO",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: SMSA-260104 - Evaluar alternativas presentadas por UNIGIS en conjunto con SMSA y SupplyNexus para alcanzar el MVP.",
+    "taskId": "M2kNIq9Xq490yqlJW6Lx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770215135,
+      "_nanoseconds": 460000000
+    }
+  },
+  {
+    "id": "IvD62SO5TgyCGESs23bS",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNI-260201 - \"Crear proceso para finalizar el viaje\" has reached its deadline.",
+    "taskId": "IHm2NTjmTytJCyTvgUov",
+    "link": "/?view=task-manager&taskId=IHm2NTjmTytJCyTvgUov",
+    "createdAt": {
+      "_seconds": 1771310061,
+      "_nanoseconds": 598000000
+    },
+    "read": true
+  },
+  {
+    "id": "J6XbiBQ58ByRLYfNXEBr",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Definir reglas de adelanto completas",
+    "taskId": "ThUJBkjIeHe6lhc18Cnv",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771842165,
+      "_nanoseconds": 196000000
+    }
+  },
+  {
+    "id": "JJWQru7u95r6TSOutIuE",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNI-260102 - \"Revisar documentación Dispoplan\" has reached its deadline.",
+    "taskId": "dqMaWKZX9cdMomIr1NhM",
+    "link": "/?view=task-manager&taskId=dqMaWKZX9cdMomIr1NhM",
+    "createdAt": {
+      "_seconds": 1770357650,
+      "_nanoseconds": 74000000
+    },
+    "read": true
+  },
+  {
+    "id": "JumUondpKnC3h1IE9VAh",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-6 - Unigis a enviar documentación de los ws",
+    "taskId": "Ewv2oTpA0INs91mx9TA3",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073139,
+      "_nanoseconds": 741000000
+    }
+  },
+  {
+    "id": "KXBHDng3IabI51nHMHQk",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Generix -- Integración de pedidos (analisis)",
+    "taskId": "HFDSErMBjTG4DVWECRrM",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771218880,
+      "_nanoseconds": 86000000
+    }
+  },
+  {
+    "id": "Kb1UDFaPMedbU505DDwa",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Generix -- Integración de pedidos (Desarrollo)",
+    "taskId": "u47Ul3ttCxo4VbnFfxLo",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771223453,
+      "_nanoseconds": 876000000
+    }
+  },
+  {
+    "id": "Kcr5QqyhyxNmMS93tfNg",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-16 - \"Generar documentación de método CrearOrdenesPedido JSON para Generix (Eric)\" has reached its deadline.",
+    "taskId": "pTHx5pghhJxj2cHmenJy",
+    "link": "/?view=task-manager&taskId=pTHx5pghhJxj2cHmenJy",
+    "createdAt": {
+      "_seconds": 1769775975,
+      "_nanoseconds": 937000000
+    },
+    "read": true
+  },
+  {
+    "id": "KufsXKlviLESMXzJAnTz",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260152 - Confirmar ventana de agrupación (diaria/semanal) para la pre-facturación.",
+    "taskId": "wgHk0XieoPd7BwOMEwvK",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299438,
+      "_nanoseconds": 373000000
+    }
+  },
+  {
+    "id": "LbqAaQFZIX78PdLEagNC",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260208 - Integracción de posición y datos de conducción -- Webfleet (Analisis)",
+    "taskId": "Ku5yDGNUwUDNYmooxMcI",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771226579,
+      "_nanoseconds": 353000000
+    }
+  },
+  {
+    "id": "MjMBbOvzrgCl6jHKlG4l",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768572076,
+      "_nanoseconds": 15000000
+    }
+  },
+  {
+    "id": "NDVWgWStFMRqc7xFWYfM",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260202 - Transporeon -- Integración de pedidos (Desarrollo)",
+    "taskId": "iAF2QVkKDJMu8hhKSdFx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771221892,
+      "_nanoseconds": 323000000
+    }
+  },
+  {
+    "id": "NVefsefBLZkZrjpTxp6B",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: SMSA-260102 - UNIGIS debe entregar configuraciones de flujos: estados + transiciones entre el cierre de esta semana e inicio de la siguiente (02-02-26).",
+    "taskId": "H81ISDF4aORq4gNAnmuh",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770215589,
+      "_nanoseconds": 258000000
+    }
+  },
+  {
+    "id": "O4AAW6roPu5aImAkqtl4",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "1",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+    "taskId": "2YRMJjQbD3EXX2lFFtis",
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1768904192,
+      "_nanoseconds": 312000000
+    },
+    "read": true
+  },
+  {
+    "id": "O4fg5i9EqsMF1URWQIg6",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task SMSA-260101 - \"Liberar integraciones de SupplyNexus a WMS (actualizaciones de stock, estados y JSON Syncouts) para que UNIGIS avance y cierre su configuración.\" has reached its deadline.",
+    "taskId": "xNC6mWuTL6e0J87Vb665",
+    "read": false,
+    "link": "/?view=task-manager&taskId=xNC6mWuTL6e0J87Vb665",
+    "createdAt": {
+      "_seconds": 1772012914,
+      "_nanoseconds": 519000000
+    }
+  },
+  {
+    "id": "OBRkscKrNjSu5h8WL621",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "3",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Danie el guapo (daniel.delamo@unigis.com) ha enviado una solicitud de soporte desde admin-task-master.",
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1769007391,
+      "_nanoseconds": 605000000
+    },
+    "read": true
+  },
+  {
+    "id": "P5p6Wl2kc96hvDzcqzEv",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-2 - Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073007,
+      "_nanoseconds": 90000000
+    }
+  },
+  {
+    "id": "PNsP0zaxPbFA9y5BcuYr",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260155 - Clarificar con el cliente: Proceso de corrección de facturas ya emitidas y contabilizadas.",
+    "taskId": "gSeytnt7dpkaTlcPmxJy",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299330,
+      "_nanoseconds": 866000000
+    }
+  },
+  {
+    "id": "PQvpJZPlNlUnXNFn4cI2",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-2 - Iñaki: Documentar API CrearTransporte",
+    "taskId": "bmZqQjd8AlXtkwE9b0Od",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768566267,
+      "_nanoseconds": 952000000
+    }
+  },
+  {
+    "id": "Qcr3P3A6ngA5LRN4HcO4",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+    "createdAt": {
+      "_seconds": 1768811699,
+      "_nanoseconds": 249000000
+    }
+  },
+  {
+    "id": "QokqFQmrYJPAOYXn48BL",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260109 - Eric subirá a Teams un documento con el estado actual de las interfaces, próximos pasos y nivel de criticidad.",
+    "taskId": "IJeVtt6hPAk6b7TsoLWO",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771107548,
+      "_nanoseconds": 588000000
+    }
+  },
+  {
+    "id": "QrvSz5OkIHhLTPFgc09I",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "link": "/tasks?id=VqEqQlkD8FuZXpCxiE93",
+    "createdAt": {
+      "_seconds": 1768597577,
+      "_nanoseconds": 830000000
+    },
+    "read": true
+  },
+  {
+    "id": "R8b1gHJsre3uaT3NYabj",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260159 - Clarificar con el cliente la lógica para la facturación interna.",
+    "taskId": "2xTnelNfhm9A1UsaD4bH",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237865,
+      "_nanoseconds": 498000000
+    }
+  },
+  {
+    "id": "RTYC1J1dGF8lVgGJLR9G",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260150 - Designar responsables para validar importaciones manuales/Excel de delegaciones antes de la integración.",
+    "taskId": "d1pjhKH3C0atPvz36ZRY",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299523,
+      "_nanoseconds": 31000000
+    }
+  },
+  {
+    "id": "RYxk0xxyEN4jPYe22lvk",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-4 - Equipo de Delgado debe analizar y definir los KPIs necesarios a reportar.",
+    "taskId": "21LimCGtOWzx9An5FVuC",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073000,
+      "_nanoseconds": 4000000
+    }
+  },
+  {
+    "id": "SUxvwTdMB1oDJehvajQL",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LUI-53 - \"Definir la gestión de histórico tarifario para recalcular pedidos antiguos sin afectar facturas ya cerradas.\" has reached its deadline.",
+    "taskId": "HGl5gxyRnSKBGIGpJsch",
+    "link": "/?view=task-manager&taskId=HGl5gxyRnSKBGIGpJsch",
+    "createdAt": {
+      "_seconds": 1769663778,
+      "_nanoseconds": 964000000
+    },
+    "read": true
+  },
+  {
+    "id": "TeVNJzAJJ4BhBcRLPrGN",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260157 - Clarificar con el cliente: Fecha límite de imputación de costes/ventas por mes.",
+    "taskId": "k2ISsk5QYj6fpxi1t5af",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299197,
+      "_nanoseconds": 693000000
+    }
+  },
+  {
+    "id": "U3QxeXVpozNNjwttvfQt",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260158 - Clarificar con el cliente: Bloqueo de facturación automática ante margen negativo.",
+    "taskId": "RoHsWUMENzj7geVSRq1l",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299174,
+      "_nanoseconds": 868000000
+    }
+  },
+  {
+    "id": "UEZFXzXmIIhCwF8fPeOk",
+    "userId": "7gCY8q3xoVghU9T2eU5vjPUMiRF2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565269,
+      "_nanoseconds": 562000000
+    }
+  },
+  {
+    "id": "UMRsvXioe4R9bbSzVnbc",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "mention",
+    "title": "Te han mencionado",
+    "message": "Danie el guapo te mencionó en una tarea",
+    "taskId": "KhWjBZLvxEvpsP25pGhJ",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769186421,
+      "_nanoseconds": 358000000
+    }
+  },
+  {
+    "id": "VmXge4VtFWN9aHaxeQa7",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073163,
+      "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "WELLx9HpG6G5KJho5RWe",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Añadir campo Zona Buffer a la tabla --  Z_AdelantoPreparacion",
+    "taskId": "g4vTxYJIbF1URbitoOpp",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771842454,
+      "_nanoseconds": 828000000
+    }
+  },
+  {
+    "id": "WeAStg8edIqXxW7j352y",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "mention",
+    "title": "Te han mencionado",
+    "message": "Daniel Del Amo te mencionó en una tarea",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769185534,
+      "_nanoseconds": 362000000
+    }
+  },
+  {
+    "id": "Xe65TnVm61KGexWDYv27",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LUI-53 - \"Definir la gestión de histórico tarifario para recalcular pedidos antiguos sin afectar facturas ya cerradas.\" has reached its deadline.",
+    "taskId": "HGl5gxyRnSKBGIGpJsch",
+    "link": "/?view=task-manager&taskId=HGl5gxyRnSKBGIGpJsch",
+    "createdAt": {
+      "_seconds": 1769663778,
+      "_nanoseconds": 984000000
+    },
+    "read": true
+  },
+  {
+    "id": "XhWyGJavQklyCsmBG5mI",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565906,
+      "_nanoseconds": 395000000
+    }
+  },
+  {
+    "id": "Xk78uwjLoaLxZItfVrOx",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260140 - Definir una regla clara de partición para los pedidos de gran volumen.",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770190411,
+      "_nanoseconds": 662000000
+    }
+  },
+  {
+    "id": "Y5owrlmJ7Vnkz11Kxe1S",
+    "userId": "HKItfVWxI1MVy4djivVGZV9amqt2",
+    "tenantId": "1",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Daniel Del Amo ha enviado una solicitud de soporte desde editor.",
+    "taskId": "2YRMJjQbD3EXX2lFFtis",
+    "read": false,
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1768904192,
+      "_nanoseconds": 105000000
+    }
+  },
+  {
+    "id": "YNvPngrxRbOEHlQAr6B0",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task EUP-260108 - \"Definir tipos de Incidencias que puede cargar el conductor en su app\" has reached its deadline.",
+    "taskId": "SQAxCQcF9TAhqRMXIDoX",
+    "link": "/?view=task-manager&taskId=SQAxCQcF9TAhqRMXIDoX",
+    "createdAt": {
+      "_seconds": 1770357649,
+      "_nanoseconds": 671000000
+    },
+    "read": true
+  },
+  {
+    "id": "YRJe8cHPQRb0246IFnap",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768575248,
+      "_nanoseconds": 923000000
+    }
+  },
+  {
+    "id": "Z5tWmz99q7uHUpUmel37",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-10 - \"Preparar los temas a tratar en la reunión de relevamiento.\" has reached its deadline.",
+    "taskId": "JKwm7EqliEFepyTvDv5M",
+    "read": false,
+    "link": "/?view=task-manager&taskId=JKwm7EqliEFepyTvDv5M",
+    "createdAt": {
+      "_seconds": 1771576552,
+      "_nanoseconds": 197000000
+    }
+  },
+  {
+    "id": "ZawALuZNuAiSdtb4VnKq",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260204 - \"Transporeon -- Integración de pedidos (Analisis)\" has reached its deadline.",
+    "taskId": "zDew8uXRf9P3HNCbXxSh",
+    "link": "/?view=task-manager&taskId=zDew8uXRf9P3HNCbXxSh",
+    "createdAt": {
+      "_seconds": 1773048262,
+      "_nanoseconds": 537000000
+    },
+    "read": true
+  },
+  {
+    "id": "aQweohPvOnT94f7vhLCO",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "1",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Consultor Unigis (cursoiadaniel@gmail.com) ha enviado una solicitud de soporte desde editor.",
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1768919643,
+      "_nanoseconds": 975000000
+    },
+    "read": true
+  },
+  {
+    "id": "aWkcOtbif0kdQe60Vmwj",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-7 - \"Compartir documentación y detalles del flujo completo + etiquetado con Generix\" ha alcanzado su fecha límite.",
+    "taskId": "zfMWzbzmYjMUINBSnzSf",
+    "link": "/?view=task-manager&taskId=zfMWzbzmYjMUINBSnzSf",
+    "createdAt": {
+      "_seconds": 1768599347,
+      "_nanoseconds": 187000000
+    },
+    "read": true
+  },
+  {
+    "id": "aZhteD2Sc2HYze1NMd7P",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: SMSA-260103 - Unigis revisará las condiciones (pre y post) para que se pueda alcanzar un MVP de planning + OM hacia marzo de 2026 y presentará estas alternativas.",
+    "taskId": "tSH3yL469PtYWmonzytL",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770215536,
+      "_nanoseconds": 144000000
+    }
+  },
+  {
+    "id": "bOST4lw6SsBJkGeJTleZ",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DLG-260101 - \"Equipo de Delgado debe analizar y definir los KPIs necesarios a reportar.\" has reached its deadline.",
+    "taskId": "21LimCGtOWzx9An5FVuC",
+    "read": false,
+    "link": "/?view=task-manager&taskId=21LimCGtOWzx9An5FVuC",
+    "createdAt": {
+      "_seconds": 1775463346,
+      "_nanoseconds": 74000000
+    }
+  },
+  {
+    "id": "cbNjP9sslXVlbpsgAARW",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task EUP-260108 - \"Definir tipos de Incidencias que puede cargar el conductor en su app\" has reached its deadline.",
+    "taskId": "SQAxCQcF9TAhqRMXIDoX",
+    "read": false,
+    "link": "/?view=task-manager&taskId=SQAxCQcF9TAhqRMXIDoX",
+    "createdAt": {
+      "_seconds": 1770885978,
+      "_nanoseconds": 519000000
+    }
+  },
+  {
+    "id": "cnNYwrsxZSsME0JyKYDa",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260106 - Proceso CompletarPedido0 tiene que agregar dos ceros a la derecha en los horarios ",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770210458,
+      "_nanoseconds": 451000000
+    }
+  },
+  {
+    "id": "dJ9BGCkwhdqXnZJkKlBJ",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565867,
+      "_nanoseconds": 205000000
+    }
+  },
+  {
+    "id": "dt895LBNcWNzhvYynGKY",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565266,
+      "_nanoseconds": 651000000
+    }
+  },
+  {
+    "id": "eV8NI1zmtFzhLbe9t5BB",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260107 - Definir la lógica de pedidos de cobro.",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770209909,
+      "_nanoseconds": 416000000
+    }
+  },
+  {
+    "id": "eVEWJKsFF7jWzD7vUh4X",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-3 - Revisar la generación de invitaciones",
+    "taskId": "SMSsyNSZhvNKpLKdjgbo",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769156034,
+      "_nanoseconds": 684000000
+    }
+  },
+  {
+    "id": "etGbM6Lws9S7RcAs1i1F",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-4 - \"Jorge: ObtenerGuia\" ha alcanzado su fecha límite.",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "link": "/?view=task-manager&taskId=0ecjlhd3ZTFJLpRyG3Ij",
+    "createdAt": {
+      "_seconds": 1768694067,
+      "_nanoseconds": 672000000
+    },
+    "read": true
+  },
+  {
+    "id": "eyCZgbgI0QcrPSzJlaTk",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-7 - \"Compartir documentación y detalles del flujo completo + etiquetado con Generix\" ha alcanzado su fecha límite.",
+    "taskId": "zfMWzbzmYjMUINBSnzSf",
+    "link": "/?view=task-manager&taskId=zfMWzbzmYjMUINBSnzSf",
+    "createdAt": {
+      "_seconds": 1768694068,
+      "_nanoseconds": 217000000
+    },
+    "read": true
+  },
+  {
+    "id": "frV6Scxqb8t9HU8wIEwH",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768566123,
+      "_nanoseconds": 393000000
+    }
+  },
+  {
+    "id": "h5YprGgfuN1q9h53SBvv",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-8 - Información del método para crear pedidos que tiene que consumir GENERIX",
+    "taskId": "T7Qk3ZoY69IKhhdv0iqW",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073125,
+      "_nanoseconds": 537000000
+    }
+  },
+  {
+    "id": "hDhu7lP3xg9XNPT5hgyM",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768562150,
+      "_nanoseconds": 189000000
+    }
+  },
+  {
+    "id": "hJGfjpTNqmS11f5GzwLE",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260154 - Clarificar con el cliente: Criterios de cargo para reentregas y rechazos.",
+    "taskId": "nAJL5yctXS5PS2t82GZj",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299394,
+      "_nanoseconds": 113000000
+    }
+  },
+  {
+    "id": "hdbdtyRKh7B7VzRScSxF",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "2",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNT-260111 - \" Proyecto de creación de plantillas de impresión.\" has reached its deadline.",
+    "taskId": "JuCjcJ1C1PsORWhcwKn7",
+    "read": false,
+    "link": "/?view=task-manager&taskId=JuCjcJ1C1PsORWhcwKn7",
+    "createdAt": {
+      "_seconds": 1770734493,
+      "_nanoseconds": 857000000
+    }
+  },
+  {
+    "id": "hteyu2XLYS6j06Up4OWo",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260151 - Definir protocolo para información recibida de delegaciones fuera del plazo de cierre mensual.",
+    "taskId": "CacMgLCWalMzS31wGc0f",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299499,
+      "_nanoseconds": 581000000
+    }
+  },
+  {
+    "id": "iXPAGAU1PVIpl6mjfwcl",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073234,
+      "_nanoseconds": 465000000
+    }
+  },
+  {
+    "id": "inlaPFLovYkFIeCcgooK",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-3 - Daniel: Documentar API CrearVehiculos",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073183,
+      "_nanoseconds": 410000000
+    }
+  },
+  {
+    "id": "iukN7lff4dOuQsSUxanm",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260108 - Definir la lógica de pedidos de cobro.",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770209838,
+      "_nanoseconds": 310000000
+    }
+  },
+  {
+    "id": "jCYpxuSTeVOHoGw6UB8j",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "2",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNT-260106 - \"Analizar la posibilidad de adjuntar documentación, enlaces o imágenes a las tareas.\" has reached its deadline.",
+    "taskId": "iFOehEcxhAQM1X40LHUn",
+    "link": "/?view=task-manager&taskId=iFOehEcxhAQM1X40LHUn",
+    "createdAt": {
+      "_seconds": 1769920510,
+      "_nanoseconds": 361000000
+    },
+    "read": true
+  },
+  {
+    "id": "jF5m1LWkjgOYd8kq375U",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260206 - \"Integración de pedidos -- Maersk (Analisis)\" has reached its deadline.",
+    "taskId": "3zbwTRoaRXK098ahs4Og",
+    "link": "/?view=task-manager&taskId=3zbwTRoaRXK098ahs4Og",
+    "createdAt": {
+      "_seconds": 1773048256,
+      "_nanoseconds": 298000000
+    },
+    "read": true
+  },
+  {
+    "id": "jZSIFVxZIk73ude5PgJJ",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-1 - \"Eric: Documentar API CrearClienteDador y CrearClienteOrden\" ha alcanzado su fecha límite.",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "link": "/?view=task-manager&taskId=CS3wYPdt8iN40hTONkH2",
+    "createdAt": {
+      "_seconds": 1768599346,
+      "_nanoseconds": 310000000
+    },
+    "read": true
+  },
+  {
+    "id": "kX9in7jWjpw9vkcW5Fp2",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260118 - Definir Middleware o integrador para realizar las conexiones con WMS - TMS y terceros",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770214695,
+      "_nanoseconds": 496000000
+    }
+  },
+  {
+    "id": "kYBKwUDeYQwAS6tJawzq",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-3 - \"Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.\" has reached its deadline.",
+    "taskId": "SMSsyNSZhvNKpLKdjgbo",
+    "link": "/?view=task-manager&taskId=SMSsyNSZhvNKpLKdjgbo",
+    "createdAt": {
+      "_seconds": 1768995816,
+      "_nanoseconds": 586000000
+    },
+    "tenantId": "3",
+    "read": true
+  },
+  {
+    "id": "klZj1lQV8SNuySHMKrch",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LSM-260153 - Definir la gestión de histórico tarifario para recalcular pedidos antiguos sin afectar facturas ya cerradas.",
+    "taskId": "HGl5gxyRnSKBGIGpJsch",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770299417,
+      "_nanoseconds": 692000000
+    }
+  },
+  {
+    "id": "kq0RvEiWLaxxHA6GHaVd",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-3 - Daniel: Documentar API CrearVehiculos",
+    "taskId": "eDwFAzue5CSB96TVtcwy",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768567336,
+      "_nanoseconds": 306000000
+    }
+  },
+  {
+    "id": "kqH1VlxRQF9VNINpmyxz",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "link": "/tasks?id=VqEqQlkD8FuZXpCxiE93",
+    "createdAt": {
+      "_seconds": 1768597577,
+      "_nanoseconds": 867000000
+    },
+    "read": true
+  },
+  {
+    "id": "ldApIsY2bm8z2WmI2RPd",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task SMSA-260102 - \"UNIGIS debe entregar configuraciones de flujos: estados + transiciones entre el cierre de esta semana e inicio de la siguiente (02-02-26).\" has reached its deadline.",
+    "taskId": "H81ISDF4aORq4gNAnmuh",
+    "read": false,
+    "link": "/?view=task-manager&taskId=H81ISDF4aORq4gNAnmuh",
+    "createdAt": {
+      "_seconds": 1772012912,
+      "_nanoseconds": 566000000
+    }
+  },
+  {
+    "id": "mMRSWoNcPi59mVYEXPoN",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768566884,
+      "_nanoseconds": 706000000
+    }
+  },
+  {
+    "id": "mRMdmZNOMQSp2iAN0iRV",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUP-260105 - Se debe analizar con mayor profundidad el tema de la comisión de bancaria.",
+    "taskId": "f2TRnfkenBQsFudHpsTn",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770999973,
+      "_nanoseconds": 40000000
+    }
+  },
+  {
+    "id": "mRXfOAasqL2NeQpCAcNe",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task EUR-9 - \"Revisar vehículos duplicados de diferente operación (Iñaki)\" has reached its deadline.",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "read": false,
+    "link": "/?view=task-manager&taskId=8bEkguXAVObjfg3DaNdg",
+    "createdAt": {
+      "_seconds": 1769616148,
+      "_nanoseconds": 167000000
+    }
+  },
+  {
+    "id": "mjCIBfE256uW1Mg25q7A",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEL-2 - \"Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.\" ha alcanzado su fecha límite.",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "link": "/?view=task-manager&taskId=Y3rthOThwile74jnJSOx",
+    "createdAt": {
+      "_seconds": 1768698866,
+      "_nanoseconds": 489000000
+    },
+    "read": true
+  },
+  {
+    "id": "mk0DSWqKtA54dWFRGKJD",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565666,
+      "_nanoseconds": 651000000
+    }
+  },
+  {
+    "id": "oNTnROxLVBcOE4Y4pRFx",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DEL-2 - Leonardo debe confirmar por correo que los distribuidores deben adaptarse al modelo de integración de Transpaís.",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769285443,
+      "_nanoseconds": 339000000
+    }
+  },
+  {
+    "id": "oSPF3Mvp2PS7tNHMRhin",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-1 - Eric: Documentar API CrearClienteDador y CrearClienteOrden",
+    "taskId": "CS3wYPdt8iN40hTONkH2",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768568175,
+      "_nanoseconds": 844000000
+    }
+  },
+  {
+    "id": "p96ndtiqSjBL20NXhm69",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "createdAt": {
+      "_seconds": 1768572857,
+      "_nanoseconds": 55000000
+    },
+    "read": true
+  },
+  {
+    "id": "pedtSKLKIDYctpZTAwH7",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: TSK-3486 - dinamic layout",
+    "taskId": "sdI058khBL0w6PGfJbg6",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768900411,
+      "_nanoseconds": 249000000
+    }
+  },
+  {
+    "id": "pn5Bk39I8IFt4RDRfprw",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TSP-260118 - Liberar integraciones de SupplyNexus a WMS (actualizaciones de stock, estados y JSON Syncouts) para que UNIGIS avance y cierre su configuración.",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237444,
+      "_nanoseconds": 829000000
+    }
+  },
+  {
+    "id": "prANojTxUFRk3rqnnrjx",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-15 - \"Generar flujo de información de etiquetas a Generix. (iñaki)\" has reached its deadline.",
+    "taskId": "FZvRFsin9BJ2cVDUs83T",
+    "read": false,
+    "link": "/?view=task-manager&taskId=FZvRFsin9BJ2cVDUs83T",
+    "createdAt": {
+      "_seconds": 1769616149,
+      "_nanoseconds": 107000000
+    }
+  },
+  {
+    "id": "qNLrRoWctnPoTR9d5ZsA",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task EUR-2 - \"Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros\" has reached its deadline.",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "link": "/?view=task-manager&taskId=x95pNpaDkhDUL8DwPsYk",
+    "createdAt": {
+      "_seconds": 1769168535,
+      "_nanoseconds": 448000000
+    }
+  },
+  {
+    "id": "qPMBCijLpqXU3JiVIqtg",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "1",
+    "type": "system",
+    "title": "Nuevo Ticket de Soporte",
+    "message": "El usuario Consultor Unigis (cursoiadaniel@gmail.com) ha enviado una solicitud de soporte desde editor.",
+    "link": "/?view=support-management",
+    "createdAt": {
+      "_seconds": 1768922940,
+      "_nanoseconds": 884000000
+    },
+    "read": true
+  },
+  {
+    "id": "qp8DxnhtUTVkZPAXFzZu",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768566111,
+      "_nanoseconds": 934000000
+    }
+  },
+  {
+    "id": "r4kSvjjTtYbYIIFEI32j",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: DHE-260101 - Proceso CompletarPedido0 tiene que agregar dos ceros a la derecha en los horarios ",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770237391,
+      "_nanoseconds": 264000000
+    }
+  },
+  {
+    "id": "rFIUbe9lVMMPq9dCCKE5",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-1 - Jorge a insistir en la respuesta sobre Reglas de adelantamiento",
+    "taskId": "ZU4IjyrXzursPv7vx09d",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768567242,
+      "_nanoseconds": 565000000
+    }
+  },
+  {
+    "id": "rPxnHwGzGAHmKnwXuB5g",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEX-1 - \"Presentación de Demo Estratégica Primagas al cliente.\" ha alcanzado su fecha límite.",
+    "taskId": "VqEqQlkD8FuZXpCxiE93",
+    "link": "/?view=task-manager&taskId=VqEqQlkD8FuZXpCxiE93",
+    "createdAt": {
+      "_seconds": 1768694067,
+      "_nanoseconds": 998000000
+    },
+    "read": true
+  },
+  {
+    "id": "rThYu7EYAjOQ5lgu6yLU",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-5 - UNIGIS. Compartir la documentación de las APIs que se van a utilizar.",
+    "taskId": "O2WpP5mcuIPlm9FljF5Z",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768563003,
+      "_nanoseconds": 609000000
+    }
+  },
+  {
+    "id": "rdZ0TwFZ1Bt5rmRzehZS",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-4 - Jorge: ObtenerGuia",
+    "taskId": "0ecjlhd3ZTFJLpRyG3Ij",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768565273,
+      "_nanoseconds": 335000000
+    }
+  },
+  {
+    "id": "s0H9wVXcWBYXog1vKxWw",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task SMSA-260103 - \"Unigis revisará las condiciones (pre y post) para que se pueda alcanzar un MVP de planning + OM hacia marzo de 2026 y presentará estas alternativas.\" has reached its deadline.",
+    "taskId": "tSH3yL469PtYWmonzytL",
+    "read": false,
+    "link": "/?view=task-manager&taskId=tSH3yL469PtYWmonzytL",
+    "createdAt": {
+      "_seconds": 1772098586,
+      "_nanoseconds": 557000000
+    }
+  },
+  {
+    "id": "sdyg4DV5GGOiarF0MeE7",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "mention",
+    "title": "Te han mencionado",
+    "message": "Danie el guapo te mencionó en una tarea",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769186837,
+      "_nanoseconds": 624000000
+    }
+  },
+  {
+    "id": "syDj4yF2fJtAiPSsb6zs",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TSP-260102 - \"Iñaki: Documentar API CrearTransporte\" has reached its deadline.",
+    "taskId": "bmZqQjd8AlXtkwE9b0Od",
+    "link": "/?view=task-manager&taskId=bmZqQjd8AlXtkwE9b0Od",
+    "createdAt": {
+      "_seconds": 1770120746,
+      "_nanoseconds": 723000000
+    },
+    "read": true
+  },
+  {
+    "id": "tSRzwtnu4ZsvolCHYmE7",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEL-3 - \"Equipo de Delgado debe valorar comercialmente si el Portal B2C se inicia o continúa dentro del alcance del proyecto.\" ha alcanzado su fecha límite.",
+    "taskId": "SMSsyNSZhvNKpLKdjgbo",
+    "link": "/?view=task-manager&taskId=SMSsyNSZhvNKpLKdjgbo",
+    "createdAt": {
+      "_seconds": 1768807135,
+      "_nanoseconds": 535000000
+    },
+    "read": true
+  },
+  {
+    "id": "uaWvtyxBGiSXX5kw2yAr",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-9 - Flujo explicativo de la operativa de recogidas que quedan en el almacén para posterior distribución.",
+    "taskId": "ZyrwsETCzrcyst3SRpAT",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073097,
+      "_nanoseconds": 351000000
+    }
+  },
+  {
+    "id": "v7qxbuTajz3L5BBL8uHT",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea TRA-5 - \"UNIGIS. Compartir la documentación de las APIs que se van a utilizar.\" ha alcanzado su fecha límite.",
+    "taskId": "O2WpP5mcuIPlm9FljF5Z",
+    "link": "/?view=task-manager&taskId=O2WpP5mcuIPlm9FljF5Z",
+    "createdAt": {
+      "_seconds": 1768599346,
+      "_nanoseconds": 728000000
+    },
+    "read": true
+  },
+  {
+    "id": "vMZVtuM4ZdzZW06skrpJ",
+    "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
+    "tenantId": "2",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNT-260110 - \"dinamic layout\" has reached its deadline.",
+    "taskId": "sdI058khBL0w6PGfJbg6",
+    "link": "/?view=task-manager&taskId=sdI058khBL0w6PGfJbg6",
+    "createdAt": {
+      "_seconds": 1769920511,
+      "_nanoseconds": 193000000
+    },
+    "read": true
+  },
+  {
+    "id": "veV5G7cpOVkN247cVhuf",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-11 - \"Documentar las decisiones y acuerdos alcanzados durante la reunión.\" has reached its deadline.",
+    "taskId": "WcR8xHuptELMLXfc3SEx",
+    "read": false,
+    "link": "/?view=task-manager&taskId=WcR8xHuptELMLXfc3SEx",
+    "createdAt": {
+      "_seconds": 1771576553,
+      "_nanoseconds": 183000000
+    }
+  },
+  {
+    "id": "wGWtmIGbFrPnslueLkBD",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "deadline_expired",
+    "title": "Tarea Vencida",
+    "message": "Tu tarea DEL-2 - \"Equipo de Delgado debe confirmar si se permitirán cobros en efectivo y/o mixtos.\" ha alcanzado su fecha límite.",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "link": "/?view=task-manager&taskId=Y3rthOThwile74jnJSOx",
+    "createdAt": {
+      "_seconds": 1768599734,
+      "_nanoseconds": 629000000
+    },
+    "read": true
+  },
+  {
+    "id": "wPpSybQJxPJiTZG1rWAG",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-10 - Enviar consultas a Portic",
+    "taskId": "317NAmdAhUO5uYgQUMgs",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1770214649,
+      "_nanoseconds": 433000000
+    }
+  },
+  {
+    "id": "wU1qtyYmy6hbV2Fi3dk1",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Transporeon -- Integración de pedidos",
+    "taskId": "zDew8uXRf9P3HNCbXxSh",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771218387,
+      "_nanoseconds": 264000000
+    }
+  },
+  {
+    "id": "xqLlFzWEBqKxhcQz1Tic",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-2 - Iñaki: Documentar API CrearTransporte",
+    "taskId": "bmZqQjd8AlXtkwE9b0Od",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1769073207,
+      "_nanoseconds": 810000000
+    }
+  },
+  {
+    "id": "y4DL3jsLWO3Lg8jgWJlK",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-12 - \"Realizar seguimiento a las tareas asignadas después de la reunión.\" has reached its deadline.",
+    "taskId": "0bjHK2hScjUsNSzgovZh",
+    "read": false,
+    "link": "/?view=task-manager&taskId=0bjHK2hScjUsNSzgovZh",
+    "createdAt": {
+      "_seconds": 1771576550,
+      "_nanoseconds": 207000000
+    }
+  },
+  {
+    "id": "yjsonykRn08HtnhZptP6",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768575241,
+      "_nanoseconds": 511000000
+    }
+  },
+  {
+    "id": "ykyk4dHBPw2TO9eO0TB4",
+    "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: EUR-2 - Seguimiento urgente con el equipo EUR para desbloquear dependencias en la identificación de pedidos de cobros",
+    "taskId": "x95pNpaDkhDUL8DwPsYk",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1768561829,
+      "_nanoseconds": 557000000
+    }
+  },
+  {
+    "id": "zRH2l8jbHqfueWnPu4e9",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: TRA-19 - Desarrollar Web Service para recibir actualizaciones desde Portic (UNIGIS)",
+    "taskId": "aa9b12OR5uyJo2qMBTyH",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771225521,
+      "_nanoseconds": 302000000
+    }
+  },
+  {
+    "id": "zrbGNYQTu7YTJXAWRXCu",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "assignment",
+    "title": "Nueva Tarea Asignada",
+    "message": "Te han asignado la nueva tarea: Generando... - Integración de pedidos -- Maersk (Analisis)",
+    "taskId": "3zbwTRoaRXK098ahs4Og",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1771226175,
+      "_nanoseconds": 490000000
+    }
+  }
+]

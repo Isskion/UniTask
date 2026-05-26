@@ -1,0 +1,496 @@
+[
+  {
+    "id": "0yr5utAM5cu9eXXv0ND3",
+    "name": "Alta",
+    "color": "#6366f1",
+    "type": "priority",
+    "tenantId": "1",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768808737,
+      "_nanoseconds": 296000000
+    }
+  },
+  {
+    "id": "5XmNjoKeOKk00kclJsNQ",
+    "name": "Requisito de proyecto",
+    "color": "#94a3b8",
+    "type": "scope",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "recovery_script",
+    "createdAt": {
+      "_seconds": 1768749680,
+      "_nanoseconds": 622000000
+    }
+  },
+  {
+    "id": "81QxWlh8JP5oiEF8HQSU",
+    "name": "PM",
+    "color": "#242828",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768747368,
+      "_nanoseconds": 774000000
+    }
+  },
+  {
+    "id": "8nUNZSU00fSZ7KorEBol",
+    "name": "Servicios",
+    "color": "#5fc6ce",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768747361,
+      "_nanoseconds": 642000000
+    }
+  },
+  {
+    "id": "Awr5hW2wTkQtBWhVaFCP",
+    "name": "Mobilidad",
+    "color": "#eabc6c",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769068691,
+      "_nanoseconds": 249000000
+    }
+  },
+  {
+    "id": "CKFFRcacoXi3O6WJnbeE",
+    "name": "PM",
+    "color": "#d6d5dd",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769068762,
+      "_nanoseconds": 429000000
+    }
+  },
+  {
+    "id": "Df9BO4lotADzHVeYcep0",
+    "name": "Can",
+    "color": "#11e8da",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1771223302,
+      "_nanoseconds": 892000000
+    }
+  },
+  {
+    "id": "E9DVzCM8qNqw7u4yDHKl",
+    "name": "Incidencia",
+    "color": "#ce0d0d",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164702,
+      "_nanoseconds": 66000000
+    }
+  },
+  {
+    "id": "HMhm89olKaCCE4p5xvqP",
+    "name": "Media",
+    "color": "#4db37e",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768749981,
+      "_nanoseconds": 774000000
+    }
+  },
+  {
+    "id": "HTrc5kNL1j6CkYPeb16p",
+    "name": "Parametrización",
+    "color": "#df58d4",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164877,
+      "_nanoseconds": 42000000
+    }
+  },
+  {
+    "id": "I5EgjsS5DiUFyD5Wtufg",
+    "name": "PLANIFICACIÓN",
+    "color": "#6366f1",
+    "type": "module",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769604384,
+      "_nanoseconds": 306000000
+    }
+  },
+  {
+    "id": "INWg6gzq53Jj9x9cRN2U",
+    "name": "Calidad",
+    "color": "#64f28f",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769068661,
+      "_nanoseconds": 39000000
+    }
+  },
+  {
+    "id": "LRpFuKtkZLOrEePWmcpB",
+    "name": "Dashboard",
+    "color": "#d8e60f",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164910,
+      "_nanoseconds": 934000000
+    }
+  },
+  {
+    "id": "MkWVTJ2efkRkI5vgVMv5",
+    "name": "Planning",
+    "color": "#19cc91",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164681,
+      "_nanoseconds": 256000000
+    }
+  },
+  {
+    "id": "NaBF559KMH3Arw3MckG6",
+    "name": "Tarea de cliente",
+    "color": "#69fe06",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769769530,
+      "_nanoseconds": 933000000
+    }
+  },
+  {
+    "id": "NiSJZfzBeYYL8fSKByCU",
+    "name": "Incluido",
+    "color": "#1dc920",
+    "type": "scope",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164984,
+      "_nanoseconds": 924000000
+    }
+  },
+  {
+    "id": "RDYBKMsccvv65NvhwW04",
+    "name": "PEDIDOS",
+    "color": "#6366f1",
+    "type": "module",
+    "tenantId": "1",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769604321,
+      "_nanoseconds": 690000000
+    }
+  },
+  {
+    "id": "UX6Fi6n2i9FCTlzNRDXc",
+    "name": "Interfaces",
+    "color": "#4936c4",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769068775,
+      "_nanoseconds": 255000000
+    }
+  },
+  {
+    "id": "UppW53dYS2VRBl3n4PJ1",
+    "name": "TARIFICACIÓN",
+    "color": "#e43f3f",
+    "type": "module",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1770237527,
+      "_nanoseconds": 917000000
+    }
+  },
+  {
+    "id": "V50rxorZvGAmvZo2xJCd",
+    "name": "Requerimiento de producto",
+    "color": "#94a3b8",
+    "type": "scope",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "recovery_script",
+    "createdAt": {
+      "_seconds": 1768749680,
+      "_nanoseconds": 438000000
+    }
+  },
+  {
+    "id": "WQzfHdmjn2xKkZZhWRce",
+    "name": "PLANIFICACIÓN",
+    "color": "#64f2a8",
+    "type": "module",
+    "tenantId": "1",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769604345,
+      "_nanoseconds": 250000000
+    }
+  },
+  {
+    "id": "YA7A0WNvXkNcQYIpHeO4",
+    "name": "Documentación",
+    "color": "#39383e",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769068702,
+      "_nanoseconds": 580000000
+    }
+  },
+  {
+    "id": "YGLoyeC4jvrhjVpFkAVL",
+    "name": "Escalado INI",
+    "color": "#e60000",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768747380,
+      "_nanoseconds": 685000000
+    }
+  },
+  {
+    "id": "ZzFY6NUUiRPaTQV6XKgN",
+    "name": "Media",
+    "color": "#f2da64",
+    "type": "priority",
+    "tenantId": "1",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768808748,
+      "_nanoseconds": 293000000
+    }
+  },
+  {
+    "id": "a2z5tNSMDIWVjp9VwezJ",
+    "name": "Incidencias",
+    "color": "#6366f1",
+    "type": "area",
+    "tenantId": "2",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769153495,
+      "_nanoseconds": 348000000
+    }
+  },
+  {
+    "id": "aG6y9wyr0ZuepWcXooKk",
+    "name": "Producto",
+    "color": "#247f36",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768747353,
+      "_nanoseconds": 751000000
+    }
+  },
+  {
+    "id": "brECQu70pTBCSGITEzkm",
+    "name": "Could",
+    "color": "#bae811",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1771223292,
+      "_nanoseconds": 356000000
+    }
+  },
+  {
+    "id": "dNfwfxv0Ji30DTyvCLMB",
+    "name": "Should",
+    "color": "#d0803e",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1771221993,
+      "_nanoseconds": 5000000
+    }
+  },
+  {
+    "id": "ftUYDOBBCvbQDyE9H7A8",
+    "name": "baja",
+    "color": "#03e23b",
+    "type": "priority",
+    "tenantId": "1",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768808757,
+      "_nanoseconds": 363000000
+    }
+  },
+  {
+    "id": "gEBtfcNwDgKpywf98zeq",
+    "name": "Maestros",
+    "color": "#b4d558",
+    "type": "area",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164846,
+      "_nanoseconds": 493000000
+    }
+  },
+  {
+    "id": "kEUXe0lu3VfJLOyBxwAw",
+    "name": "Comercial",
+    "color": "#6366f1",
+    "type": "ui5PprcLLUROTO3PDYuy",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768747320,
+      "_nanoseconds": 828000000
+    }
+  },
+  {
+    "id": "lENK1DU9dm19QCrait5W",
+    "name": "Must",
+    "color": "#d30d0d",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1771221986,
+      "_nanoseconds": 480000000
+    }
+  },
+  {
+    "id": "o2g8vKz0pbLsfoVEgD5k",
+    "name": "ROUTING",
+    "color": "#d7a2a2",
+    "type": "module",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1770237507,
+      "_nanoseconds": 874000000
+    }
+  },
+  {
+    "id": "q6XHZ2txGPJEKnmhptGF",
+    "name": "Baja",
+    "color": "#b5b734",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768749990,
+      "_nanoseconds": 256000000
+    }
+  },
+  {
+    "id": "yv6YkeBtpWNGi3enYzEv",
+    "name": "PEDIDOS",
+    "color": "#64f29a",
+    "type": "module",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1769604391,
+      "_nanoseconds": 55000000
+    }
+  },
+  {
+    "id": "z63R8ig7IbcGScjyJUux",
+    "name": "Descartado",
+    "color": "#e60f0f",
+    "type": "scope",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1769164950,
+      "_nanoseconds": 125000000
+    }
+  },
+  {
+    "id": "zcukmwiiq3fztw8LexU1",
+    "name": "Alta",
+    "color": "#6366f1",
+    "type": "priority",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768749975,
+      "_nanoseconds": 762000000
+    }
+  },
+  {
+    "id": "zf4kBe6tCgwCHWWRgbTV",
+    "name": "prueba de nuevo criterio",
+    "color": "#e76240",
+    "type": "reception_block",
+    "tenantId": "3",
+    "isActive": true,
+    "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "createdAt": {
+      "_seconds": 1768743963,
+      "_nanoseconds": 329000000
+    }
+  }
+]

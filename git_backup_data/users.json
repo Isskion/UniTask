@@ -1,0 +1,1192 @@
+[
+  {
+    "id": "0DCFYVAhLESUwaeacY6Hanotrta2",
+    "uid": "0DCFYVAhLESUwaeacY6Hanotrta2",
+    "email": "jesus.marquez@unigis.com",
+    "displayName": "Jesus Marquez",
+    "role": "consultant",
+    "roleLevel": 40,
+    "tenantId": "3",
+    "assignedProjectIds": [
+      "Au1xfXgivgl6VYj2zscs",
+      "OH4sjML9byhLuzMXSTss",
+      "HKnZypXlGdM0VjRLOysB",
+      "Gq2CQfMRws3BMBTtWR1t"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772034792,
+      "_nanoseconds": 287000000
+    },
+    "lastLogin": {
+      "_seconds": 1772034792,
+      "_nanoseconds": 287000000
+    },
+    "permissionGroupId": "zkHq8MpGD0SnkgAWdFbx",
+    "photoURL": "",
+    "address": "",
+    "phone": "",
+    "worksOnWeekends": false,
+    "jobTitle": "",
+    "aiEnabled": false,
+    "language": "es",
+    "company": "",
+    "isConsultant": false,
+    "updatedAt": {
+      "_seconds": 1772036549,
+      "_nanoseconds": 554000000
+    },
+    "syncId": 1772036581481,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    }
+  },
+  {
+    "id": "3avBlnAV7pOc2V0Lmrwew6PLUT72",
+    "uid": "3avBlnAV7pOc2V0Lmrwew6PLUT72",
+    "email": "unitaskcontroller.noreply@gmail.com",
+    "displayName": "prueba tenant",
+    "photoURL": "",
+    "role": "app_admin",
+    "roleLevel": 80,
+    "tenantId": "5",
+    "assignedProjectIds": [
+      "TMWjHHQmnkyey8MxWnRr"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768556485,
+      "_nanoseconds": 61000000
+    },
+    "lastLogin": {
+      "_seconds": 1768556485,
+      "_nanoseconds": 61000000
+    },
+    "permissionGroupId": "",
+    "address": "",
+    "phone": "",
+    "jobTitle": "",
+    "company": "",
+    "language": "es",
+    "_forceSync": 1769684712913,
+    "updatedAt": {
+      "_seconds": 1769776083,
+      "_nanoseconds": 282000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344595
+  },
+  {
+    "id": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "uid": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "email": "diego.senra@unigis.com",
+    "displayName": "Diego Senra Lamberti",
+    "role": "global_pm",
+    "roleLevel": 60,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772554029,
+      "_nanoseconds": 153000000
+    },
+    "lastLogin": {
+      "_seconds": 1772554029,
+      "_nanoseconds": 153000000
+    },
+    "syncId": 1772554029882,
+    "permissionGroupId": "",
+    "photoURL": "",
+    "address": "",
+    "phone": "",
+    "worksOnWeekends": false,
+    "jobTitle": "",
+    "aiEnabled": false,
+    "assignedProjectIds": [
+      "sZDav2CndgdmhfYc8BTt",
+      "Au1xfXgivgl6VYj2zscs",
+      "9iqygviz3AGJnbJOLc8E",
+      "Gq2CQfMRws3BMBTtWR1t",
+      "11K4kv5QI3SVkhVwuFfo",
+      "IL23eIjvSIdwLgqwz0pY",
+      "OH4sjML9byhLuzMXSTss",
+      "c0HRtaCkKXxeiQf897sY",
+      "WcF8wTccm1LkaFBfWvug",
+      "XwJwMA2Y3Aa8C1J4rT0s",
+      "aAb2HIajQVhXnLAzmVo8",
+      "HKnZypXlGdM0VjRLOysB",
+      "bGeacYFR1Fk4xv0Yh9XV"
+    ],
+    "language": "es",
+    "company": "",
+    "isConsultant": false,
+    "accessScopes": {
+      "divisionIds": [
+        "CON"
+      ],
+      "regionIds": [
+        "ES",
+        "FR",
+        "ARG"
+      ]
+    },
+    "updatedAt": {
+      "_seconds": 1779362915,
+      "_nanoseconds": 931000000
+    }
+  },
+  {
+    "id": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "address": "abcabc",
+    "language": "es",
+    "isActive": true,
+    "phone": "+34605997132",
+    "company": "Unigis",
+    "email": "daniel.delamo@unigis.com",
+    "jobTitle": "Arquitecto de solución",
+    "assignedProjectIds": [
+      "ncGXgeNYLO0Zx9x0Az4x",
+      "3Mb6nctLYF4ni6cS0jMu",
+      "sZDav2CndgdmhfYc8BTt",
+      "9iqygviz3AGJnbJOLc8E",
+      "11K4kv5QI3SVkhVwuFfo",
+      "OH4sjML9byhLuzMXSTss",
+      "Au1xfXgivgl6VYj2zscs",
+      "Gq2CQfMRws3BMBTtWR1t",
+      "IL23eIjvSIdwLgqwz0pY",
+      "c0HRtaCkKXxeiQf897sY",
+      "aAb2HIajQVhXnLAzmVo8",
+      "WcF8wTccm1LkaFBfWvug",
+      "HKnZypXlGdM0VjRLOysB"
+    ],
+    "_forceSync": 1769684712914,
+    "lastLogin": {
+      "_seconds": 1769684909,
+      "_nanoseconds": 170000000
+    },
+    "isConsultant": true,
+    "createdAt": {
+      "_seconds": 1770808369,
+      "_nanoseconds": 863000000
+    },
+    "uid": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "worksOnWeekends": false,
+    "syncId": 1770809844514,
+    "permissionGroupId": "CzxVf8b4QEA0dAfE9qIH",
+    "tenantId": "3",
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "role": "app_admin",
+    "roleLevel": 80,
+    "displayName": "Daniel Tenant Admin",
+    "photoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "lastUpdate": {
+      "_seconds": 1771600230,
+      "_nanoseconds": 407000000
+    },
+    "updatedAt": {
+      "_seconds": 1771748261,
+      "_nanoseconds": 285000000
+    },
+    "aiEnabled": false,
+    "accessScopes": {
+      "divisionIds": [
+        "CON",
+        "GMC"
+      ],
+      "regionIds": [
+        "ES",
+        "FR"
+      ]
+    }
+  },
+  {
+    "id": "9k4a329sfZNC8AdR9XJETxbXjXU2",
+    "photoURL": "",
+    "uid": "9k4a329sfZNC8AdR9XJETxbXjXU2",
+    "createdAt": {
+      "_seconds": 1770621514,
+      "_nanoseconds": 559000000
+    },
+    "lastLogin": {
+      "_seconds": 1770621514,
+      "_nanoseconds": 559000000
+    },
+    "isActive": false,
+    "email": "gabiarcos@gmail.com",
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "address": "",
+    "role": "app_admin",
+    "phone": "",
+    "assignedProjectIds": [],
+    "tenantId": "12",
+    "language": "es",
+    "roleLevel": 80,
+    "displayName": "Gabriel Arcos",
+    "jobTitle": "Infra manager",
+    "company": "Fertiberia",
+    "updatedAt": {
+      "_seconds": 1770621797,
+      "_nanoseconds": 941000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344097
+  },
+  {
+    "id": "BO61B1BKb5Zyo4LCpUtDvjy3Tvf2",
+    "photoURL": "",
+    "uid": "BO61B1BKb5Zyo4LCpUtDvjy3Tvf2",
+    "createdAt": {
+      "_seconds": 1770032435,
+      "_nanoseconds": 908000000
+    },
+    "lastLogin": {
+      "_seconds": 1770032435,
+      "_nanoseconds": 908000000
+    },
+    "isActive": false,
+    "email": "eduardo.garcia@unigis.com",
+    "address": "",
+    "role": "consultant",
+    "phone": "",
+    "displayName": "Eduardo Garcia  GMC",
+    "jobTitle": "",
+    "assignedProjectIds": [
+      "HKnZypXlGdM0VjRLOysB",
+      "Au1xfXgivgl6VYj2zscs",
+      "IL23eIjvSIdwLgqwz0pY"
+    ],
+    "tenantId": "3",
+    "company": "Unigis",
+    "language": "es",
+    "permissionGroupId": "zkHq8MpGD0SnkgAWdFbx",
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "roleLevel": 40,
+    "isConsultant": false,
+    "updatedAt": {
+      "_seconds": 1771478677,
+      "_nanoseconds": 361000000
+    },
+    "syncId": 1772552666393,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    }
+  },
+  {
+    "id": "GjkwIyjxsOXxj4OHH5D6KtV0DYt1",
+    "uid": "GjkwIyjxsOXxj4OHH5D6KtV0DYt1",
+    "email": "cursoiadaniel@gmail.com",
+    "displayName": "Daniel del Amo",
+    "role": "consultant",
+    "roleLevel": 40,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1771478082,
+      "_nanoseconds": 317000000
+    },
+    "lastLogin": {
+      "_seconds": 1771478082,
+      "_nanoseconds": 317000000
+    },
+    "photoURL": "",
+    "phone": "",
+    "worksOnWeekends": false,
+    "jobTitle": "",
+    "language": "es",
+    "isConsultant": false,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652346491,
+    "aiEnabled": false,
+    "address": "Pino Resinero, 46",
+    "assignedProjectIds": [
+      "OH4sjML9byhLuzMXSTss"
+    ],
+    "company": "Secure Route",
+    "permissionGroupId": "zkHq8MpGD0SnkgAWdFbx",
+    "updatedAt": {
+      "_seconds": 1777292776,
+      "_nanoseconds": 607000000
+    }
+  },
+  {
+    "id": "HKItfVWxI1MVy4djivVGZV9amqt2",
+    "lastLogin": {
+      "_seconds": 1767480514,
+      "_nanoseconds": 918000000
+    },
+    "address": "",
+    "displayName": "Daniel del amo",
+    "jobTitle": "",
+    "language": "es",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1767480514,
+      "_nanoseconds": 918000000
+    },
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJVbnmMYs9LyDZjdQ4Pl8GQr6kTuN8ofYLuIUEua5Bh-I6Tjw8=s96-c",
+    "phone": "",
+    "company": "",
+    "email": "danieldelamo2@gmail.com",
+    "tenantId": "2",
+    "role": "superadmin",
+    "assignedProjectIds": [
+      "Gq2CQfMRws3BMBTtWR1t",
+      "c0HRtaCkKXxeiQf897sY",
+      "aAb2HIajQVhXnLAzmVo8",
+      "1ijg4hrN81IwMrD4df7g",
+      "WcF8wTccm1LkaFBfWvug",
+      "3Mb6nctLYF4ni6cS0jMu",
+      "9iqygviz3AGJnbJOLc8E",
+      "Au1xfXgivgl6VYj2zscs"
+    ],
+    "_forceSync": 1769684712914,
+    "roleLevel": 100,
+    "updatedAt": {
+      "_seconds": 1770808639,
+      "_nanoseconds": 203000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344780
+  },
+  {
+    "id": "JFNisFLZNrUfCdHyVDgW0s7xBTa2",
+    "photoURL": "",
+    "uid": "JFNisFLZNrUfCdHyVDgW0s7xBTa2",
+    "createdAt": {
+      "_seconds": 1770397111,
+      "_nanoseconds": 988000000
+    },
+    "lastLogin": {
+      "_seconds": 1770397111,
+      "_nanoseconds": 988000000
+    },
+    "isActive": false,
+    "email": "marc.garcia@andsoft.com",
+    "address": "",
+    "phone": "",
+    "jobTitle": "",
+    "assignedProjectIds": [
+      "GcvoZX38R8NEt5prYwHs",
+      "E2gsLcqdVgYpAWMZlCMc",
+      "QZSIMHxzQlZOvshQYBgU"
+    ],
+    "tenantId": "7",
+    "language": "es",
+    "permissionGroupId": "EzwcMQ72J3gCSuRYt9XJ",
+    "role": "consultant",
+    "displayName": "Marc garcia",
+    "company": "Andsoft",
+    "roleLevel": 0,
+    "updatedAt": {
+      "_seconds": 1770399817,
+      "_nanoseconds": 62000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344665
+  },
+  {
+    "id": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "uid": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "email": "jesusmanuel.marquez89@gmail.com",
+    "displayName": "Jesus Marquez",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocL68pTVltdF3V7IznsZz_udMBgaW7LWZhaHbyb6D1AQnhjmdoph=s96-c",
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768216141,
+      "_nanoseconds": 190000000
+    },
+    "lastLogin": {
+      "_seconds": 1768216141,
+      "_nanoseconds": 190000000
+    },
+    "address": "",
+    "phone": "",
+    "language": "es",
+    "_forceSync": 1769684712915,
+    "isConsultant": true,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "company": "Unigis",
+    "aiEnabled": false,
+    "syncId": 1772036583150,
+    "permissionGroupId": "",
+    "jobTitle": "Consultor",
+    "updatedAt": {
+      "_seconds": 1774008630,
+      "_nanoseconds": 324000000
+    },
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "role": "global_pm",
+    "assignedProjectIds": [
+      "Au1xfXgivgl6VYj2zscs",
+      "Gq2CQfMRws3BMBTtWR1t",
+      "OH4sjML9byhLuzMXSTss",
+      "DWXtB3YW0vii8A55ZQYR",
+      "c0HRtaCkKXxeiQf897sY",
+      "9iqygviz3AGJnbJOLc8E",
+      "XwJwMA2Y3Aa8C1J4rT0s",
+      "HKnZypXlGdM0VjRLOysB",
+      "sZDav2CndgdmhfYc8BTt",
+      "11K4kv5QI3SVkhVwuFfo",
+      "bGeacYFR1Fk4xv0Yh9XV",
+      "IL23eIjvSIdwLgqwz0pY",
+      "WcF8wTccm1LkaFBfWvug",
+      "aAb2HIajQVhXnLAzmVo8"
+    ],
+    "roleLevel": 60
+  },
+  {
+    "id": "RPFCzfTMnVfIZHZWdjnYC06hjSI2",
+    "uid": "RPFCzfTMnVfIZHZWdjnYC06hjSI2",
+    "email": "delamosainznaiara@gmail.com",
+    "displayName": "Naiara del Amo",
+    "role": "app_admin",
+    "roleLevel": 80,
+    "tenantId": "15",
+    "assignedProjectIds": [
+      "UiULU3NTlapjSlFcejvd"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770733334,
+      "_nanoseconds": 70000000
+    },
+    "lastLogin": {
+      "_seconds": 1770733334,
+      "_nanoseconds": 70000000
+    },
+    "updatedAt": {
+      "_seconds": 1770733334,
+      "_nanoseconds": 70000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344149
+  },
+  {
+    "id": "RbJjKxo4F7PSUWsneYHNy5vpu7i1",
+    "lastLogin": {
+      "_seconds": 1767862944,
+      "_nanoseconds": 588000000
+    },
+    "address": "",
+    "displayName": "Cristina Blanca ",
+    "jobTitle": "",
+    "language": "es",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1767862944,
+      "_nanoseconds": 588000000
+    },
+    "photoURL": null,
+    "phone": "",
+    "company": "",
+    "email": "cristina-blanca@hotmail.es",
+    "role": "global_pm",
+    "tenantId": "4",
+    "assignedProjectIds": [
+      "zwFfQTeNcnd2gftR2Ou5",
+      "12cYGamvmQ2f1s263juy",
+      "TnOVfhpjKVYhTgpmK85R",
+      "1ijg4hrN81IwMrD4df7g"
+    ],
+    "roleLevel": 60,
+    "permissionGroupId": "XdO0dma2Ie6E8T1Xc6Ig",
+    "_forceSync": 1769684712915,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344657
+  },
+  {
+    "id": "RwwEODqgobTtJt3N1adTpDoje2u2",
+    "photoURL": "",
+    "uid": "RwwEODqgobTtJt3N1adTpDoje2u2",
+    "createdAt": {
+      "_seconds": 1770647327,
+      "_nanoseconds": 389000000
+    },
+    "lastLogin": {
+      "_seconds": 1770647327,
+      "_nanoseconds": 389000000
+    },
+    "email": "azrantoni@hotmail.com",
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "address": "",
+    "role": "app_admin",
+    "phone": "",
+    "jobTitle": "",
+    "assignedProjectIds": [
+      "E2gsLcqdVgYpAWMZlCMc",
+      "GcvoZX38R8NEt5prYwHs",
+      "QZSIMHxzQlZOvshQYBgU"
+    ],
+    "tenantId": "7",
+    "company": "",
+    "language": "es",
+    "roleLevel": 80,
+    "displayName": "Antoni Blat",
+    "updatedAt": {
+      "_seconds": 1770647712,
+      "_nanoseconds": 885000000
+    },
+    "isActive": true,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344872
+  },
+  {
+    "id": "UsuqceJ4ylTflrGmgHQfhOLnCy13",
+    "uid": "UsuqceJ4ylTflrGmgHQfhOLnCy13",
+    "email": "maria.isasa@unigis.com",
+    "displayName": "Maria Isasa",
+    "photoURL": "",
+    "roleLevel": 40,
+    "tenantId": "6",
+    "assignedProjectIds": [
+      "9XwXd8sxvtrGffGa7CKd"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768558574,
+      "_nanoseconds": 701000000
+    },
+    "lastLogin": {
+      "_seconds": 1768558574,
+      "_nanoseconds": 701000000
+    },
+    "address": "",
+    "role": "consultant",
+    "phone": "",
+    "jobTitle": "",
+    "company": "",
+    "language": "es",
+    "permissionGroupId": "BOQNglpT9G6CTMizIVbo",
+    "_forceSync": 1769684712915,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652345144
+  },
+  {
+    "id": "bnzlywmzMaeZyyUMcFpu2jGpSMf2",
+    "uid": "bnzlywmzMaeZyyUMcFpu2jGpSMf2",
+    "email": "malobato@coderszone.com",
+    "displayName": "Miguel Ángel ",
+    "role": "app_admin",
+    "roleLevel": 80,
+    "tenantId": "9",
+    "assignedProjectIds": [
+      "82JRjgmZyUX9avU3aCgy"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770906052,
+      "_nanoseconds": 705000000
+    },
+    "lastLogin": {
+      "_seconds": 1770906052,
+      "_nanoseconds": 705000000
+    },
+    "updatedAt": {
+      "_seconds": 1770906052,
+      "_nanoseconds": 705000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344223
+  },
+  {
+    "id": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "uid": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "email": "eric.walther@unigis.com",
+    "displayName": "Eric Walther",
+    "photoURL": "",
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768229055,
+      "_nanoseconds": 97000000
+    },
+    "lastLogin": {
+      "_seconds": 1768229055,
+      "_nanoseconds": 97000000
+    },
+    "address": "",
+    "phone": "",
+    "language": "es",
+    "role": "consultant",
+    "_forceSync": 1769684712915,
+    "company": "Unigis",
+    "assignedProjectIds": [
+      "WcF8wTccm1LkaFBfWvug",
+      "aAb2HIajQVhXnLAzmVo8",
+      "IL23eIjvSIdwLgqwz0pY",
+      "DWXtB3YW0vii8A55ZQYR"
+    ],
+    "roleLevel": 40,
+    "isConsultant": true,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "syncId": 1772552666521,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "jobTitle": "Consultor",
+    "aiEnabled": false,
+    "permissionGroupId": "",
+    "updatedAt": {
+      "_seconds": 1777292635,
+      "_nanoseconds": 44000000
+    }
+  },
+  {
+    "id": "g1bMbjOkwoZCbIvhbivtwVuTGjA3",
+    "photoURL": "",
+    "uid": "g1bMbjOkwoZCbIvhbivtwVuTGjA3",
+    "createdAt": {
+      "_seconds": 1770627644,
+      "_nanoseconds": 257000000
+    },
+    "lastLogin": {
+      "_seconds": 1770627644,
+      "_nanoseconds": 257000000
+    },
+    "isActive": false,
+    "email": "pilumm@gmail.com",
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "address": "",
+    "role": "app_admin",
+    "phone": "",
+    "tenantId": "7",
+    "language": "es",
+    "roleLevel": 80,
+    "displayName": "Pilu Morante",
+    "assignedProjectIds": [
+      "GcvoZX38R8NEt5prYwHs",
+      "E2gsLcqdVgYpAWMZlCMc",
+      "QZSIMHxzQlZOvshQYBgU"
+    ],
+    "jobTitle": "AdminAndsoft",
+    "company": "Andsoft",
+    "updatedAt": {
+      "_seconds": 1770633374,
+      "_nanoseconds": 224000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344985
+  },
+  {
+    "id": "hWXayiILtLPRzXnn27pIrB1mHTZ2",
+    "photoURL": "",
+    "uid": "hWXayiILtLPRzXnn27pIrB1mHTZ2",
+    "createdAt": {
+      "_seconds": 1770032751,
+      "_nanoseconds": 308000000
+    },
+    "lastLogin": {
+      "_seconds": 1770032751,
+      "_nanoseconds": 308000000
+    },
+    "isActive": false,
+    "email": "federico.debrito@unigis.com",
+    "address": "",
+    "role": "consultant",
+    "phone": "",
+    "displayName": "Federico Debrito",
+    "jobTitle": "",
+    "assignedProjectIds": [
+      "IL23eIjvSIdwLgqwz0pY",
+      "Au1xfXgivgl6VYj2zscs",
+      "HKnZypXlGdM0VjRLOysB"
+    ],
+    "tenantId": "3",
+    "company": "uNIGIS",
+    "language": "es",
+    "permissionGroupId": "zkHq8MpGD0SnkgAWdFbx",
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "roleLevel": 40,
+    "isConsultant": false,
+    "updatedAt": {
+      "_seconds": 1771478679,
+      "_nanoseconds": 410000000
+    },
+    "syncId": 1772552666584,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    }
+  },
+  {
+    "id": "idTSjTprwnM1GkgUSIiSzcxyi932",
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "lastLogin": {
+      "_seconds": 1767483946,
+      "_nanoseconds": 582000000
+    },
+    "address": "",
+    "displayName": "David del amo",
+    "jobTitle": "",
+    "language": "es",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1767483946,
+      "_nanoseconds": 582000000
+    },
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIV7TsufmTIc-ktRpmL_PIYXxVRLDx-3QaIYdLDq-dNlkJcC6I-=s96-c",
+    "phone": "",
+    "assignedProjectIds": [
+      "zwFfQTeNcnd2gftR2Ou5",
+      "12cYGamvmQ2f1s263juy"
+    ],
+    "company": "",
+    "email": "david.delamo@gmail.com",
+    "role": "superadmin",
+    "tenantId": "1",
+    "_forceSync": 1769684712915,
+    "roleLevel": 100,
+    "updatedAt": {
+      "_seconds": 1769776089,
+      "_nanoseconds": 648000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652343852
+  },
+  {
+    "id": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "uid": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "email": "jaime.armas@unigis.com",
+    "displayName": "Jaime Jesus Armas",
+    "role": "global_pm",
+    "roleLevel": 60,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1775655203,
+      "_nanoseconds": 247000000
+    },
+    "lastLogin": {
+      "_seconds": 1775655203,
+      "_nanoseconds": 247000000
+    },
+    "syncId": 1775655203943,
+    "permissionGroupId": "",
+    "photoURL": "",
+    "address": "",
+    "phone": "",
+    "worksOnWeekends": false,
+    "jobTitle": "Project Manager",
+    "aiEnabled": false,
+    "language": "es",
+    "company": "Unigis",
+    "isConsultant": false,
+    "assignedProjectIds": [
+      "bGeacYFR1Fk4xv0Yh9XV",
+      "HKnZypXlGdM0VjRLOysB",
+      "sZDav2CndgdmhfYc8BTt",
+      "9iqygviz3AGJnbJOLc8E",
+      "11K4kv5QI3SVkhVwuFfo",
+      "Au1xfXgivgl6VYj2zscs",
+      "Gq2CQfMRws3BMBTtWR1t",
+      "IL23eIjvSIdwLgqwz0pY",
+      "OH4sjML9byhLuzMXSTss",
+      "c0HRtaCkKXxeiQf897sY",
+      "aAb2HIajQVhXnLAzmVo8",
+      "WcF8wTccm1LkaFBfWvug"
+    ],
+    "accessScopes": {
+      "regionIds": [
+        "ES",
+        "FR",
+        "ARG"
+      ],
+      "divisionIds": [
+        "CON",
+        "GMC"
+      ]
+    },
+    "updatedAt": {
+      "_seconds": 1779362921,
+      "_nanoseconds": 991000000
+    }
+  },
+  {
+    "id": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "uid": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "email": "inaki.iraburu@unigis.com",
+    "displayName": "Iñaki iraburu",
+    "photoURL": "",
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768214268,
+      "_nanoseconds": 204000000
+    },
+    "lastLogin": {
+      "_seconds": 1768214268,
+      "_nanoseconds": 204000000
+    },
+    "address": "",
+    "phone": "",
+    "jobTitle": "",
+    "language": "es",
+    "role": "consultant",
+    "_forceSync": 1769684712915,
+    "assignedProjectIds": [
+      "9iqygviz3AGJnbJOLc8E",
+      "aAb2HIajQVhXnLAzmVo8",
+      "11K4kv5QI3SVkhVwuFfo",
+      "HKnZypXlGdM0VjRLOysB"
+    ],
+    "roleLevel": 40,
+    "isConsultant": true,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "company": "Unigis",
+    "syncId": 1772552667673,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "permissionGroupId": "",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1777292658,
+      "_nanoseconds": 217000000
+    }
+  },
+  {
+    "id": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "email": "argoss01@gmail.com",
+    "displayName": "Daniel Del Amo",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLowV1lQRxeWkEOXc1rTQOIlkGQxTZonugpT5yFIiDmjpufvq3mJg=s96-c",
+    "isActive": true,
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "createdAt": {
+      "_seconds": 1767476441,
+      "_nanoseconds": 781000000
+    },
+    "address": "Pino Resinero, 46",
+    "phone": "+34605997132",
+    "jobTitle": "Arquitecto de Solución",
+    "language": "es",
+    "company": "Unigis España",
+    "_forceSync": 1769684712915,
+    "uid": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "lastLogin": {
+      "_seconds": 1770648439,
+      "_nanoseconds": 211000000
+    },
+    "assignedProjectIds": [
+      "gCqxaXvEWYGdqBmKzwPg",
+      "mockup-product-2026",
+      "3Mb6nctLYF4ni6cS0jMu"
+    ],
+    "updatedAt": {
+      "_seconds": 1770648439,
+      "_nanoseconds": 211000000
+    },
+    "role": "superadmin",
+    "tenantId": "1",
+    "roleLevel": 100,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652344234
+  },
+  {
+    "id": "pt24Ktl3JQfYQgmIn2QuG7Tt3yC3",
+    "lastLogin": {
+      "_seconds": 1767959038,
+      "_nanoseconds": 726000000
+    },
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1767959038,
+      "_nanoseconds": 726000000
+    },
+    "photoURL": null,
+    "_migratedAt": {
+      "_seconds": 1767969003,
+      "_nanoseconds": 415000000
+    },
+    "displayName": "Sisco Jiménez ",
+    "email": "siscojimenez@hotmail.com",
+    "address": "",
+    "phone": "",
+    "jobTitle": "",
+    "company": "",
+    "language": "es",
+    "role": "app_admin",
+    "roleLevel": 80,
+    "_forceSync": 1769684712915,
+    "assignedProjectIds": [
+      "GcvoZX38R8NEt5prYwHs",
+      "QZSIMHxzQlZOvshQYBgU",
+      "E2gsLcqdVgYpAWMZlCMc"
+    ],
+    "tenantId": "7",
+    "permissionGroupId": "dUAB0orOPWa1CHZVyJCk",
+    "updatedAt": {
+      "_seconds": 1770402681,
+      "_nanoseconds": 574000000
+    },
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "syncId": 1775652346089
+  },
+  {
+    "id": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "photoURL": "",
+    "uid": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "createdAt": {
+      "_seconds": 1769768623,
+      "_nanoseconds": 229000000
+    },
+    "lastLogin": {
+      "_seconds": 1769768623,
+      "_nanoseconds": 229000000
+    },
+    "isActive": false,
+    "email": "gonzalo.castro@unigis.com",
+    "address": "",
+    "role": "consultant",
+    "phone": "",
+    "jobTitle": "Consultor",
+    "assignedProjectIds": [
+      "OH4sjML9byhLuzMXSTss",
+      "c0HRtaCkKXxeiQf897sY",
+      "HKnZypXlGdM0VjRLOysB"
+    ],
+    "tenantId": "3",
+    "company": "Unigis",
+    "language": "es",
+    "displayName": "Gonzalo Castro",
+    "roleLevel": 40,
+    "isConsultant": true,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "worksOnWeekends": false,
+    "syncId": 1772552668381,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "permissionGroupId": "",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1777292649,
+      "_nanoseconds": 222000000
+    }
+  },
+  {
+    "id": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "uid": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "email": "jorge.martinez@unigis.com",
+    "displayName": "Jorge Martinez",
+    "photoURL": "",
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768222698,
+      "_nanoseconds": 47000000
+    },
+    "lastLogin": {
+      "_seconds": 1768222698,
+      "_nanoseconds": 47000000
+    },
+    "address": "",
+    "phone": "",
+    "company": "",
+    "language": "es",
+    "_forceSync": 1769684712915,
+    "isConsultant": true,
+    "role": "consultant",
+    "roleLevel": 40,
+    "worksOnWeekends": false,
+    "lastUpdatedBy": "MIGRATION_SCRIPT_SAM",
+    "authVersion": 1,
+    "syncId": 1772552667340,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "aiEnabled": false,
+    "assignedProjectIds": [
+      "9iqygviz3AGJnbJOLc8E",
+      "aAb2HIajQVhXnLAzmVo8",
+      "Au1xfXgivgl6VYj2zscs",
+      "HKnZypXlGdM0VjRLOysB",
+      "DWXtB3YW0vii8A55ZQYR",
+      "XwJwMA2Y3Aa8C1J4rT0s",
+      "bGeacYFR1Fk4xv0Yh9XV",
+      "OH4sjML9byhLuzMXSTss"
+    ],
+    "jobTitle": "Consultor Senior",
+    "permissionGroupId": "",
+    "updatedAt": {
+      "_seconds": 1777292639,
+      "_nanoseconds": 432000000
+    }
+  }
+]

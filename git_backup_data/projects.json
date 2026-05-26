@@ -1,0 +1,1058 @@
+[
+  {
+    "id": "0uuaAF7I0hCJmQ2xKNvP",
+    "name": "Naiara",
+    "code": "NAI-001",
+    "clientName": "Naiara",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "13",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770718281,
+      "_nanoseconds": 944000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "13:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "11K4kv5QI3SVkhVwuFfo",
+    "code": "FRR",
+    "color": "#84cc16",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768817065,
+      "_nanoseconds": 714000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768817065,
+      "_nanoseconds": 714000000
+    },
+    "name": "FRIT RAVICH",
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "1UEthBAXfAOmknsGmG80",
+    "name": "Mock Project",
+    "code": "MOCK",
+    "clientName": "Mock Client",
+    "status": "active",
+    "health": "healthy",
+    "tenantId": "1",
+    "teamIds": [],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770541293,
+      "_nanoseconds": 86000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "1:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "1ijg4hrN81IwMrD4df7g",
+    "color": "#ec4899",
+    "isActive": true,
+    "email": "argoss01@gmail.com",
+    "phone": "605997132",
+    "tenantId": "4",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1767970155,
+      "_nanoseconds": 911000000
+    },
+    "lastUpdate": {
+      "_seconds": 1767970155,
+      "_nanoseconds": 911000000
+    },
+    "code": "PYX",
+    "name": "PROYECTO LANZADERA",
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "4:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "3Mb6nctLYF4ni6cS0jMu",
+    "name": "UniTaskController",
+    "code": "UNT",
+    "color": "#84cc16",
+    "isActive": true,
+    "email": "argoss01@gmail.com",
+    "phone": "",
+    "tenantId": "2",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768084804,
+      "_nanoseconds": 166000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768084804,
+      "_nanoseconds": 166000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "2:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "82JRjgmZyUX9avU3aCgy",
+    "name": "Miguel Lobato",
+    "code": "MIG-001",
+    "clientName": "Miguel Lobato",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "9",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770547984,
+      "_nanoseconds": 610000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770547984,
+      "_nanoseconds": 610000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "9:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "9XwXd8sxvtrGffGa7CKd",
+    "name": "Anabella´s Corner",
+    "code": "ANA-001",
+    "clientName": "Anabella´s Corner",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "6",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1768557479,
+      "_nanoseconds": 830000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768557479,
+      "_nanoseconds": 830000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "6:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "9iqygviz3AGJnbJOLc8E",
+    "name": "EUROPASTRY",
+    "code": "EUP",
+    "color": "#ef4444",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1767970194,
+      "_nanoseconds": 979000000
+    },
+    "lastUpdate": {
+      "_seconds": 1767970194,
+      "_nanoseconds": 979000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "connections": {
+      "prodIP": "",
+      "prodUser": "daniel.delamo@unigis.com",
+      "prodPass": "Aleg0r1a.02",
+      "prodUrl": "",
+      "testIP": "172.17.133.4",
+      "testUser": "europastry",
+      "testPass": "m!FpIDVh7TF38f7g",
+      "testUrl": "https://eu-test.unigis.com/EUROPASTRY/Login/"
+    },
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "Au1xfXgivgl6VYj2zscs",
+    "name": "DELGADO",
+    "code": "DLG",
+    "color": "#a855f7",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1767970238,
+      "_nanoseconds": 863000000
+    },
+    "lastUpdate": {
+      "_seconds": 1767970238,
+      "_nanoseconds": 863000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "connections": {
+      "prodIP": "",
+      "prodUser": "",
+      "prodPass": "",
+      "prodUrl": "",
+      "testIP": "",
+      "testUser": "",
+      "testPass": "",
+      "testUrl": "https://eu-test.unigis.com/delgado"
+    },
+    "environments": [
+      {
+        "url": "",
+        "user": "daniel.delamo@unigis.com",
+        "ip": "",
+        "id": "prod",
+        "isProduction": true,
+        "name": "Producción",
+        "pass": "Aleg0r1a.02"
+      },
+      {
+        "isProduction": false,
+        "pass": "FIT482sel",
+        "name": "Test",
+        "url": "https://eu-test.unigis.com/delgado",
+        "user": "delgado                   ",
+        "ip": "172.17.133.4 ",
+        "id": "test"
+      },
+      {
+        "id": "9546739a-02a4-4a97-85bd-4e292ef1c831",
+        "name": "Homologación",
+        "isProduction": false,
+        "ip": "",
+        "user": "",
+        "pass": "",
+        "url": "https://eu-test.unigis.com/delgado_homologacion"
+      }
+    ],
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "DWXtB3YW0vii8A55ZQYR",
+    "color": "#ef4444",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1770309970,
+      "_nanoseconds": 357000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770309970,
+      "_nanoseconds": 357000000
+    },
+    "code": "VMS",
+    "name": "VisualMapper_Studio",
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "divisionId": "CON",
+    "_accessKey": "ES:CON",
+    "regionId": "ES"
+  },
+  {
+    "id": "E2gsLcqdVgYpAWMZlCMc",
+    "name": "Andsoft",
+    "code": "AND-001",
+    "clientName": "Andsoft",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "7",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770321175,
+      "_nanoseconds": 818000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770321175,
+      "_nanoseconds": 818000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "7:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "GcvoZX38R8NEt5prYwHs",
+    "name": "Almiramar",
+    "code": "ALM",
+    "color": "#84cc16",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "7",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1770321331,
+      "_nanoseconds": 363000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770321331,
+      "_nanoseconds": 363000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "7:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "Gq2CQfMRws3BMBTtWR1t",
+    "name": "FACTOR V",
+    "code": "FAV",
+    "color": "#f59e0b",
+    "isActive": true,
+    "email": "argoss01@gmail.com",
+    "phone": "605997132",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768215181,
+      "_nanoseconds": 779000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768215181,
+      "_nanoseconds": 779000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "HKnZypXlGdM0VjRLOysB",
+    "name": "UNIGIS",
+    "code": "UNI",
+    "color": "#ef4444",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1769591721,
+      "_nanoseconds": 324000000
+    },
+    "lastUpdate": {
+      "_seconds": 1769591721,
+      "_nanoseconds": 324000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "IL23eIjvSIdwLgqwz0pY",
+    "name": "HAVI",
+    "code": "HAV",
+    "color": "#71717a",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768817411,
+      "_nanoseconds": 679000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768817411,
+      "_nanoseconds": 679000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "LJ8QSs4ka3xWZbEOmlM8",
+    "name": "Test",
+    "code": "TST",
+    "color": "#71717a",
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1771050678,
+      "_nanoseconds": 632000000
+    },
+    "lastUpdate": {
+      "_seconds": 1771050678,
+      "_nanoseconds": 632000000
+    },
+    "isActive": false,
+    "_accessKey": "ES:CON",
+    "_migrated": true,
+    "_tenantAccessKey": "3:ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "updatedAt": {
+      "_seconds": 1778754480,
+      "_nanoseconds": 425000000
+    }
+  },
+  {
+    "id": "OH4sjML9byhLuzMXSTss",
+    "code": "LSM",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768897234,
+      "_nanoseconds": 555000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768897234,
+      "_nanoseconds": 555000000
+    },
+    "color": "#10b981",
+    "name": "LUIS SIMOES Fase II",
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "environments": [
+      {
+        "id": "prod",
+        "name": "Producción",
+        "isProduction": true,
+        "ip": "",
+        "user": "",
+        "pass": "Aleg0r1a.02",
+        "url": ""
+      },
+      {
+        "id": "test",
+        "name": "Test",
+        "isProduction": false,
+        "ip": "172.17.133.4",
+        "user": "luis_simoes",
+        "pass": "LSE873fks",
+        "url": ""
+      }
+    ]
+  },
+  {
+    "id": "QZSIMHxzQlZOvshQYBgU",
+    "name": "Martin",
+    "code": "MRT",
+    "color": "#ef4444",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "7",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1770321318,
+      "_nanoseconds": 978000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770321318,
+      "_nanoseconds": 978000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "7:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "TMWjHHQmnkyey8MxWnRr",
+    "name": "prueba",
+    "code": "PRU-001",
+    "clientName": "prueba",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "5",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1768556264,
+      "_nanoseconds": 478000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768556264,
+      "_nanoseconds": 478000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "5:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "TnOVfhpjKVYhTgpmK85R",
+    "name": "PHP VERSION",
+    "code": "PHP",
+    "color": "#71717a",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "4",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1769067792,
+      "_nanoseconds": 27000000
+    },
+    "lastUpdate": {
+      "_seconds": 1769067792,
+      "_nanoseconds": 27000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "4:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "UiULU3NTlapjSlFcejvd",
+    "name": "Naiara",
+    "code": "NAI-001",
+    "clientName": "Naiara",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "15",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770733259,
+      "_nanoseconds": 812000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "15:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "VE8homCNLeqEJruL0iCq",
+    "name": "Almudena Sainz",
+    "code": "ALM-001",
+    "clientName": "Almudena Sainz",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "16",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770884738,
+      "_nanoseconds": 960000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "16:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "WcF8wTccm1LkaFBfWvug",
+    "name": "SPAR",
+    "code": "SPR",
+    "color": "#f59e0b",
+    "isActive": true,
+    "email": "argoss01@gmail.com",
+    "phone": "605997132",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768215133,
+      "_nanoseconds": 603000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768215133,
+      "_nanoseconds": 603000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "WsQJtTDnd6RDhLHHiRvy",
+    "name": "Test",
+    "code": "TST",
+    "color": "#71717a",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "9",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1770906295,
+      "_nanoseconds": 635000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770906295,
+      "_nanoseconds": 635000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "9:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "XwJwMA2Y3Aa8C1J4rT0s",
+    "name": "TIEMPOS DE CONDUCCIÓN",
+    "code": "TDC",
+    "color": "#ef4444",
+    "email": "argoss01@gmail.com",
+    "phone": "605997132",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1770911047,
+      "_nanoseconds": 32000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770911047,
+      "_nanoseconds": 32000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "isActive": false
+  },
+  {
+    "id": "Y18qh1GN3blFwUmOK5E4",
+    "name": "Pablo Pedrosa",
+    "code": "PAB-001",
+    "clientName": "Pablo Pedrosa",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "10",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770548045,
+      "_nanoseconds": 192000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770548045,
+      "_nanoseconds": 192000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "10:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "aAb2HIajQVhXnLAzmVo8",
+    "name": "TRANSPAIS",
+    "code": "TSP",
+    "color": "#3b82f6",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1767970176,
+      "_nanoseconds": 651000000
+    },
+    "lastUpdate": {
+      "_seconds": 1767970176,
+      "_nanoseconds": 651000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "connections": {
+      "prodIP": "",
+      "prodUser": "daniel.delamo@unigis.com",
+      "prodPass": "Aleg0r1a.02",
+      "prodUrl": "",
+      "testIP": "172.17.133.4",
+      "testUser": "transpais",
+      "testPass": "w!hU5JwYdMELJX06",
+      "testUrl": "https://eu-test.unigis.com/transpais/Login/"
+    },
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "b1jomMQVWkW2EhNDIUch",
+    "name": "Hesa",
+    "code": "HES",
+    "color": "#3b82f6",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "_accessKey": "ES:CON",
+    "createdAt": {
+      "_seconds": 1778948028,
+      "_nanoseconds": 981000000
+    },
+    "lastUpdate": {
+      "_seconds": 1778948028,
+      "_nanoseconds": 981000000
+    },
+    "environments": [
+      {
+        "ip": "https://eu-test.unigis.com/hesa/Login/",
+        "user": "admin",
+        "isProduction": true,
+        "pass": "P!p32d0DkU02wsK9",
+        "name": "Producción",
+        "id": "prod",
+        "url": ""
+      },
+      {
+        "pass": "HLP725jrs",
+        "ip": "172.17.133.4",
+        "user": "Hesa",
+        "isProduction": false,
+        "name": "Test",
+        "id": "test",
+        "url": ""
+      }
+    ]
+  },
+  {
+    "id": "bGeacYFR1Fk4xv0Yh9XV",
+    "name": "Logifrio",
+    "code": "LGF",
+    "color": "#71717a",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "_accessKey": "ES:CON",
+    "createdAt": {
+      "_seconds": 1775654901,
+      "_nanoseconds": 250000000
+    },
+    "lastUpdate": {
+      "_seconds": 1775654901,
+      "_nanoseconds": 250000000
+    }
+  },
+  {
+    "id": "c0HRtaCkKXxeiQf897sY",
+    "name": "SMSA",
+    "code": "SMSA",
+    "color": "#f97316",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1767970217,
+      "_nanoseconds": 613000000
+    },
+    "lastUpdate": {
+      "_seconds": 1767970217,
+      "_nanoseconds": 613000000
+    },
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "dHNSYIcubssqhwk3fmPc",
+    "name": "Naiara",
+    "code": "NAI-001",
+    "clientName": "Naiara",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "14",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770732378,
+      "_nanoseconds": 806000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "14:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "gCqxaXvEWYGdqBmKzwPg",
+    "name": "Mock Project",
+    "code": "MOCK",
+    "clientName": "Mock Client",
+    "status": "active",
+    "health": "healthy",
+    "teamIds": [],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1768826860,
+      "_nanoseconds": 36000000
+    },
+    "tenantId": "2",
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "2:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "glrTnd36wdAsI0U0TxLf",
+    "clientName": "Gabriel Arcos",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "12",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770548400,
+      "_nanoseconds": 506000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770548400,
+      "_nanoseconds": 506000000
+    },
+    "code": "SAL",
+    "color": "#10b981",
+    "name": "Fer-Salas",
+    "email": "GABIARCOS@GMAIL.COM",
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "12:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "mockup-product-2026",
+    "code": "MOCKUP",
+    "name": "Mockup Product",
+    "clientName": "Internal Lab",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1767225600,
+      "_nanoseconds": 0
+    },
+    "lastUpdate": {
+      "_seconds": 1769817600,
+      "_nanoseconds": 0
+    },
+    "description": "A visionary project to demonstrate the capabilities of our new framework.",
+    "tenantId": "2",
+    "teamIds": [
+      "uw3iVoNRc9MRkaXsjiU0ugSLoDL2"
+    ],
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "2:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "oojKGyu9qvjodzj225sS",
+    "name": "Miguel Lobato",
+    "code": "MIG-001",
+    "clientName": "Miguel Lobato",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "8",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770547639,
+      "_nanoseconds": 245000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770547639,
+      "_nanoseconds": 245000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "8:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  },
+  {
+    "id": "sZDav2CndgdmhfYc8BTt",
+    "code": "DHE",
+    "color": "#06b6d4",
+    "email": "",
+    "phone": "",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "createdAt": {
+      "_seconds": 1768467846,
+      "_nanoseconds": 412000000
+    },
+    "lastUpdate": {
+      "_seconds": 1768467846,
+      "_nanoseconds": 412000000
+    },
+    "isActive": true,
+    "name": "DE HEUS",
+    "_migrated": true,
+    "_tenantAccessKey": "3:CL:CONS",
+    "_accessKey": "ES:CON",
+    "regionId": "ES",
+    "divisionId": "CON"
+  },
+  {
+    "id": "waufJthvDTLwRRRXNPWd",
+    "name": "Anabel Pardo",
+    "code": "ANA-001",
+    "clientName": "Anabel Pardo",
+    "status": "active",
+    "health": "healthy",
+    "isActive": true,
+    "tenantId": "11",
+    "teamIds": [],
+    "createdAt": {
+      "_seconds": 1770548297,
+      "_nanoseconds": 782000000
+    },
+    "lastUpdate": {
+      "_seconds": 1770548297,
+      "_nanoseconds": 782000000
+    },
+    "_accessKey": "CL:CONS",
+    "_migrated": true,
+    "_tenantAccessKey": "11:CL:CONS",
+    "regionId": "CL",
+    "divisionId": "CONS"
+  }
+]
