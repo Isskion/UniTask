@@ -35,12 +35,14 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
             {entries.map(entry => {
                 const actCfg = ACTIVITY_CONFIG[entry.activityType];
                 const resCfg = RESULT_CONFIG[entry.result];
+                const isRunning = runningEntryIds.has(entry.id);
                 return (
                     <button
                         key={entry.id}
                         onClick={() => onEdit(entry)}
                         className={cn(
-                            "w-full text-left rounded-md px-2 py-1.5 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
+                            "w-full text-left rounded-md px-2 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
+                            isRunning ? "py-1.5" : "py-1",
                             actCfg.bgClass, actCfg.borderClass,
                             isDark ? "text-white" : actCfg.textClass,
                         )}
@@ -62,13 +64,13 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                                 </span>
                             </div>
                         )}
-                        {entry.divisionName && (
+                        {isRunning && entry.divisionName && (
                             <p className="text-[8px] font-bold uppercase tracking-wider text-violet-500/80 truncate">{entry.divisionName}</p>
                         )}
-                        {entry.client && (
+                        {isRunning && entry.client && (
                             <p className={cn("truncate", actCfg.textClass, "opacity-80")}>{entry.client}</p>
                         )}
-                        {entry.scheduledHours > 0 && (
+                        {isRunning && entry.scheduledHours > 0 && (
                             <p className={cn("mt-0.5", actCfg.textClass, "opacity-60")}>{formatHours(entry.scheduledHours)}</p>
                         )}
                         {/* Barra de progreso: sólo visible mientras hay un timer corriendo para esta entrada */}
