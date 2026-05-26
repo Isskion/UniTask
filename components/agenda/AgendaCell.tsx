@@ -67,7 +67,14 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             </p>
                         )}
 
-                        {/* Fila 3: código de proyecto como referencia secundaria */}
+                        {/* Fila 3: descripción truncada a una línea */}
+                        {entry.description && (
+                            <p className={cn("truncate mt-0.5 opacity-75", actCfg.textClass)}>
+                                {entry.description}
+                            </p>
+                        )}
+
+                        {/* Fila 4: código de proyecto como referencia secundaria */}
                         {entry.projectCode && (
                             <div className="flex items-center gap-1 mt-0.5">
                                 <span
