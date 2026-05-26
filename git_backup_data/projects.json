@@ -197,12 +197,12 @@
     "_tenantAccessKey": "3:CL:CONS",
     "connections": {
       "prodIP": "",
-      "prodUser": "daniel.delamo@unigis.com",
-      "prodPass": "Aleg0r1a.02",
+      "prodUser": "[REDACTED]",
+      "prodPass": "[REDACTED]",
       "prodUrl": "",
       "testIP": "172.17.133.4",
-      "testUser": "europastry",
-      "testPass": "m!FpIDVh7TF38f7g",
+      "testUser": "[REDACTED]",
+      "testPass": "[REDACTED]",
       "testUrl": "https://eu-test.unigis.com/EUROPASTRY/Login/"
     },
     "_accessKey": "ES:CON",
@@ -246,19 +246,19 @@
     "environments": [
       {
         "url": "",
-        "user": "daniel.delamo@unigis.com",
+        "user": "[REDACTED]",
         "ip": "",
         "id": "prod",
         "isProduction": true,
         "name": "Producción",
-        "pass": "Aleg0r1a.02"
+        "pass": "[REDACTED]"
       },
       {
         "isProduction": false,
-        "pass": "FIT482sel",
+        "pass": "[REDACTED]",
         "name": "Test",
         "url": "https://eu-test.unigis.com/delgado",
-        "user": "delgado                   ",
+        "user": "[REDACTED]",
         "ip": "172.17.133.4 ",
         "id": "test"
       },
@@ -506,7 +506,7 @@
         "isProduction": true,
         "ip": "",
         "user": "",
-        "pass": "Aleg0r1a.02",
+        "pass": "[REDACTED]",
         "url": ""
       },
       {
@@ -514,8 +514,8 @@
         "name": "Test",
         "isProduction": false,
         "ip": "172.17.133.4",
-        "user": "luis_simoes",
-        "pass": "LSE873fks",
+        "user": "[REDACTED]",
+        "pass": "[REDACTED]",
         "url": ""
       }
     ]
@@ -774,12 +774,12 @@
     "_tenantAccessKey": "3:CL:CONS",
     "connections": {
       "prodIP": "",
-      "prodUser": "daniel.delamo@unigis.com",
-      "prodPass": "Aleg0r1a.02",
+      "prodUser": "[REDACTED]",
+      "prodPass": "[REDACTED]",
       "prodUrl": "",
       "testIP": "172.17.133.4",
-      "testUser": "transpais",
-      "testPass": "w!hU5JwYdMELJX06",
+      "testUser": "[REDACTED]",
+      "testPass": "[REDACTED]",
       "testUrl": "https://eu-test.unigis.com/transpais/Login/"
     },
     "_accessKey": "ES:CON",
@@ -814,17 +814,17 @@
     "environments": [
       {
         "ip": "https://eu-test.unigis.com/hesa/Login/",
-        "user": "admin",
+        "user": "[REDACTED]",
         "isProduction": true,
-        "pass": "P!p32d0DkU02wsK9",
+        "pass": "[REDACTED]",
         "name": "Producción",
         "id": "prod",
         "url": ""
       },
       {
-        "pass": "HLP725jrs",
+        "pass": "[REDACTED]",
         "ip": "172.17.133.4",
-        "user": "Hesa",
+        "user": "[REDACTED]",
         "isProduction": false,
         "name": "Test",
         "id": "test",

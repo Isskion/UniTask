@@ -52,8 +52,16 @@ async function formatBackupForGit() {
 
         const colFile = path.join(destFolder, `${colName}.json`);
         
-        // Pretty print con 2 espacios de indentación para diffs legibles
-        fs.writeFileSync(colFile, JSON.stringify(colData, null, 2));
+        // Pretty print con 2 espacios de indentación para diffs legibles, redactando credenciales sensibles
+        const sensitiveKeys = ['pass', 'prodpass', 'testpass', 'password', 'user', 'produser', 'testuser', 'private_key', 'private_key_id', 'secret'];
+        fs.writeFileSync(colFile, JSON.stringify(colData, (key, value) => {
+            if (typeof key === 'string' && sensitiveKeys.includes(key.toLowerCase())) {
+                if (typeof value === 'string' && value.trim() !== '') {
+                    return '[REDACTED]';
+                }
+            }
+            return value;
+        }, 2));
         console.log(`   ✅ Guardado: ${colName}.json (${colData.length} documentos)`);
     }
 
