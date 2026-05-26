@@ -26,6 +26,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NoTenantBlocker } from "@/components/NoTenantBlocker";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { ClientShell } from "@/components/ClientShell";
 
 export default function RootLayout({
   children,
@@ -44,6 +45,7 @@ export default function RootLayout({
                 <NoTenantBlocker>
                   {children}
                   <CommandMenu />
+                  <ClientShell />
                 </NoTenantBlocker>
               </ToastProvider>
             </UIProvider>

@@ -2252,7 +2252,6 @@ export default function DailyFollowUp() {
                                                 </div>
 
                                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
-                                                    <TaskControllerWidget embedded={true} />
 
                                                     {/* MANUAL ENTRY */}
                                                     <div className={cn("flex items-center gap-2 mb-4 p-2 rounded-lg border transition-colors",

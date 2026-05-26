@@ -150,6 +150,40 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    // ── Proactive alerts ──────────────────────────────────────────────────────
+    type AlertKind = '1h' | 'idle' | null;
+    const [activeAlert, setActiveAlert] = useState<AlertKind>(null);
+    const [alertLabel,  setAlertLabel]  = useState('');
+
+    // 1h alert refs
+    const notified1hTimerIdRef  = useRef<string | null>(null);
+    const snoozed1hUntilRef     = useRef<number>(0);
+
+    // Idle alert refs
+    const idleTimeoutRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const idleSnoozedUntilRef   = useRef<number>(0);
+    const idleAlertShownRef     = useRef(false);
+
+    // Browser Notifications permission
+    const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+            setNotifPermission(Notification.permission);
+        }
+    }, []);
+
+    function fireOsNotification(title: string, body: string) {
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, { body, icon: '/favicon.ico' });
+        }
+    }
+
+    async function requestNotifPermission() {
+        if (!('Notification' in window)) return;
+        const perm = await Notification.requestPermission();
+        setNotifPermission(perm);
+    }
+
     const currentTenantId = tenantId || "";
 
     // ── Derived ───────────────────────────────────────────────────────────────
@@ -176,6 +210,52 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
         const id = setInterval(() => setTick(t => t + 1), 1000);
         return () => clearInterval(id);
     }, [timerActive]);
+
+    // ── Alert: tarea lleva 1h activa ─────────────────────────────────────────
+    useEffect(() => {
+        if (!selectedTimer?.isRunning || !selectedTimerId) return;
+        if (secondsElapsed < 3600) {
+            // Reset tracking when timer is under 1h (new task started)
+            if (notified1hTimerIdRef.current === selectedTimerId) {
+                notified1hTimerIdRef.current = null;
+            }
+            return;
+        }
+        const alreadyNotified = notified1hTimerIdRef.current === selectedTimerId;
+        const snoozed = snoozedUntilRef.current > Date.now();
+        if (!alreadyNotified && !snoozed) {
+            notified1hTimerIdRef.current = selectedTimerId;
+            const label = [selectedTimer.projectName, selectedTimer.taskTypeName].filter(Boolean).join(' · ');
+            setAlertLabel(label);
+            setActiveAlert('1h');
+            fireOsNotification('⏱ Llevas 1 hora en la misma tarea', label || 'Tarea en curso');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [secondsElapsed, selectedTimerId, selectedTimer?.isRunning]);
+
+    // Ref used for snooze inside the 1h alert (needs to be accessible in closure)
+    const snoozedUntilRef = useRef<number>(0);
+
+    // ── Alert: sin tarea activa durante 15 min ────────────────────────────────
+    useEffect(() => {
+        if (activeTimers.length > 0) {
+            if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+            idleAlertShownRef.current = false;
+            return;
+        }
+        if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+        idleTimeoutRef.current = setTimeout(() => {
+            if (idleSnoozedUntilRef.current > Date.now()) return;
+            if (idleAlertShownRef.current) return;
+            const h = new Date().getHours();
+            if (h < 8 || h >= 20) return; // only during working hours
+            idleAlertShownRef.current = true;
+            setActiveAlert('idle');
+            setAlertLabel('');
+            fireOsNotification('🟡 Sin tarea activa', '¿En qué estás trabajando? Abre el widget para registrarlo.');
+        }, 15 * 60 * 1000);
+        return () => { if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current); };
+    }, [activeTimers.length]);
 
     // Keep ref in sync so timer listener closure stays fresh without recreating
     useEffect(() => { taskTypesRef.current = taskTypes; }, [taskTypes]);
@@ -830,12 +910,27 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                             {formattedDailyTotal}
                         </span>
                     </div>
-                    {timerActive && (
-                        <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            <span className="text-[10px] font-mono font-black text-emerald-500">{formatTimer(secondsElapsed)}</span>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {/* Notification permission bell */}
+                        {!embedded && typeof window !== 'undefined' && 'Notification' in window && notifPermission !== 'granted' && (
+                            <button
+                                onClick={requestNotifPermission}
+                                className="w-6 h-6 flex items-center justify-center rounded-lg text-zinc-500 hover:text-amber-400 hover:bg-amber-400/10 transition-all"
+                                title={notifPermission === 'denied' ? 'Notificaciones bloqueadas en el navegador' : 'Activar notificaciones del sistema'}
+                            >
+                                {notifPermission === 'denied'
+                                    ? <Lucide.BellOff className="w-3.5 h-3.5" />
+                                    : <Lucide.Bell className="w-3.5 h-3.5" />
+                                }
+                            </button>
+                        )}
+                        {timerActive && (
+                            <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[10px] font-mono font-black text-emerald-500">{formatTimer(secondsElapsed)}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Tabs */}
@@ -1290,6 +1385,75 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     )}
                 </div>
             </div>
+
+            {/* ── Proactive alert popup ──────────────────────────────────────── */}
+            {!embedded && activeAlert && (
+                <div className="fixed bottom-24 right-6 w-80 z-[120] animate-in slide-in-from-bottom-4 duration-300">
+                    <div className={cn(
+                        "rounded-2xl border shadow-2xl p-4 backdrop-blur-xl",
+                        activeAlert === '1h'
+                            ? "bg-amber-950/90 border-amber-500/30 text-amber-100"
+                            : "bg-zinc-900/95 border-indigo-500/30 text-zinc-100"
+                    )}>
+                        {/* Title row */}
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                                {activeAlert === '1h'
+                                    ? <Lucide.AlarmClock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                    : <Lucide.CircleHelp className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                                }
+                                <p className="text-xs font-black leading-snug">
+                                    {activeAlert === '1h'
+                                        ? 'Llevas 1 hora en la misma tarea'
+                                        : 'Sin tarea activa · ¿En qué estás trabajando?'
+                                    }
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setActiveAlert(null)}
+                                className="text-white/30 hover:text-white/70 transition-colors shrink-0"
+                            >
+                                <Lucide.X className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        {/* Context */}
+                        {alertLabel && (
+                            <p className="text-[11px] mt-1.5 ml-6 opacity-70 truncate">{alertLabel}</p>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 mt-3 ml-6">
+                            <button
+                                onClick={() => {
+                                    if (activeAlert === '1h') {
+                                        snoozedUntilRef.current = Date.now() + 30 * 60 * 1000;
+                                        notified1hTimerIdRef.current = null; // allow re-fire after snooze
+                                    } else {
+                                        idleSnoozedUntilRef.current = Date.now() + 30 * 60 * 1000;
+                                        idleAlertShownRef.current = false;
+                                    }
+                                    setActiveAlert(null);
+                                }}
+                                className="flex-1 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all"
+                            >
+                                Recordar en 30 min
+                            </button>
+                            <button
+                                onClick={() => { setIsOpen(true); setActiveAlert(null); }}
+                                className={cn(
+                                    "flex-1 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all",
+                                    activeAlert === '1h'
+                                        ? "bg-amber-500/80 hover:bg-amber-500 text-white"
+                                        : "bg-indigo-500/80 hover:bg-indigo-500 text-white"
+                                )}
+                            >
+                                Abrir widget
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* FAB */}
             {!embedded && (
