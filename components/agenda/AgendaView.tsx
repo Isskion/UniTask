@@ -325,7 +325,7 @@ export function AgendaView() {
         <div className="flex flex-col h-full bg-background text-foreground">
 
             {/* ── Toolbar ──────────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0 gap-3 flex-wrap bg-card/50">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0 gap-2 bg-card/50 overflow-x-auto">
 
                 {/* Left: Week navigation */}
                 <div className="flex items-center gap-2">
