@@ -10,8 +10,7 @@ GO
 -- FECHA:           26/05/2026
 -- DESCRIPCIÓN:     Relaciona un conductor con su operación correspondiente
 --                  basado en el campo dinámico Conductor_Dyn.operacion.
---
--- LLAMADO DESDE:   Proceso post-creación de Conductor / Interfaz de Conductores
+--                  Soporta tanto ID numérico como códigos/descripciones de texto.
 -- =============================================================================
 
 CREATE OR ALTER PROCEDURE [dbo].[Z_SP_RelacionarConductorOperacion]
@@ -26,53 +25,53 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- 1. Caso Conductor Único (Proceso inmediato tras creación)
+        -- 1. Caso Conductor Único (Proceso inmediato tras creación/interfaz)
         IF @IdConductor IS NOT NULL
         BEGIN
             DECLARE @ValOperacion NVARCHAR(100) = NULL;
             DECLARE @IdOperacion INT = NULL;
 
-            -- 1.1 Obtener el valor original del campo dinámico "operacion"
+            -- 1.1 Obtener el valor dinámico de operacion
             SELECT @ValOperacion = CD.operacion
             FROM dbo.Conductor_Dyn CD
             WHERE CD.IdConductor = @IdConductor;
 
-            PRINT 'INFO: Valor del campo Conductor_Dyn.operacion para Conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' es: ' + ISNULL('"' + @ValOperacion + '"', 'NULL/VACÍO');
+            PRINT 'DEBUG: Valor leído en Conductor_Dyn.operacion para el Conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' es: ' + ISNULL('"' + @ValOperacion + '"', 'NULL');
 
             IF @ValOperacion IS NULL OR LTRIM(RTRIM(@ValOperacion)) = ''
             BEGIN
-                PRINT 'ADVERTENCIA: El conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' no tiene ningún valor configurado en operacion.';
+                PRINT 'ADVERTENCIA: El conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' no tiene ningún valor de operación configurado en Conductor_Dyn.operacion.';
             END
             ELSE
             BEGIN
-                -- 1.2 Intentar resolver el IdOperacion
-                -- Caso A: El valor es numérico y coincide con un IdOperacion existente
+                -- 1.2 RESOLUCIÓN DEL ID DE OPERACIÓN
+                -- Caso A: El valor es numérico (ej. "2") y coincide directamente con un IdOperacion
                 IF TRY_CAST(@ValOperacion AS INT) IS NOT NULL
                 BEGIN
                     DECLARE @IntOperacion INT = CAST(@ValOperacion AS INT);
                     IF EXISTS (SELECT 1 FROM dbo.Operacion WHERE IdOperacion = @IntOperacion)
                     BEGIN
                         SET @IdOperacion = @IntOperacion;
-                        PRINT 'INFO: Resuelto IdOperacion ' + CAST(@IdOperacion AS VARCHAR(10)) + ' directamente por coincidencia numérica.';
+                        PRINT 'DEBUG: Se resolvió IdOperacion = ' + CAST(@IdOperacion AS VARCHAR(10)) + ' directamente por ID numérico.';
                     END
                 END
                 
-                -- Caso B: Si no se resolvió numéricamente, buscar coincidencia por ReferenciaExterna o Nombre
+                -- Caso B: Si es texto (ej. "BCN") o no coincidió numéricamente, buscar en maestro de Operacion
                 IF @IdOperacion IS NULL
                 BEGIN
                     SELECT TOP 1 @IdOperacion = IdOperacion
                     FROM dbo.Operacion
                     WHERE ReferenciaExterna = @ValOperacion
-                       OR Nombre = @ValOperacion;
+                       OR Descripcion = @ValOperacion;
                     
                     IF @IdOperacion IS NOT NULL
-                        PRINT 'INFO: Resuelto IdOperacion ' + CAST(@IdOperacion AS VARCHAR(10)) + ' por coincidencia de texto (ReferenciaExterna/Nombre).';
+                        PRINT 'DEBUG: Se resolvió IdOperacion = ' + CAST(@IdOperacion AS VARCHAR(10)) + ' buscando coincidencia de código/descripción en dbo.Operacion.';
                 END
 
-                -- 1.3 Verificar resultado de la resolución
+                -- 1.3 Evaluar resolución e insertar
                 IF @IdOperacion IS NULL
                 BEGIN
-                    PRINT 'ERROR: No se encontró ninguna operación en la tabla Operacion que coincida con el valor "' + @ValOperacion + '".';
+                    PRINT 'ERROR: No se encontró ninguna operación en la tabla "Operacion" que coincida con el valor "' + @ValOperacion + '".';
                 END
                 ELSE
                 BEGIN
@@ -88,7 +87,7 @@ BEGIN
                         INSERT INTO dbo.OperacionConductor (IdConductor, IdOperacion)
                         VALUES (@IdConductor, @IdOperacion);
 
-                        PRINT 'ÉXITO: Conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' vinculado a Operación ' + CAST(@IdOperacion AS VARCHAR(10)) + ' (' + @ValOperacion + ').';
+                        PRINT 'ÉXITO: Conductor ' + CAST(@IdConductor AS VARCHAR(10)) + ' vinculado exitosamente a la Operación ' + CAST(@IdOperacion AS VARCHAR(10)) + '.';
                     END
                     ELSE
                     BEGIN
@@ -97,24 +96,25 @@ BEGIN
                 END
             END
         END
-        -- 2. Caso Procesamiento en Lote (Sincronización o mantenimiento)
+        -- 2. Caso Procesamiento en Lote (Mantenimiento / Bulk)
         ELSE
         BEGIN
-            -- Insertar relaciones válidas masivamente
             INSERT INTO dbo.OperacionConductor (IdConductor, IdOperacion)
             SELECT DISTINCT C.IdConductor, O.IdOperacion
             FROM dbo.Conductor C
             INNER JOIN dbo.Conductor_Dyn CD ON C.IdConductor = CD.IdConductor
             INNER JOIN dbo.Operacion O ON (
-                -- Coincidencia numérica
-                (TRY_CAST(CD.operacion AS INT) IS NOT NULL AND O.IdOperacion = CAST(CD.operacion AS INT))
+                -- Coincidencia por ID numérico
+                (TRY_CAST(CD.operacion AS INT) IS NOT NULL 
+                 AND O.IdOperacion = CAST(CD.operacion AS INT))
                 OR
-                -- Coincidencia de texto (ReferenciaExterna o Nombre)
-                (TRY_CAST(CD.operacion AS INT) IS NULL AND (O.ReferenciaExterna = CD.operacion OR O.Nombre = CD.operacion))
+                -- Coincidencia por código de texto
+                (TRY_CAST(CD.operacion AS INT) IS NULL 
+                 AND (O.ReferenciaExterna = CD.operacion OR O.Descripcion = CD.operacion))
             )
             WHERE CD.operacion IS NOT NULL
               AND LTRIM(RTRIM(CD.operacion)) <> ''
-              -- Evitar duplicar relaciones existentes
+              -- Evitar duplicados
               AND NOT EXISTS (
                   SELECT 1 
                   FROM dbo.OperacionConductor OC 
