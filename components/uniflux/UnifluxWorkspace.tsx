@@ -230,6 +230,8 @@ export default function UnifluxWorkspace() {
     
     // V9: Inter-flow navigation (deep linking)
     const pendingNavigationNodeId = useRef<string | null>(null);
+    // V7: Saved viewport to restore after flow load (overrides fitView)
+    const pendingViewportRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
     const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
     
     // Stable callback exposed via context so edge components can signal dirtiness
@@ -570,17 +572,26 @@ export default function UnifluxWorkspace() {
     }, [nodes, edges, isDirty, graph.id, graph.projectId, selectedProjectId]);
 
     // V9: Handle cross-flow navigation with auto-centering
+    // V7: Also restores saved viewport after flow loads (overrides fitView)
     useEffect(() => {
-        if (pendingNavigationNodeId.current && reactFlowInstance && nodes.length > 0) {
+        if (!reactFlowInstance || nodes.length === 0) return;
+
+        if (pendingViewportRef.current) {
+            const vp = pendingViewportRef.current;
+            pendingViewportRef.current = null;
+            setTimeout(() => reactFlowInstance.setViewport(vp, { duration: 0 }), 150);
+            return;
+        }
+
+        if (pendingNavigationNodeId.current) {
             const targetNode = nodes.find(n => n.id === pendingNavigationNodeId.current);
             if (targetNode) {
-                console.log('UniFlux: Navegando a nodo profundo', targetNode.id);
                 const nodeId = targetNode.id;
                 setTimeout(() => {
-                    reactFlowInstance.fitView({ 
-                        nodes: [targetNode], 
-                        duration: 800, 
-                        padding: 0.5 
+                    reactFlowInstance.fitView({
+                        nodes: [targetNode],
+                        duration: 800,
+                        padding: 0.5
                     });
                     pendingNavigationNodeId.current = null;
                     setHighlightedNodeId(nodeId);
@@ -938,7 +949,14 @@ export default function UnifluxWorkspace() {
         isLoadingFlowRef.current = true;
         try {
         const tenantToUse = tenantId || '1';
-        const rawFlowInfo = await getFlow(tenantToUse, flowId);
+        let rawFlowInfo;
+        try {
+            rawFlowInfo = await getFlow(tenantToUse, flowId);
+        } catch (fetchErr) {
+            console.error('[uniflux] getFlow failed:', fetchErr);
+            alert('Error al cargar el diagrama. Comprueba tu conexión e inténtalo de nuevo.');
+            return;
+        }
 
         if (rawFlowInfo) {
             // --- CONCURRENCY LOCK CHECK ---
@@ -975,6 +993,11 @@ export default function UnifluxWorkspace() {
             
             // V11 Fix: syncNodesFromGraph handles setting exact nodes AND atomic history seeding
             syncNodesFromGraph(flowInfo, true);
+
+            // V7: Schedule viewport restoration after fitView runs (100ms covers the fitView animation)
+            if ((flowInfo as any).viewport) {
+                pendingViewportRef.current = (flowInfo as any).viewport;
+            }
 
             // PERSIST session: remember which flow & project was active so F5 can restore it
             try {
@@ -1941,6 +1964,7 @@ export default function UnifluxWorkspace() {
                     edges: updatedGraphEdges,
                     showGrid,
                     schemaVersion: CURRENT_SCHEMA_VERSION,
+                    ...(reactFlowInstance ? { viewport: reactFlowInstance.getViewport() } : {}),
                 };
             }
 

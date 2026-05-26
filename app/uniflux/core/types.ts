@@ -125,6 +125,8 @@ export interface FlowGraph {
     showGrid?: boolean;
     // V4: schema version for safe future migrations
     schemaVersion?: number;
+    // V7: Persisted viewport so reload restores the same zoom/pan position
+    viewport?: { x: number; y: number; zoom: number };
     metadata: {
         version: string;
         authorId: string;
