@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: 📂 Checkout Repository
         uses: actions/checkout@v4
@@ -28,29 +30,30 @@ jobs:
       - name: 🚀 Run Backup Script
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: node scripts/run-dated-backup.js
+        run: |
+          node scripts/run-dated-backup.js
+          node scripts/format-backup-for-git.js
 
       - name: 💾 Commit and Push Backup
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           git config --global user.name "UniTask Backup Bot"
           git config --global user.email "backup-bot@unitask.ai"
           
-          # Stage new files
-          git add backups/
+          # Stage new files (rules from backups/ and split collections from git_backup_data/)
+          git add backups/ git_backup_data/
           
           # Atomic sync to Remote HEAD while preserving uncommitted local changes in the working tree
           git fetch origin main
           git reset --mixed origin/main
           
           # Restage files for current HEAD index
-          git add backups/
+          git add backups/ git_backup_data/
           
-          # Only commit and push if there are diffs
-          if git status --porcelain | grep . > /dev/null; then
+          # Only commit and push if there are staged differences
+          if ! git diff --cached --quiet; then
             git commit -m "🛡️ Auto-backup: $(date +'%Y-%m-%d %H:%M')"
-            git push origin main
+            git push origin HEAD:main
           else
             echo "No backup changes detected. Nothing to push."
           fi
+

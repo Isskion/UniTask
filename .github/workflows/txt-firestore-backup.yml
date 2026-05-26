@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: 📂 Checkout Repository
@@ -43,8 +45,6 @@ jobs:
           node scripts/refresh-txt-backups.js
 
       - name: 💾 Commit and Push TXT backups
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           set -euo pipefail
           git config --global user.name "UniTask Backup Bot"
@@ -62,11 +62,12 @@ jobs:
           # Re-stage against fresh HEAD index
           git add $TARGET_FILES || true
           
-          # Deploy only if payload changed
-          if git status --porcelain $TARGET_FILES | grep . > /dev/null; then
+          # Deploy only if there are staged differences
+          if ! git diff --cached --quiet; then
              git commit -m "📝 TXT backup: $(date +'%Y-%m-%d %H:%M %Z')"
-             git push origin main
+             git push origin HEAD:main
           else
              echo "No TXT backup content modified. Exiting cleanly."
           fi
+
 

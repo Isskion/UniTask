@@ -49,8 +49,6 @@ repair-env.js
 backup_*/
 serviceAccountKey.json
 serviceAccountKey.json.json
-!backups/
-!backups/**
 
 # Firebase Admin Keys
 minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
@@ -68,3 +66,9 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 /unigis-order-creator-web/
 /functions/lib/
 /lib/generated/prisma
+
+# Whitelist backups and git_backup_data JSON files
+!git_backup_data/
+!git_backup_data/**
+
+
