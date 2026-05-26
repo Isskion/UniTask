@@ -60,10 +60,10 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", resCfg.dotClass)} />
                         </div>
 
-                        {/* Fila 2: cliente (campo principal) */}
-                        {entry.client && (
+                        {/* Fila 2: proyecto (nombre del cliente/proyecto principal) */}
+                        {entry.projectName && (
                             <p className={cn("truncate mt-0.5", actCfg.textClass, "opacity-90")}>
-                                {entry.client}
+                                {entry.projectName}
                             </p>
                         )}
 
@@ -80,10 +80,10 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             </div>
                         )}
 
-                        {/* Fila 4: tiempo invertido — siempre visible si hay minutos registrados */}
-                        {actualMins > 0 && (
+                        {/* Fila 4: horas planificadas — siempre visibles */}
+                        {entry.scheduledHours > 0 && (
                             <p className={cn("mt-0.5 text-[9px] font-mono", actCfg.textClass, "opacity-70")}>
-                                {fmtMinutes(actualMins)}
+                                {formatHours(entry.scheduledHours)}
                             </p>
                         )}
 
