@@ -17,7 +17,7 @@ Esto implica que:
 En el entorno de EUP, es común enriquecer las entidades estándar de UNIGIS mediante tablas de extensión dinámicas (sufijo `_Dyn`).
 
 - **`dbo.Conductor_Dyn`**: Extiende la tabla de conductores (`dbo.Conductor`). 
-  - `operacion2`: Contiene el ID (en formato texto/número) de la operación a la cual pertenece el conductor cuando este es importado a través de interfaces de entrada.
+  - `operacion`: Contiene el ID numérico o el código/nombre de texto de la operación a la cual pertenece el conductor cuando este es importado a través de interfaces de entrada.
 - **`dbo.OperacionConductor`**: Tabla puente nativa que asocia conductores a operaciones habilitadas.
   - Campos clave: `IdOperacionConductor` (Clave primaria autogenerada/IDENTITY), `IdConductor` e `IdOperacion`.
 
@@ -31,10 +31,10 @@ Todos los desarrollos a medida se nombran bajo el esquema de prefijo `Z_` o `Z_S
 - **Objetivo:** Relaciona automáticamente a un conductor con su operación correspondiente al finalizar el proceso de importación/creación en la interfaz.
 - **Origen de datos:** 
   - `IdConductor` de `dbo.Conductor`
-  - `IdOperacion` desde `TRY_CAST(dbo.Conductor_Dyn.operacion2 AS INT)`
+  - `IdOperacion` resuelto a partir de `dbo.Conductor_Dyn.operacion` (se evalúa coincidencia numérica con `IdOperacion` o coincidencia de texto con `ReferenciaExterna` o `Nombre` en `dbo.Operacion`).
 - **Modos de Ejecución:**
-  1. **Individual (Por evento):** Pasando el parámetro `@IdConductor INT`. Se ejecuta en tiempo real tras la creación individual de un conductor.
-  2. **Por Lote (Bulk):** Al llamarse sin parámetros (`EXEC dbo.Z_SP_RelacionarConductorOperacion`), el SP busca todos los conductores existentes en `Conductor_Dyn` que tengan el campo `operacion2` informado, pero que aún no tengan la fila correspondiente en `OperacionConductor`.
+  1. **Individual (Por evento):** Pasando el parámetro `@IdConductor INT`. Se ejecuta en tiempo real tras la creación individual de un conductor. Incluye trazas de depuración detalladas visibles en la pestaña "Messages" de SSMS.
+  2. **Por Lote (Bulk):** Al llamarse sin parámetros (`EXEC dbo.Z_SP_RelacionarConductorOperacion`), el SP busca todos los conductores existentes en `Conductor_Dyn` que tengan el campo `operacion` informado, pero que aún no tengan la fila correspondiente en `OperacionConductor`.
 - **Script de Pruebas Asociado:** **[Z_Test_RelacionarConductorOperacion.sql](file:///c:/Users/daniel.delamo/.gemini/antigravity/scratch/UniTask/docs/db/Z_Test_RelacionarConductorOperacion.sql)** (Valida el comportamiento e idempotencia usando el conductor de pruebas `IdConductor = 7`).
 
 ### Otros SPs de Integración EUP en el repositorio:

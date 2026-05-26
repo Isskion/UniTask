@@ -14,8 +14,8 @@ SELECT IdConductor, Nombre, ReferenciaExterna
 FROM dbo.Conductor 
 WHERE IdConductor = 7;
 
--- Ver el campo dinámico que tiene el ID de la operación
-SELECT IdConductor, operacion2 AS [IdOperacion (operacion2)]
+-- Ver el campo dinámico que tiene el valor de la operación
+SELECT IdConductor, operacion AS [Valor Operación (operacion)]
 FROM dbo.Conductor_Dyn 
 WHERE IdConductor = 7;
 
@@ -29,7 +29,7 @@ PRINT '════════════════════════�
 PRINT '2. EJECUCIÓN DEL SP PARA EL CONDUCTOR 7';
 PRINT '════════════════════════════════════════════════════════════════════════';
 
--- Ejecución en modo conductor único
+-- Ejecución en modo conductor único (Revisa los mensajes impresos en la pestaña "Messages")
 EXEC dbo.Z_SP_RelacionarConductorOperacion @IdConductor = 7;
 
 PRINT '';
@@ -48,13 +48,3 @@ PRINT '4. PRUEBA DE INDEMPOTENCIA (Ejecutar de nuevo para validar que no dupliqu
 PRINT '════════════════════════════════════════════════════════════════════════';
 
 EXEC dbo.Z_SP_RelacionarConductorOperacion @IdConductor = 7;
-
-/*
--- =============================================================================
--- SCRIPT DE LIMPIEZA / RESET (Por si deseas volver a probar desde cero)
--- =============================================================================
--- DECLARE @IdOperacion INT;
--- SELECT @IdOperacion = TRY_CAST(operacion2 AS INT) FROM dbo.Conductor_Dyn WHERE IdConductor = 7;
--- DELETE FROM dbo.OperacionConductor WHERE IdConductor = 7 AND IdOperacion = @IdOperacion;
--- PRINT 'Relación eliminada. Listo para volver a probar.';
-*/
