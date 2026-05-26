@@ -14,9 +14,10 @@ interface Props {
     entries: AgendaEntry[];
     onAdd: () => void;
     onEdit: (entry: AgendaEntry) => void;
+    runningEntryIds: Set<string>;
 }
 
-export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }: Props) {
+export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, runningEntryIds }: Props) {
     const { t } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark' || theme === 'red';
@@ -70,23 +71,25 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit }
                         {entry.scheduledHours > 0 && (
                             <p className={cn("mt-0.5", actCfg.textClass, "opacity-60")}>{formatHours(entry.scheduledHours)}</p>
                         )}
-                        {/* Programado vs real */}
-                        {(entry as any).actualMinutes > 0 && entry.scheduledHours > 0 && (() => {
+                        {/* Barra de progreso: sólo visible mientras hay un timer corriendo para esta entrada */}
+                        {runningEntryIds.has(entry.id) && entry.scheduledHours > 0 && (() => {
                             const scheduledMins = Math.round(entry.scheduledHours * 60);
-                            const actualMins = (entry as any).actualMinutes as number;
-                            const pct = Math.min(100, Math.round((actualMins / scheduledMins) * 100));
+                            const actualMins = ((entry as any).actualMinutes as number) || 0;
+                            const pct = Math.min(100, Math.max(4, Math.round((actualMins / scheduledMins) * 100)));
                             const over = actualMins > scheduledMins;
                             return (
                                 <div className="mt-1 space-y-0.5">
                                     <div className="w-full h-1 rounded-full bg-black/20 overflow-hidden">
                                         <div
-                                            className={cn("h-full rounded-full transition-all", over ? "bg-red-400" : "bg-emerald-400")}
+                                            className={cn("h-full rounded-full transition-all", over ? "bg-red-400" : "bg-emerald-400 animate-pulse")}
                                             style={{ width: `${pct}%` }}
                                         />
                                     </div>
-                                    <p className={cn("text-[8px] font-mono", over ? "text-red-400" : "text-emerald-400")}>
-                                        {Math.floor(actualMins / 60)}h{String(actualMins % 60).padStart(2, "0")}m / {formatHours(entry.scheduledHours)}
-                                    </p>
+                                    {actualMins > 0 && (
+                                        <p className={cn("text-[8px] font-mono", over ? "text-red-400" : "text-emerald-400")}>
+                                            {Math.floor(actualMins / 60)}h{String(actualMins % 60).padStart(2, "0")}m / {formatHours(entry.scheduledHours)}
+                                        </p>
+                                    )}
                                 </div>
                             );
                         })()}

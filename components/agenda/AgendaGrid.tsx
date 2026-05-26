@@ -29,6 +29,7 @@ interface Props {
     filters: AgendaFilters;
     tenantId: string;
     samDivisions: SAMDivision[];
+    runningEntryIds: Set<string>;
 }
 
 interface ModalState {
@@ -40,7 +41,7 @@ interface ModalState {
 
 const CLOSED_MODAL: ModalState = { open: false, consultant: null, date: null, entry: null };
 
-export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, samDivisions }: Props) {
+export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, samDivisions, runningEntryIds }: Props) {
     const { t } = useLanguage();
     const [modal, setModal] = useState<ModalState>(CLOSED_MODAL);
 
@@ -207,6 +208,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, 
                                                     entries={cellEntries}
                                                     onAdd={() => openAdd(consultant, date)}
                                                     onEdit={entry => openEdit(consultant, date, entry)}
+                                                    runningEntryIds={runningEntryIds}
                                                 />
                                             </td>
                                         );

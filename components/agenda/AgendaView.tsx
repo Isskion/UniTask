@@ -18,7 +18,7 @@ import {
     getYearMonth, getWeekMonth, getWeekLabel,
 } from "@/lib/agenda-utils";
 import { subscribeToWeekEntries, subscribeToConsultants, updateConsultant, exportJira, exportMSProject, loadSAMRegions, loadSAMDivisions, SAMRegion, SAMDivision } from "@/lib/agenda";
-import { clearIndexedDbPersistence, terminate, getDoc, doc } from "firebase/firestore";
+import { clearIndexedDbPersistence, terminate, getDoc, doc, query, collection, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getRoleLevel } from "@/types";
 import { AgendaGrid } from "./AgendaGrid";
@@ -58,6 +58,27 @@ export function AgendaView() {
     const [entries,     setEntries]     = useState<AgendaEntry[]>([]);
     const [consultants, setConsultants] = useState<AgendaConsultant[]>([]);
     const [loading,     setLoading]     = useState(true);
+
+    // Set of agendaEntryIds that have a currently running timer
+    const [runningEntryIds, setRunningEntryIds] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (!tid) return;
+        const q = query(
+            collection(db, "activeTimers"),
+            where("tenantId", "==", tid),
+            where("isRunning", "==", true)
+        );
+        const unsub = onSnapshot(q, snap => {
+            const ids = new Set<string>();
+            snap.docs.forEach(d => {
+                const entryId = d.data().agendaEntryId as string | undefined;
+                if (entryId) ids.add(entryId);
+            });
+            setRunningEntryIds(ids);
+        });
+        return unsub;
+    }, [tid]);
 
     useEffect(() => {
         if (!tid) return;
@@ -652,6 +673,7 @@ export function AgendaView() {
                     filters={filters}
                     tenantId={tid}
                     samDivisions={samDivisions}
+                    runningEntryIds={runningEntryIds}
                 />
             )}
 
