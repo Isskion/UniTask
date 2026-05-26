@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, AgendaFilters, ACTIVITY_CONFIG } from "@/types/agenda";
 import { SAMDivision } from "@/lib/agenda";
@@ -58,7 +59,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, 
             const date = e.date && typeof (e.date as any).toDate === 'function'
                 ? (e.date as any).toDate()
                 : new Date(e.date as unknown as string);
-            const iso  = date.toISOString().split('T')[0];
+            const iso  = format(date, 'yyyy-MM-dd');
             const key  = `${e.consultantId}::${iso}`;
             if (!map.has(key)) map.set(key, []);
             const filtered = filters.activityTypes.length > 0
@@ -78,7 +79,7 @@ export function AgendaGrid({ weekDays, consultants, entries, filters, tenantId, 
     // ── Day metadata ───────────────────────────────────────────────────────────
     const dayMeta = useMemo(() => weekDays.map(d => ({
         date:    d,
-        iso:     d.toISOString().split('T')[0],
+        iso:     format(d, 'yyyy-MM-dd'),
         type:    getDayType(d),
         header:  formatDayHeader(d),
     })), [weekDays]);

@@ -396,7 +396,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     useEffect(() => {
         if (!user || !currentTenantId || currentTenantId === "unknown") return;
 
-        const todayISO = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        const todayISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 
         const unsub = onSnapshot(
             query(
@@ -408,7 +409,12 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
             snap => {
                 const entries: AgendaEntry[] = snap.docs
                     .map(d => ({ id: d.id, ...d.data() } as AgendaEntry))
-                    .filter(e => e.date?.toDate?.()?.toISOString?.().slice(0, 10) === todayISO);
+                    .filter(e => {
+                        const d = e.date?.toDate?.();
+                        if (!d) return false;
+                        const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                        return iso === todayISO;
+                    });
                 setTodayAgendaEntries(entries);
             },
             err => console.error("agenda_entries today:", err)
