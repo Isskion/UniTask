@@ -17,67 +17,79 @@ interface Props {
     runningEntryIds: Set<string>;
 }
 
+function fmtMinutes(mins: number): string {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? `${h}h${String(m).padStart(2, "0")}m` : `${m}m`;
+}
+
 export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, runningEntryIds }: Props) {
     const { t } = useLanguage();
     const { theme } = useTheme();
     const isDark = theme === 'dark' || theme === 'red';
-    const isWeekend  = dayType === DayType.FDS;
-    const isHoliday  = dayType === DayType.DNH;
+    const isWeekend = dayType === DayType.FDS;
+    const isHoliday = dayType === DayType.DNH;
     const isDisabled = isWeekend || isHoliday;
 
     const totalHours = entries.reduce((sum, e) => sum + (e.scheduledHours || 0), 0);
 
     return (
-        // bg, border and hover live on the parent <td> in AgendaGrid so they always
-        // fill the full row height. This div only manages content layout.
         <div className="min-h-[80px] p-1.5 flex flex-col gap-1 relative transition-colors">
-            {/* Entries list */}
             {entries.map(entry => {
-                const actCfg = ACTIVITY_CONFIG[entry.activityType];
-                const resCfg = RESULT_CONFIG[entry.result];
-                const isRunning = runningEntryIds.has(entry.id);
+                const actCfg  = ACTIVITY_CONFIG[entry.activityType];
+                const resCfg  = RESULT_CONFIG[entry.result];
+                const isRunning   = runningEntryIds.has(entry.id);
+                const actualMins  = ((entry as any).actualMinutes as number) || 0;
+                const scheduledMins = Math.round((entry.scheduledHours || 0) * 60);
+
                 return (
                     <button
                         key={entry.id}
                         onClick={() => onEdit(entry)}
                         className={cn(
-                            "w-full text-left rounded-md px-2 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
-                            isRunning ? "py-1.5" : "py-1",
+                            "w-full text-left rounded-md px-2 py-1 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
                             actCfg.bgClass, actCfg.borderClass,
                             isDark ? "text-white" : actCfg.textClass,
                         )}
                     >
-                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                        {/* Fila 1: tipo de tarea + dot de estado */}
+                        <div className="flex items-center justify-between gap-1">
                             <span className={cn("font-semibold truncate", actCfg.textClass)}>
                                 {actCfg.label}
                             </span>
                             <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", resCfg.dotClass)} />
                         </div>
+
+                        {/* Fila 2: cliente (campo principal) */}
+                        {entry.client && (
+                            <p className={cn("truncate mt-0.5", actCfg.textClass, "opacity-90")}>
+                                {entry.client}
+                            </p>
+                        )}
+
+                        {/* Fila 3: código de proyecto como referencia secundaria */}
                         {entry.projectCode && (
-                            <div className="flex items-center gap-1 mb-0.5">
+                            <div className="flex items-center gap-1 mt-0.5">
                                 <span
                                     className="w-1.5 h-1.5 rounded-full shrink-0"
                                     style={{ backgroundColor: entry.projectColor || '#6b7280' }}
                                 />
-                                <span className={cn("text-[9px] font-mono truncate", actCfg.textClass, "opacity-70")}>
+                                <span className={cn("text-[9px] font-mono truncate", actCfg.textClass, "opacity-60")}>
                                     {entry.projectCode}
                                 </span>
                             </div>
                         )}
-                        {isRunning && entry.divisionName && (
-                            <p className="text-[8px] font-bold uppercase tracking-wider text-violet-500/80 truncate">{entry.divisionName}</p>
+
+                        {/* Fila 4: tiempo invertido — siempre visible si hay minutos registrados */}
+                        {actualMins > 0 && (
+                            <p className={cn("mt-0.5 text-[9px] font-mono", actCfg.textClass, "opacity-70")}>
+                                {fmtMinutes(actualMins)}
+                            </p>
                         )}
-                        {isRunning && entry.client && (
-                            <p className={cn("truncate", actCfg.textClass, "opacity-80")}>{entry.client}</p>
-                        )}
-                        {isRunning && entry.scheduledHours > 0 && (
-                            <p className={cn("mt-0.5", actCfg.textClass, "opacity-60")}>{formatHours(entry.scheduledHours)}</p>
-                        )}
-                        {/* Barra de progreso: sólo visible mientras hay un timer corriendo para esta entrada */}
-                        {runningEntryIds.has(entry.id) && entry.scheduledHours > 0 && (() => {
-                            const scheduledMins = Math.round(entry.scheduledHours * 60);
-                            const actualMins = ((entry as any).actualMinutes as number) || 0;
-                            const pct = Math.min(100, Math.max(4, Math.round((actualMins / scheduledMins) * 100)));
+
+                        {/* Barra de progreso: solo visible con timer activo */}
+                        {isRunning && scheduledMins > 0 && (() => {
+                            const pct  = Math.min(100, Math.max(4, Math.round((actualMins / scheduledMins) * 100)));
                             const over = actualMins > scheduledMins;
                             return (
                                 <div className="mt-1 space-y-0.5">
@@ -87,11 +99,9 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                                             style={{ width: `${pct}%` }}
                                         />
                                     </div>
-                                    {actualMins > 0 && (
-                                        <p className={cn("text-[8px] font-mono", over ? "text-red-400" : "text-emerald-400")}>
-                                            {Math.floor(actualMins / 60)}h{String(actualMins % 60).padStart(2, "0")}m / {formatHours(entry.scheduledHours)}
-                                        </p>
-                                    )}
+                                    <p className={cn("text-[8px] font-mono", over ? "text-red-400" : "text-emerald-400")}>
+                                        {fmtMinutes(actualMins)} / {formatHours(entry.scheduledHours)}
+                                    </p>
                                 </div>
                             );
                         })()}
@@ -99,14 +109,14 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                 );
             })}
 
-            {/* Total hours badge */}
+            {/* Total horas si hay más de una entrada */}
             {entries.length > 1 && totalHours > 0 && (
                 <div className="text-[9px] text-muted-foreground font-mono px-1">
                     Total: {formatHours(totalHours)}
                 </div>
             )}
 
-            {/* Add button */}
+            {/* Botón añadir */}
             {!isDisabled && (
                 <button
                     onClick={onAdd}
@@ -120,7 +130,7 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                 </button>
             )}
 
-            {/* FDS / DNH label */}
+            {/* Etiqueta FDS / festivo */}
             {isDisabled && (
                 <span className={cn(
                     "text-[9px] font-medium uppercase tracking-wider px-1 mt-auto",
