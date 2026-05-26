@@ -230,7 +230,7 @@ export async function executeImport(
             result:          entry.result,
             jiraRecord:      buildJiraRecord(entry.activityType, client, description),
             projectId:       null,
-            projectName:     null,
+            projectName:     client || null,
             projectCode:     null,
             projectColor:    null,
             linkedTaskId:    null,
