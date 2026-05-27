@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgendaConsultant } from "@/types/agenda";
 import {
@@ -27,6 +27,8 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     const [unknownConsultants, setUnknownConsultants] = useState<string[]>([]);
     const [result, setResult] = useState<{ written: number; skipped: number; unknownConsultants: string[] } | null>(null);
     const [error, setError] = useState<string>('');
+    // consultantId → selected region (only populated for multi-region consultants in the Excel)
+    const [regionOverrides, setRegionOverrides] = useState<Record<string, string>>({});
 
     useEffect(() => {
         parseAgendaExcel(file)
@@ -34,6 +36,18 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                 const unknown = resolveUnknownConsultants(p.entries, consultants);
                 setPreview(p);
                 setUnknownConsultants(unknown);
+
+                // Pre-populate region overrides for multi-region consultants present in the Excel
+                const namesInExcel = new Set(p.entries.map(e => e.consultantName.toUpperCase()));
+                const initialOverrides: Record<string, string> = {};
+                consultants.forEach(c => {
+                    const effectiveRegions = (c.regions ?? []).filter(r => r !== '*');
+                    if (effectiveRegions.length > 1 && namesInExcel.has(c.name.toUpperCase())) {
+                        initialOverrides[c.userId] = effectiveRegions[0];
+                    }
+                });
+                setRegionOverrides(initialOverrides);
+
                 setPhase('preview');
             })
             .catch(err => {
@@ -46,7 +60,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
         if (!preview) return;
         setPhase('importing');
         try {
-            const res = await executeImport(preview, consultants, tenantId, userId);
+            const res = await executeImport(preview, consultants, tenantId, userId, regionOverrides);
             setResult(res);
             setPhase('done');
             onSuccess(res.written);
@@ -54,7 +68,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
             setError(String(err?.message || err));
             setPhase('error');
         }
-    }, [preview, consultants, tenantId, userId, onSuccess]);
+    }, [preview, consultants, tenantId, userId, regionOverrides, onSuccess]);
 
     // Group by consultant for preview table
     const grouped = preview ? groupByConsultant(preview.entries) : [];
@@ -63,6 +77,15 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
             consultants.some(c => c.name.toUpperCase() === e.consultantName.toUpperCase())
           ).length
         : 0;
+
+    // Consultants that appear in the Excel AND have multiple specific regions (excluding '*') → need region selector
+    const multiRegionConsultants = preview
+        ? consultants.filter(c => {
+            const effectiveRegions = (c.regions ?? []).filter(r => r !== '*');
+            return effectiveRegions.length > 1 &&
+                preview.entries.some(e => e.consultantName.toUpperCase() === c.name.toUpperCase());
+          })
+        : [];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -148,6 +171,39 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                             {/* Unknown consultants warning */}
                             {unknownConsultants.length > 0 && (
                                 <UnknownBanner names={unknownConsultants} />
+                            )}
+
+                            {/* Region selector for multi-region consultants */}
+                            {multiRegionConsultants.length > 0 && (
+                                <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-2">
+                                    <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold">
+                                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                        Consultores con múltiples regiones — selecciona dónde asignar las entradas
+                                    </div>
+                                    <div className="grid gap-2">
+                                        {multiRegionConsultants.map(c => (
+                                            <div key={c.userId} className="flex items-center justify-between gap-3">
+                                                <span className="text-xs text-foreground font-medium truncate">{c.name}</span>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    {(c.regions ?? []).filter(r => r !== '*').map(r => (
+                                                        <button
+                                                            key={r}
+                                                            onClick={() => setRegionOverrides(prev => ({ ...prev, [c.userId]: r }))}
+                                                            className={cn(
+                                                                "px-2.5 py-0.5 rounded-md text-xs font-medium border transition-all",
+                                                                regionOverrides[c.userId] === r
+                                                                    ? "bg-indigo-600 border-indigo-500 text-white"
+                                                                    : "bg-muted/40 border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                            )}
+                                                        >
+                                                            {r}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
 
                             {/* Entries table */}

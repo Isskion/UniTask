@@ -10,7 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { getRoleLevel } from "@/types";
 import { cn } from "@/lib/utils";
 import {
-    Users, Plus, Check, X, GripVertical, Globe, ChevronDown, Loader2, UserCheck, UserX,
+    Users, Plus, X, ChevronDown, Loader2, UserCheck, UserX,
 } from "lucide-react";
 
 interface TenantUser {
@@ -166,10 +166,13 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
         }
     }
 
-    async function changeRegion(consultant: AgendaConsultant, region: string) {
+    async function changeRegions(consultant: AgendaConsultant, newRegions: string[]) {
         setSaving(consultant.id);
         try {
-            await updateConsultant(consultant.id, { region });
+            await updateConsultant(consultant.id, {
+                regions: newRegions,
+                region:  newRegions.find(r => r !== '*') ?? newRegions[0] ?? '',
+            });
         } finally {
             setSaving(null);
         }
@@ -252,41 +255,40 @@ export function AgendaConsultantsManager({ consultants, tenantId, samRegions, sa
                                         {/* Name */}
                                         <span className="flex-1 text-sm font-medium text-zinc-200">{c.name}</span>
 
-                                        {/* Region select + regions badge */}
-                                        <div className="flex flex-col items-end gap-0.5">
-                                            <select
-                                                value={c.region}
-                                                disabled={saving === c.id}
-                                                onChange={e => changeRegion(c, e.target.value)}
-                                                className="bg-white/5 border border-white/10 rounded text-[10px] font-bold text-indigo-300 px-1.5 py-0.5 cursor-pointer disabled:opacity-40"
-                                            >
-                                                {samRegions.length === 0
-                                                    ? <option value={c.region}>{c.region}</option>
-                                                    : <>
-                                                        {!samRegions.some(r => r.name === c.region || r.id === c.region) && (
-                                                            <option value={c.region} disabled>⚠ {c.region || '(vacío)'}</option>
-                                                        )}
-                                                        {samRegions.map(r => (
-                                                            <option key={r.id} value={r.name}>{r.name}</option>
-                                                        ))}
-                                                      </>
-                                                }
-                                            </select>
-                                            {/* regions[] badge — shows multi-region or global state */}
-                                            <span className={cn(
-                                                "text-[8px] font-bold px-1 py-px rounded",
-                                                c.regions?.includes('*')
-                                                    ? "bg-emerald-500/20 text-emerald-400"
-                                                    : c.regions?.length
-                                                        ? "bg-indigo-500/20 text-indigo-400"
-                                                        : "text-zinc-700"
-                                            )}>
-                                                {c.regions?.includes('*')
-                                                    ? '★ global'
-                                                    : c.regions?.length
-                                                        ? c.regions.join(', ')
-                                                        : 'sin sync'}
-                                            </span>
+                                        {/* Region pills — multi-select, no primary */}
+                                        <div className="flex items-center gap-1 flex-wrap justify-end max-w-[200px]">
+                                            {c.regions?.includes('*') ? (
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">
+                                                    ★ Global
+                                                </span>
+                                            ) : samRegions.length === 0 ? (
+                                                <span className="text-[10px] text-zinc-600 italic">sin regiones</span>
+                                            ) : (
+                                                samRegions.map(r => {
+                                                    const active = (c.regions ?? []).includes(r.name);
+                                                    const currentRegions = c.regions ?? (c.region ? [c.region] : []);
+                                                    return (
+                                                        <button
+                                                            key={r.id}
+                                                            disabled={saving === c.id}
+                                                            onClick={() => changeRegions(c,
+                                                                active
+                                                                    ? currentRegions.filter(x => x !== r.name)
+                                                                    : [...currentRegions, r.name]
+                                                            )}
+                                                            className={cn(
+                                                                "px-2 py-0.5 rounded text-[10px] font-semibold border transition-all disabled:opacity-40",
+                                                                active
+                                                                    ? "bg-indigo-600/30 border-indigo-500/40 text-indigo-300 hover:bg-red-600/20 hover:border-red-500/30 hover:text-red-400"
+                                                                    : "bg-white/3 border-white/8 text-zinc-600 hover:text-zinc-200 hover:bg-white/8 hover:border-white/15"
+                                                            )}
+                                                            title={active ? `Quitar ${r.name}` : `Añadir ${r.name}`}
+                                                        >
+                                                            {r.name}
+                                                        </button>
+                                                    );
+                                                })
+                                            )}
                                         </div>
 
                                         {/* Remove */}

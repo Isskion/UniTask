@@ -218,7 +218,7 @@ export async function createConsultant(data: Omit<AgendaConsultant, 'id' | 'crea
 }
 
 export async function updateConsultant(id: string, data: Partial<Pick<AgendaConsultant, 'name' | 'sortOrder' | 'region' | 'regions' | 'isActive' | 'divisions'>>): Promise<void> {
-    await updateDoc(doc(db, CONSULTANTS_COLLECTION, id), data);
+    await updateDoc(doc(db, CONSULTANTS_COLLECTION, id), { ...data, updatedAt: serverTimestamp() });
 }
 
 export async function getConsultants(tenantId: string): Promise<AgendaConsultant[]> {

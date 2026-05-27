@@ -148,11 +148,17 @@ export function resolveUnknownConsultants(
 
 // ─── Execute Import ───────────────────────────────────────────────────────────
 
+/**
+ * regionOverrides: consultantId → region string.
+ * When a consultant has multiple regions, the caller can specify which region
+ * to stamp on the imported entries instead of using consultant.region.
+ */
 export async function executeImport(
     preview: ImportPreview,
     consultants: AgendaConsultant[],
     tenantId: string,
     userId: string,
+    regionOverrides?: Record<string, string>,
 ): Promise<ImportResult> {
     const { entries, weekStart } = preview;
 
@@ -217,7 +223,10 @@ export async function executeImport(
             consultantId:    consultant.userId,
             consultantName:  consultant.name,
             consultantOrder: consultant.sortOrder,
-            region:          consultant.region,
+            region:          regionOverrides?.[consultant.userId]
+                                ?? (consultant.regions ?? []).find(r => r !== '*')
+                                ?? consultant.region
+                                ?? '',
             divisionId:      '',
             divisionName:    '',
             activityType:    entry.activityType,
