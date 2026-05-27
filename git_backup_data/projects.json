@@ -207,7 +207,27 @@
     },
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "environments": [
+      {
+        "id": "prod",
+        "name": "Producción",
+        "isProduction": true,
+        "ip": "",
+        "user": "",
+        "pass": "[REDACTED]",
+        "url": " FA-57-7F-50-AE-E "
+      },
+      {
+        "id": "test",
+        "name": "Test",
+        "isProduction": false,
+        "ip": "172.17.133.4",
+        "user": "[REDACTED]",
+        "pass": "[REDACTED]",
+        "url": "https://eu-test.unigis.com/EUROPASTRY/Login/"
+      }
+    ]
   },
   {
     "id": "Au1xfXgivgl6VYj2zscs",
