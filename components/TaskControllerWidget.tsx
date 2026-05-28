@@ -161,7 +161,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     // Idle alert refs
     const idleTimeoutRef        = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const idleSnoozedUntilRef   = useRef<number>(0);
+    const idleSnoozedUntilRef   = useRef<number>(typeof window !== 'undefined' ? parseInt(localStorage.getItem('unitask_alert_idle_snooze') || '0', 10) : 0);
     const idleAlertShownRef     = useRef(false);
 
     // Browser Notifications permission
@@ -234,7 +234,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
     }, [secondsElapsed, selectedTimerId, selectedTimer?.isRunning]);
 
     // Ref used for snooze inside the 1h alert (needs to be accessible in closure)
-    const snoozedUntilRef = useRef<number>(0);
+    const snoozedUntilRef = useRef<number>(typeof window !== 'undefined' ? parseInt(localStorage.getItem('unitask_alert_1h_snooze') || '0', 10) : 0);
 
     // ── Alert: sin tarea activa durante 15 min ────────────────────────────────
     useEffect(() => {
@@ -282,8 +282,10 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                     .filter(p => p.status === "active");
                 setProjects(list);
                 if (list.length > 0) {
-                    setNowProject(prev => prev || list[0].id);
-                    setRetroProject(prev => prev || list[0].id);
+                    const lastId = typeof window !== 'undefined' ? localStorage.getItem('unitask_last_project_id') : null;
+                    const fallback = (lastId && list.find(p => p.id === lastId)) ? lastId : list[0].id;
+                    setNowProject(prev => prev || fallback);
+                    setRetroProject(prev => prev || fallback);
                 }
             },
             err => console.error("projects:", err)
@@ -507,7 +509,8 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
 
     const handleNewTimer = () => {
         if (!user || !currentTenantId) return;
-        const defaultProject = projects[0];
+        const lastProjectId = typeof window !== 'undefined' ? localStorage.getItem('unitask_last_project_id') : null;
+        const defaultProject = (lastProjectId && projects.find(p => p.id === lastProjectId)) || projects[0];
         const defaultCategory = taskTypes[0];
 
         // Generate document reference locally — ID is available immediately, no async needed.
@@ -1091,7 +1094,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                                     {/* Project */}
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Proyecto</label>
-                                        <select value={nowProject} onChange={e => setNowProject(e.target.value)}
+                                        <select value={nowProject} onChange={e => { setNowProject(e.target.value); if (typeof window !== 'undefined') localStorage.setItem('unitask_last_project_id', e.target.value); }}
                                             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary">
                                             {projects.map(p => (
                                                 <option key={p.id} value={p.id} className="bg-zinc-900 text-white">{p.name}</option>
@@ -1243,7 +1246,7 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                         <form onSubmit={handleSaveRetroTask} className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Proyecto</label>
-                                <select value={retroProject} onChange={e => setRetroProject(e.target.value)}
+                                <select value={retroProject} onChange={e => { setRetroProject(e.target.value); if (typeof window !== 'undefined') localStorage.setItem('unitask_last_project_id', e.target.value); }}
                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-primary">
                                     {projects.map(p => (
                                         <option key={p.id} value={p.id} className="bg-zinc-900 text-white">{p.name}</option>
@@ -1432,18 +1435,21 @@ export default function TaskControllerWidget({ embedded = false }: { embedded?: 
                         <div className="flex gap-2 mt-3 ml-6">
                             <button
                                 onClick={() => {
+                                    const forever = Date.now() + 10 * 365 * 24 * 60 * 60 * 1000;
                                     if (activeAlert === '1h') {
-                                        snoozedUntilRef.current = Date.now() + 30 * 60 * 1000;
-                                        notified1hTimerIdRef.current = null; // allow re-fire after snooze
+                                        snoozedUntilRef.current = forever;
+                                        notified1hTimerIdRef.current = null;
+                                        localStorage.setItem('unitask_alert_1h_snooze', String(forever));
                                     } else {
-                                        idleSnoozedUntilRef.current = Date.now() + 30 * 60 * 1000;
+                                        idleSnoozedUntilRef.current = forever;
                                         idleAlertShownRef.current = false;
+                                        localStorage.setItem('unitask_alert_idle_snooze', String(forever));
                                     }
                                     setActiveAlert(null);
                                 }}
                                 className="flex-1 text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-all"
                             >
-                                Recordar en 30 min
+                                No volver a preguntar
                             </button>
                             <button
                                 onClick={() => { setIsOpen(true); setActiveAlert(null); }}
