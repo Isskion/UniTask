@@ -698,7 +698,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                 const docRef = await createTask({
                     ...formData,
-                    actualEffort: finalActualEffort ?? undefined,
+                    actualEffort: finalActualEffort ?? null,
                     ancestorIds: calculatedAncestors,
                     tenantId: tenantId || "1",
                     creationSource: 'manual_main'
