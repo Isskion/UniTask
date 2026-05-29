@@ -16,21 +16,40 @@ interface Project {
   code?: string;
 }
 
+interface UniLeakFolder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  projectId: string;
+  tenantId: string;
+  createdAt: any;
+  updatedAt: any;
+}
+
 interface UniLeaksNote {
   id: string;
   title: string;
   content: string;
   projectId: string;
+  tenantId: string;
+  userId: string;
+  isPublic: boolean;
+  isInternal?: boolean;
+  folderId?: string | null;
   createdAt: any;
+  updatedAt: any;
 }
 
 export default function LeaksScreen() {
   const { tenantId, assignedProjectIds, role, roleLevel, loading: countersLoading } = useMobileCounters();
   const [projects, setProjects] = useState<Project[]>([]);
   const [notes, setNotes] = useState<UniLeaksNote[]>([]);
+  const [folders, setFolders] = useState<UniLeakFolder[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingNotes, setLoadingNotes] = useState(true);
+  const [loadingFolders, setLoadingFolders] = useState(true);
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [selectedNote, setSelectedNote] = useState<UniLeaksNote | null>(null);
 
   // 1. Listen to projects in tenant
@@ -86,10 +105,10 @@ export default function LeaksScreen() {
         ...doc.data()
       })) as UniLeaksNote[];
 
-      // Sort by createdAt descending
+      // Sort notes globally by updatedAt descending
       notesData.sort((a, b) => {
-        const timeA = a.createdAt?.seconds || 0;
-        const timeB = b.createdAt?.seconds || 0;
+        const timeA = a.updatedAt?.seconds || a.createdAt?.seconds || 0;
+        const timeB = b.updatedAt?.seconds || b.createdAt?.seconds || 0;
         return timeB - timeA;
       });
 
@@ -103,6 +122,32 @@ export default function LeaksScreen() {
     return unsubscribe;
   }, [tenantId]);
 
+  // 3. Listen to folders in tenant
+  useEffect(() => {
+    if (!tenantId) return;
+
+    setLoadingFolders(true);
+    const qFolders = query(
+      collection(db, 'unileaks_folders'),
+      where('tenantId', '==', tenantId)
+    );
+
+    const unsubscribe = onSnapshot(qFolders, (snapshot) => {
+      const foldersData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as UniLeakFolder[];
+
+      setFolders(foldersData);
+      setLoadingFolders(false);
+    }, (error) => {
+      console.error('Error fetching folders:', error);
+      setLoadingFolders(false);
+    });
+
+    return unsubscribe;
+  }, [tenantId]);
+
   const toggleProject = (projectId: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedProjects(prev => ({
@@ -111,11 +156,104 @@ export default function LeaksScreen() {
     }));
   };
 
+  const toggleFolder = (folderId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedFolders(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
+  };
+
   const getNotesForProject = (projectId: string) => {
     return notes.filter(note => note.projectId === projectId);
   };
 
-  if (loadingProjects || loadingNotes || countersLoading) {
+  // Recursive Tree Rendering of notes and folders for a specific project
+  const renderProjectTree = (projectId: string, parentId: string | null = null, depth: number = 0) => {
+    // Filter folders for this project and parent
+    const projectFolders = folders
+      .filter(f => f.projectId === projectId && (f.parentId || null) === parentId)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+    // Filter notes for this project and parent
+    const projectNotes = notes
+      .filter(n => n.projectId === projectId && (n.folderId || null) === parentId)
+      .sort((a, b) => {
+        const timeA = a.updatedAt?.seconds || a.createdAt?.seconds || 0;
+        const timeB = b.updatedAt?.seconds || b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
+
+    if (projectFolders.length === 0 && projectNotes.length === 0) {
+      if (depth > 0) {
+        return (
+          <View style={[styles.emptyFolder, { paddingLeft: depth * 16 + 12 }]}>
+            <Text style={styles.emptyFolderText}>Carpeta vacía</Text>
+          </View>
+        );
+      }
+      return null;
+    }
+
+    return (
+      <View style={styles.treeContainer}>
+        {/* Render notes first, matching the web sidebar logic */}
+        {projectNotes.map(note => (
+          <TouchableOpacity 
+            key={`note-${note.id}`} 
+            style={[styles.noteTitleButton, { paddingLeft: depth * 16 + 14 }]}
+            onPress={() => setSelectedNote(note)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="document-text-outline" size={18} color="#4b5563" style={styles.noteButtonIcon} />
+            <Text style={styles.noteButtonText} numberOfLines={1}>
+              {note.title || 'Sin título'}
+            </Text>
+            {note.isPublic ? (
+              <Ionicons name="globe-outline" size={14} color="#10b981" style={{ marginRight: 6 }} />
+            ) : note.isInternal ? (
+              <Ionicons name="people-outline" size={14} color="#f59e0b" style={{ marginRight: 6 }} />
+            ) : (
+              <Ionicons name="lock-closed-outline" size={14} color="#6b7280" style={{ marginRight: 6 }} />
+            )}
+            <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+          </TouchableOpacity>
+        ))}
+
+        {/* Render folders recursively */}
+        {projectFolders.map(folder => {
+          const isFolderExpanded = expandedFolders[folder.id] ?? false;
+          return (
+            <View key={`folder-${folder.id}`} style={styles.folderSection}>
+              <TouchableOpacity 
+                style={[styles.folderHeader, { paddingLeft: depth * 16 + 12 }]} 
+                onPress={() => toggleFolder(folder.id)}
+                activeOpacity={0.7}
+              >
+                <Ionicons 
+                  name={isFolderExpanded ? "folder-open" : "folder"} 
+                  size={18} 
+                  color="#4f46e5" 
+                  style={styles.folderIcon} 
+                />
+                <Text style={styles.folderName} numberOfLines={1}>
+                  {folder.name}
+                </Text>
+                <Ionicons 
+                  name={isFolderExpanded ? "chevron-up" : "chevron-down"} 
+                  size={16} 
+                  color="#6b7280" 
+                />
+              </TouchableOpacity>
+              {isFolderExpanded && renderProjectTree(projectId, folder.id, depth + 1)}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
+  if (loadingProjects || loadingNotes || loadingFolders || countersLoading) {
     return <ActivityIndicator style={styles.loader} size="large" color="#4f46e5" />;
   }
 
@@ -183,20 +321,7 @@ export default function LeaksScreen() {
               
               {isExpanded && (
                 <View style={styles.notesList}>
-                  {projectNotes.map(note => (
-                    <TouchableOpacity 
-                      key={note.id} 
-                      style={styles.noteTitleButton}
-                      onPress={() => setSelectedNote(note)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="document-text-outline" size={18} color="#4b5563" style={styles.noteButtonIcon} />
-                      <Text style={styles.noteButtonText} numberOfLines={1}>
-                        {note.title || 'Sin título'}
-                      </Text>
-                      <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
-                    </TouchableOpacity>
-                  ))}
+                  {renderProjectTree(item.id, null, 0)}
                 </View>
               )}
             </View>
@@ -285,6 +410,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    marginTop: 2,
   },
   noteButtonIcon: {
     marginRight: 10,
@@ -294,6 +420,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     flex: 1,
+  },
+  treeContainer: {
+    width: '100%',
+    gap: 4,
+  },
+  folderSection: {
+    width: '100%',
+    marginTop: 4,
+  },
+  folderHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  folderIcon: {
+    marginRight: 10,
+  },
+  folderName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1f2937',
+    flex: 1,
+  },
+  emptyFolder: {
+    paddingVertical: 8,
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  emptyFolderText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    fontStyle: 'italic',
   },
   empty: {
     textAlign: 'center',

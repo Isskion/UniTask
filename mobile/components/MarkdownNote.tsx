@@ -11,10 +11,64 @@ function htmlToMarkdown(html: string): string {
 
   let md = html;
 
-  // 1. Remove leading/trailing spaces per line to prevent Markdown code block false-positives
+  // 1. Process custom tables from Tiptap (div with data-headers and data-rows)
+  md = md.replace(/<div\b([^>]*?)>([\s\S]*?)<\/div>/gi, (match, attrs) => {
+    const headersMatch = attrs.match(/data-headers="([^"]*)"/i);
+    const rowsMatch = attrs.match(/data-rows="([^"]*)"/i);
+    
+    if (headersMatch && rowsMatch) {
+      try {
+        const decodeEntities = (str: string) => {
+          return str
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&apos;/g, "'")
+            .replace(/&nbsp;/g, ' ');
+        };
+
+        const headersJson = decodeEntities(headersMatch[1]);
+        const rowsJson = decodeEntities(rowsMatch[1]);
+        
+        const headers = JSON.parse(headersJson);
+        const rows = JSON.parse(rowsJson);
+
+        if (Array.isArray(headers) && Array.isArray(rows)) {
+          let tableMd = '\n\n';
+          tableMd += '| ' + headers.map(h => String(h || ' ')).join(' | ') + ' |\n';
+          tableMd += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
+          rows.forEach(row => {
+            if (Array.isArray(row)) {
+              tableMd += '| ' + row.map(cell => String(cell || ' ')).join(' | ') + ' |\n';
+            }
+          });
+          tableMd += '\n';
+          return tableMd;
+        }
+      } catch (e) {
+        console.error('Error parsing data-table in mobile htmlToMarkdown:', e);
+      }
+    }
+    return match;
+  });
+
+  // 2. Process images (img src="url" alt="alt")
+  md = md.replace(/<img\b[^>]*?src="([^"]*)"[^>]*?\/?>/gi, (match, src) => {
+    const altMatch = match.match(/alt="([^"]*)"/i);
+    const alt = altMatch ? altMatch[1] : 'imagen';
+    return `\n![${alt}](${src})\n`;
+  });
+
+  // 3. Process links (a href="url")
+  md = md.replace(/<a\b[^>]*?href="([^"]*)"[^>]*?>([\s\S]*?)<\/a>/gi, (match, href, text) => {
+    return `[${text}](${href})`;
+  });
+
+  // 4. Remove leading/trailing spaces per line to prevent Markdown code block false-positives
   md = md.split('\n').map(line => line.trim()).join('\n');
 
-  // 2. Replace HTML tags
+  // 5. Replace HTML tags
   md = md
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
@@ -33,10 +87,10 @@ function htmlToMarkdown(html: string): string {
     .replace(/<h3>(.*?)<\/h3>/gi, '\n### $1\n')
     .replace(/<h4>(.*?)<\/h4>/gi, '\n#### $1\n');
 
-  // 3. Strip any remaining HTML tags
+  // 6. Strip any remaining HTML tags
   md = md.replace(/<[^>]+>/g, '');
 
-  // 4. Decode HTML entities
+  // 7. Decode HTML entities
   md = md
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
@@ -47,6 +101,7 @@ function htmlToMarkdown(html: string): string {
 
   return md.trim();
 }
+
 
 export const MarkdownNote: React.FC<MarkdownNoteProps> = ({ content }) => {
   // Custom rules to wrap tables in a horizontal ScrollView
