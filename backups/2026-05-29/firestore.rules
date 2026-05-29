@@ -260,6 +260,12 @@ service cloud.firestore {
         );
     }
 
+    // Alerts (System/Global alerts)
+    match /alerts/{alertId} {
+        allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+        allow write: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data) && getRealRole() >= 80);
+        allow create: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(request.resource.data) && getRealRole() >= 80);
+    }
     // Support Tickets
     match /support_tickets/{ticketId} {
         allow create: if isAuthenticated();
