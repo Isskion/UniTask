@@ -21,6 +21,7 @@ interface Task {
   status: string;
   projectId: string;
   updatedAt: any;
+  isActive?: boolean;
 }
 
 interface JournalProject {
@@ -144,9 +145,9 @@ export default function ProjectsScreen() {
         return timeB - timeA;
       });
 
-      // Filter by status (pending, in_progress, review)
+      // Filter by status (pending, in_progress, review) and activity status
       const activeTasks = sortedTasks.filter(task =>
-        ['pending', 'in_progress', 'review'].includes(task.status)
+        ['pending', 'in_progress', 'review'].includes(task.status) && task.isActive !== false
       );
 
       setTasks(activeTasks);

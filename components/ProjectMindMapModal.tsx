@@ -69,7 +69,9 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
 
                 const qT = query(collection(db, "tasks"), where("projectId", "==", project.id), ...tenantQueryPart);
                 const snapT = await getDocs(qT);
-                const loadedT = snapT.docs.map(d => ({ id: d.id, ...d.data() } as Task));
+                const loadedT = snapT.docs
+                    .map(d => ({ id: d.id, ...d.data() } as Task))
+                    .filter(t => t.isActive !== false);
                 loadedT.sort((a, b) => (a.order || 0) - (b.order || 0));
                 setTasks(loadedT);
 

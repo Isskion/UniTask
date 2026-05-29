@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 // @ts-ignore - TS doesn't find the export but it works in react-native at runtime
 import { initializeAuth, getReactNativePersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -14,18 +14,37 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+let firebaseInitialized = false;
+let initError: string | null = null;
 
-// Initialize Firebase Auth with React Native / Web Persistence
-export const auth = initializeAuth(app, {
-  persistence: Platform.OS === 'web'
-    ? browserLocalPersistence
-    : (typeof getReactNativePersistence === 'function'
-        ? getReactNativePersistence(AsyncStorage)
-        : undefined)
-});
+try {
+  if (!firebaseConfig.apiKey) {
+    throw new Error("Missing EXPO_PUBLIC_FIREBASE_API_KEY environment variable. Check your .env file.");
+  }
+  
+  // Initialize Firebase App
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore
-export const db = getFirestore(app);
+  // Initialize Firebase Auth with React Native / Web Persistence
+  auth = initializeAuth(app, {
+    persistence: Platform.OS === 'web'
+      ? browserLocalPersistence
+      : (typeof getReactNativePersistence === 'function'
+          ? getReactNativePersistence(AsyncStorage)
+          : undefined)
+  });
+
+  // Initialize Firestore
+  db = getFirestore(app);
+  firebaseInitialized = true;
+} catch (error: any) {
+  console.error("Firebase initialization failed:", error);
+  initError = error?.message || String(error);
+}
+
+export { app, auth, db, firebaseInitialized, initError };
+
 

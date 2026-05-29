@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { safeParseDate } from '@/lib/date-utils';
 
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -371,7 +371,12 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             const qt = query(collection(db, "tasks"), where("tenantId", "==", targetTenantId), orderBy("createdAt", "desc"));
             const snapT = await getDocs(qt);
             const loadedTasks: Task[] = [];
-            snapT.forEach(doc => loadedTasks.push({ id: doc.id, ...doc.data() } as Task));
+            snapT.forEach(doc => {
+                const data = doc.data();
+                if (data.isActive !== false) {
+                    loadedTasks.push({ id: doc.id, ...data } as Task);
+                }
+            });
             setTasks(loadedTasks);
         } catch (error) {
             // console.error("Error loading TaskManagement data", error);
@@ -415,6 +420,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                     console.warn(`[TaskManagement] Task ${foundTask.id} belongs to tenant ${foundTask.tenantId}, current context is ${tenantId}. Hiding.`);
                                     // Optional: Show toast or clear URL?
                                     // For now, just ignore it so it doesn't appear in the wrong list
+                                    return;
+                                }
+
+                                if (foundTask.isActive === false) {
+                                    console.warn(`[TaskManagement] Task ${foundTask.id} is inactive/archived. Hiding.`);
                                     return;
                                 }
 
@@ -465,6 +475,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     );
 
     const visibleTasks = tasks.filter(t => {
+        if (t.isActive === false) return false;
+
         // FILTER BY SIMULATED ROLE
         // If simulated role is superadmin/app_admin, see all loaded tasks (which are already tenant-filtered by loadData).
         if (userRole === 'superadmin' || userRole === 'app_admin') {
@@ -1167,7 +1179,7 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                     {showTree ? (
                         <HierarchyTree
-                            tasks={tasks} // Pass all tasks, tree handles filtering by context if needed
+                            tasks={tasks.filter(t => t.isActive !== false)} // Pass active tasks, tree handles filtering by context if needed
                             onSelectTask={handleSelectTask}
                             selectedTaskId={selectedTask?.id}
                         />

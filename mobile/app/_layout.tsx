@@ -2,9 +2,10 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 import 'react-native-reanimated';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, firebaseInitialized, initError } from '../lib/firebase';
 import { useMobileCounters } from '../store/mobileCounters';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -12,10 +13,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 export {
   ErrorBoundary,
 } from 'expo-router';
-
-export const unstable_settings = {
-  initialRouteName: 'login',
-};
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,6 +47,10 @@ function RootLayoutNav() {
   const { subscribeToCounters, cleanup } = useMobileCounters();
 
   useEffect(() => {
+    if (!firebaseInitialized) {
+      setAuthInitialized(true);
+      return;
+    }
     const subscriber = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthInitialized(true);
@@ -63,7 +64,7 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-    if (!authInitialized) return;
+    if (!authInitialized || !firebaseInitialized) return;
 
     const inTabsGroup = segments[0] === '(tabs)';
     
@@ -73,6 +74,22 @@ function RootLayoutNav() {
       router.replace('/(tabs)/leaks');
     }
   }, [user, authInitialized, segments]);
+
+  if (!firebaseInitialized) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000000', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+        <Text style={{ color: '#ef4444', fontSize: 20, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>
+          Error de Inicialización
+        </Text>
+        <Text style={{ color: '#a1a1aa', fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 24 }}>
+          {initError || "No se pudo conectar con Firebase. Verifica la configuración."}
+        </Text>
+        <Text style={{ color: '#52525b', fontSize: 11, textAlign: 'center' }}>
+          Este error suele deberse a la falta de variables de entorno (.env) durante el empaquetado de la app.
+        </Text>
+      </View>
+    );
+  }
 
   if (!authInitialized) {
     return null; // Can render a splash screen here

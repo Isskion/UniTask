@@ -41,6 +41,7 @@
     "backups",
     "functions",
     "scripts",
-    "unigis-order-creator-web"
+    "unigis-order-creator-web",
+    "mobile"
   ]
 }
