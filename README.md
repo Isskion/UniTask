@@ -47,3 +47,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 📱 Mobile Application (Unitask Mobile)
+
+This repository includes a React Native / Expo mobile application under the [mobile](file:///c:/Users/daniel.delamo/.gemini/antigravity/scratch/UniTask/mobile) directory. 
+
+For instructions on local setup, running the Metro bundler, clearing cache, handling environment variables securely, and compiling custom APKs using EAS Build, please refer to the [Unitask Mobile Developer Guide](file:///c:/Users/daniel.delamo/.gemini/antigravity/scratch/UniTask/docs/Unitask_Mobile.md).
