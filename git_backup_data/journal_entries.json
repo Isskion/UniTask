@@ -4108,6 +4108,32 @@
     "updatedAt": "2026-05-25T13:45:13.131Z"
   },
   {
+    "id": "3_2026-05-28",
+    "date": "2026-05-28",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "EUROPASTRY",
+        "projectId": "9iqygviz3AGJnbJOLc8E",
+        "pmNotes": "Sesión 28-05-2026\n \nFLUJO DE ESTADOS FINALES DE LAS PARADAS:\nV6:\nENTREGA COMPLETA:\n \nCON IDENTICKET\n-Solicitar Identikect\n-\nCON SELLO (REQUIERE SELLO)\n-Foto del albarán Sellado\n \nNo solicitar Nombre y NIF\n \n \nSIN IDENTICKET\n-\n \nSIN SELLO (NO REQUIERE SELLO)\n-Nombre de quien Recibe\n-NIF\n-Firma en app.\n-Sin foto\n \n \nENTREGA PARCIAL:\n \n-Mas de una foto\n-Solicitar solo motivo de transicion de parada\n-Validar diferencias en cantidades\n \nNO ENTREGADO\n \n-Motivo\n-Con Foto (categoria FOTO MOTIVO NO ENTREGA)\n \n \n \nVI:\n \nRECOGIDO\n-Motivo:\n-Mercancia en Buen estado\n-Mercancia en Mal estado\n-Foto de Mercancía\n-\n \n \nRECOGIDO PARCIAL:\n-Motivo:\n-Mercancia en Buen estado\n-Mercancia en Mal estado\n-Foto de Mercancía\n \n \nNO RECOGIDO:\n-Definir motivos\n \n \nParada de Devolución a Almacen\n \n \nDEPOSITO REALIZADO:\n-Solicitar:\n-Ingresado en Banco\n-No ingresado y Motivo (evaluar si se pueden agregar un motivo o una opcion mas en la encuesta)\n-Foto de Ticket de Banco\n \n \nParada de Devolución a Almacen: Pendiente de definición por Europastry para la próxima semana\n-",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Sesión 28-05-2026\n \nFLUJO DE ESTADOS FINALES DE LAS PARADAS:\nV6:\nENTREGA COMPLETA:\n \nCON IDENTICKET\n-Solicitar Identikect\n-\nCON SELLO (REQUIERE SELLO)\n-Foto del albarán Sellado\n \nNo solicitar Nombre y NIF\n \n \nSIN IDENTICKET\n-\n \nSIN SELLO (NO REQUIERE SELLO)\n-Nombre de quien Recibe\n-NIF\n-Firma en app.\n-Sin foto\n \n \nENTREGA PARCIAL:\n \n-Mas de una foto\n-Solicitar solo motivo de transicion de parada\n-Validar diferencias en cantidades\n \nNO ENTREGADO\n \n-Motivo\n-Con Foto (categoria FOTO MOTIVO NO ENTREGA)\n \n \n \nVI:\n \nRECOGIDO\n-Motivo:\n-Mercancia en Buen estado\n-Mercancia en Mal estado\n-Foto de Mercancía\n-\n \n \nRECOGIDO PARCIAL:\n-Motivo:\n-Mercancia en Buen estado\n-Mercancia en Mal estado\n-Foto de Mercancía\n \n \nNO RECOGIDO:\n-Definir motivos\n \n \nParada de Devolución a Almacen\n \n \nDEPOSITO REALIZADO:\n-Solicitar:\n-Ingresado en Banco\n-No ingresado y Motivo (evaluar si se pueden agregar un motivo o una opcion mas en la encuesta)\n-Foto de Ticket de Banco\n \n \nParada de Devolución a Almacen: Pendiente de definición por Europastry para la próxima semana\n-",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-05-28T16:04:15.740Z",
+    "updatedAt": "2026-05-28T16:04:21.393Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
