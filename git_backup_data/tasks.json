@@ -12275,6 +12275,58 @@
     }
   },
   {
+    "id": "zmXwJPivV5CdfmTKukTG",
+    "title": "Tareas y consultas pendientes Intermodal",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1780045988.196,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "Pendientes de definición / decisión por parte de Transpais\n\n\n\n\nPrioridad\nTarea\nDetalle\nAlta\nInformación operación Cabanillas\nNecesitamos información sobre Cabanillas : interfaces propias, función, áreas de acción, equipo responsable o vehículos propios.\nAlta\nTipos y cantidad de vehículos\nInformasr de que tipo de vehículos y cantidades cuenta cada depostio o zona Tarragona y Cabanillas. Necesario para configurar el ruteo y capacidades\nAlta\nGestión de prepedidos\nParcialmente definidio en el As-Is, lo adjuntamos al ToBe y abierto a cerrarlo.\nAlta\nReglas de asignación de proveedores\nQue condiciones pueden permitir las asignación automatica de proveedores p. or destino, origen, tipo de vehículo y tipo de carga. Necesario para la asignación automática en planificación\nAlta\nClientes con tabla de KM propia\nMaersk confirmado; identificar si hay otros (tabla de KM diferente a la estándar de Portic), darnos las tablas.\nMedia\nZonas y áreas de actuación\nDefinir estructura de zonas para ambas operaciones (Tarragona y Cabanillas)\nNotas del As-Is \n¿Cuáles son las zonas establecidas para la finalización de los viajes? ¿Son siempre las mismas o pueden variar?\nLas zonas de trabajo pueden variar. Habitualmente las rutas finalizan en Tarragona, ya que la mayoría del personal pertenece a esa área, o bien en Barcelona. En caso de asignarse un viaje de larga distancia, por ejemplo, al País Vasco, el conductor pernocta en el destino.\nMedia\nDocumentación en el flujo\nTipos de doc por pedido (albarán, mail solicitud), conductor (CAP, carnet) y vehículo (ITV); validaciones al activar viaje\nSe hace referencia a ciertos documentos en el As-Is pero sin detalle ni los formatos finales a desarrollar.\nMedia\nInformación de conductores para planificador\nDías que trabaja, si hace noches/fines de semana, dónde termina el viaje habitualmente.\nMedia\nQuién activa los viajes\nDecidir: conductor vs. control tower (impacto en seguimiento), o las reglas para que el flujo de activación., vehículos prou\nMedia\nAlarmas de monitoreo adicionales\nAdemás de fin de viaje y estadía máxima, ¿qué otras alarmas se necesitan?\nBaja\nAcceso de terceros al Portal de Transporte\nDecisión sobre si se da acceso a transportistas terceros para aceptar/rechazar viajes",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "module": "PEDIDOS",
+    "scope": "Incluido",
+    "area": "Documentación",
+    "priority": "Media",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-22",
+    "taskNumber": 22,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1780046005,
+      "_nanoseconds": 189000000
+    },
+    "endDate": "2026-05-31T22:00:00.000Z",
+    "attributes": {},
+    "updatedAt": {
+      "_seconds": 1780047061,
+      "_nanoseconds": 867000000
+    }
+  },
+  {
     "id": "zxYMPGPmjkkgQiRYCSxx",
     "friendlyId": "MOCK-04-0",
     "organizationId": "1",

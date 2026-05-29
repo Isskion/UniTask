@@ -4134,6 +4134,32 @@
     "updatedAt": "2026-05-28T16:04:21.393Z"
   },
   {
+    "id": "3_2026-05-29",
+    "date": "2026-05-29",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 29-05-26\nInterfaces:\n-> Generix: se puede terminar de cerrar via correo con las últimas dudas\n-> Ejemplos reales con JSON validados - ver observaciones enviadas por Iñaki\n-> Aitana 365: datos maestros quedo confirmado que maestros de clientes, productos, ocnceptos, vehículos y (aclarado) en intermodal los conductores de alta en el sistema de RRHH - a definir con Mijaela cómo se va a manejar el empleados (por ejemplo como un cliente u otro)\n-> RRHH gestionará los conductores (licencias, ABM)\n+liquidaciones y facturación general\n-> Ver con Eric una sesión adicional con la información que él pidió al proveedor\n-> Maersk: buena reunión y se aclararon  + confirmaron + Jose Maria puso todo por correo\n-> Transporeon: (aclaración para Eric) TRNSP tiene 3 cuentas diferentes FR - ATL - SA tenemos que traer las 3 al TMS y luego filtramos\n.\nCircuitos y docs de diseño:\n-> Ya recibimos Internacional: Jorge y equipo completando la info\n-> Intermodal: compartido el documento por SharePoint  equipo TRNSP agregando notas\n-> Distribución: TRNSP terminando de completar notas y a compartir a UNIGIS\nRetomar Tarifación: idealmente ya iniciada la construcción con diseño aprobado y plan presentado, retomamos el diseño",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 29-05-26\nInterfaces:\n-> Generix: se puede terminar de cerrar via correo con las últimas dudas\n-> Ejemplos reales con JSON validados - ver observaciones enviadas por Iñaki\n-> Aitana 365: datos maestros quedo confirmado que maestros de clientes, productos, ocnceptos, vehículos y (aclarado) en intermodal los conductores de alta en el sistema de RRHH - a definir con Mijaela cómo se va a manejar el empleados (por ejemplo como un cliente u otro)\n-> RRHH gestionará los conductores (licencias, ABM)\n+liquidaciones y facturación general\n-> Ver con Eric una sesión adicional con la información que él pidió al proveedor\n-> Maersk: buena reunión y se aclararon  + confirmaron + Jose Maria puso todo por correo\n-> Transporeon: (aclaración para Eric) TRNSP tiene 3 cuentas diferentes FR - ATL - SA tenemos que traer las 3 al TMS y luego filtramos\n.\nCircuitos y docs de diseño:\n-> Ya recibimos Internacional: Jorge y equipo completando la info\n-> Intermodal: compartido el documento por SharePoint  equipo TRNSP agregando notas\n-> Distribución: TRNSP terminando de completar notas y a compartir a UNIGIS\nRetomar Tarifación: idealmente ya iniciada la construcción con diseño aprobado y plan presentado, retomamos el diseño",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-05-29T13:51:49.798Z",
+    "updatedAt": "2026-05-29T13:51:58.710Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
