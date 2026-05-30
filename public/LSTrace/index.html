@@ -554,7 +554,7 @@ function buildForm(sec, item) {
       '</div>'+
       '<div class="frow">'+
         '<div class="fg"><label class="fl">Es tramo de arrastre (COL→COL)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-plarr"'+(item&&item.esArrastre?' checked':'')+'><span class="tog-s"></span></label></div>'+
-        '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-plact"'+(item?item.activo?' checked':''>' checked')+'><span class="tog-s"></span></label></div>'+
+        '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-plact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
       '</div>';
   }
   if (sec === 'transiciones') {
