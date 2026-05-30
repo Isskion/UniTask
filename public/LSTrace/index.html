@@ -1067,8 +1067,8 @@ function buildHierarchy(orders) {
   <div class="hier-layer">
     <div class="hier-icon" title="Órdenes">&#128221;</div>
     <div class="hier-body">
-      <div class="hier-title" style="color:var(--tl)">2. Órdenes (legs del pedido)</div>
-      <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Cada estado de programación genera 1 pickup + 1 delivery. Campos UNIGIS que se pueblan:</div>
+      <div class="hier-title" style="color:var(--tl)">2. Órdenes</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Cada transición de estado genera <strong>2 órdenes</strong>: 1 de pickup y 1 de delivery. Estos son los campos UNIGIS que se pueblan en cada una:</div>
       ${orders.map(o=>{
         const st=PSTADOS[o.estadoCod];
         const u=o.unigis||{};
@@ -1090,43 +1090,73 @@ function buildHierarchy(orders) {
 
   // ── CAPA 3: RUTA + PARADAS ──────────────────────────────────────
   const todasParadas=[];
+  // Cada orden del pedido = 1 parada (1:1). Las 2 órdenes de una transición
+  // (pickup + delivery) generan 2 paradas separadas con numeración absoluta.
+  let absOrdenNum = 0;
   orders.forEach(o=>{
     const plt=o.plantilla||getPlantilla(o.estadoCod);
     const ejec=plt||PEJEC[o.estadoCod];
     if(!ejec) return;
-    const ps=ejec.paradas||[
-      {epa:ejec.epaPickup,  ep:ejec.epPickup,  desc:ejec.pickupTipo,  tipo:'pickup',  campo:ejec.pickupCampo},
-      {epa:ejec.epaDelivery,ep:ejec.epDelivery,desc:ejec.deliveryTipo,tipo:'delivery',campo:ejec.deliveryCampo}
-    ];
-    ps.forEach(p=>{
-      todasParadas.push({...p, orden:o.num, tipoOrden:o.tipo, col:p.tipo==='pickup'?o.depCarga:o.depDescarga});
+    // Orden pickup → Parada N
+    absOrdenNum++;
+    todasParadas.push({
+      absNum: absOrdenNum,
+      tipo:'pickup',
+      epa: ejec.epaPickup??ejec.paradas?.[0]?.epa??null,
+      ep:  ejec.epPickup ??ejec.paradas?.[0]?.ep??null,
+      desc: ejec.pickupTipo??ejec.paradas?.[0]?.desc??'',
+      campo: ejec.pickupCampo??ejec.paradas?.[0]?.campo??'',
+      estadoPlan: o.num,
+      tipoOrden: o.tipo,
+      col: o.depCarga
+    });
+    // Orden delivery → Parada N+1
+    absOrdenNum++;
+    todasParadas.push({
+      absNum: absOrdenNum,
+      tipo:'delivery',
+      epa: ejec.epaDelivery??ejec.paradas?.[1]?.epa??null,
+      ep:  ejec.epDelivery ??ejec.paradas?.[1]?.ep??null,
+      desc: ejec.deliveryTipo??ejec.paradas?.[1]?.desc??'',
+      campo: ejec.deliveryCampo??ejec.paradas?.[1]?.campo??'',
+      estadoPlan: o.num,
+      tipoOrden: o.tipo,
+      col: o.depDescarga
     });
   });
 
-  h+=`<div class="hier-arrow">&#8595; al agrupar órdenes en una Ruta nacen &darr;</div>
+  h+=`<div class="hier-arrow">&#8595; al asignarse a una Ruta, las órdenes terminan su ciclo y nacen las Paradas &darr;</div>
   <div class="hier-layer">
     <div class="hier-icon" title="Ruta / Paradas">&#128205;</div>
     <div class="hier-body">
       <div class="hier-title" style="color:var(--am)">3. Ruta → Paradas (EstadoParada)</div>
-      <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Una ruta agrupa las órdenes. Por cada orden nacen 2 paradas (pickup + delivery). La ejecución de paradas refleja en el EstadoPedido.</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">
-        ${todasParadas.map((p,i)=>`
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">
+        La ruta agrupa todas las órdenes. Al asignarse, cada orden genera <strong>1 parada</strong> (relación 1:1 — mismas órdenes que paradas).
+        Las paradas son lo que se ejecuta en el viaje; su cambio de estado refleja en el EstadoPedido.
+      </div>
+      <div style="margin-bottom:8px;font-size:11px;padding:6px 10px;background:var(--tl2);border-radius:6px;color:var(--tl);font-weight:500">
+        &#9432; Total órdenes = Total paradas: <strong>${todasParadas.length} órdenes → ${todasParadas.length} paradas</strong> (relación 1:1). Cada orden se convierte en 1 parada al asignarse a la ruta.
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px">
+        ${todasParadas.map(p=>`
           <div style="padding:7px 10px;background:var(--sf2);border-radius:6px;border:1px solid var(--bd);display:flex;flex-direction:column;gap:3px">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;font-weight:600;color:var(--tx)">${p.tipo==='pickup'?'&#128228;':'&#128229;'} Parada ${i+1}</span>
-              <span class="pill p-gy" style="font-size:10px">Orden ${p.orden}</span>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:700;color:var(--tx2)">Orden&nbsp;${p.absNum}</span>
+              <span style="font-size:11px;font-weight:600;color:var(--tx)">${p.tipo==='pickup'?'&#128228; pickup':'&#128229; delivery'}</span>
+              <span class="pill p-gy" style="font-size:10px">transición ${p.estadoPlan}</span>
+              <span style="font-size:9px;color:var(--tx3)">= Parada ${p.absNum}</span>
             </div>
             <div style="font-size:11px;color:var(--tx2)">${esc(p.desc)}</div>
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
-              ${p.epa!==null?`<span class="hier-epa">EP:${p.epa}</span>`:''}
-              ${p.ep!==null?`<span class="hier-ep">&#128196;${p.ep}</span>`:''}
-              ${p.col?`<span style="font-size:10px;color:var(--tx3);margin-left:2px">${esc(p.col)}</span>`:''}
+              ${p.epa!=null?`<span class="hier-epa">EPA:${p.epa}</span>`:'<span style="font-size:10px;color:var(--tx3)">EPA:—</span>'}
+              ${p.ep!=null?`<span class="hier-ep">EP:${p.ep}</span>`:''}
+              ${p.col?`<span style="font-size:10px;color:var(--tx3)">${esc(p.col)}</span>`:''}
             </div>
             <div class="hier-cond">${esc(p.campo)}</div>
           </div>`).join('')}
       </div>
       <div style="margin-top:8px;font-size:11px;padding:6px 10px;background:var(--re2);border-radius:6px;color:var(--re)">
-        &#9888; No se puede revertir el estado del pedido si las órdenes ya están asignadas a una ruta
+        &#9888; No se puede revertir el estado del pedido si las órdenes ya están asignadas a una ruta (EstadoParada ≥ 2)
       </div>
     </div>
   </div>`;
