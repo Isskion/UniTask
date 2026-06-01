@@ -78,18 +78,25 @@ ${subflowGraphJson}
 Please analyze the above graph and return the step-by-step table matching the requested schema.
 `;
 
-        const contents: any[] = [prompt];
+        const parts: any[] = [{ text: prompt }];
 
         // If an image is provided, include it in the multimodal request
         if (imageBase64) {
             const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-            contents.unshift({
+            parts.unshift({
                 inlineData: {
                     data: cleanBase64,
                     mimeType: 'image/png'
                 }
             });
         }
+
+        const contents = [
+            {
+                role: 'user',
+                parts: parts
+            }
+        ];
 
         const stepSchema: Schema = {
             type: SchemaType.OBJECT,
