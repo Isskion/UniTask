@@ -404,6 +404,10 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 {can('uniflux', 'views') && (
                                     <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
                                 )}
+
+                                {can('uniflux', 'views') && (
+                                    <NavLink href="/univisio" target="_blank" icon={Network} label="UniVisio" />
+                                )}
                             </div>
                         </div>
 
@@ -640,6 +644,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     )}
                                     {(unitaskToolsEnabled || userRole === 'superadmin') && (
                                         <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
+                                    )}
+                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
+                                        <NavLink href="/univisio" target="_blank" icon={Network} label="UniVisio" />
                                     )}
 
                                 </div>
