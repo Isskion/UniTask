@@ -761,10 +761,10 @@ export default function ClientPage() {
 
             const response = await analyzeSubflowWithGemini(JSON.stringify(graphContext));
             
-            if (response && response.steps) {
+            if (response && response.success && response.steps) {
                 // Map API response to UI table state
                 const newRows: TableRow[] = response.steps.map(step => ({
-                    step: step.step + (activeLote.start - 1), // Offset based on lote
+                    step: (step.step || 1) + (activeLote.start - 1), // Offset based on lote
                     actor: step.actor || 'General',
                     origin: step.origin || '-',
                     destination: step.destination || '-',
@@ -786,6 +786,10 @@ export default function ClientPage() {
                     // Re-index steps sequentially
                     return combined.map((r, i) => ({ ...r, step: i + 1 }));
                 });
+            } else if (response && response.error) {
+                alert(`Error al analizar sub-flujo: ${response.error}`);
+            } else {
+                alert(`Error al analizar sub-flujo: Respuesta inesperada del servidor.`);
             }
         } catch (e: any) {
             console.error(e);
@@ -809,39 +813,45 @@ export default function ClientPage() {
             const tableRowsJson = JSON.stringify(tableRows);
             const response = await chatWithUniVisio(chatHistory, userMessage, tableRowsJson);
 
-            setChatHistory(prev => [...prev, { role: 'model', content: response.reply }]);
+            if (response && response.success && response.reply) {
+                setChatHistory(prev => [...prev, { role: 'model', content: response.reply }]);
 
-            // Apply AI Command modifications to the table rows if returned
-            if (response.command) {
-                const cmd = response.command;
-                if (cmd.type === 'update_row' && cmd.params.stepIndex !== undefined) {
-                    setTableRows(prev => prev.map(row => 
-                        row.step === cmd.params.stepIndex ? { ...row, ...cmd.params.fields } : row
-                    ));
-                } else if (cmd.type === 'delete_row' && cmd.params.stepIndex !== undefined) {
-                    setTableRows(prev => prev.filter(row => row.step !== cmd.params.stepIndex)
-                        .map((row, i) => ({ ...row, step: i + 1 }))
-                    );
-                } else if (cmd.type === 'insert_row' && cmd.params.index !== undefined) {
-                    setTableRows(prev => {
-                        const copy = [...prev];
-                        copy.splice(cmd.params.index, 0, {
-                            step: cmd.params.index + 1,
-                            actor: cmd.params.row.actor || 'General',
-                            origin: cmd.params.row.origin || '-',
-                            destination: cmd.params.row.destination || '-',
-                            event: cmd.params.row.event || '-',
-                            resultState: cmd.params.row.resultState || '-',
-                            actionType: cmd.params.row.actionType || 'H',
-                            precondition: cmd.params.row.precondition || '-',
-                            exception: cmd.params.row.exception || '-',
-                            rule: cmd.params.row.rule || '-',
-                            linkedNodeId: '',
-                            confidence: 1.0
+                // Apply AI Command modifications to the table rows if returned
+                if (response.command) {
+                    const cmd = response.command;
+                    if (cmd.type === 'update_row' && cmd.params.stepIndex !== undefined) {
+                        setTableRows(prev => prev.map(row => 
+                            row.step === cmd.params.stepIndex ? { ...row, ...cmd.params.fields } : row
+                        ));
+                    } else if (cmd.type === 'delete_row' && cmd.params.stepIndex !== undefined) {
+                        setTableRows(prev => prev.filter(row => row.step !== cmd.params.stepIndex)
+                            .map((row, i) => ({ ...row, step: i + 1 }))
+                        );
+                    } else if (cmd.type === 'insert_row' && cmd.params.index !== undefined) {
+                        setTableRows(prev => {
+                            const copy = [...prev];
+                            copy.splice(cmd.params.index, 0, {
+                                step: cmd.params.index + 1,
+                                actor: cmd.params.row.actor || 'General',
+                                origin: cmd.params.row.origin || '-',
+                                destination: cmd.params.row.destination || '-',
+                                event: cmd.params.row.event || '-',
+                                resultState: cmd.params.row.resultState || '-',
+                                actionType: cmd.params.row.actionType || 'H',
+                                precondition: cmd.params.row.precondition || '-',
+                                exception: cmd.params.row.exception || '-',
+                                rule: cmd.params.row.rule || '-',
+                                linkedNodeId: '',
+                                confidence: 1.0
+                            });
+                            return copy.map((row, i) => ({ ...row, step: i + 1 }));
                         });
-                        return copy.map((row, i) => ({ ...row, step: i + 1 }));
-                    });
+                    }
                 }
+            } else if (response && response.error) {
+                setChatHistory(prev => [...prev, { role: 'model', content: `❌ Error al conectar con el copiloto: ${response.error}` }]);
+            } else {
+                setChatHistory(prev => [...prev, { role: 'model', content: `❌ Error: Respuesta inesperada del copiloto.` }]);
             }
         } catch (err: any) {
             console.error(err);

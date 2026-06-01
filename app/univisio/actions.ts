@@ -29,7 +29,7 @@ interface AnalyzeStep {
 export async function analyzeSubflowWithGemini(
     subflowGraphJson: string,
     imageBase64?: string
-): Promise<{ steps: AnalyzeStep[] }> {
+): Promise<{ success: boolean; steps?: AnalyzeStep[]; error?: string }> {
     try {
         if (!apiKey) {
             throw new Error('GEMINI_API_KEY environment variable is not configured on the server.');
@@ -139,10 +139,11 @@ Please analyze the above graph and return the step-by-step table matching the re
         });
 
         const text = result.response.text();
-        return JSON.parse(text);
+        const parsed = JSON.parse(text);
+        return { success: true, steps: parsed.steps };
     } catch (e: any) {
         console.error('Error in analyzeSubflowWithGemini server action:', e);
-        throw new Error(e.message || 'Failed to analyze subflow.');
+        return { success: false, error: e.message || 'Failed to analyze subflow.' };
     }
 }
 
@@ -162,7 +163,7 @@ export async function chatWithUniVisio(
     chatHistory: { role: 'user' | 'model'; content: string }[],
     message: string,
     currentTableRowsJson: string
-): Promise<ChatResponse> {
+): Promise<{ success: boolean; reply?: string; command?: any; error?: string }> {
     try {
         if (!apiKey) {
             throw new Error('GEMINI_API_KEY environment variable is not configured on the server.');
@@ -283,9 +284,10 @@ ${message}
 
         const result = await chat.sendMessage(userPrompt);
         const text = result.response.text();
-        return JSON.parse(text);
+        const parsed = JSON.parse(text);
+        return { success: true, reply: parsed.reply, command: parsed.command };
     } catch (e: any) {
         console.error('Error in chatWithUniVisio server action:', e);
-        throw new Error(e.message || 'Failed to chat with UniVisio.');
+        return { success: false, error: e.message || 'Failed to chat with UniVisio.' };
     }
 }
