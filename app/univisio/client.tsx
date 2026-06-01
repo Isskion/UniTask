@@ -814,7 +814,8 @@ export default function ClientPage() {
             const response = await chatWithUniVisio(chatHistory, userMessage, tableRowsJson);
 
             if (response && response.success && response.reply) {
-                setChatHistory(prev => [...prev, { role: 'model', content: response.reply }]);
+                const replyText = response.reply;
+                setChatHistory(prev => [...prev, { role: 'model', content: replyText }]);
 
                 // Apply AI Command modifications to the table rows if returned
                 if (response.command) {
