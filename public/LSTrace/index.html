@@ -150,6 +150,22 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .hier-chip{display:inline-flex;align-items:center;font-size:11px;gap:4px;padding:2px 8px;border-radius:20px;margin:2px;background:var(--sf2);border:1px solid var(--bd)}
 .hier-arrow{text-align:center;color:var(--bd2);font-size:11px;padding:3px 0 3px 44px;border-bottom:1px solid var(--bd);background:var(--sf3)}
 .hier-cond{font-size:10px;color:var(--tx3);font-style:italic;margin-top:4px}
+/* Simulador opciones */
+.sim-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:4px}
+.sim-card{background:var(--sf);border:2px solid var(--bd);border-radius:var(--rl);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.sim-card:hover,.sim-card.sel{border-color:var(--bl);box-shadow:0 0 0 2px var(--bl2)}
+.sim-card-hdr{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--sf2);border-bottom:1px solid var(--bd)}
+.sim-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+/* Cascade delete + privilegios en UNDO */
+.del-chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:1px 7px;border-radius:20px;background:var(--re2);color:var(--re);border:1px solid #f4c0c0;margin:1px}
+.del-chip.auto-d{background:var(--am2);color:var(--am);border-color:#e8d5a0}
+.priv-b{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:4px}
+.priv-b.dist{background:var(--am2);color:var(--am)}
+.priv-b.sup{background:var(--co2);color:var(--co)}
+.undo-cond{font-size:10px;margin-top:3px;padding:2px 7px;border-radius:4px;display:inline-flex;align-items:center;gap:3px}
+.undo-cond.ok{background:var(--tl2);color:var(--tl)}
+.undo-cond.blk{background:var(--re2);color:var(--re)}
+.undo-cond.wrn{background:var(--am2);color:var(--am)}
 </style>
 </head>
 <body>
@@ -910,6 +926,21 @@ function generatePlanOrders() {
   const destCol=getColForZona(destZona);
   if(!origCol||!destCol) return null;
 
+  // Caso especial: Punto a Punto (sin COLs)
+  if(pState.useP2P){
+    const plt=getPlantilla(7)||{pickupTipo:'Recolección en Remitente',pickupCampo:'Domicilio Orden 2',deliveryTipo:'Entrega destinatario',deliveryCampo:'Domicilio Orden',nombre:'Programar Punto a Punto',estadoCod:7};
+    const tr=calcTramo(origCol,destCol);
+    return [{num:1,tipo:plt.nombre||'Programar Punto a Punto',estadoCod:7,autoGen:false,tramo:tr,plantilla:plt,
+      unigis:{pickupTipo:plt.pickupTipo,pickupCampo:plt.pickupCampo,pickupValor:origZona+' (remitente)',
+              deliveryTipo:plt.deliveryTipo,deliveryCampo:plt.deliveryCampo,deliveryValor:destZona+' (destinatario)'},
+      depCarga:origCol,depDescarga:destCol,
+      steps:['Directo remitente → destinatario, sin paso por ningún COL.',
+             'EP Pickup: 1035 (Recolectado en remitente)',
+             'EP Delivery: 1315 (Entregado en destinatario)'],
+      nota:'Tramo único punto a punto. No genera órdenes adicionales.'
+    }];
+  }
+
   const raw=[origCol,...intermedios,destCol];
   const hops=raw.filter((c,i)=>i===0||c!==raw[i-1]);
   const orders=[];
@@ -1186,6 +1217,127 @@ function buildHierarchy(orders) {
   return h;
 }
 
+// ── Cascade delete: qué se borra al deshacer un paso ─────────────
+// Regla: cada "orden" del planificador = 2 sub-órdenes UNIGIS (pickup+delivery) = 2 paradas (1:1)
+// Un Arrastre o Recogida también "posee" la auto-ED que generó, hasta que la siguiente
+// transición la reemplace. Al deshacer, esas sub-órdenes se borran junto con las propias.
+function getUndoCascade(targetOrder, allOrders) {
+  const myIdx = allOrders.indexOf(targetOrder);
+  const del = [];
+  // Sub-órdenes propias (pickup + delivery)
+  del.push({autoGen:false,ordNum:targetOrder.num,sub:'pickup',
+    label:(targetOrder.unigis?.pickupTipo||'Pickup')+' '+esc(targetOrder.depCarga||'')});
+  del.push({autoGen:false,ordNum:targetOrder.num,sub:'delivery',
+    label:(targetOrder.unigis?.deliveryTipo||'Delivery')+' '+esc(targetOrder.depDescarga||targetOrder.depCarga||'')});
+  // Auto-ED asociada: existe para Arrastre (10) y Recogida (9) cuando no hay Arrastre siguiente
+  if(targetOrder.estadoCod===10||targetOrder.estadoCod===9){
+    for(let i=myIdx+1;i<allOrders.length;i++){
+      const nx=allOrders[i];
+      if(nx.estadoCod===10) break; // El siguiente Arrastre gestiona su propia ED
+      if(nx.estadoCod===8&&nx.autoGen){
+        del.push({autoGen:true,ordNum:nx.num,sub:'pickup',
+          label:(nx.unigis?.pickupTipo||'Pickup ED')+' '+esc(nx.depCarga||'')});
+        del.push({autoGen:true,ordNum:nx.num,sub:'delivery',
+          label:(nx.unigis?.deliveryTipo||'Delivery ED')});
+        break;
+      }
+    }
+  }
+  return del;
+}
+
+// ── Ejecuta generatePlanOrders con un state temporal ─────────────
+function generatePlanOrdersWith(s){
+  const prev=pState; pState=s;
+  const r=generatePlanOrders();
+  pState=prev; return r;
+}
+
+// ── Escenarios base para un par OD ───────────────────────────────
+function genScenarios(origZona,destZona){
+  const oC=getColForZona(origZona),dC=getColForZona(destZona);
+  if(!oC||!dC) return [];
+  const same=oC===dC;
+  const base={origZona,destZona,intermedios:[]};
+  const sc=[];
+  // Punto a Punto (siempre disponible para remitente→destinatario)
+  sc.push({id:'p2p',label:'Punto a Punto',tag:'P2P',tagCls:'p-pu',
+    desc:'Directo remitente → destinatario sin pasar por ningún COL.',
+    state:{...base,origTipo:'remitente',destTipo:'destinatario',useP2P:true}});
+  if(same){
+    sc.push({id:'rec_ed',label:'Recogida + Entrega Directa',tag:'2 tramos',tagCls:'p-tl',
+      desc:`Remitente → ${oC} → Destinatario. Misma zona (${oC}).`,
+      state:{...base,origTipo:'remitente',destTipo:'destinatario'}});
+    sc.push({id:'ed_solo',label:'Entrega Directa',tag:'1 tramo',tagCls:'p-bl',
+      desc:`Desde ${oC} directamente al destinatario. El origen ya es el COL.`,
+      state:{...base,origTipo:'col',destTipo:'destinatario'}});
+  } else {
+    sc.push({id:'arr_ed',label:'Arrastre + Entrega Directa',tag:'2 tramos',tagCls:'p-tl',
+      desc:`${oC} → ${dC} → Destinatario. Origen ya está en el COL salida.`,
+      state:{...base,origTipo:'col',destTipo:'destinatario'}});
+    sc.push({id:'rec_arr_ed',label:'Recogida + Arrastre + ED',tag:'3 tramos',tagCls:'p-am',
+      desc:`Remitente → ${oC} → ${dC} → Destinatario.`,
+      state:{...base,origTipo:'remitente',destTipo:'destinatario'}});
+  }
+  return sc;
+}
+
+let _simSc={};
+
+function renderSimOptions(origZona,destZona){
+  _simSc={};
+  if(!origZona||!destZona) return '';
+  const scenarios=genScenarios(origZona,destZona);
+  if(!scenarios.length) return '';
+  scenarios.forEach(s=>{_simSc[s.id]=s.state;});
+
+  let html=`<div class="plan-section" style="margin-bottom:14px">
+    <div class="plan-section-hdr">&#9654; Opciones de planificación: <strong>${esc(origZona)}</strong> &rarr; <strong>${esc(destZona)}</strong>
+      <span style="font-size:11px;font-weight:400;color:var(--tx2)">Haz clic en una opción para cargarla</span>
+    </div>
+    <div style="padding:10px 14px"><div class="sim-cards">`;
+
+  scenarios.forEach(sc=>{
+    const ords=generatePlanOrdersWith(sc.state);
+    if(!ords||!ords.length) return;
+    const res=planResumen(ords);
+    const nP=ords.length*2;
+    const hasLD=ords.some(o=>o.tramo&&!o.tramo.isLocal);
+    const isCurrent=(
+      pState.origTipo===sc.state.origTipo&&
+      pState.destTipo===sc.state.destTipo&&
+      JSON.stringify(pState.intermedios)===JSON.stringify(sc.state.intermedios||[])&&
+      !!pState.useP2P===!!sc.state.useP2P
+    );
+    html+=`<div class="sim-card${isCurrent?' sel':''}" onclick="loadSimScenario('${sc.id}')">
+      <div class="sim-card-hdr">
+        <span style="font-size:12px;font-weight:600">${esc(sc.label)}</span>
+        <span class="sim-badge ${sc.tagCls}">${esc(sc.tag)}</span>
+      </div>
+      <div style="padding:8px 14px 10px">
+        <div style="font-size:11px;color:var(--tx2);margin-bottom:6px">${esc(sc.desc)}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:3px">
+          <span class="pill p-gy">${ords.length} transici${ords.length===1?'ón':'ones'}</span>
+          <span class="pill p-gy">${nP} paradas</span>
+          ${hasLD?'<span class="pill p-am">Larga Distancia</span>':'<span class="pill p-tl">Local</span>'}
+        </div>
+        <div style="font-size:10px;color:var(--tx3)">${esc(res)}</div>
+        ${isCurrent?'<div style="font-size:10px;color:var(--bl);margin-top:4px;font-weight:600">&#10003; Opción activa</div>':'<div style="font-size:10px;color:var(--bl);margin-top:4px">&#10548; Cargar esta opción</div>'}
+      </div>
+    </div>`;
+  });
+
+  html+=`</div></div></div>`;
+  return html;
+}
+
+function loadSimScenario(id){
+  const s=_simSc[id]; if(!s) return;
+  pState=Object.assign({},s,{intermedios:[...(s.intermedios||[])]});
+  renderPlanFlow();
+  setTimeout(()=>{const r=document.getElementById('plan-result');if(r)r.scrollIntoView({behavior:'smooth'});},100);
+}
+
 function renderPlanResult() {
   const res=document.getElementById('plan-result');
   if(!res) return;
@@ -1282,24 +1434,66 @@ function renderPlanResult() {
   // ── Sección UNDO ──────────────────────────────────────────────
   const undoList=[...orders].reverse().filter(o=>!o.autoGen);
   let undoHtml=`<div class="plan-section">
-    <div class="plan-section-hdr">&#8635; Cómo deshacer esta planificación</div>`;
+    <div class="plan-section-hdr">&#8635; Cómo deshacer esta planificación
+      <span style="font-size:11px;font-weight:400;color:var(--tx2)">Del último al primero &bull; rojo = propias &bull; naranja = auto-generadas</span>
+    </div>`;
 
   undoList.forEach((o,idx)=>{
     const u=o.unigis||{};
-    let instruccion='',detalle='';
+    const cascade=getUndoCascade(o,orders);
+    const nAuto=cascade.filter(x=>x.autoGen).length;
+    const totalSubOrd=cascade.length; // cada 2 = 1 "orden UNIGIS" (pickup+delivery)
+    const nUnigisPairs=totalSubOrd/2;
+    const nParadas=totalSubOrd; // regla 1:1 orden = parada
+
+    let instruccion='',transRef='',nota='';
     if(o.estadoCod===10){
       instruccion='Orden '+o.num+' <strong>Arrastre</strong> '+esc(o.depCarga)+' &#8594; '+esc(o.depDescarga)+' &#8594; Programable';
-      detalle='Rol: Distribuidor | Transición: Programar Arrastre → Programable. El motor borra automáticamente la Entrega Directa auto-generada asociada.';
+      transRef='Transición 35: Programar Arrastre → Programable';
+      nota='El motor borra las sub-órdenes del arrastre y la Entrega Directa auto-generada asociada.';
     }else if(o.estadoCod===9){
       instruccion='Orden '+o.num+' <strong>Recogida</strong> en '+esc(u.pickupValor||'remitente')+' &#8594; Programable';
-      detalle='Rol: Distribuidor | Transición: Programar Recogida → Programable. Revertir Arrastres anteriores primero.';
+      transRef='Transición 28: Programar Recogida → Programable';
+      nota='Revertir primero todos los Arrastres posteriores.';
+    }else if(o.estadoCod===7){
+      instruccion='Orden '+o.num+' <strong>Punto a Punto</strong> &#8594; Programable';
+      transRef='Transición 21: Programar Punto a Punto → Programable';
+      nota='';
     }else if(o.estadoCod===8){
-      instruccion='Orden '+o.num+' <strong>Entrega Directa</strong> a '+esc(u.deliveryValor||'destinatario')+' &#8594; Programable';
-      detalle='Rol: Distribuidor | Solo si fue programada manualmente (no AUTO).';
+      instruccion='Orden '+o.num+' <strong>Entrega Directa</strong> &#8594; Programable';
+      transRef='Transición 23: Programar Entrega Directa → Programable';
+      nota='Solo si fue programada manualmente (no AUTO).';
     }
+
+    const ownChips=cascade.filter(x=>!x.autoGen).map(x=>
+      `<span class="del-chip">&#10005; Ord${x.ordNum}&nbsp;${x.sub==='pickup'?'&#128228;':'&#128229;'}&nbsp;${x.label}</span>`
+    ).join('');
+    const autoChips=cascade.filter(x=>x.autoGen).map(x=>
+      `<span class="del-chip auto-d">&#10005; Ord${x.ordNum}&nbsp;${x.sub==='pickup'?'&#128228;':'&#128229;'}&nbsp;${x.label}&nbsp;<em>auto</em></span>`
+    ).join('');
+
     undoHtml+=`<div class="plan-undo-step">
       <div class="plan-undo-num">${idx+1}</div>
-      <div style="flex:1"><div>${instruccion}</div><div style="font-size:11px;color:var(--tx3);margin-top:3px">${detalle}</div></div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px">
+          ${instruccion}
+          <span class="priv-b dist">&#128100; Distribuidor</span>
+        </div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:2px">${transRef}${nota?' — '+nota:''}</div>
+
+        <div style="margin-top:7px;padding:6px 8px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px">
+          <div style="font-size:10px;font-weight:700;color:var(--re);margin-bottom:4px">
+            &#128465; Se borran ${nUnigisPairs} orden${nUnigisPairs!==1?'es':''} UNIGIS &bull; ${nParadas} parada${nParadas!==1?'s':''} (1:1)${nAuto>0?' &mdash; incluye '+(nAuto/2)+' auto-generada'+(nAuto/2!==1?'s':''):''}
+          </div>
+          <div>${ownChips}${autoChips}</div>
+        </div>
+
+        <div style="margin-top:5px">
+          <div><span class="undo-cond ok">&#9679; Sin bloqueo: todas las paradas en EPA &lt; 20 (no iniciadas)</span></div>
+          <div><span class="undo-cond wrn">&#9651; Paradas asignadas a ruta (EPA &ge; 2): requiere <strong>Supervisor</strong> para desasignar</span></div>
+          <div><span class="undo-cond blk">&#9888; Viaje ACTIVO (EstadoViaje = 100): bloqueado, no reversible</span></div>
+        </div>
+      </div>
     </div>`;
   });
 
@@ -1308,7 +1502,8 @@ function renderPlanResult() {
     <div style="color:var(--tl);flex:1">Pedido vuelve a <strong>Programable</strong>. Puede reprogramarse con ruta diferente sin perder datos del pedido.</div>
   </div></div>`;
 
-  res.innerHTML=ordersHtml+hierHtml+undoHtml;
+  const simHtml=renderSimOptions(pState.origZona,pState.destZona);
+  res.innerHTML=simHtml+ordersHtml+hierHtml+undoHtml;
 }
 
 function limpiarPlan() {
