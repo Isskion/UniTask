@@ -1921,8 +1921,11 @@ function renderPlanMap(){
       const mid=[from[0]+(to[0]-from[0])*t,from[1]+(to[1]-from[1])*t];
       L.marker(mid,{icon:L.divIcon({html:'<div style="background:'+color+';color:#fff;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3)">'+label+' '+o.num+'</div>',className:'',iconAnchor:[20,8]})}).addTo(map);
     }
-    if(o.depCarga) colMarker(o.depCarga);
-    if(o.depDescarga) colMarker(o.depDescarga);
+    // P2P no pasa físicamente por ningún COL (depCarga/depDescarga son sólo para calcTramo)
+    if(o.estadoCod!==7){
+      if(o.depCarga) colMarker(o.depCarga);
+      if(o.depDescarga) colMarker(o.depDescarga);
+    }
   });
 
   // Marcador remitente
