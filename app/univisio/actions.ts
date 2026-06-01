@@ -1,6 +1,7 @@
 'use server';
 
 import { GoogleGenerativeAI, Schema, SchemaType } from '@google/generative-ai';
+import { headers } from 'next/headers';
 
 // Initialize the Gemini API client
 const apiKey = process.env.GEMINI_API_KEY || '';
@@ -58,9 +59,16 @@ CRITICAL RULES:
 - Match each step to its corresponding Node ID in the graph using the 'linkedNodeId' field.
 `;
 
+        const headersList = await headers();
+        const referer = headersList.get('referer') || 'http://localhost:3000';
+
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-2.5-pro',
             systemInstruction: systemInstruction
+        }, {
+            customHeaders: {
+                'Referer': referer
+            }
         });
 
         const prompt = `
@@ -179,9 +187,16 @@ SUPPORTED COMMANDS:
 Response format MUST match the JSON schema below.
 `;
 
+        const headersList = await headers();
+        const referer = headersList.get('referer') || 'http://localhost:3000';
+
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-2.5-flash',
             systemInstruction: systemInstruction
+        }, {
+            customHeaders: {
+                'Referer': referer
+            }
         });
 
         const responseSchema: Schema = {
