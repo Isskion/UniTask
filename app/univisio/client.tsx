@@ -355,42 +355,222 @@ export default function ClientPage() {
             const shapesList = xmlDoc.getElementsByTagNameNS('*', 'g');
             const nodesMap: Record<string, ParsedNode> = {};
             const extractedEdges: ParsedEdge[] = [];
-            const connectorsMap: Record<string, { from?: string; to?: string }> = {};
 
-            // Visio SVGs store shape metadata in v:mID or class groups
-            for (let i = 0; i < shapesList.length; i++) {
-                const shape = shapesList[i];
-                const id = shape.getAttribute('v:mID');
-                const groupContext = shape.getAttribute('v:groupContext');
+            // Detect if this is a bpmn-js / diagram-js SVG
+            const isDjs = svgText.includes('djs-element');
 
-                if (!id) continue;
+            if (isDjs) {
+                // Helpers for diagram-js parsing
+                const parseTransform = (transform: string | null): { x: number; y: number } => {
+                    if (!transform) return { x: 0, y: 0 };
+                    const nums = transform.match(/[-+]?[0-9]*\.?[0-9]+/g);
+                    if (!nums) return { x: 0, y: 0 };
+                    if (transform.includes('matrix') && nums.length >= 6) {
+                        return { x: parseFloat(nums[4]), y: parseFloat(nums[5]) };
+                    }
+                    if (transform.includes('translate') && nums.length >= 2) {
+                        return { x: parseFloat(nums[0]), y: parseFloat(nums[1]) };
+                    }
+                    return { x: 0, y: 0 };
+                };
 
-                if (groupContext === 'connector') {
-                    // Extract labels
-                    const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
-                    const label = textEl ? textEl.textContent?.trim() || '' : '';
+                const getPathEndpoints = (d: string): { start: { x: number; y: number } | null, end: { x: number; y: number } | null } => {
+                    const coords = d.match(/[-+]?[0-9]*\.?[0-9]+/g);
+                    if (!coords || coords.length < 4) return { start: null, end: null };
+                    const start = { x: parseFloat(coords[0]), y: parseFloat(coords[1]) };
+                    const end = { x: parseFloat(coords[coords.length - 2]), y: parseFloat(coords[coords.length - 1]) };
+                    return { start, end };
+                };
+
+                const shapes: Element[] = [];
+                const connections: Element[] = [];
+
+                for (let i = 0; i < shapesList.length; i++) {
+                    const shape = shapesList[i];
+                    const className = shape.getAttribute('class') || '';
+                    const id = shape.getAttribute('data-element-id') || shape.getAttribute('id');
+                    if (!id) continue;
+
+                    if (className.includes('djs-shape')) {
+                        shapes.push(shape);
+                    } else if (className.includes('djs-connection')) {
+                        connections.push(shape);
+                    }
+                }
+
+                const swimlaneZones: { id: string; label: string; yMin: number; yMax: number }[] = [];
+                const swimlanesSet = new Set<string>();
+
+                // First pass: Find swimlanes (large rectangular containers)
+                for (const shape of shapes) {
+                    const id = shape.getAttribute('data-element-id') || shape.getAttribute('id') || '';
+                    const transform = shape.getAttribute('transform');
+                    const { x, y } = parseTransform(transform);
                     
-                    // SVGs don't contain raw logical connects directly like page1.xml connects.
-                    // Fall back to general coordinates or look for custom elements.
-                    // If no explicit connections exist, we mock them for Vision refinement.
-                    connectorsMap[id] = { from: '', to: '' };
-                } else if (groupContext === 'shape') {
-                    const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
-                    const label = textEl ? textEl.textContent?.trim() || '' : '';
+                    const rect = shape.getElementsByTagNameNS('*', 'rect')[0];
+                    const width = rect ? parseFloat(rect.getAttribute('width') || '0') : 0;
+                    const height = rect ? parseFloat(rect.getAttribute('height') || '0') : 0;
+
+                    if (width > 500 && height > 150) {
+                        const textEls = shape.getElementsByTagNameNS('*', 'text');
+                        let label = '';
+                        if (textEls.length > 0) {
+                            label = textEls[0].textContent?.trim() || '';
+                        }
+                        if (label) {
+                            swimlaneZones.push({ id, label, yMin: y, yMax: y + height });
+                            swimlanesSet.add(label);
+                        }
+                    }
+                }
+
+                // Second pass: Parse regular shapes (nodes)
+                for (const shape of shapes) {
+                    const id = shape.getAttribute('data-element-id') || shape.getAttribute('id') || '';
+                    const transform = shape.getAttribute('transform');
+                    const { x, y } = parseTransform(transform);
+                    
+                    const rect = shape.getElementsByTagNameNS('*', 'rect')[0];
+                    const width = rect ? parseFloat(rect.getAttribute('width') || '0') : 90;
+                    const height = rect ? parseFloat(rect.getAttribute('height') || '0') : 60;
+
+                    if (width > 500 && height > 150) continue;
+
+                    const textEls = shape.getElementsByTagNameNS('*', 'text');
+                    let label = '';
+                    if (textEls.length > 0) {
+                        const tspans = textEls[0].getElementsByTagNameNS('*', 'tspan');
+                        if (tspans.length > 0) {
+                            label = Array.from(tspans).map(t => t.textContent?.trim() || '').filter(Boolean).join(' ');
+                        } else {
+                            label = textEls[0].textContent?.trim() || '';
+                        }
+                    }
+
+                    // Match swimlane based on y coordinate overlap
+                    let swimlane = 'General';
+                    const centerY = y + height / 2;
+                    for (const zone of swimlaneZones) {
+                        if (centerY >= zone.yMin && centerY <= zone.yMax) {
+                            swimlane = zone.label;
+                            break;
+                        }
+                    }
+
+                    let shapeType = 'rectangle';
+                    const circle = shape.getElementsByTagNameNS('*', 'circle')[0];
+                    if (circle) {
+                        shapeType = 'start';
+                    }
+                    const polygon = shape.getElementsByTagNameNS('*', 'polygon')[0];
+                    if (polygon) {
+                        shapeType = 'decision';
+                    }
 
                     nodesMap[id] = {
                         id,
                         label: label || `ID ${id}`,
-                        shapeType: 'rectangle',
-                        swimlane: 'General',
-                        position: { x: i * 50, y: i * 50 } // Simple grid layout
+                        shapeType,
+                        swimlane,
+                        position: { x, y }
                     };
                 }
-            }
 
-            setNodes(Object.values(nodesMap));
-            setParsingStatus('SVG parsed.');
-            setIsParsing(false);
+                // Third pass: Parse connections (edges)
+                for (const conn of connections) {
+                    const id = conn.getAttribute('data-element-id') || conn.getAttribute('id') || '';
+                    const path = conn.getElementsByTagNameNS('*', 'path')[0];
+                    if (!path) continue;
+
+                    const d = path.getAttribute('d') || '';
+                    const endpoints = getPathEndpoints(d);
+                    if (!endpoints.start || !endpoints.end) continue;
+
+                    const textEls = conn.getElementsByTagNameNS('*', 'text');
+                    let label = '';
+                    if (textEls.length > 0) {
+                        label = textEls[0].textContent?.trim() || '';
+                    }
+
+                    let fromNodeId = '';
+                    let minStartDist = Infinity;
+                    let toNodeId = '';
+                    let minEndDist = Infinity;
+
+                    for (const node of Object.values(nodesMap)) {
+                        const nodeCenterX = node.position.x + 45;
+                        const nodeCenterY = node.position.y + 30;
+
+                        const startDist = Math.hypot(endpoints.start.x - nodeCenterX, endpoints.start.y - nodeCenterY);
+                        if (startDist < minStartDist) {
+                            minStartDist = startDist;
+                            fromNodeId = node.id;
+                        }
+
+                        const endDist = Math.hypot(endpoints.end.x - nodeCenterX, endpoints.end.y - nodeCenterY);
+                        if (endDist < minEndDist) {
+                            minEndDist = endDist;
+                            toNodeId = node.id;
+                        }
+                    }
+
+                    if (fromNodeId && toNodeId && fromNodeId !== toNodeId) {
+                        extractedEdges.push({
+                            id,
+                            from: fromNodeId,
+                            to: toNodeId,
+                            label
+                        });
+                    }
+                }
+
+                // Execute topological sorts and loops detection
+                setParsingStatus('Analizando dependencias causales y ciclos...');
+                const orderedNodes = topologicalSort(Object.values(nodesMap), extractedEdges);
+                const cyclesList = detectCycles(Object.values(nodesMap), extractedEdges);
+
+                setNodes(orderedNodes);
+                setEdges(extractedEdges);
+                setCycles(cyclesList);
+                setSwimlanes(swimlanesSet.size > 0 ? Array.from(swimlanesSet) : ['General']);
+
+                generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList);
+                setParsingStatus('Grafo estructurado SVG cargado correctamente.');
+                setIsParsing(false);
+
+            } else {
+                // Parse standard Visio SVG
+                const connectorsMap: Record<string, { from?: string; to?: string }> = {};
+
+                for (let i = 0; i < shapesList.length; i++) {
+                    const shape = shapesList[i];
+                    const id = shape.getAttribute('v:mID');
+                    const groupContext = shape.getAttribute('v:groupContext');
+
+                    if (!id) continue;
+
+                    if (groupContext === 'connector') {
+                        const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
+                        const label = textEl ? textEl.textContent?.trim() || '' : '';
+                        connectorsMap[id] = { from: '', to: '' };
+                    } else if (groupContext === 'shape') {
+                        const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
+                        const label = textEl ? textEl.textContent?.trim() || '' : '';
+
+                        nodesMap[id] = {
+                            id,
+                            label: label || `ID ${id}`,
+                            shapeType: 'rectangle',
+                            swimlane: 'General',
+                            position: { x: i * 50, y: i * 50 }
+                        };
+                    }
+                }
+
+                setNodes(Object.values(nodesMap));
+                setParsingStatus('SVG parsed.');
+                setIsParsing(false);
+            }
         } catch (err: any) {
             console.error(err);
             alert('Error al parsear SVG: ' + err.message);
