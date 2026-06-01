@@ -98,6 +98,112 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
 .ld{width:12px;height:12px;border-radius:3px}
 .import-export{display:flex;gap:8px}
+/* ── DEPÓSITOS ── */
+function regionColor(r){return r==='ZCN'?'p-bl':r==='BCN'?'p-am':r==='LEV'?'p-tl':r==='AND'?'p-co':r==='NW'?'p-gr':'p-pu';}
+function paisTag(p){return p==='ES'?'<span class="pill p-bl" style="font-size:10px">ES</span>':'<span class="pill p-tl" style="font-size:10px">PT</span>';}
+
+function renderDepositos(){
+  const q=(document.getElementById('q-depositos')||{value:''}).value.toLowerCase();
+  const rows=(data.depositos||[]).filter(d=>!q||d.codigo.toLowerCase().includes(q)||d.nombre.toLowerCase().includes(q)||d.region.toLowerCase().includes(q));
+  const es=(data.depositos||[]).filter(d=>d.pais==='ES'&&d.activo).length;
+  const pt=(data.depositos||[]).filter(d=>d.pais==='PT'&&d.activo).length;
+  document.getElementById('stats-depositos').innerHTML=statsHtml(data.depositos||[])+
+    '<div class="sc"><div class="sl">ES</div><div class="sv">'+es+'</div></div>'+
+    '<div class="sc"><div class="sl">PT</div><div class="sv">'+pt+'</div></div>'+
+    '<div class="sc"><div class="sl">Zonas asignadas</div><div class="sv">'+new Set((data.zonas||[]).map(z=>z.col)).size+' COLs</div></div>';
+  if(!rows.length){document.getElementById('tbl-depositos').innerHTML=emptyHtml('Sin depósitos.');return;}
+  let h='<table><thead><tr><th>Código</th><th>Nombre</th><th>Región</th><th>País</th><th>Zona (Local/LD)</th><th>Jornada Local</th><th>Jornada LD</th><th>Operación</th><th>Afección</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(d=>{
+    const nZonas=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
+    const nRutas=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
+    const nJorn=(data.jornadas||[]).filter(j=>(j.tipoJornada||'').toLowerCase().includes(d.jornadaLocal.toLowerCase().split(' ').slice(0,2).join(' ').toLowerCase())).length;
+    h+='<tr'+(!d.activo?' style="opacity:.5"':'')+'>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace;font-size:13px">'+esc(d.codigo)+'</span></td>';
+    h+='<td style="font-weight:500">'+esc(d.nombre)+'</td>';
+    h+='<td>'+pill(d.region,regionColor(d.region))+'</td>';
+    h+='<td>'+paisTag(d.pais)+'</td>';
+    h+='<td class="tdm" style="font-family:monospace;font-size:11px">'+esc(d.zona)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLocal)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLD)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.operacion)+'</td>';
+    h+='<td style="font-size:11px;white-space:nowrap">';
+    if(nZonas) h+='<span class="pill p-tl" style="margin:1px">'+nZonas+' zonas</span>';
+    if(nRutas) h+='<span class="pill p-am" style="margin:1px">'+nRutas+' rutas</span>';
+    if(nJorn)  h+='<span class="pill p-bl" style="margin:1px">~'+nJorn+' jornadas</span>';
+    h+='</td>';
+    h+='<td>'+tog(d.activo,'depositos',d.id)+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'depositos\','+d.id+')">✎</button><button class="bi dl" onclick="delDeposito('+d.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-depositos').innerHTML=h;
+}
+
+function delDeposito(id){
+  const d=data.depositos.find(x=>x.id===id);
+  if(!d) return;
+  const nZ=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
+  const nR=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
+  let warn='';
+  if(nZ) warn+='\n• '+nZ+' zona(s) de influencia quedarán sin COL asignado.';
+  if(nR) warn+='\n• '+nR+' ruta(s) inter-COL quedarán huérfanas.';
+  if(!confirm('¿Eliminar COL "'+d.codigo+'"?'+(warn?'\n\nATENCIÓN:'+warn:''))) return;
+  data.depositos=data.depositos.filter(x=>x.id!==id);
+  save(); renderAll();
+}
+
+function renderZonas(){
+  const q=(document.getElementById('q-zonas')||{value:''}).value.toLowerCase();
+  const rows=(data.zonas||[]).filter(z=>!q||z.zona.toLowerCase().includes(q)||z.col.toLowerCase().includes(q));
+  const byCol={};
+  (data.zonas||[]).forEach(z=>{byCol[z.col]=(byCol[z.col]||0)+1;});
+  document.getElementById('stats-zonas').innerHTML=statsHtml(data.zonas||[])+
+    '<div class="sc"><div class="sl">COLs con zonas</div><div class="sv">'+Object.keys(byCol).length+'</div></div>'+
+    '<div class="sc"><div class="sl">Sin COL activo</div><div class="sv">'+
+    (data.zonas||[]).filter(z=>!PCOLS[z.col]).length+'</div></div>';
+  if(!rows.length){document.getElementById('tbl-zonas').innerHTML=emptyHtml('Sin zonas.');return;}
+  let h='<table><thead><tr><th>Zona / Localidad</th><th>COL asignado</th><th>País</th><th>Zona lógica</th><th></th></tr></thead><tbody>';
+  rows.forEach(z=>{
+    const col=PCOLS[z.col];
+    const orphan=!col;
+    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
+    h+='<td style="font-weight:500">'+esc(z.zona)+(orphan?' <span style="font-size:10px;color:var(--re)">⚠ COL no existe</span>':'')+'</td>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(z.col)+'</span>'+(col?' <span class="tdm" style="font-size:11px">'+esc(col.n)+'</span>':'')+'</td>';
+    h+='<td>'+(col?paisTag(col.pais):'—')+'</td>';
+    h+='<td class="tdm" style="font-size:11px;font-family:monospace">'+(col?esc(col.zone):'—')+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'zonas\','+z.id+')">✎</button><button class="bi dl" onclick="delItem(\'zonas\','+z.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-zonas').innerHTML=h;
+}
+
+function renderRutas(){
+  const q=(document.getElementById('q-rutas')||{value:''}).value.toLowerCase();
+  const rows=(data.rutas||[]).filter(r=>!q||r.colOrigen.toLowerCase().includes(q)||r.colDestino.toLowerCase().includes(q)||(r.descripcion||'').toLowerCase().includes(q));
+  document.getElementById('stats-rutas').innerHTML=statsHtml(data.rutas||[])+
+    '<div class="sc"><div class="sl">COLs con rutas</div><div class="sv">'+new Set((data.rutas||[]).flatMap(r=>[r.colOrigen,r.colDestino])).size+'</div></div>';
+  if(!rows.length){
+    document.getElementById('tbl-rutas').innerHTML='<div class="empty"><div class="ei">🔀</div><p>Sin rutas definidas. Añade conexiones inter-COL para validar arrastres en el Planificador.</p></div>';
+    return;
+  }
+  let h='<table><thead><tr><th>COL Origen</th><th></th><th>COL Destino</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const co=PCOLS[r.colOrigen],cd=PCOLS[r.colDestino];
+    const orphan=!co||!cd;
+    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colOrigen)+'</span>'+(co?' <span class="tdm" style="font-size:11px">'+esc(co.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
+    h+='<td style="text-align:center;color:var(--am)">&#8594;</td>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colDestino)+'</span>'+(cd?' <span class="tdm" style="font-size:11px">'+esc(cd.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
+    h+='<td class="tdm">'+esc(r.descripcion||'—')+'</td>';
+    h+='<td>'+tog(r.activo,'rutas',r.id)+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'rutas\','+r.id+')">✎</button><button class="bi dl" onclick="delItem(\'rutas\','+r.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-rutas').innerHTML=h;
+}
+
 /* ── PLANIFICADOR ── */
 .plan-flow{display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;overflow-x:auto;padding:8px 0 16px;margin-bottom:4px}
 .plan-node{background:var(--sf);border:2px solid var(--bd);border-radius:var(--rl);padding:14px 16px;min-width:210px;max-width:250px;flex-shrink:0}
@@ -185,6 +291,7 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <button onclick="showTab('matriz',this)"><span class="dot" style="background:#0F6E56"></span>Matriz Programación</button>
   <button onclick="showTab('transiciones',this)"><span class="dot" style="background:#534AB7"></span>Transiciones</button>
   <button onclick="showTab('plantillas',this)"><span class="dot" style="background:#3B6D11"></span>Plantillas</button>
+  <button onclick="showTab('depositos',this)"><span class="dot" style="background:#0F6E56"></span>Depósitos</button>
   <button onclick="showTab('planificador',this);ensurePlanInit()"><span class="dot" style="background:#854F0B"></span>Planificador</button>
 </nav>
 <main>
@@ -246,6 +353,38 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <div id="tbl-plantillas"></div>
 </div>
 
+<div id="tab-depositos" class="tab">
+  <div class="toolbar">
+    <div class="tl-l"><span class="stitle">Depósitos / COLs</span>
+      <input type="text" class="search" placeholder="Buscar COL..." id="q-depositos" oninput="renderDepositos()">
+    </div>
+    <button class="btn btn-p" onclick="openModal('depositos',null)">+ Nuevo COL</button>
+  </div>
+  <p class="sdesc">Catálogo de COLs (Centers of Logistics). Alimenta dinámicamente el Planificador y el cálculo de jornadas. Cada COL define su zona de influencia, que determina si un tramo es Local o Larga Distancia.</p>
+  <div id="stats-depositos" class="stats"></div>
+  <div id="tbl-depositos"></div>
+
+  <div class="toolbar" style="margin-top:22px">
+    <div class="tl-l"><span class="stitle">Zonas de influencia</span>
+      <input type="text" class="search" placeholder="Buscar zona..." id="q-zonas" oninput="renderZonas()">
+    </div>
+    <button class="btn btn-p" onclick="openModal('zonas',null)">+ Nueva zona</button>
+  </div>
+  <p class="sdesc">Mapeo zona geográfica → COL responsable. El Planificador usa esta tabla para detectar automáticamente el COL de origen y destino al seleccionar una localidad.</p>
+  <div id="stats-zonas" class="stats"></div>
+  <div id="tbl-zonas"></div>
+
+  <div class="toolbar" style="margin-top:22px">
+    <div class="tl-l"><span class="stitle">Rutas inter-COL</span>
+      <input type="text" class="search" placeholder="Buscar ruta..." id="q-rutas" oninput="renderRutas()">
+    </div>
+    <button class="btn btn-p" onclick="openModal('rutas',null)">+ Nueva ruta</button>
+  </div>
+  <p class="sdesc">Define qué conexiones COL→COL son válidas para arrastres. Base para validación y sugerencia automática de intermedios en el Planificador.</p>
+  <div id="stats-rutas" class="stats"></div>
+  <div id="tbl-rutas"></div>
+</div>
+
 <div id="tab-planificador" class="tab">
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Planificador de pedidos</span></div>
@@ -283,23 +422,93 @@ const DEFAULT_DATA = {"estados":[{"id":1,"codigo":1,"nombre":"Inicial","descripc
   {"id":6,"activo":true,"estadoCod":12,"nombre":"AJENA - Programar Arrastre","descripcion":"Arrastre ejecutado por agencia ajena. Borra ED previa.","pickupTipo":"Recolección en Depósito Ajena","pickupCampo":"Depósito Ajena","pickupOrigenTipo":"col","deliveryTipo":"Entrega en COL","deliveryCampo":"Depósito Descarga","deliveryDestinoTipo":"col","epPickup":1275,"epaPickup":275,"epDelivery":1255,"epaDelivery":255,"autoNext":"Programar Entrega Direta","borrarAntes":"Programar Entrega Direta","esArrastre":true},
   {"id":7,"activo":true,"estadoCod":13,"nombre":"AJENA - Programar Recogida","descripcion":"Recogida ejecutada por agencia ajena. Requiere motivo con depósito ajena.","pickupTipo":"Recolección en Remitente","pickupCampo":"Domicilio Orden 2","pickupOrigenTipo":"remitente","deliveryTipo":"Entrega en Depósito Ajena","deliveryCampo":"Depósito Ajena","deliveryDestinoTipo":"col","epPickup":1035,"epaPickup":35,"epDelivery":1045,"epaDelivery":45,"autoNext":"Programar Arrastre","borrarAntes":null,"esArrastre":false},
   {"id":8,"activo":true,"estadoCod":14,"nombre":"Programar Paqueteria","descripcion":"Paquetería desde COL a destinatario con jornada específica por zona postal.","pickupTipo":"Recolección en COL","pickupCampo":"Depósito Carga","pickupOrigenTipo":"col","deliveryTipo":"Entrega destinatario","deliveryCampo":"Domicilio Orden","deliveryDestinoTipo":"destinatario","epPickup":null,"epaPickup":null,"epDelivery":1315,"epaDelivery":315,"autoNext":null,"borrarAntes":null,"esArrastre":false}
-]};
-const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"plantillas":9};
+],
+"depositos":[
+  {"id":1,"codigo":"AD","nombre":"Madrid (AD)","region":"ZCN","pais":"ES","zona":"ES_Madrid","jornadaLocal":"ES Madrid Local","jornadaLD":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","activo":true},
+  {"id":2,"codigo":"BP","nombre":"Barcelona-Palleja (BP)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
+  {"id":3,"codigo":"BF","nombre":"Barcelona-ZFranca (BF)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
+  {"id":4,"codigo":"BR","nombre":"Barcelona-Girona (BR)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
+  {"id":5,"codigo":"VL","nombre":"Valencia (VL)","region":"LEV","pais":"ES","zona":"ES_Valencia","jornadaLocal":"ES Valencia Local","jornadaLD":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","activo":true},
+  {"id":6,"codigo":"AM","nombre":"Valencia-AM (AM)","region":"LEV","pais":"ES","zona":"ES_Valencia","jornadaLocal":"ES Valencia Local","jornadaLD":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","activo":true},
+  {"id":7,"codigo":"SV","nombre":"Sevilla (SV)","region":"AND","pais":"ES","zona":"ES_Sevilla","jornadaLocal":"ES Sevilha Local","jornadaLD":"ES Sevilha Larga distancia","operacion":"Sur Sevilla","activo":true},
+  {"id":8,"codigo":"BRG","nombre":"Braga (BRG)","region":"NW","pais":"PT","zona":"PT_Braga","jornadaLocal":"PT Ajena - Braga","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
+  {"id":9,"codigo":"CMB","nombre":"Coimbra (CMB)","region":"NW","pais":"PT","zona":"PT_Coimbra","jornadaLocal":"PT Coimbra Local","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
+  {"id":10,"codigo":"R","nombre":"Porto/Noroeste (R)","region":"NW","pais":"PT","zona":"PT_Porto","jornadaLocal":"PT Porto Local","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
+  {"id":11,"codigo":"VR","nombre":"Vila Real (VR)","region":"NW","pais":"PT","zona":"PT_VR","jornadaLocal":"PT Ajena - Vila Real","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
+  {"id":12,"codigo":"C","nombre":"Lisboa/SW (C)","region":"SW","pais":"PT","zona":"PT_Lisboa","jornadaLocal":"PT Lisboa Local","jornadaLD":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","activo":true},
+  {"id":13,"codigo":"ALG","nombre":"Algarve (ALG)","region":"SW","pais":"PT","zona":"PT_Algarve","jornadaLocal":"PT Algarve Local","jornadaLD":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","activo":true}
+],
+"zonas":[
+  {"id":1,"zona":"Madrid","col":"AD"},{"id":2,"zona":"Guadalajara","col":"AD"},{"id":3,"zona":"Toledo","col":"AD"},
+  {"id":4,"zona":"Ciudad Real","col":"AD"},{"id":5,"zona":"Cuenca","col":"AD"},{"id":6,"zona":"Avila","col":"AD"},
+  {"id":7,"zona":"Segovia","col":"AD"},{"id":8,"zona":"Merida / Badajoz","col":"AD"},
+  {"id":9,"zona":"Navalmoral / Caceres","col":"AD"},{"id":10,"zona":"Valladolid / Salamanca","col":"AD"},
+  {"id":11,"zona":"Leon","col":"AD"},{"id":12,"zona":"Burgos","col":"AD"},{"id":13,"zona":"Cantabria","col":"AD"},
+  {"id":14,"zona":"Asturias","col":"AD"},{"id":15,"zona":"Galicia","col":"AD"},
+  {"id":16,"zona":"Bilbao / Pais Vasco","col":"AD"},{"id":17,"zona":"Vitoria / Alava","col":"AD"},
+  {"id":18,"zona":"Navarra","col":"AD"},{"id":19,"zona":"Logrono / La Rioja","col":"AD"},
+  {"id":20,"zona":"Zaragoza","col":"AD"},{"id":21,"zona":"Islas Baleares","col":"AD"},{"id":22,"zona":"Islas Canarias","col":"AD"},
+  {"id":23,"zona":"Barcelona","col":"BP"},{"id":24,"zona":"Tarragona","col":"BP"},{"id":25,"zona":"Lerida","col":"BP"},
+  {"id":26,"zona":"Girona / Gerona","col":"BR"},{"id":27,"zona":"Andorra","col":"BR"},
+  {"id":28,"zona":"Valencia","col":"VL"},{"id":29,"zona":"Castellon","col":"VL"},
+  {"id":30,"zona":"Alicante","col":"VL"},{"id":31,"zona":"Murcia","col":"VL"},{"id":32,"zona":"Albacete","col":"VL"},
+  {"id":33,"zona":"Sevilla","col":"SV"},{"id":34,"zona":"Huelva","col":"SV"},{"id":35,"zona":"Cadiz","col":"SV"},
+  {"id":36,"zona":"Cordoba","col":"SV"},{"id":37,"zona":"Granada","col":"SV"},{"id":38,"zona":"Almeria","col":"SV"},
+  {"id":39,"zona":"Jaen","col":"SV"},{"id":40,"zona":"Malaga / Gibraltar","col":"SV"},{"id":41,"zona":"Ceuta / Melilla","col":"SV"},
+  {"id":42,"zona":"Braga","col":"BRG"},{"id":43,"zona":"Guimaraes","col":"BRG"},{"id":44,"zona":"Esposende","col":"BRG"},
+  {"id":45,"zona":"Famalicao","col":"BRG"},{"id":46,"zona":"Barcelos","col":"BRG"},{"id":47,"zona":"Vila Verde","col":"BRG"},
+  {"id":48,"zona":"Fafe","col":"BRG"},{"id":49,"zona":"Vizela","col":"BRG"},
+  {"id":50,"zona":"Coimbra","col":"CMB"},{"id":51,"zona":"Figueira da Foz","col":"CMB"},
+  {"id":52,"zona":"Oliveira do Hospital","col":"CMB"},{"id":53,"zona":"Pombal","col":"CMB"},
+  {"id":54,"zona":"Leiria (norte)","col":"CMB"},{"id":55,"zona":"Guarda","col":"CMB"},{"id":56,"zona":"Viseu","col":"CMB"},
+  {"id":57,"zona":"Aveiro","col":"R"},{"id":58,"zona":"Porto","col":"R"},{"id":59,"zona":"Gaia","col":"R"},
+  {"id":60,"zona":"Santa Maria da Feira","col":"R"},{"id":61,"zona":"Ovar","col":"R"},
+  {"id":62,"zona":"Espinho","col":"R"},{"id":63,"zona":"Arouca","col":"R"},{"id":64,"zona":"Sao Joao da Madeira","col":"R"},
+  {"id":65,"zona":"Oliveira de Azemeis","col":"R"},{"id":66,"zona":"Vale de Cambra","col":"R"},
+  {"id":67,"zona":"Vila Real","col":"VR"},{"id":68,"zona":"Chaves","col":"VR"},{"id":69,"zona":"Braganca","col":"VR"},
+  {"id":70,"zona":"Mirandela","col":"VR"},{"id":71,"zona":"Lamego","col":"VR"},{"id":72,"zona":"Peso da Regua","col":"VR"},
+  {"id":73,"zona":"Lisboa","col":"C"},{"id":74,"zona":"Carregado","col":"C"},{"id":75,"zona":"Setubal","col":"C"},
+  {"id":76,"zona":"Palmela","col":"C"},{"id":77,"zona":"Montijo","col":"C"},{"id":78,"zona":"Grandola","col":"C"},
+  {"id":79,"zona":"Santiago do Cacem","col":"C"},{"id":80,"zona":"Sines","col":"C"},
+  {"id":81,"zona":"Nazare","col":"C"},{"id":82,"zona":"Caldas da Rainha","col":"C"},
+  {"id":83,"zona":"Peniche","col":"C"},{"id":84,"zona":"Leiria (sul)","col":"C"},{"id":85,"zona":"Alcobaca","col":"C"},
+  {"id":86,"zona":"Evora","col":"C"},{"id":87,"zona":"Beja","col":"C"},{"id":88,"zona":"Castelo Branco","col":"C"},
+  {"id":89,"zona":"Viana do Castelo","col":"C"},{"id":90,"zona":"Santarem","col":"C"},
+  {"id":91,"zona":"Faro","col":"ALG"},{"id":92,"zona":"Portimao","col":"ALG"},{"id":93,"zona":"Lagos","col":"ALG"},
+  {"id":94,"zona":"Albufeira","col":"ALG"},{"id":95,"zona":"Loule","col":"ALG"},{"id":96,"zona":"Tavira","col":"ALG"},
+  {"id":97,"zona":"Olhao","col":"ALG"},{"id":98,"zona":"Silves","col":"ALG"},
+  {"id":99,"zona":"Vila Real de Sto. Antonio","col":"ALG"}
+],
+"rutas":[]
+};
+const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"plantillas":9,"depositos":14,"zonas":100,"rutas":1};
 
 let data, nextIds, curSection, editId;
 
 function init() {
   try {
     const s = localStorage.getItem(SK);
-    if (s) { const p = JSON.parse(s); data = p.data; nextIds = p.nextIds; }
-    else { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT); }
+    if (s) {
+      const p = JSON.parse(s); data = p.data; nextIds = p.nextIds;
+      // Migración: añadir secciones nuevas si no existen
+      if (!data.depositos) { data.depositos = JSON.parse(JSON.stringify(DEFAULT_DATA.depositos)); }
+      if (!data.zonas)     { data.zonas     = JSON.parse(JSON.stringify(DEFAULT_DATA.zonas)); }
+      if (!data.rutas)     { data.rutas     = []; }
+      if (!nextIds.depositos) nextIds.depositos = DEFAULT_NEXT.depositos;
+      if (!nextIds.zonas)     nextIds.zonas     = DEFAULT_NEXT.zonas;
+      if (!nextIds.rutas)     nextIds.rutas     = 1;
+    } else {
+      data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
+    }
   } catch(e) {
     data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
   }
+  rebuildDynamicData();
 }
 
 function save() {
   try { localStorage.setItem(SK, JSON.stringify({data, nextIds})); } catch(e) {}
+  rebuildDynamicData();
 }
 
 function resetData() {
@@ -337,7 +546,7 @@ function showTab(id, btn) {
   renderAll();
 }
 
-function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); }
+function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); }
 
 /* ── utils ── */
 function pill(txt, cls) { return '<span class="pill ' + cls + '">' + esc(txt) + '</span>'; }
@@ -467,7 +676,7 @@ function mxClick(orig, dest) {
 function openModal(section, id) {
   curSection = section; editId = id;
   const item = id !== null ? data[section].find(x => x.id === id) : null;
-  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición'};
+  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL'};
   document.getElementById('m-title').textContent = (id !== null ? 'Editar ' : 'Nuevo ') + titles[section];
   document.getElementById('m-body').innerHTML = buildForm(section, item);
   document.getElementById('bd').classList.add('on');
@@ -573,6 +782,45 @@ function buildForm(sec, item) {
         '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-plact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
       '</div>';
   }
+  if (sec === 'depositos') {
+    const regOpts=['ZCN','BCN','LEV','AND','NW','SW'].map(r=>'<option'+(item&&item.region===r?' selected':'')+'>'+r+'</option>').join('');
+    const paisOpts=['ES','PT'].map(p=>'<option'+(item&&item.pais===p?' selected':'')+'>'+p+'</option>').join('');
+    return '<div class="frow">'+
+      '<div class="fg"><label class="fl">Código COL <span class="req">*</span></label><input type="text" id="f-dcod" value="'+esc(item?item.codigo:'')+'" placeholder="AD" style="font-family:monospace;text-transform:uppercase"></div>'+
+      '<div class="fg"><label class="fl">País</label><select id="f-dpais">'+paisOpts+'</select></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">Nombre <span class="req">*</span></label><input type="text" id="f-dnom" value="'+esc(item?item.nombre:'')+'" placeholder="Madrid (AD)"></div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Región</label><select id="f-dreg">'+regOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">Zona lógica <span class="req">*</span></label><input type="text" id="f-dzona" value="'+esc(item?item.zona:'')+'" placeholder="ES_Madrid" style="font-family:monospace"></div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--bl);font-weight:600;margin:6px 0 2px">Jornadas (usadas por el Planificador para calcular tipo de tramo)</div>'+
+      '<div class="fg"><label class="fl">Jornada Local</label><input type="text" id="f-djl" value="'+esc(item?item.jornadaLocal:'')+'" placeholder="ES Madrid Local"></div>'+
+      '<div class="fg"><label class="fl">Jornada Larga Distancia</label><input type="text" id="f-djld" value="'+esc(item?item.jornadaLD:'')+'" placeholder="ES Madrid Larga distancia"></div>'+
+      '<div class="fg"><label class="fl">Operación</label><input type="text" id="f-dop" value="'+esc(item?item.operacion:'')+'" placeholder="Centro Norte Madrid"></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-dact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
+  }
+
+  if (sec === 'zonas') {
+    const colOpts=(data.depositos||[]).sort((a,b)=>a.codigo.localeCompare(b.codigo)).map(d=>'<option value="'+esc(d.codigo)+'"'+(item&&item.col===d.codigo?' selected':'')+'>'+esc(d.codigo)+' — '+esc(d.nombre)+'</option>').join('');
+    return '<div class="fg"><label class="fl">Zona / Localidad <span class="req">*</span></label><input type="text" id="f-zzona" value="'+esc(item?item.zona:'')+'" placeholder="Madrid"></div>'+
+      '<div class="fg"><label class="fl">COL asignado <span class="req">*</span></label><select id="f-zcol"><option value="">— Selecciona COL —</option>'+colOpts+'</select></div>';
+  }
+
+  if (sec === 'rutas') {
+    const colOpts2=(data.depositos||[]).sort((a,b)=>a.codigo.localeCompare(b.codigo)).map(d=>'<option value="'+esc(d.codigo)+'"'+'>'+esc(d.codigo)+' — '+esc(d.nombre)+'</option>').join('');
+    const selO=item?'<script>document.getElementById("f-rorig").value="'+item.colOrigen+'";<\/script>':'';
+    const selD=item?'<script>document.getElementById("f-rdest").value="'+item.colDestino+'";<\/script>':'';
+    return '<div style="background:var(--am2);color:var(--am);border:1px solid #e8d5a0;border-radius:var(--r);padding:8px 12px;font-size:12px;margin-bottom:6px">'+
+      'Define una conexión válida para arrastres. El Planificador usará esta tabla para validar y sugerir rutas inter-COL.</div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">COL Origen <span class="req">*</span></label><select id="f-rorig"><option value="">— COL salida —</option>'+colOpts2+'</select>'+selO+'</div>'+
+      '<div class="fg"><label class="fl">COL Destino <span class="req">*</span></label><select id="f-rdest"><option value="">— COL llegada —</option>'+colOpts2+'</select>'+selD+'</div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">Descripción</label><input type="text" id="f-rdesc" value="'+esc(item?item.descripcion||'':'')+'" placeholder="Troncal España peninsular"></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-ract"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
+  }
+
   if (sec === 'transiciones') {
     const rolOpts = ['SAC','Distribuidor','Automatico'].map(r => '<option' + (item&&item.rolPermitido===r?' selected':'') + '>' + r + '</option>').join('');
     return '<div style="background:var(--bl2);color:var(--bl);border:1px solid #b5d4f4;border-radius:var(--r);padding:10px 12px;font-size:12px;margin-bottom:4px">Los estados disponibles provienen del catálogo. Para añadir nuevos, ve a la pestaña <strong>Estados</strong>.</div>' +
@@ -622,6 +870,24 @@ function saveModal() {
       autoNext:gv('f-plauto')||null, borrarAntes:gv('f-plbor')||null,
       esArrastre:gb('f-plarr'), activo:gb('f-plact')
     };
+  } else if (sec === 'depositos') {
+    if (!gv('f-dcod') || !gv('f-dnom') || !gv('f-dzona')) { alert('Código, Nombre y Zona son obligatorios.'); return; }
+    const cod = gv('f-dcod').toUpperCase();
+    const dup = data.depositos.find(d => d.codigo === cod && d.id !== editId);
+    if (dup) { alert('Ya existe un COL con ese código.'); return; }
+    item = {codigo:cod, nombre:gv('f-dnom'), region:gv('f-dreg'), pais:gv('f-dpais'),
+      zona:gv('f-dzona'), jornadaLocal:gv('f-djl'), jornadaLD:gv('f-djld'),
+      operacion:gv('f-dop'), activo:gb('f-dact')};
+  } else if (sec === 'zonas') {
+    if (!gv('f-zzona') || !gv('f-zcol')) { alert('Zona y COL son obligatorios.'); return; }
+    item = {zona:gv('f-zzona'), col:gv('f-zcol')};
+  } else if (sec === 'rutas') {
+    const orig = gv('f-rorig'), dest = gv('f-rdest');
+    if (!orig || !dest) { alert('COL Origen y Destino son obligatorios.'); return; }
+    if (orig === dest) { alert('El COL origen y destino no pueden ser iguales.'); return; }
+    const dup2 = (data.rutas||[]).find(r => r.colOrigen===orig && r.colDestino===dest && r.id!==editId);
+    if (dup2) { alert('Ya existe esa ruta.'); return; }
+    item = {colOrigen:orig, colDestino:dest, descripcion:gv('f-rdesc'), activo:gb('f-ract')};
   } else if (sec === 'transiciones') {
     const orig = parseInt(gv('f-eorig'));
     const dest = parseInt(gv('f-edest'));
@@ -706,86 +972,18 @@ function renderPlantillas(){
 // zone: identificador de zona para cálculo Local/LD (misma zona = Local, distinta = Larga Distancia)
 // jLocal/jLD: Tipo Jornada según tabla Deposito Carga + Tipo tramo
 // op: Operación del viaje (constante por COL)
-const PCOLS = {
-  'AD':  {n:'Madrid (AD)',            r:'ZCN',pais:'ES', zone:'ES_Madrid',
-          jLocal:'ES Madrid Local',            jLD:'ES Madrid Larga distancia',    op:'Centro Norte Madrid'},
-  'BP':  {n:'Barcelona-Palleja (BP)', r:'BCN',pais:'ES', zone:'ES_Barcelona',
-          jLocal:'ES Barcelona Local',         jLD:'ES Barcelona Larga distancia', op:'NORDESTE BARCELONA'},
-  'BF':  {n:'Barcelona-ZFranca (BF)',r:'BCN',pais:'ES', zone:'ES_Barcelona',
-          jLocal:'ES Barcelona Local',         jLD:'ES Barcelona Larga distancia', op:'NORDESTE BARCELONA'},
-  'BR':  {n:'Barcelona-Girona (BR)', r:'BCN',pais:'ES', zone:'ES_Barcelona',
-          jLocal:'ES Barcelona Local',         jLD:'ES Barcelona Larga distancia', op:'NORDESTE BARCELONA'},
-  'VL':  {n:'Valencia (VL)',          r:'LEV',pais:'ES', zone:'ES_Valencia',
-          jLocal:'ES Valencia Local',          jLD:'ES Valencia Larga distancia',  op:'Nordeste Valencia'},
-  'AM':  {n:'Valencia-AM (AM)',       r:'LEV',pais:'ES', zone:'ES_Valencia',
-          jLocal:'ES Valencia Local',          jLD:'ES Valencia Larga distancia',  op:'Nordeste Valencia'},
-  'SV':  {n:'Sevilla (SV)',           r:'AND',pais:'ES', zone:'ES_Sevilla',
-          jLocal:'ES Sevilha Local',           jLD:'ES Sevilha Larga distancia',   op:'Sur Sevilla'},
-  'BRG': {n:'Braga (BRG)',            r:'NW', pais:'PT', zone:'PT_Braga',
-          jLocal:'PT Ajena - Braga',           jLD:'PT Noroeste Larga distancia',  op:'PT Noroeste'},
-  'CMB': {n:'Coimbra (CMB)',          r:'NW', pais:'PT', zone:'PT_Coimbra',
-          jLocal:'PT Coimbra Local',           jLD:'PT Noroeste Larga distancia',  op:'PT Noroeste'},
-  'R':   {n:'Porto/Noroeste (R)',     r:'NW', pais:'PT', zone:'PT_Porto',
-          jLocal:'PT Porto Local',             jLD:'PT Noroeste Larga distancia',  op:'PT Noroeste'},
-  'VR':  {n:'Vila Real (VR)',         r:'NW', pais:'PT', zone:'PT_VR',
-          jLocal:'PT Ajena - Vila Real',       jLD:'PT Noroeste Larga distancia',  op:'PT Noroeste'},
-  'C':   {n:'Lisboa/SW (C)',          r:'SW', pais:'PT', zone:'PT_Lisboa',
-          jLocal:'PT Lisboa Local',            jLD:'PT Sudoeste Larga distancia',  op:'PT Sudoeste'},
-  'ALG': {n:'Algarve (ALG)',          r:'SW', pais:'PT', zone:'PT_Algarve',
-          jLocal:'PT Algarve Local',           jLD:'PT Sudoeste Larga distancia',  op:'PT Sudoeste'}
-};
+// PCOLS y PLOCS se reconstruyen desde data.depositos y data.zonas (dinámico)
+let PCOLS = {};
+let PLOCS = [];
 
-const PLOCS = [
-  // ES - AD
-  {z:'Madrid',col:'AD'},{z:'Guadalajara',col:'AD'},{z:'Toledo',col:'AD'},
-  {z:'Ciudad Real',col:'AD'},{z:'Cuenca',col:'AD'},{z:'Avila',col:'AD'},
-  {z:'Segovia',col:'AD'},{z:'Merida / Badajoz',col:'AD'},
-  {z:'Navalmoral / Caceres',col:'AD'},{z:'Valladolid / Salamanca',col:'AD'},
-  {z:'Leon',col:'AD'},{z:'Burgos',col:'AD'},{z:'Cantabria',col:'AD'},
-  {z:'Asturias',col:'AD'},{z:'Galicia',col:'AD'},
-  {z:'Bilbao / Pais Vasco',col:'AD'},{z:'Vitoria / Alava',col:'AD'},
-  {z:'Navarra',col:'AD'},{z:'Logrono / La Rioja',col:'AD'},
-  {z:'Zaragoza',col:'AD'},{z:'Islas Baleares',col:'AD'},{z:'Islas Canarias',col:'AD'},
-  // ES - BCN
-  {z:'Barcelona',col:'BP'},{z:'Tarragona',col:'BP'},{z:'Lerida',col:'BP'},
-  {z:'Girona / Gerona',col:'BR'},{z:'Andorra',col:'BR'},
-  // ES - VL
-  {z:'Valencia',col:'VL'},{z:'Castellon',col:'VL'},
-  {z:'Alicante',col:'VL'},{z:'Murcia',col:'VL'},{z:'Albacete',col:'VL'},
-  // ES - SV
-  {z:'Sevilla',col:'SV'},{z:'Huelva',col:'SV'},{z:'Cadiz',col:'SV'},
-  {z:'Cordoba',col:'SV'},{z:'Granada',col:'SV'},{z:'Almeria',col:'SV'},
-  {z:'Jaen',col:'SV'},{z:'Malaga / Gibraltar',col:'SV'},{z:'Ceuta / Melilla',col:'SV'},
-  // PT - BRG
-  {z:'Braga',col:'BRG'},{z:'Guimaraes',col:'BRG'},{z:'Esposende',col:'BRG'},
-  {z:'Famalicao',col:'BRG'},{z:'Barcelos',col:'BRG'},{z:'Vila Verde',col:'BRG'},
-  {z:'Fafe',col:'BRG'},{z:'Vizela',col:'BRG'},
-  // PT - CMB
-  {z:'Coimbra',col:'CMB'},{z:'Figueira da Foz',col:'CMB'},
-  {z:'Oliveira do Hospital',col:'CMB'},{z:'Pombal',col:'CMB'},
-  {z:'Leiria (norte)',col:'CMB'},{z:'Guarda',col:'CMB'},{z:'Viseu',col:'CMB'},
-  // PT - R
-  {z:'Aveiro',col:'R'},{z:'Porto',col:'R'},{z:'Gaia',col:'R'},
-  {z:'Santa Maria da Feira',col:'R'},{z:'Ovar',col:'R'},
-  {z:'Espinho',col:'R'},{z:'Arouca',col:'R'},{z:'Sao Joao da Madeira',col:'R'},
-  {z:'Oliveira de Azemeis',col:'R'},{z:'Vale de Cambra',col:'R'},
-  // PT - VR
-  {z:'Vila Real',col:'VR'},{z:'Chaves',col:'VR'},{z:'Braganca',col:'VR'},
-  {z:'Mirandela',col:'VR'},{z:'Lamego',col:'VR'},{z:'Peso da Regua',col:'VR'},
-  // PT - C
-  {z:'Lisboa',col:'C'},{z:'Carregado',col:'C'},{z:'Setubal',col:'C'},
-  {z:'Palmela',col:'C'},{z:'Montijo',col:'C'},{z:'Grandola',col:'C'},
-  {z:'Santiago do Cacem',col:'C'},{z:'Sines',col:'C'},
-  {z:'Nazare',col:'C'},{z:'Caldas da Rainha',col:'C'},
-  {z:'Peniche',col:'C'},{z:'Leiria (sul)',col:'C'},{z:'Alcobaca',col:'C'},
-  {z:'Evora',col:'C'},{z:'Beja',col:'C'},{z:'Castelo Branco',col:'C'},
-  {z:'Viana do Castelo',col:'C'},{z:'Santarem',col:'C'},
-  // PT - ALG
-  {z:'Faro',col:'ALG'},{z:'Portimao',col:'ALG'},{z:'Lagos',col:'ALG'},
-  {z:'Albufeira',col:'ALG'},{z:'Loule',col:'ALG'},{z:'Tavira',col:'ALG'},
-  {z:'Olhao',col:'ALG'},{z:'Silves',col:'ALG'},
-  {z:'Vila Real de Sto. Antonio',col:'ALG'}
-];
+function rebuildDynamicData() {
+  PCOLS = {};
+  (data.depositos||[]).filter(d=>d.activo).forEach(d=>{
+    PCOLS[d.codigo]={n:d.nombre,r:d.region,pais:d.pais,zone:d.zona,
+      jLocal:d.jornadaLocal,jLD:d.jornadaLD,op:d.operacion};
+  });
+  PLOCS=(data.zonas||[]).filter(z=>z.activo!==false).map(z=>({z:z.zona,col:z.col}));
+}
 
 const PSTADOS = {
   7:{n:'Prog. Punto a Punto', cls:'ptb-7'},
