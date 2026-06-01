@@ -569,6 +569,21 @@
     "divisionId": "CONS"
   },
   {
+    "id": "RM18AMjZzRpuik0kJBcM",
+    "tenantId": "17",
+    "code": "LS -001",
+    "name": "LS ",
+    "teamIds": [],
+    "clientName": "LS ",
+    "isActive": true,
+    "health": "healthy",
+    "status": "active",
+    "createdAt": {
+      "_seconds": 1780318550,
+      "_nanoseconds": 132000000
+    }
+  },
+  {
     "id": "TMWjHHQmnkyey8MxWnRr",
     "name": "prueba",
     "code": "PRU-001",
