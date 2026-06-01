@@ -112,14 +112,17 @@ function renderDepositos(){
     '<div class="sc"><div class="sl">PT</div><div class="sv">'+pt+'</div></div>'+
     '<div class="sc"><div class="sl">Zonas asignadas</div><div class="sv">'+new Set((data.zonas||[]).map(z=>z.col)).size+' COLs</div></div>';
   if(!rows.length){document.getElementById('tbl-depositos').innerHTML=emptyHtml('Sin depósitos.');return;}
-  let h='<table><thead><tr><th>Código</th><th>Nombre</th><th>Región</th><th>País</th><th>Zona (Local/LD)</th><th>Jornada Local</th><th>Jornada LD</th><th>Operación</th><th>Afección</th><th>Activo</th><th></th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Región</th><th>País</th><th>Zona (Local/LD)</th><th>Jornada Local</th><th>Jornada LD</th><th>Operación</th><th>Afección</th><th>Activo</th><th></th></tr></thead><tbody>';
   rows.forEach(d=>{
     const nZonas=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
     const nRutas=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
     const nJorn=(data.jornadas||[]).filter(j=>(j.tipoJornada||'').toLowerCase().includes(d.jornadaLocal.toLowerCase().split(' ').slice(0,2).join(' ').toLowerCase())).length;
+    const tipo=d.tipoCol||'propio';
+    const tipoCls=tipo==='ajena'?'p-am':tipo==='aliada'?'p-pu':'p-tl';
     h+='<tr'+(!d.activo?' style="opacity:.5"':'')+'>';
     h+='<td><span class="pill p-pu" style="font-family:monospace;font-size:13px">'+esc(d.codigo)+'</span></td>';
     h+='<td style="font-weight:500">'+esc(d.nombre)+'</td>';
+    h+='<td>'+pill(tipo,tipoCls)+'</td>';
     h+='<td>'+pill(d.region,regionColor(d.region))+'</td>';
     h+='<td>'+paisTag(d.pais)+'</td>';
     h+='<td class="tdm" style="font-family:monospace;font-size:11px">'+esc(d.zona)+'</td>';
@@ -273,6 +276,7 @@ function renderRutas(){
 .undo-cond.blk{background:var(--re2);color:var(--re)}
 .undo-cond.wrn{background:var(--am2);color:var(--am)}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
 <header>
@@ -388,11 +392,13 @@ function renderRutas(){
 <div id="tab-planificador" class="tab">
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Planificador de pedidos</span></div>
+    <button class="btn btn-sm" id="btn-map-toggle" onclick="showPlanMap()">&#128506; Mapa</button>
     <button class="btn btn-sm" onclick="limpiarPlan()">&#8635; Limpiar</button>
     <button class="btn btn-p btn-sm" onclick="guardarPlan()">&#128190; Guardar plan</button>
   </div>
   <p class="sdesc">Define origen, intermedios (COLs de paso) y destino. El sistema detecta el COL por zona, genera la lista de &#243;rdenes y las instrucciones para deshacerla.</p>
   <div id="plan-ui"></div>
+  <div id="plan-map" style="display:none;height:480px;margin-top:14px;border-radius:var(--rl);overflow:hidden;border:1px solid var(--bd);position:relative"></div>
   <div id="plan-result" style="margin-top:14px"></div>
   <div id="plan-historial" style="margin-top:14px"></div>
 </div>
@@ -410,6 +416,7 @@ function renderRutas(){
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const SK = 'ls_tms_abm_v2';
 const DEFAULT_DATA = {"estados":[{"id":1,"codigo":1,"nombre":"Inicial","descripcion":"Estado inicial del pedido al entrar al sistema","activo":true},{"id":2,"codigo":2,"nombre":"Error","descripcion":"Pedido con errores de validación en campos de integración","activo":true},{"id":3,"codigo":3,"nombre":"Confirmado","descripcion":"Pedido confirmado, pendiente de validación final","activo":true},{"id":4,"codigo":4,"nombre":"Registrado Ok","descripcion":"Pedido integrado correctamente, validado sin errores","activo":true},{"id":5,"codigo":5,"nombre":"Programable","descripcion":"Pedido listo para ser programado por el distribuidor","activo":true},{"id":6,"codigo":6,"nombre":"Anulado","descripcion":"Pedido anulado por SAC","activo":true},{"id":7,"codigo":7,"nombre":"Programar Punto a Punto","descripcion":"Tramo directo remitente → destinatario","activo":true},{"id":8,"codigo":8,"nombre":"Programar Entrega Direta","descripcion":"Tramo final desde depósito hacia destinatario","activo":true},{"id":9,"codigo":9,"nombre":"Programar Recogida","descripcion":"Recolección desde remitente hacia depósito/hub","activo":true},{"id":10,"codigo":10,"nombre":"Programar Arrastre","descripcion":"Troncal entre depósitos (crossdock)","activo":true},{"id":11,"codigo":11,"nombre":"AJENA - Programar Punto a Punto","descripcion":"P2P ejecutado por agencia ajena","activo":true},{"id":12,"codigo":12,"nombre":"AJENA - Programar Arrastre","descripcion":"Arrastre ejecutado por agencia ajena","activo":true},{"id":13,"codigo":13,"nombre":"AJENA - Programar Recogida","descripcion":"Recogida ejecutada por agencia ajena","activo":true},{"id":14,"codigo":14,"nombre":"Programar Paqueteria","descripcion":"Tramo de paquetería con jornada específica por zona","activo":true},{"id":15,"codigo":15,"nombre":"Replanificar","descripcion":"Re-planificación tras incidencia de ejecución","activo":true},{"id":16,"codigo":16,"nombre":"Reprogramable","descripcion":"Pedido en estado que permite re-programación","activo":true},{"id":17,"codigo":17,"nombre":"Reentrega/Rerecogida","descripcion":"Segundo intento de entrega o recogida","activo":true},{"id":18,"codigo":18,"nombre":"Retorno deposito origen","descripcion":"Retorno de mercancía al depósito de origen","activo":true},{"id":19,"codigo":19,"nombre":"Retorno Cliente","descripcion":"Retorno de mercancía al cliente remitente","activo":true}],"jornadas":[{"id":1,"idDeposito":100,"nombreDeposito":"Guadalajara","tipoTramo":"Local","tipoJornada":"ES Madrid Local","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":2,"idDeposito":100,"nombreDeposito":"Guadalajara","tipoTramo":"Larga Distancia","tipoJornada":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":3,"idDeposito":101,"nombreDeposito":"Centralidad","tipoTramo":"Local","tipoJornada":"ES Madrid Local","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":4,"idDeposito":101,"nombreDeposito":"Centralidad","tipoTramo":"Larga Distancia","tipoJornada":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":5,"idDeposito":102,"nombreDeposito":"Lliça del Vale","tipoTramo":"Local","tipoJornada":"ES Barcelona Local","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":6,"idDeposito":102,"nombreDeposito":"Lliça del Vale","tipoTramo":"Larga Distancia","tipoJornada":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":7,"idDeposito":103,"nombreDeposito":"Zona Franca","tipoTramo":"Local","tipoJornada":"ES Barcelona Local","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":8,"idDeposito":103,"nombreDeposito":"Zona Franca","tipoTramo":"Larga Distancia","tipoJornada":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":9,"idDeposito":104,"nombreDeposito":"Porto","tipoTramo":"Local","tipoJornada":"PT Porto Local","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":10,"idDeposito":104,"nombreDeposito":"Porto","tipoTramo":"Paqueteria","tipoJornada":"PT Noroeste Paqueteria","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":11,"idDeposito":105,"nombreDeposito":"Coimbra","tipoTramo":"Local","tipoJornada":"PT Coimbra Local","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":12,"idDeposito":105,"nombreDeposito":"Coimbra","tipoTramo":"Paqueteria","tipoJornada":"PT Noroeste Paqueteria","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":13,"idDeposito":106,"nombreDeposito":"Lisboa","tipoTramo":"Local","tipoJornada":"PT Lisboa Local","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":14,"idDeposito":106,"nombreDeposito":"Lisboa","tipoTramo":"Paqueteria","tipoJornada":"PT Sudoeste Paqueteria","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":15,"idDeposito":107,"nombreDeposito":"Algarve","tipoTramo":"Local","tipoJornada":"PT Algarve Local","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":16,"idDeposito":107,"nombreDeposito":"Algarve","tipoTramo":"Paqueteria","tipoJornada":"PT Sudoeste Paqueteria","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":17,"idDeposito":108,"nombreDeposito":"PT Noroeste","tipoTramo":"Larga Distancia","tipoJornada":"PT Noroeste  Larga distancia","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":18,"idDeposito":109,"nombreDeposito":"PT Sudoeste","tipoTramo":"Larga Distancia","tipoJornada":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":19,"idDeposito":110,"nombreDeposito":"Vila Real","tipoTramo":"Ajena","tipoJornada":"PT Ajena - Vila Real","operacion":"PT Noroeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":20,"idDeposito":111,"nombreDeposito":"Braga","tipoTramo":"Ajena","tipoJornada":"PT Ajena - Braga","operacion":"PT Noroeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":21,"idDeposito":112,"nombreDeposito":"Lisboa (Ajena)","tipoTramo":"Ajena","tipoJornada":"PT Ajena LISB","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":22,"idDeposito":113,"nombreDeposito":"Portimão","tipoTramo":"Ajena","tipoJornada":"PT Ajena PTOM","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":23,"idDeposito":114,"nombreDeposito":"Marselha","tipoTramo":"Ajena","tipoJornada":"PT Ajena MARS","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":24,"idDeposito":115,"nombreDeposito":"Évora","tipoTramo":"Ajena","tipoJornada":"PT Ajena EVR","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":25,"idDeposito":116,"nombreDeposito":"Alcácer","tipoTramo":"Ajena","tipoJornada":"PT Ajena ALC","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":26,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Local","tipoJornada":"ES Valencia Local","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":false,"activo":true},{"id":27,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Larga Distancia","tipoJornada":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":false,"activo":true},{"id":28,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Paqueteria","tipoJornada":"ES Valencia Paqueteria","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":true,"activo":true},{"id":29,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Local","tipoJornada":"ES Sevilha Local","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":false,"activo":true},{"id":30,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Larga Distancia","tipoJornada":"ES Sevilha Larga distancia","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":false,"activo":true},{"id":31,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Paqueteria","tipoJornada":"ES Sevilha Paqueteria","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":true,"activo":true},{"id":32,"idDeposito":119,"nombreDeposito":"Barcelona (BCN)","tipoTramo":"Paqueteria","tipoJornada":"ES Barcelona Paqueteria","operacion":"Nordeste Barcelona","esAjena":false,"esPaqueteria":true,"activo":true},{"id":33,"idDeposito":120,"nombreDeposito":"Madrid","tipoTramo":"Paqueteria","tipoJornada":"ES Madrid Paqueteria","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":true,"activo":true}],"matriz":[{"id":1,"tipoDomOrigen":"Remitente","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Punto a Punto","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en destinatario","prioridad":10,"descripcion":"P2P directo remitente a destinatario. Aplica local y larga distancia.","activo":true},{"id":2,"tipoDomOrigen":"Remitente","tipoDomDestino":"Deposito","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Recogida","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en Depósito","prioridad":10,"descripcion":"Recogida en remitente → hub/depósito propio","activo":true},{"id":3,"tipoDomOrigen":"Deposito","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Entrega Direta","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en destinatario","prioridad":10,"descripcion":"Reparto final desde depósito GE hacia destinatario. Generalmente tramo local.","activo":true},{"id":4,"tipoDomOrigen":"Deposito","tipoDomDestino":"Deposito","relDepositos":"Diferente Deposito","relZona":"N/A","estadoSugerido":"Programar Arrastre","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en Depósito Crossdock","prioridad":10,"descripcion":"Movimiento troncal entre delegaciones LS. Larga distancia por defecto.","activo":true},{"id":5,"tipoDomOrigen":"Deposito","tipoDomDestino":"Deposito","relDepositos":"Mismo Deposito","relZona":"N/A","estadoSugerido":"Invalido","tipoPickup":"","tipoDelivery":"","prioridad":99,"descripcion":"Flujo inválido: origen y destino en el mismo depósito.","activo":true},{"id":6,"tipoDomOrigen":"Remitente","tipoDomDestino":"Deposito Ajena","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"AJENA - Programar Recogida","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en Depósito Ajena","prioridad":20,"descripcion":"Recogida hacia agencia ajena (seleccionar motivo con depósito ajena)","activo":true},{"id":7,"tipoDomOrigen":"Remitente","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"AJENA - Programar Punto a Punto","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en destinatario","prioridad":20,"descripcion":"P2P ejecutado por agencia ajena. Seleccionar motivo con depósito ajena.","activo":true},{"id":8,"tipoDomOrigen":"Deposito Ajena","tipoDomDestino":"Deposito","relDepositos":"Diferente Deposito","relZona":"N/A","estadoSugerido":"AJENA - Programar Arrastre","tipoPickup":"Recolección en Depósito Ajena","tipoDelivery":"Entrega en Depósito Crossdock","prioridad":20,"descripcion":"Arrastre ejecutado por agencia ajena hacia depósito LS","activo":true},{"id":9,"tipoDomOrigen":"Deposito","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"Misma Zona","estadoSugerido":"Programar Paqueteria","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en destinatario","prioridad":5,"descripcion":"Paquetería: misma zona depósito carga. Jornada según tabla de paquetería por zona.","activo":true}],"transiciones":[{"id":1,"estadoOrigen":1,"estadoDestino":2,"rolPermitido":"Automatico","restriccionFormula":"Auto: error de validación de campos","editable":true,"descripcion":"Inicial → Error","activo":true},{"id":2,"estadoOrigen":1,"estadoDestino":3,"rolPermitido":"Automatico","restriccionFormula":"","editable":true,"descripcion":"Inicial → Confirmado","activo":true},{"id":3,"estadoOrigen":1,"estadoDestino":4,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Inicial → Registrado Ok","activo":true},{"id":4,"estadoOrigen":2,"estadoDestino":3,"rolPermitido":"SAC","restriccionFormula":"Realizar las validaciones despues de corrigir","editable":true,"descripcion":"Error → Confirmado","activo":true},{"id":5,"estadoOrigen":2,"estadoDestino":6,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Error → Anulado","activo":true},{"id":6,"estadoOrigen":3,"estadoDestino":2,"rolPermitido":"Automatico","restriccionFormula":"El pedido no fue validado","editable":true,"descripcion":"Confirmado → Error","activo":true},{"id":7,"estadoOrigen":3,"estadoDestino":4,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Confirmado → Registrado Ok","activo":true},{"id":8,"estadoOrigen":3,"estadoDestino":5,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Confirmado → Programable","activo":true},{"id":9,"estadoOrigen":4,"estadoDestino":3,"rolPermitido":"SAC","restriccionFormula":"Realizar las validaciones despues de corrigir","editable":true,"descripcion":"Registrado Ok → Confirmado","activo":true},{"id":10,"estadoOrigen":4,"estadoDestino":6,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Registrado Ok → Anulado","activo":true},{"id":11,"estadoOrigen":5,"estadoDestino":4,"rolPermitido":"Distribuidor","restriccionFormula":"Se es necesario que equipo de SAC haga cambio al pedido","editable":true,"descripcion":"Programable → Registrado Ok","activo":true},{"id":12,"estadoOrigen":5,"estadoDestino":7,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → Programar Punto a Punto","activo":true},{"id":13,"estadoOrigen":5,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden != Deposito AND TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Entrega Direta","activo":true},{"id":14,"estadoOrigen":5,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → Programar Recogida","activo":true},{"id":15,"estadoOrigen":5,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Arrastre","activo":true},{"id":16,"estadoOrigen":5,"estadoDestino":11,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Punto a Punto","activo":true},{"id":17,"estadoOrigen":5,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Arrastre","activo":true},{"id":18,"estadoOrigen":5,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Recogida","activo":true},{"id":19,"estadoOrigen":5,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden != Deposito AND TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Paqueteria","activo":true},{"id":20,"estadoOrigen":6,"estadoDestino":1,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Anulado → Inicial","activo":true},{"id":21,"estadoOrigen":7,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Punto a Punto → Programable","activo":true},{"id":22,"estadoOrigen":7,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Punto a Punto → Replanificar","activo":true},{"id":23,"estadoOrigen":8,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Entrega Direta → Programable","activo":true},{"id":24,"estadoOrigen":8,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → Programar Arrastre","activo":true},{"id":25,"estadoOrigen":8,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → AJENA - Programar Arrastre","activo":true},{"id":26,"estadoOrigen":8,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → Programar Paqueteria","activo":true},{"id":27,"estadoOrigen":8,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Entrega Direta → Replanificar","activo":true},{"id":28,"estadoOrigen":9,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Recogida → Programable","activo":true},{"id":29,"estadoOrigen":9,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"Programar Recogida → Programar Entrega Direta","activo":true},{"id":30,"estadoOrigen":9,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Recogida → Programar Recogida","activo":true},{"id":31,"estadoOrigen":9,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Recogida → Programar Arrastre","activo":true},{"id":32,"estadoOrigen":9,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Recogida → AJENA - Programar Arrastre","activo":true},{"id":33,"estadoOrigen":9,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Recogida → AJENA - Programar Recogida","activo":true},{"id":34,"estadoOrigen":9,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Recogida → Replanificar","activo":true},{"id":35,"estadoOrigen":10,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Arrastre → Programable","activo":true},{"id":36,"estadoOrigen":10,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"Programar Arrastre → Programar Entrega Direta","activo":true},{"id":37,"estadoOrigen":10,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Arrastre → Programar Arrastre","activo":true},{"id":38,"estadoOrigen":10,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Arrastre → AJENA - Programar Arrastre","activo":true},{"id":39,"estadoOrigen":10,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Arrastre → Programar Paqueteria","activo":true},{"id":40,"estadoOrigen":10,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Arrastre → Replanificar","activo":true},{"id":41,"estadoOrigen":11,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Punto a Punto → Programable","activo":true},{"id":42,"estadoOrigen":11,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Punto a Punto → Replanificar","activo":true},{"id":43,"estadoOrigen":12,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Arrastre → Programable","activo":true},{"id":44,"estadoOrigen":12,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Entrega Direta","activo":true},{"id":45,"estadoOrigen":12,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDepositoDescarga = LS AND DepositoDescarga != DomicilioOrden","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Arrastre","activo":true},{"id":46,"estadoOrigen":12,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Arrastre → AJENA - Programar Arrastre","activo":true},{"id":47,"estadoOrigen":12,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Paqueteria","activo":true},{"id":48,"estadoOrigen":12,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Arrastre → Replanificar","activo":true},{"id":49,"estadoOrigen":13,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Recogida → Programable","activo":true},{"id":50,"estadoOrigen":13,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Entrega Direta","activo":true},{"id":51,"estadoOrigen":13,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Recogida","activo":true},{"id":52,"estadoOrigen":13,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Arrastre","activo":true},{"id":53,"estadoOrigen":13,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → AJENA - Programar Arrastre","activo":true},{"id":54,"estadoOrigen":13,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → AJENA - Programar Recogida","activo":true},{"id":55,"estadoOrigen":13,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Recogida → Replanificar","activo":true},{"id":56,"estadoOrigen":14,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Paqueteria → Programable","activo":true},{"id":57,"estadoOrigen":14,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Entrega Direta","activo":true},{"id":58,"estadoOrigen":14,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Recogida","activo":true},{"id":59,"estadoOrigen":14,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Arrastre","activo":true},{"id":60,"estadoOrigen":14,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Paqueteria → Replanificar","activo":true},{"id":61,"estadoOrigen":15,"estadoDestino":3,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Replanificar → Confirmado","activo":true},{"id":62,"estadoOrigen":15,"estadoDestino":16,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Replanificar → Reprogramable","activo":true},{"id":63,"estadoOrigen":16,"estadoDestino":17,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Reentrega/Rerecogida","activo":true},{"id":64,"estadoOrigen":16,"estadoDestino":18,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Retorno deposito origen","activo":true},{"id":65,"estadoOrigen":16,"estadoDestino":19,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Retorno Cliente","activo":true},{"id":66,"estadoOrigen":17,"estadoDestino":7,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Punto a Punto","activo":true},{"id":67,"estadoOrigen":17,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Entrega Direta","activo":true},{"id":68,"estadoOrigen":17,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Recogida","activo":true},{"id":69,"estadoOrigen":17,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Arrastre","activo":true},{"id":70,"estadoOrigen":17,"estadoDestino":11,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Punto a Punto","activo":true},{"id":71,"estadoOrigen":17,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Arrastre","activo":true},{"id":72,"estadoOrigen":17,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Recogida","activo":true},{"id":73,"estadoOrigen":17,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Paqueteria","activo":true},{"id":74,"estadoOrigen":17,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Reentrega/Rerecogida → Replanificar","activo":true},{"id":75,"estadoOrigen":18,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno deposito origen → Programar Recogida","activo":true},{"id":76,"estadoOrigen":18,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno deposito origen → Programar Arrastre","activo":true},{"id":77,"estadoOrigen":18,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Retorno deposito origen → Replanificar","activo":true},{"id":78,"estadoOrigen":19,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Entrega Direta","activo":true},{"id":79,"estadoOrigen":19,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Recogida","activo":true},{"id":80,"estadoOrigen":19,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Arrastre","activo":true},{"id":81,"estadoOrigen":19,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → AJENA - Programar Recogida","activo":true},{"id":82,"estadoOrigen":19,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Retorno Cliente → Replanificar","activo":true}],
@@ -497,6 +504,7 @@ function init() {
       if (!nextIds.depositos) nextIds.depositos = DEFAULT_NEXT.depositos;
       if (!nextIds.zonas)     nextIds.zonas     = DEFAULT_NEXT.zonas;
       if (!nextIds.rutas)     nextIds.rutas     = 1;
+      (data.depositos||[]).forEach(d=>{ if(!d.tipoCol) d.tipoCol='propio'; });
     } else {
       data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
     }
@@ -785,9 +793,14 @@ function buildForm(sec, item) {
   if (sec === 'depositos') {
     const regOpts=['ZCN','BCN','LEV','AND','NW','SW'].map(r=>'<option'+(item&&item.region===r?' selected':'')+'>'+r+'</option>').join('');
     const paisOpts=['ES','PT'].map(p=>'<option'+(item&&item.pais===p?' selected':'')+'>'+p+'</option>').join('');
+    const tipoOpts=['propio','ajena','aliada'].map(t=>'<option value="'+t+'"'+((item&&(item.tipoCol||'propio')===t||(!item&&t==='propio'))?' selected':'')+'>'+t.charAt(0).toUpperCase()+t.slice(1)+'</option>').join('');
     return '<div class="frow">'+
       '<div class="fg"><label class="fl">Código COL <span class="req">*</span></label><input type="text" id="f-dcod" value="'+esc(item?item.codigo:'')+'" placeholder="AD" style="font-family:monospace;text-transform:uppercase"></div>'+
       '<div class="fg"><label class="fl">País</label><select id="f-dpais">'+paisOpts+'</select></div>'+
+      '</div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Tipo COL</label><select id="f-dtipo">'+tipoOpts+'</select></div>'+
+      '<div class="fg"></div>'+
       '</div>'+
       '<div class="fg"><label class="fl">Nombre <span class="req">*</span></label><input type="text" id="f-dnom" value="'+esc(item?item.nombre:'')+'" placeholder="Madrid (AD)"></div>'+
       '<div class="frow">'+
@@ -876,6 +889,7 @@ function saveModal() {
     const dup = data.depositos.find(d => d.codigo === cod && d.id !== editId);
     if (dup) { alert('Ya existe un COL con ese código.'); return; }
     item = {codigo:cod, nombre:gv('f-dnom'), region:gv('f-dreg'), pais:gv('f-dpais'),
+      tipoCol:gv('f-dtipo')||'propio',
       zona:gv('f-dzona'), jornadaLocal:gv('f-djl'), jornadaLD:gv('f-djld'),
       operacion:gv('f-dop'), activo:gb('f-dact')};
   } else if (sec === 'zonas') {
@@ -1702,6 +1716,8 @@ function renderPlanResult() {
 
   const simHtml=renderSimOptions(pState.origZona,pState.destZona);
   res.innerHTML=simHtml+ordersHtml+hierHtml+undoHtml;
+  const mapDiv=document.getElementById('plan-map');
+  if(mapDiv&&mapDiv.style.display!=='none') renderPlanMap();
 }
 
 function limpiarPlan() {
@@ -1760,6 +1776,189 @@ function renderPlanHistorial() {
   });
   h+='</div>';
   el.innerHTML=h;
+}
+
+/* ══ MAPA ══════════════════════════════════════════════════════ */
+const COL_COORDS={
+  'AD':[40.4168,-3.7038],'BP':[41.3880,2.0010],'BF':[41.3505,2.1336],
+  'BR':[41.9794,2.8214],'VL':[39.4699,-0.3763],'AM':[39.4500,-0.4000],
+  'SV':[37.3891,-5.9845],'BRG':[41.5503,-8.4287],'CMB':[40.2033,-8.4103],
+  'R':[41.1579,-8.6291],'VR':[41.3006,-7.7454],'C':[38.7223,-9.1393],'ALG':[37.0194,-7.9322]
+};
+const ZONE_COORDS={
+  'Madrid':[40.4168,-3.7038],'Guadalajara':[40.6333,-3.1667],'Toledo':[39.8628,-4.0274],
+  'Ciudad Real':[38.9860,-3.9272],'Cuenca':[40.0704,-2.1374],'Avila':[40.6563,-4.6977],
+  'Segovia':[40.9429,-4.1088],'Merida / Badajoz':[38.9166,-6.3406],
+  'Navalmoral / Caceres':[39.8941,-5.7893],'Valladolid / Salamanca':[41.6523,-4.7245],
+  'Leon':[42.5987,-5.5671],'Burgos':[42.3439,-3.6966],'Cantabria':[43.4623,-3.8099],
+  'Asturias':[43.3619,-5.8493],'Galicia':[42.8782,-8.5448],
+  'Bilbao / Pais Vasco':[43.2630,-2.9350],'Vitoria / Alava':[42.8467,-2.6726],
+  'Navarra':[42.8125,-1.6458],'Logrono / La Rioja':[42.4667,-2.4500],
+  'Zaragoza':[41.6488,-0.8891],'Islas Baleares':[39.5696,2.6502],'Islas Canarias':[28.1235,-15.4363],
+  'Barcelona':[41.3851,2.1734],'Tarragona':[41.1189,1.2445],'Lerida':[41.6176,0.6200],
+  'Girona / Gerona':[41.9794,2.8214],'Andorra':[42.5078,1.5211],
+  'Valencia':[39.4699,-0.3763],'Castellon':[39.9864,-0.0513],
+  'Alicante':[38.3453,-0.4831],'Murcia':[37.9922,-1.1307],'Albacete':[38.9943,-1.8585],
+  'Sevilla':[37.3891,-5.9845],'Huelva':[37.2614,-6.9447],'Cadiz':[36.5271,-6.2886],
+  'Cordoba':[37.8882,-4.7794],'Granada':[37.1773,-3.5986],'Almeria':[36.8340,-2.4637],
+  'Jaen':[37.7796,-3.7849],'Malaga / Gibraltar':[36.7213,-4.4213],'Ceuta / Melilla':[35.8905,-5.3081],
+  'Braga':[41.5503,-8.4287],'Guimaraes':[41.4425,-8.2962],'Esposende':[41.5333,-8.7833],
+  'Famalicao':[41.3996,-8.5169],'Barcelos':[41.5296,-8.6171],'Vila Verde':[41.6504,-8.4383],
+  'Fafe':[41.4500,-8.1667],'Vizela':[41.3806,-8.3000],
+  'Coimbra':[40.2033,-8.4103],'Figueira da Foz':[40.1533,-8.8583],
+  'Oliveira do Hospital':[40.3619,-7.8681],'Pombal':[39.9167,-8.6333],
+  'Leiria (norte)':[39.7436,-8.8072],'Guarda':[40.5364,-7.2678],'Viseu':[40.6566,-7.9122],
+  'Aveiro':[40.6443,-8.6455],'Porto':[41.1579,-8.6291],'Gaia':[41.1333,-8.6167],
+  'Santa Maria da Feira':[40.9252,-8.5461],'Ovar':[40.8643,-8.6348],
+  'Espinho':[41.0072,-8.6405],'Arouca':[40.9264,-8.2481],'Sao Joao da Madeira':[40.8991,-8.4960],
+  'Oliveira de Azemeis':[40.8339,-8.4750],'Vale de Cambra':[40.8427,-8.3978],
+  'Vila Real':[41.3006,-7.7454],'Chaves':[41.7393,-7.4716],'Braganca':[41.8057,-6.7586],
+  'Mirandela':[41.4850,-7.1778],'Lamego':[41.0936,-7.8093],'Peso da Regua':[41.1624,-7.7893],
+  'Lisboa':[38.7223,-9.1393],'Carregado':[39.0259,-9.0049],'Setubal':[38.5243,-8.8882],
+  'Palmela':[38.5621,-8.9036],'Montijo':[38.7065,-8.9757],'Grandola':[38.1746,-8.5673],
+  'Santiago do Cacem':[38.0166,-8.6869],'Sines':[37.9558,-8.8648],
+  'Nazare':[39.6000,-9.0667],'Caldas da Rainha':[39.4000,-9.1333],
+  'Peniche':[39.3561,-9.3804],'Leiria (sul)':[39.7436,-8.8072],'Alcobaca':[39.5500,-8.9667],
+  'Evora':[38.5714,-7.9136],'Beja':[38.0159,-7.8651],'Castelo Branco':[39.8234,-7.4926],
+  'Viana do Castelo':[41.6938,-8.8328],'Santarem':[39.2333,-8.6833],
+  'Faro':[37.0194,-7.9322],'Portimao':[37.1360,-8.5376],'Lagos':[37.0997,-8.6743],
+  'Albufeira':[37.0892,-8.5240],'Loule':[37.1387,-8.0227],'Tavira':[37.1284,-7.6497],
+  'Olhao':[37.0289,-7.8408],'Silves':[37.1896,-8.4390],
+  'Vila Real de Sto. Antonio':[37.1939,-7.4139]
+};
+
+const MAP_COLORS={7:'#534AB7',8:'#185FA5',9:'#0F6E56',10:'#c26000'};
+const MAP_LABELS={7:'P2P',8:'Entrega Directa',9:'Recogida',10:'Arrastre'};
+let _mapInst=null;
+
+function getZCoords(zona){
+  if(ZONE_COORDS[zona]) return ZONE_COORDS[zona];
+  const col=getColForZona(zona);
+  return col&&COL_COORDS[col]?COL_COORDS[col]:null;
+}
+
+function showPlanMap(){
+  const mapDiv=document.getElementById('plan-map');
+  const btn=document.getElementById('btn-map-toggle');
+  if(!mapDiv) return;
+  const visible=mapDiv.style.display!=='none';
+  if(visible){
+    mapDiv.style.display='none';
+    if(btn){btn.innerHTML='&#128506; Mapa';btn.classList.remove('btn-p');}
+  } else {
+    mapDiv.style.display='block';
+    if(btn){btn.innerHTML='&#128506; Cerrar mapa';btn.classList.add('btn-p');}
+    renderPlanMap();
+  }
+}
+
+function renderPlanMap(){
+  const mapDiv=document.getElementById('plan-map');
+  if(!mapDiv||mapDiv.style.display==='none') return;
+  if(typeof L==='undefined'){
+    mapDiv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--tx3)">Leaflet no disponible</div>';
+    return;
+  }
+  if(!pState.origZona||!pState.destZona){
+    mapDiv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--tx3);font-size:13px">Selecciona origen y destino para ver el mapa</div>';
+    return;
+  }
+  const orders=generatePlanOrders();
+  if(!orders||!orders.length){
+    mapDiv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--tx3)">Sin órdenes para mostrar en el mapa</div>';
+    return;
+  }
+  mapDiv.innerHTML='<div id="lmap" style="height:100%;width:100%"></div>';
+  if(_mapInst){_mapInst.remove();_mapInst=null;}
+
+  const map=L.map('lmap',{zoomControl:true});
+  _mapInst=map;
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; OSM contributors',maxZoom:18
+  }).addTo(map);
+
+  const allPts=[];
+  const renderedCols=new Set();
+
+  function colMarker(colCode){
+    if(renderedCols.has(colCode)) return;
+    renderedCols.add(colCode);
+    const coords=COL_COORDS[colCode]; if(!coords) return;
+    const dep=(data.depositos||[]).find(d=>d.codigo===colCode);
+    const colInfo=PCOLS[colCode];
+    const tipo=dep?.tipoCol||'propio';
+    const fill=tipo==='ajena'?'#c26000':tipo==='aliada'?'#534AB7':'#185FA5';
+    const border=tipo==='ajena'?'#7a3e00':tipo==='aliada'?'#3b35a0':'#0c447c';
+    const m=L.circleMarker(coords,{radius:11,fillColor:fill,color:border,weight:2,opacity:1,fillOpacity:.92}).addTo(map);
+    m.bindPopup(
+      '<div style="font-size:12px"><strong style="font-size:14px">'+colCode+'</strong><br>'+
+      (colInfo?colInfo.n:'')+'<br>'+
+      '<span style="background:'+fill+';color:#fff;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600">COL '+tipo.toUpperCase()+'</span><br>'+
+      '<small style="color:#666">'+(colInfo?colInfo.zone:'')+'</small></div>'
+    );
+    L.marker(coords,{icon:L.divIcon({html:'<div style="font-size:10px;font-weight:700;color:'+fill+';background:#fff;border:1px solid '+fill+';padding:1px 4px;border-radius:4px;white-space:nowrap;margin-top:14px">'+colCode+'</div>',className:'',iconAnchor:[0,0]})}).addTo(map);
+    allPts.push(coords);
+  }
+
+  orders.forEach((o)=>{
+    const color=MAP_COLORS[o.estadoCod]||'#888';
+    const label=MAP_LABELS[o.estadoCod]||o.tipo;
+    let from=null,to=null;
+    if(o.estadoCod===9){from=getZCoords(pState.origZona);to=COL_COORDS[o.depDescarga];}
+    else if(o.estadoCod===10){from=COL_COORDS[o.depCarga];to=COL_COORDS[o.depDescarga];}
+    else if(o.estadoCod===8){from=COL_COORDS[o.depCarga];to=getZCoords(pState.destZona);}
+    else if(o.estadoCod===7){from=getZCoords(pState.origZona);to=getZCoords(pState.destZona);}
+
+    if(from&&to){
+      const line=L.polyline([from,to],{
+        color,weight:o.estadoCod===10?5:3,opacity:.85,
+        dashArray:o.estadoCod===9?'7,6':null
+      }).addTo(map);
+      line.bindPopup('<strong>'+label+'</strong> — Ord '+o.num+'<br>'+esc(o.unigis?.pickupValor||'')+'→'+esc(o.unigis?.deliveryValor||''));
+      allPts.push(from,to);
+      // Etiqueta al 40% de la línea (para que no coincida con el punto medio de dos tramos)
+      const t=0.42;
+      const mid=[from[0]+(to[0]-from[0])*t,from[1]+(to[1]-from[1])*t];
+      L.marker(mid,{icon:L.divIcon({html:'<div style="background:'+color+';color:#fff;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.3)">'+label+' '+o.num+'</div>',className:'',iconAnchor:[20,8]})}).addTo(map);
+    }
+    if(o.depCarga) colMarker(o.depCarga);
+    if(o.depDescarga) colMarker(o.depDescarga);
+  });
+
+  // Marcador remitente
+  const origC=getZCoords(pState.origZona);
+  if(origC&&pState.origTipo!=='col'){
+    const m=L.marker(origC,{icon:L.divIcon({html:'<div style="background:#0F6E56;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.4)">📦</div>',className:'',iconAnchor:[15,15]})}).addTo(map);
+    m.bindPopup('<strong>Remitente</strong><br>'+esc(pState.origZona));
+    allPts.push(origC);
+  }
+  // Marcador destinatario
+  const destC=getZCoords(pState.destZona);
+  if(destC&&pState.destTipo==='destinatario'){
+    const m=L.marker(destC,{icon:L.divIcon({html:'<div style="background:#185FA5;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.4)">🏠</div>',className:'',iconAnchor:[15,15]})}).addTo(map);
+    m.bindPopup('<strong>Destinatario</strong><br>'+esc(pState.destZona));
+    allPts.push(destC);
+  }
+
+  if(allPts.length) map.fitBounds(L.latLngBounds(allPts),{padding:[36,36]});
+  else map.setView([40.0,-4.0],6);
+
+  // Leyenda
+  const leg=L.control({position:'bottomright'});
+  leg.onAdd=()=>{
+    const d=L.DomUtil.create('div');
+    d.style.cssText='background:#fff;padding:8px 12px;border-radius:8px;border:1px solid #ddd;font-size:11px;line-height:2;box-shadow:0 1px 6px rgba(0,0,0,.18)';
+    d.innerHTML='<strong style="font-size:12px">Leyenda</strong><br>'+
+      '<span style="color:#0F6E56">──╌</span> Recogida<br>'+
+      '<span style="color:#c26000;font-weight:700">────</span> Arrastre<br>'+
+      '<span style="color:#185FA5">────</span> Entrega Directa<br>'+
+      '<span style="color:#534AB7">────</span> P2P<br>'+
+      '<span style="color:#185FA5;font-size:14px">●</span> COL Propio &nbsp;'+
+      '<span style="color:#c26000;font-size:14px">●</span> COL Ajena<br>'+
+      '📦 Remitente &nbsp; 🏠 Destinatario';
+    return d;
+  };
+  leg.addTo(map);
 }
 
 init();
