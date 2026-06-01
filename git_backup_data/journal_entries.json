@@ -4160,6 +4160,32 @@
     "updatedAt": "2026-05-29T13:51:58.710Z"
   },
   {
+    "id": "3_2026-06-01",
+    "date": "2026-06-01",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "Luis Simoes - seguimiento semanal 01-06-26\nWorkshop MAD 28 y 29-05\n-> Previsto avanzar esta semana con el documento y dar cierre del diseño en la semana del 15-06\nFestivo el 04-05 sesión eliminada\nDiego enviar documento de aceptación de cambio de fecha actualizado\nDocumento de TI entregado -> Anny en revisión y respuesta si surge duda\n-> P112 a revisar Jorge S con equipo PRD\nReunión de comité agendada para el 11-06\nCampos de tabla de Excel con agregado de canalizaciones de pedidos + ítems = esta semana se agregaran campos y compartir con LS para validar: Gonzalo a completar esta semana\nSesión 02-06 avanzar con tarifación\nAgendar sesiones desde la semana que viene 08-06 sesiones enfocadas de revisión del documento de alcance\nAutenticación y tokens: validar con Jorge Sureda = requerimiento de seguridad importante\n-> LS necesita contar con una fecha de entrega de esta capa\niOS feedback enviado por Paulo\nCorreo de iOS a revisar casos",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Luis Simoes - seguimiento semanal 01-06-26\nWorkshop MAD 28 y 29-05\n-> Previsto avanzar esta semana con el documento y dar cierre del diseño en la semana del 15-06\nFestivo el 04-05 sesión eliminada\nDiego enviar documento de aceptación de cambio de fecha actualizado\nDocumento de TI entregado -> Anny en revisión y respuesta si surge duda\n-> P112 a revisar Jorge S con equipo PRD\nReunión de comité agendada para el 11-06\nCampos de tabla de Excel con agregado de canalizaciones de pedidos + ítems = esta semana se agregaran campos y compartir con LS para validar: Gonzalo a completar esta semana\nSesión 02-06 avanzar con tarifación\nAgendar sesiones desde la semana que viene 08-06 sesiones enfocadas de revisión del documento de alcance\nAutenticación y tokens: validar con Jorge Sureda = requerimiento de seguridad importante\n-> LS necesita contar con una fecha de entrega de esta capa\niOS feedback enviado por Paulo\nCorreo de iOS a revisar casos",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-01T10:12:10.048Z",
+    "updatedAt": "2026-06-01T10:12:17.855Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
