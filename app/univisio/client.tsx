@@ -190,7 +190,7 @@ export default function ClientPage() {
             const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
 
             // 1. Get connectors from <Connects>
-            const connects = xmlDoc.getElementsByTagName('Connect');
+            const connects = xmlDoc.getElementsByTagNameNS('*', 'Connect');
             const connectorsMap: Record<string, { from?: string; to?: string }> = {};
 
             for (let i = 0; i < connects.length; i++) {
@@ -212,7 +212,7 @@ export default function ClientPage() {
             }
 
             // 2. Extract shapes (Nodes, Labels, Positions, Swimlanes)
-            const shapesList = xmlDoc.getElementsByTagName('Shape');
+            const shapesList = xmlDoc.getElementsByTagNameNS('*', 'Shape');
             const nodesMap: Record<string, ParsedNode> = {};
             const extractedEdges: ParsedEdge[] = [];
             const extractedSwimlanesSet = new Set<string>();
@@ -229,7 +229,7 @@ export default function ClientPage() {
 
                 if (nameU.toLowerCase().includes('swimlane') || name.toLowerCase().includes('swimlane') ||
                     nameU.toLowerCase().includes('carril') || name.toLowerCase().includes('carril')) {
-                    const textEl = shape.getElementsByTagName('Text')[0];
+                    const textEl = shape.getElementsByTagNameNS('*', 'Text')[0];
                     const swimlaneName = textEl ? textEl.textContent?.trim() || '' : '';
                     if (swimlaneName) {
                         extractedSwimlanesSet.add(swimlaneName);
@@ -251,7 +251,7 @@ export default function ClientPage() {
                 if (connectorsMap[id]) {
                     const connData = connectorsMap[id];
                     if (connData.from && connData.to) {
-                        const textEl = shape.getElementsByTagName('Text')[0];
+                        const textEl = shape.getElementsByTagNameNS('*', 'Text')[0];
                         const label = textEl ? textEl.textContent?.trim() || '' : '';
                         extractedEdges.push({
                             id,
@@ -266,13 +266,13 @@ export default function ClientPage() {
                 // Skip swimlane shapes themselves
                 if (swimlaneContainers[id]) continue;
 
-                const textEl = shape.getElementsByTagName('Text')[0];
+                const textEl = shape.getElementsByTagNameNS('*', 'Text')[0];
                 const label = textEl ? textEl.textContent?.trim() || '' : '';
 
                 // Get coordinates (PinX / PinY cells)
                 let x = 0;
                 let y = 0;
-                const cells = shape.getElementsByTagName('Cell');
+                const cells = shape.getElementsByTagNameNS('*', 'Cell');
                 for (let j = 0; j < cells.length; j++) {
                     const cell = cells[j];
                     const cellName = cell.getAttribute('Name');
@@ -287,7 +287,7 @@ export default function ClientPage() {
                 let swimlane = 'General';
                 let parent = shape.parentElement;
                 while (parent) {
-                    if (parent.tagName === 'Shape') {
+                    if (parent.localName === 'Shape') {
                         const parentId = parent.getAttribute('ID');
                         if (parentId && swimlaneContainers[parentId]) {
                             swimlane = swimlaneContainers[parentId];
@@ -352,7 +352,7 @@ export default function ClientPage() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(svgText, 'image/svg+xml');
 
-            const shapesList = xmlDoc.getElementsByTagName('g');
+            const shapesList = xmlDoc.getElementsByTagNameNS('*', 'g');
             const nodesMap: Record<string, ParsedNode> = {};
             const extractedEdges: ParsedEdge[] = [];
             const connectorsMap: Record<string, { from?: string; to?: string }> = {};
@@ -367,7 +367,7 @@ export default function ClientPage() {
 
                 if (groupContext === 'connector') {
                     // Extract labels
-                    const textEl = shape.getElementsByTagName('text')[0];
+                    const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
                     const label = textEl ? textEl.textContent?.trim() || '' : '';
                     
                     // SVGs don't contain raw logical connects directly like page1.xml connects.
@@ -375,7 +375,7 @@ export default function ClientPage() {
                     // If no explicit connections exist, we mock them for Vision refinement.
                     connectorsMap[id] = { from: '', to: '' };
                 } else if (groupContext === 'shape') {
-                    const textEl = shape.getElementsByTagName('text')[0];
+                    const textEl = shape.getElementsByTagNameNS('*', 'text')[0];
                     const label = textEl ? textEl.textContent?.trim() || '' : '';
 
                     nodesMap[id] = {
