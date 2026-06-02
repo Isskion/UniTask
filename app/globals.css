@@ -351,4 +351,132 @@
 .node-highlight-pulse {
   animation: node-pulse 1.5s ease-out infinite;
   z-index: 100 !important;
+}
+
+/* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
+@media print {
+    .univisio-workspace * {
+        visibility: hidden;
+    }
+    .univisio-workspace main, 
+    .univisio-workspace .flex-1.overflow-auto, 
+    .univisio-workspace table, 
+    .univisio-workspace table * {
+        visibility: visible;
+    }
+    .univisio-workspace main {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .univisio-workspace .flex-1.overflow-auto {
+        overflow: visible !important;
+    }
+    .univisio-workspace input, 
+    .univisio-workspace textarea, 
+    .univisio-workspace select {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        color: black !important;
+        resize: none !important;
+    }
+}
+
+/* Light Theme Overrides for UniVisio */
+:root[data-theme="light"] .univisio-workspace,
+:root[data-theme="light"] .univisio-workspace.bg-zinc-950 {
+    background-color: #f9fafb !important;
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950 {
+    background-color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/60,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/40,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/20,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/80,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/50,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/40 {
+    background-color: #f3f4f6 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/60 {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/20 {
+    background-color: #f9fafb !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900 {
+    background-color: #f3f4f6 !important;
+}
+:root[data-theme="light"] .univisio-workspace .border-zinc-800,
+:root[data-theme="light"] .univisio-workspace .border-zinc-850,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/80,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/60,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/40 {
+    border-color: #e5e7eb !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-100,
+:root[data-theme="light"] .univisio-workspace .text-zinc-200,
+:root[data-theme="light"] .univisio-workspace .text-zinc-300,
+:root[data-theme="light"] .univisio-workspace .text-zinc-400 {
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-500 {
+    color: #6b7280 !important;
+}
+:root[data-theme="light"] .univisio-workspace input,
+:root[data-theme="light"] .univisio-workspace select,
+:root[data-theme="light"] .univisio-workspace textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+:root[data-theme="light"] .univisio-workspace input:focus,
+:root[data-theme="light"] .univisio-workspace select:focus,
+:root[data-theme="light"] .univisio-workspace textarea:focus {
+    border-color: #ef4444 !important;
+}
+:root[data-theme="light"] .univisio-workspace .focus\:bg-zinc-900:focus {
+    background-color: #f3f4f6 !important;
+}
+
+/* Red Theme Overrides for UniVisio */
+:root[data-theme="red"] .univisio-workspace,
+:root[data-theme="red"] .univisio-workspace.bg-zinc-950 {
+    background-color: hsl(10, 40%, 42%) !important;
+    color: hsl(0, 0%, 100%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .bg-zinc-950 {
+    background-color: hsl(10, 40%, 38%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/60,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/40,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/20,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/80,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/50,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-950\/40 {
+    background-color: hsl(10, 40%, 46%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .border-zinc-800,
+:root[data-theme="red"] .univisio-workspace .border-zinc-850,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/80,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/60,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/40 {
+    border-color: hsl(10, 40%, 52%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .text-zinc-100,
+:root[data-theme="red"] .univisio-workspace .text-zinc-200,
+:root[data-theme="red"] .univisio-workspace .text-zinc-300,
+:root[data-theme="red"] .univisio-workspace .text-zinc-400 {
+    color: hsl(0, 0%, 100%) !important;
+}
+:root[data-theme="red"] .univisio-workspace input,
+:root[data-theme="red"] .univisio-workspace select,
+:root[data-theme="red"] .univisio-workspace textarea {
+    background-color: hsl(10, 40%, 35%) !important;
+    color: hsl(0, 0%, 100%) !important;
+    border: 1px solid hsl(10, 40%, 50%) !important;
 }

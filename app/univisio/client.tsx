@@ -16,8 +16,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useTenantQuery } from '@/hooks/useTenantQuery';
 import { getDocs } from 'firebase/firestore';
 import { saveUniVisioSession, getProjectSessions, updateUniVisioSession } from '@/lib/univisio';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ClientPage() {
+    const { theme } = useTheme();
     // State
     const [file, setFile] = useState<File | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'narrative' | 'consolidator'>('table');
@@ -1529,7 +1531,7 @@ export default function ClientPage() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+        <div className="flex flex-col h-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans univisio-workspace">
             
             {/* Main view container */}
             <div className="flex flex-1 overflow-hidden min-h-0">
@@ -2651,34 +2653,6 @@ export default function ClientPage() {
                 </div>
             </div>
 
-            {/* Print specific styles to output beautifully structured pages */}
-            <style jsx global>{`
-                @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    main, .flex-1.overflow-auto, table, table * {
-                        visibility: visible;
-                    }
-                    main {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                    }
-                    .flex-1.overflow-auto {
-                        overflow: visible !important;
-                    }
-                    input, textarea, select {
-                        border: none !important;
-                        outline: none !important;
-                        background: transparent !important;
-                        padding: 0 !important;
-                        color: black !important;
-                        resize: none !important;
-                    }
-                }
-            `}</style>
 
             {/* Save Modal */}
             {showSaveModal && (
