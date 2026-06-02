@@ -7,6 +7,15 @@ and this project adheres to Semantic Versioning: **V.R.E** (Version.Rama.Etapa).
 
 ---
 
+## [14.5.0] - 2026-06-02
+
+### Added
+- **UniVisio Narrative Mode**: Introduced a new "Relato" view mode that renders workflows as hierarchical narrative cards.
+- **Auto-generated Closing Artifacts**: Added global aggregation for Entity State Matrix and Interface Registry directly computed from flow nodes.
+- **Enhanced Gemini Prompt**: Updated `actions.ts` schema and prompt to explicitly request `subtitle`, `systems`, `stateChanges`, `conditionalPaths`, `interfaceRefs`, `isLoop`, and `operativeDesc` for accurate narrative generation.
+
+---
+
 ## [13.1.1] - 2026-01-28
 
 ### Added

@@ -7,19 +7,48 @@ import { headers } from 'next/headers';
 const apiKey = process.env.GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(apiKey);
 
+interface StateChange {
+    entity: string;
+    from: string;
+    to: string;
+}
+
+interface ConditionalPath {
+    condition: string;
+    action: string;
+}
+
+interface InterfaceRef {
+    num: number;
+    name: string;
+    direction: string;
+    data: string;
+    criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA';
+}
+
 interface AnalyzeStep {
     step: number;
+    title: string;
+    subtitle: string;
+    systems: string;
+    phase: string;
+    stateChanges: StateChange[];
+    conditionalPaths: ConditionalPath[];
     actor: string;
     origin: string;
     destination: string;
     event: string;
     resultState: string;
-    actionType: 'H' | 'A' | 'I';
+    actionType: string;
     precondition: string;
     exception: string;
     rule: string;
     linkedNodeId: string;
     confidence: number;
+    interfaceRefs: InterfaceRef[];
+    isLoop: boolean;
+    loopNote: string | null;
+    operativeDesc: string;
 }
 
 /**
@@ -36,23 +65,39 @@ export async function analyzeSubflowWithGemini(
         }
 
         const systemInstruction = `
-You are the UniVisio Semantic Compiler. Your job is to convert a structural diagram workflow (supplied as a JSON graph containing nodes, text, and connections) into a highly rigid, detailed step-by-step documentation table.
+You are the UniVisio Semantic Compiler. Your job is to convert a structural diagram workflow (supplied as a JSON graph containing nodes, text, and connections) into a highly rigid, detailed step-by-step documentation table with a dual-layer representation.
 
-For each step, you must determine the following details:
-1. Actor/Swimlane: The owner/actor executing the action (e.g. system name, user role, integration hub).
-2. Origen del Dato (Data Source): The system/table/entity providing the data.
-3. Destino/Consumidor (Destination): The system/table/entity consuming or receiving the data.
-4. Evento/Transición (Event): The trigger, API endpoint call, or message name.
-5. Estado Resultante (Resulting State): The business state in the system (e.g. Viaje.Estado = 2, Pedido.Estado = Programable).
-6. Tipo de Acción (Action Type): Must be one of:
-   - 'H' for Humana (Manual user action/decision)
-   - 'A' for Automática (Automatic cron job, DB procedure, or internal logic)
-   - 'I' for Integración (REST/SOAP API call, message bus event crossing system boundaries)
-7. Precondición (Precondition): The required state before this step executes.
-8. Excepción/Alternativa (Exception): What happens on failure, timeout, rejection, or alternative flows.
-9. Regla de Negocio (Business Rule): Validations, conditional logic, thresholds, or norms.
-10. linkedNodeId: The ID of the shape/node from the provided JSON graph that matches this step.
-11. confidence: Your confidence score from 0.0 to 1.0.
+For each step/node in the sub-flow, you must determine the following details:
+1. step: Incremental index of the step.
+2. title: Main name of the step (e.g., "RUTEO CON VALIDACIÓN").
+3. subtitle: Subtitle / brief goal description of the step (e.g., "Armado de Rutas y Control de Cambios").
+4. systems: Systems participating and flow direction (e.g., "TMS (Algoritmo + Validación Manual)" or "ERP → TMS").
+5. phase: Global phase group this step belongs to (e.g., "FASE 1 — RECEPCIÓN Y VALIDACIÓN"). Steps in the same sequence of actions should share the exact same phase name.
+6. stateChanges: List of objects representing state changes for each entity modified in this step. Each object must have:
+   - entity: The business entity name (e.g., "PEDIDO", "ORDEN", "RUTA", "VIAJE").
+   - from: Previous state (e.g., "CREADO", "POR RUTEAR", "PREPARADO").
+   - to: Resulting state (e.g., "A PREPARACIÓN", "RUTEADA", "RUTEADO", "VALIDADA").
+7. conditionalPaths: If there are branches/conditions (e.g., "Si cambios manuales"), describe the condition and the action.
+8. actor: The swimlane or actor executing the action (e.g. system name, user role).
+9. origin: System or entity providing the data.
+10. destination: System or entity consuming/receiving the data.
+11. event: Trigger, API call or event name.
+12. resultState: Resulting state description.
+13. actionType: Description of action type (e.g., 'Humana', 'Automática', 'Integración', or combined like 'Automática + Humana').
+14. precondition: Required state before executing this step.
+15. exception: Rejection paths, alternative paths, or KO scenarios.
+16. rule: Business rules, thresholds, validations.
+17. linkedNodeId: The ID of the shape/node from the provided JSON graph that matches this step.
+18. confidence: Your confidence score from 0.0 to 1.0.
+19. interfaceRefs: If this transition uses an interface or integration, reference it with:
+    - num: Interface ID number (e.g. 4).
+    - name: descriptive interface name (e.g. Confirmación Carga).
+    - direction: direction flow (e.g. TMS → ERP).
+    - data: data transported (e.g. VIAJE: CARGADO).
+    - criticality: CRÍTICA | ALTA | MEDIA | INFORMATIVA.
+20. isLoop: True if this step is part of a loop (e.g. repeated N times or has return arrows in the graph).
+21. loopNote: Optional explanation of loop conditions (or null).
+22. operativeDesc: Párrafo de 3 a 5 frases en español explicando qué ocurre, por qué, y qué pasa en escenarios OK y KO (escenario de fallo). Tono técnico-operativo.
 
 CRITICAL RULES:
 - Do NOT invent or make up connections. The connections (edges) in the JSON graph are authoritative and mathematically correct. Use the visual image ONLY to read background context, swimlanes, and details that are not in the raw text.
@@ -102,26 +147,75 @@ Please analyze the above graph and return the step-by-step table matching the re
             type: SchemaType.OBJECT,
             properties: {
                 step: { type: SchemaType.INTEGER, description: 'Incremental index' },
+                title: { type: SchemaType.STRING, description: 'Step title / action name (e.g. RUTEO CON VALIDACIÓN)' },
+                subtitle: { type: SchemaType.STRING, description: 'Step subtitle / short goal description (e.g. Armado de Rutas y Control de Cambios)' },
+                systems: { type: SchemaType.STRING, description: 'Participating systems and flow (e.g. TMS (Algoritmo + Validación Manual))' },
+                phase: { type: SchemaType.STRING, description: 'Global phase of the workflow to group related steps (e.g. FASE 1 — RECEPCIÓN Y VALIDACIÓN)' },
+                stateChanges: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            entity: { type: SchemaType.STRING, description: 'The entity being modified (e.g. RUTA, ORDEN, PEDIDO)' },
+                            from: { type: SchemaType.STRING, description: 'Previous state before this step (e.g. POR RUTEAR)' },
+                            to: { type: SchemaType.STRING, description: 'New state after this step (e.g. VALIDADA)' }
+                        },
+                        required: ['entity', 'from', 'to']
+                    },
+                    description: 'Structured list of state changes per entity'
+                },
+                conditionalPaths: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            condition: { type: SchemaType.STRING, description: 'Condition trigger (e.g. Si cambios manuales)' },
+                            action: { type: SchemaType.STRING, description: 'Triggered action or interface (e.g. Interfaz #4 al ERP)' }
+                        },
+                        required: ['condition', 'action']
+                    },
+                    description: 'Conditional bifurcations or actions'
+                },
                 actor: { type: SchemaType.STRING, description: 'Swimlane or actor executing the step' },
                 origin: { type: SchemaType.STRING, description: 'System or entity providing the data' },
                 destination: { type: SchemaType.STRING, description: 'System or entity consuming the data' },
                 event: { type: SchemaType.STRING, description: 'API call, trigger or transition event description' },
                 resultState: { type: SchemaType.STRING, description: 'Resulting state of the object in the database/system' },
-                actionType: { 
-                    type: SchemaType.STRING, 
-                    format: 'enum',
-                    enum: ['H', 'A', 'I'], 
-                    description: 'H (Humana), A (Automática), I (Integración)' 
-                },
+                actionType: { type: SchemaType.STRING, description: 'Action type description (e.g. Humana, Automática, Integración or combined like "Automática + Humana")' },
                 precondition: { type: SchemaType.STRING, description: 'Required previous state' },
                 exception: { type: SchemaType.STRING, description: 'Error path, timeout or alternative state' },
                 rule: { type: SchemaType.STRING, description: 'Business rules or validations' },
                 linkedNodeId: { type: SchemaType.STRING, description: 'The matching Node ID from the GraphJSON' },
-                confidence: { type: SchemaType.NUMBER, description: 'Confidence score from 0.0 to 1.0' }
+                confidence: { type: SchemaType.NUMBER, description: 'Confidence score from 0.0 to 1.0' },
+                interfaceRefs: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                        type: SchemaType.OBJECT,
+                        properties: {
+                            num: { type: SchemaType.INTEGER, description: 'Interface identification number (e.g. 4)' },
+                            name: { type: SchemaType.STRING, description: 'Descriptive interface name (e.g. Confirmación Carga)' },
+                            direction: { type: SchemaType.STRING, description: 'Data direction flow (e.g. TMS → ERP)' },
+                            data: { type: SchemaType.STRING, description: 'Main data carried (e.g. VIAJE: CARGADO)' },
+                            criticality: { 
+                                type: SchemaType.STRING, 
+                                format: 'enum', 
+                                enum: ['CRÍTICA', 'ALTA', 'MEDIA', 'INFORMATIVA'],
+                                description: 'Criticality level of this integration'
+                            }
+                        },
+                        required: ['num', 'name', 'direction', 'data', 'criticality']
+                    },
+                    description: 'Integrations or interfaces referenced in this step'
+                },
+                isLoop: { type: SchemaType.BOOLEAN, description: 'True if this step is part of a loop or repeated workflow' },
+                loopNote: { type: SchemaType.STRING, nullable: true, description: 'Note about the loop repeat condition or count' },
+                operativeDesc: { type: SchemaType.STRING, description: 'Operative description paragraph in natural language (3-5 sentences in Spanish, explaining what, why, and conditions, including OK/KO outcomes)' }
             },
             required: [
-                'step', 'actor', 'origin', 'destination', 'event', 'resultState',
-                'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'confidence'
+                'step', 'title', 'subtitle', 'systems', 'phase', 'stateChanges', 'conditionalPaths',
+                'actor', 'origin', 'destination', 'event', 'resultState',
+                'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'confidence',
+                'interfaceRefs', 'isLoop', 'loopNote', 'operativeDesc'
             ]
         };
 
@@ -178,11 +272,33 @@ export async function chatWithUniVisio(
 
         const systemInstruction = `
 You are the UniVisio Copilot, an AI process architect assisting the user in documenting massive workflow diagrams.
-The user is viewing a structured 10-column table representing the workflow steps.
+The user is viewing structured workflow steps with a dual-layer representation.
+
+For each step, the schema includes:
+- step: incremental step index (number)
+- title: step title / action name (string)
+- subtitle: short goal description (string)
+- systems: participating systems and flow direction (string)
+- phase: global phase group name (string)
+- stateChanges: array of { entity: string, from: string, to: string }
+- conditionalPaths: array of { condition: string, action: string }
+- actor: swimlane/actor executing the step (string)
+- origin: data source (string)
+- destination: data consumer (string)
+- event: trigger / API call / message (string)
+- resultState: resulting state of the object in system (string)
+- actionType: type description (string, e.g. "Humana", "Automática", "Integración", "Automática + Humana")
+- precondition: previous state required (string)
+- exception: failure paths or alternative outcomes (string)
+- rule: business rules or validations (string)
+- interfaceRefs: array of { num: number, name: string, direction: string, data: string, criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA' }
+- isLoop: true if step is part of a loop (boolean)
+- loopNote: optional repeat explanation or count (string | null)
+- operativeDesc: natural language operative description in Spanish (string, 3-5 sentences)
 
 Your goals:
 1. Explain flow logic, clarify connections, and answer questions like "¿Qué pasa si...?" by inspecting the current steps.
-2. Allow the user to update the table using natural language (e.g. "El paso 12 es de tipo Integración", "Divide el paso 5 en dos", "Cambia el actor del paso 10 a Cliente").
+2. Allow the user to update the steps using natural language (e.g., "El paso 12 es de tipo Integración", "Agrega RUTA: VALIDADA a RUTA: CONFIRMADA como cambio de estado en el paso 4", "Cambia la descripción operativa del paso 4 a...").
 3. When the user wants to make a change, you MUST reply with a conversational explanation and attach a structured command in the JSON output to instruct the frontend how to update the table state.
 
 SUPPORTED COMMANDS:
@@ -206,6 +322,62 @@ Response format MUST match the JSON schema below.
                 'Referer': referer
             }
         });
+
+        const rowSchemaFields: Record<string, Schema> = {
+            title: { type: SchemaType.STRING },
+            subtitle: { type: SchemaType.STRING },
+            systems: { type: SchemaType.STRING },
+            phase: { type: SchemaType.STRING },
+            stateChanges: {
+                type: SchemaType.ARRAY,
+                items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                        entity: { type: SchemaType.STRING },
+                        from: { type: SchemaType.STRING },
+                        to: { type: SchemaType.STRING }
+                    },
+                    required: ['entity', 'from', 'to']
+                }
+            },
+            conditionalPaths: {
+                type: SchemaType.ARRAY,
+                items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                        condition: { type: SchemaType.STRING },
+                        action: { type: SchemaType.STRING }
+                    },
+                    required: ['condition', 'action']
+                }
+            },
+            actor: { type: SchemaType.STRING },
+            origin: { type: SchemaType.STRING },
+            destination: { type: SchemaType.STRING },
+            event: { type: SchemaType.STRING },
+            resultState: { type: SchemaType.STRING },
+            actionType: { type: SchemaType.STRING },
+            precondition: { type: SchemaType.STRING },
+            exception: { type: SchemaType.STRING },
+            rule: { type: SchemaType.STRING },
+            interfaceRefs: {
+                type: SchemaType.ARRAY,
+                items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                        num: { type: SchemaType.INTEGER },
+                        name: { type: SchemaType.STRING },
+                        direction: { type: SchemaType.STRING },
+                        data: { type: SchemaType.STRING },
+                        criticality: { type: SchemaType.STRING, format: 'enum', enum: ['CRÍTICA', 'ALTA', 'MEDIA', 'INFORMATIVA'] }
+                    },
+                    required: ['num', 'name', 'direction', 'data', 'criticality']
+                }
+            },
+            isLoop: { type: SchemaType.BOOLEAN },
+            loopNote: { type: SchemaType.STRING, nullable: true },
+            operativeDesc: { type: SchemaType.STRING }
+        };
 
         const responseSchema: Schema = {
             type: SchemaType.OBJECT,
@@ -231,32 +403,12 @@ Response format MUST match the JSON schema below.
                                 fields: {
                                     type: SchemaType.OBJECT,
                                     description: 'Fields to update',
-                                    properties: {
-                                        actor: { type: SchemaType.STRING },
-                                        origin: { type: SchemaType.STRING },
-                                        destination: { type: SchemaType.STRING },
-                                        event: { type: SchemaType.STRING },
-                                        resultState: { type: SchemaType.STRING },
-                                        actionType: { type: SchemaType.STRING, format: 'enum', enum: ['H', 'A', 'I'] },
-                                        precondition: { type: SchemaType.STRING },
-                                        exception: { type: SchemaType.STRING },
-                                        rule: { type: SchemaType.STRING }
-                                    }
+                                    properties: rowSchemaFields
                                 },
                                 row: {
                                     type: SchemaType.OBJECT,
                                     description: 'Row to insert',
-                                    properties: {
-                                        actor: { type: SchemaType.STRING },
-                                        origin: { type: SchemaType.STRING },
-                                        destination: { type: SchemaType.STRING },
-                                        event: { type: SchemaType.STRING },
-                                        resultState: { type: SchemaType.STRING },
-                                        actionType: { type: SchemaType.STRING, format: 'enum', enum: ['H', 'A', 'I'] },
-                                        precondition: { type: SchemaType.STRING },
-                                        exception: { type: SchemaType.STRING },
-                                        rule: { type: SchemaType.STRING }
-                                    }
+                                    properties: rowSchemaFields
                                 }
                             }
                         }

@@ -12,17 +12,33 @@ import * as XLSX from 'xlsx';
 
 interface TableRow {
     step: number;
+    title: string;
+    subtitle: string;
+    systems: string;
+    phase: string;
+    stateChanges: { entity: string; from: string; to: string }[];
+    conditionalPaths: { condition: string; action: string }[];
     actor: string;
     origin: string;
     destination: string;
     event: string;
     resultState: string;
-    actionType: 'H' | 'A' | 'I'; // Humana, Automática, Integración
+    actionType: string;
     precondition: string;
     exception: string;
     rule: string;
     linkedNodeId: string;
     confidence: number;
+    interfaceRefs: {
+        num: number;
+        name: string;
+        direction: string;
+        data: string;
+        criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA';
+    }[];
+    isLoop: boolean;
+    loopNote: string | null;
+    operativeDesc: string;
     needsReview?: boolean;
 }
 
@@ -52,6 +68,7 @@ interface Doubt {
 export default function ClientPage() {
     // State
     const [file, setFile] = useState<File | null>(null);
+    const [viewMode, setViewMode] = useState<'table' | 'narrative'>('table');
     const [pages, setPages] = useState<string[]>([]);
     const [selectedPage, setSelectedPage] = useState<string>('');
     const [zipInstance, setZipInstance] = useState<JSZip | null>(null);
@@ -100,6 +117,66 @@ export default function ClientPage() {
     }, [nodes]);
 
     const [activeLoteIndex, setActiveLoteIndex] = useState<number>(0);
+
+    // Dynamic computations for closing artifacts
+    const entityStateMatrix = useMemo(() => {
+        const matrix: Record<string, string[]> = {};
+        tableRows.forEach(row => {
+            row.stateChanges?.forEach(sc => {
+                if (!sc.entity) return;
+                const ent = sc.entity.toUpperCase().trim();
+                if (!matrix[ent]) {
+                    matrix[ent] = [];
+                }
+                const states = matrix[ent];
+                const cleanFrom = sc.from ? sc.from.trim() : '';
+                const cleanTo = sc.to ? sc.to.trim() : '';
+                if (cleanFrom) {
+                    if (states.length === 0) {
+                        states.push(cleanFrom);
+                    } else if (states[states.length - 1] !== cleanFrom) {
+                        states.push(cleanFrom);
+                    }
+                }
+                if (cleanTo) {
+                    if (states.length === 0 || states[states.length - 1] !== cleanTo) {
+                        states.push(cleanTo);
+                    }
+                }
+            });
+        });
+        return matrix;
+    }, [tableRows]);
+
+    const interfaceRegistry = useMemo(() => {
+        const registryMap: Record<number, { num: number; name: string; direction: string; data: string; criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA' }> = {};
+        tableRows.forEach(row => {
+            row.interfaceRefs?.forEach(ref => {
+                if (ref.num == null) return;
+                if (!registryMap[ref.num]) {
+                    registryMap[ref.num] = {
+                        num: ref.num,
+                        name: ref.name || `Interfaz #${ref.num}`,
+                        direction: ref.direction || '-',
+                        data: ref.data || '-',
+                        criticality: ref.criticality || 'MEDIA'
+                    };
+                } else {
+                    const existing = registryMap[ref.num];
+                    if (existing.name.startsWith('Interfaz #') && ref.name && !ref.name.startsWith('Interfaz #')) {
+                        existing.name = ref.name;
+                    }
+                    if (existing.direction === '-' && ref.direction && ref.direction !== '-') {
+                        existing.direction = ref.direction;
+                    }
+                    if (existing.data === '-' && ref.data && ref.data !== '-') {
+                        existing.data = ref.data;
+                    }
+                }
+            });
+        });
+        return Object.values(registryMap).sort((a, b) => a.num - b.num);
+    }, [tableRows]);
 
     // Handle File Drop / Select
     const handleDragOver = (e: React.DragEvent) => {
@@ -765,17 +842,27 @@ export default function ClientPage() {
                 // Map API response to UI table state
                 const newRows: TableRow[] = response.steps.map(step => ({
                     step: (step.step || 1) + (activeLote.start - 1), // Offset based on lote
+                    title: step.title || 'Paso',
+                    subtitle: step.subtitle || '',
+                    systems: step.systems || '-',
+                    phase: step.phase || 'FASE GENERAL',
+                    stateChanges: step.stateChanges || [],
+                    conditionalPaths: step.conditionalPaths || [],
                     actor: step.actor || 'General',
                     origin: step.origin || '-',
                     destination: step.destination || '-',
                     event: step.event || '-',
                     resultState: step.resultState || '-',
-                    actionType: step.actionType || 'H',
+                    actionType: step.actionType || 'A',
                     precondition: step.precondition || '-',
                     exception: step.exception || '-',
                     rule: step.rule || '-',
                     linkedNodeId: step.linkedNodeId || '',
                     confidence: step.confidence || 1.0,
+                    interfaceRefs: step.interfaceRefs || [],
+                    isLoop: !!step.isLoop,
+                    loopNote: step.loopNote || null,
+                    operativeDesc: step.operativeDesc || '',
                     needsReview: (step.confidence || 1.0) < 0.7
                 }));
 
@@ -833,6 +920,12 @@ export default function ClientPage() {
                             const copy = [...prev];
                             copy.splice(cmd.params.index, 0, {
                                 step: cmd.params.index + 1,
+                                title: cmd.params.row.title || 'Nuevo Paso',
+                                subtitle: cmd.params.row.subtitle || '',
+                                systems: cmd.params.row.systems || '-',
+                                phase: cmd.params.row.phase || 'FASE GENERAL',
+                                stateChanges: cmd.params.row.stateChanges || [],
+                                conditionalPaths: cmd.params.row.conditionalPaths || [],
                                 actor: cmd.params.row.actor || 'General',
                                 origin: cmd.params.row.origin || '-',
                                 destination: cmd.params.row.destination || '-',
@@ -843,7 +936,11 @@ export default function ClientPage() {
                                 exception: cmd.params.row.exception || '-',
                                 rule: cmd.params.row.rule || '-',
                                 linkedNodeId: '',
-                                confidence: 1.0
+                                confidence: 1.0,
+                                interfaceRefs: cmd.params.row.interfaceRefs || [],
+                                isLoop: !!cmd.params.row.isLoop,
+                                loopNote: cmd.params.row.loopNote || null,
+                                operativeDesc: cmd.params.row.operativeDesc || ''
                             });
                             return copy.map((row, i) => ({ ...row, step: i + 1 }));
                         });
@@ -869,11 +966,34 @@ export default function ClientPage() {
         ));
     };
 
+    const handleInterfaceRefsChange = (rowIndex: number, val: string) => {
+        const nums = val.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        const currentRefs = tableRows[rowIndex].interfaceRefs || [];
+        const newRefs = nums.map(n => {
+            const existing = currentRefs.find(r => r.num === n);
+            if (existing) return existing;
+            return {
+                num: n,
+                name: `Interfaz #${n}`,
+                direction: `${tableRows[rowIndex].origin || '-'} → ${tableRows[rowIndex].destination || '-'}`,
+                data: tableRows[rowIndex].resultState || '-',
+                criticality: 'MEDIA' as const
+            };
+        });
+        handleCellChange(rowIndex, 'interfaceRefs', newRefs);
+    };
+
     const handleAddRow = () => {
         setTableRows(prev => [
             ...prev,
             {
                 step: prev.length + 1,
+                title: 'NUEVO PASO',
+                subtitle: 'Descripción breve',
+                systems: '-',
+                phase: prev[prev.length - 1]?.phase || 'FASE GENERAL',
+                stateChanges: [],
+                conditionalPaths: [],
                 actor: 'General',
                 origin: '-',
                 destination: '-',
@@ -884,7 +1004,11 @@ export default function ClientPage() {
                 exception: '-',
                 rule: '-',
                 linkedNodeId: '',
-                confidence: 1.0
+                confidence: 1.0,
+                interfaceRefs: [],
+                isLoop: false,
+                loopNote: null,
+                operativeDesc: 'Descripción operativa del paso.'
             }
         ]);
     };
@@ -914,20 +1038,33 @@ export default function ClientPage() {
     // Exporters
     const exportCSV = () => {
         if (tableRows.length === 0) return;
-        const headers = ['Paso', 'Actor/Swimlane', 'Origen del Dato', 'Destino/Consumidor', 'Evento/Transición', 'Estado Resultante', 'Tipo Acción', 'Precondición', 'Excepción', 'Regla de Negocio'];
+        const headers = [
+            'Paso', 'Título', 'Subtítulo', 'Sistemas', 'Fase', 'Actor/Swimlane', 
+            'Origen del Dato', 'Destino/Consumidor', 'Evento/Transición', 'Estado Resultante', 
+            'Tipo Acción', 'Precondición', 'Excepción', 'Regla de Negocio', 
+            'Ref. Interfaz', 'Bucle', 'Nota Bucle', 'Descripción Operativa'
+        ];
         const csvContent = [
             headers.join(','),
             ...tableRows.map(r => [
                 r.step,
-                `"${r.actor}"`,
-                `"${r.origin}"`,
-                `"${r.destination}"`,
-                `"${r.event}"`,
-                `"${r.resultState}"`,
-                r.actionType,
-                `"${r.precondition}"`,
-                `"${r.exception}"`,
-                `"${r.rule}"`
+                `"${(r.title || '').replace(/"/g, '""')}"`,
+                `"${(r.subtitle || '').replace(/"/g, '""')}"`,
+                `"${(r.systems || '').replace(/"/g, '""')}"`,
+                `"${(r.phase || '').replace(/"/g, '""')}"`,
+                `"${(r.actor || '').replace(/"/g, '""')}"`,
+                `"${(r.origin || '').replace(/"/g, '""')}"`,
+                `"${(r.destination || '').replace(/"/g, '""')}"`,
+                `"${(r.event || '').replace(/"/g, '""')}"`,
+                `"${(r.resultState || '').replace(/"/g, '""')}"`,
+                `"${(r.actionType || '').replace(/"/g, '""')}"`,
+                `"${(r.precondition || '').replace(/"/g, '""')}"`,
+                `"${(r.exception || '').replace(/"/g, '""')}"`,
+                `"${(r.rule || '').replace(/"/g, '""')}"`,
+                `"${(r.interfaceRefs?.map(i => i.num).join(', ') || '').replace(/"/g, '""')}"`,
+                r.isLoop ? 'SI' : 'NO',
+                `"${(r.loopNote || '').replace(/"/g, '""')}"`,
+                `"${(r.operativeDesc || '').replace(/"/g, '""')}"`
             ].join(','))
         ].join('\n');
 
@@ -941,29 +1078,61 @@ export default function ClientPage() {
 
     const exportMarkdown = () => {
         if (tableRows.length === 0) return;
-        const headers = ['#', 'Actor / Swimlane', 'Origen del Dato', 'Destino / Consumidor', 'Evento / Transición', 'Estado Resultante', 'Acción', 'Precondición', 'Excepción', 'Regla de Negocio'];
+        const headers = [
+            '#', 'Fase', 'Título', 'Sistemas', 'Actor / Swimlane', 'Origen del Dato', 
+            'Destino / Consumidor', 'Evento / Transición', 'Estado Resultante', 'Acción', 
+            'Precondición', 'Excepción', 'Regla de Negocio', 'Ref. Interfaz', 'Descripción Operativa'
+        ];
         const separators = headers.map(() => '---');
         const rows = tableRows.map(r => [
             r.step,
-            r.actor,
-            r.origin,
-            r.destination,
-            r.event,
-            r.resultState,
-            r.actionType === 'H' ? '👤 Humana' : r.actionType === 'A' ? '⚙️ Automática' : '🔌 Integración',
-            r.precondition,
-            r.exception,
-            r.rule
+            r.phase || 'General',
+            r.title || '-',
+            r.systems || '-',
+            r.actor || '-',
+            r.origin || '-',
+            r.destination || '-',
+            r.event || '-',
+            r.resultState || '-',
+            r.actionType || '-',
+            r.precondition || '-',
+            r.exception || '-',
+            r.rule || '-',
+            r.interfaceRefs && r.interfaceRefs.length > 0 ? r.interfaceRefs.map(i => `#${i.num}`).join(', ') : '-',
+            r.operativeDesc || '-'
         ]);
 
-        const mdContent = [
+        const mdLines = [
             `# Narrativa de Proceso de Visio: ${file?.name || 'Proceso'}`,
             '',
             `| ${headers.join(' | ')} |`,
             `| ${separators.join(' | ')} |`,
-            ...rows.map(row => `| ${row.join(' | ')} |`)
-        ].join('\n');
+            ...rows.map(row => `| ${row.join(' | ')} |`),
+            '',
+            '## Matriz Completa de Estados por Entidad',
+            ''
+        ];
 
+        if (Object.keys(entityStateMatrix).length > 0) {
+            Object.entries(entityStateMatrix).forEach(([entity, states]) => {
+                mdLines.push(`- **${entity}**: ${states.join(' ➔ ')}`);
+            });
+        } else {
+            mdLines.push('No se definieron transiciones de estado.');
+        }
+
+        mdLines.push('', '## Registro de Interfaces', '');
+        if (interfaceRegistry.length > 0) {
+            mdLines.push('| # | Nombre | Flujo | Datos | Criticidad |');
+            mdLines.push('|---|--------|-------|-------|------------|');
+            interfaceRegistry.forEach(item => {
+                mdLines.push(`| ${item.num} | ${item.name} | ${item.direction} | ${item.data} | ${item.criticality} |`);
+            });
+        } else {
+            mdLines.push('No se registraron interfaces.');
+        }
+
+        const mdContent = mdLines.join('\n');
         const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -974,20 +1143,48 @@ export default function ClientPage() {
 
     const exportExcel = () => {
         if (tableRows.length === 0) return;
-        const worksheet = XLSX.utils.json_to_sheet(tableRows.map(r => ({
+        
+        const worksheetSteps = XLSX.utils.json_to_sheet(tableRows.map(r => ({
             Paso: r.step,
-            'Actor / Swimlane': r.actor,
-            'Origen del Dato': r.origin,
-            'Destino / Consumidor': r.destination,
-            'Evento / Transición': r.event,
-            'Estado Resultante': r.resultState,
-            'Tipo de Acción': r.actionType === 'H' ? 'Humana' : r.actionType === 'A' ? 'Automática' : 'Integración',
-            Precondición: r.precondition,
-            Excepción: r.exception,
-            'Regla de Negocio': r.rule
+            Fase: r.phase || 'General',
+            Título: r.title || '-',
+            Subtítulo: r.subtitle || '',
+            Sistemas: r.systems || '-',
+            'Actor / Swimlane': r.actor || '-',
+            'Origen del Dato': r.origin || '-',
+            'Destino / Consumidor': r.destination || '-',
+            'Evento / Transición': r.event || '-',
+            'Estado Resultante': r.resultState || '-',
+            'Tipo de Acción': r.actionType || '-',
+            Precondición: r.precondition || '-',
+            Excepción: r.exception || '-',
+            'Regla de Negocio': r.rule || '-',
+            'Ref. Interfaz': r.interfaceRefs?.map(i => `#${i.num}`).join(', ') || '-',
+            Bucle: r.isLoop ? 'SI' : 'NO',
+            'Nota Bucle': r.loopNote || '',
+            'Descripción Operativa': r.operativeDesc || ''
         })));
+        
+        const matrixRows = Object.entries(entityStateMatrix).map(([entity, states]) => ({
+            Entidad: entity,
+            'Secuencia de Estados': states.join(' ➔ ')
+        }));
+        const worksheetMatrix = XLSX.utils.json_to_sheet(matrixRows);
+
+        const interfaceRows = interfaceRegistry.map(item => ({
+            'Número Interfaz': item.num,
+            Nombre: item.name,
+            Dirección: item.direction,
+            Dato: item.data,
+            Criticidad: item.criticality
+        }));
+        const worksheetInterfaces = XLSX.utils.json_to_sheet(interfaceRows);
+
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Narrativa de Pasos');
+        XLSX.utils.book_append_sheet(workbook, worksheetSteps, 'Narrativa de Pasos');
+        XLSX.utils.book_append_sheet(workbook, worksheetMatrix, 'Matriz de Estados');
+        XLSX.utils.book_append_sheet(workbook, worksheetInterfaces, 'Registro de Interfaces');
+        
         XLSX.writeFile(workbook, `${file?.name.split('.')[0] || 'UniVisio'}_narrativa.xlsx`);
     };
 
@@ -1147,9 +1344,35 @@ export default function ClientPage() {
                     
                     {/* Toolbar */}
                     <div className="h-14 border-b border-zinc-800 px-6 flex items-center justify-between bg-zinc-900/40 shrink-0 print:hidden">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                            <FileCode className="w-4 h-4 text-rose-500" />
-                            <span>Narrativa Tabular</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
+                                <FileCode className="w-4 h-4 text-rose-500" />
+                                <span>UniVisio</span>
+                            </div>
+                            <div className="flex bg-zinc-950 border border-zinc-800 rounded-lg p-0.5">
+                                <button
+                                    onClick={() => setViewMode('table')}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
+                                        viewMode === 'table'
+                                            ? "bg-rose-600 text-white shadow"
+                                            : "text-zinc-400 hover:text-zinc-200"
+                                    )}
+                                >
+                                    <span>📋 Tabla</span>
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('narrative')}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
+                                        viewMode === 'narrative'
+                                            ? "bg-rose-600 text-white shadow"
+                                            : "text-zinc-400 hover:text-zinc-200"
+                                    )}
+                                >
+                                    <span>📄 Relato</span>
+                                </button>
+                            </div>
                         </div>
                         {tableRows.length > 0 && (
                             <div className="flex items-center gap-2">
@@ -1192,172 +1415,477 @@ export default function ClientPage() {
                     {/* Table workspace */}
                     <div className="flex-1 overflow-auto p-6 custom-scrollbar print:p-0">
                         {tableRows.length > 0 ? (
-                            <div className="overflow-x-auto min-w-full border border-zinc-800/80 rounded-xl bg-zinc-900/10 print:border-none">
-                                <table className="min-w-full divide-y divide-zinc-800 text-xs print:divide-zinc-400">
-                                    <thead className="bg-zinc-900/60 text-zinc-400 uppercase tracking-widest text-[9px] print:bg-zinc-100 print:text-zinc-700">
-                                        <tr>
-                                            <th className="px-3 py-3 font-semibold text-center w-12 print:hidden">#</th>
-                                            <th className="px-3 py-3 font-semibold text-center w-10">Paso</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Actor / Swimlane</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Origen</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Destino</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Evento / Transición</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Estado Resultante</th>
-                                            <th className="px-3 py-3 font-semibold text-center w-20">Acción</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Precondición</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Excepción</th>
-                                            <th className="px-4 py-3 font-semibold text-left">Regla de Negocio</th>
-                                            <th className="px-3 py-3 font-semibold text-center w-10 print:hidden"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-zinc-800/50 print:divide-zinc-300">
+                            viewMode === 'table' ? (
+                                <div className="overflow-x-auto min-w-full border border-zinc-800/80 rounded-xl bg-zinc-900/10 print:border-none">
+                                    <table className="min-w-full divide-y divide-zinc-800 text-xs print:divide-zinc-400">
+                                        <thead className="bg-zinc-900/60 text-zinc-400 uppercase tracking-widest text-[9px] print:bg-zinc-100 print:text-zinc-700">
+                                            <tr>
+                                                <th className="px-2 py-3 font-semibold text-center w-12 print:hidden">#</th>
+                                                <th className="px-2 py-3 font-semibold text-center w-10">Paso</th>
+                                                <th className="px-3 py-3 font-semibold text-left w-36">Fase</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Actor / Swimlane</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Origen</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Destino</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Evento / Transición</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Estado Resultante</th>
+                                                <th className="px-2 py-3 font-semibold text-center w-20">Acción</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Precondición</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Excepción</th>
+                                                <th className="px-3 py-3 font-semibold text-left">Regla de Negocio</th>
+                                                <th className="px-3 py-3 font-semibold text-left w-20">Ref. Interfaz</th>
+                                                <th className="px-4 py-3 font-semibold text-left min-w-[200px]">Descripción Operativa</th>
+                                                <th className="px-2 py-3 font-semibold text-center w-10 print:hidden"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-zinc-800/50 print:divide-zinc-300">
+                                            {(() => {
+                                                let lastPhase = '';
+                                                return tableRows.map((row, idx) => {
+                                                    const renderPhaseHeader = row.phase && row.phase !== lastPhase;
+                                                    if (renderPhaseHeader) {
+                                                        lastPhase = row.phase;
+                                                    }
+
+                                                    const phaseSteps = tableRows.filter(r => r.phase === row.phase);
+                                                    const firstStep = phaseSteps[0]?.step;
+                                                    const lastStep = phaseSteps[phaseSteps.length - 1]?.step;
+                                                    const rangeText = firstStep && lastStep ? `(Pasos ${firstStep}–${lastStep})` : '';
+
+                                                    return (
+                                                        <React.Fragment key={idx}>
+                                                            {renderPhaseHeader && (
+                                                                <tr className="bg-rose-950/25 border-y border-zinc-800/80">
+                                                                    <td colSpan={15} className="px-4 py-2.5 font-black text-rose-400 tracking-wider text-[10px] uppercase font-sans">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                                                                            <span>{row.phase}</span>
+                                                                            <span className="text-zinc-500 font-normal normal-case ml-2">{rangeText}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                            <tr 
+                                                                onClick={() => setActiveRowIndex(idx)}
+                                                                className={cn(
+                                                                    "transition-colors",
+                                                                    activeRowIndex === idx ? "bg-rose-500/5" : "hover:bg-zinc-900/30",
+                                                                    row.needsReview ? "bg-amber-950/15" : "",
+                                                                    "print:bg-transparent"
+                                                                )}
+                                                            >
+                                                                <td className="px-2 py-3 text-center align-middle whitespace-nowrap print:hidden">
+                                                                    <div className="flex flex-col gap-1 items-center">
+                                                                        <button 
+                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
+                                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
+                                                                            disabled={idx === 0}
+                                                                        >
+                                                                            <ArrowUp className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
+                                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
+                                                                            disabled={idx === tableRows.length - 1}
+                                                                        >
+                                                                            <ArrowDown className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-2 py-3 text-center font-bold text-zinc-300 align-middle">
+                                                                    <div className="flex items-center justify-center gap-1.5">
+                                                                        {row.needsReview && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 print:hidden" />}
+                                                                        <span>{row.step}</span>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.phase}
+                                                                        onChange={(e) => handleCellChange(idx, 'phase', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.actor}
+                                                                        onChange={(e) => handleCellChange(idx, 'actor', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 print:border-none"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.origin}
+                                                                        onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.destination}
+                                                                        onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.event}
+                                                                        onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.resultState}
+                                                                        onChange={(e) => handleCellChange(idx, 'resultState', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-2 py-3 text-center align-middle whitespace-nowrap">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.actionType}
+                                                                        onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.precondition}
+                                                                        onChange={(e) => handleCellChange(idx, 'precondition', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.exception}
+                                                                        onChange={(e) => handleCellChange(idx, 'exception', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <textarea 
+                                                                        rows={1}
+                                                                        value={row.rule}
+                                                                        onChange={(e) => handleCellChange(idx, 'rule', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 resize-none h-auto overflow-y-hidden"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
+                                                                        onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
+                                                                        placeholder="Ej: 4"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-4 py-3 align-middle">
+                                                                    <textarea 
+                                                                        rows={2}
+                                                                        value={row.operativeDesc || ''}
+                                                                        onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 resize-none h-auto"
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-2 py-3 text-center align-middle print:hidden">
+                                                                    <button 
+                                                                        onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
+                                                                        className="text-zinc-500 hover:text-red-500"
+                                                                        title="Eliminar fila"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </React.Fragment>
+                                                    );
+                                                });
+                                            })()}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full pb-16">
+                                    <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto w-full print:max-w-full">
                                         {tableRows.map((row, idx) => (
-                                            <tr 
+                                            <div 
                                                 key={idx}
                                                 onClick={() => setActiveRowIndex(idx)}
                                                 className={cn(
-                                                    "transition-colors",
-                                                    activeRowIndex === idx ? "bg-rose-500/5" : "hover:bg-zinc-900/30",
-                                                    row.needsReview ? "bg-amber-950/15" : "",
-                                                    "print:bg-transparent"
+                                                    "border rounded-xl transition-all shadow-xl backdrop-blur-sm relative overflow-hidden flex flex-col",
+                                                    activeRowIndex === idx 
+                                                        ? "border-rose-500 bg-zinc-900/80 ring-1 ring-rose-500/25" 
+                                                        : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/60",
+                                                    row.needsReview ? "border-amber-500/40 bg-amber-950/5" : ""
                                                 )}
                                             >
-                                                {/* Reorder Buttons */}
-                                                <td className="px-3 py-3 text-center align-middle whitespace-nowrap print:hidden">
-                                                    <div className="flex flex-col gap-1 items-center">
+                                                {/* Header */}
+                                                <div className="bg-zinc-900/80 px-5 py-4 border-b border-zinc-800 flex justify-between items-start gap-4">
+                                                    <div>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md">
+                                                                PASO {row.step}
+                                                            </span>
+                                                            {row.isLoop && (
+                                                                <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                                                                    🔄 Bucle {row.loopNote ? `(${row.loopNote})` : ''}
+                                                                </span>
+                                                            )}
+                                                            {row.phase && (
+                                                                <span className="bg-zinc-800 text-zinc-400 text-[10px] px-2 py-0.5 rounded-md uppercase font-semibold tracking-wider font-mono">
+                                                                    {row.phase}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <h3 className="text-base font-black text-zinc-100 mt-2 uppercase tracking-wide">
+                                                            {row.title || 'SIN TÍTULO'}
+                                                        </h3>
+                                                        {row.subtitle && (
+                                                            <p className="text-xs text-zinc-400 mt-0.5 italic">
+                                                                {row.subtitle}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex gap-1 print:hidden">
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
-                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
+                                                            className="text-zinc-500 hover:text-zinc-300 p-1 border border-zinc-800 bg-zinc-950/40 rounded-lg hover:bg-zinc-900 disabled:opacity-40"
                                                             disabled={idx === 0}
                                                         >
                                                             <ArrowUp className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
-                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
+                                                            className="text-zinc-500 hover:text-zinc-300 p-1 border border-zinc-800 bg-zinc-950/40 rounded-lg hover:bg-zinc-900 disabled:opacity-40"
                                                             disabled={idx === tableRows.length - 1}
                                                         >
                                                             <ArrowDown className="w-3.5 h-3.5" />
                                                         </button>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
+                                                            className="text-zinc-500 hover:text-red-500 p-1 border border-zinc-800 bg-zinc-950/40 rounded-lg hover:bg-zinc-900 ml-2"
+                                                            title="Eliminar paso"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
-                                                </td>
+                                                </div>
 
-                                                {/* Step # */}
-                                                <td className="px-3 py-3 text-center font-bold text-zinc-300 align-middle">
-                                                    <div className="flex items-center justify-center gap-1.5">
-                                                        {row.needsReview && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 print:hidden" />}
-                                                        <span>{row.step}</span>
+                                                {/* Card body in a structured key-value grid */}
+                                                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-zinc-800 text-xs">
+                                                    
+                                                    {/* Left column: Systems and state changes */}
+                                                    <div className="p-5 flex flex-col gap-4 col-span-2">
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Sistemas Involucrados</div>
+                                                            <div className="text-zinc-200 bg-zinc-950/40 border border-zinc-800/60 rounded-lg px-3 py-2 leading-relaxed">
+                                                                {row.systems || '-'}
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Cambios de Estado</div>
+                                                            <div className="flex flex-col gap-1.5 bg-zinc-950/40 border border-zinc-800/60 rounded-lg p-3">
+                                                                {row.stateChanges && row.stateChanges.length > 0 ? (
+                                                                    row.stateChanges.map((sc, scIdx) => (
+                                                                        <div key={scIdx} className="flex items-center gap-2 font-mono text-[11px] text-zinc-300">
+                                                                            <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-rose-400 font-semibold">{sc.entity}</span>
+                                                                            <span className="text-zinc-500">{sc.from || 'INICIO'}</span>
+                                                                            <span className="text-rose-500">➔</span>
+                                                                            <span className="text-green-400 font-medium">{sc.to}</span>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="text-zinc-500 italic text-[11px]">Sin cambios de estado de entidades</div>
+                                                                )}
+
+                                                                {row.conditionalPaths && row.conditionalPaths.length > 0 && (
+                                                                    <div className="border-t border-zinc-800/60 mt-2 pt-2 flex flex-col gap-1">
+                                                                        {row.conditionalPaths.map((cp, cpIdx) => (
+                                                                            <div key={cpIdx} className="flex items-start gap-1.5 text-[11px] text-zinc-400">
+                                                                                <span className="text-indigo-400 font-bold uppercase text-[9px] mt-0.5">SI</span>
+                                                                                <span>{cp.condition} ➔ <span className="text-indigo-300 font-semibold">{cp.action}</span></span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </td>
 
-                                                {/* Actor / Swimlane */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.actor}
-                                                        onChange={(e) => handleCellChange(idx, 'actor', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 print:border-none"
-                                                    />
-                                                </td>
+                                                    {/* Right column: Data origin/destination and action type */}
+                                                    <div className="p-5 flex flex-col gap-4">
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Origen / Destino Datos</div>
+                                                            <div className="flex flex-col gap-1 font-sans text-zinc-300">
+                                                                <div><span className="text-zinc-500 text-[10px] uppercase font-semibold mr-1">De:</span> {row.origin || '-'}</div>
+                                                                <div className="border-t border-zinc-800/45 my-1"></div>
+                                                                <div><span className="text-zinc-500 text-[10px] uppercase font-semibold mr-1">A:</span> {row.destination || '-'}</div>
+                                                            </div>
+                                                        </div>
 
-                                                {/* Origen */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.origin}
-                                                        onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Tipo de Acción</div>
+                                                            <div className="flex items-center gap-1.5 bg-zinc-950/40 border border-zinc-800/60 px-3 py-1.5 rounded-lg text-zinc-200">
+                                                                <span className="text-sm">
+                                                                    {row.actionType?.toLowerCase().includes('humana') || row.actionType === 'H' ? '👤' : 
+                                                                     row.actionType?.toLowerCase().includes('autom') || row.actionType === 'A' ? '⚙️' : '🔌'}
+                                                                </span>
+                                                                <span className="font-semibold">{row.actionType || '-'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                {/* Destino */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.destination}
-                                                        onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
+                                                </div>
 
-                                                {/* Evento */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.event}
-                                                        onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
+                                                {/* Operative Description (Bottom row) */}
+                                                <div className="bg-zinc-950/20 px-5 py-4 border-t border-zinc-800 text-xs leading-relaxed text-zinc-300">
+                                                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Descripción Operativa</div>
+                                                    <p className="bg-zinc-950/40 border border-zinc-800/60 p-3.5 rounded-xl font-sans text-zinc-200 shadow-inner italic">
+                                                        "{row.operativeDesc || 'No hay descripción operativa cargada.'}"
+                                                    </p>
+                                                </div>
 
-                                                {/* Estado Resultante */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.resultState}
-                                                        onChange={(e) => handleCellChange(idx, 'resultState', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
-
-                                                {/* Acción Type */}
-                                                <td className="px-3 py-3 text-center align-middle whitespace-nowrap">
-                                                    <select
-                                                        value={row.actionType}
-                                                        onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
-                                                        className="bg-zinc-950 text-zinc-300 border border-zinc-800 rounded px-2 py-1 focus:outline-none focus:border-rose-500 font-sans print:border-none print:bg-transparent"
-                                                    >
-                                                        <option value="H">👤 H</option>
-                                                        <option value="A">⚙️ A</option>
-                                                        <option value="I">🔌 I</option>
-                                                    </select>
-                                                </td>
-
-                                                {/* Precondición */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.precondition}
-                                                        onChange={(e) => handleCellChange(idx, 'precondition', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
-
-                                                {/* Excepción */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <input 
-                                                        type="text" 
-                                                        value={row.exception}
-                                                        onChange={(e) => handleCellChange(idx, 'exception', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
-                                                    />
-                                                </td>
-
-                                                {/* Regla de negocio */}
-                                                <td className="px-4 py-3 align-middle">
-                                                    <textarea 
-                                                        rows={1}
-                                                        value={row.rule}
-                                                        onChange={(e) => handleCellChange(idx, 'rule', e.target.value)}
-                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 resize-none h-auto overflow-y-hidden"
-                                                    />
-                                                </td>
-
-                                                {/* Delete Action */}
-                                                <td className="px-3 py-3 text-center align-middle print:hidden">
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
-                                                        className="text-zinc-500 hover:text-red-500"
-                                                        title="Eliminar fila"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </td>
-                                            </tr>
+                                            </div>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </div>
+
+                                    {/* Closing Artifacts Section */}
+                                    <div className="mt-12 max-w-4xl mx-auto w-full flex flex-col gap-10 border-t border-zinc-800/80 pt-10">
+                                        
+                                        {/* 1. Entity State Matrix */}
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-1.5 rounded-lg">
+                                                    <Network className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Matriz Completa de Estados por Entidad</h3>
+                                                    <p className="text-[10px] text-zinc-400">Ciclo de vida y secuencias de transición de estados por cada objeto de negocio</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-6 flex flex-col gap-4 font-sans text-xs">
+                                                {Object.keys(entityStateMatrix).length > 0 ? (
+                                                    <div className="flex flex-col gap-4 divide-y divide-zinc-800/60">
+                                                        {Object.entries(entityStateMatrix).map(([entity, states]) => (
+                                                            <div key={entity} className="flex flex-col md:flex-row md:items-center gap-3 pt-4 first:pt-0">
+                                                                <div className="font-bold text-rose-400 w-24 shrink-0 font-mono text-sm tracking-wider uppercase">
+                                                                    {entity}
+                                                                </div>
+                                                                <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono leading-relaxed">
+                                                                    {states.map((st, sIdx) => (
+                                                                        <React.Fragment key={sIdx}>
+                                                                            {sIdx > 0 && <span className="text-zinc-600 font-sans font-bold">➔</span>}
+                                                                            <span className={cn(
+                                                                                "px-2 py-0.5 rounded border shadow-sm font-semibold",
+                                                                                sIdx === 0 
+                                                                                    ? "bg-blue-950/20 border-blue-900/40 text-blue-400"
+                                                                                    : sIdx === states.length - 1
+                                                                                        ? "bg-green-950/20 border-green-900/40 text-green-400"
+                                                                                        : "bg-zinc-850 border-zinc-700/60 text-zinc-300"
+                                                                            )}>
+                                                                                {st}
+                                                                            </span>
+                                                                        </React.Fragment>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-zinc-500 italic text-center py-4">No se detectaron transiciones de estado en ningún paso. Escribe en el chat para asignarle estados.</div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* 2. Interface Registry */}
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-1.5 rounded-lg">
+                                                    <FileCode className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-black tracking-widest text-zinc-100 uppercase">Registro de Interfaces (Integraciones)</h3>
+                                                    <p className="text-[10px] text-zinc-400">Catálogo general de puntos de integración y llamadas entre sistemas</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl overflow-hidden shadow-lg">
+                                                {interfaceRegistry.length > 0 ? (
+                                                    <table className="min-w-full divide-y divide-zinc-800 text-xs">
+                                                        <thead className="bg-zinc-950/40 text-[9px] font-black tracking-wider uppercase text-zinc-400">
+                                                            <tr>
+                                                                <th className="px-4 py-3 text-center w-12 border-r border-zinc-800/40">#</th>
+                                                                <th className="px-4 py-3 text-left">Nombre de Interfaz</th>
+                                                                <th className="px-4 py-3 text-left">Flujo de Integración</th>
+                                                                <th className="px-4 py-3 text-left">Datos Transportados</th>
+                                                                <th className="px-4 py-3 text-center w-24">Criticidad</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-zinc-800/50 text-[11px] font-sans">
+                                                            {interfaceRegistry.map((item) => (
+                                                                <tr key={item.num} className="hover:bg-zinc-900/10 transition-colors">
+                                                                    <td className="px-4 py-3 text-center font-bold text-rose-400 border-r border-zinc-800/40 font-mono">
+                                                                        {item.num}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-zinc-200 font-semibold">
+                                                                        {item.name}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-zinc-300 font-mono text-[10px]">
+                                                                        {item.direction}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-zinc-400 font-mono text-[10px]">
+                                                                        {item.data}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-center align-middle">
+                                                                        <span className={cn(
+                                                                            "px-2 py-0.5 rounded text-[9px] font-black tracking-widest uppercase border",
+                                                                            item.criticality === 'CRÍTICA' 
+                                                                                ? "bg-red-950/30 border-red-800/40 text-red-400" 
+                                                                                : item.criticality === 'ALTA' 
+                                                                                    ? "bg-orange-950/30 border-orange-850/40 text-orange-400"
+                                                                                    : item.criticality === 'MEDIA'
+                                                                                        ? "bg-yellow-950/30 border-yellow-850/40 text-yellow-500"
+                                                                                        : "bg-blue-950/30 border-blue-900/40 text-blue-400"
+                                                                        )}>
+                                                                            {item.criticality}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                ) : (
+                                                    <div className="text-zinc-500 italic text-center py-6 text-xs bg-zinc-900/10">No se encontraron referencias a integraciones o interfaces en este flujo.</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            )
                         ) : (
                             <div className="flex flex-col items-center justify-center h-80 border border-zinc-800/80 rounded-xl bg-zinc-900/10 p-12 text-center select-none">
                                 <Network className="w-12 h-12 text-zinc-600 mb-4" />
