@@ -15,14 +15,23 @@ async function debugModels() {
     const genAI = new GoogleGenerativeAI(apiKey);
 
     try {
-        // List models is not directly exposed in a clear way in all SDK versions, 
-        // but we can try to use a dummy call or check the env.
-        console.log("Attempting to list models via direct fetch if possible...");
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        console.log("Fetching available models...");
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+            headers: {
+                "Referer": "http://localhost:3000/univisio"
+            }
+        });
         const data = await response.json();
-        console.log("Available Models:", JSON.stringify(data, null, 2));
+        if (response.ok) {
+            console.log("Available Gemini models:");
+            data.models
+                .filter(m => m.name.toLowerCase().includes("gemini"))
+                .forEach(m => console.log(`- ${m.name}`));
+        } else {
+            console.log("❌ Failed to list models:", data.error?.message);
+        }
     } catch (e) {
-        console.error("Error listing models:", e);
+        console.error("❌ Debug script failed:", e);
     }
 }
 
