@@ -7,7 +7,7 @@ and this project adheres to Semantic Versioning: **V.R.E** (Version.Rama.Etapa).
 
 ---
 
-## [14.5.0] - 2026-06-02
+## [14.6.0] - 2026-06-02
 
 ### Added
 - **UniVisio Narrative Mode**: Introduced a new "Relato" view mode that renders workflows as hierarchical narrative cards.

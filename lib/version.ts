@@ -1,6 +1,15 @@
-export const APP_VERSION = "14.5.0";
+export const APP_VERSION = "14.6.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.6.0",
+        date: "2026-06-02",
+        features: [
+            "UniVisio Narrative Mode: Introduced a new 'Relato' view mode that renders workflows as hierarchical narrative cards.",
+            "Auto-generated Closing Artifacts: Added global aggregation for Entity State Matrix and Interface Registry directly computed from flow nodes.",
+            "Enhanced Gemini Prompt: Updated actions.ts schema and prompt to explicitly request subtitle, systems, stateChanges, conditionalPaths, interfaceRefs, isLoop, and operativeDesc."
+        ]
+    },
     {
         version: "14.5.0",
         date: "2026-05-13",
