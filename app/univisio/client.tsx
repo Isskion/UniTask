@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { analyzeSubflowWithGemini, chatWithUniVisio } from './actions';
 import * as XLSX from 'xlsx';
 
-import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project } from '@/types';
+import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useTenantQuery } from '@/hooks/useTenantQuery';
 import { getDocs } from 'firebase/firestore';
@@ -29,6 +29,7 @@ export default function ClientPage() {
     const [edges, setEdges] = useState<ParsedEdge[]>([]);
     const [swimlanes, setSwimlanes] = useState<string[]>([]);
     const [cycles, setCycles] = useState<string[][]>([]);
+    const [nodeMap, setNodeMap] = useState<NodeCoverageMap>({});
 
     const [tableRows, setTableRows] = useState<TableRow[]>([]);
     const [doubts, setDoubts] = useState<Doubt[]>([]);
@@ -60,6 +61,7 @@ export default function ClientPage() {
     const [sessionNameInput, setSessionNameInput] = useState<string>('');
     const [isDirty, setIsDirty] = useState<boolean>(false);
     const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+    const [showSkippedList, setShowSkippedList] = useState<boolean>(false);
     
     // Fetch projects on mount
     useEffect(() => {
@@ -96,6 +98,7 @@ export default function ClientPage() {
         setEdges([]);
         setSwimlanes([]);
         setCycles([]);
+        setNodeMap({});
         setFile(null);
     };
 
@@ -114,6 +117,18 @@ export default function ClientPage() {
         setCycles(session.cycles || []);
         setNodes([]); // Nodes and edges are not loaded from DB
         setEdges([]);
+        if (session.nodeMap) {
+            setNodeMap(session.nodeMap);
+        } else {
+            const reconstructedMap: NodeCoverageMap = {};
+            (session.tableRows || []).forEach(row => {
+                if (row.linkedNodeId) reconstructedMap[row.linkedNodeId] = 'covered';
+                row.coveredNodeIds?.forEach(id => {
+                    reconstructedMap[id] = 'covered';
+                });
+            });
+            setNodeMap(reconstructedMap);
+        }
         setFile(new File([], session.fileName || 'Recuperado.vsdx'));
         setParsingStatus(`Sesión recuperada: ${session.sessionName}. Geometría original no disponible (vuelve a subir el archivo para visualizar el grafo).`);
     };
@@ -138,6 +153,7 @@ export default function ClientPage() {
                 doubts,
                 swimlanes,
                 cycles,
+                nodeMap,
                 version: 1, // Can implement version increment later
                 createdBy: 'current_user' // Ideally from AuthContext
             };
@@ -242,6 +258,118 @@ export default function ClientPage() {
         });
         return Object.values(registryMap).sort((a, b) => a.num - b.num);
     }, [tableRows]);
+
+    const coverage = useMemo(() => {
+        const vals = Object.values(nodeMap);
+        const total = vals.length;
+        if (total === 0) return null;
+        const covered = vals.filter(s => s === 'covered').length;
+        const skipped = vals.filter(s => s === 'skipped').length;
+        const pending = vals.filter(s => s === 'pending').length;
+        const orphan = vals.filter(s => s === 'orphan').length;
+        return {
+            total,
+            covered,
+            skipped,
+            pending,
+            orphan,
+            pct: total > orphan ? Math.round(covered / (total - orphan) * 100) : 0
+        };
+    }, [nodeMap]);
+
+    const skippedNodes = useMemo(() => {
+        return nodes
+            .filter(n => nodeMap[n.id] === 'skipped')
+            .map(n => ({
+                ...n,
+                prevNodeLabel: edges.find(e => e.to === n.id)
+                    ? nodes.find(nd => nd.id === edges.find(e => e.to === n.id)!.from)?.label
+                    : null,
+                nextNodeLabel: edges.find(e => e.from === n.id)
+                    ? nodes.find(nd => nd.id === edges.find(e => e.from === n.id)!.to)?.label
+                    : null,
+            }));
+    }, [nodeMap, nodes, edges]);
+
+    const runSkippedSemanticAnalysis = async () => {
+        const skippedList = nodes.filter(n => nodeMap[n.id] === 'skipped');
+        if (skippedList.length === 0) return;
+        setIsGenerating(true);
+        
+        try {
+            const skippedIds = new Set(skippedList.map(n => n.id));
+            const subEdges = edges.filter(e => skippedIds.has(e.from) || skippedIds.has(e.to));
+            
+            const graphContext = {
+                nodes: skippedList,
+                edges: subEdges,
+                swimlanes
+            };
+            
+            const response = await analyzeSubflowWithGemini(JSON.stringify(graphContext));
+            
+            if (response && response.success && response.steps) {
+                const currentMaxStep = tableRows.length;
+                const newRows: TableRow[] = response.steps.map((step, idx) => ({
+                    step: currentMaxStep + idx + 1,
+                    title: step.title || 'Paso (Ignorado)',
+                    subtitle: step.subtitle || '',
+                    systems: step.systems || '-',
+                    phase: step.phase || 'NOCUBIERTOS / AJUSTES',
+                    stateChanges: step.stateChanges || [],
+                    conditionalPaths: step.conditionalPaths || [],
+                    actor: step.actor || 'General',
+                    origin: step.origin || '-',
+                    destination: step.destination || '-',
+                    event: step.event || '-',
+                    resultState: step.resultState || '-',
+                    actionType: step.actionType || 'A',
+                    precondition: step.precondition || '-',
+                    exception: step.exception || '-',
+                    rule: step.rule || '-',
+                    linkedNodeId: step.linkedNodeId || '',
+                    coveredNodeIds: step.coveredNodeIds || [],
+                    confidence: step.confidence || 1.0,
+                    interfaceRefs: step.interfaceRefs || [],
+                    isLoop: !!step.isLoop,
+                    loopNote: step.loopNote || null,
+                    operativeDesc: step.operativeDesc || '',
+                    needsReview: (step.confidence || 1.0) < 0.7
+                }));
+                
+                const coveredInThisCall = new Set<string>();
+                newRows.forEach(step => {
+                    step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
+                    if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
+                });
+                
+                setNodeMap(prev => {
+                    const next = { ...prev };
+                    skippedIds.forEach(id => {
+                        if (coveredInThisCall.has(id)) {
+                            next[id] = 'covered';
+                        }
+                    });
+                    return next;
+                });
+                
+                setTableRows(prev => {
+                    setIsDirty(true);
+                    const combined = [...prev, ...newRows];
+                    return combined.map((r, i) => ({ ...r, step: i + 1 }));
+                });
+            } else if (response && response.error) {
+                alert(`Error al analizar nodos ignorados: ${response.error}`);
+            } else {
+                alert(`Error al analizar nodos ignorados: Respuesta inesperada del servidor.`);
+            }
+        } catch (e: any) {
+            console.error(e);
+            alert(`Error al analizar nodos ignorados: ${e.message}`);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     // Handle File Drop / Select
     const handleDragOver = (e: React.DragEvent) => {
@@ -474,6 +602,7 @@ export default function ClientPage() {
             setNodes(orderedNodes);
             setEdges(extractedEdges);
             setCycles(cyclesList);
+            initializeNodeMap(orderedNodes, extractedEdges);
             setSwimlanes(extractedSwimlanesSet.size > 0 ? Array.from(extractedSwimlanesSet) : ['General']);
 
             // Auto-generate preliminary topology doubts
@@ -674,6 +803,7 @@ export default function ClientPage() {
                 setNodes(orderedNodes);
                 setEdges(extractedEdges);
                 setCycles(cyclesList);
+                initializeNodeMap(orderedNodes, extractedEdges);
                 setSwimlanes(swimlanesSet.size > 0 ? Array.from(swimlanesSet) : ['General']);
 
                 generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList);
@@ -709,7 +839,9 @@ export default function ClientPage() {
                     }
                 }
 
-                setNodes(Object.values(nodesMap));
+                const stdNodes = Object.values(nodesMap);
+                setNodes(stdNodes);
+                initializeNodeMap(stdNodes, []);
                 setParsingStatus('SVG parsed.');
                 setIsParsing(false);
             }
@@ -718,6 +850,25 @@ export default function ClientPage() {
             alert('Error al parsear SVG: ' + err.message);
             setIsParsing(false);
         }
+    };
+
+    const initializeNodeMap = (nodesList: ParsedNode[], edgesList: ParsedEdge[]) => {
+        const connectedIds = new Set(edgesList.flatMap(e => [e.from, e.to]));
+        const coveredInTable = new Set<string>();
+        tableRows.forEach(row => {
+            if (row.linkedNodeId) coveredInTable.add(row.linkedNodeId);
+            row.coveredNodeIds?.forEach(id => coveredInTable.add(id));
+        });
+
+        const initialMap: NodeCoverageMap = {};
+        nodesList.forEach(n => {
+            if (coveredInTable.has(n.id)) {
+                initialMap[n.id] = 'covered';
+            } else {
+                initialMap[n.id] = connectedIds.has(n.id) ? 'pending' : 'orphan';
+            }
+        });
+        setNodeMap(initialMap);
     };
 
     // Topological Sort Logic
@@ -923,6 +1074,7 @@ export default function ClientPage() {
                     exception: step.exception || '-',
                     rule: step.rule || '-',
                     linkedNodeId: step.linkedNodeId || '',
+                    coveredNodeIds: step.coveredNodeIds || [],
                     confidence: step.confidence || 1.0,
                     interfaceRefs: step.interfaceRefs || [],
                     isLoop: !!step.isLoop,
@@ -930,6 +1082,25 @@ export default function ClientPage() {
                     operativeDesc: step.operativeDesc || '',
                     needsReview: (step.confidence || 1.0) < 0.7
                 }));
+
+                // Update nodeMap based on active lote and coveredNodeIds
+                const coveredInThisCall = new Set<string>();
+                newRows.forEach(step => {
+                    step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
+                    if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
+                });
+
+                setNodeMap(prev => {
+                    const next = { ...prev };
+                    activeNodeIds.forEach(id => {
+                        if (coveredInThisCall.has(id)) {
+                            next[id] = 'covered';
+                        } else if (next[id] === 'pending') {
+                            next[id] = 'skipped';
+                        }
+                    });
+                    return next;
+                });
 
                 setTableRows(prev => {
                     setIsDirty(true);
@@ -1448,6 +1619,84 @@ export default function ClientPage() {
                                     </>
                                 )}
                             </button>
+                        </div>
+                    )}
+
+                    {/* Coverage Dashboard */}
+                    {coverage && (
+                        <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
+                            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5 flex justify-between items-center">
+                                <span>Cobertura de Análisis</span>
+                                <span className="text-rose-400 font-mono font-bold text-xs">{coverage.pct}%</span>
+                            </div>
+
+                            {/* Progress bar */}
+                            <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800/40">
+                                <div 
+                                    className="bg-rose-500 h-full rounded-full transition-all duration-500" 
+                                    style={{ width: `${coverage.pct}%` }} 
+                                />
+                            </div>
+
+                            {/* Detailed metrics */}
+                            <div className="grid grid-cols-2 gap-2 text-[10px] text-zinc-400">
+                                <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
+                                    <div className="font-bold text-zinc-200">{coverage.covered} / {coverage.total - coverage.orphan}</div>
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Cubiertos</div>
+                                </div>
+                                <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
+                                    <div className="font-bold text-yellow-500">{coverage.skipped}</div>
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Ignorados</div>
+                                </div>
+                                <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
+                                    <div className="font-bold text-indigo-400">{coverage.pending}</div>
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Pendientes</div>
+                                </div>
+                                <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
+                                    <div className="font-bold text-zinc-500">{coverage.orphan}</div>
+                                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Huérfanos</div>
+                                </div>
+                            </div>
+
+                            {/* Collapsible Skipped List */}
+                            {skippedNodes.length > 0 && (
+                                <div className="mt-1 border-t border-zinc-800/40 pt-2 flex flex-col gap-1.5">
+                                    <button 
+                                        onClick={() => setShowSkippedList(!showSkippedList)}
+                                        className="w-full flex justify-between items-center text-[10px] text-zinc-400 hover:text-zinc-200 transition-colors uppercase font-bold tracking-wider"
+                                    >
+                                        <span>Nodos Ignorados ({skippedNodes.length})</span>
+                                        <span>{showSkippedList ? '▲' : '▼'}</span>
+                                    </button>
+
+                                    {showSkippedList && (
+                                        <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto custom-scrollbar pr-1 mt-1">
+                                            {skippedNodes.map(node => (
+                                                <div key={node.id} className="bg-yellow-950/5 border border-yellow-950/20 rounded-lg p-2 flex flex-col gap-0.5 text-[10px]">
+                                                     <div className="flex items-center gap-1.5 text-yellow-500 font-semibold">
+                                                         <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                                         <span className="truncate">{node.label}</span>
+                                                     </div>
+                                                     {(node.prevNodeLabel || node.nextNodeLabel) && (
+                                                         <div className="text-[9px] text-zinc-500 italic pl-5 truncate">
+                                                             {node.prevNodeLabel || '?'} → {node.nextNodeLabel || '?'}
+                                                         </div>
+                                                     )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={runSkippedSemanticAnalysis}
+                                        disabled={isGenerating}
+                                        className="w-full bg-yellow-600 hover:bg-yellow-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white text-[10px] font-bold py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all mt-1"
+                                    >
+                                        <Play className="w-3 h-3" />
+                                        <span>Analizar ignorados</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

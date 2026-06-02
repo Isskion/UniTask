@@ -44,6 +44,7 @@ interface AnalyzeStep {
     exception: string;
     rule: string;
     linkedNodeId: string;
+    coveredNodeIds: string[];
     confidence: number;
     interfaceRefs: InterfaceRef[];
     isLoop: boolean;
@@ -87,7 +88,8 @@ For each step/node in the sub-flow, you must determine the following details:
 14. precondition: Required state before executing this step.
 15. exception: Rejection paths, alternative paths, or KO scenarios.
 16. rule: Business rules, thresholds, validations.
-17. linkedNodeId: The ID of the shape/node from the provided JSON graph that matches this step.
+17. linkedNodeId: The ID of the shape/node from the provided JSON graph that best represents this step (single node, the most semantically central one).
+17b. coveredNodeIds: Array with the IDs of ALL nodes from the graph that this step absorbs or represents. Must include linkedNodeId. Include auxiliary nodes, decision points, and annotations that are semantically part of this step. If only one node maps to this step, return an array with just that one ID.
 18. confidence: Your confidence score from 0.0 to 1.0.
 19. interfaceRefs: If this transition uses an interface or integration, reference it with:
     - num: Interface ID number (e.g. 4).
@@ -186,6 +188,11 @@ Please analyze the above graph and return the step-by-step table matching the re
                 exception: { type: SchemaType.STRING, description: 'Error path, timeout or alternative state' },
                 rule: { type: SchemaType.STRING, description: 'Business rules or validations' },
                 linkedNodeId: { type: SchemaType.STRING, description: 'The matching Node ID from the GraphJSON' },
+                coveredNodeIds: {
+                    type: SchemaType.ARRAY,
+                    items: { type: SchemaType.STRING },
+                    description: 'All node IDs from the graph covered by this step, including linkedNodeId'
+                },
                 confidence: { type: SchemaType.NUMBER, description: 'Confidence score from 0.0 to 1.0' },
                 interfaceRefs: {
                     type: SchemaType.ARRAY,
@@ -214,7 +221,7 @@ Please analyze the above graph and return the step-by-step table matching the re
             required: [
                 'step', 'title', 'subtitle', 'systems', 'phase', 'stateChanges', 'conditionalPaths',
                 'actor', 'origin', 'destination', 'event', 'resultState',
-                'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'confidence',
+                'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'coveredNodeIds', 'confidence',
                 'interfaceRefs', 'isLoop', 'loopNote', 'operativeDesc'
             ]
         };
