@@ -29,7 +29,8 @@ import {
     BookMarked,
     Sparkles,
     Calendar, // Added for DispoPlan
-    LayoutTemplate
+    LayoutTemplate,
+    Network
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -312,6 +313,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                             <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                             <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                            <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                         </div>
@@ -516,6 +518,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                                <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             </div>
