@@ -59,8 +59,9 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 !next.config.js
 !vercel.json
 !firebase.json
-!firestore.indexes.json
 !app/uniordercreator/_src/i18n/locales/*.json
+!app/univehiclecreator/_src/i18n/locales/*.json
+
 
 # Nested projects
 /unigis-order-creator-web/

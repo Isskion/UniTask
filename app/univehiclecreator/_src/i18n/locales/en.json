@@ -1,0 +1,74 @@
+{
+    "app": {
+        "title": "UNIGIS Vehicle Creator",
+        "connect": "Connect",
+        "connected": "Connected",
+        "notConnected": "Not Connected"
+    },
+    "login": {
+        "title": "Log In",
+        "url": "Service URL",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Username",
+        "password": "Password",
+        "domain": "Domain",
+        "domainPlaceholder": "TESTS",
+        "connecting": "Connecting...",
+        "loginButton": "Connect",
+        "language": "Language"
+    },
+    "buttons": {
+        "loadExcel": "Load Excel",
+        "sendSelected": "Send Selected",
+        "sendAll": "Send All",
+        "save": "Save",
+        "load": "Load",
+        "close": "Close",
+        "export": "Export",
+        "import": "Import"
+    },
+    "header": {
+        "dataPanel": "Data Panel",
+        "xmlPreview": "XML Preview",
+        "mapper": "Field Mapper"
+    },
+    "mapper": {
+        "title": "Field Mapper",
+        "search": "Search field...",
+        "noFields": "No fields in this section",
+        "noResults": "No fields found for",
+        "loadExcelFirst": "Load an Excel file first",
+        "noMapping": "-- Do not map --",
+        "noForce": "-- Do not force --"
+    },
+    "tabs": {
+        "pVehiculo": "Vehicle",
+        "pPropietario": "Owner",
+        "pTransporte": "Carrier",
+        "Dinamicos": "Dynamics",
+        "Booleans": "Booleans"
+    },
+    "table": {
+        "selectAll": "Select all",
+        "noData": "No data loaded"
+    },
+    "messages": {
+        "confirmSendAll": "Are you sure you want to send all vehicles?",
+        "confirmSendSelected": "Are you sure you want to send {count} selected vehicles?",
+        "sendingOrders": "Sending vehicles...",
+        "successSent": "✅ {count} vehicles successfully created",
+        "errorsSent": "❌ {errors} errors out of {total} vehicles",
+        "loginSuccess": "Connected successfully",
+        "loginError": "Connection failed",
+        "noSelection": "Select at least one vehicle",
+        "notAuthenticated": "You must connect first"
+    },
+    "errors": {
+        "title": "Error Log",
+        "reference": "Reference",
+        "error": "Error",
+        "xmlSent": "XML Sent",
+        "response": "Server Response",
+        "unauthorizedUser": "Unauthorized user. Contact administrator."
+    }
+}
