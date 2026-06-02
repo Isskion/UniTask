@@ -135,7 +135,7 @@ export default function ClientPage() {
         setParsingStatus(`Sesión recuperada: ${session.sessionName}. Geometría original no disponible (vuelve a subir el archivo para visualizar el grafo).`);
     };
 
-    const handleSaveSession = async () => {
+    const handleSaveSession = async (saveAsNew = false) => {
         if (!selectedProjectId) {
             alert("Selecciona un proyecto primero.");
             return;
@@ -160,7 +160,7 @@ export default function ClientPage() {
                 createdBy: 'current_user' // Ideally from AuthContext
             };
 
-            if (selectedSessionId) {
+            if (selectedSessionId && !saveAsNew) {
                 await updateUniVisioSession(selectedProjectId, selectedSessionId, dataToSave);
                 alert("Sesión actualizada.");
             } else {
@@ -1537,7 +1537,7 @@ export default function ClientPage() {
                 {/* Left panel: File drop and page details */}
                 <div className="w-80 border-r border-zinc-800 bg-zinc-900/60 p-5 flex flex-col gap-6 overflow-y-auto">
                     <div>
-                        <h2 className="text-xl font-bold text-rose-500 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-red-500 flex items-center gap-2">
                             <Network className="w-5 h-5" /> UniVisio
                         </h2>
                         <p className="text-xs text-zinc-400 mt-1">Ingesta y documentación de diagramas de Microsoft Visio</p>
@@ -1549,7 +1549,7 @@ export default function ClientPage() {
                         <select
                             value={selectedProjectId}
                             onChange={(e) => handleProjectChange(e.target.value)}
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-zinc-200"
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500 text-zinc-200"
                         >
                             <option value="">Selecciona un proyecto...</option>
                             {projects.map(p => (
@@ -1570,7 +1570,7 @@ export default function ClientPage() {
                                         className={cn(
                                             "text-left px-3 py-2 rounded-lg text-xs transition-colors flex flex-col gap-0.5",
                                             selectedSessionId === s.id 
-                                                ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" 
+                                                ? "bg-red-500/20 text-red-300 border border-red-500/30" 
                                                 : "bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800"
                                         )}
                                     >
@@ -1587,7 +1587,7 @@ export default function ClientPage() {
                         <div 
                             className={cn(
                                 "border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer text-center",
-                                isDragging ? "border-rose-500 bg-rose-500/10" : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/50"
+                                isDragging ? "border-red-500 bg-red-500/10" : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/50"
                             )}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
@@ -1603,7 +1603,7 @@ export default function ClientPage() {
                             />
                             {file ? (
                                 <>
-                                    <FileCode className="w-10 h-10 text-rose-500" />
+                                    <FileCode className="w-10 h-10 text-red-500" />
                                     <div className="text-sm font-semibold text-zinc-300 truncate w-full px-2">{file.name}</div>
                                     <div className="text-[10px] text-zinc-500">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
                                 </>
@@ -1621,7 +1621,7 @@ export default function ClientPage() {
                     {isParsing && (
                         <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
                             <div className="flex items-center gap-2 text-xs text-zinc-300">
-                                <RefreshCw className="w-4 h-4 animate-spin text-rose-500" />
+                                <RefreshCw className="w-4 h-4 animate-spin text-red-500" />
                                 <span>Procesando archivo...</span>
                             </div>
                             <div className="text-[10px] text-zinc-500 font-mono leading-relaxed">{parsingStatus}</div>
@@ -1638,7 +1638,7 @@ export default function ClientPage() {
                                     setSelectedPage(e.target.value);
                                     if (zipInstance) parseVisioPage(zipInstance, e.target.value);
                                 }}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-zinc-200"
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-500 text-zinc-200"
                             >
                                 {pages.map(p => (
                                     <option key={p} value={p}>{p.replace('visio/pages/', '')}</option>
@@ -1653,11 +1653,11 @@ export default function ClientPage() {
                             <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5">Info de Estructura</div>
                             <div className="grid grid-cols-2 gap-4 text-center">
                                 <div>
-                                    <div className="text-lg font-black text-rose-500">{nodes.length}</div>
+                                    <div className="text-lg font-black text-red-500">{nodes.length}</div>
                                     <div className="text-[9px] text-zinc-500 uppercase font-semibold">Nodos</div>
                                 </div>
                                 <div>
-                                    <div className="text-lg font-black text-indigo-400">{edges.length}</div>
+                                    <div className="text-lg font-black text-zinc-300">{edges.length}</div>
                                     <div className="text-[9px] text-zinc-500 uppercase font-semibold">Conexiones</div>
                                 </div>
                             </div>
@@ -1682,7 +1682,7 @@ export default function ClientPage() {
                                         className={cn(
                                             "w-full text-left px-3 py-2.5 rounded-lg text-xs flex justify-between items-center transition-all border",
                                             activeLoteIndex === idx
-                                                ? "bg-rose-500/10 border-rose-500/50 text-rose-400"
+                                                ? "bg-red-500/10 border-red-500/50 text-red-400"
                                                 : "bg-zinc-950/40 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/80"
                                         )}
                                     >
@@ -1697,7 +1697,7 @@ export default function ClientPage() {
                             <button
                                 onClick={runSemanticAnalysis}
                                 disabled={isGenerating}
-                                className="w-full bg-rose-600 hover:bg-rose-500 text-white disabled:bg-zinc-800 disabled:text-zinc-600 font-semibold text-xs py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all mt-2"
+                                className="w-full bg-red-600 hover:bg-red-500 text-white disabled:bg-zinc-800 disabled:text-zinc-600 font-semibold text-xs py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all mt-2"
                             >
                                 {isGenerating ? (
                                     <>
@@ -1719,13 +1719,13 @@ export default function ClientPage() {
                         <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
                             <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5 flex justify-between items-center">
                                 <span>Cobertura de Análisis</span>
-                                <span className="text-rose-400 font-mono font-bold text-xs">{coverage.pct}%</span>
+                                <span className="text-red-400 font-mono font-bold text-xs">{coverage.pct}%</span>
                             </div>
 
                             {/* Progress bar */}
                             <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-zinc-800/40">
                                 <div 
-                                    className="bg-rose-500 h-full rounded-full transition-all duration-500" 
+                                    className="bg-red-500 h-full rounded-full transition-all duration-500" 
                                     style={{ width: `${coverage.pct}%` }} 
                                 />
                             </div>
@@ -1741,7 +1741,7 @@ export default function ClientPage() {
                                     <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Ignorados</div>
                                 </div>
                                 <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
-                                    <div className="font-bold text-indigo-400">{coverage.pending}</div>
+                                    <div className="font-bold text-zinc-400">{coverage.pending}</div>
                                     <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Pendientes</div>
                                 </div>
                                 <div className="bg-zinc-900/40 border border-zinc-800/20 p-2 rounded-lg text-center">
@@ -1800,7 +1800,7 @@ export default function ClientPage() {
                     <div className="h-14 border-b border-zinc-800 px-6 flex items-center justify-between bg-zinc-900/40 shrink-0 print:hidden">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                                <FileCode className="w-4 h-4 text-rose-500" />
+                                <FileCode className="w-4 h-4 text-red-500" />
                                 <span>UniVisio</span>
                                 {isDirty && <span className="text-xs text-amber-500 ml-2 font-normal italic">* Cambios sin guardar</span>}
                             </div>
@@ -1810,7 +1810,7 @@ export default function ClientPage() {
                                     className={cn(
                                         "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
                                         viewMode === 'table'
-                                            ? "bg-rose-600 text-white shadow"
+                                            ? "bg-red-600 text-white shadow"
                                             : "text-zinc-400 hover:text-zinc-200"
                                     )}
                                 >
@@ -1821,7 +1821,7 @@ export default function ClientPage() {
                                     className={cn(
                                         "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
                                         viewMode === 'narrative'
-                                            ? "bg-rose-600 text-white shadow"
+                                            ? "bg-red-600 text-white shadow"
                                             : "text-zinc-400 hover:text-zinc-200"
                                     )}
                                 >
@@ -1832,7 +1832,7 @@ export default function ClientPage() {
                                     className={cn(
                                         "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
                                         viewMode === 'consolidator'
-                                            ? "bg-rose-600 text-white shadow"
+                                            ? "bg-red-600 text-white shadow"
                                             : "text-zinc-400 hover:text-zinc-200"
                                     )}
                                 >
@@ -1844,7 +1844,7 @@ export default function ClientPage() {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setShowSaveModal(true)}
-                                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                                    className="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
                                 >
                                     <Save className="w-3.5 h-3.5" />
                                     <span>Guardar Progreso</span>
@@ -1875,7 +1875,7 @@ export default function ClientPage() {
                                 </button>
                                 <button
                                     onClick={triggerPrintPDF}
-                                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs flex items-center gap-1.5 transition-colors border border-rose-500/20"
+                                    className="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs flex items-center gap-1.5 transition-colors border border-red-500/20"
                                     title="Exportar PDF"
                                 >
                                     <FileText className="w-3.5 h-3.5" />
@@ -1907,7 +1907,7 @@ export default function ClientPage() {
                                                                 type="checkbox" 
                                                                 checked={isSelected}
                                                                 onChange={() => toggleSessionSelection(s.id)}
-                                                                className="mt-0.5 rounded accent-rose-500 text-zinc-950 border-zinc-800"
+                                                                className="mt-0.5 rounded accent-red-500 text-zinc-950 border-zinc-800"
                                                             />
                                                             <div className="flex flex-col gap-0.5 min-w-0">
                                                                 <span className="font-semibold text-zinc-200 truncate">{s.sessionName}</span>
@@ -1935,7 +1935,7 @@ export default function ClientPage() {
                                                     return (
                                                         <div key={id} className="flex items-center justify-between gap-3 p-2.5 bg-zinc-950/40 border border-zinc-800 rounded-lg text-xs">
                                                             <div className="flex items-center gap-2 min-w-0">
-                                                                <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+                                                                <span className="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0">
                                                                     {idx + 1}
                                                                 </span>
                                                                 <span className="font-semibold text-zinc-200 truncate">{s?.sessionName || 'Sesión'}</span>
@@ -1996,7 +1996,7 @@ export default function ClientPage() {
                                                 <tbody className="divide-y divide-zinc-800/40 text-[11px]">
                                                     {consolidatorSteps.map((row, idx) => (
                                                         <tr key={idx} className="hover:bg-zinc-900/10 transition-colors">
-                                                            <td className="px-3 py-2.5 text-center font-bold text-rose-400 font-mono">
+                                                            <td className="px-3 py-2.5 text-center font-bold text-red-400 font-mono">
                                                                 {row.step}
                                                             </td>
                                                             <td className="px-3 py-2.5 text-zinc-400 font-mono text-[10px] uppercase truncate max-w-[120px]" title={row.phase}>
@@ -2007,7 +2007,7 @@ export default function ClientPage() {
                                                                 <div className="text-[10px] text-zinc-500 italic truncate" title={row.actor}>{row.actor}</div>
                                                             </td>
                                                             <td className="px-3 py-2.5 whitespace-nowrap">
-                                                                <span className="bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded font-semibold max-w-[120px] truncate block" title={row._sourceSessionName}>
+                                                                <span className="bg-red-500/10 text-red-300 border border-red-500/20 text-[9px] px-1.5 py-0.5 rounded font-semibold max-w-[120px] truncate block" title={row._sourceSessionName}>
                                                                     {row._sourceSessionName}
                                                                 </span>
                                                             </td>
@@ -2048,11 +2048,11 @@ export default function ClientPage() {
                                     {consolidatorSteps.length > 0 && (
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-zinc-950/60 border border-zinc-850 rounded-xl shrink-0">
                                             <div className="text-xs text-zinc-400">
-                                                Se consolidarán <span className="text-rose-400 font-bold">{consolidatorSteps.length}</span> pasos en total, de <span className="text-zinc-200 font-semibold">{selectedSessionIds.length}</span> flujos.
+                                                Se consolidarán <span className="text-red-400 font-bold">{consolidatorSteps.length}</span> pasos en total, de <span className="text-zinc-200 font-semibold">{selectedSessionIds.length}</span> flujos.
                                             </div>
                                             <button
                                                 onClick={applyConsolidation}
-                                                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-rose-600/10"
+                                                className="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-red-600/10"
                                             >
                                                 <RefreshCw className="w-4 h-4 shrink-0" />
                                                 <span>Compilar y Cargar en Editor</span>
@@ -2101,10 +2101,10 @@ export default function ClientPage() {
                                                     return (
                                                         <React.Fragment key={idx}>
                                                             {renderPhaseHeader && (
-                                                                <tr className="bg-rose-950/25 border-y border-zinc-800/80">
-                                                                    <td colSpan={15} className="px-4 py-2.5 font-black text-rose-400 tracking-wider text-[10px] uppercase font-sans">
+                                                                <tr className="bg-red-950/25 border-y border-zinc-800/80">
+                                                                    <td colSpan={15} className="px-4 py-2.5 font-black text-red-400 tracking-wider text-[10px] uppercase font-sans">
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                                                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
                                                                             <span>{row.phase}</span>
                                                                             <span className="text-zinc-500 font-normal normal-case ml-2">{rangeText}</span>
                                                                         </div>
@@ -2115,7 +2115,7 @@ export default function ClientPage() {
                                                                 onClick={() => setActiveRowIndex(idx)}
                                                                 className={cn(
                                                                     "transition-colors",
-                                                                    activeRowIndex === idx ? "bg-rose-500/5" : "hover:bg-zinc-900/30",
+                                                                    activeRowIndex === idx ? "bg-red-500/5" : "hover:bg-zinc-900/30",
                                                                     row.needsReview ? "bg-amber-950/15" : "",
                                                                     "print:bg-transparent"
                                                                 )}
@@ -2151,7 +2151,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.phase}
                                                                         onChange={(e) => handleCellChange(idx, 'phase', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2160,7 +2160,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.actor}
                                                                         onChange={(e) => handleCellChange(idx, 'actor', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 print:border-none"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1 print:border-none"
                                                                     />
                                                                 </td>
 
@@ -2169,7 +2169,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.origin}
                                                                         onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2178,7 +2178,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.destination}
                                                                         onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2187,7 +2187,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.event}
                                                                         onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2196,7 +2196,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.resultState}
                                                                         onChange={(e) => handleCellChange(idx, 'resultState', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2205,7 +2205,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.actionType}
                                                                         onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2214,7 +2214,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.precondition}
                                                                         onChange={(e) => handleCellChange(idx, 'precondition', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2223,7 +2223,7 @@ export default function ClientPage() {
                                                                         type="text" 
                                                                         value={row.exception}
                                                                         onChange={(e) => handleCellChange(idx, 'exception', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2232,7 +2232,7 @@ export default function ClientPage() {
                                                                         rows={1}
                                                                         value={row.rule}
                                                                         onChange={(e) => handleCellChange(idx, 'rule', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 resize-none h-auto overflow-y-hidden"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1 resize-none h-auto overflow-y-hidden"
                                                                     />
                                                                 </td>
 
@@ -2242,7 +2242,7 @@ export default function ClientPage() {
                                                                         value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
                                                                         onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
                                                                         placeholder="Ej: 4"
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1"
                                                                     />
                                                                 </td>
 
@@ -2251,7 +2251,7 @@ export default function ClientPage() {
                                                                         rows={2}
                                                                         value={row.operativeDesc || ''}
                                                                         onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
-                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-rose-500 rounded p-1 resize-none h-auto"
+                                                                        className="bg-transparent focus:bg-zinc-900 border-none w-full text-zinc-200 focus:ring-1 focus:ring-red-500 rounded p-1 resize-none h-auto"
                                                                     />
                                                                 </td>
 
@@ -2282,7 +2282,7 @@ export default function ClientPage() {
                                                 className={cn(
                                                     "border rounded-xl transition-all shadow-xl backdrop-blur-sm relative overflow-hidden flex flex-col",
                                                     activeRowIndex === idx 
-                                                        ? "border-rose-500 bg-zinc-900/80 ring-1 ring-rose-500/25" 
+                                                        ? "border-red-500 bg-zinc-900/80 ring-1 ring-red-500/25" 
                                                         : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900/60",
                                                     row.needsReview ? "border-amber-500/40 bg-amber-950/5" : ""
                                                 )}
@@ -2291,7 +2291,7 @@ export default function ClientPage() {
                                                 <div className="bg-zinc-900/80 px-5 py-4 border-b border-zinc-800 flex justify-between items-start gap-4">
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md">
+                                                            <span className="bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md">
                                                                 PASO {row.step}
                                                             </span>
                                                             {row.isLoop && (
@@ -2345,21 +2345,21 @@ export default function ClientPage() {
                                                     {/* Left column: Systems and state changes */}
                                                     <div className="p-5 flex flex-col gap-4 col-span-2">
                                                         <div>
-                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Sistemas Involucrados</div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Sistemas Involucrados</div>
                                                             <div className="text-zinc-200 bg-zinc-950/40 border border-zinc-800/60 rounded-lg px-3 py-2 leading-relaxed">
                                                                 {row.systems || '-'}
                                                             </div>
                                                         </div>
 
                                                         <div>
-                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Cambios de Estado</div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Cambios de Estado</div>
                                                             <div className="flex flex-col gap-1.5 bg-zinc-950/40 border border-zinc-800/60 rounded-lg p-3">
                                                                 {row.stateChanges && row.stateChanges.length > 0 ? (
                                                                     row.stateChanges.map((sc, scIdx) => (
                                                                         <div key={scIdx} className="flex items-center gap-2 font-mono text-[11px] text-zinc-300">
-                                                                            <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-rose-400 font-semibold">{sc.entity}</span>
+                                                                            <span className="bg-zinc-800 px-1.5 py-0.5 rounded text-red-400 font-semibold">{sc.entity}</span>
                                                                             <span className="text-zinc-500">{sc.from || 'INICIO'}</span>
-                                                                            <span className="text-rose-500">➔</span>
+                                                                            <span className="text-red-500">➔</span>
                                                                             <span className="text-green-400 font-medium">{sc.to}</span>
                                                                         </div>
                                                                     ))
@@ -2371,8 +2371,8 @@ export default function ClientPage() {
                                                                     <div className="border-t border-zinc-800/60 mt-2 pt-2 flex flex-col gap-1">
                                                                         {row.conditionalPaths.map((cp, cpIdx) => (
                                                                             <div key={cpIdx} className="flex items-start gap-1.5 text-[11px] text-zinc-400">
-                                                                                <span className="text-indigo-400 font-bold uppercase text-[9px] mt-0.5">SI</span>
-                                                                                <span>{cp.condition} ➔ <span className="text-indigo-300 font-semibold">{cp.action}</span></span>
+                                                                                <span className="text-red-400 font-bold uppercase text-[9px] mt-0.5">SI</span>
+                                                                                <span>{cp.condition} ➔ <span className="text-red-300 font-semibold">{cp.action}</span></span>
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -2384,7 +2384,7 @@ export default function ClientPage() {
                                                     {/* Right column: Data origin/destination and action type */}
                                                     <div className="p-5 flex flex-col gap-4">
                                                         <div>
-                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Origen / Destino Datos</div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Origen / Destino Datos</div>
                                                             <div className="flex flex-col gap-1 font-sans text-zinc-300">
                                                                 <div><span className="text-zinc-500 text-[10px] uppercase font-semibold mr-1">De:</span> {row.origin || '-'}</div>
                                                                 <div className="border-t border-zinc-800/45 my-1"></div>
@@ -2393,7 +2393,7 @@ export default function ClientPage() {
                                                         </div>
 
                                                         <div>
-                                                            <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Tipo de Acción</div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Tipo de Acción</div>
                                                             <div className="flex items-center gap-1.5 bg-zinc-950/40 border border-zinc-800/60 px-3 py-1.5 rounded-lg text-zinc-200">
                                                                 <span className="text-sm">
                                                                     {row.actionType?.toLowerCase().includes('humana') || row.actionType === 'H' ? '👤' : 
@@ -2408,7 +2408,7 @@ export default function ClientPage() {
 
                                                 {/* Operative Description (Bottom row) */}
                                                 <div className="bg-zinc-950/20 px-5 py-4 border-t border-zinc-800 text-xs leading-relaxed text-zinc-300">
-                                                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5">Descripción Operativa</div>
+                                                    <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Descripción Operativa</div>
                                                     <p className="bg-zinc-950/40 border border-zinc-800/60 p-3.5 rounded-xl font-sans text-zinc-200 shadow-inner italic">
                                                         "{row.operativeDesc || 'No hay descripción operativa cargada.'}"
                                                     </p>
@@ -2424,7 +2424,7 @@ export default function ClientPage() {
                                         {/* 1. Entity State Matrix */}
                                         <div className="flex flex-col gap-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-1.5 rounded-lg">
+                                                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-1.5 rounded-lg">
                                                     <Network className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -2438,7 +2438,7 @@ export default function ClientPage() {
                                                     <div className="flex flex-col gap-4 divide-y divide-zinc-800/60">
                                                         {Object.entries(entityStateMatrix).map(([entity, states]) => (
                                                             <div key={entity} className="flex flex-col md:flex-row md:items-center gap-3 pt-4 first:pt-0">
-                                                                <div className="font-bold text-rose-400 w-24 shrink-0 font-mono text-sm tracking-wider uppercase">
+                                                                <div className="font-bold text-red-400 w-24 shrink-0 font-mono text-sm tracking-wider uppercase">
                                                                     {entity}
                                                                 </div>
                                                                 <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono leading-relaxed">
@@ -2470,7 +2470,7 @@ export default function ClientPage() {
                                         {/* 2. Interface Registry */}
                                         <div className="flex flex-col gap-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-1.5 rounded-lg">
+                                                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-1.5 rounded-lg">
                                                     <FileCode className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -2494,7 +2494,7 @@ export default function ClientPage() {
                                                         <tbody className="divide-y divide-zinc-800/50 text-[11px] font-sans">
                                                             {interfaceRegistry.map((item) => (
                                                                 <tr key={item.num} className="hover:bg-zinc-900/10 transition-colors">
-                                                                    <td className="px-4 py-3 text-center font-bold text-rose-400 border-r border-zinc-800/40 font-mono">
+                                                                    <td className="px-4 py-3 text-center font-bold text-red-400 border-r border-zinc-800/40 font-mono">
                                                                         {item.num}
                                                                     </td>
                                                                     <td className="px-4 py-3 text-zinc-200 font-semibold">
@@ -2561,7 +2561,7 @@ export default function ClientPage() {
                     
                     {/* Header */}
                     <div className="h-14 border-b border-zinc-800 px-5 flex items-center gap-2 bg-zinc-900/60">
-                        <Network className="w-4 h-4 text-rose-500" />
+                        <Network className="w-4 h-4 text-red-500" />
                         <h2 className="text-sm font-semibold text-zinc-200">Copiloto de Procesos</h2>
                     </div>
 
@@ -2623,7 +2623,7 @@ export default function ClientPage() {
                         )}
                         {isChatting && (
                             <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-xl p-3 text-xs self-start rounded-tl-none flex items-center gap-2 max-w-[85%]">
-                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-rose-500" />
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin text-red-500" />
                                 <span className="text-zinc-500 font-mono">Copiloto analizando...</span>
                             </div>
                         )}
@@ -2637,12 +2637,12 @@ export default function ClientPage() {
                                 value={chatInput}
                                 onChange={(e) => setChatInput(e.target.value)}
                                 placeholder="Escribe al copiloto o re-clasifica pasos..."
-                                className="w-full bg-zinc-950 border border-zinc-800 focus:border-rose-500 rounded-lg pl-3 pr-10 py-2.5 text-xs text-zinc-200 focus:outline-none focus:ring-0"
+                                className="w-full bg-zinc-950 border border-zinc-800 focus:border-red-500 rounded-lg pl-3 pr-10 py-2.5 text-xs text-zinc-200 focus:outline-none focus:ring-0"
                             />
                             <button
                                 type="submit"
                                 disabled={!chatInput.trim() || isChatting}
-                                className="absolute right-1.5 top-1.5 p-1 text-zinc-500 hover:text-rose-500 disabled:text-zinc-800"
+                                className="absolute right-1.5 top-1.5 p-1 text-zinc-500 hover:text-red-500 disabled:text-zinc-800"
                             >
                                 <Send className="w-4 h-4" />
                             </button>
@@ -2695,23 +2695,40 @@ export default function ClientPage() {
                                 placeholder="Ej: Flujo de Facturación v2"
                                 value={sessionNameInput}
                                 onChange={e => setSessionNameInput(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-rose-500"
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-red-500"
                                 autoFocus
                             />
                         </div>
-                        <div className="flex gap-3 justify-end mt-2">
+                        <div className="flex flex-wrap gap-2.5 justify-end mt-2">
                             <button
                                 onClick={() => setShowSaveModal(false)}
-                                className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+                                className="px-3.5 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
                             >
                                 Cancelar
                             </button>
-                            <button
-                                onClick={handleSaveSession}
-                                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 rounded-lg text-sm font-semibold text-white shadow-lg shadow-rose-900/20 transition-all"
-                            >
-                                Guardar
-                            </button>
+                            {selectedSessionId ? (
+                                <>
+                                    <button
+                                        onClick={() => handleSaveSession(true)}
+                                        className="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-zinc-200 rounded-lg transition-colors"
+                                    >
+                                        Guardar como Copia
+                                    </button>
+                                    <button
+                                        onClick={() => handleSaveSession(false)}
+                                        className="px-3.5 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-xs font-semibold text-white shadow-lg shadow-red-900/20 transition-all"
+                                    >
+                                        Actualizar Existente
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => handleSaveSession(false)}
+                                    className="px-3.5 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-xs font-semibold text-white shadow-lg shadow-red-900/20 transition-all"
+                                >
+                                    Guardar
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
