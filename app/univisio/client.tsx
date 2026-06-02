@@ -20,7 +20,7 @@ import { saveUniVisioSession, getProjectSessions, updateUniVisioSession } from '
 export default function ClientPage() {
     // State
     const [file, setFile] = useState<File | null>(null);
-    const [viewMode, setViewMode] = useState<'table' | 'narrative'>('table');
+    const [viewMode, setViewMode] = useState<'table' | 'narrative' | 'consolidator'>('table');
     const [pages, setPages] = useState<string[]>([]);
     const [selectedPage, setSelectedPage] = useState<string>('');
     const [zipInstance, setZipInstance] = useState<JSZip | null>(null);
@@ -62,6 +62,8 @@ export default function ClientPage() {
     const [isDirty, setIsDirty] = useState<boolean>(false);
     const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
     const [showSkippedList, setShowSkippedList] = useState<boolean>(false);
+    const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
+    const [consolidatorSteps, setConsolidatorSteps] = useState<TableRow[]>([]);
     
     // Fetch projects on mount
     useEffect(() => {
@@ -369,6 +371,96 @@ export default function ClientPage() {
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    useEffect(() => {
+        const compiled: TableRow[] = [];
+        selectedSessionIds.forEach(sessId => {
+            const session = sessions.find(s => s.id === sessId);
+            if (session) {
+                const clonedRows = (session.tableRows || []).map(r => ({
+                    ...r,
+                    _sourceSessionName: session.sessionName
+                }));
+                compiled.push(...clonedRows);
+            }
+        });
+        setConsolidatorSteps(compiled.map((r, i) => ({ ...r, step: i + 1 })));
+    }, [selectedSessionIds, sessions]);
+
+    const toggleSessionSelection = (sessionId: string) => {
+        setSelectedSessionIds(prev => {
+            if (prev.includes(sessionId)) {
+                return prev.filter(id => id !== sessionId);
+            } else {
+                return [...prev, sessionId];
+            }
+        });
+    };
+
+    const moveSessionInOrder = (index: number, direction: 'up' | 'down') => {
+        setSelectedSessionIds(prev => {
+            const copy = [...prev];
+            const target = direction === 'up' ? index - 1 : index + 1;
+            if (target < 0 || target >= copy.length) return prev;
+            const temp = copy[index];
+            copy[index] = copy[target];
+            copy[target] = temp;
+            return copy;
+        });
+    };
+
+    const movePreviewStep = (index: number, direction: 'up' | 'down') => {
+        setConsolidatorSteps(prev => {
+            const copy = [...prev];
+            const target = direction === 'up' ? index - 1 : index + 1;
+            if (target < 0 || target >= copy.length) return prev;
+            const temp = copy[index];
+            copy[index] = copy[target];
+            copy[target] = temp;
+            return copy.map((r, i) => ({ ...r, step: i + 1 }));
+        });
+    };
+
+    const removePreviewStep = (index: number) => {
+        setConsolidatorSteps(prev => {
+            return prev.filter((_, i) => i !== index).map((r, i) => ({ ...r, step: i + 1 }));
+        });
+    };
+
+    const applyConsolidation = () => {
+        if (consolidatorSteps.length === 0) {
+            alert("Selecciona al menos una sesión para consolidar.");
+            return;
+        }
+
+        const mergedDoubts: Doubt[] = [];
+        const mergedNodeMap: NodeCoverageMap = {};
+
+        selectedSessionIds.forEach(sessId => {
+            const session = sessions.find(s => s.id === sessId);
+            if (session) {
+                if (session.doubts) {
+                    mergedDoubts.push(...session.doubts);
+                }
+                if (session.nodeMap) {
+                    Object.assign(mergedNodeMap, session.nodeMap);
+                }
+            }
+        });
+
+        const finalSteps = consolidatorSteps.map(({ _sourceSessionName, ...r }: any) => r);
+
+        setTableRows(finalSteps);
+        setDoubts(mergedDoubts);
+        setNodeMap(mergedNodeMap);
+        setFile(new File([], 'Proceso_Consolidado.vsdx'));
+        setSessionNameInput("Proceso Consolidado");
+        setSelectedSessionId(null);
+        setIsDirty(true);
+        setViewMode('table');
+
+        alert(`Flujo consolidado con ${finalSteps.length} pasos cargado en el editor. Recuerda guardar la sesión para persistirlo.`);
     };
 
     // Handle File Drop / Select
@@ -1735,6 +1827,17 @@ export default function ClientPage() {
                                 >
                                     <span>📄 Relato</span>
                                 </button>
+                                <button
+                                    onClick={() => setViewMode('consolidator')}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all",
+                                        viewMode === 'consolidator'
+                                            ? "bg-rose-600 text-white shadow"
+                                            : "text-zinc-400 hover:text-zinc-200"
+                                    )}
+                                >
+                                    <span>🧩 Consolidador</span>
+                                </button>
                             </div>
                         </div>
                         {tableRows.length > 0 && (
@@ -1784,7 +1887,181 @@ export default function ClientPage() {
 
                     {/* Table workspace */}
                     <div className="flex-1 overflow-auto p-6 custom-scrollbar print:p-0">
-                        {tableRows.length > 0 ? (
+                        {viewMode === 'consolidator' ? (
+                            <div className="flex flex-col lg:flex-row gap-6 h-full min-h-[400px]">
+                                {/* Left column: Session selector and order */}
+                                <div className="w-full lg:w-80 shrink-0 bg-zinc-900/40 border border-zinc-850 rounded-xl p-5 flex flex-col gap-5">
+                                    <div>
+                                        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-1.5 flex items-center gap-1.5">
+                                            <span>1. Seleccionar Flujos</span>
+                                        </h3>
+                                        <div className="flex flex-col gap-2 mt-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                            {sessions.length === 0 ? (
+                                                <div className="text-xs text-zinc-500 italic">No hay sesiones guardadas en este proyecto.</div>
+                                            ) : (
+                                                sessions.map(s => {
+                                                    const isSelected = selectedSessionIds.includes(s.id);
+                                                    return (
+                                                        <label key={s.id} className="flex items-start gap-2.5 p-2 bg-zinc-950/20 border border-zinc-850 hover:border-zinc-800 rounded-lg cursor-pointer transition-colors text-xs">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={isSelected}
+                                                                onChange={() => toggleSessionSelection(s.id)}
+                                                                className="mt-0.5 rounded accent-rose-500 text-zinc-950 border-zinc-800"
+                                                            />
+                                                            <div className="flex flex-col gap-0.5 min-w-0">
+                                                                <span className="font-semibold text-zinc-200 truncate">{s.sessionName}</span>
+                                                                <span className="text-[10px] text-zinc-500 truncate">{s.fileName}</span>
+                                                            </div>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800 pb-1.5">
+                                            <span>2. Secuencia de Flujos</span>
+                                        </h3>
+                                        <div className="flex flex-col gap-2 mt-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                                            {selectedSessionIds.length === 0 ? (
+                                                <div className="text-xs text-zinc-500 italic py-2 text-center border border-dashed border-zinc-800 rounded-lg">
+                                                    Ningún flujo seleccionado.
+                                                </div>
+                                            ) : (
+                                                selectedSessionIds.map((id, idx) => {
+                                                    const s = sessions.find(sess => sess.id === id);
+                                                    return (
+                                                        <div key={id} className="flex items-center justify-between gap-3 p-2.5 bg-zinc-950/40 border border-zinc-800 rounded-lg text-xs">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+                                                                    {idx + 1}
+                                                                </span>
+                                                                <span className="font-semibold text-zinc-200 truncate">{s?.sessionName || 'Sesión'}</span>
+                                                            </div>
+                                                            <div className="flex gap-1 shrink-0">
+                                                                <button 
+                                                                    onClick={() => moveSessionInOrder(idx, 'up')}
+                                                                    className="p-1 border border-zinc-800 bg-zinc-950 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                                                                    disabled={idx === 0}
+                                                                >
+                                                                    <ArrowUp className="w-3 h-3" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => moveSessionInOrder(idx, 'down')}
+                                                                    className="p-1 border border-zinc-800 bg-zinc-950 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                                                                    disabled={idx === selectedSessionIds.length - 1}
+                                                                >
+                                                                    <ArrowDown className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right column: Preview and actions */}
+                                <div className="flex-1 flex flex-col gap-4 bg-zinc-900/20 border border-zinc-850 rounded-xl p-5 min-w-0">
+                                    <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 shrink-0">
+                                        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-widest">
+                                            <span>3. Vista Previa y Ordenación de Pasos</span>
+                                        </h3>
+                                        <span className="text-[10px] bg-zinc-950 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full font-mono font-semibold">
+                                            {consolidatorSteps.length} Pasos
+                                        </span>
+                                    </div>
+
+                                    <div className="flex-1 overflow-auto custom-scrollbar border border-zinc-850/80 rounded-xl bg-zinc-950/20">
+                                        {consolidatorSteps.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center h-48 text-center text-zinc-500 p-8 select-none">
+                                                <Network className="w-8 h-8 text-zinc-700 mb-2" />
+                                                <div className="text-xs font-semibold text-zinc-400">Sin pasos para mostrar</div>
+                                                <p className="text-[10px] text-zinc-600 mt-1 max-w-xs">Selecciona y ordena flujos de la izquierda para generar la vista previa consolidada.</p>
+                                            </div>
+                                        ) : (
+                                            <table className="min-w-full divide-y divide-zinc-800 text-xs">
+                                                <thead className="bg-zinc-950/60 text-zinc-400 uppercase tracking-widest text-[9px] sticky top-0 backdrop-blur-md">
+                                                    <tr>
+                                                        <th className="px-3 py-3 text-center w-12">Paso</th>
+                                                        <th className="px-3 py-3 text-left w-32">Fase</th>
+                                                        <th className="px-3 py-3 text-left">Título / Actor</th>
+                                                        <th className="px-3 py-3 text-left w-32">Flujo Origen</th>
+                                                        <th className="px-3 py-3 text-center w-24">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-zinc-800/40 text-[11px]">
+                                                    {consolidatorSteps.map((row, idx) => (
+                                                        <tr key={idx} className="hover:bg-zinc-900/10 transition-colors">
+                                                            <td className="px-3 py-2.5 text-center font-bold text-rose-400 font-mono">
+                                                                {row.step}
+                                                            </td>
+                                                            <td className="px-3 py-2.5 text-zinc-400 font-mono text-[10px] uppercase truncate max-w-[120px]" title={row.phase}>
+                                                                {row.phase}
+                                                            </td>
+                                                            <td className="px-3 py-2.5 min-w-0">
+                                                                <div className="font-bold text-zinc-200 truncate uppercase" title={row.title}>{row.title}</div>
+                                                                <div className="text-[10px] text-zinc-500 italic truncate" title={row.actor}>{row.actor}</div>
+                                                            </td>
+                                                            <td className="px-3 py-2.5 whitespace-nowrap">
+                                                                <span className="bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded font-semibold max-w-[120px] truncate block" title={row._sourceSessionName}>
+                                                                    {row._sourceSessionName}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                                                                <div className="flex justify-center gap-1">
+                                                                    <button 
+                                                                        onClick={() => movePreviewStep(idx, 'up')}
+                                                                        className="p-1 border border-zinc-800 bg-zinc-950 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                                                                        disabled={idx === 0}
+                                                                        title="Subir paso"
+                                                                    >
+                                                                        <ArrowUp className="w-3 h-3" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => movePreviewStep(idx, 'down')}
+                                                                        className="p-1 border border-zinc-800 bg-zinc-950 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                                                                        disabled={idx === consolidatorSteps.length - 1}
+                                                                        title="Bajar paso"
+                                                                    >
+                                                                        <ArrowDown className="w-3 h-3" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => removePreviewStep(idx)}
+                                                                        className="p-1 border border-zinc-800 bg-zinc-950 rounded hover:bg-zinc-800 text-zinc-500 hover:text-red-500 ml-1"
+                                                                        title="Excluir paso de la consolidación"
+                                                                    >
+                                                                        <Trash2 className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
+
+                                    {consolidatorSteps.length > 0 && (
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-zinc-950/60 border border-zinc-850 rounded-xl shrink-0">
+                                            <div className="text-xs text-zinc-400">
+                                                Se consolidarán <span className="text-rose-400 font-bold">{consolidatorSteps.length}</span> pasos en total, de <span className="text-zinc-200 font-semibold">{selectedSessionIds.length}</span> flujos.
+                                            </div>
+                                            <button
+                                                onClick={applyConsolidation}
+                                                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-rose-600/10"
+                                            >
+                                                <RefreshCw className="w-4 h-4 shrink-0" />
+                                                <span>Compilar y Cargar en Editor</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : tableRows.length > 0 ? (
                             viewMode === 'table' ? (
                                 <div className="overflow-x-auto min-w-full border border-zinc-800/80 rounded-xl bg-zinc-900/10 print:border-none">
                                     <table className="min-w-full divide-y divide-zinc-800 text-xs print:divide-zinc-400">

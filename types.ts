@@ -686,6 +686,7 @@ export interface TableRow {
     loopNote: string | null;
     operativeDesc: string;
     needsReview?: boolean;
+    _sourceSessionName?: string;
 }
 
 export interface ParsedNode {
