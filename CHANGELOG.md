@@ -7,6 +7,15 @@ and this project adheres to Semantic Versioning: **V.R.E** (Version.Rama.Etapa).
 
 ---
 
+## [14.7.0] - 2026-06-02
+
+### Added
+- **UniVisio Sessions**: Introduced persistent, project-scoped sessions for UniVisio diagrams and analysis.
+- **Firestore Integration**: Built full CRUD operations and `isDirty` state protection to ensure progress isn't lost on project switch.
+- **Session Management UI**: Save Modals, Load Selectors, and intuitive project associations added to the UniVisio dashboard.
+
+---
+
 ## [14.6.0] - 2026-06-02
 
 ### Added

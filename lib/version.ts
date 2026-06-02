@@ -1,6 +1,15 @@
-export const APP_VERSION = "14.6.0";
+export const APP_VERSION = "14.7.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.7.0",
+        date: "2026-06-02",
+        features: [
+            "UniVisio Sessions: Introduced persistent, project-scoped sessions for UniVisio diagrams and analysis.",
+            "Firestore Integration: Built full CRUD operations and `isDirty` state protection to ensure progress isn't lost on project switch.",
+            "Session Management UI: Save Modals, Load Selectors, and intuitive project associations added to the UniVisio dashboard."
+        ]
+    },
     {
         version: "14.6.0",
         date: "2026-06-02",

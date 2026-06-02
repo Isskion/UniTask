@@ -1,69 +1,21 @@
 'use client';
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import JSZip from 'jszip';
 import { 
     Upload, FileCode, Network, CheckCircle, AlertTriangle, Play,
-    Plus, Trash2, ArrowUp, ArrowDown, Download, Send, RefreshCw, FileText
+    Plus, Trash2, ArrowUp, ArrowDown, Download, Send, RefreshCw, FileText,
+    Save, FolderOpen, Folder
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analyzeSubflowWithGemini, chatWithUniVisio } from './actions';
 import * as XLSX from 'xlsx';
 
-interface TableRow {
-    step: number;
-    title: string;
-    subtitle: string;
-    systems: string;
-    phase: string;
-    stateChanges: { entity: string; from: string; to: string }[];
-    conditionalPaths: { condition: string; action: string }[];
-    actor: string;
-    origin: string;
-    destination: string;
-    event: string;
-    resultState: string;
-    actionType: string;
-    precondition: string;
-    exception: string;
-    rule: string;
-    linkedNodeId: string;
-    confidence: number;
-    interfaceRefs: {
-        num: number;
-        name: string;
-        direction: string;
-        data: string;
-        criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA';
-    }[];
-    isLoop: boolean;
-    loopNote: string | null;
-    operativeDesc: string;
-    needsReview?: boolean;
-}
-
-interface ParsedNode {
-    id: string;
-    label: string;
-    shapeType: string;
-    swimlane: string;
-    position: { x: number; y: number };
-}
-
-interface ParsedEdge {
-    id: string;
-    from: string;
-    to: string;
-    label: string;
-}
-
-interface Doubt {
-    id: string;
-    severity: 'critical' | 'medium' | 'low';
-    stepIndex?: number;
-    message: string;
-    nodeId?: string;
-}
+import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { useTenantQuery } from '@/hooks/useTenantQuery';
+import { getDocs } from 'firebase/firestore';
+import { saveUniVisioSession, getProjectSessions, updateUniVisioSession } from '@/lib/univisio';
 
 export default function ClientPage() {
     // State
@@ -97,6 +49,119 @@ export default function ClientPage() {
 
     // Drag-and-drop state
     const [isDragging, setIsDragging] = useState<boolean>(false);
+
+    // New Session & Project State
+    const { tenantId } = useAuth();
+    const qProjects = useTenantQuery('projects');
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [sessions, setSessions] = useState<UniVisioSession[]>([]);
+    const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+    const [sessionNameInput, setSessionNameInput] = useState<string>('');
+    const [isDirty, setIsDirty] = useState<boolean>(false);
+    const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+    
+    // Fetch projects on mount
+    useEffect(() => {
+        if (qProjects) {
+            getDocs(qProjects).then(snap => {
+                const projs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+                setProjects(projs);
+            }).catch(console.error);
+        }
+    }, [qProjects]);
+
+    // Fetch sessions when a project is selected
+    useEffect(() => {
+        if (selectedProjectId) {
+            getProjectSessions(selectedProjectId).then(setSessions).catch(console.error);
+        } else {
+            setSessions([]);
+        }
+    }, [selectedProjectId]);
+
+    const handleProjectChange = (newProjectId: string) => {
+        if (isDirty) {
+            if (!window.confirm("Tienes cambios sin guardar. ¿Continuar sin guardar?")) {
+                return;
+            }
+        }
+        setIsDirty(false);
+        setSelectedProjectId(newProjectId);
+        setSelectedSessionId(null);
+        // Clear current canvas
+        setTableRows([]);
+        setDoubts([]);
+        setNodes([]);
+        setEdges([]);
+        setSwimlanes([]);
+        setCycles([]);
+        setFile(null);
+    };
+
+    const handleLoadSession = (session: UniVisioSession) => {
+        if (isDirty) {
+            if (!window.confirm("Tienes cambios sin guardar. ¿Continuar y sobreescribir la vista actual?")) {
+                return;
+            }
+        }
+        setIsDirty(false);
+        setSelectedSessionId(session.id);
+        setSessionNameInput(session.sessionName);
+        setTableRows(session.tableRows || []);
+        setDoubts(session.doubts || []);
+        setSwimlanes(session.swimlanes || []);
+        setCycles(session.cycles || []);
+        setNodes([]); // Nodes and edges are not loaded from DB
+        setEdges([]);
+        setFile(new File([], session.fileName || 'Recuperado.vsdx'));
+        setParsingStatus(`Sesión recuperada: ${session.sessionName}. Geometría original no disponible (vuelve a subir el archivo para visualizar el grafo).`);
+    };
+
+    const handleSaveSession = async () => {
+        if (!selectedProjectId) {
+            alert("Selecciona un proyecto primero.");
+            return;
+        }
+        if (!sessionNameInput.trim()) {
+            alert("Por favor, introduce un nombre para la sesión.");
+            return;
+        }
+        
+        try {
+            const dataToSave = {
+                sessionName: sessionNameInput.trim(),
+                fileName: file?.name || 'diagram.vsdx',
+                tenantId: tenantId || '',
+                projectId: selectedProjectId,
+                tableRows,
+                doubts,
+                swimlanes,
+                cycles,
+                version: 1, // Can implement version increment later
+                createdBy: 'current_user' // Ideally from AuthContext
+            };
+
+            if (selectedSessionId) {
+                await updateUniVisioSession(selectedProjectId, selectedSessionId, dataToSave);
+                alert("Sesión actualizada.");
+            } else {
+                const newId = await saveUniVisioSession(selectedProjectId, dataToSave);
+                setSelectedSessionId(newId);
+                alert("Nueva sesión guardada.");
+            }
+            
+            setIsDirty(false);
+            setShowSaveModal(false);
+            // Refresh sessions
+            const updatedSessions = await getProjectSessions(selectedProjectId);
+            setSessions(updatedSessions);
+            
+        } catch (error: any) {
+            console.error(error);
+            alert("Error al guardar la sesión: " + error.message);
+        }
+    };
 
     // Expose dynamic analysis batch size
     const lotSize = 40;
@@ -867,6 +932,7 @@ export default function ClientPage() {
                 }));
 
                 setTableRows(prev => {
+                    setIsDirty(true);
                     // Replace or concatenate rows
                     const filteredPrev = prev.filter(r => !activeNodeIds.has(r.linkedNodeId));
                     const combined = [...filteredPrev, ...newRows].sort((a, b) => a.step - b.step);
@@ -911,10 +977,12 @@ export default function ClientPage() {
                         setTableRows(prev => prev.map(row => 
                             row.step === cmd.params.stepIndex ? { ...row, ...cmd.params.fields } : row
                         ));
+                        setIsDirty(true);
                     } else if (cmd.type === 'delete_row' && cmd.params.stepIndex !== undefined) {
                         setTableRows(prev => prev.filter(row => row.step !== cmd.params.stepIndex)
                             .map((row, i) => ({ ...row, step: i + 1 }))
                         );
+                        setIsDirty(true);
                     } else if (cmd.type === 'insert_row' && cmd.params.index !== undefined) {
                         setTableRows(prev => {
                             const copy = [...prev];
@@ -942,6 +1010,7 @@ export default function ClientPage() {
                                 loopNote: cmd.params.row.loopNote || null,
                                 operativeDesc: cmd.params.row.operativeDesc || ''
                             });
+                            setIsDirty(true);
                             return copy.map((row, i) => ({ ...row, step: i + 1 }));
                         });
                     }
@@ -961,6 +1030,7 @@ export default function ClientPage() {
 
     // Table modifications helpers
     const handleCellChange = (rowIndex: number, column: keyof TableRow, value: any) => {
+        setIsDirty(true);
         setTableRows(prev => prev.map((row, i) => 
             i === rowIndex ? { ...row, [column]: value } : row
         ));
@@ -984,6 +1054,7 @@ export default function ClientPage() {
     };
 
     const handleAddRow = () => {
+        setIsDirty(true);
         setTableRows(prev => [
             ...prev,
             {
@@ -1015,12 +1086,14 @@ export default function ClientPage() {
 
     const handleDeleteRow = (index: number) => {
         if (!confirm('¿Estás seguro de eliminar este paso?')) return;
+        setIsDirty(true);
         setTableRows(prev => prev.filter((_, i) => i !== index)
             .map((row, i) => ({ ...row, step: i + 1 }))
         );
     };
 
     const moveRow = (index: number, direction: 'up' | 'down') => {
+        setIsDirty(true);
         setTableRows(prev => {
             const copy = [...prev];
             const target = direction === 'up' ? index - 1 : index + 1;
@@ -1207,39 +1280,79 @@ export default function ClientPage() {
                         <p className="text-xs text-zinc-400 mt-1">Ingesta y documentación de diagramas de Microsoft Visio</p>
                     </div>
 
-                    {/* File Dropzone */}
-                    <div 
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={cn(
-                            "border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all flex flex-col items-center gap-3",
-                            isDragging ? "border-rose-500 bg-rose-500/10" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-600 hover:bg-zinc-950/60",
-                            file ? "border-green-500/50 bg-green-950/10" : ""
-                        )}
-                    >
-                        <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            onChange={handleFileChange} 
-                            accept=".vsdx,.svg,.png,.jpg,.jpeg"
-                            className="hidden" 
-                        />
-                        {file ? (
-                            <>
-                                <CheckCircle className="w-10 h-10 text-green-500" />
-                                <div className="text-xs font-semibold truncate max-w-full text-zinc-200">{file.name}</div>
-                                <div className="text-[10px] text-zinc-400">Click para reemplazar</div>
-                            </>
-                        ) : (
-                            <>
-                                <Upload className="w-10 h-10 text-zinc-500" />
-                                <div className="text-sm font-semibold text-zinc-300">Arrastra tu archivo aquí</div>
-                                <div className="text-[10px] text-zinc-500">Soporta VSDX, SVG, PNG o JPG</div>
-                            </>
-                        )}
+                    {/* Project Selector */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Proyecto</label>
+                        <select
+                            value={selectedProjectId}
+                            onChange={(e) => handleProjectChange(e.target.value)}
+                            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-rose-500 text-zinc-200"
+                        >
+                            <option value="">Selecciona un proyecto...</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
                     </div>
+
+                    {/* Sessions List */}
+                    {selectedProjectId && sessions.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-black text-zinc-400 uppercase tracking-widest">Sesiones Guardadas</label>
+                            <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                                {sessions.map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => handleLoadSession(s)}
+                                        className={cn(
+                                            "text-left px-3 py-2 rounded-lg text-xs transition-colors flex flex-col gap-0.5",
+                                            selectedSessionId === s.id 
+                                                ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" 
+                                                : "bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800"
+                                        )}
+                                    >
+                                        <div className="font-semibold">{s.sessionName}</div>
+                                        <div className="text-[9px] text-zinc-500 truncate">{s.fileName}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* File Drop Zone (only show if project is selected) */}
+                    {selectedProjectId && (
+                        <div 
+                            className={cn(
+                                "border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer text-center",
+                                isDragging ? "border-rose-500 bg-rose-500/10" : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/50"
+                            )}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                accept=".vsdx,.svg,image/png,image/jpeg"
+                                onChange={handleFileChange}
+                            />
+                            {file ? (
+                                <>
+                                    <FileCode className="w-10 h-10 text-rose-500" />
+                                    <div className="text-sm font-semibold text-zinc-300 truncate w-full px-2">{file.name}</div>
+                                    <div className="text-[10px] text-zinc-500">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="w-10 h-10 text-zinc-500" />
+                                    <div className="text-sm font-semibold text-zinc-300">Arrastra tu archivo aquí</div>
+                                    <div className="text-[10px] text-zinc-500">Soporta VSDX, SVG, PNG o JPG</div>
+                                </>
+                            )}
+                        </div>
+                    )}
 
                     {/* Loader */}
                     {isParsing && (
@@ -1348,6 +1461,7 @@ export default function ClientPage() {
                             <div className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
                                 <FileCode className="w-4 h-4 text-rose-500" />
                                 <span>UniVisio</span>
+                                {isDirty && <span className="text-xs text-amber-500 ml-2 font-normal italic">* Cambios sin guardar</span>}
                             </div>
                             <div className="flex bg-zinc-950 border border-zinc-800 rounded-lg p-0.5">
                                 <button
@@ -1376,6 +1490,13 @@ export default function ClientPage() {
                         </div>
                         {tableRows.length > 0 && (
                             <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowSaveModal(true)}
+                                    className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                                >
+                                    <Save className="w-3.5 h-3.5" />
+                                    <span>Guardar Progreso</span>
+                                </button>
                                 <button
                                     onClick={exportCSV}
                                     className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs flex items-center gap-1.5 transition-colors border border-zinc-700/60"
@@ -2032,6 +2153,43 @@ export default function ClientPage() {
                     }
                 }
             `}</style>
+
+            {/* Save Modal */}
+            {showSaveModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl p-6 flex flex-col gap-6">
+                        <div>
+                            <h3 className="text-lg font-bold text-zinc-100">Guardar Sesión</h3>
+                            <p className="text-xs text-zinc-400 mt-1">Guarda el análisis actual vinculado al proyecto seleccionado.</p>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-zinc-300 uppercase">Nombre de la Sesión</label>
+                            <input 
+                                type="text"
+                                placeholder="Ej: Flujo de Facturación v2"
+                                value={sessionNameInput}
+                                onChange={e => setSessionNameInput(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-rose-500"
+                                autoFocus
+                            />
+                        </div>
+                        <div className="flex gap-3 justify-end mt-2">
+                            <button
+                                onClick={() => setShowSaveModal(false)}
+                                className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveSession}
+                                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 rounded-lg text-sm font-semibold text-white shadow-lg shadow-rose-900/20 transition-all"
+                            >
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

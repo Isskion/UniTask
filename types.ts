@@ -649,3 +649,76 @@ export interface MoscowRequirement {
     updatedAt: any;
     treated?: boolean;          // Marcado como "Tratado"
 }
+
+// --- UniVisio Types ---
+
+export interface TableRow {
+    step: number;
+    title: string;
+    subtitle: string;
+    systems: string;
+    phase: string;
+    stateChanges: { entity: string; from: string; to: string }[];
+    conditionalPaths: { condition: string; action: string }[];
+    actor: string;
+    origin: string;
+    destination: string;
+    event: string;
+    resultState: string;
+    actionType: string;
+    precondition: string;
+    exception: string;
+    rule: string;
+    linkedNodeId: string;
+    confidence: number;
+    interfaceRefs: {
+        num: number;
+        name: string;
+        direction: string;
+        data: string;
+        criticality: 'CRÍTICA' | 'ALTA' | 'MEDIA' | 'INFORMATIVA';
+    }[];
+    isLoop: boolean;
+    loopNote: string | null;
+    operativeDesc: string;
+    needsReview?: boolean;
+}
+
+export interface ParsedNode {
+    id: string;
+    label: string;
+    shapeType: string;
+    swimlane: string;
+    position: { x: number; y: number };
+}
+
+export interface ParsedEdge {
+    id: string;
+    from: string;
+    to: string;
+    label: string;
+}
+
+export interface Doubt {
+    id: string;
+    severity: 'critical' | 'medium' | 'low';
+    stepIndex?: number;
+    message: string;
+    nodeId?: string;
+}
+
+export interface UniVisioSession {
+    id: string;
+    sessionName: string; // Nombre dado por el usuario
+    fileName: string;    // Nombre técnico del archivo original
+    tenantId: string;    // Para security rules
+    projectId: string;   
+    tableRows: TableRow[];
+    doubts: Doubt[];
+    swimlanes: string[];
+    cycles: string[][];
+    version: number;     // Control de concurrencia
+    createdAt: any;
+    updatedAt: any;
+    createdBy: string;
+}
