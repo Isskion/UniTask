@@ -49,6 +49,7 @@ export default function ClientPage() {
     const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const keepProgressRef = useRef<boolean>(false);
 
     // Drag-and-drop state
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -495,8 +496,20 @@ export default function ClientPage() {
         setFile(selectedFile);
         setIsParsing(true);
         setParsingStatus('Cargando archivo...');
-        setTableRows([]);
-        setDoubts([]);
+        
+        let keepProgress = false;
+        if (tableRows.length > 0) {
+            keepProgress = window.confirm(
+                "Se ha detectado progreso o una sesión cargada. ¿Deseas conservar los pasos existentes para continuar con el análisis sobre este diagrama (recomendado para continuar un paquete grabado)?"
+            );
+        }
+        keepProgressRef.current = keepProgress;
+
+        if (!keepProgress) {
+            setTableRows([]);
+            setDoubts([]);
+        }
+        
         setNodes([]);
         setEdges([]);
 
@@ -1124,7 +1137,15 @@ export default function ClientPage() {
             }
         });
 
-        setDoubts(generatedDoubts);
+        if (keepProgressRef.current) {
+            setDoubts(prev => {
+                const existingIds = new Set(prev.map(d => d.id));
+                const filteredNew = generatedDoubts.filter(d => !existingIds.has(d.id));
+                return [...prev, ...filteredNew];
+            });
+        } else {
+            setDoubts(generatedDoubts);
+        }
     };
 
     // Run Semantic Extraction on current selected sub-flow (Lote)
