@@ -1,12 +1,6 @@
 import { Dictionary } from './en';
 
 export const de: Dictionary = {
-    inbox: {
-        title: "Erfassungs-Posteingang",
-        empty: "Keine ausstehenden E-Mails",
-        converted: "Aufgabe erfolgreich erstellt",
-        discarded: "E-Mail verworfen"
-    },
     common: {
         welcome: "Willkommen",
         search: "Suchen",
@@ -55,10 +49,9 @@ export const de: Dictionary = {
         dashboard: "Posteingang / Dashboard",
         followUp: "Nachverfolgung",
         projects: "Projekte",
-        "task-manager": "Aufgabenmanager",
-        inbox: "Outlook-Posteingang",
+        "task-manager": "Aufgabenmanager (ABM)",
         "sprint-planning": "Sprint-Planung",
-        allTasks: "Alle Aufgaben",
+        allTasks: "Alle Aufgaben (Board)",
         admin: "Administration",
         document_types: "Dokumenttypen",
         "admin-document-types": "Dokumenttypen",
@@ -74,25 +67,20 @@ export const de: Dictionary = {
         system: "System",
         trash: "Papierkorb",
         "tenant-management": "Mandantenverwaltung",
-        dispoplan: "DispoPlan",
+        dispoplan: "DispoPlan (Abwesenheiten)",
         availability_registry: "Verfügbarkeitsregister",
-        "availability-registry": "Registro Indisponibilidades",
-        "agenda-semanal": "Agenda Semanal",
         organizations: "Mandanten",
         tasks: "Aufgaben",
         users: "Benutzer",
         appManagement: "Unitask-Verwaltung",
-        taskControl: "Aufgabensteuerung",
-        "admin-task-control": "Aufgabensteuerung",
         "knowledge-area": "Wissensbereich",
         "lessons-learned": "Lektionen gelernt",
         "solution-records": "Lösungsaufzeichnungen",
         uniflux: "Uniflux-Engine",
         "uni-order-manager": "UniOrderManager",
+        "uni-vehicle-manager": "UniVehicleCreator",
         unidocs: "UniDocs",
         unitask_tools: "Unitask-Tools",
-        relevamiento: "Projekt-Erhebung",
-        administration: "Verwaltung",
         unileaks: "UniLeaks"
     },
 
@@ -348,20 +336,13 @@ export const de: Dictionary = {
                 sprintManagement: { label: "Sprint-Management", desc: "Zugriff auf Sprint-Planung und -Verwaltung" },
                 dispoPlan: { label: "DispoPlan", desc: "Zugriff auf den Verfügbarkeitskalender" },
                 unavailabilityRegistry: { label: "Unverfügbarkeitsregister", desc: "Zugriff auf das Abwesenheitsregister" },
-                unileaks: { label: "UniLeaks", desc: "Zugriff auf das UniLeaks-System für Notizen und Dokumentation" },
-                uniordercreator: { label: "UniOrderManager", desc: "Zugriff auf den UNIGIS-Bestellmanager" },
-                swagger: { label: "UNIGIS Swagger", desc: "Zugriff auf die interaktive UNIGIS-API-Dokumentation" },
-                soap: { label: "UNIGIS SOAP", desc: "Zugriff auf den UNIGIS-SOAP-Service-Browser" },
-                unidocs: { label: "UniDocs", desc: "Zugriff auf den technischen Dokumentationsgenerator" },
-                uniflux: { label: "Uniflux Engine", desc: "Zugriff auf die semantische Design-Engine" },
-                inbox: { label: "Outlook-Posteingang", desc: "Zugriff auf die Outlook-E-Mail-Integration" }
+                uniflux: { label: "Uniflux-Engine", desc: "Zugriff auf die semantische Design-Engine Uniflux" }
             },
             special: {
                 viewAllUserProfiles: { label: "Alle Benutzerprofile sehen", desc: "Zugriff auf Informationen aller Benutzer" },
                 managePermissions: { label: "Berechtigungen verwalten", desc: "Ermöglicht das Erstellen und Bearbeiten von Berechtigungsgruppen (Admin)" },
                 accessTrash: { label: "Auf Papierkorb zugreifen", desc: "Gelöschte Elemente sehen und wiederherstellen" },
-                useCommandMenu: { label: "Befehlsmenü verwenden", desc: "Zugriff auf das Navigations-Schnellmenü" },
-                viewAllProjectNotes: { label: "Alle Projektnotizen sehen", desc: "Ermöglicht das Anzeigen aller internen Notizen (kollaborativ) in UniLeaks." }
+                useCommandMenu: { label: "Befehlsmenü verwenden", desc: "Zugriff auf das Navigations-Schnellmenü" }
             }
         }
     },
@@ -581,7 +562,7 @@ export const de: Dictionary = {
         success_created: "Sprint erstellt",
         error_completed_closed_sprint: "Unbeweglich: Eine abgeschlossene Aufgabe kann nicht aus einem geschlossenen Sprint verschoben werden.",
         error_completed_active_sprint_permission: "Nur Administratoren können abgeschlossene Aufgaben aus einem aktiven Sprint verschieben.",
-        error_completed_immovable: "Abgeschlossene Aufgaben können nicht über das Board verschoben werden. Verwenden Sie den Aufgabenmanager, um den Sprint zu ändern.",
+        error_completed_immovable: "Abgeschlossene Aufgaben können nicht über das Board verschoben werden. Verwenden Sie den Aufgabenmanager (ABM), um den Sprint zu ändern.",
         error_completed_no_backlog: "Abgeschlossene Aufgaben können nicht in das Backlog zurückkehren. Sie können nur den Sprint wechseln.",
         confirm_completed_move: "Admin Override: Diese Aufgabe ist bereits abgeschlossen. Sind Sie sicher, dass Sie sie in einen anderen Sprint verschieben möchten?"
     },
@@ -629,58 +610,5 @@ export const de: Dictionary = {
             import: "Massenimport",
             system: "Systemautomatisierung"
         }
-    },
-    sprint_management: {
-        title: "Sprint-Management",
-        cycles: "Ausführungszyklen",
-        simulator: "Versprechenssimulation"
-    },
-    unileaks: {
-        visibility: {
-            private: "Private Notiz",
-            private_desc: "Nur du kannst sie sehen",
-            internal: "Internes Team",
-            internal_desc: "Nur Teammitglieder (Tenant) können sie sehen",
-            public: "Öffentlich",
-            public_desc: "Sichtbar für alle Benutzer mit Projektzugriff"
-        }
-    },
-    agenda: {
-        grid:"Raster",lista:"Liste",exportBtn:"Exportieren...",exportConfig:"Export konfigurieren",exportFormat:"Ausgabeformat",exportColumns:"Felder und Reihenfolge",exportSelectAll:"Alle",exportSelectNone:"Keine",exportNoneWarning:"Mindestens ein Feld auswählen",listSearch:"Suchen...",resumen:"Übersicht",filters:"Filter",clearFilters:"Filter löschen",
-        today:"Heute",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Berater",
-        nConsultants:"Berater",nEntries:"Einträge",week:"Woche",
-        currentWeek:"Aktuelle Woche",previousWeek:"Vorherige Woche",future:"Zukunft",
-        consultantCol:"Berater",totalCol:"Gesamt",weekTotal:"Wochensumme",
-        noConsultantsFilter:"Keine Berater entsprechen den aktiven Filtern.",
-        noConsultants:"Keine Berater für diesen Tenant konfiguriert.",
-        noConsultantsHint:"Fügen Sie die Benutzer hinzu, die im Wochenplan erscheinen sollen.",
-        configureBtn:"Berater konfigurieren",region:"Region",allRegions:"Alle",division:"Abteilung",divisionFilter:"Abteilung",
-        activityFilter:"Aktivität",statusFilter:"Status",workday:"Arbeitstag",
-        holiday:"Feiertag",weekend:"Wochenende",newEntry:"Neuer Eintrag",
-        editEntry:"Eintrag bearbeiten",activityType:"Aktivitätstyp",comment:"Kommentar",
-        commentHint:"KUNDE / BESCHREIBUNG",clientLabel:"Kunde",descLabel:"Beschreibung",
-        schedule:"Zeitplan",fullDay:"Ganzer Tag",plannedAbbr:"geplant",timeStartPh:"Start",timeEndPh:"Ende",
-        presetMorning:"Vormittag",presetAfternoon:"Nachmittag",statusLabel:"Status",
-        project:"Projekt",optional:"(optional)",selectProject:"Projekt auswählen...",
-        searchProjectPh:"Nach Name, Code oder Kunde suchen...",noProject:"Kein Projekt",
-        jiraRecordLabel:"Generierter Jira-Eintrag",cancel:"Abbrechen",
-        saveChanges:"Änderungen speichern",addEntry:"Eintrag hinzufügen",delete:"Löschen",
-        permissionError:"Berechtigungsfehler. Klicken Sie ↺ in der Agendaleiste, um den Cache zu löschen.",
-        saveError:"Fehler beim Speichern. Bitte erneut versuchen.",deleteConfirm:"Diesen Eintrag löschen?",
-        manageTitle:"Berater-Verwaltung",manageHint:"Wählen Sie die Tenant-Benutzer für den Wochenplan aus",
-        activeInAgenda:"Aktive Berater im Plan",tenantUsers:"Tenant-Benutzer",
-        noUsers:"Keine Benutzer in diesem Tenant gefunden.",inSchedule:"Im Plan",
-        addToSchedule:"Hinzufügen",removeFromSchedule:"Entfernen",close:"Schließen",
-        manageFooter:"Klicken Sie auf einen Benutzer zum Hinzufügen/Entfernen · Klicken Sie auf die Region zum Ändern",
-        hoursPlanned:"Geplante Stunden",totalEntries:"Einträge gesamt",
-        activeCount:"Aktive Berater",projectsCount:"Projekte im Plan",
-        hoursByConsultant:"Stunden pro Berater",byProject:"Verteilung nach Projekt",
-        noProjectAssigned:"Kein Projekt zugewiesen",byActivity:"Stunden nach Aktivitätstyp",
-        byStatus:"Einträge nach Status",noData:"Keine Daten für diese Woche mit aktiven Filtern.",
-        actMeetingClient:"Kundengespräch",actMeetingUnigis:"UNIGIS-Besprechung",
-        actMeetingPresential:"Persönliches Treffen",actMeetingInternal:"Internes Meeting",
-        actCommercial:"Vertrieb",actTask:"Aufgabe",actVacation:"Urlaub",
-        actTravel:"Reise",actSpecial:"Sonstiges",resPending:"Offen",
-        resOnHold:"Pausiert",resDone:"Erledigt",resCancelled:"Abgebrochen",
     }
 };

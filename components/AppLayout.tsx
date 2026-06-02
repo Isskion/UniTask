@@ -28,21 +28,8 @@ import {
     Lightbulb,
     BookMarked,
     Sparkles,
-    CalendarDays,
-    Calendar,
-    LayoutTemplate,
-    Settings2,
-    HelpCircle,
-    Wrench,
-    FileCode,
-    Home,
-    Network,
-    Zap,
-    Database,
-    Mail,
-    Table,
-    Map,
-    ClipboardCheck
+    Calendar, // Added for DispoPlan
+    LayoutTemplate
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -62,12 +49,11 @@ import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
 import { RefreshCw } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import ProfileSettingsModal from "@/components/ProfileSettingsModal";
-import TaskControllerWidget from "@/components/TaskControllerWidget";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -89,10 +75,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { t } = useLanguage();
     const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
-    const [unitaskToolsEnabled, setUnitaskToolsEnabled] = useState<boolean>(false);
-    const [taskControlEnabled, setTaskControlEnabled] = useState<boolean>(false);
-    const [enabledTools, setEnabledTools] = useState<string[]>([]);
- 
+
     useEffect(() => {
         let isMounted = true;
         const fetchTenantLogo = async () => {
@@ -108,10 +91,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     } else if (data.logoUrl) {
                         setDynamicLogoSrc(data.logoUrl);
                     }
-                    // Fetch tool activation
-                    setUnitaskToolsEnabled(data.unitaskToolsEnabled || false);
-                    setTaskControlEnabled(data.taskControlEnabled || false);
-                    setEnabledTools(data.enabledTools || []);
                 }
             } catch (err: any) {
                 if (isMounted) {
@@ -179,25 +158,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
         label: string,
         target?: string
     }) => {
-        // [Refinement] Use regular <a> for static HTML assets to avoid Next.js RSC prefetch 404s
-        const isStaticAsset = href.endsWith('.html') || href.startsWith('http');
-
-        if (isStaticAsset) {
-            return (
-                <a
-                    href={href}
-                    target={target}
-                    className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group relative",
-                        "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    )}
-                >
-                    <Icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
-                    <span>{label}</span>
-                </a>
-            );
-        }
-
         return (
             <Link
                 href={href}
@@ -309,160 +269,95 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                     </div>
 
                     {/* Navigation */}
-                    <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto py-6 px-3 space-y-6">
 
-                        {/* Primary / Workspace */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 px-1 mb-2">
-                                <Home className="w-3 h-3 text-muted-foreground/60" />
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.workspace')}</p>
-                            </div>
-                            <div className="nav-section-island">
-                                                                <NavItem mode="dashboard" icon={Layout} label={t('nav.dashboard')} />
-                                <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
-                                <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
-                                <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
-                                <NavItem mode="task-manager" icon={ListTodo} label={t('nav.task-manager')} />
-                                <NavItem mode="inbox" icon={Mail} label={t('nav.inbox') || "Buzón Outlook"} />
-                                <NavItem mode="tasks" icon={Table} label={t('nav.allTasks')} />
-                            </div>
+                        {/* Primary */}
+                        <div className="space-y-1">
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
+                            <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
+                            <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                            <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
+                            <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
+                            <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                         </div>
 
-                        {/* Knowledge Area */}
+                        {/* Knowledge Area (NEW) */}
                         {can('knowledgeBase', 'views') && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 px-1 mb-2">
-                                    <BookOpen className="w-3 h-3 text-indigo-400" />
-                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
-                                </div>
-                                <div className="nav-section-island border-indigo-500/10 bg-indigo-500/5">
-                                    <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
-                                    <NavItem mode="solution-records" icon={FileCode} label={t('knowledge_base.solution_records') || 'Registros de Solución'} />
-                                    <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas Producto'} />
-                                </div>
+                            <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('knowledge_base.title') || 'Área de Conocimiento'}</p>
+                                <NavItem mode="lessons-learned" icon={Lightbulb} label={t('knowledge_base.lessons_learned') || 'Lecciones Aprendidas'} />
+                                <NavItem mode="solution-records" icon={BookMarked} label={t('knowledge_base.solution_records') || 'Registros de Soluciones'} />
+                                <NavItem mode="product-proposals" icon={Sparkles} label={t('knowledge_base.product_proposals') || 'Propuestas de Producto'} />
                             </div>
                         )}
 
-                        {/* Sprint Management */}
+                        {/* Sprint Management (NEW) */}
                         {can('sprintManagement', 'views') && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 px-1 mb-2">
-                                    <Zap className="w-3 h-3 text-amber-500" />
-                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('sprint_management.title') || 'Sprint Management'}</p>
-                                </div>
-                                <div className="nav-section-island border-amber-500/10 bg-amber-500/5">
-                                    <NavItem mode="sprint-cycles" icon={Timer} label={t('sprint_management.cycles') || 'Ciclos Sprint'} />
-                                    <NavItem mode="sprint-planning" icon={Timer} label={t('sprint_management.simulator') || 'Simulador'} />
-                                </div>
+                            <div className="space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('sprints.menu_title')}</p>
+                                <NavItem mode="sprint-cycles" icon={Timer} label={t('sprints.menu_cycles')} />
+                                <NavItem mode="sprint-planning" icon={Timer} label={t('sprints.menu_simulator')} />
                             </div>
                         )}
 
-                        {/* Unitask Tools (The broad entry) */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 px-1 mb-2">
-                                <Wrench className="w-3 h-3 text-rose-500" />
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.unitask_tools') || 'Unitask Tools'}</p>
-                            </div>
-                            <div className="nav-section-island border-rose-500/20 bg-rose-500/5 shadow-[inset_0_0_20px_rgba(225,29,72,0.02)]">
-                                {can('dispoPlan', 'views') && (
-                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                )}
-
-                                
-                                {can('unavailabilityRegistry', 'views') && (
-                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                )}
-                                
-                                {can('unileaks', 'views') && (
-                                    <NavLink href="/unileaks" target="_blank" icon={Zap} label={t('nav.unileaks') || 'UniLeaks'} />
-                                )}
-
-                                {can('uniordercreator', 'views') && (
-                                    <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                )}
-
-                                {can('uniordercreator', 'views') && (
-                                    <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
-                                )}
-
-                                {can('swagger', 'views') && (
-                                    <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label="UNIGIS Swagger" />
-                                )}
-
-                                {can('soap', 'views') && (
-                                    <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP" />
-                                )}
-
-                                {can('unidocs', 'views') && (
-                                    <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                )}
-
-                                {can('uniflux', 'views') && (
-                                    <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                                )}
-
-                                {can('uniflux', 'views') && (
-                                    <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
-                                )}
-
-                                {can('uniflux', 'views') && (
-                                    <NavLink href="/univisio" target="_blank" icon={Network} label="UniVisio" />
-                                )}
-                            </div>
+                        {/* Unitask Tools (NEW) */}
+                        <div className="space-y-1">
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                            {can('dispoPlan', 'views') && (
+                                <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                            )}
+                            {can('unavailabilityRegistry', 'views') && (
+                                <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                            )}
+                            <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+                            <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                            <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                            <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                            <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                         </div>
 
-                        {/* Secondary / Admin */}
-                        {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 px-1 mb-2">
-                                    <Settings2 className="w-3 h-3 text-zinc-400" />
-                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.administration') || t('nav.admin')}</p>
-                                </div>
-                                <div className="nav-section-island">
-                                    {getRoleLevel(userRole) >= RoleLevel.PM && (
-                                        <NavLink href="/agenda" icon={CalendarDays} label="Agenda Semanal" target="_blank" />
-                                    )}
-                                    {userRole === 'superadmin' && (
-                                        <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
-                                    )}
-                                    {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
-                                        <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
-                                    )}
-                                    {getRoleLevel(userRole) >= RoleLevel.PM && (
-                                        <NavItem mode="admin-task-master" icon={Database} label={t('nav.taskMaster')} />
-                                    )}
-                                    {can('userManagement', 'views') && (
-                                        <NavItem mode="users" icon={Users} label={t('nav.people')} />
-                                    )}
-                                    {canManagePermissions && (
-                                        <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
-                                    )}
-                                    {userRole === 'superadmin' && (
-                                        <NavItem mode="reports" icon={BarChart3} label={t('nav.reports')} />
-                                    )}
-                                    {userRole === 'superadmin' && (
-                                        <NavItem mode="tenant-management" icon={Layout} label={t('nav.tenants')} />
-                                    )}
-                                    {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
-                                        <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types')} />
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        {/* Secondary */}
+                        {/* ADMINISTRATION */}
+                        <div className="space-y-1">
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
+
+                            {/* UNITASK MANAGEMENT (SuperAdmin only) */}
+                            {userRole === 'superadmin' && (
+                                <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
+                            )}
+
+                            {/* Consolidated Task Master Data (Global PM+) */}
+                            {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                <NavItem mode="admin-task-master" icon={Layout} label={t('nav.taskMaster')} />
+                            )}
+
+                            {can('userManagement', 'views') && (
+                                <NavItem mode="users" icon={Users} label={t('nav.people')} />
+                            )}
+                            {canManagePermissions && (
+                                <NavItem mode="user-roles" icon={Shield} label={t('nav.roles')} />
+                            )}
+
+                            {userRole === 'superadmin' && (
+                                <>
+                                    <NavItem mode="reports" icon={FileText} label={t('nav.reports')} />
+                                    <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
+                                </>
+                            )}
+                            {/* Document Types (Admin) */}
+                            {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
+                                <NavItem mode="admin-document-types" icon={FileText} label={t('nav.document_types') || "Tipos de Documento"} />
+                            )}
+                        </div>
 
                         {/* System */}
-                        <div className="space-y-3 pb-8">
-                            <div className="flex items-center gap-2 px-1 mb-2">
-                                <Database className="w-3 h-3 text-zinc-500" />
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em]">{t('nav.system')}</p>
-                            </div>
-                            <div className="nav-section-island">
-                                <NavItem mode="user-manual" icon={HelpCircle} label={t('nav.manual') || "Manual"} />
-                                {userRole === 'superadmin' && (
-                                    <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
-                                )}
-                                <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
-                            </div>
+                        <div className="space-y-1">
+                            <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.system')}</p>
+                            <NavItem mode="user-manual" icon={BookOpen} label={t('nav.manual') || "Manual"} />
+                            {userRole === 'superadmin' && (
+                                <NavItem mode="support-management" icon={LifeBuoy} label={t('nav.support-management')} />
+                            )}
+                            <NavItem mode="trash" icon={Trash2} label={t('nav.trash')} />
                         </div>
                     </div>
 
@@ -610,47 +505,20 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
                             </div>
 
-                            {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                <div className="mt-4 space-y-1">
-                                    <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
-                                    
-                                    {/* Global Tools */}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('dispoPlan', 'views') && (
-                                        <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && can('unavailabilityRegistry', 'views') && (
-                                        <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                        <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                                    )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
-                                        <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                    )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('uniordercreator')) && (
-                                        <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
-                                    )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('swagger')) && (
-                                        <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={Sparkles} label="UNIGIS Swagger Integrator" />
-                                    )}
-                                    {(userRole === 'superadmin' || enabledTools.includes('soap')) && (
-                                        <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label="UNIGIS SOAP Integrator" />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                        <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                        <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                        <NavLink href="/uniflux/geo" target="_blank" icon={Map} label="UniGeo" />
-                                    )}
-                                    {(unitaskToolsEnabled || userRole === 'superadmin') && (
-                                        <NavLink href="/univisio" target="_blank" icon={Network} label="UniVisio" />
-                                    )}
-
-                                </div>
-                            )}
+                            <div className="mt-4 space-y-1">
+                                <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
+                                {can('dispoPlan', 'views') && (
+                                    <NavItem mode="dispoplan" icon={Calendar} label={t('nav.dispoplan') || "DispoPlan"} />
+                                )}
+                                {can('unavailabilityRegistry', 'views') && (
+                                    <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
+                                )}
+                                <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
+                                <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                                <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
+                                <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                            </div>
 
                             {can('knowledgeBase', 'views') && (
                                 <div className="mt-4 space-y-1">
@@ -675,9 +543,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                         <NavItem mode="tenant-management" icon={Building} label={t('nav.tenants') || "Tenants"} />
                                     </>
                                 )}
-                                {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
-                                    <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
-                                )}
                             </div>
 
                             <div className="mt-4 space-y-1">
@@ -696,7 +561,6 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
             <ProfileSettingsModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-            <TaskControllerWidget />
 
             {/* GLOBAL RECOVERY PANEL */}
             {(userRole === 'superadmin') && <FirebaseDiagnostic />}

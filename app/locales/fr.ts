@@ -1,12 +1,6 @@
 import { Dictionary } from './en';
 
 export const fr: Dictionary = {
-    inbox: {
-        title: "Boîte de capture",
-        empty: "Aucun e-mail en attente",
-        converted: "Tâche créée avec succès",
-        discarded: "E-mail rejeté"
-    },
     common: {
         welcome: "Bienvenue",
         search: "Rechercher",
@@ -55,10 +49,9 @@ export const fr: Dictionary = {
         dashboard: "Boîte de réception / Tableau de bord",
         followUp: "Suivi",
         projects: "Projets",
-        "task-manager": "Gestionnaire de tâches",
-        inbox: "Boîte Outlook",
+        "task-manager": "Gestionnaire de tâches (ABM)",
         "sprint-planning": "Planification de sprint",
-        allTasks: "Toutes les tâches",
+        allTasks: "Toutes les tâches (Tableau)",
         admin: "Administration",
         document_types: "Types de document",
         "admin-document-types": "Types de document",
@@ -74,25 +67,20 @@ export const fr: Dictionary = {
         system: "Système",
         trash: "Corbeille",
         "tenant-management": "Gestion des locataires",
-        dispoplan: "DispoPlan",
+        dispoplan: "DispoPlan (Disponibilité)",
         availability_registry: "Registre des disponibilités",
-        "availability-registry": "Registro Indisponibilidades",
-        "agenda-semanal": "Agenda Semanal",
         organizations: "Locataires",
         tasks: "Tâches",
         users: "Utilisateurs",
         appManagement: "Gestion Unitask",
-        taskControl: "Contrôle des Tâches",
-        "admin-task-control": "Contrôle des Tâches",
         "knowledge-area": "Zone de connaissances",
         "lessons-learned": "Leçons apprises",
         "solution-records": "Enregistrements de solutions",
         uniflux: "Moteur Uniflux",
         "uni-order-manager": "UniOrderManager",
+        "uni-vehicle-manager": "UniVehicleCreator",
         unidocs: "UniDocs",
         unitask_tools: "Outils Unitask",
-        relevamiento: "Relève Projets",
-        administration: "Administration",
         unileaks: "UniLeaks"
     },
 
@@ -348,20 +336,13 @@ export const fr: Dictionary = {
                 sprintManagement: { label: "Gestion de sprint", desc: "Accès à la planification et à la gestion des sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Accès au calendrier de disponibilité" },
                 unavailabilityRegistry: { label: "Registre des indisponibilités", desc: "Accès au registre des absences" },
-                unileaks: { label: "UniLeaks", desc: "Accès au système de notes et de documentation rapide UniLeaks" },
-                uniordercreator: { label: "UniOrderManager", desc: "Accès au gestionnaire de commandes UNIGIS" },
-                swagger: { label: "UNIGIS Swagger", desc: "Accès à la documentation interactive des API UNIGIS" },
-                soap: { label: "UNIGIS SOAP", desc: "Accès au navigateur de services SOAP UNIGIS" },
-                unidocs: { label: "UniDocs", desc: "Accès au générateur de documentation technique" },
-                uniflux: { label: "Uniflux Engine", desc: "Accès au moteur de conception sémantique" },
-                inbox: { label: "Boîte Outlook", desc: "Accès à l'intégration de la messagerie Outlook" }
+                uniflux: { label: "Moteur Uniflux", desc: "Accès au moteur de conception sémantique Uniflux" }
             },
             special: {
                 viewAllUserProfiles: { label: "Voir tous les profils utilisateurs", desc: "Accès aux informations de tous les utilisateurs" },
                 managePermissions: { label: "Gérer les permissions", desc: "Permet de créer et de modifier des groupes de permissions (Admin)" },
                 accessTrash: { label: "Accéder à la corbeille", desc: "Voir et restaurer les éléments supprimés" },
-                useCommandMenu: { label: "Utiliser le menu de commandes", desc: "Accès au menu rapide de navigation" },
-                viewAllProjectNotes: { label: "Voir toutes les notes du projet", desc: "Permet de voir toutes les notes internes (collaboratives) dans UniLeaks." }
+                useCommandMenu: { label: "Utiliser le menu de commandes", desc: "Accès au menu rapide de navigation" }
             }
         }
     },
@@ -581,7 +562,7 @@ export const fr: Dictionary = {
         success_created: "Sprint créé",
         error_completed_closed_sprint: "Inamovible : Impossible de déplacer une tâche terminée d'un sprint fermé.",
         error_completed_active_sprint_permission: "Seuls les administrateurs peuvent déplacer des tâches terminées d'un sprint actif.",
-        error_completed_immovable: "Les tâches terminées ne peuvent pas être déplacées depuis le tableau. Utilisez le Gestionnaire de tâches pour changer le sprint.",
+        error_completed_immovable: "Les tâches terminées ne peuvent pas être déplacées depuis le tableau. Utilisez le Gestionnaire de tâches (ABM) pour changer le sprint.",
         error_completed_no_backlog: "Les tâches terminées ne peuvent pas retourner dans le backlog. Vous pouvez seulement changer de sprint.",
         confirm_completed_move: "Admin Override : Cette tâche est déjà terminée. Êtes-vous sûr de vouloir la déplacer vers un autre sprint ?"
     },
@@ -629,58 +610,5 @@ export const fr: Dictionary = {
             import: "Importation en masse",
             system: "Automatization système"
         }
-    },
-    sprint_management: {
-        title: "Gestion de Sprint",
-        cycles: "Cycles d'Exécution",
-        simulator: "Simulation de Promesse"
-    },
-    unileaks: {
-        visibility: {
-            private: "Note privée",
-            private_desc: "Seul vous pouvez la voir",
-            internal: "Équipe interne",
-            internal_desc: "Seuls les membres de l'équipe (Tenant) peuvent la voir",
-            public: "Public",
-            public_desc: "Visible par tous les utilisateurs ayant accès au projet"
-        }
-    },
-    agenda: {
-        grid:"Grille",lista:"Liste",exportBtn:"Exporter...",exportConfig:"Configurer l'export",exportFormat:"Format de sortie",exportColumns:"Champs et ordre",exportSelectAll:"Tous",exportSelectNone:"Aucun",exportNoneWarning:"Sélectionnez au moins un champ",listSearch:"Rechercher...",resumen:"Résumé",filters:"Filtres",clearFilters:"Effacer les filtres",
-        today:"Aujourd'hui",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Consultants",
-        nConsultants:"consultants",nEntries:"entrées",week:"Semaine",
-        currentWeek:"Semaine en cours",previousWeek:"Semaine précédente",future:"Futur",
-        consultantCol:"Consultant",totalCol:"Total",weekTotal:"Total semaine",
-        noConsultantsFilter:"Aucun consultant ne correspond aux filtres actifs.",
-        noConsultants:"Aucun consultant configuré pour ce tenant.",
-        noConsultantsHint:"Ajoutez les utilisateurs qui apparaîtront dans le planning hebdomadaire.",
-        configureBtn:"Configurer les consultants",region:"Région",allRegions:"Toutes",division:"Division",divisionFilter:"Division",
-        activityFilter:"Activité",statusFilter:"Statut",workday:"Jour Ouvré",
-        holiday:"Jour Férié",weekend:"Week-end",newEntry:"Nouvelle entrée",
-        editEntry:"Modifier l'entrée",activityType:"Type d'activité",comment:"Commentaire",
-        commentHint:"CLIENT / DESCRIPTION",clientLabel:"Client",descLabel:"Description",
-        schedule:"Horaire",fullDay:"Journée complète",plannedAbbr:"planif.",timeStartPh:"Début",timeEndPh:"Fin",
-        presetMorning:"Matin",presetAfternoon:"Après-midi",statusLabel:"Statut",
-        project:"Projet",optional:"(facultatif)",selectProject:"Sélectionner un projet...",
-        searchProjectPh:"Rechercher par nom, code ou client...",noProject:"Sans projet",
-        jiraRecordLabel:"Enregistrement Jira généré",cancel:"Annuler",
-        saveChanges:"Enregistrer",addEntry:"Ajouter une entrée",delete:"Supprimer",
-        permissionError:"Erreur de permissions. Cliquez ↺ dans la barre pour vider le cache.",
-        saveError:"Erreur d'enregistrement. Veuillez réessayer.",deleteConfirm:"Supprimer cette entrée ?",
-        manageTitle:"Gestion des Consultants",manageHint:"Sélectionnez les utilisateurs du tenant pour le planning hebdomadaire",
-        activeInAgenda:"Consultants actifs dans le planning",tenantUsers:"Utilisateurs du tenant",
-        noUsers:"Aucun utilisateur trouvé dans ce tenant.",inSchedule:"Dans le planning",
-        addToSchedule:"Ajouter",removeFromSchedule:"Retirer",close:"Fermer",
-        manageFooter:"Cliquez sur un utilisateur pour ajouter/retirer · Cliquez sur la région pour changer",
-        hoursPlanned:"Heures planifiées",totalEntries:"Entrées enregistrées",
-        activeCount:"Consultants actifs",projectsCount:"Projets dans le planning",
-        hoursByConsultant:"Heures par consultant",byProject:"Répartition par projet",
-        noProjectAssigned:"Sans projet assigné",byActivity:"Heures par type d'activité",
-        byStatus:"Entrées par statut",noData:"Aucune donnée pour cette semaine avec les filtres actifs.",
-        actMeetingClient:"Réunion Client",actMeetingUnigis:"Réunion UNIGIS",
-        actMeetingPresential:"Réunion Présentielle",actMeetingInternal:"Réunion Interne",
-        actCommercial:"Commercial",actTask:"Tâche",actVacation:"Congés",
-        actTravel:"Voyage",actSpecial:"Spécial",resPending:"À Faire",
-        resOnHold:"En pause",resDone:"Terminé",resCancelled:"Annulé",
     }
 };

@@ -1,12 +1,6 @@
 import { Dictionary } from './en';
 
 export const ca: Dictionary = {
-    inbox: {
-        title: "Bústia de Captura",
-        empty: "No hi ha correus pendents",
-        converted: "Tasca creada correctament",
-        discarded: "Correu descartat"
-    },
     common: {
         welcome: "Benvingut",
         search: "Cercar",
@@ -55,10 +49,9 @@ export const ca: Dictionary = {
         dashboard: "Bústia / Taulell",
         followUp: "Seguiment",
         projects: "Projectes",
-        "task-manager": "Gestor de Tasques",
-        inbox: "Bústia Outlook",
+        "task-manager": "Gestor de Tasques (ABM)",
         "sprint-planning": "Planificació de Sprints",
-        allTasks: "Totes les Tasques",
+        allTasks: "Totes les Tasques (Tauler)",
         admin: "Administració",
         document_types: "Tipus de Document",
         "admin-document-types": "Tipus de Document",
@@ -74,25 +67,20 @@ export const ca: Dictionary = {
         system: "Sistema",
         trash: "Paperera",
         "tenant-management": "Gestió de Tenants",
-        dispoplan: "DispoPlan",
+        dispoplan: "DispoPlan (Absències)",
         availability_registry: "Registre Indisponibilitats",
-        "availability-registry": "Registro Indisponibilidades",
-        "agenda-semanal": "Agenda Semanal",
         organizations: "Tenants",
         tasks: "Tasques",
         users: "Usuaris",
         appManagement: "Gestió Unitask",
-        taskControl: "Control de Tasques",
-        "admin-task-control": "Control de Tasques",
         "knowledge-area": "Àrea de Coneixement",
         "lessons-learned": "Lliçons Apreses",
         "solution-records": "Registres de Solucions",
         uniflux: "Motor Uniflux",
         "uni-order-manager": "UniOrderManager",
+        "uni-vehicle-manager": "UniVehicleCreator",
         unidocs: "UniDocs",
         unitask_tools: "Eines Unitask",
-        relevamiento: "Rellevament Projectes",
-        administration: "Administració",
         unileaks: "UniLeaks"
     },
 
@@ -348,20 +336,13 @@ export const ca: Dictionary = {
                 sprintManagement: { label: "Gestió de Sprint", desc: "Accés a la planificació i gestió de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Accés al calendari de disponibilitat" },
                 unavailabilityRegistry: { label: "Registre d'Indisponibilitats", desc: "Accés al registre d'absències" },
-                unileaks: { label: "UniLeaks", desc: "Accés al sistema de notes i documentació ràpida UniLeaks" },
-                uniordercreator: { label: "UniOrderManager", desc: "Accés al gestor de comandes UNIGIS" },
-                swagger: { label: "UNIGIS Swagger", desc: "Accés a la documentació interactiva d'APIs d'UNIGIS" },
-                soap: { label: "UNIGIS SOAP", desc: "Accés a l'explorador de serveis SOAP d'UNIGIS" },
-                unidocs: { label: "UniDocs", desc: "Accés al generador de documentació tècnica" },
-                uniflux: { label: "Uniflux Engine", desc: "Accés al motor de disseny semàntic" },
-                inbox: { label: "Bústia Outlook", desc: "Accés a la integració amb la bústia de correu d'Outlook" }
+                uniflux: { label: "Motor Uniflux", desc: "Accés al motor de disseny semàntic Uniflux" }
             },
             special: {
                 viewAllUserProfiles: { label: "Veure tots els perfils d'usuari", desc: "Accés a informació de tots els usuaris" },
                 managePermissions: { label: "Gestionar permisos", desc: "Permet crear i editar grups de permisos (Admin)" },
                 accessTrash: { label: "Accedir a la paperera", desc: "Veure i restaurar elements eliminats" },
-                useCommandMenu: { label: "Utilitzar menú de comandes", desc: "Accés al menú ràpid de navegació" },
-                viewAllProjectNotes: { label: "Veure totes les notes de projecte", desc: "Permet veure totes les notes internes (col·laboratiu) de UniLeaks." }
+                useCommandMenu: { label: "Utilitzar menú de comandes", desc: "Accés al menú ràpid de navegació" }
             }
         }
     },
@@ -581,7 +562,7 @@ export const ca: Dictionary = {
         success_created: "Sprint creat",
         error_completed_closed_sprint: "Inamovible: No es pot moure una tasca tancada d'un sprint tancat.",
         error_completed_active_sprint_permission: "Només els administradors poden moure tasques tancades d'un sprint actiu.",
-        error_completed_immovable: "Les tasques finalitzades no es poden moure pel tauler. Fes servir el Gestor de Tasques per canviar el sprint.",
+        error_completed_immovable: "Les tasques finalitzades no es poden moure pel tauler. Fes servir el Gestor de Tasques (ABM) per canviar el sprint.",
         error_completed_no_backlog: "Les tasques finalitzades no poden tornar al backlog. Només les pots canviar de sprint.",
         confirm_completed_move: "Admin Override: Aquesta tasca ja està tancada. Estàs segur que la vols moure a un altre sprint?"
     },
@@ -629,58 +610,5 @@ export const ca: Dictionary = {
             import: "Importació Massiva",
             system: "Automatització del Sistema"
         }
-    },
-    sprint_management: {
-        title: "Gestió de Sprint",
-        cycles: "Cicles d'Execució",
-        simulator: "Simulació de Promesa"
-    },
-    unileaks: {
-        visibility: {
-            private: "Nota Privada",
-            private_desc: "Només tu pots veure-la",
-            internal: "Equip Intern",
-            internal_desc: "Només els membres de l'equip (Tenant) poden veure-la",
-            public: "Públic",
-            public_desc: "Visible per a tots els usuaris amb accés al projecte"
-        }
-    },
-    agenda: {
-        grid:"Graella",lista:"Llista",exportBtn:"Exportar...",exportConfig:"Configurar exportació",exportFormat:"Format de sortida",exportColumns:"Camps i ordre",exportSelectAll:"Tots",exportSelectNone:"Cap",exportNoneWarning:"Seleccioneu almenys un camp",listSearch:"Cercar...",resumen:"Resum",filters:"Filtres",clearFilters:"Netejar filtres",
-        today:"Avui",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Consultors",
-        nConsultants:"consultors",nEntries:"entrades",week:"Setmana",
-        currentWeek:"Setmana Actual",previousWeek:"Setmana Anterior",future:"Futur",
-        consultantCol:"Consultor",totalCol:"Total",weekTotal:"Total setmana",
-        noConsultantsFilter:"Cap consultor coincideix amb els filtres actius.",
-        noConsultants:"No hi ha consultors configurats per a aquest tenant.",
-        noConsultantsHint:"Afegeix els usuaris que apareixeran a l'agenda setmanal.",
-        configureBtn:"Configurar consultors",region:"Regió",allRegions:"Totes",division:"Divisió",divisionFilter:"Divisió",
-        activityFilter:"Activitat",statusFilter:"Estat",workday:"Dia Laborable",
-        holiday:"Festiu",weekend:"Cap de Setmana",newEntry:"Nova entrada",
-        editEntry:"Editar entrada",activityType:"Tipus d'activitat",comment:"Comentari",
-        commentHint:"CLIENT / DESCRIPCIÓ",clientLabel:"Client",descLabel:"Descripció",
-        schedule:"Horari",fullDay:"Dia complet",plannedAbbr:"planif.",timeStartPh:"Inici",timeEndPh:"Fi",
-        presetMorning:"Matí",presetAfternoon:"Tarda",statusLabel:"Estat",
-        project:"Projecte",optional:"(opcional)",selectProject:"Seleccionar projecte...",
-        searchProjectPh:"Cercar per nom, codi o client...",noProject:"Sense projecte",
-        jiraRecordLabel:"Registre Jira generat",cancel:"Cancel·lar",
-        saveChanges:"Guardar canvis",addEntry:"Afegir entrada",delete:"Eliminar",
-        permissionError:"Error de permisos. Prem ↺ a la barra per netejar caché.",
-        saveError:"Error en guardar. Torna-ho a intentar.",deleteConfirm:"Eliminar aquesta entrada?",
-        manageTitle:"Gestió de Consultors",manageHint:"Selecciona els usuaris del tenant per a l'agenda setmanal",
-        activeInAgenda:"Consultors actius a l'agenda",tenantUsers:"Usuaris del tenant",
-        noUsers:"No s'han trobat usuaris en aquest tenant.",inSchedule:"A l'agenda",
-        addToSchedule:"Afegir",removeFromSchedule:"Treure",close:"Tancar",
-        manageFooter:"Clic en un usuari per afegir/treure · Clic a la regió per canviar",
-        hoursPlanned:"Hores planificades",totalEntries:"Entrades registrades",
-        activeCount:"Consultors actius",projectsCount:"Projectes a l'agenda",
-        hoursByConsultant:"Hores per consultor",byProject:"Distribució per projecte",
-        noProjectAssigned:"Sense projecte assignat",byActivity:"Hores per tipus d'activitat",
-        byStatus:"Entrades per estat",noData:"Sense dades per a aquesta setmana amb els filtres actius.",
-        actMeetingClient:"Reunió Client",actMeetingUnigis:"Reunió UNIGIS",
-        actMeetingPresential:"Reunió Presencial",actMeetingInternal:"Reunió Interna",
-        actCommercial:"Comercial",actTask:"Tasca",actVacation:"Vacances",
-        actTravel:"Viatge",actSpecial:"Especial",resPending:"Pendent",
-        resOnHold:"En pausa",resDone:"Fet",resCancelled:"Cancel·lat",
     }
 };
