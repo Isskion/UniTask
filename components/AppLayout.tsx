@@ -246,7 +246,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
             <div className="flex flex-1 overflow-hidden">
                 {/* SIDEBAR (Desktop) */}
-                <aside className="w-64 flex flex-col border-r border-border bg-card/50">
+                <aside className="w-64 flex flex-col border-r border-border bg-card/50 print:hidden">
                     {/* Header / Logo */}
                     {/* Header / Logo */}
                     <div className="h-14 flex items-center px-4 border-b border-border/40 gap-3">
@@ -408,7 +408,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                 <main className="flex-1 flex flex-col min-w-0 bg-background">
 
                     {/* Global Header */}
-                    <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-background/80 backdrop-blur-md sticky top-0 z-40">
+                    <header className="h-14 border-b border-border flex items-center justify-between px-6 bg-background/80 backdrop-blur-md sticky top-0 z-40 print:hidden">
 
                         {/* Left: Breadcrumbs / Mobile Menu */}
                         <div className="flex items-center gap-4">
