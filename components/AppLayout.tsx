@@ -317,7 +317,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
                             <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                            <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                            <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                         </div>
 
                         {/* Secondary */}
@@ -334,7 +334,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
                             )}
 
-                            {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                            {getRoleLevel(userRole) >= RoleLevel.PM && (
                                 <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
                             )}
 
@@ -530,7 +530,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
                                 <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
-                                <NavItem mode="uniflux" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
+                                <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             </div>
 
                             {can('knowledgeBase', 'views') && (
@@ -549,7 +549,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
                                 )}
 
-                                {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                {getRoleLevel(userRole) >= RoleLevel.PM && (
                                     <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
                                 )}
 

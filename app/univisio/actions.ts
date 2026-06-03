@@ -52,6 +52,99 @@ interface AnalyzeStep {
     operativeDesc: string;
 }
 
+const stepSchema: Schema = {
+    type: SchemaType.OBJECT,
+    properties: {
+        step: { type: SchemaType.INTEGER, description: 'Incremental index' },
+        title: { type: SchemaType.STRING, description: 'Step title / action name (e.g. RUTEO CON VALIDACIÓN)' },
+        subtitle: { type: SchemaType.STRING, description: 'Step subtitle / short goal description (e.g. Armado de Rutas y Control de Cambios)' },
+        systems: { type: SchemaType.STRING, description: 'Participating systems and flow (e.g. TMS (Algoritmo + Validación Manual))' },
+        phase: { type: SchemaType.STRING, description: 'Global phase of the workflow to group related steps (e.g. FASE 1 — RECEPCIÓN Y VALIDACIÓN)' },
+        stateChanges: {
+            type: SchemaType.ARRAY,
+            items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                    entity: { type: SchemaType.STRING, description: 'The entity being modified (e.g. RUTA, ORDEN, PEDIDO)' },
+                    from: { type: SchemaType.STRING, description: 'Previous state before this step (e.g. POR RUTEAR)' },
+                    to: { type: SchemaType.STRING, description: 'New state after this step (e.g. VALIDADA)' }
+                },
+                required: ['entity', 'from', 'to']
+            },
+            description: 'Structured list of state changes per entity'
+        },
+        conditionalPaths: {
+            type: SchemaType.ARRAY,
+            items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                    condition: { type: SchemaType.STRING, description: 'Condition trigger (e.g. Si cambios manuales)' },
+                    action: { type: SchemaType.STRING, description: 'Triggered action or interface (e.g. Interfaz #4 al ERP)' }
+                },
+                required: ['condition', 'action']
+            },
+            description: 'Conditional bifurcations or actions'
+        },
+        actor: { type: SchemaType.STRING, description: 'Swimlane or actor executing the step' },
+        origin: { type: SchemaType.STRING, description: 'System or entity providing the data' },
+        destination: { type: SchemaType.STRING, description: 'System or entity consuming the data' },
+        event: { type: SchemaType.STRING, description: 'API call, trigger or transition event description' },
+        resultState: { type: SchemaType.STRING, description: 'Resulting state of the object in the database/system' },
+        actionType: { type: SchemaType.STRING, description: 'Action type description (e.g. Humana, Automática, Integración or combined like "Automática + Humana")' },
+        precondition: { type: SchemaType.STRING, description: 'Required previous state' },
+        exception: { type: SchemaType.STRING, description: 'Error path, timeout or alternative state' },
+        rule: { type: SchemaType.STRING, description: 'Business rules or validations' },
+        linkedNodeId: { type: SchemaType.STRING, description: 'The matching Node ID from the GraphJSON (or sequence ID for visual images)' },
+        coveredNodeIds: {
+            type: SchemaType.ARRAY,
+            items: { type: SchemaType.STRING },
+            description: 'All node IDs from the graph covered by this step, including linkedNodeId'
+        },
+        confidence: { type: SchemaType.NUMBER, description: 'Confidence score from 0.0 to 1.0' },
+        interfaceRefs: {
+            type: SchemaType.ARRAY,
+            items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                    num: { type: SchemaType.INTEGER, description: 'Interface identification number (e.g. 4)' },
+                    name: { type: SchemaType.STRING, description: 'Descriptive interface name (e.g. Confirmación Carga)' },
+                    direction: { type: SchemaType.STRING, description: 'Data direction flow (e.g. TMS → ERP)' },
+                    data: { type: SchemaType.STRING, description: 'Main data carried (e.g. VIAJE: CARGADO)' },
+                    criticality: { 
+                        type: SchemaType.STRING, 
+                        format: 'enum', 
+                        enum: ['CRÍTICA', 'ALTA', 'MEDIA', 'INFORMATIVA'],
+                        description: 'Criticality level of this integration'
+                    }
+                },
+                required: ['num', 'name', 'direction', 'data', 'criticality']
+            },
+            description: 'Integrations or interfaces referenced in this step'
+        },
+        isLoop: { type: SchemaType.BOOLEAN, description: 'True if this step is part of a loop or repeated workflow' },
+        loopNote: { type: SchemaType.STRING, nullable: true, description: 'Note about the loop repeat condition or count' },
+        operativeDesc: { type: SchemaType.STRING, description: 'Operative description paragraph in natural language (3-5 sentences in Spanish, explaining what, why, and conditions, including OK/KO outcomes)' }
+    },
+    required: [
+        'step', 'title', 'subtitle', 'systems', 'phase', 'stateChanges', 'conditionalPaths',
+        'actor', 'origin', 'destination', 'event', 'resultState',
+        'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'coveredNodeIds', 'confidence',
+        'interfaceRefs', 'isLoop', 'loopNote', 'operativeDesc'
+    ]
+};
+
+const responseSchema: Schema = {
+    type: SchemaType.OBJECT,
+    properties: {
+        steps: {
+            type: SchemaType.ARRAY,
+            items: stepSchema,
+            description: 'Ordered list of steps'
+        }
+    },
+    required: ['steps']
+};
+
 /**
  * Analyzes a sub-graph of nodes and edges alongside an optional cropped image
  * to extract semantic details of each step in the workflow.
@@ -74,30 +167,22 @@ For each step/node in the sub-flow, you must determine the following details:
 3. subtitle: Subtitle / brief goal description of the step (e.g., "Armado de Rutas y Control de Cambios").
 4. systems: Systems participating and flow direction (e.g., "TMS (Algoritmo + Validación Manual)" or "ERP → TMS").
 5. phase: Global phase group this step belongs to (e.g., "FASE 1 — RECEPCIÓN Y VALIDACIÓN"). Steps in the same sequence of actions should share the exact same phase name.
-6. stateChanges: List of objects representing state changes for each entity modified in this step. Each object must have:
-   - entity: The business entity name (e.g., "PEDIDO", "ORDEN", "RUTA", "VIAJE").
-   - from: Previous state (e.g., "CREADO", "POR RUTEAR", "PREPARADO").
-   - to: Resulting state (e.g., "A PREPARACIÓN", "RUTEADA", "RUTEADO", "VALIDADA").
+6. stateChanges: List of objects representing state changes for each entity modified in this step.
 7. conditionalPaths: If there are branches/conditions (e.g., "Si cambios manuales"), describe the condition and the action.
 8. actor: The swimlane or actor executing the action (e.g. system name, user role).
 9. origin: System or entity providing the data.
 10. destination: System or entity consuming/receiving the data.
 11. event: Trigger, API call or event name.
 12. resultState: Resulting state description.
-13. actionType: Description of action type (e.g., 'Humana', 'Automática', 'Integración', or combined like 'Automática + Humana').
+13. actionType: Description of action type.
 14. precondition: Required state before executing this step.
 15. exception: Rejection paths, alternative paths, or KO scenarios.
 16. rule: Business rules, thresholds, validations.
-17. linkedNodeId: The ID of the shape/node from the provided JSON graph that best represents this step (single node, the most semantically central one).
-17b. coveredNodeIds: Array with the IDs of ALL nodes from the graph that this step absorbs or represents. Must include linkedNodeId. Include auxiliary nodes, decision points, and annotations that are semantically part of this step. If only one node maps to this step, return an array with just that one ID.
+17. linkedNodeId: The ID of the shape/node from the provided JSON graph that best represents this step.
+17b. coveredNodeIds: Array with the IDs of ALL nodes from the graph that this step absorbs or represents.
 18. confidence: Your confidence score from 0.0 to 1.0.
-19. interfaceRefs: If this transition uses an interface or integration, reference it with:
-    - num: Interface ID number (e.g. 4).
-    - name: descriptive interface name (e.g. Confirmación Carga).
-    - direction: direction flow (e.g. TMS → ERP).
-    - data: data transported (e.g. VIAJE: CARGADO).
-    - criticality: CRÍTICA | ALTA | MEDIA | INFORMATIVA.
-20. isLoop: True if this step is part of a loop (e.g. repeated N times or has return arrows in the graph).
+19. interfaceRefs: If this transition uses an interface or integration, reference it.
+20. isLoop: True if this step is part of a loop.
 21. loopNote: Optional explanation of loop conditions (or null).
 22. operativeDesc: Párrafo de 3 a 5 frases en español explicando qué ocurre, por qué, y qué pasa en escenarios OK y KO (escenario de fallo). Tono técnico-operativo.
 
@@ -106,7 +191,6 @@ CRITICAL RULES:
 - Match each step to its corresponding Node ID in the graph using the 'linkedNodeId' field.
 `;
 
-        // Override referrer to 'http://localhost:3000' because the API Key is restricted to localhost
         const referer = 'http://localhost:3000';
 
         const model = genAI.getGenerativeModel({
@@ -127,7 +211,6 @@ Please analyze the above graph and return the step-by-step table matching the re
 
         const parts: any[] = [{ text: prompt }];
 
-        // If an image is provided, include it in the multimodal request
         if (imageBase64) {
             const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
             parts.unshift({
@@ -145,99 +228,6 @@ Please analyze the above graph and return the step-by-step table matching the re
             }
         ];
 
-        const stepSchema: Schema = {
-            type: SchemaType.OBJECT,
-            properties: {
-                step: { type: SchemaType.INTEGER, description: 'Incremental index' },
-                title: { type: SchemaType.STRING, description: 'Step title / action name (e.g. RUTEO CON VALIDACIÓN)' },
-                subtitle: { type: SchemaType.STRING, description: 'Step subtitle / short goal description (e.g. Armado de Rutas y Control de Cambios)' },
-                systems: { type: SchemaType.STRING, description: 'Participating systems and flow (e.g. TMS (Algoritmo + Validación Manual))' },
-                phase: { type: SchemaType.STRING, description: 'Global phase of the workflow to group related steps (e.g. FASE 1 — RECEPCIÓN Y VALIDACIÓN)' },
-                stateChanges: {
-                    type: SchemaType.ARRAY,
-                    items: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            entity: { type: SchemaType.STRING, description: 'The entity being modified (e.g. RUTA, ORDEN, PEDIDO)' },
-                            from: { type: SchemaType.STRING, description: 'Previous state before this step (e.g. POR RUTEAR)' },
-                            to: { type: SchemaType.STRING, description: 'New state after this step (e.g. VALIDADA)' }
-                        },
-                        required: ['entity', 'from', 'to']
-                    },
-                    description: 'Structured list of state changes per entity'
-                },
-                conditionalPaths: {
-                    type: SchemaType.ARRAY,
-                    items: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            condition: { type: SchemaType.STRING, description: 'Condition trigger (e.g. Si cambios manuales)' },
-                            action: { type: SchemaType.STRING, description: 'Triggered action or interface (e.g. Interfaz #4 al ERP)' }
-                        },
-                        required: ['condition', 'action']
-                    },
-                    description: 'Conditional bifurcations or actions'
-                },
-                actor: { type: SchemaType.STRING, description: 'Swimlane or actor executing the step' },
-                origin: { type: SchemaType.STRING, description: 'System or entity providing the data' },
-                destination: { type: SchemaType.STRING, description: 'System or entity consuming the data' },
-                event: { type: SchemaType.STRING, description: 'API call, trigger or transition event description' },
-                resultState: { type: SchemaType.STRING, description: 'Resulting state of the object in the database/system' },
-                actionType: { type: SchemaType.STRING, description: 'Action type description (e.g. Humana, Automática, Integración or combined like "Automática + Humana")' },
-                precondition: { type: SchemaType.STRING, description: 'Required previous state' },
-                exception: { type: SchemaType.STRING, description: 'Error path, timeout or alternative state' },
-                rule: { type: SchemaType.STRING, description: 'Business rules or validations' },
-                linkedNodeId: { type: SchemaType.STRING, description: 'The matching Node ID from the GraphJSON' },
-                coveredNodeIds: {
-                    type: SchemaType.ARRAY,
-                    items: { type: SchemaType.STRING },
-                    description: 'All node IDs from the graph covered by this step, including linkedNodeId'
-                },
-                confidence: { type: SchemaType.NUMBER, description: 'Confidence score from 0.0 to 1.0' },
-                interfaceRefs: {
-                    type: SchemaType.ARRAY,
-                    items: {
-                        type: SchemaType.OBJECT,
-                        properties: {
-                            num: { type: SchemaType.INTEGER, description: 'Interface identification number (e.g. 4)' },
-                            name: { type: SchemaType.STRING, description: 'Descriptive interface name (e.g. Confirmación Carga)' },
-                            direction: { type: SchemaType.STRING, description: 'Data direction flow (e.g. TMS → ERP)' },
-                            data: { type: SchemaType.STRING, description: 'Main data carried (e.g. VIAJE: CARGADO)' },
-                            criticality: { 
-                                type: SchemaType.STRING, 
-                                format: 'enum', 
-                                enum: ['CRÍTICA', 'ALTA', 'MEDIA', 'INFORMATIVA'],
-                                description: 'Criticality level of this integration'
-                            }
-                        },
-                        required: ['num', 'name', 'direction', 'data', 'criticality']
-                    },
-                    description: 'Integrations or interfaces referenced in this step'
-                },
-                isLoop: { type: SchemaType.BOOLEAN, description: 'True if this step is part of a loop or repeated workflow' },
-                loopNote: { type: SchemaType.STRING, nullable: true, description: 'Note about the loop repeat condition or count' },
-                operativeDesc: { type: SchemaType.STRING, description: 'Operative description paragraph in natural language (3-5 sentences in Spanish, explaining what, why, and conditions, including OK/KO outcomes)' }
-            },
-            required: [
-                'step', 'title', 'subtitle', 'systems', 'phase', 'stateChanges', 'conditionalPaths',
-                'actor', 'origin', 'destination', 'event', 'resultState',
-                'actionType', 'precondition', 'exception', 'rule', 'linkedNodeId', 'coveredNodeIds', 'confidence',
-                'interfaceRefs', 'isLoop', 'loopNote', 'operativeDesc'
-            ]
-        };
-
-        const responseSchema: Schema = {
-            type: SchemaType.OBJECT,
-            properties: {
-                steps: {
-                    type: SchemaType.ARRAY,
-                    items: stepSchema,
-                    description: 'Ordered list of steps'
-                }
-            },
-            required: ['steps']
-        };
-
         const result = await model.generateContent({
             contents,
             generationConfig: {
@@ -252,6 +242,106 @@ Please analyze the above graph and return the step-by-step table matching the re
     } catch (e: any) {
         console.error('Error in analyzeSubflowWithGemini server action:', e);
         return { success: false, error: e.message || 'Failed to analyze subflow.' };
+    }
+}
+
+/**
+ * Analyzes a visual diagram flowchart image (Base64) to transcribe and compile
+ * its steps into a structured workflow documentation table.
+ */
+export async function analyzeDiagramImageWithGemini(
+    imageBase64: string,
+    userInstruction?: string
+): Promise<{ success: boolean; steps?: AnalyzeStep[]; error?: string }> {
+    try {
+        if (!apiKey) {
+            throw new Error('GEMINI_API_KEY environment variable is not configured on the server.');
+        }
+
+        const systemInstruction = `
+You are the UniVisio Visual Flowchart Compiler. Your job is to analyze a flowchart diagram image (PNG/JPG) and convert it into a highly rigid, detailed step-by-step documentation table with a dual-layer representation.
+
+For each step/node identified in the flowchart image, determine the following details:
+1. step: Incremental index of the step (starting from 1).
+2. title: Main name of the step.
+3. subtitle: Subtitle / brief goal description of the step.
+4. systems: Systems participating and flow direction.
+5. phase: Global phase group this step belongs to.
+6. stateChanges: List of objects representing state changes for each entity modified in this step.
+7. conditionalPaths: If there are branches/conditions, describe the condition and the action.
+8. actor: The swimlane or actor executing the action.
+9. origin: System or entity providing the data.
+10. destination: System or entity consuming/receiving the data.
+11. event: Trigger, API call or event name.
+12. resultState: Resulting state description.
+13. actionType: Description of action type.
+14. precondition: Required state before executing this step.
+15. exception: Rejection paths, alternative paths, or KO scenarios.
+16. rule: Business rules, thresholds, validations.
+17. linkedNodeId: A generated identifier representing the step in the image (e.g., "shape_1").
+17b. coveredNodeIds: Array with the generated ID representing this step (e.g., ["shape_1"]).
+18. confidence: Your confidence score from 0.0 to 1.0.
+19. interfaceRefs: If this transition uses an interface or integration, reference it.
+20. isLoop: True if this step is part of a loop.
+21. loopNote: Optional explanation of loop conditions (or null).
+22. operativeDesc: Párrafo de 3 a 5 frases en español explicando qué ocurre, por qué, y qué pasa en escenarios OK y KO (escenario de fallo). Tono técnico-operativo.
+`;
+
+        const referer = 'http://localhost:3000';
+
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-2.5-flash',
+            systemInstruction: systemInstruction
+        }, {
+            customHeaders: {
+                'Referer': referer
+            }
+        });
+
+        const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+
+        let mimeType = 'image/png';
+        const match = imageBase64.match(/^data:(image\/\w+);base64,/);
+        if (match && match[1]) {
+            mimeType = match[1];
+        }
+
+        const parts: any[] = [
+            {
+                inlineData: {
+                    data: cleanBase64,
+                    mimeType: mimeType
+                }
+            }
+        ];
+
+        let prompt = 'Analyze the attached flowchart image and extract all its steps into the requested structured table.';
+        if (userInstruction && userInstruction.trim()) {
+            prompt += `\nAdditional user guidelines:\n${userInstruction}`;
+        }
+        parts.push({ text: prompt });
+
+        const contents = [
+            {
+                role: 'user',
+                parts: parts
+            }
+        ];
+
+        const result = await model.generateContent({
+            contents,
+            generationConfig: {
+                responseMimeType: 'application/json',
+                responseSchema: responseSchema
+            } as any
+        });
+
+        const text = result.response.text();
+        const parsed = JSON.parse(text);
+        return { success: true, steps: parsed.steps };
+    } catch (e: any) {
+        console.error('Error in analyzeDiagramImageWithGemini server action:', e);
+        return { success: false, error: e.message || 'Failed to analyze diagram image.' };
     }
 }
 

@@ -451,7 +451,10 @@ export const ROLE_LEVEL_MAP: Record<string, number> = {
     'client': RoleLevel.CLIENT,
     'team_member': RoleLevel.TEAM_MEMBER,
     'consultant': RoleLevel.CONSULTANT,
+    'pm': RoleLevel.PM,
+    'project_manager': RoleLevel.PM,
     'global_pm': RoleLevel.PM,
+    'admin': RoleLevel.ADMIN,
     'app_admin': RoleLevel.ADMIN,
     'superadmin': RoleLevel.SUPERADMIN,
     // Legacy fallbacks (to be removed after migration)

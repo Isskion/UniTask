@@ -55,6 +55,7 @@ import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added
 import RelevamientoTool from "./relevamiento/RelevamientoTool";
 import ProjectMonitoringDashboard from "./relevamiento/ProjectMonitoringDashboard";
 import { ProjectInterfaces } from "./ProjectInterfaces";
+import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
 
 // Helper to map language string to date-fns locale
@@ -2463,6 +2464,8 @@ export default function DailyFollowUp() {
                             <AvailabilityManager />
                         ) : viewMode === 'availability-registry' ? (
                             <AvailabilityRegistry />
+                        ) : viewMode === 'uniflux' ? (
+                            <UnifluxWorkspace />
                         ) : viewMode === 'unidocs' ? (
                             <UniDocsManagement />
                         ) : viewMode === 'relevamiento' ? (

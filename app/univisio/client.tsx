@@ -14,7 +14,8 @@ import * as XLSX from 'xlsx';
 import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { useTenantQuery } from '@/hooks/useTenantQuery';
-import { getDocs } from 'firebase/firestore';
+import { getDocs, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { saveUniVisioSession, getProjectSessions, updateUniVisioSession } from '@/lib/univisio';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -126,6 +127,7 @@ export default function ClientPage() {
     const [showSkippedList, setShowSkippedList] = useState<boolean>(false);
     const [selectedSessionIds, setSelectedSessionIds] = useState<string[]>([]);
     const [consolidatorSteps, setConsolidatorSteps] = useState<TableRow[]>([]);
+    const [clientLogo, setClientLogo] = useState<string | null>(null);
     
     // Fetch projects on mount
     useEffect(() => {
@@ -145,6 +147,40 @@ export default function ClientPage() {
             setSessions([]);
         }
     }, [selectedProjectId]);
+
+    // Load client logo when project changes
+    useEffect(() => {
+        if (!selectedProjectId) {
+            setClientLogo(null);
+            return;
+        }
+        let isMounted = true;
+        const loadClientLogo = async () => {
+            try {
+                const project = projects.find(p => p.id === selectedProjectId);
+                if (project && (project as any).clientLogoUrl && typeof (project as any).clientLogoUrl === 'string' && (project as any).clientLogoUrl.trim() !== '') {
+                    if (isMounted) setClientLogo((project as any).clientLogoUrl);
+                } else {
+                    const docsSnap = await getDocs(collection(db, "projects", selectedProjectId, "documents"));
+                    let logoDoc = docsSnap.docs.find(d => d.data().typeCode?.toUpperCase() === 'LOGO');
+                    if (!logoDoc) logoDoc = docsSnap.docs.find(d => d.data().name?.toUpperCase().includes('LOGO'));
+                    if (!logoDoc) logoDoc = docsSnap.docs.find(d => (d.data().type || '').toLowerCase().startsWith('image/') && d.data().url);
+                    if (logoDoc && isMounted) {
+                        const data = logoDoc.data();
+                        const logoUrl = data.url || data.fileUrl || data.downloadURL;
+                        if (logoUrl) setClientLogo(logoUrl);
+                    } else {
+                        if (isMounted) setClientLogo(null);
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading client logo for univisio:", e);
+                if (isMounted) setClientLogo(null);
+            }
+        };
+        loadClientLogo();
+        return () => { isMounted = false; };
+    }, [selectedProjectId, projects]);
 
     const handleProjectChange = (newProjectId: string) => {
         if (isDirty) {
@@ -1874,7 +1910,7 @@ export default function ClientPage() {
             <div className="flex flex-1 overflow-hidden min-h-0">
                 
                 {/* Left panel: File drop and page details */}
-                <div className="w-80 border-r border-zinc-800 bg-zinc-900/60 p-5 flex flex-col gap-6 overflow-y-auto">
+                <div className="w-80 border-r border-zinc-800 bg-zinc-900/60 p-5 flex flex-col gap-6 overflow-y-auto print:hidden">
                     <div>
                         <h2 className="text-xl font-bold text-red-500 flex items-center gap-2">
                             <Network className="w-5 h-5" /> UniVisio
@@ -2156,7 +2192,37 @@ export default function ClientPage() {
                 </div>
 
                 {/* Center Workspace: Table rendering */}
-                <div className="flex-1 flex flex-col min-w-0 bg-zinc-950 print:bg-white print:text-black">
+                <div className="flex-1 flex flex-col min-w-0 bg-zinc-950 print:bg-white print:text-black relative">
+                    
+                    {/* Marca de agua de UNIGIS para impresión (10% transparencia) */}
+                    <div className="hidden print:flex fixed inset-0 items-center justify-center pointer-events-none z-0 opacity-10">
+                        <img 
+                            src="/LogoApp.jpg" 
+                            alt="UNIGIS Watermark" 
+                            className="w-[500px] h-[500px] object-contain" 
+                        />
+                    </div>
+
+                    {/* Cabecera de impresión (sólo visible al imprimir) */}
+                    <div className="hidden print:flex items-center justify-between border-b border-zinc-300 pb-4 mb-6 z-10">
+                        <div className="flex flex-col">
+                            <h1 className="text-2xl font-black uppercase tracking-wide text-zinc-900">
+                                {sessionNameInput || "Flujo sin nombre"}
+                            </h1>
+                            <p className="text-xs text-zinc-500 mt-1 font-semibold">
+                                Proyecto: {projects.find(p => p.id === selectedProjectId)?.name || ""}
+                            </p>
+                        </div>
+                        {clientLogo ? (
+                            <img 
+                                src={clientLogo} 
+                                alt="Logo Cliente" 
+                                className="max-h-16 object-contain" 
+                            />
+                        ) : (
+                            <div className="h-16" />
+                        )}
+                    </div>
                     
                     {/* Toolbar */}
                     <div className="h-14 border-b border-zinc-800 px-6 flex items-center justify-between bg-zinc-900/40 shrink-0 print:hidden">

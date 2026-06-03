@@ -355,24 +355,66 @@
 
 /* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
 @media print {
-    .univisio-workspace * {
-        visibility: hidden;
-    }
-    .univisio-workspace main, 
-    .univisio-workspace .flex-1.overflow-auto, 
-    .univisio-workspace table, 
-    .univisio-workspace table * {
-        visibility: visible;
-    }
-    .univisio-workspace main {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    .univisio-workspace .flex-1.overflow-auto {
+    /* Reset heights, overflows, and flexboxes in the body parent wrapper chain to block layouts */
+    html, body, 
+    body > div,
+    body > div > div,
+    .univisio-workspace {
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
         overflow: visible !important;
+        position: static !important;
+        background: white !important;
+        color: black !important;
     }
+
+    /* Hide print-hidden elements completely */
+    .print\:hidden,
+    [class*="print:hidden"],
+    .univisio-workspace .print\:hidden,
+    .univisio-workspace [class*="print:hidden"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Adjust all inner layouts to be linear/block instead of locked flex screen dimensions */
+    .univisio-workspace,
+    .univisio-workspace .flex,
+    .univisio-workspace .flex-col,
+    .univisio-workspace .grid {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+
+    .univisio-workspace .flex-1,
+    .univisio-workspace .overflow-auto,
+    .univisio-workspace .custom-scrollbar {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+
+    /* Print tables correctly */
+    .univisio-workspace table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto !important;
+    }
+    
+    .univisio-workspace tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+    }
+
+    /* Ensure textareas, inputs and select boxes render text cleanly */
     .univisio-workspace input, 
     .univisio-workspace textarea, 
     .univisio-workspace select {
@@ -382,8 +424,21 @@
         padding: 0 !important;
         color: black !important;
         resize: none !important;
+        height: auto !important;
+        width: 100% !important;
+    }
+
+    /* Style the cards (relato/narrative view) for print */
+    .univisio-workspace .border.rounded-xl {
+        border: 1px solid #ccc !important;
+        margin-bottom: 1.5rem !important;
+        page-break-inside: avoid !important;
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
     }
 }
+
 
 /* Light Theme Overrides for UniVisio */
 :root[data-theme="light"] .univisio-workspace,
@@ -442,6 +497,58 @@
 :root[data-theme="light"] .univisio-workspace .focus\:bg-zinc-900:focus {
     background-color: #f3f4f6 !important;
 }
+
+/* Light Theme Styling Overrides for buttons, headers, and text contrasts */
+:root[data-theme="light"] .univisio-workspace .bg-red-600,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"],
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"] {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-red-600 *,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"] *,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"] * {
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"]:hover,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"]:hover,
+:root[data-theme="light"] .univisio-workspace .hover\:bg-red-500:hover,
+:root[data-theme="light"] .univisio-workspace .hover\:bg-red-700:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-white {
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-red-700,
+:root[data-theme="light"] .univisio-workspace .text-red-600,
+:root[data-theme="light"] .univisio-workspace .text-red-500 {
+    color: #b91c1c !important;
+}
+:root[data-theme="light"] .univisio-workspace tr[class*="bg-red-50"] {
+    background-color: #fef2f2 !important;
+}
+:root[data-theme="light"] .univisio-workspace td[class*="text-red-700"] {
+    color: #b91c1c !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800,
+:root[data-theme="light"] .univisio-workspace [class*="bg-zinc-800"] {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/80,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/60,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/50,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-850 {
+    background-color: #e5e7eb !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-400 {
+    color: #4b5563 !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-500 {
+    color: #6b7280 !important;
+}
+
 
 /* Red Theme Overrides for UniVisio */
 :root[data-theme="red"] .univisio-workspace,

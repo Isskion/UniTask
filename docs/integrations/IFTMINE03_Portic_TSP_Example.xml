@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IFTMINE03 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- 
+    EJEMPLO DE INTEGRACIÓN PORTIC IFTMINE03 PARA CLIENTE TSP
+    ESCENARIO: Actualización de contenedor proveniente de Maersk en Puerto
+  -->
+  
+  <!-- =================================================================== -->
+  <!-- CABECERA DE MENSAJE                                                 -->
+  <!-- =================================================================== -->
+  <IFTMINE03.HEADER>
+    <anxs_interchange.header>
+      <!-- Envelope info (Sender, Recipient, DateTime) -->
+    </anxs_interchange.header>
+    <anxs_message.header>
+      <e0062_message.reference.number>0001992</e0062_message.reference.number>
+      <c002_message.identifier>
+        <e0065_message.type>IFTMINE03</e0065_message.type>
+      </c002_message.identifier>
+    </anxs_message.header>
+    <trsd_beginning.of.message>
+      <c002_document.message.name>
+        <e1001_document.name.code>610</e1001_document.name.code> <!-- Forwarding instruction -->
+      </c002_document.message.name>
+      <c106_document.message.identification>
+        <e1004_document.number>MSG-PORTIC-TSP-7765</e1004_document.number>
+      </c106_document.message.identification>
+      <e1225_message.function.code>9</e1225_message.function.code> <!-- Original / Update -->
+    </trsd_beginning.of.message>
+    <trcd_date.time.period>
+      <c507_date.time.period>
+        <e2005_date.time.period.qualifier>137</e2005_date.time.period.qualifier> <!-- Document date -->
+        <e2380_date.time.period>202605131745</e2380_date.time.period>
+        <e2379_date.time.period.format.qualifier>203</e2379_date.time.period.format.qualifier>
+      </c507_date.time.period>
+    </trcd_date.time.period>
+  </IFTMINE03.HEADER>
+
+  <!-- =================================================================== -->
+  <!-- GROUP 3: REFERENCIAS (CLAVE DE CRUCE / JOIN)                        -->
+  <!-- =================================================================== -->
+  
+  <!-- Referencia 1: WORKORDER (Nuestra clave de JOIN) -->
+  <IFTMINE03.GROUP3>
+    <trsd_reference>
+      <c506_reference>
+        <e1153_reference.code.qualifier>WO</e1153_reference.code.qualifier> <!-- Workorder Number -->
+        <e1154_reference.identifier>WO-MAERSK-998811</e1154_reference.identifier> <!-- CLAVE JOIN -->
+      </c506_reference>
+    </trsd_reference>
+  </IFTMINE03.GROUP3>
+
+  <!-- Referencia 2: Booking Number de Maersk -->
+  <IFTMINE03.GROUP3>
+    <trsd_reference>
+      <c506_reference>
+        <e1153_reference.code.qualifier>BN</e1153_reference.code.qualifier> <!-- Booking reference number -->
+        <e1154_reference.identifier>BKG987654321</e1154_reference.identifier>
+      </c506_reference>
+    </trsd_reference>
+  </IFTMINE03.GROUP3>
+
+  <!-- =================================================================== -->
+  <!-- GROUP 8: DETALLES DE TRANSPORTE (Obligatorio en XSD)                -->
+  <!-- =================================================================== -->
+  <IFTMINE03.GROUP8>
+    <trsd_details.of.transport>
+      <e8051_transport.stage.code.qualifier>20</e8051_transport.stage.code.qualifier> <!-- Main-carriage -->
+      <c220_mode.of.transport>
+        <e8067_transport.mode.name.code>1</e8067_transport.mode.name.code> <!-- Maritime -->
+      </c220_mode.of.transport>
+      <c040_carrier>
+        <e3127_carrier.identifier>MAEU</e3127_carrier.identifier> <!-- Maersk Line -->
+        <e3055_code.list.responsible.agency.code>166</e3055_code.list.responsible.agency.code> <!-- BIC -->
+      </c040_carrier>
+    </trsd_details.of.transport>
+  </IFTMINE03.GROUP8>
+
+  <!-- =================================================================== -->
+  <!-- GROUP 11: ENTIDADES Y UBICACIONES (Donde se aloja)                  -->
+  <!-- =================================================================== -->
+  <IFTMINE03.GROUP11>
+    <trsd_name.and.address>
+      <e3035_party.function.code.qualifier>CN</e3035_party.function.code.qualifier> <!-- Consignee -->
+      <c082_party.identification.details>
+        <e3039_party.identifier>TSP_LOGISTICS</e3039_party.identifier>
+      </c082_party.identification.details>
+    </trsd_name.and.address>
+    
+    <!-- UBICACIÓN EXACTA DENTRO DE LA TERMINAL -->
+    <trsd_place.location.identification>
+      <e3227_location.function.code.qualifier>11</e3227_location.function.code.qualifier> <!-- Place of discharge -->
+      <c517_location.identification>
+        <e3225_location.identifier>APMT-BARCELONA-B7-P12</e3225_location.identifier> <!-- Terminal APMT Bloque 7 Puesto 12 -->
+        <e3055_code.list.responsible.agency.code>139</e3055_code.list.responsible.agency.code> <!-- Portic Code -->
+      </c517_location.identification>
+    </trsd_place.location.identification>
+  </IFTMINE03.GROUP11>
+
+  <!-- =================================================================== -->
+  <!-- GROUP 37: EQUIPAMIENTO (Nº Contenedor y Datos Técnicos)            -->
+  <!-- =================================================================== -->
+  <IFTMINE03.GROUP37>
+    <trsd_equipment.details>
+      <e8053_equipment.type.code.qualifier>CN</e8053_equipment.type.code.qualifier> <!-- Container -->
+      <c237_equipment.identification>
+        <e8260_equipment.identifier>MSKU9011225</e8260_equipment.identifier> <!-- Nº CONTENEDOR REAL -->
+      </c237_equipment.identification>
+      <c224_equipment.size.and.type>
+        <e8155_equipment.size.and.type.description.code>45G1</e8155_equipment.size.and.type.description.code> <!-- 40' High Cube -->
+      </c224_equipment.size.and.type>
+      <e8169_full.or.empty.indicator.code>5</e8169_full.or.empty.indicator.code> <!-- Full -->
+    </trsd_equipment.details>
+  </IFTMINE03.GROUP37>
+</IFTMINE03>
