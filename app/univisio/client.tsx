@@ -309,13 +309,16 @@ export default function ClientPage() {
         activeNodeIds?: Set<string>
     ): TableRow[] => {
         let filteredPrev = prevRows;
-        if (activeNodeIds) {
+        // Solo reemplazar filas del lote activo en modo análisis limpio.
+        // En modo "conservar progreso" (archivos VSDX separados comparten pagePath "page1.xml")
+        // los IDs de nodo colisionan entre archivos — nunca filtrar filas existentes.
+        if (activeNodeIds && !keepProgressRef.current) {
             filteredPrev = prevRows.filter(r => {
                 if (!r.linkedNodeId) return true;
                 if (!activeNodeIds.has(r.linkedNodeId)) return true;
-                if (!r.pagePath) return true;            // sin página asignada → conservar (IDs Visio se repiten entre páginas)
-                if (r.pagePath !== selectedPage) return true; // página distinta → conservar
-                return false; // misma página y en lote activo → reemplazar
+                if (!r.pagePath) return true;
+                if (r.pagePath !== selectedPage) return true;
+                return false;
             });
         }
 
