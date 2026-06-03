@@ -109,8 +109,8 @@ CRITICAL RULES:
         // Override referrer to 'http://localhost:3000' because the API Key is restricted to localhost
         const referer = 'http://localhost:3000';
 
-        const model = genAI.getGenerativeModel({ 
-            model: 'gemini-2.5-pro',
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-2.0-flash',
             systemInstruction: systemInstruction
         }, {
             customHeaders: {

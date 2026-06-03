@@ -313,8 +313,9 @@ export default function ClientPage() {
             filteredPrev = prevRows.filter(r => {
                 if (!r.linkedNodeId) return true;
                 if (!activeNodeIds.has(r.linkedNodeId)) return true;
-                if (r.pagePath && selectedPage && r.pagePath !== selectedPage) return true;
-                return false;
+                if (!r.pagePath) return true;            // sin página asignada → conservar (IDs Visio se repiten entre páginas)
+                if (r.pagePath !== selectedPage) return true; // página distinta → conservar
+                return false; // misma página y en lote activo → reemplazar
             });
         }
 
@@ -804,19 +805,23 @@ export default function ClientPage() {
             initializeNodeMap(orderedNodes, extractedEdges);
             setSwimlanes(extractedSwimlanesSet.size > 0 ? Array.from(extractedSwimlanesSet) : ['General']);
 
-            // Lazy migration: associate existing rows for nodes on this page with this pagePath
-            const activeNodeIds = new Set(orderedNodes.map(n => n.id));
-            setTableRows(prev => {
-                let changed = false;
-                const next = prev.map(row => {
-                    if (row.linkedNodeId && activeNodeIds.has(row.linkedNodeId) && !row.pagePath) {
-                        changed = true;
-                        return { ...row, pagePath };
-                    }
-                    return row;
+            // Lazy migration: sólo en análisis limpio (sin progreso previo).
+            // En modo multi-página los IDs de Visio se repiten entre páginas y la migración
+            // estamparía el pagePath incorrecto en filas de otras páginas.
+            if (!keepProgressRef.current) {
+                const migrationNodeIds = new Set(orderedNodes.map(n => n.id));
+                setTableRows(prev => {
+                    let changed = false;
+                    const next = prev.map(row => {
+                        if (row.linkedNodeId && migrationNodeIds.has(row.linkedNodeId) && !row.pagePath) {
+                            changed = true;
+                            return { ...row, pagePath };
+                        }
+                        return row;
+                    });
+                    return changed ? next : prev;
                 });
-                return changed ? next : prev;
-            });
+            }
 
             // Auto-generate preliminary doubts
             generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList);
