@@ -310,7 +310,12 @@ export default function ClientPage() {
     ): TableRow[] => {
         let filteredPrev = prevRows;
         if (activeNodeIds) {
-            filteredPrev = prevRows.filter(r => !r.linkedNodeId || !activeNodeIds.has(r.linkedNodeId));
+            filteredPrev = prevRows.filter(r => {
+                if (!r.linkedNodeId) return true;
+                if (!activeNodeIds.has(r.linkedNodeId)) return true;
+                if (r.pagePath && selectedPage && r.pagePath !== selectedPage) return true;
+                return false;
+            });
         }
 
         if (nodes.length === 0) {
@@ -420,6 +425,7 @@ export default function ClientPage() {
                     exception: step.exception || '-',
                     rule: step.rule || '-',
                     linkedNodeId: step.linkedNodeId || '',
+                    pagePath: selectedPage,
                     coveredNodeIds: step.coveredNodeIds || [],
                     confidence: step.confidence || 1.0,
                     interfaceRefs: step.interfaceRefs || [],
@@ -798,7 +804,21 @@ export default function ClientPage() {
             initializeNodeMap(orderedNodes, extractedEdges);
             setSwimlanes(extractedSwimlanesSet.size > 0 ? Array.from(extractedSwimlanesSet) : ['General']);
 
-            // Auto-generate preliminary topology doubts
+            // Lazy migration: associate existing rows for nodes on this page with this pagePath
+            const activeNodeIds = new Set(orderedNodes.map(n => n.id));
+            setTableRows(prev => {
+                let changed = false;
+                const next = prev.map(row => {
+                    if (row.linkedNodeId && activeNodeIds.has(row.linkedNodeId) && !row.pagePath) {
+                        changed = true;
+                        return { ...row, pagePath };
+                    }
+                    return row;
+                });
+                return changed ? next : prev;
+            });
+
+            // Auto-generate preliminary doubts
             generatePreliminaryDoubts(orderedNodes, extractedEdges, cyclesList);
 
             setParsingStatus('Grafo estructurado cargado correctamente.');
@@ -1275,6 +1295,7 @@ export default function ClientPage() {
                     exception: step.exception || '-',
                     rule: step.rule || '-',
                     linkedNodeId: step.linkedNodeId || '',
+                    pagePath: selectedPage,
                     coveredNodeIds: step.coveredNodeIds || [],
                     confidence: step.confidence || 1.0,
                     interfaceRefs: step.interfaceRefs || [],
@@ -1443,6 +1464,7 @@ export default function ClientPage() {
                 exception: '-',
                 rule: '-',
                 linkedNodeId: '',
+                pagePath: selectedPage,
                 confidence: 1.0,
                 interfaceRefs: [],
                 isLoop: false,

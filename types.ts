@@ -673,6 +673,7 @@ export interface TableRow {
     exception: string;
     rule: string;
     linkedNodeId: string;
+    pagePath?: string;
     coveredNodeIds?: string[];
     confidence: number;
     interfaceRefs: {
