@@ -605,9 +605,10 @@ export default function ClientPage() {
             setTableRows([]);
             setDoubts([]);
         }
-        
+
         setNodes([]);
         setEdges([]);
+        setActiveLoteIndex(0);
 
         const ext = selectedFile.name.split('.').pop()?.toLowerCase();
 
@@ -1269,7 +1270,8 @@ export default function ClientPage() {
 
         try {
             // Get sub-graph for active lote
-            const activeLote = lotes[activeLoteIndex];
+            const activeLote = lotes[activeLoteIndex] ?? lotes[0];
+            if (!activeLote) { setIsGenerating(false); return; }
             const activeNodeIds = new Set(activeLote.nodeIds);
             
             const subNodes = nodes.filter(n => activeNodeIds.has(n.id));
