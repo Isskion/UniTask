@@ -92,7 +92,8 @@ export const en = {
         unitask_tools: "Unitask Tools",
         relevamiento: "Project Survey",
         administration: "Administration",
-        unileaks: "UniLeaks"
+        unileaks: "UniLeaks",
+        univisio: "UniVisio"
     },
 
     "uni-order-manager": {

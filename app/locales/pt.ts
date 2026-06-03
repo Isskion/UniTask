@@ -94,7 +94,8 @@ export const pt: Dictionary = {
         unitask_tools: "Ferramentas Unitask",
         relevamiento: "Levantamento Projetos",
         administration: "Administração",
-        unileaks: "UniLeaks"
+        unileaks: "UniLeaks",
+        univisio: "UniVisio"
     },
 
     "uni-order-manager": {
