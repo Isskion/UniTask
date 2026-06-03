@@ -30,7 +30,9 @@ import {
     Sparkles,
     Calendar, // Added for DispoPlan
     LayoutTemplate,
-    Network
+    Network,
+    CalendarDays,
+    ClipboardCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -328,6 +330,14 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                             )}
 
+                            {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
+                            )}
+
+                            {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
+                            )}
+
                             {/* Consolidated Task Master Data (Global PM+) */}
                             {getRoleLevel(userRole) >= RoleLevel.PM && (
                                 <NavItem mode="admin-task-master" icon={Layout} label={t('nav.taskMaster')} />
@@ -534,6 +544,15 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
 
                             <div className="mt-4 space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
+
+                                {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                    <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
+                                )}
+
+                                {(userRole === 'app_admin' || userRole === 'global_pm' || userRole === 'superadmin') && (
+                                    <NavItem mode="admin-task-control" icon={ClipboardCheck} label={t('nav.taskControl') || "Control de Tareas"} />
+                                )}
+
                                 {can('userManagement', 'views') && (
                                     <NavItem mode="users" icon={Users} label={t('nav.people')} />
                                 )}

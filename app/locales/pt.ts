@@ -1,6 +1,12 @@
 import { Dictionary } from './en';
 
 export const pt: Dictionary = {
+    inbox: {
+        title: "Caixa de Captura",
+        empty: "Nenhum e-mail pendente",
+        converted: "Tarefa criada com sucesso",
+        discarded: "E-mail descartado"
+    },
     common: {
         welcome: "Bem-vindo",
         search: "Buscar",
@@ -50,6 +56,7 @@ export const pt: Dictionary = {
         followUp: "Acompanhamento",
         projects: "Projetos",
         "task-manager": "Gestor de Tarefas (ABM)",
+        inbox: "Caixa Outlook",
         "sprint-planning": "Planejamento de Sprints",
         allTasks: "Todas as Tarefas (Quadro)",
         admin: "Administração",
@@ -69,10 +76,14 @@ export const pt: Dictionary = {
         "tenant-management": "Gestão de Tenants",
         dispoplan: "DispoPlan (Ausências)",
         availability_registry: "Registro Indisponibilidades",
+        "availability-registry": "Registro Indisponibilidades",
+        "agenda-semanal": "Agenda Semanal",
         organizations: "Tenants",
         tasks: "Tarefas",
         users: "Usuários",
         appManagement: "Gestão Unitask",
+        taskControl: "Controle de Tarefas",
+        "admin-task-control": "Controle de Tarefas",
         "knowledge-area": "Área de Conhecimento",
         "lessons-learned": "Lições Aprendidas",
         "solution-records": "Registros de Soluções",
@@ -81,6 +92,8 @@ export const pt: Dictionary = {
         "uni-vehicle-manager": "UniVehicleCreator",
         unidocs: "UniDocs",
         unitask_tools: "Ferramentas Unitask",
+        relevamiento: "Levantamento Projetos",
+        administration: "Administração",
         unileaks: "UniLeaks"
     },
 
@@ -336,13 +349,20 @@ export const pt: Dictionary = {
                 sprintManagement: { label: "Gestão de Sprint", desc: "Acesso ao planejamento e gestão de sprints" },
                 dispoPlan: { label: "DispoPlan", desc: "Acesso ao calendário de disponibilidade" },
                 unavailabilityRegistry: { label: "Registro de Indisponibilidades", desc: "Acesso ao registro de ausências" },
-                uniflux: { label: "Uniflux Engine", desc: "Acesso ao motor de design semântico Uniflux" }
+                unileaks: { label: "UniLeaks", desc: "Acesso ao sistema de notas e documentação rápida UniLeaks" },
+                uniordercreator: { label: "UniOrderManager", desc: "Acesso ao gestor de pedidos UNIGIS" },
+                swagger: { label: "UNIGIS Swagger", desc: "Acesso à documentação interativa de APIs da UNIGIS" },
+                soap: { label: "UNIGIS SOAP", desc: "Acesso ao navegador de serviços SOAP da UNIGIS" },
+                unidocs: { label: "UniDocs", desc: "Acesso ao gerador de documentação técnica" },
+                uniflux: { label: "Uniflux Engine", desc: "Acesso ao motor de design semântico" },
+                inbox: { label: "Buzão Outlook", desc: "Acesso à integração com o buzão de correio do Outlook" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos os perfis de usuário", desc: "Acesso a informações de todos os usuários" },
                 managePermissions: { label: "Gerenciar permissões", desc: "Permite criar e editar grupos de permissões (Admin)" },
                 accessTrash: { label: "Acessar lixeira", desc: "Ver e restaurar elementos excluídos" },
-                useCommandMenu: { label: "Usar menu de comandos", desc: "Acesso ao menu rápido de navegação" }
+                useCommandMenu: { label: "Usar menu de comandos", desc: "Acesso ao menu rápido de navegação" },
+                viewAllProjectNotes: { label: "Ver todas as notas do projeto", desc: "Permite ver todas as notas internas (colaborativas) no UniLeaks." }
             }
         }
     },
@@ -610,5 +630,58 @@ export const pt: Dictionary = {
             import: "Importação Massiva",
             system: "Automatização do Sistema"
         }
+    },
+    sprint_management: {
+        title: "Gestão de Sprint",
+        cycles: "Ciclos de Execução",
+        simulator: "Simulação de Promessa"
+    },
+    unileaks: {
+        visibility: {
+            private: "Nota Privada",
+            private_desc: "Apenas você pode ver",
+            internal: "Equipe Interna",
+            internal_desc: "Apenas membros da equipe (Tenant) podem ver",
+            public: "Público",
+            public_desc: "Visível para todos os usuários com acesso ao projeto"
+        }
+    },
+    agenda: {
+        grid:"Grelha",lista:"Lista",exportBtn:"Exportar...",exportConfig:"Configurar exportação",exportFormat:"Formato de saída",exportColumns:"Campos e ordem",exportSelectAll:"Todos",exportSelectNone:"Nenhum",exportNoneWarning:"Selecione pelo menos um campo",listSearch:"Pesquisar...",resumen:"Resumo",filters:"Filtros",clearFilters:"Limpar filtros",
+        today:"Hoje",jiraCsv:"Jira CSV",msProject:"MS Project",manageBtn:"Consultores",
+        nConsultants:"consultores",nEntries:"entradas",week:"Semana",
+        currentWeek:"Semana Atual",previousWeek:"Semana Anterior",future:"Futuro",
+        consultantCol:"Consultor",totalCol:"Total",weekTotal:"Total semana",
+        noConsultantsFilter:"Nenhum consultor corresponde aos filtros ativos.",
+        noConsultants:"Nenhum consultor configurado para este tenant.",
+        noConsultantsHint:"Adicione os usuários que aparecerão na agenda semanal.",
+        configureBtn:"Configurar consultores",region:"Região",allRegions:"Todas",division:"Divisão",divisionFilter:"Divisão",
+        activityFilter:"Atividade",statusFilter:"Estado",workday:"Dia Útil",
+        holiday:"Feriado",weekend:"Fim de Semana",newEntry:"Nova entrada",
+        editEntry:"Editar entrada",activityType:"Tipo de atividade",comment:"Comentário",
+        commentHint:"CLIENTE / DESCRIÇÃO",clientLabel:"Cliente",descLabel:"Descrição",
+        schedule:"Horário",fullDay:"Dia completo",plannedAbbr:"planif.",timeStartPh:"Início",timeEndPh:"Fim",
+        presetMorning:"Manhã",presetAfternoon:"Tarde",statusLabel:"Estado",
+        project:"Projeto",optional:"(opcional)",selectProject:"Selecionar projeto...",
+        searchProjectPh:"Pesquisar por nome, código ou cliente...",noProject:"Sem projeto",
+        jiraRecordLabel:"Registo Jira gerado",cancel:"Cancelar",
+        saveChanges:"Guardar alterações",addEntry:"Adicionar entrada",delete:"Eliminar",
+        permissionError:"Erro de permissões. Clique ↺ na barra para limpar o cache.",
+        saveError:"Erro ao guardar. Tente novamente.",deleteConfirm:"Eliminar esta entrada?",
+        manageTitle:"Gestão de Consultores",manageHint:"Selecione os utilizadores do tenant para a agenda semanal",
+        activeInAgenda:"Consultores ativos na agenda",tenantUsers:"Utilizadores do tenant",
+        noUsers:"Nenhum utilizador encontrado neste tenant.",inSchedule:"Na agenda",
+        addToSchedule:"Adicionar",removeFromSchedule:"Remover",close:"Fechar",
+        manageFooter:"Clique num utilizador para adicionar/remover · Clique na região para alterar",
+        hoursPlanned:"Horas planeadas",totalEntries:"Entradas registadas",
+        activeCount:"Consultores ativos",projectsCount:"Projetos na agenda",
+        hoursByConsultant:"Horas por consultor",byProject:"Distribuição por projeto",
+        noProjectAssigned:"Sem projeto atribuído",byActivity:"Horas por tipo de atividade",
+        byStatus:"Entradas por estado",noData:"Sem dados para esta semana com os filtros ativos.",
+        actMeetingClient:"Reunião Cliente",actMeetingUnigis:"Reunião UNIGIS",
+        actMeetingPresential:"Reunião Presencial",actMeetingInternal:"Reunião Interna",
+        actCommercial:"Comercial",actTask:"Tarefa",actVacation:"Férias",
+        actTravel:"Viagem",actSpecial:"Especial",resPending:"Por Fazer",
+        resOnHold:"Em pausa",resDone:"Feito",resCancelled:"Cancelado",
     }
 };

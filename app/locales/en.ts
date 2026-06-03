@@ -1,4 +1,10 @@
 export const en = {
+    inbox: {
+        title: "Capture Inbox",
+        empty: "No pending emails",
+        converted: "Task created successfully",
+        discarded: "Email discarded"
+    },
     common: {
         welcome: "Welcome",
         search: "Search",
@@ -48,6 +54,7 @@ export const en = {
         followUp: "Follow-Up",
         projects: "Projects",
         "task-manager": "Task Manager (ABM)",
+        inbox: "Outlook Inbox",
         "sprint-planning": "Sprint Planning",
         allTasks: "All Tasks (Board)",
         admin: "Administration",
@@ -67,10 +74,14 @@ export const en = {
         "tenant-management": "Tenant Management",
         dispoplan: "DispoPlan (Availability)",
         availability_registry: "Availability Registry",
+        "availability-registry": "Availability Registry",
+        "agenda-semanal": "Weekly Schedule",
         organizations: "Tenants",
         tasks: "Tasks",
         users: "Users",
         appManagement: "Unitask Management",
+        taskControl: "Task Control",
+        "admin-task-control": "Task Control",
         "knowledge-area": "Knowledge Area",
         "lessons-learned": "Lessons Learned",
         "solution-records": "Solution Records",
@@ -79,6 +90,8 @@ export const en = {
         "uni-vehicle-manager": "UniVehicleCreator",
         unidocs: "UniDocs",
         unitask_tools: "Unitask Tools",
+        relevamiento: "Project Survey",
+        administration: "Administration",
         unileaks: "UniLeaks"
     },
 
@@ -334,13 +347,20 @@ export const en = {
                 sprintManagement: { label: "Sprint Management", desc: "Access to sprint planning and management" },
                 dispoPlan: { label: "DispoPlan", desc: "Access to availability calendar" },
                 unavailabilityRegistry: { label: "Unavailability Registry", desc: "Access to absence register" },
-                uniflux: { label: "Uniflux Engine", desc: "Access to Uniflux semantic design engine" }
+                unileaks: { label: "UniLeaks", desc: "Access to UniLeaks documentation and quick notes system" },
+                uniordercreator: { label: "UniOrderManager", desc: "Access to UNIGIS order manager" },
+                swagger: { label: "UNIGIS Swagger", desc: "Access to interactive UNIGIS API documentation" },
+                soap: { label: "UNIGIS SOAP", desc: "Access to UNIGIS SOAP service browser" },
+                unidocs: { label: "UniDocs", desc: "Access to technical documentation generator" },
+                uniflux: { label: "Uniflux Engine", desc: "Access to the semantic design engine" },
+                inbox: { label: "Outlook Inbox", desc: "Access to Outlook email integration" }
             },
             special: {
                 viewAllUserProfiles: { label: "View all user profiles", desc: "Access to all users information" },
                 managePermissions: { label: "Manage permissions", desc: "Allows creating and editing permission groups (Admin)" },
                 accessTrash: { label: "Access trash", desc: "See and restore deleted elements" },
-                useCommandMenu: { label: "Use command menu", desc: "Access to navigation quick menu" }
+                useCommandMenu: { label: "Use command menu", desc: "Access to navigation quick menu" },
+                viewAllProjectNotes: { label: "View all project notes", desc: "Allows viewing private notes from all project members in UniLeaks" }
             }
         }
     },
@@ -608,6 +628,132 @@ export const en = {
             import: "Bulk Import",
             system: "System Automation"
         }
+    },
+    sprint_management: {
+        title: "Sprint Management",
+        cycles: "Execution Cycles",
+        simulator: "Promise Simulation"
+    },
+    unileaks: {
+        visibility: {
+            private: "Private Note",
+            private_desc: "Only you can see it",
+            internal: "Internal Team",
+            internal_desc: "Only team members (Tenant) can see it",
+            public: "Public",
+            public_desc: "Visible to all users with access to the project"
+        }
+    },
+    agenda: {
+        // Toolbar
+        grid:               "Grid",
+        lista:              "List",
+        exportBtn:          "Export...",
+        exportConfig:       "Configure export",
+        exportFormat:       "Output format",
+        exportColumns:      "Fields & order",
+        exportSelectAll:    "All",
+        exportSelectNone:   "None",
+        exportNoneWarning:  "Select at least one field",
+        listSearch:         "Search...",
+        resumen:            "Summary",
+        filters:            "Filters",
+        clearFilters:       "Clear filters",
+        today:              "Today",
+        jiraCsv:            "Jira CSV",
+        msProject:          "MS Project",
+        manageBtn:          "Consultants",
+        nConsultants:       "consultants",
+        nEntries:           "entries",
+        week:               "Week",
+        currentWeek:        "Current Week",
+        previousWeek:       "Previous Week",
+        future:             "Future",
+        // Grid
+        consultantCol:      "Consultant",
+        totalCol:           "Total",
+        weekTotal:          "Week total",
+        noConsultantsFilter:"No consultants match the active filters.",
+        noConsultants:      "No consultants configured for this tenant.",
+        noConsultantsHint:  "Add the users who will appear in the weekly schedule.",
+        configureBtn:       "Configure consultants",
+        // Filters panel
+        region:             "Region",
+        allRegions:         "All",
+        division:           "Division",
+        divisionFilter:     "Division",
+        activityFilter:     "Activity",
+        statusFilter:       "Status",
+        // Day types
+        workday:            "Working Day",
+        holiday:            "Holiday",
+        weekend:            "Weekend",
+        // Modal
+        newEntry:           "New entry",
+        editEntry:          "Edit entry",
+        activityType:       "Activity type",
+        comment:            "Comment",
+        commentHint:        "CLIENT / DESCRIPTION",
+        clientLabel:        "Client",
+        descLabel:          "Description",
+        schedule:           "Schedule",
+        fullDay:            "Full day",
+        plannedAbbr:        "planned",
+        timeStartPh:        "Start",
+        timeEndPh:          "End",
+        presetMorning:      "Morning",
+        presetAfternoon:    "Afternoon",
+        statusLabel:        "Status",
+        project:            "Project",
+        optional:           "(optional)",
+        selectProject:      "Select project...",
+        searchProjectPh:    "Search by name, code or client...",
+        noProject:          "No project",
+        jiraRecordLabel:    "Generated Jira record",
+        cancel:             "Cancel",
+        saveChanges:        "Save changes",
+        addEntry:           "Add entry",
+        delete:             "Delete",
+        permissionError:    "Permission error. Click ↺ in the agenda bar to clear cache and reload.",
+        saveError:          "Save error. Please try again.",
+        deleteConfirm:      "Delete this entry?",
+        // Consultant manager
+        manageTitle:        "Consultant Management",
+        manageHint:         "Select the tenant users who will appear in the weekly schedule",
+        activeInAgenda:     "Active consultants in schedule",
+        tenantUsers:        "Tenant users",
+        noUsers:            "No users found in this tenant.",
+        inSchedule:         "In schedule",
+        addToSchedule:      "Add",
+        removeFromSchedule: "Remove",
+        close:              "Close",
+        manageFooter:       "Click a user to add/remove · Click the region to toggle between IBERIA and LATAM",
+        // Resumen
+        hoursPlanned:       "Planned hours",
+        totalEntries:       "Total entries",
+        activeCount:        "Active consultants",
+        projectsCount:      "Projects in schedule",
+        hoursByConsultant:  "Hours by consultant",
+        byProject:          "Distribution by project",
+        noProjectAssigned:  "No project assigned",
+        byActivity:         "Hours by activity type",
+        byStatus:           "Entries by status",
+        noData:             "No data for this week with active filters.",
+        // Activity types
+        actMeetingClient:    "Client Meeting",
+        actMeetingUnigis:    "UNIGIS Meeting",
+        actMeetingPresential:"In-person Meeting",
+        actMeetingInternal:  "Internal Meeting",
+        actCommercial:       "Commercial",
+        actTask:             "Task",
+        actVacation:         "Vacation",
+        actTravel:           "Travel",
+        actSpecial:          "Special",
+        // Result statuses
+        resPending:          "To Do",
+        resOnHold:           "On Hold",
+        resDone:             "Done",
+        resCancelled:        "Cancelled",
     }
 };
 
