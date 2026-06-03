@@ -4228,6 +4228,32 @@
     "updatedAt": "2026-06-02T05:11:06.819Z"
   },
   {
+    "id": "3_2026-06-03",
+    "date": "2026-06-03",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Seguimiento de interfaces\n\n1.  Maersk - Visto\n- Estado interfaces \n- Falta una respuesta de Jose Maria para cerrar los flujos y lanzar desarrollos.\n- atención -- Tipo de contenedor - Tabla compartida por Maersk.\n2. WebFleet - \n- El listado de vehículos ya son activos de WebFleet. Podemos comenzar las pruebas.\n-Desarrollo en validación\n-3. Portic\n- Estamos confirmando que tenemos el entorno disponible.\n- Mapeo preparado para pruebas\n- Puede faltar algo de información\n4. Transporeon\n- El horizonte de arranque de mapeo es tras terminar Portic.\n- Tenemos entorno de pruebas??\n5. Aitana y Business Central\n- Falta el envío de la información de Guias para que validen como funciona.\n- Sale esta semana sin falta.\n- Ellos deben enviarnos la información que les hace falta. para validar el posible JsonSyncout.\n- Leonardo va a hablar con Israel para recordarle que nos hagan llegar la información.\n\n",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Seguimiento de interfaces\n\n1.  Maersk - Visto\n- Estado interfaces \n- Falta una respuesta de Jose Maria para cerrar los flujos y lanzar desarrollos.\n- atención -- Tipo de contenedor - Tabla compartida por Maersk.\n2. WebFleet - \n- El listado de vehículos ya son activos de WebFleet. Podemos comenzar las pruebas.\n-Desarrollo en validación\n-3. Portic\n- Estamos confirmando que tenemos el entorno disponible.\n- Mapeo preparado para pruebas\n- Puede faltar algo de información\n4. Transporeon\n- El horizonte de arranque de mapeo es tras terminar Portic.\n- Tenemos entorno de pruebas??\n5. Aitana y Business Central\n- Falta el envío de la información de Guias para que validen como funciona.\n- Sale esta semana sin falta.\n- Ellos deben enviarnos la información que les hace falta. para validar el posible JsonSyncout.\n- Leonardo va a hablar con Israel para recordarle que nos hagan llegar la información.\n\n",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-03T13:04:05.839Z",
+    "updatedAt": "2026-06-03T13:26:13.156Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
