@@ -584,12 +584,12 @@
     "title": "Overdue Task",
     "message": "Your task LUI-1 - \"Documento de alcance -- completarlo \" has reached its deadline.",
     "taskId": "5kyOpzigqVwnWf9YQyLQ",
-    "read": false,
     "link": "/?view=task-manager&taskId=5kyOpzigqVwnWf9YQyLQ",
     "createdAt": {
       "_seconds": 1780376980,
       "_nanoseconds": 785000000
-    }
+    },
+    "read": true
   },
   {
     "id": "BLTfB7ooMa5xXW0zspaQ",
