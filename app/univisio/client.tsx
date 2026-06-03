@@ -284,7 +284,12 @@ export default function ClientPage() {
 
     const skippedNodes = useMemo(() => {
         return nodes
-            .filter(n => nodeMap[n.id] === 'skipped')
+            .filter(n => {
+                const status = nodeMap[n.id];
+                if (status === 'skipped') return true;
+                if (tableRows.length > 0 && status === 'pending') return true;
+                return false;
+            })
             .map(n => ({
                 ...n,
                 prevNodeLabel: edges.find(e => e.to === n.id)
@@ -294,10 +299,91 @@ export default function ClientPage() {
                     ? nodes.find(nd => nd.id === edges.find(e => e.from === n.id)!.to)?.label
                     : null,
             }));
-    }, [nodeMap, nodes, edges]);
+    }, [nodeMap, nodes, edges, tableRows.length]);
+
+    const mergeNewRows = (
+        prevRows: TableRow[], 
+        newRows: TableRow[], 
+        activeNodeIds?: Set<string>
+    ): TableRow[] => {
+        let filteredPrev = prevRows;
+        if (activeNodeIds) {
+            filteredPrev = prevRows.filter(r => !r.linkedNodeId || !activeNodeIds.has(r.linkedNodeId));
+        }
+
+        if (nodes.length === 0) {
+            const combined = [...filteredPrev, ...newRows];
+            return combined.map((r, i) => ({ ...r, step: i + 1 }));
+        }
+
+        const nodeToIndex = new Map<string, number>();
+        nodes.forEach((n, idx) => {
+            nodeToIndex.set(n.id, idx);
+        });
+
+        const nodeToPrevPosition = new Map<string, number>();
+        filteredPrev.forEach((row, idx) => {
+            if (row.linkedNodeId) {
+                nodeToPrevPosition.set(row.linkedNodeId, idx);
+            }
+            row.coveredNodeIds?.forEach(id => {
+                nodeToPrevPosition.set(id, idx);
+            });
+        });
+
+        const findTargetPosition = (nodeId: string): number => {
+            const topoIdx = nodeToIndex.get(nodeId);
+            if (topoIdx === undefined) {
+                return filteredPrev.length;
+            }
+
+            for (let i = topoIdx - 1; i >= 0; i--) {
+                const prevNodeId = nodes[i].id;
+                if (nodeToPrevPosition.has(prevNodeId)) {
+                    return nodeToPrevPosition.get(prevNodeId)! + 0.5 + (topoIdx * 0.0001);
+                }
+            }
+
+            for (let i = topoIdx + 1; i < nodes.length; i++) {
+                const nextNodeId = nodes[i].id;
+                if (nodeToPrevPosition.has(nextNodeId)) {
+                    return nodeToPrevPosition.get(nextNodeId)! - 0.5 + (topoIdx * 0.0001);
+                }
+            }
+
+            return filteredPrev.length + (topoIdx * 0.0001);
+        };
+
+        const positionedPrev = filteredPrev.map((row, idx) => ({
+            row,
+            position: idx
+        }));
+
+        const positionedNew = newRows.map(row => {
+            const nodeId = row.linkedNodeId || '';
+            const position = nodeId ? findTargetPosition(nodeId) : filteredPrev.length;
+            return {
+                row,
+                position
+            };
+        });
+
+        const combined = [...positionedPrev, ...positionedNew];
+        combined.sort((a, b) => a.position - b.position);
+
+        return combined.map((item, i) => ({
+            ...item.row,
+            step: i + 1
+        }));
+    };
 
     const runSkippedSemanticAnalysis = async () => {
-        const skippedList = nodes.filter(n => nodeMap[n.id] === 'skipped');
+        const skippedList = nodes.filter(n => {
+            const status = nodeMap[n.id];
+            if (status === 'skipped') return true;
+            if (tableRows.length > 0 && status === 'pending') return true;
+            return false;
+        });
         if (skippedList.length === 0) return;
         setIsGenerating(true);
         
@@ -314,9 +400,8 @@ export default function ClientPage() {
             const response = await analyzeSubflowWithGemini(JSON.stringify(graphContext));
             
             if (response && response.success && response.steps) {
-                const currentMaxStep = tableRows.length;
                 const newRows: TableRow[] = response.steps.map((step, idx) => ({
-                    step: currentMaxStep + idx + 1,
+                    step: idx + 1,
                     title: step.title || 'Paso (Ignorado)',
                     subtitle: step.subtitle || '',
                     systems: step.systems || '-',
@@ -360,8 +445,7 @@ export default function ClientPage() {
                 
                 setTableRows(prev => {
                     setIsDirty(true);
-                    const combined = [...prev, ...newRows];
-                    return combined.map((r, i) => ({ ...r, step: i + 1 }));
+                    return mergeNewRows(prev, newRows);
                 });
             } else if (response && response.error) {
                 alert(`Error al analizar nodos ignorados: ${response.error}`);
@@ -1219,11 +1303,7 @@ export default function ClientPage() {
 
                 setTableRows(prev => {
                     setIsDirty(true);
-                    // Replace or concatenate rows
-                    const filteredPrev = prev.filter(r => !activeNodeIds.has(r.linkedNodeId));
-                    const combined = [...filteredPrev, ...newRows].sort((a, b) => a.step - b.step);
-                    // Re-index steps sequentially
-                    return combined.map((r, i) => ({ ...r, step: i + 1 }));
+                    return mergeNewRows(prev, newRows, activeNodeIds);
                 });
             } else if (response && response.error) {
                 alert(`Error al analizar sub-flujo: ${response.error}`);
@@ -1780,7 +1860,7 @@ export default function ClientPage() {
                                         onClick={() => setShowSkippedList(!showSkippedList)}
                                         className="w-full flex justify-between items-center text-[10px] text-zinc-400 hover:text-zinc-200 transition-colors uppercase font-bold tracking-wider"
                                     >
-                                        <span>Nodos Ignorados ({skippedNodes.length})</span>
+                                        <span>Nodos Pendientes / Ignorados ({skippedNodes.length})</span>
                                         <span>{showSkippedList ? '▲' : '▼'}</span>
                                     </button>
 
@@ -1808,7 +1888,7 @@ export default function ClientPage() {
                                         className="w-full bg-yellow-600 hover:bg-yellow-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white text-[10px] font-bold py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all mt-1"
                                     >
                                         <Play className="w-3 h-3" />
-                                        <span>Analizar ignorados</span>
+                                        <span>Analizar pendientes / ignorados</span>
                                     </button>
                                 </div>
                             )}
