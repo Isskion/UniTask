@@ -148,7 +148,7 @@ export const SuperadminGodBar: React.FC = () => {
     const isSimulating = viewContext?.isMasquerading;
 
     return (
-        <div className="relative z-[9999] w-full bg-zinc-950 border-b border-amber-500/30 text-amber-500 shadow-xl shadow-amber-900/10 font-sans">
+        <div className="relative z-[9999] w-full bg-zinc-950 border-b border-amber-500/30 text-amber-500 shadow-xl shadow-amber-900/10 font-sans print:hidden">
             {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-amber-500/5 pointer-events-none" />
 

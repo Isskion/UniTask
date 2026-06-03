@@ -2723,7 +2723,7 @@ export default function ClientPage() {
                                                 )}
                                             >
                                                 {/* Header */}
-                                                <div className={cn("px-5 py-4 border-b flex justify-between items-start gap-4", isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900/80 border-zinc-800")}>
+                                                <div className={cn("px-5 py-4 border-b flex justify-between items-start gap-4", isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-950/20 border-zinc-800")}>
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -2758,8 +2758,11 @@ export default function ClientPage() {
                                                                 }}
                                                                 onChange={(e) => handleCellChange(idx, 'title', e.target.value)}
                                                                 placeholder="Título del paso"
-                                                                className={cn("text-sm font-black uppercase tracking-wide bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-100 focus:bg-zinc-900")}
+                                                                className={cn("text-sm font-black uppercase tracking-wide bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 print:hidden", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-100 focus:bg-zinc-900")}
                                                             />
+                                                            <div className="hidden print:block text-sm font-black uppercase tracking-wide text-black px-1">
+                                                                {row.title || 'Paso sin título'}
+                                                            </div>
                                                             <input 
                                                                 type="text"
                                                                 value={row.subtitle || ''}
@@ -2769,8 +2772,13 @@ export default function ClientPage() {
                                                                 }}
                                                                 onChange={(e) => handleCellChange(idx, 'subtitle', e.target.value)}
                                                                 placeholder="Subtítulo o descripción corta"
-                                                                className={cn("text-xs italic bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-500 focus:bg-zinc-100" : "text-zinc-450 focus:bg-zinc-900")}
+                                                                className={cn("text-xs italic bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 print:hidden", isLight ? "text-zinc-500 focus:bg-zinc-100" : "text-zinc-450 focus:bg-zinc-900")}
                                                             />
+                                                            {row.subtitle && (
+                                                                <div className="hidden print:block text-[11px] italic text-zinc-500 px-1">
+                                                                    {row.subtitle}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-1 print:hidden">
@@ -2814,8 +2822,11 @@ export default function ClientPage() {
                                                                 }}
                                                                 onChange={(e) => handleCellChange(idx, 'systems', e.target.value)}
                                                                 placeholder="Sistemas involucrados"
-                                                                className={cn("border rounded-lg px-3 py-1.5 text-xs w-full focus:ring-1 focus:ring-red-500 focus:outline-none", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}
+                                                                className={cn("border rounded-lg px-3 py-1.5 text-xs w-full focus:ring-1 focus:ring-red-500 focus:outline-none print:hidden", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}
                                                             />
+                                                            <div className="hidden print:block text-xs font-semibold text-zinc-850 bg-zinc-50 border border-zinc-200 rounded px-2.5 py-1">
+                                                                {row.systems || 'N/A'}
+                                                            </div>
                                                         </div>
 
                                                         <div>
@@ -2864,8 +2875,9 @@ export default function ClientPage() {
                                                                         }}
                                                                         onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
                                                                         placeholder="Origen"
-                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5 print:hidden", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
+                                                                    <span className="hidden print:inline text-xs text-zinc-850 font-medium truncate">{row.origin || 'N/A'}</span>
                                                                 </div>
                                                                 <div className={cn("border-t", isLight ? "border-zinc-100" : "border-zinc-800/45")}></div>
                                                                 <div className="flex items-center gap-1">
@@ -2879,15 +2891,16 @@ export default function ClientPage() {
                                                                         }}
                                                                         onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
                                                                         placeholder="Destino"
-                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5 print:hidden", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
+                                                                    <span className="hidden print:inline text-xs text-zinc-850 font-medium truncate">{row.destination || 'N/A'}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         <div>
                                                             <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Tipo de Acción</div>
-                                                            <div className={cn("flex items-center gap-1 border px-2.5 py-1 rounded-lg", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}>
+                                                            <div className={cn("flex items-center gap-1 border px-2.5 py-1 rounded-lg print:border-none print:p-0", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}>
                                                                 <span className="text-xs shrink-0">
                                                                     {row.actionType?.toLowerCase().includes('humana') || row.actionType === 'H' ? '👤' : 
                                                                      row.actionType?.toLowerCase().includes('autom') || row.actionType === 'A' ? '⚙️' : '🔌'}
@@ -2899,12 +2912,15 @@ export default function ClientPage() {
                                                                         if (activeRowIndex !== idx) setActiveRowIndex(idx);
                                                                     }}
                                                                     onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
-                                                                    className={cn("bg-transparent border-none w-full text-xs font-semibold focus:ring-1 focus:ring-red-500 rounded p-0.5 focus:outline-none cursor-pointer", isLight ? "text-zinc-850" : "text-zinc-200")}
+                                                                    className={cn("bg-transparent border-none w-full text-xs font-semibold focus:ring-1 focus:ring-red-500 rounded p-0.5 focus:outline-none cursor-pointer print:hidden", isLight ? "text-zinc-850" : "text-zinc-200")}
                                                                 >
                                                                     <option value="H">Humana (👤)</option>
                                                                     <option value="A">Automática (⚙️)</option>
                                                                     <option value="I">Integración (🔌)</option>
                                                                 </select>
+                                                                <span className="hidden print:inline text-xs font-semibold text-zinc-850 ml-1">
+                                                                    {row.actionType === 'H' ? 'Humana' : row.actionType === 'A' ? 'Automática' : 'Integración'}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2923,8 +2939,11 @@ export default function ClientPage() {
                                                         }}
                                                         onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
                                                         placeholder="Describe detalladamente lo que ocurre en este paso..."
-                                                        className={cn("border p-3.5 rounded-xl font-sans shadow-inner italic w-full focus:ring-1 focus:ring-red-500 focus:outline-none resize-y", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}
+                                                        className={cn("border p-3.5 rounded-xl font-sans shadow-inner italic w-full focus:ring-1 focus:ring-red-500 focus:outline-none resize-y print:hidden", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}
                                                     />
+                                                    <div className="hidden print:block font-sans italic text-xs text-zinc-800 whitespace-pre-wrap pl-1">
+                                                        {row.operativeDesc || 'Sin descripción operativa.'}
+                                                    </div>
                                                 </div>
 
                                             </div>

@@ -354,12 +354,17 @@
 }
 
 /* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
+/* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
 @media print {
-    /* Reset heights, overflows, and flexboxes in the body parent wrapper chain to block layouts */
+    /* Reset heights, overflows in the body parent wrapper chain to block layouts to allow scrolling/multipage */
     html, body, 
     body > div,
     body > div > div,
-    .univisio-workspace {
+    .univisio-workspace,
+    .univisio-workspace main,
+    .univisio-workspace .flex-1,
+    .univisio-workspace .overflow-auto,
+    .univisio-workspace .custom-scrollbar {
         display: block !important;
         height: auto !important;
         min-height: 0 !important;
@@ -368,38 +373,8 @@
         position: static !important;
         background: white !important;
         color: black !important;
-    }
-
-    /* Hide print-hidden elements completely */
-    .print\:hidden,
-    [class*="print:hidden"],
-    .univisio-workspace .print\:hidden,
-    .univisio-workspace [class*="print:hidden"] {
-        display: none !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-    }
-
-    /* Adjust all inner layouts to be linear/block instead of locked flex screen dimensions */
-    .univisio-workspace,
-    .univisio-workspace .flex,
-    .univisio-workspace .flex-col,
-    .univisio-workspace .grid {
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-        position: static !important;
-    }
-
-    .univisio-workspace .flex-1,
-    .univisio-workspace .overflow-auto,
-    .univisio-workspace .custom-scrollbar {
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* Print tables correctly */
@@ -414,7 +389,7 @@
         page-break-after: auto !important;
     }
 
-    /* Ensure textareas, inputs and select boxes render text cleanly */
+    /* Ensure form fields display cleanly if any remain */
     .univisio-workspace input, 
     .univisio-workspace textarea, 
     .univisio-workspace select {
@@ -428,14 +403,94 @@
         width: 100% !important;
     }
 
-    /* Style the cards (relato/narrative view) for print */
+    /* Make narrative cards extremely compact for print so 2-3 fit per page */
     .univisio-workspace .border.rounded-xl {
-        border: 1px solid #ccc !important;
-        margin-bottom: 1.5rem !important;
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 0.65rem !important;
         page-break-inside: avoid !important;
+        break-inside: avoid !important;
         background: white !important;
         color: black !important;
         box-shadow: none !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* Adjust padding in card sections */
+    .univisio-workspace .border.rounded-xl > div:first-child {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .grid {
+        display: grid !important;
+        grid-template-columns: 2fr 1fr !important;
+        gap: 0.4rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .grid > div {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .border-t {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    /* Compact text sizing inside narrative cards */
+    .univisio-workspace .border.rounded-xl input,
+    .univisio-workspace .border.rounded-xl textarea,
+    .univisio-workspace .border.rounded-xl select,
+    .univisio-workspace .border.rounded-xl span,
+    .univisio-workspace .border.rounded-xl div {
+        font-size: 10px !important;
+    }
+
+    /* Target the titles specifically */
+    .univisio-workspace .border.rounded-xl input[placeholder="Título del paso"],
+    .univisio-workspace .border.rounded-xl div.font-black {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .text-red-500 {
+        font-size: 8px !important;
+        font-weight: 900 !important;
+        margin-bottom: 0.15rem !important;
+        color: #ef4444 !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .gap-4 {
+        gap: 0.25rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .gap-1\.5 {
+        gap: 0.15rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .p-3,
+    .univisio-workspace .border.rounded-xl .p-2 {
+        padding: 0.25rem 0.4rem !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Force background colors to print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Keep hidden print-hidden elements completely - placed at bottom to override layouts */
+    body .print\:hidden,
+    body [class*="print:hidden"],
+    body .univisio-workspace .print\:hidden,
+    body .univisio-workspace [class*="print:hidden"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
     }
 }
 
