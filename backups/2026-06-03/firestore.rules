@@ -593,7 +593,11 @@ service cloud.firestore {
     // Sin restricción SAM (los flujos Visio son documentación compartida, no datos operacionales).
     match /projects/{projectId}/univisio_sessions/{sessionId} {
       // Lectura: cualquier miembro del tenant (no SAM-scoped)
-      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(get(/databases/$(database)/documents/projects/$(projectId)).data.get('tenantId', '1')) == getRealTenantId() ||
+        (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(get(/databases/$(database)/documents/projects/$(projectId)).data.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')))
+      );
       // Creación: miembro del tenant
       allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
       // Actualización: creador o PM/Admin del tenant
