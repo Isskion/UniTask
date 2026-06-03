@@ -588,6 +588,26 @@ service cloud.firestore {
       );
     }
 
+    // --- UNIVISIO SESSIONS ---
+    // Contenido colaborativo: cualquier miembro del tenant puede leer sesiones de cualquier proyecto.
+    // Sin restricción SAM (los flujos Visio son documentación compartida, no datos operacionales).
+    match /projects/{projectId}/univisio_sessions/{sessionId} {
+      // Lectura: cualquier miembro del tenant (no SAM-scoped)
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      // Creación: miembro del tenant
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      // Actualización: creador o PM/Admin del tenant
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 60))
+      );
+      // Borrado: creador o Admin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
     // --- [NEW] UNIFLUX FLOWS ---
     match /uniflux_flows/{flowId} {
       // Allow individual GET if authenticated (to support exists() checks on new drafts)

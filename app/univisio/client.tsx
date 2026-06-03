@@ -5,10 +5,10 @@ import JSZip from 'jszip';
 import { 
     Upload, FileCode, Network, CheckCircle, AlertTriangle, Play,
     Plus, Trash2, ArrowUp, ArrowDown, Download, Send, RefreshCw, FileText,
-    Save, FolderOpen, Folder
+    Save, FolderOpen, Folder, Image as ImageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { analyzeSubflowWithGemini, chatWithUniVisio } from './actions';
+import { analyzeSubflowWithGemini, chatWithUniVisio, analyzeDiagramImageWithGemini } from './actions';
 import * as XLSX from 'xlsx';
 
 import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
@@ -18,6 +18,59 @@ import { getDocs } from 'firebase/firestore';
 import { saveUniVisioSession, getProjectSessions, updateUniVisioSession } from '@/lib/univisio';
 import { useTheme } from '@/hooks/useTheme';
 
+const StepPositionInput = ({ 
+    step, 
+    max, 
+    onMove, 
+    isLight 
+}: { 
+    step: number; 
+    max: number; 
+    onMove: (newStep: number) => void; 
+    isLight: boolean;
+}) => {
+    const [val, setVal] = useState(step.toString());
+
+    useEffect(() => {
+        setVal(step.toString());
+    }, [step]);
+
+    const handleBlur = () => {
+        const num = parseInt(val, 10);
+        if (!isNaN(num) && num >= 1 && num <= max && num !== step) {
+            onMove(num);
+        } else {
+            setVal(step.toString());
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.currentTarget.blur();
+        } else if (e.key === 'Escape') {
+            setVal(step.toString());
+        }
+    };
+
+    return (
+        <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={val}
+            onChange={(e) => setVal(e.target.value.replace(/\D/g, ''))}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            className={cn(
+                "w-10 text-center font-bold bg-transparent border rounded px-1 py-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 text-xs",
+                isLight 
+                    ? "border-zinc-300 text-zinc-800 focus:bg-white" 
+                    : "border-zinc-800 text-zinc-250 focus:bg-zinc-950/60"
+            )}
+        />
+    );
+};
+
 export default function ClientPage() {
     const { theme } = useTheme();
     const isLight = theme === 'light';
@@ -25,6 +78,10 @@ export default function ClientPage() {
     // State
     const [file, setFile] = useState<File | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'narrative' | 'consolidator'>('table');
+    const [isImageMode, setIsImageMode] = useState<boolean>(false);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+    const [imageInstruction, setImageInstruction] = useState<string>('');
+    const [showFullImageModal, setShowFullImageModal] = useState<boolean>(false);
     const [pages, setPages] = useState<string[]>([]);
     const [selectedPage, setSelectedPage] = useState<string>('');
     const [zipInstance, setZipInstance] = useState<JSZip | null>(null);
@@ -57,7 +114,7 @@ export default function ClientPage() {
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     // New Session & Project State
-    const { tenantId } = useAuth();
+    const { tenantId, user } = useAuth();
     const qProjects = useTenantQuery('projects');
     const [projects, setProjects] = useState<Project[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -107,6 +164,9 @@ export default function ClientPage() {
         setCycles([]);
         setNodeMap({});
         setFile(null);
+        setIsImageMode(false);
+        setImagePreviewUrl(null);
+        setImageInstruction('');
     };
 
     const handleLoadSession = (session: UniVisioSession) => {
@@ -136,8 +196,15 @@ export default function ClientPage() {
             });
             setNodeMap(reconstructedMap);
         }
-        setFile(new File([], session.fileName || 'Recuperado.vsdx'));
-        setParsingStatus(`Sesión recuperada: ${session.sessionName}. Geometría original no disponible (vuelve a subir el archivo para visualizar el grafo).`);
+        const isImg = /\.(png|jpe?g)$/i.test(session.fileName || '');
+        setIsImageMode(isImg);
+        setImagePreviewUrl(null);
+        setImageInstruction('');
+        setFile(new File([], session.fileName || (isImg ? 'Recuperado.png' : 'Recuperado.vsdx')));
+        setParsingStatus(isImg 
+            ? `Sesión visual recuperada: ${session.sessionName}. Sube de nuevo el archivo PNG/JPG si deseas ver la imagen o re-compilar.`
+            : `Sesión recuperada: ${session.sessionName}. Geometría original no disponible (vuelve a subir el archivo para visualizar el grafo).`
+        );
     };
 
     const handleSaveSession = async (saveAsNew = false) => {
@@ -161,8 +228,8 @@ export default function ClientPage() {
                 swimlanes,
                 cycles,
                 nodeMap,
-                version: 1, // Can implement version increment later
-                createdBy: 'current_user' // Ideally from AuthContext
+                version: 1,
+                createdBy: user?.uid || ''
             };
 
             if (selectedSessionId && !saveAsNew) {
@@ -611,6 +678,9 @@ export default function ClientPage() {
         setActiveLoteIndex(0);
 
         const ext = selectedFile.name.split('.').pop()?.toLowerCase();
+        setIsImageMode(false);
+        setImagePreviewUrl(null);
+        setImageInstruction('');
 
         if (ext === 'vsdx') {
             try {
@@ -646,9 +716,56 @@ export default function ClientPage() {
                 alert(`Error al abrir el archivo SVG: ${err.message}`);
                 setIsParsing(false);
             }
+        } else if (['png', 'jpg', 'jpeg'].includes(ext || '')) {
+            setParsingStatus('Cargando y optimizando imagen...');
+            setIsImageMode(true);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target?.result as string;
+                const img = new Image();
+                img.onload = () => {
+                    const maxDim = 1600;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    if (ctx) {
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        setImagePreviewUrl(compressedDataUrl);
+                    } else {
+                        setImagePreviewUrl(dataUrl);
+                    }
+                    setParsingStatus('Imagen cargada y optimizada. Lista para compilar con IA.');
+                    setIsParsing(false);
+                };
+                img.onerror = () => {
+                    setImagePreviewUrl(dataUrl);
+                    setParsingStatus('Imagen cargada. Lista para compilar con IA.');
+                    setIsParsing(false);
+                };
+                img.src = dataUrl;
+            };
+            reader.onerror = () => {
+                alert('Error al leer la imagen.');
+                setIsParsing(false);
+            };
+            reader.readAsDataURL(selectedFile);
         } else {
-            // PNG / JPG Fallback
-            setParsingStatus('Imagen cargada. Procesando en modo de visión...');
+            setParsingStatus('Formato no soportado. Por favor sube VSDX, SVG, PNG o JPG.');
             setIsParsing(false);
         }
     };
@@ -1351,6 +1468,76 @@ export default function ClientPage() {
         }
     };
 
+    const runImageAnalysis = async () => {
+        if (!imagePreviewUrl) return;
+        setIsGenerating(true);
+        setParsingStatus('Enviando imagen a Gemini para su análisis estructural...');
+
+        try {
+            const response = await analyzeDiagramImageWithGemini(imagePreviewUrl, imageInstruction);
+
+            if (response && response.success && response.steps) {
+                const newRows: TableRow[] = response.steps.map(step => ({
+                    step: step.step || 1,
+                    title: step.title || 'Paso',
+                    subtitle: step.subtitle || '',
+                    systems: step.systems || '-',
+                    phase: step.phase || 'FASE GENERAL',
+                    stateChanges: step.stateChanges || [],
+                    conditionalPaths: step.conditionalPaths || [],
+                    actor: step.actor || 'General',
+                    origin: step.origin || '-',
+                    destination: step.destination || '-',
+                    event: step.event || '-',
+                    resultState: step.resultState || '-',
+                    actionType: step.actionType || 'H',
+                    precondition: step.precondition || '-',
+                    exception: step.exception || '-',
+                    rule: step.rule || '-',
+                    linkedNodeId: step.linkedNodeId || 'shape_1',
+                    pagePath: 'Análisis Visual',
+                    coveredNodeIds: step.coveredNodeIds || [],
+                    confidence: step.confidence || 1.0,
+                    interfaceRefs: step.interfaceRefs || [],
+                    isLoop: !!step.isLoop,
+                    loopNote: step.loopNote || null,
+                    operativeDesc: step.operativeDesc || '',
+                    needsReview: (step.confidence || 1.0) < 0.7
+                }));
+
+                setTableRows(newRows);
+                setDoubts([]);
+                setNodes([]);
+                setEdges([]);
+                setCycles([]);
+                
+                const uniqueActors = Array.from(new Set(newRows.map(r => r.actor || 'General').filter(Boolean)));
+                setSwimlanes(uniqueActors.length > 0 ? uniqueActors : ['General']);
+
+                const initialMap: NodeCoverageMap = {};
+                newRows.forEach(row => {
+                    if (row.linkedNodeId) initialMap[row.linkedNodeId] = 'covered';
+                    row.coveredNodeIds?.forEach(id => {
+                        initialMap[id] = 'covered';
+                    });
+                });
+                setNodeMap(initialMap);
+
+                setIsDirty(true);
+                setParsingStatus('Diagrama visual compilado correctamente.');
+            } else if (response && response.error) {
+                alert(`Error al analizar la imagen: ${response.error}`);
+            } else {
+                alert(`Error al analizar la imagen: Respuesta inesperada del servidor.`);
+            }
+        } catch (e: any) {
+            console.error(e);
+            alert(`Error al analizar la imagen: ${e.message}`);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     // Handle Chat refiners
     const handleChatSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1503,6 +1690,21 @@ export default function ClientPage() {
             const temp = copy[index];
             copy[index] = copy[target];
             copy[target] = temp;
+
+            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+        });
+    };
+
+    const moveRowToPosition = (fromIndex: number, toStep: number) => {
+        if (isNaN(toStep) || toStep < 1) return;
+        setIsDirty(true);
+        setTableRows(prev => {
+            const copy = [...prev];
+            const toIndex = Math.min(Math.max(toStep - 1, 0), copy.length - 1);
+            if (fromIndex === toIndex) return prev;
+
+            const [movedRow] = copy.splice(fromIndex, 1);
+            copy.splice(toIndex, 0, movedRow);
 
             return copy.map((row, i) => ({ ...row, step: i + 1 }));
         });
@@ -1666,7 +1868,7 @@ export default function ClientPage() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans univisio-workspace">
+        <div className="flex flex-col h-screen max-h-screen bg-zinc-950 text-zinc-100 overflow-hidden font-sans univisio-workspace">
             
             {/* Main view container */}
             <div className="flex flex-1 overflow-hidden min-h-0">
@@ -1740,7 +1942,13 @@ export default function ClientPage() {
                             />
                             {file ? (
                                 <>
-                                    <FileCode className="w-10 h-10 text-red-500" />
+                                    {isImageMode && imagePreviewUrl ? (
+                                        <div className="w-16 h-16 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-950 flex items-center justify-center mb-1">
+                                            <img src={imagePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <FileCode className="w-10 h-10 text-red-500" />
+                                    )}
                                     <div className="text-sm font-semibold text-zinc-300 truncate w-full px-2">{file.name}</div>
                                     <div className="text-[10px] text-zinc-500">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
                                 </>
@@ -1782,6 +1990,23 @@ export default function ClientPage() {
                                 ))}
                             </select>
                         </div>
+                    )}
+
+                    {/* Visual Flowchart Preview in Sidebar */}
+                    {isImageMode && imagePreviewUrl && tableRows.length > 0 && (
+                        <details className="bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4 group [&_summary::-webkit-details-marker]:hidden">
+                            <summary className="flex justify-between items-center text-[10px] font-black text-zinc-400 uppercase tracking-widest cursor-pointer list-none">
+                                <span>Ver Diagrama Original</span>
+                                <span className="text-zinc-500 group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <div className="mt-3 bg-zinc-950/60 rounded-lg overflow-hidden border border-zinc-850 flex items-center justify-center p-1.5 cursor-zoom-in" onClick={() => setShowFullImageModal(true)}>
+                                <img 
+                                    src={imagePreviewUrl} 
+                                    alt="Flowchart original" 
+                                    className="max-w-full max-h-40 object-contain"
+                                />
+                            </div>
+                        </details>
                     )}
 
                     {/* Topology info */}
@@ -2279,9 +2504,14 @@ export default function ClientPage() {
                                                                 </td>
 
                                                                 <td className={cn("px-2 py-3 text-center font-bold align-middle", isLight ? "text-zinc-700" : "text-zinc-300")}>
-                                                                    <div className="flex items-center justify-center gap-1.5">
+                                                                    <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
                                                                         {row.needsReview && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 print:hidden" />}
-                                                                        <span>{row.step}</span>
+                                                                        <StepPositionInput 
+                                                                            step={row.step} 
+                                                                            max={tableRows.length} 
+                                                                            onMove={(newStep) => moveRowToPosition(idx, newStep)} 
+                                                                            isLight={isLight}
+                                                                        />
                                                                     </div>
                                                                 </td>
 
@@ -2430,9 +2660,17 @@ export default function ClientPage() {
                                                 <div className={cn("px-5 py-4 border-b flex justify-between items-start gap-4", isLight ? "bg-zinc-50 border-zinc-200" : "bg-zinc-900/80 border-zinc-800")}>
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <span className="bg-red-500/10 text-red-505 border border-red-500/20 text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md">
-                                                                PASO {row.step}
-                                                            </span>
+                                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                                <span className="bg-red-500/10 text-red-500 border border-red-500/20 text-[10px] font-black tracking-widest uppercase px-2 py-0.5 rounded-md flex items-center gap-1.5">
+                                                                    <span>PASO</span>
+                                                                    <StepPositionInput 
+                                                                        step={row.step} 
+                                                                        max={tableRows.length} 
+                                                                        onMove={(newStep) => moveRowToPosition(idx, newStep)} 
+                                                                        isLight={isLight}
+                                                                    />
+                                                                </span>
+                                                            </div>
                                                             {row.isLoop && (
                                                                 <span className="bg-yellow-500/10 text-yellow-600 border border-yellow-500/20 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
                                                                     🔄 Bucle {row.loopNote ? `(${row.loopNote})` : ''}
@@ -2444,14 +2682,30 @@ export default function ClientPage() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <h3 className={cn("text-base font-black mt-2 uppercase tracking-wide", isLight ? "text-zinc-800" : "text-zinc-100")}>
-                                                            {row.title || 'SIN TÍTULO'}
-                                                        </h3>
-                                                        {row.subtitle && (
-                                                            <p className={cn("text-xs mt-0.5 italic", isLight ? "text-zinc-500" : "text-zinc-400")}>
-                                                                {row.subtitle}
-                                                            </p>
-                                                        )}
+                                                        <div className="flex flex-col gap-1 mt-1">
+                                                            <input 
+                                                                type="text"
+                                                                value={row.title || ''}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                }}
+                                                                onChange={(e) => handleCellChange(idx, 'title', e.target.value)}
+                                                                placeholder="Título del paso"
+                                                                className={cn("text-sm font-black uppercase tracking-wide bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-100 focus:bg-zinc-900")}
+                                                            />
+                                                            <input 
+                                                                type="text"
+                                                                value={row.subtitle || ''}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                }}
+                                                                onChange={(e) => handleCellChange(idx, 'subtitle', e.target.value)}
+                                                                placeholder="Subtítulo o descripción corta"
+                                                                className={cn("text-xs italic bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-500 focus:bg-zinc-100" : "text-zinc-450 focus:bg-zinc-900")}
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <div className="flex gap-1 print:hidden">
                                                         <button 
@@ -2485,9 +2739,17 @@ export default function ClientPage() {
                                                     <div className="p-5 flex flex-col gap-4 col-span-2">
                                                         <div>
                                                             <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Sistemas Involucrados</div>
-                                                            <div className={cn("border rounded-lg px-3 py-2 leading-relaxed", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}>
-                                                                {row.systems || '-'}
-                                                            </div>
+                                                            <input 
+                                                                type="text"
+                                                                value={row.systems || ''}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                }}
+                                                                onChange={(e) => handleCellChange(idx, 'systems', e.target.value)}
+                                                                placeholder="Sistemas involucrados"
+                                                                className={cn("border rounded-lg px-3 py-1.5 text-xs w-full focus:ring-1 focus:ring-red-500 focus:outline-none", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}
+                                                            />
                                                         </div>
 
                                                         <div>
@@ -2523,22 +2785,60 @@ export default function ClientPage() {
                                                     {/* Right column: Data origin/destination and action type */}
                                                     <div className="p-5 flex flex-col gap-4">
                                                         <div>
-                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Origen / Destino Datos</div>
-                                                            <div className={cn("flex flex-col gap-1 font-sans", isLight ? "text-zinc-700" : "text-zinc-300")}>
-                                                                <div><span className={isLight ? "text-zinc-400 text-[10px] uppercase font-semibold mr-1" : "text-zinc-500 text-[10px] uppercase font-semibold mr-1"}>De:</span> {row.origin || '-'}</div>
-                                                                <div className={cn("my-1 border-t", isLight ? "border-zinc-200" : "border-zinc-800/45")}></div>
-                                                                <div><span className={isLight ? "text-zinc-400 text-[10px] uppercase font-semibold mr-1" : "text-zinc-500 text-[10px] uppercase font-semibold mr-1"}>A:</span> {row.destination || '-'}</div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Origen / Destino Datos</div>
+                                                            <div className={cn("flex flex-col gap-1 p-2 border rounded-lg", isLight ? "bg-white border-zinc-200" : "bg-zinc-950/40 border-zinc-800/60")}>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className={isLight ? "text-zinc-400 text-[10px] uppercase font-semibold w-8 shrink-0" : "text-zinc-500 text-[10px] uppercase font-semibold w-8 shrink-0"}>De:</span>
+                                                                    <input 
+                                                                        type="text"
+                                                                        value={row.origin || ''}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                        }}
+                                                                        onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
+                                                                        placeholder="Origen"
+                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                    />
+                                                                </div>
+                                                                <div className={cn("border-t", isLight ? "border-zinc-100" : "border-zinc-800/45")}></div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className={isLight ? "text-zinc-400 text-[10px] uppercase font-semibold w-8 shrink-0" : "text-zinc-500 text-[10px] uppercase font-semibold w-8 shrink-0"}>A:</span>
+                                                                    <input 
+                                                                        type="text"
+                                                                        value={row.destination || ''}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                        }}
+                                                                        onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
+                                                                        placeholder="Destino"
+                                                                        className={cn("bg-transparent border-none w-full text-xs focus:ring-1 focus:ring-red-500 rounded px-1.5 py-0.5", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
 
                                                         <div>
-                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Tipo de Acción</div>
-                                                            <div className={cn("flex items-center gap-1.5 border px-3 py-1.5 rounded-lg", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}>
-                                                                <span className="text-sm">
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Tipo de Acción</div>
+                                                            <div className={cn("flex items-center gap-1 border px-2.5 py-1 rounded-lg", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}>
+                                                                <span className="text-xs shrink-0">
                                                                     {row.actionType?.toLowerCase().includes('humana') || row.actionType === 'H' ? '👤' : 
                                                                      row.actionType?.toLowerCase().includes('autom') || row.actionType === 'A' ? '⚙️' : '🔌'}
                                                                 </span>
-                                                                <span className="font-semibold">{row.actionType || '-'}</span>
+                                                                <select
+                                                                    value={row.actionType || 'H'}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                    }}
+                                                                    onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
+                                                                    className={cn("bg-transparent border-none w-full text-xs font-semibold focus:ring-1 focus:ring-red-500 rounded p-0.5 focus:outline-none cursor-pointer", isLight ? "text-zinc-850" : "text-zinc-200")}
+                                                                >
+                                                                    <option value="H">Humana (👤)</option>
+                                                                    <option value="A">Automática (⚙️)</option>
+                                                                    <option value="I">Integración (🔌)</option>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2548,9 +2848,17 @@ export default function ClientPage() {
                                                 {/* Operative Description (Bottom row) */}
                                                 <div className={cn("px-5 py-4 border-t text-xs leading-relaxed", isLight ? "bg-zinc-50/50 border-zinc-200 text-zinc-700" : "bg-zinc-950/20 border-zinc-800 text-zinc-300")}>
                                                     <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Descripción Operativa</div>
-                                                    <p className={cn("border p-3.5 rounded-xl font-sans shadow-inner italic", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}>
-                                                        "{row.operativeDesc || 'No hay descripción operativa cargada.'}"
-                                                    </p>
+                                                    <textarea 
+                                                        rows={3}
+                                                        value={row.operativeDesc || ''}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                        }}
+                                                        onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
+                                                        placeholder="Describe detalladamente lo que ocurre en este paso..."
+                                                        className={cn("border p-3.5 rounded-xl font-sans shadow-inner italic w-full focus:ring-1 focus:ring-red-500 focus:outline-none resize-y", isLight ? "bg-white border-zinc-200 text-zinc-800" : "bg-zinc-950/40 border-zinc-800/60 text-zinc-200")}
+                                                    />
                                                 </div>
 
                                             </div>
@@ -2672,12 +2980,95 @@ export default function ClientPage() {
                                     </div>
                                 </div>
                             )
+                        ) : isImageMode && imagePreviewUrl ? (
+                            <div className={cn("border rounded-xl p-6 md:p-8 font-sans flex flex-col gap-6", isLight ? "border-zinc-200 bg-white" : "border-zinc-800 bg-zinc-900/10")}>
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-2 rounded-lg">
+                                        <ImageIcon className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className={cn("text-base font-bold", isLight ? "text-zinc-800" : "text-zinc-100")}>Compilar Diagrama de Flujo Visual</h3>
+                                        <p className={cn("text-xs mt-0.5", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                            El modelo Gemini analizará la estructura visual del diagrama y la transcribirá en una tabla estructurada de pasos.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                                    {/* Left: Image preview & interactive zoom */}
+                                    <div className="flex flex-col gap-2">
+                                        <div className={cn("text-[10px] font-black uppercase tracking-widest", isLight ? "text-zinc-500" : "text-zinc-400")}>Vista Previa del Diagrama</div>
+                                        <div className={cn("border rounded-lg overflow-hidden flex flex-col items-center justify-center p-4 relative group max-h-[350px] bg-zinc-950/20 border-zinc-800/60")}>
+                                            <img src={imagePreviewUrl} alt="Preview" className="max-h-[300px] object-contain rounded shadow-md" />
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => setShowFullImageModal(true)}
+                                                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                                >
+                                                    <Network className="w-3.5 h-3.5" />
+                                                    <span>Ver tamaño completo</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Prompt input & Compile trigger */}
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-2">
+                                            <label className={cn("text-[10px] font-black uppercase tracking-widest", isLight ? "text-zinc-500" : "text-zinc-400")}>
+                                                Pautas de compilación (Opcional)
+                                            </label>
+                                            <textarea
+                                                value={imageInstruction}
+                                                onChange={(e) => setImageInstruction(e.target.value)}
+                                                disabled={isGenerating}
+                                                placeholder="Ej. 'Identifica las swimlanes como actores', 'Ignora los pasos que tengan fondo amarillo', 'Agrupa los pasos en fases según la cabecera', etc."
+                                                rows={4}
+                                                className={cn(
+                                                    "w-full text-xs p-3 rounded-lg border focus:ring-1 focus:ring-red-500 focus:outline-none resize-none transition-colors",
+                                                    isLight 
+                                                        ? "border-zinc-200 bg-white text-zinc-800 placeholder-zinc-400" 
+                                                        : "border-zinc-800 bg-zinc-950/60 text-zinc-100 placeholder-zinc-500"
+                                                )}
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={runImageAnalysis}
+                                                disabled={isGenerating}
+                                                className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg text-xs transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-red-600/10 cursor-pointer"
+                                            >
+                                                {isGenerating ? (
+                                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Play className="w-4 h-4" />
+                                                )}
+                                                <span>{isGenerating ? 'Compilando...' : 'Iniciar Compilación de Imagen'}</span>
+                                            </button>
+
+                                            {isGenerating && (
+                                                <div className="flex flex-col gap-1 mt-1">
+                                                    <div className={cn("text-[11px] font-medium animate-pulse text-center", isLight ? "text-zinc-600" : "text-zinc-300")}>
+                                                        {parsingStatus || 'Procesando diagrama con Gemini 2.5 Flash...'}
+                                                    </div>
+                                                    <div className={cn("text-[9px] text-center", isLight ? "text-zinc-400" : "text-zinc-500")}>
+                                                        Esto puede tardar unos segundos dependiendo del tamaño y complejidad del diagrama.
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-80 border border-zinc-800/80 rounded-xl bg-zinc-900/10 p-12 text-center select-none">
                                 <Network className="w-12 h-12 text-zinc-600 mb-4" />
                                 <div className="text-zinc-300 font-medium">Carga un diagrama para comenzar</div>
                                 <p className="text-xs text-zinc-500 max-w-sm mt-1.5 leading-relaxed">
-                                    Extrae de forma precisa la topología de un archivo de Visio (.vsdx) o SVG y genérale la narrativa relacional.
+                                    Extrae de forma precisa la topología de un archivo de Visio (.vsdx), SVG, o carga un diagrama en formato JPG/PNG para compilarlo con Gemini Vision.
                                 </p>
                             </div>
                         )}
@@ -2841,6 +3232,28 @@ export default function ClientPage() {
                                 </button>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Full-Screen Diagram Zoom Modal */}
+            {showFullImageModal && imagePreviewUrl && (
+                <div 
+                    className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out select-none"
+                    onClick={() => setShowFullImageModal(false)}
+                >
+                    <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <img 
+                            src={imagePreviewUrl} 
+                            alt="Full Diagram" 
+                            className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl border border-zinc-800" 
+                        />
+                        <button 
+                            onClick={() => setShowFullImageModal(false)}
+                            className="mt-4 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-850 rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-lg"
+                        >
+                            Cerrar Vista
+                        </button>
                     </div>
                 </div>
             )}
