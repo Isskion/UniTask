@@ -4254,6 +4254,32 @@
     "updatedAt": "2026-06-03T13:26:13.156Z"
   },
   {
+    "id": "3_2026-06-04",
+    "date": "2026-06-04",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "EUROPASTRY",
+        "projectId": "9iqygviz3AGJnbJOLc8E",
+        "pmNotes": "Europastry - Seguimiento semanal proyecto 04-06-26\nPedido a Alvaro y Juan el cierre de interfaces y definición de fechas: pero es una semana mixta entre días no hábiles de juan, alvaro y otros integrantes de equipo - quizás el lunes 08/06 se tenga una definición final\n-> Diego a enviar acta con actualización de fechas de salida en septiembre 26\n-> Jorge mañana por la mañana estará afuera pero disponible desde el mediodia\nIñaki en proceso de cierre del documento con diagrama de interfaces que necesitamos sea validado por Europastry (18 servicios en total)\nRetomar los reportes, avisos y notificaciones para terminar de especificar sobre la la lista inicial (priorización y estimación de esfuerzos con fechas)\nAdelantos de preparación: Iñaki cerrando las configuraciones y liberación en breve para retomar pruebas por parte de Merce y su equipo\nVacaciones diego ultimas 2 semanas de junio + verificar el equipo de Europ\nReunión de comité la próxima seria la semana del 29/06\nDaniel brevemente comentado con Mariano tema fechas + febrero -> junio/julio -> septiembre 26\n-> Importante hacerle entender a Mariano la estrategia de implementación aprobada el año pasado: Planificación TyM + Cobranzas -> posterior al anterior, facturación\nSugerencia: Retomar las sesiones de diseño facturación hacia agosto a medida que se completan las tareas de FASE I\n-> Equipo a validar viabilidad",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Europastry - Seguimiento semanal proyecto 04-06-26\nPedido a Alvaro y Juan el cierre de interfaces y definición de fechas: pero es una semana mixta entre días no hábiles de juan, alvaro y otros integrantes de equipo - quizás el lunes 08/06 se tenga una definición final\n-> Diego a enviar acta con actualización de fechas de salida en septiembre 26\n-> Jorge mañana por la mañana estará afuera pero disponible desde el mediodia\nIñaki en proceso de cierre del documento con diagrama de interfaces que necesitamos sea validado por Europastry (18 servicios en total)\nRetomar los reportes, avisos y notificaciones para terminar de especificar sobre la la lista inicial (priorización y estimación de esfuerzos con fechas)\nAdelantos de preparación: Iñaki cerrando las configuraciones y liberación en breve para retomar pruebas por parte de Merce y su equipo\nVacaciones diego ultimas 2 semanas de junio + verificar el equipo de Europ\nReunión de comité la próxima seria la semana del 29/06\nDaniel brevemente comentado con Mariano tema fechas + febrero -> junio/julio -> septiembre 26\n-> Importante hacerle entender a Mariano la estrategia de implementación aprobada el año pasado: Planificación TyM + Cobranzas -> posterior al anterior, facturación\nSugerencia: Retomar las sesiones de diseño facturación hacia agosto a medida que se completan las tareas de FASE I\n-> Equipo a validar viabilidad",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-04T14:10:12.374Z",
+    "updatedAt": "2026-06-04T14:10:24.519Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
