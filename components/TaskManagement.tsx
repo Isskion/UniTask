@@ -38,7 +38,15 @@ import { createTask } from "@/lib/tasks";
 // Local MasterDataItem definition removed in favor of types.ts
 
 
-export default function TaskManagement({ initialTaskId }: { initialTaskId?: string | null }) {
+export default function TaskManagement({
+    initialTaskId,
+    isModal = false,
+    onClose
+}: {
+    initialTaskId?: string | null;
+    isModal?: boolean;
+    onClose?: () => void;
+}) {
     const { userRole, user, tenantId, userProfile } = useAuth();
     const { addDoc, updateDoc, deleteDoc } = useSafeFirestore();
     const { theme } = useTheme();
@@ -396,6 +404,33 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                 // IMPORTANT: If already selected, do nothing more!
                 if (selectedTask?.id === initialTaskId) {
                     processedInitialRef.current = initialTaskId; // Mark as processed
+                    return;
+                }
+
+                if (initialTaskId === 'new') {
+                    const newTemplate: Partial<Task> = {
+                        title: "",
+                        status: 'pending',
+                        projectId: "", // User must select
+                        acceptanceCriteria: [
+                            { id: '1', text: t('task_manager.criteria_placeholder'), completed: false }
+                        ],
+                        progress: 0,
+                        progressV13: { actual: 0, planned: 0 },
+                        type: 'task',
+                        order: Date.now() / 1000,
+                        ancestorIds: [],
+                        raci: { responsible: [], accountable: [], consulted: [], informed: [] },
+                        dependencies: [],
+                        tenantId: tenantId || "1",
+                        isActive: true
+                    };
+                    const ghost = { id: 'new', friendlyId: 'NEW', ...newTemplate } as Task;
+                    setSelectedTask(ghost);
+                    setFormData(newTemplate);
+                    setIsNew(true);
+                    setConfirmModal(null);
+                    processedInitialRef.current = 'new';
                     return;
                 }
 
@@ -970,6 +1005,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
 
                     setIsNew(false);
                     showToast("UniTaskController", t('task_manager.saved'), "success");
+                    if (isModal && onClose) {
+                        onClose();
+                    }
                 }
             }
         } catch (e) {
@@ -997,6 +1035,9 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
                     setSelectedTask(null);
                     showToast("UniTaskController", t('task_manager.deleted'), "success");
+                    if (isModal && onClose) {
+                        onClose();
+                    }
                 } catch (e) {
                     console.error(e);
                     showToast("UniTaskController", t('task_manager.delete_error'), "error");
@@ -1005,6 +1046,34 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
             }
         });
     };
+
+    const handleCloseModal = () => {
+        if (isDirty()) {
+            setConfirmModal({
+                open: true,
+                title: t('task_manager.unsaved_changes'),
+                message: t('task_manager.discard_and_close') || "¿Estás seguro de que deseas cerrar? Se perderán los cambios no guardados.",
+                onConfirm: () => {
+                    if (onClose) onClose();
+                }
+            });
+            return;
+        }
+        if (onClose) onClose();
+    };
+
+    // Close modal on Escape
+    useEffect(() => {
+        if (!isModal) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                handleCloseModal();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isModal, formData, selectedTask, isNew]);
 
     // --- CUSTOM DATE PICKER COMPONENT ---
     const CustomDatePicker = ({ target, value, onClose, onSelect }: { target: string, value: string | undefined, onClose: () => void, onSelect: (d: string) => void }) => {
@@ -1105,7 +1174,8 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
     return (
         <div className="flex h-full bg-background text-foreground">
             {/* Sidebar List */}
-            <div className={cn("w-72 border-r border-border flex-shrink-0 transition-all duration-300 bg-card/30", selectedTask ? "hidden lg:block lg:w-72" : "w-full lg:w-72")}>
+            {!isModal && (
+                <div className={cn("w-72 border-r border-border flex-shrink-0 transition-all duration-300 bg-card/30", selectedTask ? "hidden lg:block lg:w-72" : "w-full lg:w-72")}>
                 <div className="h-full flex flex-col">
                     <div className={cn("p-4 border-b", isLight ? "bg-zinc-50 border-zinc-200" : "bg-muted/10 border-border")}>
                         <div className="flex justify-between items-center mb-3">
@@ -1241,13 +1311,20 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                     )}
                 </div>
             </div>
+            )}
 
             {/* Main Content */}
             <div className={cn("flex-1 flex flex-col min-w-0 bg-background", !selectedTask ? "hidden lg:flex" : "flex")}>
                 {!selectedTask ? (
                     <div className={cn("flex-1 flex flex-col items-center justify-center", isLight ? "text-zinc-400" : "text-white")}>
-                        <LayoutTemplate className="w-12 h-12 mb-3 opacity-80" />
-                        <p className={cn("text-sm font-medium", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.select_task')}</p>
+                        {loading ? (
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        ) : (
+                            <>
+                                <LayoutTemplate className="w-12 h-12 mb-3 opacity-80" />
+                                <p className={cn("text-sm font-medium", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.select_task')}</p>
+                            </>
+                        )}
                     </div>
                 ) : (
                     <div className="flex-1 flex flex-col h-full overflow-y-auto custom-scrollbar relative">
@@ -1314,6 +1391,15 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             <button onClick={() => setIsStatusOpen(!isStatusOpen)} className={cn("px-3 py-1 rounded text-xs font-bold border transition-all flex items-center gap-1.5", getStatusColor(formData.status))}>
                                                 {getStatusLabel(formData.status)} <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                                             </button>
+                                            {isModal && (
+                                                <button
+                                                    onClick={handleCloseModal}
+                                                    className={cn("p-1.5 rounded transition-all ml-2", isLight ? "text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5")}
+                                                    title={t('common.close') || "Cerrar"}
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            )}
                                         </div>
                                         {isStatusOpen && (
                                             <>
@@ -2106,6 +2192,11 @@ export default function TaskManagement({ initialTaskId }: { initialTaskId?: stri
                                             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('task_manager.save_changes')}
                                         </button>
                                         {!isNew && can('delete', 'tasks') && <button onClick={handleDelete} className="w-full py-3 bg-transparent border border-white/10 text-red-400 hover:bg-red-500/10 hover:border-red-500/20 font-bold rounded-lg transition-all text-xs uppercase tracking-wide">{t('task_manager.delete_task')}</button>}
+                                        {isModal && (
+                                            <button onClick={handleCloseModal} className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white font-bold rounded-lg transition-all text-xs uppercase tracking-wide">
+                                                {t('common.cancel') || 'Cancelar'}
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

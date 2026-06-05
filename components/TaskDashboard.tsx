@@ -6,7 +6,7 @@ import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus } from 'lucide-react';
 
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from "@/lib/firebase";
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
 import HighlightText from './ui/HighlightText';
+import TaskManagement from './TaskManagement';
 
 
 
@@ -53,6 +54,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
     // NEW: Advanced Filters State
     const [filters, setFilters] = useState<TaskFiltersState>(initialFilters);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [modalTaskId, setModalTaskId] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Data for Filters
     const [users, setUsers] = useState<UserProfile[]>([]);
@@ -284,6 +287,18 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                     )}
 
                     <button
+                        onClick={() => {
+                            setModalTaskId("new");
+                            setIsModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-all shadow-lg shadow-indigo-900/30 border border-indigo-500"
+                        title="Crear Nueva Tarea"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        Crear Tarea
+                    </button>
+
+                    <button
                         onClick={() => setIsFilterOpen(true)}
                         className={cn(
                             "flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-lg transition-all border",
@@ -389,9 +404,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 key={task.id}
                                                 // [NEW] OnClick to Open ABM
                                                 onClick={() => {
-                                                    // [FIX] Dispatch event for instant switch
-                                                    window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'task-manager' } }));
-                                                    router.push(`/?mode=task-manager&taskId=${task.id}`);
+                                                    setModalTaskId(task.id);
+                                                    setIsModalOpen(true);
                                                 }}
                                                 className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer"
                                             >
@@ -406,9 +420,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                     className="mt-1 ml-2 cursor-pointer hover:scale-110 transition-transform active:scale-95 relative group/icon w-6 h-6 flex items-center justify-center"
                                                     onClick={(e) => {
                                                         e.stopPropagation(); // Prevent double trigger
-                                                        // [FIX] Dispatch event for instant switch
-                                                        window.dispatchEvent(new CustomEvent('switch-view', { detail: { view: 'task-manager' } }));
-                                                        router.push(`/?mode=task-manager&taskId=${task.id}`);
+                                                        setModalTaskId(task.id);
+                                                        setIsModalOpen(true);
                                                     }}
                                                     title="Abrir Ficha de Tarea (ABM)"
                                                 >
@@ -554,6 +567,22 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                     )
                 )}
             </div>
+
+            {/* Task Management Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl w-[95vw] max-w-6xl h-[85vh] md:h-[90vh] overflow-hidden flex flex-col relative scale-100 animate-in zoom-in-95 duration-200">
+                        <TaskManagement
+                            initialTaskId={modalTaskId}
+                            isModal={true}
+                            onClose={() => {
+                                setIsModalOpen(false);
+                                setModalTaskId(null);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
         </div >
     );
 }
