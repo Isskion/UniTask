@@ -4299,11 +4299,27 @@
             "isCollapsed": false
           }
         ]
+      },
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 05-06-26\nInterfaces:\n-> Aitana Business Central: reunión el jueves 11 a las 16:00hs\n-> Aitana Business Central: modulo de taller para dar de alta/baja vehiculos\n-> Aitana Business Central: ver Leonardo con Mijaela altas de empleados\n-> Webfleet: en proceso de inicio de pruebas internas\n-> Transporeon: 3 cuentas/empresas diferentes del grupo a compartir desde TRNP a Eric\n-> Maersk: avance y Unigis revisando la doc y ejemplos del proveedor compartido (envio de JSON)\n-> Generix: en avance via correo - ver las dudas compartidas por Iñaki y próximos pasos\n-> Portic: consulta para verificar el alta de pedidos informados (1 datos por contenedor o 1 array). Debería ser 1 a 1\nCircuitos de diseño\n-> Notas de Intermodal: Leo entregado - ahora Unigis en proceso de agrego de notas (teóricamente enviado // revisar con Daniel (revisar Misiones de Intermodal => tipología de pedidos + operaciones)\n-> Internacional: OK\n-> Distribución: mandar equipo TRNP con las notas: entre hoy y lunes 08-06\nFinalizada la aprobación de diseño, será ideal retomar las sesiones de análisis y diseño de tarifas\nReunión con \"deliverea\": empresa middleware y están conectados con CBL y Generix también\n-> TNRP aún en análisis de alternativas de integración global\nGestor de Citas desde el TMS: hoy manejan algo via Generix pero que no termina de convencer a TRNP\n-> Ver un flujo que trate de asimilar la necesidad de transpais así armamos una demo (portal de citas y muelles) con Vivi y equipo\n-> TRNP compartir dolores y flujos esperado así se focaliza mejor la presentación",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 05-06-26\nInterfaces:\n-> Aitana Business Central: reunión el jueves 11 a las 16:00hs\n-> Aitana Business Central: modulo de taller para dar de alta/baja vehiculos\n-> Aitana Business Central: ver Leonardo con Mijaela altas de empleados\n-> Webfleet: en proceso de inicio de pruebas internas\n-> Transporeon: 3 cuentas/empresas diferentes del grupo a compartir desde TRNP a Eric\n-> Maersk: avance y Unigis revisando la doc y ejemplos del proveedor compartido (envio de JSON)\n-> Generix: en avance via correo - ver las dudas compartidas por Iñaki y próximos pasos\n-> Portic: consulta para verificar el alta de pedidos informados (1 datos por contenedor o 1 array). Debería ser 1 a 1\nCircuitos de diseño\n-> Notas de Intermodal: Leo entregado - ahora Unigis en proceso de agrego de notas (teóricamente enviado // revisar con Daniel (revisar Misiones de Intermodal => tipología de pedidos + operaciones)\n-> Internacional: OK\n-> Distribución: mandar equipo TRNP con las notas: entre hoy y lunes 08-06\nFinalizada la aprobación de diseño, será ideal retomar las sesiones de análisis y diseño de tarifas\nReunión con \"deliverea\": empresa middleware y están conectados con CBL y Generix también\n-> TNRP aún en análisis de alternativas de integración global\nGestor de Citas desde el TMS: hoy manejan algo via Generix pero que no termina de convencer a TRNP\n-> Ver un flujo que trate de asimilar la necesidad de transpais así armamos una demo (portal de citas y muelles) con Vivi y equipo\n-> TRNP compartir dolores y flujos esperado así se focaliza mejor la presentación",
+            "isCollapsed": false
+          }
+        ]
       }
     ],
     "generalNotes": "",
     "createdAt": "2026-06-05T11:43:46.838Z",
-    "updatedAt": "2026-06-05T11:44:03.412Z"
+    "updatedAt": "2026-06-05T14:19:35.359Z"
   },
   {
     "id": "4_2026-01-12",
