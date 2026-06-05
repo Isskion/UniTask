@@ -4280,6 +4280,32 @@
     "updatedAt": "2026-06-04T14:10:24.519Z"
   },
   {
+    "id": "3_2026-06-05",
+    "date": "2026-06-05",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "SMSA",
+        "projectId": "c0HRtaCkKXxeiQf897sY",
+        "pmNotes": "SMSA - Project Management Sync 02-06-26\nConsumo de horas JIRA: Q2 mayo 26 - Entregadas\nFichero de Pruebas Unitarias - Entregado\nCaso de change request interfaz 4 a revisar en la reunión de hoy con SN + SMSA\nDEMO de notificaciones, alarmas y reportes a SMSA para entender qué necesita Unigis para avanzar: A LA ESPERA DE GONZALO - reunión de 15' para mostrar en TMS es suficiente\nDudas reportadas de Tracking, Gonzalo trabajando en ellos con demora - esto bloquea el avance de pruebas de SMSA\nPlan de Cut Over: confirmar Vodafonoe tracking con Rui: ver con Viviana y Javier lo que \"reclaman\" -> \"Unigis debería sustituir una ejecución de viaje guiada tipo GPS como Google Maps o Waze\"\n\n-> Según comentado con Javier, a través de GPS Tracker se puede configurar el servicio de Google Maps o Waze y durante la ejecución del viaje, abrir la app con el mapa que indica el camino desde A hasta B con la guía por pantalla nativa de cada una de esas plataformas\n\n-> Ver cartografía de vehículos pesados que no está presente en Google Maps y Waze (ver con el equipo de Cartografía)\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "SMSA - Project Management Sync 02-06-26\nConsumo de horas JIRA: Q2 mayo 26 - Entregadas\nFichero de Pruebas Unitarias - Entregado\nCaso de change request interfaz 4 a revisar en la reunión de hoy con SN + SMSA\nDEMO de notificaciones, alarmas y reportes a SMSA para entender qué necesita Unigis para avanzar: A LA ESPERA DE GONZALO - reunión de 15' para mostrar en TMS es suficiente\nDudas reportadas de Tracking, Gonzalo trabajando en ellos con demora - esto bloquea el avance de pruebas de SMSA\nPlan de Cut Over: confirmar Vodafonoe tracking con Rui: ver con Viviana y Javier lo que \"reclaman\" -> \"Unigis debería sustituir una ejecución de viaje guiada tipo GPS como Google Maps o Waze\"\n\n-> Según comentado con Javier, a través de GPS Tracker se puede configurar el servicio de Google Maps o Waze y durante la ejecución del viaje, abrir la app con el mapa que indica el camino desde A hasta B con la guía por pantalla nativa de cada una de esas plataformas\n\n-> Ver cartografía de vehículos pesados que no está presente en Google Maps y Waze (ver con el equipo de Cartografía)\n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-05T11:43:46.838Z",
+    "updatedAt": "2026-06-05T11:44:03.412Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

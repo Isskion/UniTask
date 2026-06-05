@@ -1601,7 +1601,6 @@
     "isActive": true,
     "techDescription": "Días que trabaja, si hace noches/fines de semana, dónde termina el viaje habitualmente.\nSi, contamos con esta información y compartimos en el planning de intermodal. Esta planilla cuenta con toda esta información. Esto donde podremos registrarlo en el TMS Unigis? Es clave para poder planificar los viajes.",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "endDate": "2026-06-04T22:00:00.000Z",
     "projectCode": "TSP",
     "priority": "Media",
     "area": "Maestros",
@@ -1619,9 +1618,10 @@
       "_seconds": 1780303091,
       "_nanoseconds": 793000000
     },
+    "endDate": "2026-06-11T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1780303091,
-      "_nanoseconds": 793000000
+      "_seconds": 1780666672,
+      "_nanoseconds": 365000000
     }
   },
   {
@@ -4757,7 +4757,6 @@
     "tenantId": "3",
     "isActive": true,
     "projectCode": "TSP",
-    "endDate": "2026-06-04T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "techDescription": "Integrar vehículos en listado",
     "priority": "Media",
@@ -4776,9 +4775,10 @@
       "_seconds": 1780298609,
       "_nanoseconds": 179000000
     },
+    "endDate": "2026-06-11T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1780298609,
-      "_nanoseconds": 179000000
+      "_seconds": 1780666661,
+      "_nanoseconds": 936000000
     }
   },
   {
@@ -7710,9 +7710,10 @@
       "_seconds": 1780303484,
       "_nanoseconds": 665000000
     },
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "updatedAt": {
-      "_seconds": 1780303484,
-      "_nanoseconds": 665000000
+      "_seconds": 1780661230,
+      "_nanoseconds": 731000000
     }
   },
   {

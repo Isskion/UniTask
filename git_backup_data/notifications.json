@@ -1562,12 +1562,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-26 - \"Información de conductores\" has reached its deadline.",
     "taskId": "8Khj09KXSevl8fVfCgSG",
-    "read": false,
     "link": "/?view=task-manager&taskId=8Khj09KXSevl8fVfCgSG",
     "createdAt": {
       "_seconds": 1780640899,
       "_nanoseconds": 74000000
-    }
+    },
+    "read": true
   },
   {
     "id": "frV6Scxqb8t9HU8wIEwH",
@@ -1657,12 +1657,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-23 - \"Integrar vehículos en listado\" has reached its deadline.",
     "taskId": "KahvAmT89vo2cZ3nhqlG",
-    "read": false,
     "link": "/?view=task-manager&taskId=KahvAmT89vo2cZ3nhqlG",
     "createdAt": {
       "_seconds": 1780640899,
       "_nanoseconds": 475000000
-    }
+    },
+    "read": true
   },
   {
     "id": "iXPAGAU1PVIpl6mjfwcl",
