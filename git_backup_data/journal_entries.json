@@ -4322,6 +4322,32 @@
     "updatedAt": "2026-06-05T14:19:35.359Z"
   },
   {
+    "id": "3_2026-06-08",
+    "date": "2026-06-08",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Dejo los códigos de empresa de Transporeon para tenerlos a mano:\nSAS TRANSPAIS FRANCE: CODIGO DE EMPRESA 257590\nTRANSPAIS ATLANTICO: CODIGO DE EMRPESA 245067\nTRANSPAIS SA: CODIGO DE EMPRESA 235590\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Dejo los códigos de empresa de Transporeon para tenerlos a mano:\nSAS TRANSPAIS FRANCE: CODIGO DE EMPRESA 257590\nTRANSPAIS ATLANTICO: CODIGO DE EMRPESA 245067\nTRANSPAIS SA: CODIGO DE EMPRESA 235590\n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-08T07:31:47.584Z",
+    "updatedAt": "2026-06-08T07:31:55.547Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
