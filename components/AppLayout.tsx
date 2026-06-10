@@ -161,6 +161,25 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
         label: string,
         target?: string
     }) => {
+        // Use regular <a> for static HTML assets to avoid Next.js RSC prefetch 404s
+        const isStaticAsset = href.endsWith('.html') || href.startsWith('http');
+
+        if (isStaticAsset) {
+            return (
+                <a
+                    href={href}
+                    target={target}
+                    className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group relative",
+                        "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    )}
+                >
+                    <Icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                    <span>{label}</span>
+                </a>
+            );
+        }
+
         return (
             <Link
                 href={href}
@@ -315,6 +334,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                             <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                             <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                            {can('swagger', 'views') && (
+                                <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.swagger.label') || 'UNIGIS Swagger'} />
+                            )}
+                            {can('soap', 'views') && (
+                                <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.soap.label') || 'UNIGIS SOAP'} />
+                            )}
                             <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
@@ -528,6 +553,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                                {can('swagger', 'views') && (
+                                    <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.swagger.label') || 'UNIGIS Swagger'} />
+                                )}
+                                {can('soap', 'views') && (
+                                    <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.soap.label') || 'UNIGIS SOAP'} />
+                                )}
                                 <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
