@@ -5,7 +5,7 @@ import JSZip from 'jszip';
 import { 
     Upload, FileCode, Network, CheckCircle, AlertTriangle, Play,
     Plus, Trash2, ArrowUp, ArrowDown, Download, Send, RefreshCw, FileText,
-    Save, FolderOpen, Folder, Image as ImageIcon, ChevronLeft, ChevronRight
+    Save, FolderOpen, Folder, Image as ImageIcon, ChevronLeft, ChevronRight, Copy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analyzeSubflowWithGemini, chatWithUniVisio, analyzeDiagramImageWithGemini } from './actions';
@@ -343,6 +343,40 @@ export default function ClientPage() {
         }
         return result;
     }, [nodes]);
+
+    const availableStates = useMemo(() => {
+        const states = new Set<string>();
+        tableRows.forEach(row => {
+            if (row.origin && row.origin !== '-') {
+                states.add(row.origin.trim());
+            }
+            if (row.destination && row.destination !== '-') {
+                states.add(row.destination.trim());
+            }
+            if (row.resultState && row.resultState !== '-') {
+                states.add(row.resultState.trim());
+            }
+        });
+        nodes.forEach(n => {
+            if (n.label) {
+                states.add(n.label.trim());
+            }
+        });
+        return Array.from(states).filter(Boolean).sort();
+    }, [tableRows, nodes]);
+
+    const availableActors = useMemo(() => {
+        const actors = new Set<string>();
+        swimlanes.forEach(s => {
+            if (s) actors.add(s.trim());
+        });
+        tableRows.forEach(row => {
+            if (row.actor && row.actor !== '-') {
+                actors.add(row.actor.trim());
+            }
+        });
+        return Array.from(actors).filter(Boolean).sort();
+    }, [tableRows, swimlanes]);
 
     const [activeLoteIndex, setActiveLoteIndex] = useState<number>(0);
 
@@ -1752,6 +1786,55 @@ export default function ClientPage() {
         );
     };
 
+    const handleDuplicateRow = (index: number) => {
+        setIsDirty(true);
+        setTableRows(prev => {
+            const rowToDuplicate = prev[index];
+            const duplicatedRow = {
+                ...rowToDuplicate,
+                linkedNodeId: '', 
+                step: index + 2
+            };
+            const copy = [...prev];
+            copy.splice(index + 1, 0, duplicatedRow);
+            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+        });
+    };
+
+    const handleInsertRow = (index: number) => {
+        setIsDirty(true);
+        setTableRows(prev => {
+            const newRow = {
+                step: index + 2,
+                title: 'NUEVO PASO',
+                subtitle: 'Descripción breve',
+                systems: '-',
+                phase: prev[index]?.phase || 'FASE GENERAL',
+                stateChanges: [],
+                conditionalPaths: [],
+                actor: prev[index]?.actor || 'General',
+                origin: '-',
+                destination: '-',
+                event: 'Nueva transacción',
+                resultState: '-',
+                actionType: 'H',
+                precondition: '-',
+                exception: '-',
+                rule: '-',
+                linkedNodeId: '',
+                pagePath: selectedPage,
+                confidence: 1.0,
+                interfaceRefs: [],
+                isLoop: false,
+                loopNote: null,
+                operativeDesc: 'Descripción operativa del paso.'
+            };
+            const copy = [...prev];
+            copy.splice(index + 1, 0, newRow);
+            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+        });
+    };
+
     const moveRow = (index: number, direction: 'up' | 'down') => {
         setIsDirty(true);
         setTableRows(prev => {
@@ -2645,6 +2728,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text" 
                                                                         value={row.actor}
+                                                                        list="available-actors"
                                                                         onChange={(e) => handleCellChange(idx, 'actor', e.target.value)}
                                                                         className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 print:border-none", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
@@ -2654,6 +2738,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text" 
                                                                         value={row.origin}
+                                                                        list="available-states"
                                                                         onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
                                                                         className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
@@ -2663,6 +2748,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text" 
                                                                         value={row.destination}
+                                                                        list="available-states"
                                                                         onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
                                                                         className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
@@ -2681,6 +2767,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text" 
                                                                         value={row.resultState}
+                                                                        list="available-states"
                                                                         onChange={(e) => handleCellChange(idx, 'resultState', e.target.value)}
                                                                         className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
@@ -2742,13 +2829,29 @@ export default function ClientPage() {
                                                                 </td>
 
                                                                 <td className="px-2 py-3 text-center align-middle print:hidden">
-                                                                    <button 
-                                                                        onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
-                                                                        className="text-zinc-500 hover:text-red-500"
-                                                                        title="Eliminar fila"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                    </button>
+                                                                    <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                                        <button 
+                                                                            onClick={() => handleDuplicateRow(idx)}
+                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
+                                                                            title="Duplicar paso"
+                                                                        >
+                                                                            <Copy className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleInsertRow(idx)}
+                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
+                                                                            title="Insertar paso después"
+                                                                        >
+                                                                            <Plus className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleDeleteRow(idx)}
+                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
+                                                                            title="Eliminar paso"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         </React.Fragment>
@@ -2833,28 +2936,44 @@ export default function ClientPage() {
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-1 print:hidden">
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
-                                                            className={cn("p-1 border rounded-lg disabled:opacity-40", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
-                                                            disabled={idx === 0}
-                                                        >
-                                                            <ArrowUp className="w-3.5 h-3.5" />
-                                                        </button>
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
-                                                            className={cn("p-1 border rounded-lg disabled:opacity-40", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
-                                                            disabled={idx === tableRows.length - 1}
-                                                        >
-                                                            <ArrowDown className="w-3.5 h-3.5" />
-                                                        </button>
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
-                                                            className={cn("p-1 border rounded-lg ml-2", isLight ? "border-zinc-200 bg-white hover:bg-red-50 text-zinc-400 hover:text-red-500" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-red-500")}
-                                                            title="Eliminar paso"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
+                                                                                        <button 
+                                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
+                                                                                            className={cn("p-1 border rounded-lg disabled:opacity-40", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
+                                                                                            disabled={idx === 0}
+                                                                                            title="Subir paso"
+                                                                                        >
+                                                                                            <ArrowUp className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
+                                                                                            className={cn("p-1 border rounded-lg disabled:opacity-40", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
+                                                                                            disabled={idx === tableRows.length - 1}
+                                                                                            title="Bajar paso"
+                                                                                        >
+                                                                                            <ArrowDown className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            onClick={(e) => { e.stopPropagation(); handleDuplicateRow(idx); }}
+                                                                                            className={cn("p-1 border rounded-lg ml-2", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
+                                                                                            title="Duplicar paso"
+                                                                                        >
+                                                                                            <Copy className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            onClick={(e) => { e.stopPropagation(); handleInsertRow(idx); }}
+                                                                                            className={cn("p-1 border rounded-lg", isLight ? "border-zinc-200 bg-white hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-zinc-300")}
+                                                                                            title="Insertar paso después"
+                                                                                        >
+                                                                                            <Plus className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            onClick={(e) => { e.stopPropagation(); handleDeleteRow(idx); }}
+                                                                                            className={cn("p-1 border rounded-lg", isLight ? "border-zinc-200 bg-white hover:bg-red-50 text-zinc-400 hover:text-red-500" : "border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900 text-zinc-500 hover:text-red-500")}
+                                                                                            title="Eliminar paso"
+                                                                                        >
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </div>
                                                 </div>
 
                                                 {/* Card body in a structured key-value grid */}
@@ -2920,6 +3039,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text"
                                                                         value={row.origin || ''}
+                                                                        list="available-states"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             if (activeRowIndex !== idx) setActiveRowIndex(idx);
@@ -2936,6 +3056,7 @@ export default function ClientPage() {
                                                                     <input 
                                                                         type="text"
                                                                         value={row.destination || ''}
+                                                                        list="available-states"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             if (activeRowIndex !== idx) setActiveRowIndex(idx);
@@ -3481,6 +3602,18 @@ export default function ClientPage() {
                     </div>
                 </div>
             )}
+
+            {/* Datalists for autocompletion */}
+            <datalist id="available-states">
+                {availableStates.map(state => (
+                    <option key={state} value={state} />
+                ))}
+            </datalist>
+            <datalist id="available-actors">
+                {availableActors.map(actor => (
+                    <option key={actor} value={actor} />
+                ))}
+            </datalist>
         </div>
     );
 }
