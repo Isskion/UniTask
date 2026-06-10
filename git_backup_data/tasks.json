@@ -12193,6 +12193,58 @@
     }
   },
   {
+    "id": "wQ9AdLwl3l0FJDYPRYXU",
+    "title": "3.\tCrear Ruta desde pedidos",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781099745.218,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Definir estas reglas con Gonzalo para el REQ",
+    "projectCode": "LSM",
+    "area": "Maestros",
+    "scope": "Incluido",
+    "module": "PLANIFICACIÓN",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-2",
+    "taskNumber": 2,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781099814,
+      "_nanoseconds": 944000000
+    },
+    "updatedAt": {
+      "_seconds": 1781099814,
+      "_nanoseconds": 944000000
+    }
+  },
+  {
     "id": "weGShskIamZsGaScIICJ",
     "friendlyId": "MOCK-01-1",
     "organizationId": "1",

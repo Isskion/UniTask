@@ -4348,6 +4348,48 @@
     "updatedAt": "2026-06-08T07:31:55.547Z"
   },
   {
+    "id": "3_2026-06-10",
+    "date": "2026-06-10",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "Buenos días,\n\nEn cuanto a las formas de pago que llevarían los repartidores serían las siguientes:\n09 : EFECTIVO\n10: TALÓN /CHEQUE\n12: PAGARÉ\n33: TARJETA\n\nContado serían las opciones 09 y 10.\nEstas serían las opciones que sólo podrían elegir los repartidores a la hora del cobro.\nCuando sean pedidos de crédito o pago aplazado no debería ser algo que pueda autorizar reparto. La forma de pago vendría directamente en el pedido y se actualizaría con ese mismo tipo.\n\nPropongo un desplegable con las 4 opciones para cuando no sean de crédito/aplazado y que si no fuera así se dejara como texto fijo el tipo o en el desplegable marcado inhabilitado.\n\nPor otra parte los tipos de vehículos que se han definido para Madrid serían:\nPESADO P1\nPESADO P1 ECO\nPESADO P2\nTRAMPILLA\nLIGERO\nFURGONETA SECO\nFURGONETA TEMP\nFURGONETA SECO H\nFURGONETA TEMP E\nFURGONETA SECO E\nCAMIÓN TEMP (NUEVO)",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Buenos días,\n\nEn cuanto a las formas de pago que llevarían los repartidores serían las siguientes:\n09 : EFECTIVO\n10: TALÓN /CHEQUE\n12: PAGARÉ\n33: TARJETA\n\nContado serían las opciones 09 y 10.\nEstas serían las opciones que sólo podrían elegir los repartidores a la hora del cobro.\nCuando sean pedidos de crédito o pago aplazado no debería ser algo que pueda autorizar reparto. La forma de pago vendría directamente en el pedido y se actualizaría con ese mismo tipo.\n\nPropongo un desplegable con las 4 opciones para cuando no sean de crédito/aplazado y que si no fuera así se dejara como texto fijo el tipo o en el desplegable marcado inhabilitado.\n\nPor otra parte los tipos de vehículos que se han definido para Madrid serían:\nPESADO P1\nPESADO P1 ECO\nPESADO P2\nTRAMPILLA\nLIGERO\nFURGONETA SECO\nFURGONETA TEMP\nFURGONETA SECO H\nFURGONETA TEMP E\nFURGONETA SECO E\nCAMIÓN TEMP (NUEVO)",
+            "isCollapsed": false
+          }
+        ]
+      },
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Hola,\n\nAdjunto resumen del seguimiento de hoy con los equipos de implantación.\n\nMaersk\nVisto con Jose Maria interfaz y casos de uso.\nMapeo terminado y añadido a REQ, en espera de fechas.\nWebfleet\nEn espera de terminar de levantar el servicio.\nPortic\nMapeo terminado de todas las interfaces.\nSe están validando con equipo senior. Se espera subir a REQ esta semana.\nTransporeon\nEmpezamos esta semana mapeo y lanzamiento de desarrollo.\nAitana y Business Central\n- Falta el envío de la información de Guias para que validen cómo funciona.\n- Se ha retrasado por necesidad de recursos en espera.\nContinuamos esperando la información de Aitana para validar posible Jsonsyncout\nLeonardo va a hablar con Israel para recordarle que nos hagan llegar la información.\nGenerix\nSeguimos en espera de información para continuar de cerrar el diseño de solución de Distribución.\nNecesitamos conocer que métodos van a exponer para cerrar el diseño.\nDejo por aquí el resumen de los solicitado por mail\nResumen del Flujo de Interfaces WMS – TMS:\nAlta de Pedidos (WMS → TMS): Uso de WS. CrearOrdenesPedido para altas, modificaciones y anulaciones, enviando datos de peso y volumen.\nEnvío Planificación (TMS → WMS): Punto pendiente de definición técnica por parte de GENERIX.\nAsignar Stock (WMS → TMS): Detalle a nivel de PedidoItem enviando información de bultos, pesos y pallets. Uso de WS. CrearOrdenesPedido\nConfirmar Rutas (TMS → WMS): Punto pendiente de definición técnica por parte de GENERIX.\nApilabilidad / Tracking (WMS → TMS): para gestión de etiquetas y seguimiento.\nWMS envía preparación final (apilabilidad) y número de tracking de los pedidos en operadores terceros a TMS.\nUso de WS. CrearViajeCompleto para la preparación final de los bultos.\nUso de WS. CrearOrdenesPedido para informar al TMS del número de tracking de los pedidos.\nControl Carga Camión (WMS → TMS): Finalización mediante WS. CrearViajeCompleto.\nComo hemos visto en la llamada, los puntos 5 y 6 se unificarían en una sola interfaz donde nos enviaríais la preparación final y lo cargado en el WS. CrearViajeCompleto y el tracking del número de los pedidos en el WS. CrearOrdenesPedido.\n\n\nMil gracias!",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola,\n\nAdjunto resumen del seguimiento de hoy con los equipos de implantación.\n\nMaersk\nVisto con Jose Maria interfaz y casos de uso.\nMapeo terminado y añadido a REQ, en espera de fechas.\nWebfleet\nEn espera de terminar de levantar el servicio.\nPortic\nMapeo terminado de todas las interfaces.\nSe están validando con equipo senior. Se espera subir a REQ esta semana.\nTransporeon\nEmpezamos esta semana mapeo y lanzamiento de desarrollo.\nAitana y Business Central\n- Falta el envío de la información de Guias para que validen cómo funciona.\n- Se ha retrasado por necesidad de recursos en espera.\nContinuamos esperando la información de Aitana para validar posible Jsonsyncout\nLeonardo va a hablar con Israel para recordarle que nos hagan llegar la información.\nGenerix\nSeguimos en espera de información para continuar de cerrar el diseño de solución de Distribución.\nNecesitamos conocer que métodos van a exponer para cerrar el diseño.\nDejo por aquí el resumen de los solicitado por mail\nResumen del Flujo de Interfaces WMS – TMS:\nAlta de Pedidos (WMS → TMS): Uso de WS. CrearOrdenesPedido para altas, modificaciones y anulaciones, enviando datos de peso y volumen.\nEnvío Planificación (TMS → WMS): Punto pendiente de definición técnica por parte de GENERIX.\nAsignar Stock (WMS → TMS): Detalle a nivel de PedidoItem enviando información de bultos, pesos y pallets. Uso de WS. CrearOrdenesPedido\nConfirmar Rutas (TMS → WMS): Punto pendiente de definición técnica por parte de GENERIX.\nApilabilidad / Tracking (WMS → TMS): para gestión de etiquetas y seguimiento.\nWMS envía preparación final (apilabilidad) y número de tracking de los pedidos en operadores terceros a TMS.\nUso de WS. CrearViajeCompleto para la preparación final de los bultos.\nUso de WS. CrearOrdenesPedido para informar al TMS del número de tracking de los pedidos.\nControl Carga Camión (WMS → TMS): Finalización mediante WS. CrearViajeCompleto.\nComo hemos visto en la llamada, los puntos 5 y 6 se unificarían en una sola interfaz donde nos enviaríais la preparación final y lo cargado en el WS. CrearViajeCompleto y el tracking del número de los pedidos en el WS. CrearOrdenesPedido.\n\n\nMil gracias!",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-10T11:18:57.193Z",
+    "updatedAt": "2026-06-10T13:23:29.528Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
