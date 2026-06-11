@@ -207,6 +207,52 @@ function renderRutas(){
   document.getElementById('tbl-rutas').innerHTML=h;
 }
 
+function renderGrupos() {
+  const q = (document.getElementById('q-grupos')||{value:''}).value.toLowerCase();
+  const rows = (data.grupos||[]).filter(g => !q || g.nombre.toLowerCase().includes(q) || (g.cols||[]).some(c=>c.toLowerCase().includes(q)));
+  const nEjec = (data.grupos||[]).filter(g=>g.tipoAcceso==='ejecucion'&&g.activo).length;
+  document.getElementById('stats-grupos').innerHTML = statsHtml(data.grupos||[]) +
+    '<div class="sc"><div class="sl">Con ejecución</div><div class="sv">'+nEjec+'</div></div>'+
+    '<div class="sc"><div class="sl">COLs cubiertos</div><div class="sv">'+new Set((data.grupos||[]).flatMap(g=>g.cols||[])).size+'</div></div>';
+  if (!rows.length) { document.getElementById('tbl-grupos').innerHTML = emptyHtml('Sin grupos definidos.'); return; }
+  let h = '<table><thead><tr><th>Nombre</th><th>COLs</th><th>Tipo</th><th>Visibilidad</th><th>Ejecución</th><th>Campos editables</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(g => {
+    const colsHtml = (g.cols||[]).map(c=>'<span class="pill p-pu" style="font-family:monospace;margin:1px">'+esc(c)+'</span>').join('');
+    const tipoCls = g.tipoAcceso==='ejecucion'?'p-am':'p-gy';
+    const tipoLbl = g.tipoAcceso==='ejecucion'?'Ejecución':'Solo visibilidad';
+    let vis = [];
+    if (g.verEntrante) vis.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
+    if (g.verSaliente) vis.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
+    let ejec = [];
+    if (g.tipoAcceso==='ejecucion') {
+      if (g.editarEntrante) ejec.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
+      if (g.editarSaliente) ejec.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
+      if (!ejec.length) ejec.push('<span class="tdm">—</span>');
+    } else {
+      ejec.push('<span class="tdm">—</span>');
+    }
+    let campos = [];
+    if (g.tipoAcceso==='ejecucion') {
+      const ce=g.camposEditables||{};
+      if (ce.fechas) campos.push('<span class="pill p-gr" style="margin:1px">Fechas</span>');
+      if (ce.recursos) campos.push('<span class="pill p-gr" style="margin:1px">Recursos</span>');
+      if (!campos.length) campos.push('<span class="tdm">—</span>');
+    } else campos.push('<span class="tdm">—</span>');
+    h += '<tr'+(!g.activo?' style="opacity:.5"':'')+'>';
+    h += '<td style="font-weight:500">'+esc(g.nombre)+(g.descripcion?'<div class="tdm" style="font-size:11px">'+esc(g.descripcion)+'</div>':'')+'</td>';
+    h += '<td style="white-space:nowrap">'+(colsHtml||'—')+'</td>';
+    h += '<td>'+pill(tipoLbl,tipoCls)+'</td>';
+    h += '<td style="white-space:nowrap">'+(vis.join('')||'<span class="tdm">—</span>')+'</td>';
+    h += '<td style="white-space:nowrap">'+ejec.join('')+'</td>';
+    h += '<td style="white-space:nowrap">'+campos.join('')+'</td>';
+    h += '<td>'+tog(g.activo,'grupos',g.id)+'</td>';
+    h += '<td><div class="tda"><button class="bi ed" onclick="openModal(\'grupos\','+g.id+')">✎</button><button class="bi dl" onclick="delItem(\'grupos\','+g.id+')">✕</button></div></td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  document.getElementById('tbl-grupos').innerHTML = h;
+}
+
 /* ── PLANIFICADOR ── */
 .plan-flow{display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;overflow-x:auto;padding:8px 0 16px;margin-bottom:4px}
 .plan-node{background:var(--sf);border:2px solid var(--bd);border-radius:var(--rl);padding:14px 16px;min-width:210px;max-width:250px;flex-shrink:0}
@@ -297,6 +343,7 @@ function renderRutas(){
   <button onclick="showTab('plantillas',this)"><span class="dot" style="background:#3B6D11"></span>Plantillas</button>
   <button onclick="showTab('depositos',this)"><span class="dot" style="background:#0F6E56"></span>Depósitos</button>
   <button onclick="showTab('planificador',this);ensurePlanInit()"><span class="dot" style="background:#854F0B"></span>Planificador</button>
+  <button onclick="showTab('grupos',this);ensureGruposSimInit()"><span class="dot" style="background:#A32D2D"></span>Grupos de Usuario</button>
 </nav>
 <main>
 
@@ -403,6 +450,25 @@ function renderRutas(){
   <div id="plan-historial" style="margin-top:14px"></div>
 </div>
 
+<div id="tab-grupos" class="tab">
+  <div class="toolbar">
+    <div class="tl-l"><span class="stitle">Grupos de usuario</span>
+      <input type="text" class="search" placeholder="Buscar grupo..." id="q-grupos" oninput="renderGrupos()">
+    </div>
+    <button class="btn btn-p" onclick="openModal('grupos',null)">+ Nuevo grupo</button>
+  </div>
+  <p class="sdesc">Define qué COLs/zonas tiene asociados cada grupo y qué puede hacer sobre los tramos de un viaje. <strong>Visibilidad</strong>: ver los tramos cuyo depósito de carga (saliente) o de descarga (entrante) pertenece a su COL. <strong>Ejecución</strong>: modificar (fechas/recursos) los tramos permitidos — normalmente solo los que su COL envía. Los grupos de "solo visibilidad" nunca pueden modificar tramos.</p>
+  <div id="stats-grupos" class="stats"></div>
+  <div id="tbl-grupos"></div>
+
+  <div class="toolbar" style="margin-top:22px">
+    <div class="tl-l"><span class="stitle">Simulador de visibilidad por tramo</span></div>
+  </div>
+  <p class="sdesc">Elige origen, COLs intermedios y destino (igual que en el Planificador) para generar los tramos del viaje y comprobar qué ve y qué puede editar cada grupo activo. Ejemplo: Lisboa → Madrid → Barcelona → Tarragona.</p>
+  <div id="gsim-ui"></div>
+  <div id="gsim-result" style="margin-top:14px"></div>
+</div>
+
 </main>
 
 <div class="bd-wrap" id="bd" onclick="bdClick(event)">
@@ -486,9 +552,15 @@ const DEFAULT_DATA = {"estados":[{"id":1,"codigo":1,"nombre":"Inicial","descripc
   {"id":97,"zona":"Olhao","col":"ALG"},{"id":98,"zona":"Silves","col":"ALG"},
   {"id":99,"zona":"Vila Real de Sto. Antonio","col":"ALG"}
 ],
-"rutas":[]
+"rutas":[],
+"grupos":[
+  {"id":1,"nombre":"Madrid (AD)","descripcion":"Equipo de operaciones del COL Madrid.","cols":["AD"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
+  {"id":2,"nombre":"Barcelona (BP)","descripcion":"Equipo de operaciones del COL Barcelona-Palleja.","cols":["BP"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
+  {"id":3,"nombre":"Lisboa (C)","descripcion":"Equipo de operaciones del COL Lisboa/SW.","cols":["C"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
+  {"id":4,"nombre":"Supervisión Central","descripcion":"Visión global de todos los COLs, sin capacidad de edición.","cols":["AD","BP","BF","BR","VL","AM","SV","BRG","CMB","R","VR","C","ALG"],"tipoAcceso":"visibilidad","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":false,"camposEditables":{"fechas":false,"recursos":false},"activo":true}
+]
 };
-const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"plantillas":9,"depositos":14,"zonas":100,"rutas":1};
+const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"plantillas":9,"depositos":14,"zonas":100,"rutas":1,"grupos":5};
 
 let data, nextIds, curSection, editId;
 
@@ -501,9 +573,11 @@ function init() {
       if (!data.depositos) { data.depositos = JSON.parse(JSON.stringify(DEFAULT_DATA.depositos)); }
       if (!data.zonas)     { data.zonas     = JSON.parse(JSON.stringify(DEFAULT_DATA.zonas)); }
       if (!data.rutas)     { data.rutas     = []; }
+      if (!data.grupos)    { data.grupos    = JSON.parse(JSON.stringify(DEFAULT_DATA.grupos)); }
       if (!nextIds.depositos) nextIds.depositos = DEFAULT_NEXT.depositos;
       if (!nextIds.zonas)     nextIds.zonas     = DEFAULT_NEXT.zonas;
       if (!nextIds.rutas)     nextIds.rutas     = 1;
+      if (!nextIds.grupos)    nextIds.grupos    = DEFAULT_NEXT.grupos;
       (data.depositos||[]).forEach(d=>{ if(!d.tipoCol) d.tipoCol='propio'; });
     } else {
       data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
@@ -554,7 +628,7 @@ function showTab(id, btn) {
   renderAll();
 }
 
-function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); }
+function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); }
 
 /* ── utils ── */
 function pill(txt, cls) { return '<span class="pill ' + cls + '">' + esc(txt) + '</span>'; }
@@ -684,7 +758,7 @@ function mxClick(orig, dest) {
 function openModal(section, id) {
   curSection = section; editId = id;
   const item = id !== null ? data[section].find(x => x.id === id) : null;
-  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL'};
+  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL', grupos:'grupo de usuario'};
   document.getElementById('m-title').textContent = (id !== null ? 'Editar ' : 'Nuevo ') + titles[section];
   document.getElementById('m-body').innerHTML = buildForm(section, item);
   document.getElementById('bd').classList.add('on');
@@ -849,7 +923,47 @@ function buildForm(sec, item) {
       '<div class="fg"><label class="fl">Restricción / Fórmula</label><input type="text" id="f-rest" value="' + esc(item ? item.restriccionFormula : '') + '" placeholder="ej: TipoDomicilioOrden2 != Deposito"></div>' +
       '<div class="fg"><label class="fl">Descripción</label><input type="text" id="f-desc" value="' + esc(item ? item.descripcion : '') + '"></div>';
   }
+
+  if (sec === 'grupos') {
+    const tipoOpts = ['ejecucion','visibilidad'].map(t => '<option value="'+t+'"'+((item?item.tipoAcceso:'ejecucion')===t?' selected':'')+'>'+(t==='ejecucion'?'Visibilidad + Ejecución':'Solo visibilidad')+'</option>').join('');
+    const colChecks = (data.depositos||[]).filter(d=>d.activo).sort((a,b)=>a.codigo.localeCompare(b.codigo)).map(d => {
+      const checked = item && (item.cols||[]).includes(d.codigo) ? ' checked' : '';
+      return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 9px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;background:var(--sf)"><input type="checkbox" class="f-gcol" value="'+esc(d.codigo)+'"'+checked+' style="width:auto"><span style="font-family:monospace;font-weight:600">'+esc(d.codigo)+'</span> '+esc(d.nombre)+'</label>';
+    }).join('');
+    const ce = (item && item.camposEditables) || {fechas:true,recursos:true};
+    const showExec = !item || item.tipoAcceso === 'ejecucion';
+    return '<div class="fg"><label class="fl">Nombre <span class="req">*</span></label><input type="text" id="f-gnom" value="'+esc(item?item.nombre:'')+'" placeholder="Madrid (AD)"></div>'+
+      '<div class="fg"><label class="fl">Descripción</label><textarea id="f-gdesc" style="min-height:44px">'+esc(item?item.descripcion||'':'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">COLs / Zonas asociadas <span class="req">*</span></label>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px">'+colChecks+'</div></div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Tipo de acceso</label><select id="f-gtipo" onchange="toggleGrupoExecFields(this.value)">'+tipoOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      '<div style="margin:6px 0 2px;font-size:11px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px">Visibilidad de tramos</div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Ver tramos entrantes (llegan a su COL)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gventr"'+(item?(item.verEntrante?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
+      '<div class="fg"><label class="fl">Ver tramos salientes (salen de su COL)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gvsal"'+(item?(item.verSaliente?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      '<div id="g-exec-fields" style="display:'+(showExec?'':'none')+'">'+
+      '<div style="margin:10px 0 2px;font-size:11px;font-weight:700;color:var(--am);text-transform:uppercase;letter-spacing:.5px">Ejecución (modificación) de tramos</div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Editar tramos entrantes (los recibidos)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-geentr"'+(item&&item.editarEntrante?' checked':'')+'><span class="tog-s"></span></label></div>'+
+      '<div class="fg"><label class="fl">Editar tramos salientes (los enviados)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gesal"'+(item?(item.editarSaliente?' checked':''):' checked')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      '<div style="margin:10px 0 2px;font-size:11px;font-weight:700;color:var(--am);text-transform:uppercase;letter-spacing:.5px">Campos editables en los tramos permitidos</div>'+
+      '<div class="frow">'+
+      '<div class="fg"><label class="fl">Fechas</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gcfecha"'+(ce.fechas?' checked':'')+'><span class="tog-s"></span></label></div>'+
+      '<div class="fg"><label class="fl">Recursos (vehículo / chofer)</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-gcrec"'+(ce.recursos?' checked':'')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      '</div>';
+  }
   return '';
+}
+
+function toggleGrupoExecFields(val) {
+  const el = document.getElementById('g-exec-fields');
+  if (el) el.style.display = (val === 'ejecucion') ? '' : 'none';
 }
 
 function saveModal() {
@@ -910,6 +1024,18 @@ function saveModal() {
     const dup = data.transiciones.find(t => t.estadoOrigen === orig && t.estadoDestino === dest && t.rolPermitido === rol && t.id !== editId);
     if (dup) { alert('Ya existe esa transición para ese rol.'); return; }
     item = {estadoOrigen: orig, estadoDestino: dest, rolPermitido: rol, restriccionFormula: gv('f-rest'), descripcion: gv('f-desc'), activo: gb('f-act')};
+  } else if (sec === 'grupos') {
+    if (!gv('f-gnom')) { alert('El nombre es obligatorio.'); return; }
+    const cols = Array.from(document.querySelectorAll('.f-gcol:checked')).map(c => c.value);
+    if (!cols.length) { alert('Selecciona al menos un COL/zona.'); return; }
+    item = {
+      nombre: gv('f-gnom'), descripcion: gv('f-gdesc'), cols,
+      tipoAcceso: gv('f-gtipo'),
+      verEntrante: gb('f-gventr'), verSaliente: gb('f-gvsal'),
+      editarEntrante: gb('f-geentr'), editarSaliente: gb('f-gesal'),
+      camposEditables: {fechas: gb('f-gcfecha'), recursos: gb('f-gcrec')},
+      activo: gb('f-gact')
+    };
   }
 
   if (editId !== null) {
@@ -1962,6 +2088,121 @@ function renderPlanMap(){
     return d;
   };
   leg.addTo(map);
+}
+
+/* ══════════════════════════════════════════════
+   GRUPOS DE USUARIO — Simulador de visibilidad
+   ══════════════════════════════════════════════ */
+let gSimState = {origTipo:'remitente',origZona:'',destTipo:'destinatario',destZona:'',intermedios:[],useP2P:false};
+let gSimInited = false;
+
+function ensureGruposSimInit() {
+  gSimInited = true;
+  renderGruposFlow();
+}
+
+function renderGruposFlow() {
+  const ui=document.getElementById('gsim-ui');
+  if(!ui) return;
+  const {origTipo,origZona,destTipo,destZona,intermedios}=gSimState;
+  const origCol=getColForZona(origZona);
+  const destCol=getColForZona(destZona);
+
+  let interHtml='';
+  intermedios.forEach((col,idx)=>{
+    const colOpts=Object.keys(PCOLS).map(c=>'<option value="'+esc(c)+'"'+(c===col?' selected':'')+'>'+esc(PCOLS[c].n)+'</option>').join('');
+    interHtml+=`
+      <div class="plan-connector">
+        <div style="font-size:20px;color:var(--bd2)">&#8594;</div>
+        <div class="plan-arrow-lbl">arrastre</div>
+      </div>
+      <div class="plan-node inter">
+        <div class="plan-node-label">COL Intermedio ${idx+1}</div>
+        <select onchange="gSimState.intermedios[${idx}]=this.value;renderGruposMatrix()">
+          ${colOpts}
+        </select>
+        <div>${colTagHtml(col)}</div>
+        <button class="plan-del-inter" onclick="gSimState.intermedios.splice(${idx},1);renderGruposFlow()">&#10005; Quitar COL</button>
+      </div>`;
+  });
+
+  ui.innerHTML=`
+    <div class="plan-flow">
+      <div class="plan-node origin">
+        <div class="plan-node-label">Origen</div>
+        <div class="plan-type-radio">
+          <label><input type="radio" name="gorig-tipo" value="remitente" ${origTipo==='remitente'?'checked':''} onchange="gSimState.origTipo=this.value;renderGruposMatrix()"> Remitente</label>
+          <label><input type="radio" name="gorig-tipo" value="col" ${origTipo==='col'?'checked':''} onchange="gSimState.origTipo=this.value;renderGruposMatrix()"> COL</label>
+        </div>
+        <select onchange="gSimState.origZona=this.value;renderGruposMatrix()">${zoneOptsHtml(origZona)}</select>
+        <div style="margin-top:6px">${colTagHtml(origCol)}</div>
+      </div>
+      ${interHtml}
+      <div class="plan-connector">
+        <div style="font-size:20px;color:var(--bd2)">&#8594;</div>
+        <button class="plan-add-btn" onclick="gSimState.intermedios.push(Object.keys(PCOLS)[0]);renderGruposFlow()">+ COL intermedio</button>
+      </div>
+      <div class="plan-node dest">
+        <div class="plan-node-label">Destino</div>
+        <div class="plan-type-radio">
+          <label><input type="radio" name="gdest-tipo" value="destinatario" ${destTipo==='destinatario'?'checked':''} onchange="gSimState.destTipo=this.value;renderGruposMatrix()"> Destinatario</label>
+          <label><input type="radio" name="gdest-tipo" value="col" ${destTipo==='col'?'checked':''} onchange="gSimState.destTipo=this.value;renderGruposMatrix()"> COL</label>
+        </div>
+        <select onchange="gSimState.destZona=this.value;renderGruposMatrix()">${zoneOptsHtml(destZona)}</select>
+        <div style="margin-top:6px">${colTagHtml(destCol)}</div>
+      </div>
+    </div>`;
+
+  renderGruposMatrix();
+}
+
+function grupoAccesoTramo(g, depCarga, depDescarga) {
+  const cols = g.cols||[];
+  const esSaliente = !!depCarga && cols.includes(depCarga);
+  const esEntrante = !!depDescarga && cols.includes(depDescarga);
+  const visible = (esSaliente && g.verSaliente) || (esEntrante && g.verEntrante);
+  const editable = visible && g.tipoAcceso==='ejecucion' && ((esSaliente && g.editarSaliente) || (esEntrante && g.editarEntrante));
+  return {visible, editable};
+}
+
+function renderGruposMatrix() {
+  const res=document.getElementById('gsim-result');
+  if(!res) return;
+  if(!gSimState.origZona||!gSimState.destZona) {
+    res.innerHTML='<div class="plan-empty">Selecciona zona de origen y destino para simular los tramos del viaje.</div>'; return;
+  }
+  const orders=generatePlanOrdersWith(gSimState);
+  if(!orders||!orders.length) {
+    res.innerHTML='<div class="plan-empty">No se generan tramos con la configuración actual.</div>'; return;
+  }
+  const grupos=(data.grupos||[]).filter(g=>g.activo);
+  if(!grupos.length) {
+    res.innerHTML='<div class="plan-empty">No hay grupos de usuario activos. Crea uno arriba para ver la simulación.</div>'; return;
+  }
+
+  let h=`<div class="plan-section">
+    <div class="plan-section-hdr">&#128065; Visibilidad y edición por grupo y tramo</div>
+    <div class="mx-wrap"><table class="mx"><thead><tr><th style="min-width:160px">Tramo</th>`;
+  grupos.forEach(g=>{ h+='<th style="text-align:center;min-width:120px">'+esc(g.nombre)+'</th>'; });
+  h+='</tr></thead><tbody>';
+
+  orders.forEach(o=>{
+    const label = o.depDescarga ? esc(o.depCarga)+' &#8594; '+esc(o.depDescarga) : esc(o.depCarga);
+    h+='<tr><td style="font-size:12px"><span class="ptb '+(PSTADOS[o.estadoCod]?.cls||'')+'" style="margin-right:4px">'+esc(o.tipo)+'</span><div class="tdm" style="font-family:monospace;margin-top:3px">'+label+'</div></td>';
+    grupos.forEach(g=>{
+      const acc=grupoAccesoTramo(g, o.depCarga, o.depDescarga);
+      let cell;
+      if(acc.editable) cell='<div class="mc dist" style="height:auto;padding:6px;flex-direction:column;gap:2px"><span>&#9998; Editar</span><span style="font-size:10px;font-weight:400">'+(['fechas','recursos'].filter(k=>(g.camposEditables||{})[k]).map(k=>k==='fechas'?'Fechas':'Recursos').join(' + ')||'—')+'</span></div>';
+      else if(acc.visible) cell='<div class="mc auto">&#128065; Ver</div>';
+      else cell='<div class="mc none">&mdash;</div>';
+      h+='<td>'+cell+'</td>';
+    });
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="leg"><div class="li"><div class="ld" style="background:var(--am2);border:1px solid var(--am)"></div>Puede ver y editar</div><div class="li"><div class="ld" style="background:var(--tl2);border:1px solid var(--tl)"></div>Solo ver</div><div class="li"><div class="ld" style="background:var(--sf2);border:1px solid var(--bd)"></div>Sin acceso</div></div>';
+  h+='</div>';
+  res.innerHTML=h;
 }
 
 init();
