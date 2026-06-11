@@ -4421,25 +4421,25 @@
     "tenantId": "3",
     "projects": [
       {
-        "name": "LUIS SIMOES Fase II",
-        "projectId": "OH4sjML9byhLuzMXSTss",
-        "pmNotes": "LS Fase II: reunión de comité 11-06-26\nVitor: Primera semana de julio primeras presentaciones internas de LS de cómo será la estrategia de implementación (foco en planeamiento)\nTarificación posterior al 15/07 (foco en el flujo de trabajo en TMS)\nAntonio: tener en cuenta el cierre de Etapa III, IV y V\n(interno Diego) Analizar riesgos y numerarlos + dar seguimiento\nLuis: vamos a hacer de pilotos para algunos desarrollos de Unigis - la preocupación es validar el diagrama de forma intensiva y que no queden dudas del lado de LS\n \n ",
-        "conclusions": "",
         "nextSteps": "",
-        "status": "active",
+        "name": "LUIS SIMOES Fase II",
         "blocks": [
           {
-            "id": "default",
+            "isCollapsed": false,
+            "content": "Hola equipo Luis Simoes,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados durante nuestra sesión de Comité:\n\n \n\nEstrategia de Implementación Interna: Vitor y equipo LS liderarán la preparación de las primeras presentaciones internas durante la primera semana de julio.\nEstas sesiones tendrán como objetivo principal alinear a la organización sobre cómo se ejecutará la estrategia de implantación, uso y adopción poniendo un foco muy especial en el área de Planeamiento.\n\nPlanificación de Módulos (Tarificación): Se ha determinado que el análisis y diseño del módulo de Tarificación seguirá avanzando en paralelo a la revisión final del Documento de Alcance de Programación y Planificación.\n\nSeguimiento de mejoras: Antonio ha enfatizado la importancia de mantener una visión global del avance de las mejoras de producto Unigis a medida que se avance al Cierre de las Etapas III, IV y V del proyecto\n \n\nValidación de Diseños y Alianza de Co-Innovación: Luis ha destacado el rol estratégico de Luis Simoes como socio piloto para el despliegue de ciertos desarrollos evolutivos de Unigis.\nLa máxima prioridad del equipo del cliente será realizar una revisión exhaustiva e intensiva del diagrama y los flujos propuestos, garantizando que se despeje cualquier tipo de duda técnica u operativa antes de avanzar durante las sesiones de revisión\n \n\nAccionables Equipo Luis Simoes\n\n \n\nVitor: Estructurar y preparar el material para las presentaciones internas de la estrategia de implementación (foco planeamiento) de cara a la primera semana de julio.\nEquipo Luis Simoes: Iniciar la revisión intensiva del diagrama de solución y flujos para asegurar la total comprensión y validación del modelo tras la entrega de Unigis\n \n\nAccionables Equipo Unigis\n\n \n\nDiego: Dar seguimiento a los riesgos identificados al cierre de Fase II Etapa de Diseño, procediendo a numerarlos, catalogarlos y armar la matriz de seguimiento correspondiente.\nEquipo Unigis: Brindar el soporte y los bloques de aclaración necesarios para acompañar al cliente en la validación del diagrama de solución.\n \n\nQuedo atento a cualquier duda o consulta,\n ",
             "title": "Título del bloque (ej. Reunión de Equipo)",
-            "content": "LS Fase II: reunión de comité 11-06-26\nVitor: Primera semana de julio primeras presentaciones internas de LS de cómo será la estrategia de implementación (foco en planeamiento)\nTarificación posterior al 15/07 (foco en el flujo de trabajo en TMS)\nAntonio: tener en cuenta el cierre de Etapa III, IV y V\n(interno Diego) Analizar riesgos y numerarlos + dar seguimiento\nLuis: vamos a hacer de pilotos para algunos desarrollos de Unigis - la preocupación es validar el diagrama de forma intensiva y que no queden dudas del lado de LS\n \n ",
-            "isCollapsed": false
+            "id": "default"
           }
-        ]
+        ],
+        "pmNotes": "Hola equipo Luis Simoes,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados durante nuestra sesión de Comité:\n\n \n\nEstrategia de Implementación Interna: Vitor y equipo LS liderarán la preparación de las primeras presentaciones internas durante la primera semana de julio.\nEstas sesiones tendrán como objetivo principal alinear a la organización sobre cómo se ejecutará la estrategia de implantación, uso y adopción poniendo un foco muy especial en el área de Planeamiento.\n\nPlanificación de Módulos (Tarificación): Se ha determinado que el análisis y diseño del módulo de Tarificación seguirá avanzando en paralelo a la revisión final del Documento de Alcance de Programación y Planificación.\n\nSeguimiento de mejoras: Antonio ha enfatizado la importancia de mantener una visión global del avance de las mejoras de producto Unigis a medida que se avance al Cierre de las Etapas III, IV y V del proyecto\n \n\nValidación de Diseños y Alianza de Co-Innovación: Luis ha destacado el rol estratégico de Luis Simoes como socio piloto para el despliegue de ciertos desarrollos evolutivos de Unigis.\nLa máxima prioridad del equipo del cliente será realizar una revisión exhaustiva e intensiva del diagrama y los flujos propuestos, garantizando que se despeje cualquier tipo de duda técnica u operativa antes de avanzar durante las sesiones de revisión\n \n\nAccionables Equipo Luis Simoes\n\n \n\nVitor: Estructurar y preparar el material para las presentaciones internas de la estrategia de implementación (foco planeamiento) de cara a la primera semana de julio.\nEquipo Luis Simoes: Iniciar la revisión intensiva del diagrama de solución y flujos para asegurar la total comprensión y validación del modelo tras la entrega de Unigis\n \n\nAccionables Equipo Unigis\n\n \n\nDiego: Dar seguimiento a los riesgos identificados al cierre de Fase II Etapa de Diseño, procediendo a numerarlos, catalogarlos y armar la matriz de seguimiento correspondiente.\nEquipo Unigis: Brindar el soporte y los bloques de aclaración necesarios para acompañar al cliente en la validación del diagrama de solución.\n \n\nQuedo atento a cualquier duda o consulta,\n ",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "conclusions": "",
+        "status": "active"
       }
     ],
     "generalNotes": "",
     "createdAt": "2026-06-11T13:42:50.679Z",
-    "updatedAt": "2026-06-11T13:42:56.320Z"
+    "updatedAt": "2026-06-11T16:59:20.227Z"
   },
   {
     "id": "4_2026-01-12",
