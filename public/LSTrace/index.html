@@ -98,161 +98,6 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
 .ld{width:12px;height:12px;border-radius:3px}
 .import-export{display:flex;gap:8px}
-/* ── DEPÓSITOS ── */
-function regionColor(r){return r==='ZCN'?'p-bl':r==='BCN'?'p-am':r==='LEV'?'p-tl':r==='AND'?'p-co':r==='NW'?'p-gr':'p-pu';}
-function paisTag(p){return p==='ES'?'<span class="pill p-bl" style="font-size:10px">ES</span>':'<span class="pill p-tl" style="font-size:10px">PT</span>';}
-
-function renderDepositos(){
-  const q=(document.getElementById('q-depositos')||{value:''}).value.toLowerCase();
-  const rows=(data.depositos||[]).filter(d=>!q||d.codigo.toLowerCase().includes(q)||d.nombre.toLowerCase().includes(q)||d.region.toLowerCase().includes(q));
-  const es=(data.depositos||[]).filter(d=>d.pais==='ES'&&d.activo).length;
-  const pt=(data.depositos||[]).filter(d=>d.pais==='PT'&&d.activo).length;
-  document.getElementById('stats-depositos').innerHTML=statsHtml(data.depositos||[])+
-    '<div class="sc"><div class="sl">ES</div><div class="sv">'+es+'</div></div>'+
-    '<div class="sc"><div class="sl">PT</div><div class="sv">'+pt+'</div></div>'+
-    '<div class="sc"><div class="sl">Zonas asignadas</div><div class="sv">'+new Set((data.zonas||[]).map(z=>z.col)).size+' COLs</div></div>';
-  if(!rows.length){document.getElementById('tbl-depositos').innerHTML=emptyHtml('Sin depósitos.');return;}
-  let h='<table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Región</th><th>País</th><th>Zona (Local/LD)</th><th>Jornada Local</th><th>Jornada LD</th><th>Operación</th><th>Afección</th><th>Activo</th><th></th></tr></thead><tbody>';
-  rows.forEach(d=>{
-    const nZonas=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
-    const nRutas=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
-    const nJorn=(data.jornadas||[]).filter(j=>(j.tipoJornada||'').toLowerCase().includes(d.jornadaLocal.toLowerCase().split(' ').slice(0,2).join(' ').toLowerCase())).length;
-    const tipo=d.tipoCol||'propio';
-    const tipoCls=tipo==='ajena'?'p-am':tipo==='aliada'?'p-pu':'p-tl';
-    h+='<tr'+(!d.activo?' style="opacity:.5"':'')+'>';
-    h+='<td><span class="pill p-pu" style="font-family:monospace;font-size:13px">'+esc(d.codigo)+'</span></td>';
-    h+='<td style="font-weight:500">'+esc(d.nombre)+'</td>';
-    h+='<td>'+pill(tipo,tipoCls)+'</td>';
-    h+='<td>'+pill(d.region,regionColor(d.region))+'</td>';
-    h+='<td>'+paisTag(d.pais)+'</td>';
-    h+='<td class="tdm" style="font-family:monospace;font-size:11px">'+esc(d.zona)+'</td>';
-    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLocal)+'</td>';
-    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLD)+'</td>';
-    h+='<td class="tdm" style="font-size:11px">'+esc(d.operacion)+'</td>';
-    h+='<td style="font-size:11px;white-space:nowrap">';
-    if(nZonas) h+='<span class="pill p-tl" style="margin:1px">'+nZonas+' zonas</span>';
-    if(nRutas) h+='<span class="pill p-am" style="margin:1px">'+nRutas+' rutas</span>';
-    if(nJorn)  h+='<span class="pill p-bl" style="margin:1px">~'+nJorn+' jornadas</span>';
-    h+='</td>';
-    h+='<td>'+tog(d.activo,'depositos',d.id)+'</td>';
-    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'depositos\','+d.id+')">✎</button><button class="bi dl" onclick="delDeposito('+d.id+')">✕</button></div></td>';
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  document.getElementById('tbl-depositos').innerHTML=h;
-}
-
-function delDeposito(id){
-  const d=data.depositos.find(x=>x.id===id);
-  if(!d) return;
-  const nZ=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
-  const nR=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
-  let warn='';
-  if(nZ) warn+='\n• '+nZ+' zona(s) de influencia quedarán sin COL asignado.';
-  if(nR) warn+='\n• '+nR+' ruta(s) inter-COL quedarán huérfanas.';
-  if(!confirm('¿Eliminar COL "'+d.codigo+'"?'+(warn?'\n\nATENCIÓN:'+warn:''))) return;
-  data.depositos=data.depositos.filter(x=>x.id!==id);
-  save(); renderAll();
-}
-
-function renderZonas(){
-  const q=(document.getElementById('q-zonas')||{value:''}).value.toLowerCase();
-  const rows=(data.zonas||[]).filter(z=>!q||z.zona.toLowerCase().includes(q)||z.col.toLowerCase().includes(q));
-  const byCol={};
-  (data.zonas||[]).forEach(z=>{byCol[z.col]=(byCol[z.col]||0)+1;});
-  document.getElementById('stats-zonas').innerHTML=statsHtml(data.zonas||[])+
-    '<div class="sc"><div class="sl">COLs con zonas</div><div class="sv">'+Object.keys(byCol).length+'</div></div>'+
-    '<div class="sc"><div class="sl">Sin COL activo</div><div class="sv">'+
-    (data.zonas||[]).filter(z=>!PCOLS[z.col]).length+'</div></div>';
-  if(!rows.length){document.getElementById('tbl-zonas').innerHTML=emptyHtml('Sin zonas.');return;}
-  let h='<table><thead><tr><th>Zona / Localidad</th><th>COL asignado</th><th>País</th><th>Zona lógica</th><th></th></tr></thead><tbody>';
-  rows.forEach(z=>{
-    const col=PCOLS[z.col];
-    const orphan=!col;
-    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
-    h+='<td style="font-weight:500">'+esc(z.zona)+(orphan?' <span style="font-size:10px;color:var(--re)">⚠ COL no existe</span>':'')+'</td>';
-    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(z.col)+'</span>'+(col?' <span class="tdm" style="font-size:11px">'+esc(col.n)+'</span>':'')+'</td>';
-    h+='<td>'+(col?paisTag(col.pais):'—')+'</td>';
-    h+='<td class="tdm" style="font-size:11px;font-family:monospace">'+(col?esc(col.zone):'—')+'</td>';
-    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'zonas\','+z.id+')">✎</button><button class="bi dl" onclick="delItem(\'zonas\','+z.id+')">✕</button></div></td>';
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  document.getElementById('tbl-zonas').innerHTML=h;
-}
-
-function renderRutas(){
-  const q=(document.getElementById('q-rutas')||{value:''}).value.toLowerCase();
-  const rows=(data.rutas||[]).filter(r=>!q||r.colOrigen.toLowerCase().includes(q)||r.colDestino.toLowerCase().includes(q)||(r.descripcion||'').toLowerCase().includes(q));
-  document.getElementById('stats-rutas').innerHTML=statsHtml(data.rutas||[])+
-    '<div class="sc"><div class="sl">COLs con rutas</div><div class="sv">'+new Set((data.rutas||[]).flatMap(r=>[r.colOrigen,r.colDestino])).size+'</div></div>';
-  if(!rows.length){
-    document.getElementById('tbl-rutas').innerHTML='<div class="empty"><div class="ei">🔀</div><p>Sin rutas definidas. Añade conexiones inter-COL para validar arrastres en el Planificador.</p></div>';
-    return;
-  }
-  let h='<table><thead><tr><th>COL Origen</th><th></th><th>COL Destino</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
-  rows.forEach(r=>{
-    const co=PCOLS[r.colOrigen],cd=PCOLS[r.colDestino];
-    const orphan=!co||!cd;
-    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
-    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colOrigen)+'</span>'+(co?' <span class="tdm" style="font-size:11px">'+esc(co.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
-    h+='<td style="text-align:center;color:var(--am)">&#8594;</td>';
-    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colDestino)+'</span>'+(cd?' <span class="tdm" style="font-size:11px">'+esc(cd.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
-    h+='<td class="tdm">'+esc(r.descripcion||'—')+'</td>';
-    h+='<td>'+tog(r.activo,'rutas',r.id)+'</td>';
-    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'rutas\','+r.id+')">✎</button><button class="bi dl" onclick="delItem(\'rutas\','+r.id+')">✕</button></div></td>';
-    h+='</tr>';
-  });
-  h+='</tbody></table>';
-  document.getElementById('tbl-rutas').innerHTML=h;
-}
-
-function renderGrupos() {
-  const q = (document.getElementById('q-grupos')||{value:''}).value.toLowerCase();
-  const rows = (data.grupos||[]).filter(g => !q || g.nombre.toLowerCase().includes(q) || (g.cols||[]).some(c=>c.toLowerCase().includes(q)));
-  const nEjec = (data.grupos||[]).filter(g=>g.tipoAcceso==='ejecucion'&&g.activo).length;
-  document.getElementById('stats-grupos').innerHTML = statsHtml(data.grupos||[]) +
-    '<div class="sc"><div class="sl">Con ejecución</div><div class="sv">'+nEjec+'</div></div>'+
-    '<div class="sc"><div class="sl">COLs cubiertos</div><div class="sv">'+new Set((data.grupos||[]).flatMap(g=>g.cols||[])).size+'</div></div>';
-  if (!rows.length) { document.getElementById('tbl-grupos').innerHTML = emptyHtml('Sin grupos definidos.'); return; }
-  let h = '<table><thead><tr><th>Nombre</th><th>COLs</th><th>Tipo</th><th>Visibilidad</th><th>Ejecución</th><th>Campos editables</th><th>Activo</th><th></th></tr></thead><tbody>';
-  rows.forEach(g => {
-    const colsHtml = (g.cols||[]).map(c=>'<span class="pill p-pu" style="font-family:monospace;margin:1px">'+esc(c)+'</span>').join('');
-    const tipoCls = g.tipoAcceso==='ejecucion'?'p-am':'p-gy';
-    const tipoLbl = g.tipoAcceso==='ejecucion'?'Ejecución':'Solo visibilidad';
-    let vis = [];
-    if (g.verEntrante) vis.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
-    if (g.verSaliente) vis.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
-    let ejec = [];
-    if (g.tipoAcceso==='ejecucion') {
-      if (g.editarEntrante) ejec.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
-      if (g.editarSaliente) ejec.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
-      if (!ejec.length) ejec.push('<span class="tdm">—</span>');
-    } else {
-      ejec.push('<span class="tdm">—</span>');
-    }
-    let campos = [];
-    if (g.tipoAcceso==='ejecucion') {
-      const ce=g.camposEditables||{};
-      if (ce.fechas) campos.push('<span class="pill p-gr" style="margin:1px">Fechas</span>');
-      if (ce.recursos) campos.push('<span class="pill p-gr" style="margin:1px">Recursos</span>');
-      if (!campos.length) campos.push('<span class="tdm">—</span>');
-    } else campos.push('<span class="tdm">—</span>');
-    h += '<tr'+(!g.activo?' style="opacity:.5"':'')+'>';
-    h += '<td style="font-weight:500">'+esc(g.nombre)+(g.descripcion?'<div class="tdm" style="font-size:11px">'+esc(g.descripcion)+'</div>':'')+'</td>';
-    h += '<td style="white-space:nowrap">'+(colsHtml||'—')+'</td>';
-    h += '<td>'+pill(tipoLbl,tipoCls)+'</td>';
-    h += '<td style="white-space:nowrap">'+(vis.join('')||'<span class="tdm">—</span>')+'</td>';
-    h += '<td style="white-space:nowrap">'+ejec.join('')+'</td>';
-    h += '<td style="white-space:nowrap">'+campos.join('')+'</td>';
-    h += '<td>'+tog(g.activo,'grupos',g.id)+'</td>';
-    h += '<td><div class="tda"><button class="bi ed" onclick="openModal(\'grupos\','+g.id+')">✎</button><button class="bi dl" onclick="delItem(\'grupos\','+g.id+')">✕</button></div></td>';
-    h += '</tr>';
-  });
-  h += '</tbody></table>';
-  document.getElementById('tbl-grupos').innerHTML = h;
-}
-
 /* ── PLANIFICADOR ── */
 .plan-flow{display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;overflow-x:auto;padding:8px 0 16px;margin-bottom:4px}
 .plan-node{background:var(--sf);border:2px solid var(--bd);border-radius:var(--rl);padding:14px 16px;min-width:210px;max-width:250px;flex-shrink:0}
@@ -626,6 +471,161 @@ function showTab(id, btn) {
   document.getElementById('tab-' + id).classList.add('on');
   btn.classList.add('active');
   renderAll();
+}
+
+/* ── DEPÓSITOS ── */
+function regionColor(r){return r==='ZCN'?'p-bl':r==='BCN'?'p-am':r==='LEV'?'p-tl':r==='AND'?'p-co':r==='NW'?'p-gr':'p-pu';}
+function paisTag(p){return p==='ES'?'<span class="pill p-bl" style="font-size:10px">ES</span>':'<span class="pill p-tl" style="font-size:10px">PT</span>';}
+
+function renderDepositos(){
+  const q=(document.getElementById('q-depositos')||{value:''}).value.toLowerCase();
+  const rows=(data.depositos||[]).filter(d=>!q||d.codigo.toLowerCase().includes(q)||d.nombre.toLowerCase().includes(q)||d.region.toLowerCase().includes(q));
+  const es=(data.depositos||[]).filter(d=>d.pais==='ES'&&d.activo).length;
+  const pt=(data.depositos||[]).filter(d=>d.pais==='PT'&&d.activo).length;
+  document.getElementById('stats-depositos').innerHTML=statsHtml(data.depositos||[])+
+    '<div class="sc"><div class="sl">ES</div><div class="sv">'+es+'</div></div>'+
+    '<div class="sc"><div class="sl">PT</div><div class="sv">'+pt+'</div></div>'+
+    '<div class="sc"><div class="sl">Zonas asignadas</div><div class="sv">'+new Set((data.zonas||[]).map(z=>z.col)).size+' COLs</div></div>';
+  if(!rows.length){document.getElementById('tbl-depositos').innerHTML=emptyHtml('Sin depósitos.');return;}
+  let h='<table><thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Región</th><th>País</th><th>Zona (Local/LD)</th><th>Jornada Local</th><th>Jornada LD</th><th>Operación</th><th>Afección</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(d=>{
+    const nZonas=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
+    const nRutas=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
+    const nJorn=(data.jornadas||[]).filter(j=>(j.tipoJornada||'').toLowerCase().includes(d.jornadaLocal.toLowerCase().split(' ').slice(0,2).join(' ').toLowerCase())).length;
+    const tipo=d.tipoCol||'propio';
+    const tipoCls=tipo==='ajena'?'p-am':tipo==='aliada'?'p-pu':'p-tl';
+    h+='<tr'+(!d.activo?' style="opacity:.5"':'')+'>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace;font-size:13px">'+esc(d.codigo)+'</span></td>';
+    h+='<td style="font-weight:500">'+esc(d.nombre)+'</td>';
+    h+='<td>'+pill(tipo,tipoCls)+'</td>';
+    h+='<td>'+pill(d.region,regionColor(d.region))+'</td>';
+    h+='<td>'+paisTag(d.pais)+'</td>';
+    h+='<td class="tdm" style="font-family:monospace;font-size:11px">'+esc(d.zona)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLocal)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.jornadaLD)+'</td>';
+    h+='<td class="tdm" style="font-size:11px">'+esc(d.operacion)+'</td>';
+    h+='<td style="font-size:11px;white-space:nowrap">';
+    if(nZonas) h+='<span class="pill p-tl" style="margin:1px">'+nZonas+' zonas</span>';
+    if(nRutas) h+='<span class="pill p-am" style="margin:1px">'+nRutas+' rutas</span>';
+    if(nJorn)  h+='<span class="pill p-bl" style="margin:1px">~'+nJorn+' jornadas</span>';
+    h+='</td>';
+    h+='<td>'+tog(d.activo,'depositos',d.id)+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'depositos\','+d.id+')">✎</button><button class="bi dl" onclick="delDeposito('+d.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-depositos').innerHTML=h;
+}
+
+function delDeposito(id){
+  const d=data.depositos.find(x=>x.id===id);
+  if(!d) return;
+  const nZ=(data.zonas||[]).filter(z=>z.col===d.codigo).length;
+  const nR=(data.rutas||[]).filter(r=>r.colOrigen===d.codigo||r.colDestino===d.codigo).length;
+  let warn='';
+  if(nZ) warn+='\n• '+nZ+' zona(s) de influencia quedarán sin COL asignado.';
+  if(nR) warn+='\n• '+nR+' ruta(s) inter-COL quedarán huérfanas.';
+  if(!confirm('¿Eliminar COL "'+d.codigo+'"?'+(warn?'\n\nATENCIÓN:'+warn:''))) return;
+  data.depositos=data.depositos.filter(x=>x.id!==id);
+  save(); renderAll();
+}
+
+function renderZonas(){
+  const q=(document.getElementById('q-zonas')||{value:''}).value.toLowerCase();
+  const rows=(data.zonas||[]).filter(z=>!q||z.zona.toLowerCase().includes(q)||z.col.toLowerCase().includes(q));
+  const byCol={};
+  (data.zonas||[]).forEach(z=>{byCol[z.col]=(byCol[z.col]||0)+1;});
+  document.getElementById('stats-zonas').innerHTML=statsHtml(data.zonas||[])+
+    '<div class="sc"><div class="sl">COLs con zonas</div><div class="sv">'+Object.keys(byCol).length+'</div></div>'+
+    '<div class="sc"><div class="sl">Sin COL activo</div><div class="sv">'+
+    (data.zonas||[]).filter(z=>!PCOLS[z.col]).length+'</div></div>';
+  if(!rows.length){document.getElementById('tbl-zonas').innerHTML=emptyHtml('Sin zonas.');return;}
+  let h='<table><thead><tr><th>Zona / Localidad</th><th>COL asignado</th><th>País</th><th>Zona lógica</th><th></th></tr></thead><tbody>';
+  rows.forEach(z=>{
+    const col=PCOLS[z.col];
+    const orphan=!col;
+    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
+    h+='<td style="font-weight:500">'+esc(z.zona)+(orphan?' <span style="font-size:10px;color:var(--re)">⚠ COL no existe</span>':'')+'</td>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(z.col)+'</span>'+(col?' <span class="tdm" style="font-size:11px">'+esc(col.n)+'</span>':'')+'</td>';
+    h+='<td>'+(col?paisTag(col.pais):'—')+'</td>';
+    h+='<td class="tdm" style="font-size:11px;font-family:monospace">'+(col?esc(col.zone):'—')+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'zonas\','+z.id+')">✎</button><button class="bi dl" onclick="delItem(\'zonas\','+z.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-zonas').innerHTML=h;
+}
+
+function renderRutas(){
+  const q=(document.getElementById('q-rutas')||{value:''}).value.toLowerCase();
+  const rows=(data.rutas||[]).filter(r=>!q||r.colOrigen.toLowerCase().includes(q)||r.colDestino.toLowerCase().includes(q)||(r.descripcion||'').toLowerCase().includes(q));
+  document.getElementById('stats-rutas').innerHTML=statsHtml(data.rutas||[])+
+    '<div class="sc"><div class="sl">COLs con rutas</div><div class="sv">'+new Set((data.rutas||[]).flatMap(r=>[r.colOrigen,r.colDestino])).size+'</div></div>';
+  if(!rows.length){
+    document.getElementById('tbl-rutas').innerHTML='<div class="empty"><div class="ei">🔀</div><p>Sin rutas definidas. Añade conexiones inter-COL para validar arrastres en el Planificador.</p></div>';
+    return;
+  }
+  let h='<table><thead><tr><th>COL Origen</th><th></th><th>COL Destino</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const co=PCOLS[r.colOrigen],cd=PCOLS[r.colDestino];
+    const orphan=!co||!cd;
+    h+='<tr'+(orphan?' style="background:var(--re2)"':'')+'>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colOrigen)+'</span>'+(co?' <span class="tdm" style="font-size:11px">'+esc(co.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
+    h+='<td style="text-align:center;color:var(--am)">&#8594;</td>';
+    h+='<td><span class="pill p-pu" style="font-family:monospace">'+esc(r.colDestino)+'</span>'+(cd?' <span class="tdm" style="font-size:11px">'+esc(cd.n)+'</span>':'<span class="tdm" style="color:var(--re)"> ⚠ no existe</span>')+'</td>';
+    h+='<td class="tdm">'+esc(r.descripcion||'—')+'</td>';
+    h+='<td>'+tog(r.activo,'rutas',r.id)+'</td>';
+    h+='<td><div class="tda"><button class="bi ed" onclick="openModal(\'rutas\','+r.id+')">✎</button><button class="bi dl" onclick="delItem(\'rutas\','+r.id+')">✕</button></div></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  document.getElementById('tbl-rutas').innerHTML=h;
+}
+
+function renderGrupos() {
+  const q = (document.getElementById('q-grupos')||{value:''}).value.toLowerCase();
+  const rows = (data.grupos||[]).filter(g => !q || g.nombre.toLowerCase().includes(q) || (g.cols||[]).some(c=>c.toLowerCase().includes(q)));
+  const nEjec = (data.grupos||[]).filter(g=>g.tipoAcceso==='ejecucion'&&g.activo).length;
+  document.getElementById('stats-grupos').innerHTML = statsHtml(data.grupos||[]) +
+    '<div class="sc"><div class="sl">Con ejecución</div><div class="sv">'+nEjec+'</div></div>'+
+    '<div class="sc"><div class="sl">COLs cubiertos</div><div class="sv">'+new Set((data.grupos||[]).flatMap(g=>g.cols||[])).size+'</div></div>';
+  if (!rows.length) { document.getElementById('tbl-grupos').innerHTML = emptyHtml('Sin grupos definidos.'); return; }
+  let h = '<table><thead><tr><th>Nombre</th><th>COLs</th><th>Tipo</th><th>Visibilidad</th><th>Ejecución</th><th>Campos editables</th><th>Activo</th><th></th></tr></thead><tbody>';
+  rows.forEach(g => {
+    const colsHtml = (g.cols||[]).map(c=>'<span class="pill p-pu" style="font-family:monospace;margin:1px">'+esc(c)+'</span>').join('');
+    const tipoCls = g.tipoAcceso==='ejecucion'?'p-am':'p-gy';
+    const tipoLbl = g.tipoAcceso==='ejecucion'?'Ejecución':'Solo visibilidad';
+    let vis = [];
+    if (g.verEntrante) vis.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
+    if (g.verSaliente) vis.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
+    let ejec = [];
+    if (g.tipoAcceso==='ejecucion') {
+      if (g.editarEntrante) ejec.push('<span class="pill p-tl" style="margin:1px">Entrante</span>');
+      if (g.editarSaliente) ejec.push('<span class="pill p-bl" style="margin:1px">Saliente</span>');
+      if (!ejec.length) ejec.push('<span class="tdm">—</span>');
+    } else {
+      ejec.push('<span class="tdm">—</span>');
+    }
+    let campos = [];
+    if (g.tipoAcceso==='ejecucion') {
+      const ce=g.camposEditables||{};
+      if (ce.fechas) campos.push('<span class="pill p-gr" style="margin:1px">Fechas</span>');
+      if (ce.recursos) campos.push('<span class="pill p-gr" style="margin:1px">Recursos</span>');
+      if (!campos.length) campos.push('<span class="tdm">—</span>');
+    } else campos.push('<span class="tdm">—</span>');
+    h += '<tr'+(!g.activo?' style="opacity:.5"':'')+'>';
+    h += '<td style="font-weight:500">'+esc(g.nombre)+(g.descripcion?'<div class="tdm" style="font-size:11px">'+esc(g.descripcion)+'</div>':'')+'</td>';
+    h += '<td style="white-space:nowrap">'+(colsHtml||'—')+'</td>';
+    h += '<td>'+pill(tipoLbl,tipoCls)+'</td>';
+    h += '<td style="white-space:nowrap">'+(vis.join('')||'<span class="tdm">—</span>')+'</td>';
+    h += '<td style="white-space:nowrap">'+ejec.join('')+'</td>';
+    h += '<td style="white-space:nowrap">'+campos.join('')+'</td>';
+    h += '<td>'+tog(g.activo,'grupos',g.id)+'</td>';
+    h += '<td><div class="tda"><button class="bi ed" onclick="openModal(\'grupos\','+g.id+')">✎</button><button class="bi dl" onclick="delItem(\'grupos\','+g.id+')">✕</button></div></td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  document.getElementById('tbl-grupos').innerHTML = h;
 }
 
 function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); }
