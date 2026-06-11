@@ -4124,6 +4124,32 @@
     "updatedAt": "2026-06-02T05:10:40.530Z"
   },
   {
+    "id": "3_2026-05-27",
+    "date": "2026-05-27",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Hola Iñaki,\n\nTe paso respuesta a los puntos requeridos y adelanto el doc de diseño futuro con las observaciones en las referencias citadas: \n\nValidar almacenes de la operación de distribución:\nLa Selva del Camp:\nAlmacén 1\nAlmacén 2\nAlmacén 3\nAlmacén 4\nConstantí (15 naves de almacenamiento)\nCabanillas: Almacén con mercadería solo del cliente Ball\nVigo\n\nValidar el catálogo dinámico donde se indican las reglas utilizadas por el sistema para identificar si un pedido es 4PL.\nContamos con la información del usuario que asigna las cargas de 4PL responsable de esta tarea\nTodos los shipments enviados desde Transporeon que tienen como cargador a:\nNovelis\nConsteliun\nSpeira\n\nCuadro de área de influencia de los almacenes de Transpais\nEspaña\nFrancia\nPortugal\n\nInformación de los vehículos de la operación de internacional-4PL.\nQue información necesitan en particular? \n\nTipos de parada:\nNo cargado\nCargado parcial\nNo entregado\nEntregado parcial\nRechazado\n\nTipos de incidencias en viaje: Que tipos de incidencias serían? Por lo que tenemos entendido \n\nDocumentación necesaria en la operativa. Documentación vehículos, conductores, etc.\nCMR\nCarta de Porte\nOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \nDocumentos de carga (ADR, Packing list, etc.)\n\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\nKPIs necesarios para mostrar en apartado Dashboards del TMS.\nKm en vacío\nQ de Viajes \nQ de viajes por Operador de Tráfico\nEvolución de viajes por período\nQ de viajes por matrícula\nQ de viajes por recorrido\nZonas de influencia o mapas de calor con los recorridos más importantes\nKm totales por tipo de servicio\nKm totales por matrícula\nKm totales por operador de tráfico\nKm totales por recorrido\nKm totales vs Km en Vacio por recorrido\nMapas con zonas de calor \nQ de viajes por cliente\nVentas por cliente\nKm por cliente\nQ de viajes por tipo de servicio - Cliente\n\n\nEn cuanto complementemos el resto de información te la pasamos.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola Iñaki,\n\nTe paso respuesta a los puntos requeridos y adelanto el doc de diseño futuro con las observaciones en las referencias citadas: \n\nValidar almacenes de la operación de distribución:\nLa Selva del Camp:\nAlmacén 1\nAlmacén 2\nAlmacén 3\nAlmacén 4\nConstantí (15 naves de almacenamiento)\nCabanillas: Almacén con mercadería solo del cliente Ball\nVigo\n\nValidar el catálogo dinámico donde se indican las reglas utilizadas por el sistema para identificar si un pedido es 4PL.\nContamos con la información del usuario que asigna las cargas de 4PL responsable de esta tarea\nTodos los shipments enviados desde Transporeon que tienen como cargador a:\nNovelis\nConsteliun\nSpeira\n\nCuadro de área de influencia de los almacenes de Transpais\nEspaña\nFrancia\nPortugal\n\nInformación de los vehículos de la operación de internacional-4PL.\nQue información necesitan en particular? \n\nTipos de parada:\nNo cargado\nCargado parcial\nNo entregado\nEntregado parcial\nRechazado\n\nTipos de incidencias en viaje: Que tipos de incidencias serían? Por lo que tenemos entendido \n\nDocumentación necesaria en la operativa. Documentación vehículos, conductores, etc.\nCMR\nCarta de Porte\nOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \nDocumentos de carga (ADR, Packing list, etc.)\n\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\nKPIs necesarios para mostrar en apartado Dashboards del TMS.\nKm en vacío\nQ de Viajes \nQ de viajes por Operador de Tráfico\nEvolución de viajes por período\nQ de viajes por matrícula\nQ de viajes por recorrido\nZonas de influencia o mapas de calor con los recorridos más importantes\nKm totales por tipo de servicio\nKm totales por matrícula\nKm totales por operador de tráfico\nKm totales por recorrido\nKm totales vs Km en Vacio por recorrido\nMapas con zonas de calor \nQ de viajes por cliente\nVentas por cliente\nKm por cliente\nQ de viajes por tipo de servicio - Cliente\n\n\nEn cuanto complementemos el resto de información te la pasamos.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-11T15:13:40.931Z",
+    "updatedAt": "2026-06-11T15:13:48.745Z"
+  },
+  {
     "id": "3_2026-05-28",
     "date": "2026-05-28",
     "tenantId": "3",
@@ -4388,6 +4414,32 @@
     "generalNotes": "",
     "createdAt": "2026-06-10T11:18:57.193Z",
     "updatedAt": "2026-06-10T13:23:29.528Z"
+  },
+  {
+    "id": "3_2026-06-11",
+    "date": "2026-06-11",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "LS Fase II: reunión de comité 11-06-26\nVitor: Primera semana de julio primeras presentaciones internas de LS de cómo será la estrategia de implementación (foco en planeamiento)\nTarificación posterior al 15/07 (foco en el flujo de trabajo en TMS)\nAntonio: tener en cuenta el cierre de Etapa III, IV y V\n(interno Diego) Analizar riesgos y numerarlos + dar seguimiento\nLuis: vamos a hacer de pilotos para algunos desarrollos de Unigis - la preocupación es validar el diagrama de forma intensiva y que no queden dudas del lado de LS\n \n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "LS Fase II: reunión de comité 11-06-26\nVitor: Primera semana de julio primeras presentaciones internas de LS de cómo será la estrategia de implementación (foco en planeamiento)\nTarificación posterior al 15/07 (foco en el flujo de trabajo en TMS)\nAntonio: tener en cuenta el cierre de Etapa III, IV y V\n(interno Diego) Analizar riesgos y numerarlos + dar seguimiento\nLuis: vamos a hacer de pilotos para algunos desarrollos de Unigis - la preocupación es validar el diagrama de forma intensiva y que no queden dudas del lado de LS\n \n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-11T13:42:50.679Z",
+    "updatedAt": "2026-06-11T13:42:56.320Z"
   },
   {
     "id": "4_2026-01-12",

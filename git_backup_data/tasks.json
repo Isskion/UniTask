@@ -3549,7 +3549,6 @@
     "isActive": true,
     "endDate": "2026-06-11T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "techDescription": "Retiro de contenedor (de terminal o Depot)\nLlegada al cliente\nEstadía Maxima (>2h)\nHora de Salida del cliente\nEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\n",
     "projectCode": "TSP",
     "priority": "Media",
     "area": "Parametrización",
@@ -3567,9 +3566,10 @@
       "_seconds": 1780303264,
       "_nanoseconds": 363000000
     },
+    "techDescription": "Retiro de contenedor (de terminal o Depot)\nLlegada al cliente\nEstadía Maxima (>2h)\nHora de Salida del cliente\nEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\n",
     "updatedAt": {
-      "_seconds": 1780303264,
-      "_nanoseconds": 363000000
+      "_seconds": 1781190773,
+      "_nanoseconds": 887000000
     }
   },
   {
