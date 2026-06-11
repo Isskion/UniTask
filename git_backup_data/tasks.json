@@ -3359,6 +3359,59 @@
     }
   },
   {
+    "id": "FBp4k81XrKlwL3NrY8Hn",
+    "title": "Revisar documentación de Tarifas por operación y documentarla",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781166229.493,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "-Identificar Modelos de Tarifas (por rangos, por CP, por TV, etc.)\n-Generar Documento de Tarifas de Internacional\n-Generar Documento de Tarifas de Distribución\n-Generar Documento de Tarifas de Intermodal",
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "area": "Maestros",
+    "scope": "Incluido",
+    "module": "TARIFICACIÓN",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-29",
+    "taskNumber": 29,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781166278,
+      "_nanoseconds": 86000000
+    },
+    "updatedAt": {
+      "_seconds": 1781166278,
+      "_nanoseconds": 86000000
+    }
+  },
+  {
     "id": "FPLwf3XaKiHuhUMYRWCU",
     "friendlyId": "MOCK-29-0",
     "organizationId": "1",
@@ -4730,7 +4783,6 @@
   {
     "id": "KahvAmT89vo2cZ3nhqlG",
     "title": "Integrar vehículos en listado",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -4776,9 +4828,10 @@
       "_nanoseconds": 179000000
     },
     "endDate": "2026-06-11T22:00:00.000Z",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1780666661,
-      "_nanoseconds": 936000000
+      "_seconds": 1781166170,
+      "_nanoseconds": 608000000
     }
   },
   {
@@ -6175,6 +6228,59 @@
     }
   },
   {
+    "id": "SohSBj4KhsrGlG6cTPsZ",
+    "title": "Probar Servicio de Transporeon (alta de pedidos y asignacion de vehiculo y conductor, citas)",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781166387.088,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "trasnporeon",
+    "area": "Interfaces",
+    "scope": "Incluido",
+    "module": "PEDIDOS",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-31",
+    "taskNumber": 31,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781166644,
+      "_nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "_seconds": 1781166644,
+      "_nanoseconds": 677000000
+    }
+  },
+  {
     "id": "T2aZ8eZFXUeKBxO4qlav",
     "weekId": "2026-01-19",
     "relatedJournalEntryId": "3_2026-01-19",
@@ -6781,6 +6887,59 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "Vgf7sG592FQZ06QOu0wU",
+    "title": "-Mapear y documentar en ROADMAP interfaz con Maersk.",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781166777.605,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "-Mapear y documentar en ROADMAP interfaz con Maersk.\nOJO: Que Maersk solicita un WS y lo que ofrece Producto es hacer un GET.\n-Probar creacion de pedidos con contendor",
+    "assignedTo": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "endDate": "2026-06-16T22:00:00.000Z",
+    "projectCode": "TSP",
+    "area": "Interfaces",
+    "scope": "Incluido",
+    "module": "PEDIDOS",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-33",
+    "taskNumber": 33,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781166803,
+      "_nanoseconds": 945000000
+    },
+    "updatedAt": {
+      "_seconds": 1781166803,
+      "_nanoseconds": 945000000
     }
   },
   {
@@ -9221,6 +9380,59 @@
     }
   },
   {
+    "id": "gjnQTtWqj1UjXSn5K18H",
+    "title": "Mapeo de MetodoObtenerGuias o liquidaciones",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781166298.391,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "endDate": "2026-06-16T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Mapeo de MetodoObtenerGuias o liquidaciones",
+    "area": "Maestros",
+    "scope": "Incluido",
+    "module": "TARIFICACIÓN",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-30",
+    "taskNumber": 30,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781166330,
+      "_nanoseconds": 102000000
+    },
+    "updatedAt": {
+      "_seconds": 1781166330,
+      "_nanoseconds": 102000000
+    }
+  },
+  {
     "id": "gux5HM7YqjmtSDc0U1Wk",
     "title": "Select UI Library",
     "projectId": "mockup-product-2026",
@@ -10575,6 +10787,59 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "n8piRujE6mjmgOItofXv",
+    "title": "-Mapear y documentar en ROADMAP interfaz con Portic.",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781166738.62,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-06-16T22:00:00.000Z",
+    "assignedTo": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "techDescription": "-Mapear y documentar en ROADMAP interfaz con Portic.",
+    "projectCode": "TSP",
+    "area": "Interfaces",
+    "scope": "Incluido",
+    "module": "PEDIDOS",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-32",
+    "taskNumber": 32,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781166763,
+      "_nanoseconds": 101000000
+    },
+    "updatedAt": {
+      "_seconds": 1781166763,
+      "_nanoseconds": 101000000
     }
   },
   {
