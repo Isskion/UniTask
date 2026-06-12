@@ -6892,7 +6892,6 @@
   {
     "id": "Vgf7sG592FQZ06QOu0wU",
     "title": "-Mapear y documentar en ROADMAP interfaz con Maersk.",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -6937,9 +6936,10 @@
       "_seconds": 1781166803,
       "_nanoseconds": 945000000
     },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1781166803,
-      "_nanoseconds": 945000000
+      "_seconds": 1781251495,
+      "_nanoseconds": 731000000
     }
   },
   {
@@ -9382,7 +9382,6 @@
   {
     "id": "gjnQTtWqj1UjXSn5K18H",
     "title": "Mapeo de MetodoObtenerGuias o liquidaciones",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -9427,9 +9426,10 @@
       "_seconds": 1781166330,
       "_nanoseconds": 102000000
     },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1781166330,
-      "_nanoseconds": 102000000
+      "_seconds": 1781251460,
+      "_nanoseconds": 717000000
     }
   },
   {
