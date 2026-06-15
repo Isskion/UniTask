@@ -1573,7 +1573,6 @@
   {
     "id": "8Khj09KXSevl8fVfCgSG",
     "title": "Información de conductores",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -1618,10 +1617,11 @@
       "_seconds": 1780303091,
       "_nanoseconds": 793000000
     },
-    "endDate": "2026-06-11T22:00:00.000Z",
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1780666672,
-      "_nanoseconds": 365000000
+      "_seconds": 1781510695,
+      "_nanoseconds": 354000000
     }
   },
   {
@@ -3361,7 +3361,6 @@
   {
     "id": "FBp4k81XrKlwL3NrY8Hn",
     "title": "Revisar documentación de Tarifas por operación y documentarla",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -3406,9 +3405,10 @@
       "_seconds": 1781166278,
       "_nanoseconds": 86000000
     },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1781166278,
-      "_nanoseconds": 86000000
+      "_seconds": 1781511604,
+      "_nanoseconds": 930000000
     }
   },
   {
@@ -3521,7 +3521,6 @@
   {
     "id": "FWnzf8xcc9Z1wOMjIJ7V",
     "title": "Alarmas a generar",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -3547,7 +3546,6 @@
     "dependencies": [],
     "tenantId": "3",
     "isActive": true,
-    "endDate": "2026-06-11T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
     "priority": "Media",
@@ -3567,9 +3565,11 @@
       "_nanoseconds": 363000000
     },
     "techDescription": "Retiro de contenedor (de terminal o Depot)\nLlegada al cliente\nEstadía Maxima (>2h)\nHora de Salida del cliente\nEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\n",
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1781190773,
-      "_nanoseconds": 887000000
+      "_seconds": 1781510846,
+      "_nanoseconds": 405000000
     }
   },
   {
@@ -4417,7 +4417,6 @@
   {
     "id": "Ims270hZTATIJmmQuQfi",
     "title": "Prepedidos",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -4445,7 +4444,6 @@
     "isActive": true,
     "techDescription": "Prepedidos ya lo definimos y vamos a necesitar esta funcionalidad en el TMS. Los campos específicos se encuentran detallados en el AS IS y es lo que debemos tener en cuenta \nCliente (Alfinter forwarding)\nTipo Vehículo (a veces vehículo de 3 ejes para transportar más carga/sobrepeso, tenemos 3-4 de estas)\nTipo contenedor (si es de 20,40 o 45)\nNumero de contenedor\nCarga (export o import, volquete, reefer , adr )\nPeso (nos lo notifica el cliente y si no se le pregunta; si quiere hacer 2 cargas de 20, como pesan poco se pueden llevar a la vez)\nOrigen (si, puerto Barcelona, puerto Madrid...)\nDestino (ejemplo. Refratechnik, La Gornal)\nN.º de Referencia (REFRA)\nNº Booking (hay clientes que te lo ponen en el asunto del mail y hay otros que no, se le envía un correo electrónico pidiendo el número de booking, si hay algún imprevisto se debe de cambiar el número de booking , cada naviera tiene su precinto distinto para la mercancía\nPrecio (maersk y  hapak  un  10% de los clientes lo especifican, arkas no lo pone 90% no lo especifican, por ende, hay que volver a contactar con ellos y es cuando realmente se confirma)\nObservaciones: (hay que hacer descarga en 2 sitios, teléfonos de contacto, requisitos; casi todos los clientes lo hacen, por si hay demoras o algún imprevisto).",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "endDate": "2026-06-11T22:00:00.000Z",
     "projectCode": "TSP",
     "priority": "Media",
     "area": "Parametrización",
@@ -4463,9 +4461,11 @@
       "_seconds": 1780301838,
       "_nanoseconds": 631000000
     },
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1780301838,
-      "_nanoseconds": 631000000
+      "_seconds": 1781510291,
+      "_nanoseconds": 341000000
     }
   },
   {
@@ -4827,11 +4827,11 @@
       "_seconds": 1780298609,
       "_nanoseconds": 179000000
     },
-    "endDate": "2026-06-11T22:00:00.000Z",
     "status": "in_progress",
+    "endDate": "2026-06-18T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1781166170,
-      "_nanoseconds": 608000000
+      "_seconds": 1781506021,
+      "_nanoseconds": 444000000
     }
   },
   {
@@ -7852,7 +7852,6 @@
     "isActive": true,
     "techDescription": "Si, tienen que poder entrar al portal y aceptar o rechazar viajes, registrar el seguimiento y actualizar estados: \nConductores propios\nAutónomos que realicen viajes para Transpais\nEmpresas de transportes subcontratadas que realicen viajes para Transpais",
     "projectCode": "TSP",
-    "endDate": "2026-06-11T22:00:00.000Z",
     "priority": "Media",
     "area": "Parametrización",
     "scope": "Incluido",
@@ -7870,9 +7869,10 @@
       "_nanoseconds": 665000000
     },
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-06-18T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1780661230,
-      "_nanoseconds": 731000000
+      "_seconds": 1781506077,
+      "_nanoseconds": 656000000
     }
   },
   {
@@ -11975,7 +11975,6 @@
   {
     "id": "t7HLRFFhKnPGrasUorUb",
     "title": "Documentos necesarios TSP",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -12002,7 +12001,6 @@
     "tenantId": "3",
     "isActive": true,
     "techDescription": "Viaje: \nCarta de porte contenedores (adjunta y debe emitirse por el TMS)\n\neCMR (obligatorio a nivel legal del TMS)\n\nDocumento de Portic (lo adjuntan los operadores de tráfico y tienen que verlo los conductores en la app).\nDocumentos del cliente (idem portic)\nOtros documentos que serán adjuntos para que queden asociados al viaje\nConductor: \nNo tenemos claridad si en el Maestro de Conductores de Unigis podemos dejar registro de Licencias, caso de conducir, ADR u otros documentos, vencimientos, etc. Si es posible, el sistema debe validar de que estos documentos no estén vencidos al momento de la selección y planificación de viajes.\nCorrecto antes de asignarle el viaje a un chofer, nosotros debemos revisar que el chofer tenga carnet o que este en vigor, , y tener previamente la documentación que nos tiene que enviar el Cliente (portic, albaran o orden de transporte, etc.) la Carta de porte hasta el momento nos lo genera automáticamente andsoft, imagino que el Nuevo TMS también lo generara automaticamente\nVehículo: \nEstamos cerrando la propuesta del Taller en Business Central. Si esto es correcto tendremos que realizar una comunicación entre sistemas para activar o inactivar vehículos (disponibilidad para planificar) por motivos de averías, ITV, mantenimientos, etc. Es decir que el sistema de Taller deberá comunicar si un vehículo está o no disponible para planificación. Que el conjunto tractora+plataforma tenga ITV",
-    "endDate": "2026-06-11T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
     "priority": "Media",
@@ -12021,9 +12019,11 @@
       "_seconds": 1780301760,
       "_nanoseconds": 907000000
     },
+    "endDate": "2026-06-18T22:00:00.000Z",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1780301760,
-      "_nanoseconds": 907000000
+      "_seconds": 1781507841,
+      "_nanoseconds": 720000000
     }
   },
   {

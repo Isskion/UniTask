@@ -484,12 +484,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-25 - \"Prepedidos\" has reached its deadline.",
     "taskId": "Ims270hZTATIJmmQuQfi",
-    "read": false,
     "link": "/?view=task-manager&taskId=Ims270hZTATIJmmQuQfi",
     "createdAt": {
       "_seconds": 1781244602,
       "_nanoseconds": 902000000
-    }
+    },
+    "read": true
   },
   {
     "id": "8j5JtpPodg31g7rnoMLN",
