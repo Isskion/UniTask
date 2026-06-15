@@ -32,7 +32,8 @@ import {
     LayoutTemplate,
     Network,
     CalendarDays,
-    ClipboardCheck
+    ClipboardCheck,
+    Map
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_VERSION } from "@/lib/version";
@@ -341,6 +342,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.soap.label') || 'UNIGIS SOAP'} />
                             )}
                             <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
+                            <NavLink href="/uniflux/geo" target="_blank" icon={Map} label={t('nav.unigeo') || 'UniGeo'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                         </div>
@@ -560,6 +562,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavLink href="/integrators/uni-soap/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.soap.label') || 'UNIGIS SOAP'} />
                                 )}
                                 <NavLink href="/univisio" target="_blank" icon={Network} label={t('nav.univisio') || 'UniVisio'} />
+                                <NavLink href="/uniflux/geo" target="_blank" icon={Map} label={t('nav.unigeo') || 'UniGeo'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             </div>
