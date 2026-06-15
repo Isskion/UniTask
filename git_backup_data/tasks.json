@@ -3520,7 +3520,6 @@
   },
   {
     "id": "FWnzf8xcc9Z1wOMjIJ7V",
-    "title": "Alarmas a generar",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -3567,9 +3566,10 @@
     "techDescription": "Retiro de contenedor (de terminal o Depot)\nLlegada al cliente\nEstadía Maxima (>2h)\nHora de Salida del cliente\nEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\n",
     "endDate": "2026-06-18T22:00:00.000Z",
     "status": "in_progress",
+    "title": "Alarmas a generar y notificaciones a generar",
     "updatedAt": {
-      "_seconds": 1781510846,
-      "_nanoseconds": 405000000
+      "_seconds": 1781526697,
+      "_nanoseconds": 765000000
     }
   },
   {
@@ -10116,6 +10116,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "jVQmAPJDhLKhRysca9Pe",
+    "title": "Seguimiento de Ticket IT GPS Adapter",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1781525883.275,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-06-16T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "area": "Interfaces",
+    "module": "PLANIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-34",
+    "taskNumber": 34,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1781525916,
+      "_nanoseconds": 876000000
+    },
+    "updatedAt": {
+      "_seconds": 1781525916,
+      "_nanoseconds": 876000000
     }
   },
   {
