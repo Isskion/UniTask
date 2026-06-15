@@ -95,7 +95,8 @@ export const es: Dictionary = {
         relevamiento: "Relevamiento Proyectos",
         administration: "Administración",
         unileaks: "UniLeaks",
-        univisio: "UniVisio"
+        univisio: "UniVisio",
+        unigeo: "UniGeo"
     },
 
     "uni-order-manager": {
@@ -356,7 +357,9 @@ export const es: Dictionary = {
                 soap: { label: "UNIGIS SOAP", desc: "Acceso al explorador de servicios SOAP de UNIGIS" },
                 unidocs: { label: "UniDocs", desc: "Acceso al generador de documentación técnica" },
                 uniflux: { label: "Uniflux Engine", desc: "Acceso al motor de diseño semántico" },
-                inbox: { label: "Buzón Outlook", desc: "Acceso a la integración con el buzón de correo de Outlook" }
+                inbox: { label: "Buzón Outlook", desc: "Acceso a la integración con el buzón de correo de Outlook" },
+                univisio: { label: "UniVisio", desc: "Acceso a la herramienta UniVisio" },
+                unigeo: { label: "UniGeo", desc: "Acceso a la gestión de zonas geográficas" }
             },
             special: {
                 viewAllUserProfiles: { label: "Ver todos los perfiles de usuario", desc: "Acceso a información de todos los usuarios" },

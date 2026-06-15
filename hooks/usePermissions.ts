@@ -12,7 +12,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: true, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
-            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true, univisio: true, unigeo: true
         },
         exportAccess: { tasks: true, projects: true, reports: true },
         specialPermissions: { viewAllUserProfiles: true, managePermissions: true, accessTrash: true, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
@@ -23,7 +23,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: true, assignedProjectsOnly: false, create: true, edit: true, delete: true },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: true, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
-            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true, univisio: true, unigeo: true
         },
         exportAccess: { tasks: true, projects: true, reports: true },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
@@ -34,7 +34,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false, univisio: false, unigeo: false
         },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: false }
@@ -45,7 +45,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: true, sprintManagement: true, dispoPlan: true, unavailabilityRegistry: true,
-            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true
+            unileaks: true, uniordercreator: true, swagger: true, soap: true, unidocs: true, uniflux: true, inbox: true, univisio: true, unigeo: true
         },
         exportAccess: { tasks: true, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: true, viewTechnicalInfo: true }
@@ -56,7 +56,7 @@ const LEGACY_ROLE_MAP: Record<string, Partial<PermissionGroup>> = {
         taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
         viewAccess: { 
             dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+            unileaks: true, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false, univisio: false, unigeo: false
         },
         exportAccess: { tasks: false, projects: false, reports: false },
         specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false, viewTechnicalInfo: false }
@@ -73,7 +73,7 @@ const DEFAULT_PERMISSIONS: PermissionGroup = {
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: false, edit: false, delete: false },
     viewAccess: { 
         dashboard: false, taskManager: false, taskDashboard: false, projectManagement: false, userManagement: false, weeklyEditor: false, dailyFollowUp: false, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false, univisio: false, unigeo: false
     },
     exportAccess: { tasks: false, projects: false, reports: false },
     specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: false, viewAllProjectNotes: false, viewTechnicalInfo: false },

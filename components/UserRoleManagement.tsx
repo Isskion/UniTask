@@ -37,7 +37,7 @@ const DEFAULT_GROUP: Partial<PermissionGroup> = {
     taskAccess: { viewAll: false, assignedProjectsOnly: true, create: true, edit: true, delete: false },
     viewAccess: { 
         dashboard: true, taskManager: true, taskDashboard: true, projectManagement: false, userManagement: false, weeklyEditor: true, dailyFollowUp: true, knowledgeBase: false, sprintManagement: false, dispoPlan: false, unavailabilityRegistry: false,
-        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false
+        unileaks: false, uniordercreator: false, swagger: false, soap: false, unidocs: false, uniflux: false, inbox: false, univisio: false, unigeo: false
     },
     exportAccess: { tasks: true, projects: false, reports: false },
     specialPermissions: { viewAllUserProfiles: false, managePermissions: false, accessTrash: false, useCommandMenu: true, viewAllProjectNotes: false, viewTechnicalInfo: false }

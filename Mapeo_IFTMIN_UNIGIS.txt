@@ -1,0 +1,53 @@
+MAPEO DE INTEGRACION IFTMIN (XML) -> UNIGIS (BD)
+==============================================
+
+Campo XML (IFTMIN)              | Campo BD Propuesto                 | Estado      | Notas
+-----------------------------------------------------------------------------------------------------------------------------
+tred_document.message.number    | Viaje.ReferenciaExterna            | CORREGIDO   | Corrección de typo "ReferenciaExteterna".
+tred_date.time.period (137)      | Viaje.Fecha                        | CORRECTO    | Fecha de emisión/creación del documento.
+tred_id.of.the.means.of.transport| Vehiculo.Dominio                   | CORRECTO    | Patente/matrícula del camión o ID buque.
+tred_carrier.name               | Transporte.RazonSocial             | CORREGIDO   | Cambiado de Empresa (Tenant) a Transporte.
+tred_date.time.period (200)      | Viaje.FechaInicioPlan              | CORRECTO    | Fecha estimada de inicio de viaje.
+tred_date.time.period (2)        | Viaje.FechaFinPlan                 | CORRECTO    | Fecha estimada de fin de viaje.
+tred_party.id.identification    | Transporte.CUIT                    | CORRECTO    | CUIT/Identificación del transportista.
+tred_name.and.address.line      | Sucursal.Nombre                    | CORREGIDO   | Nombre de la parada/sucursal de origen/destino.
+tred_street.and.number...       | Sucursal.Direccion                 | CORRECTO    | Dirección de la parada.
+tred_city.name                  | Sucursal.Localidad                 | CORRECTO    | Ciudad/localidad de la parada.
+tred_post.code                  | Sucursal.CodigoPostal              | CORRECTO    | Código postal de la parada.
+trcd_reference (BN)             | Viaje.ReferenciaAdicional          | COMPLETADO  | BN = Booking Number. Campo clave de cruce.
+tred_goods.item.number          | ParadaItem.Orden                   | CORRECTO    | Índice o renglón de ítem en la parada.
+tred_number.of.packages         | ParadaItem.Cantidad                | CORRECTO    | Cantidad de bultos declarados para el ítem.
+tred_free.text (AAA)            | ParadaItem.Descripcion             | CORRECTO    | Descripción de la mercadería.
+tred_type.of.packages.id        | ParadaItem.TipoItem                | CORREGIDO   | Corrección de typo "TipoITem".
+tred_equipment.id.number        | Parada_Dyn.Z_Contenedor            | CORREGIDO   | CRÍTICO: Era Z_PromocionCampana (error grave).
+anxe_sender.identification      | Parada.IdCliente                   | CORREGIDO   | Corrección de typo "Idcliente".
+tred_transport.stage.qualifier  | Viaje_Dyn.Etapa                    | CORRECTO    | Etapa del transporte (ej. principal, previo).
+tred_seal.number                | Parada_Dyn.Z_Precinto              | CORREGIDO   | Se precinta el contenedor (parada), no el viaje.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+NOTAS IMPORTANTES DE CORRECCION Y DETALLE:
+1. tred_equipment.id.number (Número de Contenedor):
+   En tu borrador estaba mapeado a "ParadaItem_Dyn.Z_PromocionCampana". Esto es un error grave. El contenedor debe guardarse en "Parada_Dyn.Z_Contenedor" (si se usa atributos custom en parada) o en "UnidadContenedora.ReferenciaExterna" (si se usa el módulo de contenedores oficial de UNIGIS).
+
+2. trcd_reference (BN) (Booking Number) [COMPLETADO]:
+   BN es el calificador de "Booking Number". Se ha completado como "Viaje.ReferenciaAdicional" (o "Viaje.Z_BookingNumber" custom/ad-hoc), ya que "Viaje.ReferenciaExterna" ya contiene el número del documento/mensaje.
+
+3. tred_seal.number (Número de Precinto):
+   Si el viaje tiene más de un contenedor (multi-parada), asociarlo a "Viaje_Dyn.IdPrecinto" limita a tener un solo precinto por viaje. Lo correcto para dar soporte multi-contenedor es asociarlo a la parada correspondiente en "Parada_Dyn.Z_Precinto" (o a "Recurso.ReferenciaExterna").
+
+4. tred_carrier.name y tred_name.and.address.line:
+   - "tred_carrier.name" se mapea a "Transporte.RazonSocial" (o Transporte.Nombre) porque es el transportista. "Empresa.RazonSocial" es para el dador de carga (tú / tu cliente).
+   - "tred_name.and.address.line" se mapea a "Sucursal.Nombre" porque representa la sucursal o planta del origen/destino descripto en el bloque de direcciones.
+
+5. Corrección de errores tipográficos (Mayúsculas y Minúsculas / Casing):
+   - "Viaje.ReferenciaExteterna" -> "Viaje.ReferenciaExterna"
+   - "ParadaItem.TipoITem" -> "ParadaItem.TipoItem"
+   - "Parada.Idcliente" -> "Parada.IdCliente"
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+CAMPOS OPCIONALES RECOMENDADOS (No presentes en tu listado original):
+- tred_equipment.size.and.type (Tamaño/Tipo de contenedor, ej: 45G1) -> Parada_Dyn.Z_TipoContenedor
+- tred_full.or.empty.indicator (Indicador de Lleno/Vacío)           -> Parada_Dyn.Z_EstadoEquipo (Full / Empty)
+- tred_measurements (Peso neto del contenedor, Calificador AET)      -> Parada_Dyn.Z_PesoNeto

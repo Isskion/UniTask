@@ -93,7 +93,8 @@ export const en = {
         relevamiento: "Project Survey",
         administration: "Administration",
         unileaks: "UniLeaks",
-        univisio: "UniVisio"
+        univisio: "UniVisio",
+        unigeo: "UniGeo"
     },
 
     "uni-order-manager": {
@@ -354,7 +355,9 @@ export const en = {
                 soap: { label: "UNIGIS SOAP", desc: "Access to UNIGIS SOAP service browser" },
                 unidocs: { label: "UniDocs", desc: "Access to technical documentation generator" },
                 uniflux: { label: "Uniflux Engine", desc: "Access to the semantic design engine" },
-                inbox: { label: "Outlook Inbox", desc: "Access to Outlook email integration" }
+                inbox: { label: "Outlook Inbox", desc: "Access to Outlook email integration" },
+                univisio: { label: "UniVisio", desc: "Access to the UniVisio tool" },
+                unigeo: { label: "UniGeo", desc: "Access to geographic zones management" }
             },
             special: {
                 viewAllUserProfiles: { label: "View all user profiles", desc: "Access to all users information" },

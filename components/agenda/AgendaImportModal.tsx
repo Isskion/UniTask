@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { AgendaConsultant } from "@/types/agenda";
 import {
     parseAgendaExcel, resolveUnknownConsultants, executeImport,
-    ParsedExcelEntry, ImportPreview,
+    ParsedExcelEntry, ImportPreview, ImportDiagnostics,
 } from "@/lib/agenda-import";
 import { ACTIVITY_CONFIG } from "@/types/agenda";
 
@@ -168,6 +168,11 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 )}
                             </div>
 
+                            {/* Why 0 entries? */}
+                            {preview.entries.length === 0 && (
+                                <DiagnosticBanner diagnostics={preview.diagnostics} />
+                            )}
+
                             {/* Unknown consultants warning */}
                             {unknownConsultants.length > 0 && (
                                 <UnknownBanner names={unknownConsultants} />
@@ -295,6 +300,41 @@ function StatPill({ label, value, highlight, warn }: { label: string; value: str
         )}>
             <span className="opacity-70">{label}:</span>
             <span className="font-semibold">{value}</span>
+        </div>
+    );
+}
+
+function DiagnosticBanner({ diagnostics }: { diagnostics: ImportDiagnostics }) {
+    const { sheetName, consultantRows, candidateCells, invalidDateCells, unknownActivityCells } = diagnostics;
+
+    let detail: string;
+    let solution: string;
+
+    if (consultantRows === 0) {
+        detail = `La hoja "${sheetName}" (la primera del libro) no tiene ningún nombre de consultor desde la fila 4 (columna B).`;
+        solution = `Esta app solo lee la PRIMERA hoja del Excel. Comprueba que "${sheetName}" es la semana que querías importar — si está en otra hoja, muévela a la primera posición o expórtala a un archivo aparte.`;
+    } else if (candidateCells === 0) {
+        detail = `Se encontraron ${consultantRows} consultor(es) en "${sheetName}", pero ninguna celda tiene Actividad y Horario rellenos a la vez.`;
+        solution = `Revisa que "${sheetName}" es la semana correcta y que las columnas Actividad y Horario están rellenas para esos consultores.`;
+    } else if (invalidDateCells > 0) {
+        detail = `Se encontraron ${candidateCells} entrada(s) con Actividad y Horario en "${sheetName}", pero ${invalidDateCells} no tienen una fecha válida en la columna "Fecha_T" (puede mostrar #REF! u otro error de fórmula).`;
+        solution = `Abre el Excel y comprueba la fila "Fecha_T" de "${sheetName}": si la celda muestra #REF!, sustituye esa fórmula por la fecha real (formato DD/MM/AA) en cada columna de día y vuelve a intentar la importación.`;
+    } else if (unknownActivityCells > 0) {
+        detail = `Se encontraron ${candidateCells} entrada(s) con fecha y horario válidos en "${sheetName}", pero ${unknownActivityCells} tienen un tipo de "Actividad" no reconocido.`;
+        solution = `Los tipos válidos son: Reunión Cliente, Reunión UNIGIS, Reunión Presencial, Reunión Interna, Comercial, Tareas a Realizar, Vacaciones, Viaje, Especial. Corrige el texto de la columna Actividad y reintenta.`;
+    } else {
+        detail = `No se ha encontrado ningún dato reconocible en "${sheetName}".`;
+        solution = `Comprueba que el formato del Excel coincide con la plantilla esperada (filas/columnas, ver condiciones de importación).`;
+    }
+
+    return (
+        <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="space-y-1">
+                <p className="font-semibold">No se ha importado ninguna entrada</p>
+                <p className="text-xs opacity-90">{detail}</p>
+                <p className="text-xs opacity-90"><span className="font-semibold">Solución propuesta:</span> {solution}</p>
+            </div>
         </div>
     );
 }

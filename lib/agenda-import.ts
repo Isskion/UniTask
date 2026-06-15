@@ -55,11 +55,20 @@ export interface ParsedExcelEntry {
     result: ResultStatus;
 }
 
+export interface ImportDiagnostics {
+    sheetName: string;
+    consultantRows: number;       // rows (from row 4) with a non-empty consultant name
+    candidateCells: number;       // day-cells with Actividad + Horario filled
+    invalidDateCells: number;     // candidate cells without a parseable Fecha_T
+    unknownActivityCells: number; // candidate cells with valid date but unrecognized Actividad
+}
+
 export interface ImportPreview {
     weekStart: string;
     weekLabel: string;
     entries: ParsedExcelEntry[];
     unknownConsultants: string[];
+    diagnostics: ImportDiagnostics;
 }
 
 export interface ImportResult {
@@ -85,16 +94,26 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
         reader.onload = (e) => {
             try {
                 const wb = XLSX.read(new Uint8Array(e.target!.result as ArrayBuffer), { type: 'array' });
-                const ws = wb.Sheets[wb.SheetNames[0]];
+                const sheetName = wb.SheetNames[0];
+                const ws = wb.Sheets[sheetName];
                 const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
                 const weekLabel = String(rows[0]?.[2] || '').trim();
                 const entries: ParsedExcelEntry[] = [];
 
+                const diagnostics: ImportDiagnostics = {
+                    sheetName,
+                    consultantRows: 0,
+                    candidateCells: 0,
+                    invalidDateCells: 0,
+                    unknownActivityCells: 0,
+                };
+
                 for (let ri = 3; ri < rows.length; ri++) {
                     const row = rows[ri];
                     const consultantName = String(row[1] || '').trim();
                     if (!consultantName) continue;
+                    diagnostics.consultantRows++;
 
                     for (const base of DAY_OFFSETS) {
                         const actividad  = String(row[base + 1] || '').trim();
@@ -103,12 +122,19 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
                         const resultado  = String(row[base + 4] || '').trim();
 
                         if (!actividad || !horario) continue;
+                        diagnostics.candidateCells++;
 
                         const date = parseExcelDate(String(row[base] || ''));
-                        if (!date) continue;
+                        if (!date) {
+                            diagnostics.invalidDateCells++;
+                            continue;
+                        }
 
                         const activityType = ACTIVIDAD_MAP[actividad];
-                        if (!activityType) continue;
+                        if (!activityType) {
+                            diagnostics.unknownActivityCells++;
+                            continue;
+                        }
 
                         entries.push({
                             consultantName,
@@ -125,8 +151,12 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
                     ? format(getWeekStart(entries[0].date), 'yyyy-MM-dd')
                     : '';
 
+                if (entries.length === 0) {
+                    console.warn('[agenda-import] 0 entradas parseadas — diagnóstico:', diagnostics);
+                }
+
                 // unknownConsultants resolved externally by caller (needs consultant list)
-                resolve({ weekStart, weekLabel, entries, unknownConsultants: [] });
+                resolve({ weekStart, weekLabel, entries, unknownConsultants: [], diagnostics });
             } catch (err) {
                 reject(err);
             }

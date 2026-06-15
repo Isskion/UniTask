@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:unis="http://unisolutions.com.ar/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <unis:CrearOrdenesPedido>
+         <unis:apiKey>FA-57-7F-50-AE-E</unis:apiKey>
+         <unis:pedidos>
+            <unis:pOrdenPedido>
+        <unis:RefDocumento>67009718913</unis:RefDocumento>
+        <unis:CodigoOperacion>101</unis:CodigoOperacion>
+        <unis:TipoPedido>V6</unis:TipoPedido>
+        <unis:RefDocumentoAdicional>270501693</unis:RefDocumentoAdicional>
+        <unis:RefDocumentoAdicional2>GCSS_251091062</unis:RefDocumentoAdicional2>
+        <unis:RefDocumentoOT>7003623663</unis:RefDocumentoOT>
+        <unis:Fecha>2026-05-15</unis:Fecha>
+        <unis:FechaEntrega>2026-05-18T09:08:08</unis:FechaEntrega>
+        <unis:FechaEntregaOriginal>2026-05-21T13:00:00</unis:FechaEntregaOriginal>
+        <unis:FechaRecoleccion>2026-05-18T02:53:52</unis:FechaRecoleccion>
+        <unis:VigenciaDesde>2026-05-15T00:00:00</unis:VigenciaDesde>
+        <unis:VigenciaHasta>2026-05-21T13:00:00</unis:VigenciaHasta>
+        <unis:InicioHorario1>900</unis:InicioHorario1>
+        <unis:FinHorario1>1200</unis:FinHorario1>
+        <unis:InicioHorario2>1300</unis:InicioHorario2>
+        <unis:FinHorario2>1600</unis:FinHorario2>
+        <unis:InicioHorarioRecoleccion1>-1</unis:InicioHorarioRecoleccion1>
+        <unis:FinHorarioRecoleccion1>-1</unis:FinHorarioRecoleccion1>
+        <unis:InicioHorarioRecoleccion2>-1</unis:InicioHorarioRecoleccion2>
+        <unis:FinHorarioRecoleccion2>-1</unis:FinHorarioRecoleccion2>
+        <unis:TiempoEspera>10</unis:TiempoEspera>
+        <unis:Descripcion>Soap cargo transport</unis:Descripcion>
+        <unis:cargaExclusiva>1</unis:cargaExclusiva>
+        <unis:Observaciones>Creacion desde JSON Maersk - Soap cargo transport</unis:Observaciones>
+        <unis:Volumen>86</unis:Volumen>
+        <unis:Peso>29180</unis:Peso>
+        <unis:Bulto>1</unis:Bulto>
+        <unis:Pallets>0</unis:Pallets>
+        <unis:Unidades>1</unis:Unidades>
+        <unis:ValorDeclarado>420.9</unis:ValorDeclarado>
+        <unis:Varchar1>Export</unis:Varchar1>
+        <unis:Varchar2>45DRY96</unis:Varchar2>
+        <unis:Varchar3>855b1291551c11f1883f00000eb3f090</unis:Varchar3>
+        <unis:Varchar4>Diego Moreno Gomez</unis:Varchar4>
+        <unis:Varchar5>diego.moreno.gomez@lns.maersk.com</unis:Varchar5>
+        <unis:Varchar6>1003507024-0001</unis:Varchar6>
+        <unis:Varchar7>ONE RESPONSIBILITY</unis:Varchar7>
+        <unis:Varchar8>KFC</unis:Varchar8>
+        <unis:Varchar9>616N</unis:Varchar9>
+        <unis:Int1>1</unis:Int1>
+        <unis:Int2>24400</unis:Int2>
+        <unis:Float1>420.9</unis:Float1>
+        <unis:Float2>75.9</unis:Float2>
+        <unis:Datetime1>2026-05-07T13:00:00</unis:Datetime1>
+        <unis:Datetime2>2026-05-21T13:00:00</unis:Datetime2>
+        <unis:Datetime3>2026-05-15T10:48:18</unis:Datetime3>
+        <unis:ultimaVisita>0</unis:ultimaVisita>
+        <unis:usarProductos>1</unis:usarProductos>
+        <unis:ValidarTransicion>0</unis:ValidarTransicion>
+        <unis:agruparItems>1</unis:agruparItems>
+        <unis:obligarProductoItems>0</unis:obligarProductoItems>
+        <unis:depositoSalida>
+          <unis:RefDepositoExterno>L02</unis:RefDepositoExterno>
+          <unis:Descripcion>STAR CONTAINER DEPOT - COMESA</unis:Descripcion>
+          <unis:Direccion>Pol. Ind. Cortijo Real</unis:Direccion>
+          <unis:Calle>Pol. Ind. Cortijo Real</unis:Calle>
+          <unis:NroPuerta>0</unis:NroPuerta>
+          <unis:Localidad>Algeciras</unis:Localidad>
+          <unis:Pais>Spain</unis:Pais>
+          <unis:Eliminado>false</unis:Eliminado>
+          <unis:IntegrarFiscal>false</unis:IntegrarFiscal>
+        </unis:depositoSalida>
+        <unis:depositoLlegada>
+          <unis:RefDepositoExterno>L02</unis:RefDepositoExterno>
+          <unis:Descripcion>Algeciras - ML Terminal</unis:Descripcion>
+          <unis:Direccion>Muelle Juan Carlos I S/N</unis:Direccion>
+          <unis:Calle>Muelle Juan Carlos I S/N</unis:Calle>
+          <unis:NroPuerta>0</unis:NroPuerta>
+          <unis:Localidad>Algeciras</unis:Localidad>
+          <unis:Pais>Spain</unis:Pais>
+          <unis:Eliminado>false</unis:Eliminado>
+          <unis:IntegrarFiscal>false</unis:IntegrarFiscal>
+        </unis:depositoLlegada>
+        <unis:CampoDinamico>
+          <unis:CampoValor>
+            <unis:Campo>FirstCargoReceipt</unis:Campo>
+            <unis:Valor>ESDOP</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>LastCargoDelivery</unis:Campo>
+            <unis:Valor>ESALRTM</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>CAD_OFFSET</unis:Campo>
+            <unis:Valor>+02:00:00</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>GateOutContainerStatus_Leg1</unis:Campo>
+            <unis:Valor>EP</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>GateOutContainerStatus_Leg2</unis:Campo>
+            <unis:Valor>FP</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>OceanPortOfLoading</unis:Campo>
+            <unis:Valor>ESALR - Algeciras - ML Terminal</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>OceanPortOfDischarge</unis:Campo>
+            <unis:Valor>GBLGP - London Gateway Terminal</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>SendByUserId</unis:Campo>
+            <unis:Valor>APC052</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>ServiceMode</unis:Campo>
+            <unis:Valor>SD/CY</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>InvoicingVendorIndicator</unis:Campo>
+            <unis:Valor>False</unis:Valor>
+          </unis:CampoValor>
+          <unis:CampoValor>
+            <unis:Campo>UrgentIndicator</unis:Campo>
+            <unis:Valor>False</unis:Valor>
+          </unis:CampoValor>
+        </unis:CampoDinamico>
+        <unis:ClienteDador>
+          <unis:RefCliente>00001</unis:RefCliente>
+          <unis:ReferenciaExterna>00001</unis:ReferenciaExterna>
+          <unis:RazonSocial>EUROPASTRY</unis:RazonSocial>
+          <unis:NombreFantasia>EUROPASTRY</unis:NombreFantasia>
+          <unis:Cuit>00001</unis:Cuit>
+          <unis:Telefono1>34 954296320</unis:Telefono1>
+          <unis:Telefono2></unis:Telefono2>
+          <unis:Direccion>CTRA DE LA EXCLUSA POL IND ZAL</unis:Direccion>
+          <unis:Localidad>Sevilla</unis:Localidad>
+          <unis:eMailGestorDeFlota>trafico@mertramar.com</unis:eMailGestorDeFlota>
+          <unis:CentroDeCosto></unis:CentroDeCosto>
+          <unis:IdEstado>-1</unis:IdEstado>
+          <unis:IntegrarRNDC>false</unis:IntegrarRNDC>
+          <unis:IntegrarFiscal>false</unis:IntegrarFiscal>
+        </unis:ClienteDador>
+        <unis:Cliente>
+          <unis:RefCliente>1001479709</unis:RefCliente>
+          <unis:RazonSocial>MERTRAMAR SAU</unis:RazonSocial>
+          <unis:NombreFantasia>MERTRAMAR SAU</unis:NombreFantasia>
+          <unis:Telefono>954296320</unis:Telefono>
+          <unis:Telefono2></unis:Telefono2>
+          <unis:Telefono3></unis:Telefono3>
+          <unis:EMail>trafico@mertramar.com</unis:EMail>
+          <unis:Direccion>CTRA DE LA EXCLUSA POL IND ZAL</unis:Direccion>
+          <unis:Calle>CTRA DE LA EXCLUSA POL IND ZAL</unis:Calle>
+          <unis:NumeroPuerta>S/N</unis:NumeroPuerta>
+          <unis:Barrio></unis:Barrio>
+          <unis:Localidad>Sevilla</unis:Localidad>
+          <unis:Partido></unis:Partido>
+          <unis:Provincia></unis:Provincia>
+          <unis:Pais>Spain</unis:Pais>
+          <unis:DomicilioCodigoPostal>41011</unis:DomicilioCodigoPostal>
+          <unis:Contacto>MANUEL ANDRADE</unis:Contacto>
+          <unis:Int1>0</unis:Int1>
+          <unis:Int2>0</unis:Int2>
+          <unis:Float1>0.0</unis:Float1>
+          <unis:Float2>0.0</unis:Float2>
+          <unis:Bonificacion>0.0</unis:Bonificacion>
+          <unis:PesoMaxTipoVehiculo>0.0</unis:PesoMaxTipoVehiculo>
+          <unis:VolumenMaxTipoVehiculo>0.0</unis:VolumenMaxTipoVehiculo>
+          <unis:PalletMaxTipoVehiculos>0</unis:PalletMaxTipoVehiculos>
+          <unis:BultosMaxTipoVehiculo>0</unis:BultosMaxTipoVehiculo>
+          <unis:AltoMaxTipoVehiculo>0.0</unis:AltoMaxTipoVehiculo>
+          <unis:AnchoMaxTipoVehiculo>0.0</unis:AnchoMaxTipoVehiculo>
+          <unis:ProfundidadMaxTipoVehiculo>0.0</unis:ProfundidadMaxTipoVehiculo>
+          <unis:CargaExclusiva>false</unis:CargaExclusiva>
+          <unis:IgnorarOperacion>true</unis:IgnorarOperacion>
+          <unis:IgnorarOperacionDomicilioOrden>true</unis:IgnorarOperacionDomicilioOrden>
+          <unis:CrearDomicilioOrden>true</unis:CrearDomicilioOrden>
+          <unis:ActualizarDomicilioOrden>true</unis:ActualizarDomicilioOrden>
+          <unis:ValidarDomicilioOrden>false</unis:ValidarDomicilioOrden>
+          <unis:IntegrarRNDC>false</unis:IntegrarRNDC>
+          <unis:IntegrarFiscal>false</unis:IntegrarFiscal>
+        </unis:Cliente>
+        <unis:Items>
+          <unis:pOrdenPedidoItem>
+            <unis:RefDocumento>67009718913</unis:RefDocumento>
+            <unis:RefDocumentoAdicional>270501693</unis:RefDocumentoAdicional>
+            <unis:RefDocumentoItemOT>7003623663</unis:RefDocumentoItemOT>
+            <unis:Cantidad>1</unis:Cantidad>
+            <unis:Unidades>1</unis:Unidades>
+            <unis:Descripcion>Soap</unis:Descripcion>
+            <unis:CodigoProducto>002908</unis:CodigoProducto>
+            <unis:UnidadMedida>KGM</unis:UnidadMedida>
+            <unis:FechaEntrega>2026-05-18T09:08:08</unis:FechaEntrega>
+            <unis:PrecioUnitario>420.9</unis:PrecioUnitario>
+            <unis:ImporteCosto>420.9</unis:ImporteCosto>
+            <unis:Volumen>86</unis:Volumen>
+            <unis:Peso>29180</unis:Peso>
+            <unis:Bulto>1</unis:Bulto>
+            <unis:Pallets>0</unis:Pallets>
+            <unis:Int1>0</unis:Int1>
+            <unis:Int2>0</unis:Int2>
+            <unis:ProcesarVolumetria>0</unis:ProcesarVolumetria>
+            <unis:Apilable>0</unis:Apilable>
+            <unis:Alto>0.0</unis:Alto>
+            <unis:Ancho>0.0</unis:Ancho>
+            <unis:Profundidad>0.0</unis:Profundidad>
+            <unis:Producto>
+              <unis:RefProducto>002908</unis:RefProducto>
+              <unis:Codigo>002908</unis:Codigo>
+              <unis:Descripcion>Soap</unis:Descripcion>
+              <unis:Volumen>86</unis:Volumen>
+              <unis:Peso>29180</unis:Peso>
+              <unis:Bultos>1</unis:Bultos>
+              <unis:Alto>0.0</unis:Alto>
+              <unis:Ancho>0.0</unis:Ancho>
+              <unis:Profundidad>0.0</unis:Profundidad>
+              <unis:RazonSocial>EUROPASTRY</unis:RazonSocial>
+              <unis:UnidadMedida>KGM</unis:UnidadMedida>
+              <unis:Apilable>0</unis:Apilable>
+              <unis:IdEstado>-1</unis:IdEstado>
+            </unis:Producto>
+          </unis:pOrdenPedidoItem>
+        </unis:Items>
+        <unis:EstadoDetalle>
+          <unis:Estado>INGRESADO</unis:Estado>
+          <unis:EstadoFecha>2026-05-15T10:48:18</unis:EstadoFecha>
+          <unis:ValidarTransicion>0</unis:ValidarTransicion>
+          <unis:Login>Diego Moreno Gomez</unis:Login>
+        </unis:EstadoDetalle>
+            </unis:pOrdenPedido>
+         </unis:pedidos>
+      </unis:CrearOrdenesPedido>
+   </soapenv:Body>
+</soapenv:Envelope>

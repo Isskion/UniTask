@@ -1,0 +1,2 @@
+ReferenciaExterna,ReferenciaAdicional,IdClienteOrden,Observaciones,IdDepositoSalida,IdDomicilioOrden,FechaRecoleccion,FechaEntrega,Varchar2,IdTipoVehiculo,IdTipoCarga,Varchar1,Peso,Volumen,Bultos,Pallets,Varchar9,Varchar10,Varchar11
+67009718913,270501693,1001479709,Creación desde JSON Maersk - Soap cargo transport,ESALR03,ESALRTM,2026-05-18T02:53:52,2026-05-18T09:08:08,NA1Q1IT5O3YJB,0,45DRY96,420.90,29180,86,1,0,Maersk,CLIENTE,NO

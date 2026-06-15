@@ -204,6 +204,8 @@ export interface PermissionGroup {
         unidocs: boolean;
         uniflux: boolean;
         inbox: boolean;
+        univisio: boolean;
+        unigeo: boolean;
     };
 
     // Export Permissions

@@ -26,18 +26,24 @@ import { AgendaLista } from "./AgendaLista";
 import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
 import { AgendaImportModal } from "./AgendaImportModal";
+import { AgendaImportInfoModal } from "./AgendaImportInfoModal";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
+import { useToast } from "@/context/ToastContext";
+
+const MAX_IMPORT_SIZE_MB = 10;
+const MAX_IMPORT_SIZE_BYTES = MAX_IMPORT_SIZE_MB * 1024 * 1024;
 
 export function AgendaView() {
     const { tenantId, user } = useAuth();
     const { t } = useLanguage();
     const tid = tenantId || "";
     const accessScopes = useAccessScopes();
+    const { showToast } = useToast();
     useTheme();
 
     // ── Week navigation ────────────────────────────────────────────────────────
@@ -307,11 +313,19 @@ export function AgendaView() {
     // ── Consultants manager ───────────────────────────────────────────────────
     const [showConsultantsManager, setShowConsultantsManager] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
+    const [showImportInfo, setShowImportInfo] = useState(false);
     const importInputRef = useRef<HTMLInputElement>(null);
 
     // ── Excel import handlers ──────────────────────────────────────────────────
     function handleImportFile(file: File) {
-        if (!file.name.match(/\.(xlsx|xls)$/i)) return;
+        if (!file.name.match(/\.(xlsx|xls)$/i)) {
+            showToast('Formato no soportado', 'Solo se aceptan archivos .xlsx o .xls', 'error');
+            return;
+        }
+        if (file.size > MAX_IMPORT_SIZE_BYTES) {
+            showToast('Archivo demasiado grande', `El tamaño máximo es ${MAX_IMPORT_SIZE_MB} MB`, 'error');
+            return;
+        }
         setImportFile(file);
     }
 
@@ -475,7 +489,7 @@ export function AgendaView() {
 
                     {/* Import Excel */}
                     <button
-                        onClick={() => importInputRef.current?.click()}
+                        onClick={() => setShowImportInfo(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-400 transition-all"
                         title="Importar agenda desde Excel"
                     >
@@ -714,6 +728,17 @@ export function AgendaView() {
                     samRegions={samRegions}
                     samDivisions={samDivisions}
                     onClose={() => setShowConsultantsManager(false)}
+                />
+            )}
+
+            {showImportInfo && (
+                <AgendaImportInfoModal
+                    maxSizeMB={MAX_IMPORT_SIZE_MB}
+                    onClose={() => setShowImportInfo(false)}
+                    onContinue={() => {
+                        setShowImportInfo(false);
+                        importInputRef.current?.click();
+                    }}
                 />
             )}
 

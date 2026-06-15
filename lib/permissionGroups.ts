@@ -42,7 +42,9 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             soap: true,
             unidocs: true,
             uniflux: true,
-            inbox: true
+            inbox: true,
+            univisio: true,
+            unigeo: true
         },
         exportAccess: {
             tasks: true,
@@ -95,7 +97,9 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             soap: true,
             unidocs: true,
             uniflux: true,
-            inbox: true
+            inbox: true,
+            univisio: true,
+            unigeo: true
         },
         exportAccess: {
             tasks: true,
@@ -148,7 +152,9 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             soap: false,
             unidocs: false,
             uniflux: false,
-            inbox: false
+            inbox: false,
+            univisio: false,
+            unigeo: false
         },
         exportAccess: {
             tasks: true,
@@ -201,7 +207,9 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             soap: false,
             unidocs: false,
             uniflux: false,
-            inbox: false
+            inbox: false,
+            univisio: false,
+            unigeo: false
         },
         exportAccess: {
             tasks: true,
@@ -254,7 +262,9 @@ const DEFAULT_GROUPS: Omit<PermissionGroup, 'id' | 'createdAt' | 'updatedAt' | '
             soap: false,
             unidocs: false,
             uniflux: false,
-            inbox: false
+            inbox: false,
+            univisio: false,
+            unigeo: false
         },
         exportAccess: {
             tasks: false,

@@ -1,0 +1,1652 @@
+
+
+INTEGRACIÓN UNIGIS – MAERSK
+
+Documento de Estructura y Mapeo de Interfaces
+
+
+
+Versión 1.0  •  20 de mayo de 2026
+
+Dirección: UNIGIS TMS → Maersk SAP TMS
+
+
+
+1. Introducción y Contexto
+
+El presente documento describe el mapeo de interfaces de integración entre UNIGIS TMS y el sistema SAP TMS de Maersk. Estas interfaces permiten al transportista (Carrier) notificar en tiempo real a Maersk los eventos más relevantes del ciclo de vida del transporte terrestre: desde la confirmación de citas de recogida y entrega, hasta la comunicación de incidencias como retrasos, esperas o viajes fallidos.
+
+
+
+Todas las interfaces identificadas son de tipo Response, lo que significa que UNIGIS actúa como emisor y Maersk como receptor. El sistema UNIGIS genera y envía cada evento al endpoint de Maersk a medida que se producen cambios de estado en los pedidos y transportes.
+
+
+
+Arquitectura de la integración
+
+La integración sigue el patrón Event-Driven: UNIGIS publica eventos de ejecución del transporte que Maersk consume para actualizar su TMS (SAP). El campo clave de correlación es carrierBookingNumber, que equivale a Pedido.ReferenciaExterna en UNIGIS (con excepción de la interfaz Customer_Appointment_DropOff, que usa Transporte.ReferenciaExterna).
+
+
+
+Los campos de tipo eventTypeName/eventTypeCode funcionan como pares clave-valor dentro del cuerpo del evento, permitiendo enviar múltiples atributos en una misma llamada. Los campos con prefijo ZODT30_ corresponden a desarrollos Z (custom) en SAP TMS de Maersk.
+
+
+
+Campos comunes a todas las interfaces
+
+
+
+Campo
+
+Valor / Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Varía por interfaz
+
+string
+
+Identificador único del mensaje/evento. Permite deduplicar y trazar cada notificación enviada a Maersk.
+
+createTimestamp
+
+Generado en envío
+
+DateTime
+
+Timestamp de creación del mensaje. En la mayoría de interfaces no hay un campo UNIGIS directo; se genera en el momento del envío.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'. Indica que quien reporta es el transportista.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk al carrier. Valor a configurar por Maersk.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking/reserva de Maersk. Campo clave que relaciona cada evento con el pedido en SAP TMS. Excepción: en DropOff se usa Transporte.ReferenciaExterna.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado del pedido en Maersk. La referencia externa del estado en UNIGIS se mapea como código de estado Maersk.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Código o nombre de la ubicación donde ocurre el evento. Varía según el tipo de evento (origen, destino, etc.).
+
+
+
+2. Resumen de Interfaces
+
+Las 11 interfaces están ordenadas por ciclo de vida del transporte, desde la confirmación de la cita de recogida hasta los eventos de incidencia (retraso y viaje fallido).
+
+
+
+#
+
+Interfaz
+
+Dirección
+
+Campos
+
+Descripción corta
+
+1
+
+Customer_Appointment_PickUp
+
+UNIGIS → Maersk
+
+13
+
+Confirmación de cita de recogida
+
+2
+
+departure
+
+UNIGIS → Maersk
+
+10
+
+Salida del vehículo desde punto de recogida
+
+3
+
+driver_update
+
+UNIGIS → Maersk
+
+9
+
+Datos del conductor asignado
+
+4
+
+container_update
+
+UNIGIS → Maersk
+
+6
+
+Actualización de estado y número de contenedor
+
+5
+
+gps_update
+
+UNIGIS → Maersk
+
+14
+
+Posición GPS en tiempo real del vehículo
+
+6
+
+seal_update
+
+UNIGIS → Maersk
+
+7
+
+Número y tipo de precinto del contenedor
+
+7
+
+arrival
+
+UNIGIS → Maersk
+
+10
+
+Llegada efectiva al punto de destino
+
+8
+
+Customer_Appointment_DropOff
+
+UNIGIS → Maersk
+
+13
+
+Confirmación de cita de entrega al cliente
+
+9
+
+wait_time
+
+UNIGIS → Maersk
+
+17
+
+Tiempo de espera + evidencia documental (imagen)
+
+10
+
+delay
+
+UNIGIS → Maersk
+
+20
+
+Notificación de retraso con motivo y nueva ETA
+
+11
+
+futile_trip
+
+UNIGIS → Maersk
+
+16
+
+Intento fallido de entrega o recogida
+
+
+
+3. Detalle de Interfaces
+
+A continuación se detalla el mapeo completo de cada interfaz, con la descripción funcional de cada campo y su origen en UNIGIS. Los campos marcados en naranja y con texto 'Pendiente de mapeo' requieren información adicional para completar la integración.
+
+
+
+1. Customer Appointment PickUp
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk la confirmación de la cita de recogida de la unidad contenedora (contenedor/trailer). UNIGIS envía este evento cuando queda pactada la fecha y hora en que el transportista pasará a retirar la mercancía en el punto de origen. Permite a Maersk planificar la disponibilidad del equipo y bloquear el slot en el depósito o terminal de salida.
+
+
+
+⚑ Nota: Los campos uniqueIdentifier, partyCode y location están pendientes de definir el campo fuente en UNIGIS.
+
+⚑ Nota: Los eventTypeCode de APPOINTMENT_TMSTMP, APPOINTMENT_STOP_ID y LOC_GUID requieren tabla de eventos pendiente de mapeo.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje. Permite deduplicar eventos en Maersk. Pendiente de definir origen UNIGIS.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de creación del mensaje en UNIGIS.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier': el transportista que ejecuta la orden.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk al carrier. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking/reserva de Maersk. Identifica de forma inequívoca el pedido en el sistema Maersk (SAP TMS).
+
+timestamp
+
+Pedido.FechaUltimaModificacion
+
+DateTime
+
+Fecha/hora del evento de confirmación de cita. Se toma de la última modificación del pedido en UNIGIS.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado del pedido en Maersk. La referencia externa del estado UNIGIS se envía como código de estado Maersk.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo interno del transportista. Referencia cruzada entre el Pedido UNIGIS y la workorder Maersk.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del usuario o conductor que registra el evento. Pendiente de mapeo.
+
+eventTypeName: APPOINTMENT_TMSTMP
+
+Pendiente de mapeo
+
+string
+
+Timestamp exacto de la cita de recogida pactada. Pendiente de mapeo desde tabla de eventos UNIGIS.
+
+eventTypeName: APPOINTMENT_STOP_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del punto de parada (stop) asociado a la cita de recogida en el TMS de Maersk.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación de recogida en el sistema Maersk. Identifica el depósito o terminal de forma unívoca.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Código o nombre de la ubicación de recogida. Pendiente de mapeo (Pedido.Origen o depósito).
+
+
+
+2. Departure
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk la salida efectiva del vehículo desde el punto de recogida (depósito, terminal o planta del cliente). Este evento activa en el TMS de Maersk el seguimiento del tránsito y permite calcular la ETA de llegada al destino. Es el punto de partida del ciclo de transporte en ejecución.
+
+
+
+⚑ Nota: El campo eventStatus incluye una nota del implementador preguntando si este estado define disponibilidad para recolección y si es necesario consumirlo para planificar la fecha. Pendiente de confirmar con Maersk.
+
+⚑ Nota: Los campos uniqueIdentifier, partyCode, LOC_GUID y location están pendientes de mapeo.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de salida. Pendiente de mapeo en UNIGIS.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk. Identifica el pedido en SAP TMS.
+
+timestamp
+
+Pedido.FechaRecoleccion
+
+DateTime
+
+Fecha y hora real de salida/recolección registrada en el pedido UNIGIS.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado Maersk. Define si el pedido está disponible para recolección. Pendiente de confirmar comportamiento.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo del transportista.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del usuario que registra la salida. Pendiente de mapeo.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación de salida en el sistema Maersk.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Ubicación de salida del vehículo. Pendiente de mapeo.
+
+
+
+3. Driver Update
+
+Dirección: UNIGIS → Maersk
+
+
+
+Envía a Maersk los datos del conductor asignado a la ejecución del transporte. Maersk necesita esta información para cumplir con requisitos de seguridad, auditoría y visibilidad del operador que manipula la carga. Se puede enviar en cualquier punto del ciclo de transporte cuando se produce un cambio de conductor.
+
+
+
+⚑ Nota: Los campos partyName, licenseNumber, badgeNumber, telecommunicationNumber y telecommunicationNumberType no tienen origen UNIGIS definido aún. Corresponden a datos del conductor/recurso humano.
+
+⚑ Nota: El segundo campo partyFunction (fila 7 del Excel original) parece ser un error de nomenclatura en el Excel; probablemente corresponde a un timestamp de asignación.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje. Pendiente de mapeo.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk que identifica el pedido asociado al conductor.
+
+partyName
+
+Pendiente de mapeo
+
+string
+
+Nombre completo del conductor asignado. Pendiente de mapeo desde entidad Conductor/Recurso en UNIGIS.
+
+licenseNumber
+
+Pendiente de mapeo
+
+string
+
+Número de licencia de conducir del conductor. Pendiente de mapeo desde datos del conductor en UNIGIS.
+
+badgeNumber
+
+Pendiente de mapeo
+
+string
+
+Número de identificación/badge del conductor (acreditación de acceso). Pendiente de mapeo.
+
+telecommunicationNumber
+
+Pendiente de mapeo
+
+string
+
+Número de teléfono de contacto del conductor. Pendiente de mapeo.
+
+telecommunicationNumberType
+
+Pendiente de mapeo
+
+string
+
+Tipo de número de contacto (MOBILE, PHONE, etc.). Pendiente de mapeo.
+
+
+
+4. Container Update
+
+Dirección: UNIGIS → Maersk
+
+
+
+Actualiza el estado y el número del contenedor asociado al booking de Maersk. Este evento se utiliza cuando UNIGIS asigna o modifica la unidad contenedora (contenedor ISO, trailer, caja, etc.) vinculada a la reserva de Maersk. Permite a Maersk sincronizar la información de equipo en su sistema SAP TMS.
+
+
+
+⚑ Nota: El campo uniqueIdentifier no tiene origen definido en UNIGIS.
+
+⚑ Nota: El tipo de recurso para containerNumber es TipoRecurso.IdTiporecurso = 10 (definición interna del tipo de equipo).
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de actualización de contenedor. Pendiente de mapeo.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de booking Maersk. Identifica el pedido al que se asocia el contenedor.
+
+carrierBookingStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado del booking/pedido en Maersk en el momento de la actualización.
+
+containerNumber
+
+UnidadContenedora.ReferenciaExterna
+
+string
+
+Número de contenedor (ej. MSCU1234567). Identificador único ISO del contenedor. En UNIGIS corresponde a la referencia externa de la Unidad Contenedora con TipoRecurso.IdTiporecurso = 10.
+
+
+
+5. GPS Update
+
+Dirección: UNIGIS → Maersk
+
+
+
+Envía a Maersk la posición GPS en tiempo real del vehículo que transporta la carga. Este evento proporciona visibilidad de tránsito continua y permite a Maersk y al cliente final monitorizar la ubicación exacta del envío. Los campos con prefijo ZODT30 corresponden a funciones Z (desarrollos custom) del SAP TMS de Maersk.
+
+
+
+⚑ Nota: Los campos latitude, longitude y altitude no tienen origen UNIGIS definido. Deben mapearse desde el dispositivo GPS/telemetría del vehículo.
+
+⚑ Nota: Los campos con prefijo ZODT30_ son desarrollos Z (custom) en SAP TMS de Maersk. Sus eventTypeCode están pendientes de mapeo.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje GPS. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de generación del mensaje GPS.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk. Relaciona la posición GPS con el pedido en tránsito.
+
+timestamp
+
+Pedido.FechaUltimaModificacion
+
+DateTime
+
+Fecha y hora del registro GPS.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Estado del pedido en el momento del envío GPS.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo asociado al envío GPS.
+
+eventTypeName: ZODT30_EQUIPMENT_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del equipo/vehículo GPS en SAP TMS de Maersk (campo Z custom). Pendiente de mapeo.
+
+eventTypeName: ZODT30_WORKORDER_NUMBER
+
+Pendiente de mapeo
+
+string
+
+Número de orden de trabajo en formato SAP Z de Maersk. Pendiente de mapeo.
+
+eventTypeName: ZODT30_USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador de usuario para el tracking GPS en SAP TMS. Pendiente de mapeo.
+
+latitude
+
+Pendiente de mapeo
+
+string
+
+Latitud GPS del vehículo en formato decimal (ej. 41.385063). Pendiente de mapeo desde telemetría.
+
+longitude
+
+Pendiente de mapeo
+
+string
+
+Longitud GPS del vehículo en formato decimal (ej. 2.173404). Pendiente de mapeo desde telemetría.
+
+altitude
+
+Pendiente de mapeo
+
+string
+
+Altitud del vehículo en metros sobre el nivel del mar. Pendiente de mapeo desde telemetría.
+
+
+
+6. Seal Update
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk el número y tipo de precinto (sello de seguridad) colocado en el contenedor. Esta información es crítica para la cadena de custodia, el cumplimiento aduanero y la integridad de la carga. Maersk requiere esta información para verificar que el contenedor no ha sido manipulado durante el transporte.
+
+
+
+⚑ Nota: Los campos sealType y sealNumber no tienen origen UNIGIS definido. Deben mapearse desde la entidad de Precinto/Sello del sistema.
+
+⚑ Nota: El tipo de dato de sealType aparece como 'Date' en el Excel, lo que puede ser un error de tipado; probablemente es 'string'.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de actualización de precinto. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de colocación/registro del precinto.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk que identifica el contenedor precintado.
+
+sealType
+
+Pendiente de mapeo
+
+string
+
+Tipo de precinto utilizado (ej. BOLT, CABLE, PLASTIC). Pendiente de mapeo desde UNIGIS.
+
+sealNumber
+
+Pendiente de mapeo
+
+string
+
+Número identificador único del precinto colocado en el contenedor. Pendiente de mapeo desde UNIGIS.
+
+
+
+7. Arrival
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk la llegada efectiva del vehículo al punto de destino (depósito, terminal, cliente final o puerta de Maersk). Este es un evento crítico que cierra el ciclo de tránsito y activa los procesos de descarga, inspección y entrega en el TMS de Maersk. El campo uniqueIdentifier se nutre de la bitácora del pedido, lo que garantiza trazabilidad del evento.
+
+
+
+⚑ Nota: El campo timestamp no tiene origen UNIGIS definido. Probablemente debe mapearse desde la fecha de llegada real registrada en el pedido o desde un evento de bitácora.
+
+⚑ Nota: Los campos partyCode y eventTypeCode de USER_ID están pendientes de mapeo.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+BitacoraPedido.Valor
+
+string
+
+Identificador único del evento de llegada. Se obtiene del valor registrado en la bitácora del pedido en UNIGIS, garantizando trazabilidad.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk. Identifica el pedido que ha llegado a destino.
+
+timestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora real de llegada al punto de destino. Pendiente de definir origen (FechaEntrega o evento de bitácora).
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado del pedido en Maersk en el momento de la llegada.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo del transportista.
+
+eventTypeName: USER_ID
+
+USER_ID (valor fijo o sesión)
+
+string
+
+Identificador del usuario o conductor que registra la llegada.
+
+eventTypeName: ACTUAL_ARRIVAL
+
+Pedido.FechaRecoleccion
+
+string
+
+Hora real de llegada al punto de destino. En UNIGIS se mapea desde la fecha de recolección/llegada del pedido.
+
+location
+
+Pedido.Origen / Pedido.DepoSalida
+
+string
+
+Código o nombre de la ubicación de llegada. Puede ser el Origen del pedido o el Depósito de Salida según el flujo.
+
+
+
+8. Customer Appointment DropOff
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk la confirmación de la cita de entrega al cliente final o punto de destino. UNIGIS envía este evento cuando se ha pactado la ventana horaria de entrega, permitiendo a Maersk informar al cliente y preparar los recursos necesarios para la recepción de la carga. Es el evento simétrico al PickUp pero para el extremo de entrega.
+
+
+
+⚑ Nota: El campo carrierBookingNumber se mapea desde Transporte.ReferenciaExterna (a diferencia de otras interfaces que usan Pedido.ReferenciaExterna).
+
+⚑ Nota: Los campos APPOINTMENT_TMSTMP, APPOINTMENT_STOP_ID y LOC_GUID están pendientes de mapeo desde tabla de eventos.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de cita de entrega. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de creación del mensaje en UNIGIS.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Transporte.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk. En esta interfaz se obtiene de la referencia externa del Transporte (no del Pedido).
+
+timestamp
+
+Pedido.FechaUltimaModificacion
+
+DateTime
+
+Fecha/hora de confirmación de la cita de entrega.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Código de estado del pedido en el momento de confirmar la cita de entrega.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo del transportista.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del usuario que confirma la cita de entrega. Pendiente de mapeo.
+
+eventTypeName: APPOINTMENT_TMSTMP
+
+Pendiente de mapeo
+
+string
+
+Timestamp exacto de la cita de entrega pactada. Pendiente de mapeo.
+
+eventTypeName: APPOINTMENT_STOP_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del punto de parada (stop) de entrega en Maersk TMS.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación de entrega en el sistema Maersk.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Código/nombre de la ubicación de entrega al cliente. Pendiente de mapeo (Pedido.Destino).
+
+
+
+9. Wait Time
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk el tiempo de espera del vehículo en un punto (depósito, terminal, cliente) y adjunta evidencia documental en formato imagen. Esta interfaz es especialmente relevante para la gestión de demurrage y detention: permite justificar tiempos de espera no imputables al transportista y adjuntar la imagen del documento de espera como prueba. Incluye además las horas reales de llegada y salida del punto.
+
+
+
+⚑ Nota: El campo documentName = 'WAIT_TIME_FILE' y fileType = 'image/png' indican que se adjunta una imagen como evidencia.
+
+⚑ Nota: Los campos DELAY_REASON_DESC, ACTUAL_ARRIVAL, ACTUAL_DEPARTURE y REF_EVENT_LOC están pendientes de mapeo desde tabla de eventos.
+
+⚑ Nota: Esta es la interfaz más compleja del conjunto, con múltiples pares eventTypeName/eventTypeCode.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de tiempo de espera. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de creación del registro de espera.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+documentName
+
+WAIT_TIME_FILE (valor fijo)
+
+string
+
+Nombre del documento adjunto. Valor fijo 'WAIT_TIME_FILE' que identifica el tipo de documento en Maersk.
+
+documentTypeCode
+
+image/png (valor fijo)
+
+string
+
+MIME type del documento adjunto. Valor fijo 'image/png'.
+
+fileType
+
+image/png (valor fijo)
+
+string
+
+Tipo de archivo de la evidencia adjunta. Valor fijo 'image/png'.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de booking Maersk del pedido con el tiempo de espera registrado.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Estado del pedido en el momento del registro del tiempo de espera.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo del transportista.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del usuario que registra el tiempo de espera. Pendiente de mapeo.
+
+eventTypeName: REF_EVENT_LOC
+
+Pendiente de mapeo
+
+string
+
+Localización del evento de referencia para el tiempo de espera. Pendiente de mapeo.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación donde se produce la espera. Pendiente de mapeo.
+
+eventTypeName: DELAY_REASON_DESC
+
+Pendiente de mapeo
+
+string
+
+Descripción textual del motivo de la espera/retraso. Pendiente de mapeo.
+
+eventTypeName: ACTUAL_ARRIVAL
+
+Pendiente de mapeo
+
+string
+
+Hora real de llegada al punto donde se produce la espera. Pendiente de mapeo.
+
+eventTypeName: ACTUAL_DEPARTURE
+
+Pendiente de mapeo
+
+string
+
+Hora real de salida del punto de espera. Pendiente de mapeo.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Ubicación donde ocurre el tiempo de espera. Pendiente de mapeo.
+
+
+
+10. Delay
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk un retraso en la ejecución del transporte, indicando el motivo, la fecha y hora estimada del nuevo cumplimiento y el evento afectado. Este es un evento de alta relevancia operativa que permite a Maersk comunicar proactivamente las incidencias al cliente y recalcular la ETA. Los campos de código y razón de demora están pendientes de definir desde la tabla de eventos de UNIGIS.
+
+
+
+⚑ Nota: Los campos DELAY_REASON_CODE, ESTIM_DELAY_DATE/TIME, DELAY_EVENT, REF_EVENT_LOC y ZTMSREFERENCE_ID están marcados como '¿TABLA EVENTO?' en el Excel. Requieren confirmar el origen en la entidad de Eventos de UNIGIS.
+
+⚑ Nota: ESTIM_DELAY_DATE_LOCAL y ESTIM_DELAY_TIME_LOCAL indican que Maersk requiere tanto hora UTC como hora local.
+
+⚑ Nota: ZTMSREFERENCE_ID es un campo Z de SAP TMS de Maersk: identificador de referencia cruzada.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de retraso. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de creación del aviso de retraso.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk del pedido afectado por el retraso.
+
+timestamp
+
+Pedido.FechaUltimaModificacion
+
+DateTime
+
+Fecha y hora en que se registra el retraso en UNIGIS.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Estado del pedido en el momento de notificar el retraso.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo afectado por el retraso.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del usuario que registra el retraso. Pendiente de mapeo.
+
+eventTypeName: DELAY_REASON_CODE
+
+Pendiente de mapeo
+
+string
+
+Código de razón del retraso (catálogo Maersk). Pendiente de mapeo desde tabla de eventos UNIGIS.
+
+eventTypeName: ESTIM_DELAY_DATE
+
+Pendiente de mapeo
+
+string
+
+Fecha estimada de resolución del retraso (UTC). Pendiente de mapeo desde tabla de eventos UNIGIS.
+
+eventTypeName: ESTIM_DELAY_TIME
+
+Pendiente de mapeo
+
+string
+
+Hora estimada de resolución del retraso (UTC). Pendiente de mapeo desde tabla de eventos UNIGIS.
+
+eventTypeName: ESTIM_DELAY_DATE_LOCAL
+
+Pendiente de mapeo
+
+string
+
+Fecha estimada de resolución en hora local del punto afectado. Pendiente de mapeo.
+
+eventTypeName: ESTIM_DELAY_TIME_LOCAL
+
+Pendiente de mapeo
+
+string
+
+Hora estimada de resolución en hora local del punto afectado. Pendiente de mapeo.
+
+eventTypeName: ESTIM_DELAY_TZONE
+
+Pendiente de mapeo
+
+string
+
+Zona horaria del punto afectado (ej. Europe/Madrid). Pendiente de mapeo.
+
+eventTypeName: DELAY_EVENT
+
+Pendiente de mapeo
+
+string
+
+Código del evento de referencia que se ve afectado por el retraso. Pendiente de mapeo.
+
+eventTypeName: REF_EVENT_LOC
+
+Pendiente de mapeo
+
+string
+
+Localización del evento de referencia afectado por el retraso. Pendiente de mapeo.
+
+eventTypeName: ZTMSREFERENCE_ID
+
+Pendiente de mapeo
+
+string
+
+ID de referencia en SAP TMS de Maersk (campo Z custom). Identificador cruzado del retraso.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación donde ocurre el retraso. Pendiente de mapeo.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Localización donde se produce el retraso. Pendiente de mapeo.
+
+
+
+11. Futile Trip
+
+Dirección: UNIGIS → Maersk
+
+
+
+Notifica a Maersk un intento fallido de entrega o recogida (viaje en vano). Se produce cuando el conductor se presenta en el punto acordado pero no puede completar la operación por causas ajenas al transportista (cliente ausente, instalación cerrada, acceso denegado, etc.). Esta notificación es fundamental para la facturación de penalizaciones al cliente y para la reprogramación del servicio.
+
+
+
+⚑ Nota: Los campos REGISTRATION_NUMBER, VENDOR_CODE, EQUIPMENT_ID, FUTILE_TRIP_REMARK y FUTILE_TRIP_REASON_CODE no tienen origen UNIGIS definido. Requieren mapeo desde datos del vehículo y de la incidencia.
+
+⚑ Nota: FUTILE_TRIP_REASON_CODE debe alinearse con el catálogo de razones de Maersk.
+
+
+
+Mapeo de Campos
+
+
+
+Campo API Maersk
+
+Origen UNIGIS
+
+Tipo
+
+Descripción
+
+uniqueIdentifier
+
+Pendiente de mapeo
+
+string
+
+Identificador único del mensaje de viaje fallido. Pendiente de mapeo.
+
+createTimestamp
+
+Pendiente de mapeo
+
+DateTime
+
+Fecha y hora de registro del intento fallido.
+
+partyFunction
+
+Carrier (valor fijo)
+
+string
+
+Función de la parte notificante. Siempre 'Carrier'.
+
+partyCode
+
+Pendiente de mapeo
+
+string
+
+Código de empresa transportista asignado por Maersk. Pendiente de mapeo.
+
+carrierBookingNumber
+
+Pedido.ReferenciaExterna
+
+BigInt
+
+Número de booking Maersk del pedido con el intento fallido.
+
+timestamp
+
+Pedido.FechaUltimaModificacion
+
+DateTime
+
+Fecha y hora del intento fallido de entrega/recogida.
+
+eventStatus
+
+EstadoPedido.ReferenciaExterna
+
+string
+
+Estado del pedido en el momento del intento fallido.
+
+eventTypeName: WORKORDER_NUMBER
+
+Pedido.ReferenciaExterna
+
+string
+
+Número de orden de trabajo con el intento fallido.
+
+eventTypeName: USER_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del conductor o usuario que registra el viaje fallido. Pendiente de mapeo.
+
+eventTypeName: REGISTRATION_NUMBER
+
+Pendiente de mapeo
+
+string
+
+Número de matrícula del vehículo que realizó el intento. Pendiente de mapeo desde datos del vehículo.
+
+eventTypeName: VENDOR_CODE
+
+Pendiente de mapeo
+
+string
+
+Código del proveedor/subcontrata en el sistema Maersk. Pendiente de mapeo.
+
+eventTypeName: EQUIPMENT_ID
+
+Pendiente de mapeo
+
+string
+
+Identificador del equipo (vehículo/contenedor) en Maersk. Pendiente de mapeo.
+
+eventTypeName: FUTILE_TRIP_REMARK
+
+Pendiente de mapeo
+
+string
+
+Observaciones libres sobre el motivo del viaje fallido. Pendiente de mapeo desde campo de notas de incidencia.
+
+eventTypeName: FUTILE_TRIP_REASON_CODE
+
+Pendiente de mapeo
+
+string
+
+Código de razón del viaje fallido según catálogo de Maersk. Pendiente de mapeo y alineación con catálogo.
+
+eventTypeName: LOC_GUID
+
+Pendiente de mapeo
+
+string
+
+GUID de la ubicación donde se produce el intento fallido. Pendiente de mapeo.
+
+location
+
+Pendiente de mapeo
+
+string
+
+Localización del intento fallido. Pendiente de mapeo (Pedido.Destino).
+
+
+
