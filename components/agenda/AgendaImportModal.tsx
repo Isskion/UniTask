@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgendaConsultant } from "@/types/agenda";
 import {
@@ -30,31 +30,53 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     // consultantId → selected region (only populated for multi-region consultants in the Excel)
     const [regionOverrides, setRegionOverrides] = useState<Record<string, string>>({});
 
+    // Re-analysis controls: which sheet to read + fallback Monday when Fecha_T can't be parsed
+    const [selectedSheet, setSelectedSheet] = useState<string>('');
+    const [weekStartOverride, setWeekStartOverride] = useState<string>('');
+
+    const applyPreview = useCallback((p: ImportPreview) => {
+        const unknown = resolveUnknownConsultants(p.entries, consultants);
+        setPreview(p);
+        setUnknownConsultants(unknown);
+        setSelectedSheet(p.sheetName);
+
+        // Pre-populate region overrides for multi-region consultants present in the Excel
+        const namesInExcel = new Set(p.entries.map(e => e.consultantName.toUpperCase()));
+        const initialOverrides: Record<string, string> = {};
+        consultants.forEach(c => {
+            const effectiveRegions = (c.regions ?? []).filter(r => r !== '*');
+            if (effectiveRegions.length > 1 && namesInExcel.has(c.name.toUpperCase())) {
+                initialOverrides[c.userId] = effectiveRegions[0];
+            }
+        });
+        setRegionOverrides(initialOverrides);
+
+        setPhase('preview');
+    }, [consultants]);
+
+    // Keep a ref to the latest applyPreview so the initial parse only re-runs when `file` changes,
+    // not on every consultants snapshot update (which would otherwise discard a manual reanalysis).
+    const applyPreviewRef = useRef(applyPreview);
+    applyPreviewRef.current = applyPreview;
+
     useEffect(() => {
         parseAgendaExcel(file)
-            .then(p => {
-                const unknown = resolveUnknownConsultants(p.entries, consultants);
-                setPreview(p);
-                setUnknownConsultants(unknown);
-
-                // Pre-populate region overrides for multi-region consultants present in the Excel
-                const namesInExcel = new Set(p.entries.map(e => e.consultantName.toUpperCase()));
-                const initialOverrides: Record<string, string> = {};
-                consultants.forEach(c => {
-                    const effectiveRegions = (c.regions ?? []).filter(r => r !== '*');
-                    if (effectiveRegions.length > 1 && namesInExcel.has(c.name.toUpperCase())) {
-                        initialOverrides[c.userId] = effectiveRegions[0];
-                    }
-                });
-                setRegionOverrides(initialOverrides);
-
-                setPhase('preview');
-            })
+            .then(p => applyPreviewRef.current(p))
             .catch(err => {
                 setError(String(err?.message || err));
                 setPhase('error');
             });
-    }, [file, consultants]);
+    }, [file]);
+
+    const handleReanalyze = useCallback(() => {
+        setPhase('parsing');
+        parseAgendaExcel(file, { sheetName: selectedSheet, weekStartOverride: weekStartOverride || undefined })
+            .then(applyPreview)
+            .catch(err => {
+                setError(String(err?.message || err));
+                setPhase('error');
+            });
+    }, [file, selectedSheet, weekStartOverride, applyPreview]);
 
     const handleImport = useCallback(async () => {
         if (!preview) return;
@@ -160,12 +182,47 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                         <>
                             {/* Stats bar */}
                             <div className="flex items-center gap-4 text-xs">
-                                <StatPill label="Semana" value={preview.weekLabel} />
+                                <StatPill label="Hoja" value={preview.sheetName} />
+                                <StatPill label="Semana" value={preview.weekLabel || '—'} />
                                 <StatPill label="Entradas en Excel" value={String(preview.entries.length)} />
                                 <StatPill label="A importar" value={String(matchable)} highlight />
                                 {unknownConsultants.length > 0 && (
                                     <StatPill label="Sin match" value={String(unknownConsultants.length)} warn />
                                 )}
+                            </div>
+
+                            {/* Re-analysis controls: pick a different sheet / supply Monday when Fecha_T is broken */}
+                            <div className="flex flex-wrap items-end gap-3 p-3 bg-secondary/30 border border-border rounded-xl">
+                                {preview.sheetNames.length > 1 && (
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs text-muted-foreground font-medium">Hoja del libro</label>
+                                        <select
+                                            value={selectedSheet}
+                                            onChange={e => setSelectedSheet(e.target.value)}
+                                            className="px-2.5 py-1.5 rounded-lg text-xs bg-secondary/40 border border-border text-foreground focus:outline-none focus:border-indigo-500/60 transition-all"
+                                        >
+                                            {preview.sheetNames.map(name => (
+                                                <option key={name} value={name}>{name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-muted-foreground font-medium">Lunes de esta semana (si las fechas no se detectan)</label>
+                                    <input
+                                        type="date"
+                                        value={weekStartOverride}
+                                        onChange={e => setWeekStartOverride(e.target.value)}
+                                        className="px-2.5 py-1.5 rounded-lg text-xs bg-secondary/40 border border-border text-foreground focus:outline-none focus:border-indigo-500/60 transition-all"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleReanalyze}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-all"
+                                >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                    Reanalizar
+                                </button>
                             </div>
 
                             {/* Why 0 entries? */}
@@ -311,14 +368,14 @@ function DiagnosticBanner({ diagnostics }: { diagnostics: ImportDiagnostics }) {
     let solution: string;
 
     if (consultantRows === 0) {
-        detail = `La hoja "${sheetName}" (la primera del libro) no tiene ningún nombre de consultor desde la fila 4 (columna B).`;
-        solution = `Esta app solo lee la PRIMERA hoja del Excel. Comprueba que "${sheetName}" es la semana que querías importar — si está en otra hoja, muévela a la primera posición o expórtala a un archivo aparte.`;
+        detail = `La hoja "${sheetName}" no tiene ningún nombre de consultor desde la fila 4 (columna B).`;
+        solution = `Selecciona la hoja correcta en "Hoja del libro" arriba y pulsa "Reanalizar" — comprueba que "${sheetName}" es la semana que querías importar.`;
     } else if (candidateCells === 0) {
         detail = `Se encontraron ${consultantRows} consultor(es) en "${sheetName}", pero ninguna celda tiene Actividad y Horario rellenos a la vez.`;
-        solution = `Revisa que "${sheetName}" es la semana correcta y que las columnas Actividad y Horario están rellenas para esos consultores.`;
+        solution = `Revisa que "${sheetName}" es la semana correcta (cámbiala arriba si no) y que las columnas Actividad y Horario están rellenas para esos consultores.`;
     } else if (invalidDateCells > 0) {
         detail = `Se encontraron ${candidateCells} entrada(s) con Actividad y Horario en "${sheetName}", pero ${invalidDateCells} no tienen una fecha válida en la columna "Fecha_T" (puede mostrar #REF! u otro error de fórmula).`;
-        solution = `Abre el Excel y comprueba la fila "Fecha_T" de "${sheetName}": si la celda muestra #REF!, sustituye esa fórmula por la fecha real (formato DD/MM/AA) en cada columna de día y vuelve a intentar la importación.`;
+        solution = `La fórmula "Fecha_T" de "${sheetName}" está rota (p.ej. #REF!). Indica el lunes de esta semana en el campo "Lunes de esta semana" de arriba y pulsa "Reanalizar": las fechas se calcularán a partir de ese lunes según la columna de cada día.`;
     } else if (unknownActivityCells > 0) {
         detail = `Se encontraron ${candidateCells} entrada(s) con fecha y horario válidos en "${sheetName}", pero ${unknownActivityCells} tienen un tipo de "Actividad" no reconocido.`;
         solution = `Los tipos válidos son: Reunión Cliente, Reunión UNIGIS, Reunión Presencial, Reunión Interna, Comercial, Tareas a Realizar, Vacaciones, Viaje, Especial. Corrige el texto de la columna Actividad y reintenta.`;

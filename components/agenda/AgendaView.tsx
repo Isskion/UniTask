@@ -35,7 +35,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { useToast } from "@/context/ToastContext";
 
-const MAX_IMPORT_SIZE_MB = 10;
+const MAX_IMPORT_SIZE_MB = 25;
 const MAX_IMPORT_SIZE_BYTES = MAX_IMPORT_SIZE_MB * 1024 * 1024;
 
 export function AgendaView() {
@@ -318,8 +318,8 @@ export function AgendaView() {
 
     // ── Excel import handlers ──────────────────────────────────────────────────
     function handleImportFile(file: File) {
-        if (!file.name.match(/\.(xlsx|xls)$/i)) {
-            showToast('Formato no soportado', 'Solo se aceptan archivos .xlsx o .xls', 'error');
+        if (!file.name.match(/\.(xlsx|xls|xlsb)$/i)) {
+            showToast('Formato no soportado', 'Solo se aceptan archivos .xlsx, .xls o .xlsb', 'error');
             return;
         }
         if (file.size > MAX_IMPORT_SIZE_BYTES) {
@@ -499,7 +499,7 @@ export function AgendaView() {
                     <input
                         ref={importInputRef}
                         type="file"
-                        accept=".xlsx,.xls"
+                        accept=".xlsx,.xls,.xlsb"
                         className="hidden"
                         onChange={e => { const f = e.target.files?.[0]; if (f) handleImportFile(f); e.target.value = ''; }}
                     />

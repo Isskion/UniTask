@@ -12,7 +12,7 @@ import {
     getDayType, getWeekLabel, getWeekMonth, getWeekNumber,
     getYearMonth, getWeekStart, parseComment,
 } from "@/lib/agenda-utils";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 const ENTRIES_COLLECTION = "agenda_entries";
 
@@ -64,11 +64,19 @@ export interface ImportDiagnostics {
 }
 
 export interface ImportPreview {
+    sheetNames: string[];   // every sheet in the workbook, for the sheet picker
+    sheetName: string;      // sheet actually parsed
     weekStart: string;
     weekLabel: string;
     entries: ParsedExcelEntry[];
     unknownConsultants: string[];
     diagnostics: ImportDiagnostics;
+}
+
+export interface ParseOptions {
+    sheetName?: string;        // defaults to the first sheet
+    /** Monday (yyyy-MM-dd) used to derive Fecha_T when the cell is empty/invalid (e.g. broken #REF! formulas) */
+    weekStartOverride?: string;
 }
 
 export interface ImportResult {
@@ -88,15 +96,22 @@ function parseExcelDate(raw: string): Date | null {
     return new Date(2000 + y, m - 1, d);
 }
 
-export function parseAgendaExcel(file: File): Promise<ImportPreview> {
+export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<ImportPreview> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const wb = XLSX.read(new Uint8Array(e.target!.result as ArrayBuffer), { type: 'array' });
-                const sheetName = wb.SheetNames[0];
+                const sheetName = (opts?.sheetName && wb.SheetNames.includes(opts.sheetName))
+                    ? opts.sheetName
+                    : wb.SheetNames[0];
                 const ws = wb.Sheets[sheetName];
                 const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+                // Fallback Monday used to derive Fecha_T when the cell is empty/broken (#REF!)
+                const overrideMonday = opts?.weekStartOverride
+                    ? new Date(opts.weekStartOverride + 'T00:00:00')
+                    : null;
 
                 const weekLabel = String(rows[0]?.[2] || '').trim();
                 const entries: ParsedExcelEntry[] = [];
@@ -115,7 +130,8 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
                     if (!consultantName) continue;
                     diagnostics.consultantRows++;
 
-                    for (const base of DAY_OFFSETS) {
+                    for (let dayIdx = 0; dayIdx < DAY_OFFSETS.length; dayIdx++) {
+                        const base = DAY_OFFSETS[dayIdx];
                         const actividad  = String(row[base + 1] || '').trim();
                         const comentario = String(row[base + 2] || '').trim();
                         const horario    = String(row[base + 3] || '').trim();
@@ -124,7 +140,10 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
                         if (!actividad || !horario) continue;
                         diagnostics.candidateCells++;
 
-                        const date = parseExcelDate(String(row[base] || ''));
+                        let date = parseExcelDate(String(row[base] || ''));
+                        if (!date && overrideMonday) {
+                            date = addDays(overrideMonday, dayIdx); // day-block order: lunes..domingo
+                        }
                         if (!date) {
                             diagnostics.invalidDateCells++;
                             continue;
@@ -156,7 +175,7 @@ export function parseAgendaExcel(file: File): Promise<ImportPreview> {
                 }
 
                 // unknownConsultants resolved externally by caller (needs consultant list)
-                resolve({ weekStart, weekLabel, entries, unknownConsultants: [], diagnostics });
+                resolve({ sheetNames: wb.SheetNames, sheetName, weekStart, weekLabel, entries, unknownConsultants: [], diagnostics });
             } catch (err) {
                 reject(err);
             }

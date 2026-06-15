@@ -37,9 +37,9 @@ export function AgendaImportInfoModal({ onContinue, onClose, maxSizeMB }: Props)
                     <div className="space-y-1.5">
                         <h3 className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">Archivo</h3>
                         <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
-                            <li>Formatos aceptados: <span className="text-foreground font-medium">.xlsx</span> o <span className="text-foreground font-medium">.xls</span></li>
+                            <li>Formatos aceptados: <span className="text-foreground font-medium">.xlsx</span>, <span className="text-foreground font-medium">.xls</span> o <span className="text-foreground font-medium">.xlsb</span> (libro binario)</li>
                             <li>Tamaño máximo: <span className="text-foreground font-medium">{maxSizeMB} MB</span></li>
-                            <li>Solo se procesa <span className="text-foreground font-medium">la primera hoja</span> del libro. Si tu Excel tiene una hoja por semana, deja como primera la que quieras importar (o expórtala a un archivo aparte).</li>
+                            <li>Si tu Excel tiene una hoja por semana, podrás elegir cuál analizar desde el selector de hoja del preview.</li>
                         </ul>
                     </div>
 
