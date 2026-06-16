@@ -1244,9 +1244,11 @@ async function executeServiceCall(body, current = null, total = null) {
                     for (const prop in sNode.properties) {
                         const lowProp = prop.toLowerCase();
                         if (lowProp === 'apikey') {
-                            // Siempre forzar la API Key si el schema la define, sobreescribiendo si existiera
-                            dataNode[prop] = apikey;
-                            if (prop !== 'ApiKey') dataNode['ApiKey'] = apikey; // Forzar mayúscula también
+                            // Solo forzar la API Key si está vacía, no está definida o es nula, preservando la ingresada por el usuario
+                            if (!dataNode[prop] || dataNode[prop] === "") {
+                                dataNode[prop] = apikey;
+                                if (prop !== 'ApiKey') dataNode['ApiKey'] = apikey; // Forzar mayúscula también
+                            }
                         } else if (dataNode[prop] !== undefined) {
                             injectApiKey(dataNode[prop], sNode.properties[prop]);
                         }
@@ -1263,6 +1265,15 @@ async function executeServiceCall(body, current = null, total = null) {
     // Si la petición no tiene ApiKey explícita en la raíz pero la requiere, la forzamos
     if (body && typeof body === 'object' && !body.ApiKey && !body.apiKey) {
         body.ApiKey = apikey;
+    }
+
+    // Determinar la API Key a enviar en los headers:
+    // Si el body contiene un ApiKey explícito (como "67-92..."), usamos ese.
+    // De lo contrario, usamos el token de sesión (apikey).
+    let headerApiKey = apikey;
+    if (body && typeof body === 'object') {
+        if (body.ApiKey) headerApiKey = body.ApiKey;
+        else if (body.apiKey) headerApiKey = body.apiKey;
     }
 
     const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
@@ -1284,8 +1295,8 @@ async function executeServiceCall(body, current = null, total = null) {
             method: verb.toUpperCase(),
             headers: {
                 'Content-Type': contentType,
-                'X-ApiKey': apikey,
-                'ApiKey': apikey,
+                'X-ApiKey': headerApiKey,
+                'ApiKey': headerApiKey,
                 'MapiToken': apikey,
                 'Authorization': `Bearer ${apikey}`,
                 'Token': apikey,
