@@ -11,6 +11,7 @@ import {
 import {
     resolveSchema, parseSwaggerMethods, getSwaggerFields,
     assembleDeepObject, enforceSchemaArrays, injectApiKey,
+    extractStaticApiKeyFromToken, sanitizeApiKeyInObject,
 } from './lib/swagger-engine';
 
 /* ── Helper: add log ───────────────────────────── */
@@ -258,11 +259,37 @@ export default function UniSwaggerPage() {
         const bodyParam = (selectedMethod.definition.parameters || []).find(p => p.in === 'body');
         if (bodyParam?.schema && apiKey) injectApiKey(body, bodyParam.schema, swagger, apiKey);
 
+        const staticKey = extractStaticApiKeyFromToken(apiKey);
+        const targetKey = staticKey || apiKey;
+        if (body && targetKey) {
+            if (Array.isArray(body)) {
+                body.forEach(item => {
+                    if (item && typeof item === 'object') {
+                        const currentKey = (item as any).ApiKey || (item as any).apiKey;
+                        const isLongToken = currentKey && typeof currentKey === 'string' && currentKey.includes('@');
+                        if (!currentKey || currentKey === "" || isLongToken) {
+                            (item as any).ApiKey = targetKey;
+                        }
+                    }
+                });
+            } else if (typeof body === 'object') {
+                const currentRootKey = (body as any).ApiKey || (body as any).apiKey;
+                const isLongToken = currentRootKey && typeof currentRootKey === 'string' && currentRootKey.includes('@');
+                if (!currentRootKey || currentRootKey === "" || isLongToken) {
+                    (body as any).ApiKey = targetKey;
+                }
+            }
+            sanitizeApiKeyInObject(body, targetKey);
+        }
+
         try {
-            let headerApiKey = apiKey;
+            let headerApiKey = targetKey;
             if (body && typeof body === 'object') {
-                if (body.ApiKey) headerApiKey = String(body.ApiKey);
-                else if (body.apiKey) headerApiKey = String(body.apiKey);
+                const node = Array.isArray(body) ? body[0] : body;
+                if (node && typeof node === 'object') {
+                    if ((node as any).ApiKey) headerApiKey = String((node as any).ApiKey);
+                    else if ((node as any).apiKey) headerApiKey = String((node as any).apiKey);
+                }
             }
             const isGetOrHead = ['GET', 'HEAD'].includes(selectedMethod.verb.toUpperCase());
             const fetchInit: RequestInit = {
@@ -334,6 +361,11 @@ export default function UniSwaggerPage() {
                 else if (rb.apiKey) templateApiKey = String(rb.apiKey);
             }
         }
+        // Si la api key de la plantilla es un token largo, extraer la estática:
+        if (templateApiKey && templateApiKey.includes('@')) {
+            const decodedKey = extractStaticApiKeyFromToken(templateApiKey);
+            if (decodedKey) templateApiKey = decodedKey;
+        }
 
         cancelRef.current = false;
         setProgress({ count: 0, total, visible: true });
@@ -344,7 +376,7 @@ export default function UniSwaggerPage() {
             if (cancelRef.current) { addLog(`Cancelado en registro ${i}.`, 'warning'); break; }
             const batch = excelData.slice(i, i + limit);
             await Promise.all(batch.map(async (row, idx) => {
-                let request: unknown;
+                let request: any;
                 if (rootSchema.type === 'array') {
                     const itemSchema = resolveSchema(rootSchema.items || {}, swagger);
                     let draft = assembleDeepObject(row, mapping);
@@ -362,6 +394,30 @@ export default function UniSwaggerPage() {
                     request = draft;
                 }
                 if (apiKey && bodyParam.schema) injectApiKey(request, bodyParam.schema, swagger, apiKey);
+
+                const staticKey = extractStaticApiKeyFromToken(apiKey);
+                const targetKey = staticKey || apiKey;
+                if (request && targetKey) {
+                    if (Array.isArray(request)) {
+                        request.forEach(item => {
+                            if (item && typeof item === 'object') {
+                                const currentKey = (item as any).ApiKey || (item as any).apiKey;
+                                const isLongToken = currentKey && typeof currentKey === 'string' && currentKey.includes('@');
+                                if (!currentKey || currentKey === "" || isLongToken) {
+                                    (item as any).ApiKey = targetKey;
+                                }
+                            }
+                        });
+                    } else if (typeof request === 'object') {
+                        const currentRootKey = (request as any).ApiKey || (request as any).apiKey;
+                        const isLongToken = currentRootKey && typeof currentRootKey === 'string' && currentRootKey.includes('@');
+                        if (!currentRootKey || currentRootKey === "" || isLongToken) {
+                            (request as any).ApiKey = targetKey;
+                        }
+                    }
+                    sanitizeApiKeyInObject(request, targetKey);
+                }
+
                 let targetUrl = cleanBase + selectedMethod.path;
                 if (isAsync) {
                     let methodName = selectedMethod.definition.operationId || '';
@@ -372,7 +428,7 @@ export default function UniSwaggerPage() {
                     targetUrl = `${cleanBase}/Mapi/SOAP/LogisticAsync/${methodName}`;
                 }
                 try {
-                    let headerApiKey = apiKey;
+                    let headerApiKey = targetKey;
                     if (request && typeof request === 'object') {
                         const node = Array.isArray(request) ? request[0] : request;
                         if (node && typeof node === 'object') {

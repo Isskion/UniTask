@@ -1138,6 +1138,11 @@ async function startMassIntegration() {
             else if (state.requestBody.apiKey) templateApiKey = state.requestBody.apiKey;
         }
     }
+    // Si la api key de la plantilla es un token largo, extraer la estática:
+    if (templateApiKey && templateApiKey.includes('@')) {
+        const decodedKey = extractStaticApiKeyFromToken(templateApiKey);
+        if (decodedKey) templateApiKey = decodedKey;
+    }
 
     state.cancelRequested = false;
     els.startBatch.classList.add('hidden');
@@ -1210,6 +1215,65 @@ async function startMassIntegration() {
     }
 }
 
+function extractStaticApiKeyFromToken(token) {
+    if (!token || !token.includes('@')) return null;
+    try {
+        const base64Part = token.split('@')[0].replace(/[^A-Za-z0-9+/=]/g, '');
+        let binaryString;
+        if (typeof atob === 'function') {
+            binaryString = atob(base64Part);
+        } else {
+            binaryString = Buffer.from(base64Part, 'base64').toString('binary');
+        }
+        
+        let decoded = "";
+        for (let i = 0; i < binaryString.length; i += 2) {
+            const charCode = binaryString.charCodeAt(i) + (binaryString.charCodeAt(i + 1) << 8);
+            if (charCode > 0) decoded += String.fromCharCode(charCode);
+        }
+        
+        if (!decoded.includes('!')) {
+            decoded = binaryString;
+        }
+        
+        if (decoded.includes('!')) {
+            const parts = decoded.split('!');
+            const potentialKey = parts[parts.length - 1];
+            if (potentialKey && potentialKey.includes('-')) {
+                return potentialKey.trim();
+            }
+        }
+    } catch (e) {
+        console.warn("Error al extraer ApiKey del token:", e);
+    }
+    return null;
+}
+
+function sanitizeApiKeyInObject(node, targetKey) {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+        node.forEach(item => sanitizeApiKeyInObject(item, targetKey));
+    } else {
+        for (const key in node) {
+            if (Object.prototype.hasOwnProperty.call(node, key)) {
+                const lowKey = key.toLowerCase();
+                if (lowKey === 'apikey') {
+                    const val = node[key];
+                    const isLongToken = val && typeof val === 'string' && val.includes('@');
+                    if (!val || val === "" || isLongToken) {
+                        node[key] = targetKey;
+                        if (key !== 'ApiKey') {
+                            node['ApiKey'] = targetKey;
+                        }
+                    }
+                } else if (typeof node[key] === 'object' && node[key] !== null) {
+                    sanitizeApiKeyInObject(node[key], targetKey);
+                }
+            }
+        }
+    }
+}
+
 async function sendUnitaryRequest() {
     if (!state.selectedMethod) return alert('Selecciona un método primero');
 
@@ -1217,7 +1281,10 @@ async function sendUnitaryRequest() {
     await executeServiceCall(state.requestBody);
 }
 
-async function executeServiceCall(body, current = null, total = null) {
+async function executeServiceCall(originalBody, current = null, total = null) {
+    // Clonar el body para evitar mutaciones accidentales en state.requestBody
+    const body = originalBody ? JSON.parse(JSON.stringify(originalBody)) : originalBody;
+
     const { path, verb, definition } = state.selectedMethod;
     let baseUrl = els.swaggerUrl.value.split('/swagger')[0];
     if (!baseUrl || baseUrl === '.' || baseUrl === './') {
@@ -1250,6 +1317,9 @@ async function executeServiceCall(body, current = null, total = null) {
     const proxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
     const apikey = els.apiKey.value;
 
+    // Intentar extraer la ApiKey estática del token de sesión si no hay una explícita
+    let staticApiKey = extractStaticApiKeyFromToken(apikey);
+
     // --- Auto Inject ApiKey in body if root schema asks for it ---
     if (body && apikey) {
         const bSchema = (state.selectedMethod.definition.parameters || []).find(p => p.in === 'body');
@@ -1263,10 +1333,12 @@ async function executeServiceCall(body, current = null, total = null) {
                     for (const prop in sNode.properties) {
                         const lowProp = prop.toLowerCase();
                         if (lowProp === 'apikey') {
-                            // Solo forzar la API Key si está vacía, no está definida o es nula, preservando la ingresada por el usuario
-                            if (!dataNode[prop] || dataNode[prop] === "") {
-                                dataNode[prop] = apikey;
-                                if (prop !== 'ApiKey') dataNode['ApiKey'] = apikey; // Forzar mayúscula también
+                            const currentValue = dataNode[prop];
+                            const isLongToken = currentValue && typeof currentValue === 'string' && currentValue.includes('@');
+                            if (!currentValue || currentValue === "" || isLongToken) {
+                                const targetKey = staticApiKey || apikey;
+                                dataNode[prop] = targetKey;
+                                if (prop !== 'ApiKey') dataNode['ApiKey'] = targetKey; // Forzar mayúscula también
                             }
                         } else if (dataNode[prop] !== undefined) {
                             injectApiKey(dataNode[prop], sNode.properties[prop]);
@@ -1282,17 +1354,40 @@ async function executeServiceCall(body, current = null, total = null) {
     // La autenticación va SIEMPRE por header MapiToken y por el cuerpo JSON
     
     // Si la petición no tiene ApiKey explícita en la raíz pero la requiere, la forzamos
-    if (body && typeof body === 'object' && !body.ApiKey && !body.apiKey) {
-        body.ApiKey = apikey;
+    const targetKey = staticApiKey || apikey;
+    if (body && targetKey) {
+        if (Array.isArray(body)) {
+            body.forEach(item => {
+                if (item && typeof item === 'object') {
+                    const currentKey = item.ApiKey || item.apiKey;
+                    const isLongToken = currentKey && typeof currentKey === 'string' && currentKey.includes('@');
+                    if (!currentKey || currentKey === "" || isLongToken) {
+                        item.ApiKey = targetKey;
+                    }
+                }
+            });
+        } else if (typeof body === 'object') {
+            const currentRootKey = body.ApiKey || body.apiKey;
+            const isLongToken = currentRootKey && typeof currentRootKey === 'string' && currentRootKey.includes('@');
+            if (!currentRootKey || currentRootKey === "" || isLongToken) {
+                body.ApiKey = targetKey;
+            }
+        }
+        sanitizeApiKeyInObject(body, targetKey);
     }
 
     // Determinar la API Key a enviar en los headers:
-    // Si el body contiene un ApiKey explícito (como "67-92..."), usamos ese.
-    // De lo contrario, usamos el token de sesión (apikey).
-    let headerApiKey = apikey;
+    // Si el body contiene un ApiKey explícito (y no es el token largo), usamos ese.
+    // De lo contrario, usamos la ApiKey estática extraída o el token de sesión.
+    let headerApiKey = targetKey;
     if (body && typeof body === 'object') {
-        if (body.ApiKey) headerApiKey = body.ApiKey;
-        else if (body.apiKey) headerApiKey = body.apiKey;
+        const node = Array.isArray(body) ? body[0] : body;
+        if (node && typeof node === 'object') {
+            const bodyKey = node.ApiKey || node.apiKey;
+            if (bodyKey && typeof bodyKey === 'string' && !bodyKey.includes('@')) {
+                headerApiKey = bodyKey;
+            }
+        }
     }
 
     const finalProxyUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;

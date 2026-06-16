@@ -119,3 +119,10 @@ Reemplaza el `server.js` Express que usaban ambos integradores originales.
     - [public/integrators/uni-swagger/main.js](file:///c:/Users/jesus.marquez/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/Documentos/Jesus_UniES/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/UNITASK/UniTask/public/integrators/uni-swagger/main.js)
     - [app/uniswagger/lib/swagger-engine.ts](file:///c:/Users/jesus.marquez/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/Documentos/Jesus_UniES/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/UNITASK/UniTask/app/uniswagger/lib/swagger-engine.ts)
     - [app/uniswagger/page.tsx](file:///c:/Users/jesus.marquez/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/Documentos/Jesus_UniES/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/UNITASK/UniTask/app/uniswagger/page.tsx)
+- **Robusto saneamiento de ApiKey (Recursivo y sin dependencia de esquema) y Cache Buster (Junio 2026)**:
+  - **Problema**: El error `INVALID APIKEY` seguía presentándose en la integración masiva debido a que `injectApiKey` dependía estrictamente de que el Swagger tuviera declarado `ApiKey` en sus propiedades. Si el Swagger omitía la propiedad en el esquema, la inyección fallaba. Asimismo, el navegador tendía a cachear el archivo `main.js` viejo, y la decodificación fallaba ante caracteres ocultos (espacios/saltos de línea) en el token.
+  - **Solución**:
+    1. Se implementó la función recursiva `sanitizeApiKeyInObject` que recorre el cuerpo de la petición por completo (independiente del esquema del Swagger) y sobrescribe de forma segura cualquier propiedad `ApiKey`/`apiKey` vacía o con token largo con la API Key estática limpia.
+    2. Se depuró la función `extractStaticApiKeyFromToken` para filtrar caracteres inválidos del Base64 antes de pasarlo a `atob`.
+    3. Se añadió un cache-buster (`?v=202606161100`) a la carga de `main.js` en `index.html` (tanto en la carpeta Standalone como en `public`).
+    4. Se portó este nuevo saneamiento robusto al integrador de Next.js (`app/uniswagger/page.tsx` y `swagger-engine.ts`).

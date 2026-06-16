@@ -130,17 +130,79 @@ export function enforceSchemaArrays(dataObj: Record<string, unknown>, schemaProp
 
 // ── ApiKey auto-injection ─────────────────────────
 
+export function extractStaticApiKeyFromToken(token: string): string | null {
+    if (!token || !token.includes('@')) return null;
+    try {
+        const base64Part = token.split('@')[0].replace(/[^A-Za-z0-9+/=]/g, '');
+        let binaryString = '';
+        if (typeof atob === 'function') {
+            binaryString = atob(base64Part);
+        } else {
+            binaryString = Buffer.from(base64Part, 'base64').toString('binary');
+        }
+        
+        let decoded = "";
+        for (let i = 0; i < binaryString.length; i += 2) {
+            const charCode = binaryString.charCodeAt(i) + (binaryString.charCodeAt(i + 1) << 8);
+            if (charCode > 0) decoded += String.fromCharCode(charCode);
+        }
+        
+        if (!decoded.includes('!')) {
+            decoded = binaryString;
+        }
+        
+        if (decoded.includes('!')) {
+            const parts = decoded.split('!');
+            const potentialKey = parts[parts.length - 1];
+            if (potentialKey && potentialKey.includes('-')) {
+                return potentialKey.trim();
+            }
+        }
+    } catch (e) {
+        console.warn("Error al extraer ApiKey del token:", e);
+    }
+    return null;
+}
+
+export function sanitizeApiKeyInObject(node: any, targetKey: string): void {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+        node.forEach(item => sanitizeApiKeyInObject(item, targetKey));
+    } else {
+        for (const key in node) {
+            if (Object.prototype.hasOwnProperty.call(node, key)) {
+                const lowKey = key.toLowerCase();
+                if (lowKey === 'apikey') {
+                    const val = node[key];
+                    const isLongToken = val && typeof val === 'string' && val.includes('@');
+                    if (!val || val === "" || isLongToken) {
+                        node[key] = targetKey;
+                        if (key !== 'ApiKey') {
+                            node['ApiKey'] = targetKey;
+                        }
+                    }
+                } else if (typeof node[key] === 'object' && node[key] !== null) {
+                    sanitizeApiKeyInObject(node[key], targetKey);
+                }
+            }
+        }
+    }
+}
+
 export function injectApiKey(dataNode: unknown, schemaNode: SchemaNode, swagger: SwaggerSpec, apiKey: string): void {
     if (!dataNode || typeof dataNode !== 'object' || !schemaNode) return;
     const sNode = resolveSchema(schemaNode, swagger);
+    const staticApiKey = extractStaticApiKeyFromToken(apiKey);
+
     if (sNode.type === 'array' && Array.isArray(dataNode)) {
         (dataNode as unknown[]).forEach(item => injectApiKey(item, sNode.items || {}, swagger, apiKey));
     } else if (sNode.type === 'object' && sNode.properties && !Array.isArray(dataNode)) {
         for (const prop in sNode.properties) {
             if (prop.toLowerCase() === 'apikey') {
                 const currentValue = (dataNode as Record<string, unknown>)[prop];
-                if (!currentValue || currentValue === "") {
-                    (dataNode as Record<string, unknown>)[prop] = apiKey;
+                const isLongToken = currentValue && typeof currentValue === 'string' && currentValue.includes('@');
+                if (!currentValue || currentValue === "" || isLongToken) {
+                    (dataNode as Record<string, unknown>)[prop] = staticApiKey || apiKey;
                 }
             } else {
                 const childSchema = resolveSchema(sNode.properties[prop], swagger);
