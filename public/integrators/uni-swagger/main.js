@@ -1126,6 +1126,19 @@ async function startMassIntegration() {
     const total = state.excelData.length;
     notify(`Iniciando integración masiva de ${total} registros...`, 'success');
 
+    // Intentar obtener la ApiKey estática de la plantilla de request unitaria
+    let templateApiKey = "";
+    if (state.requestBody) {
+        if (Array.isArray(state.requestBody) && state.requestBody.length > 0 && typeof state.requestBody[0] === 'object') {
+            const first = state.requestBody[0];
+            if (first.ApiKey) templateApiKey = first.ApiKey;
+            else if (first.apiKey) templateApiKey = first.apiKey;
+        } else if (typeof state.requestBody === 'object') {
+            if (state.requestBody.ApiKey) templateApiKey = state.requestBody.ApiKey;
+            else if (state.requestBody.apiKey) templateApiKey = state.requestBody.apiKey;
+        }
+    }
+
     state.cancelRequested = false;
     els.startBatch.classList.add('hidden');
     els.cancelBatch.classList.remove('hidden');
@@ -1157,10 +1170,16 @@ async function startMassIntegration() {
                     const itemSchema = resolveSchema(rootSchema.items);
                     let draftRaw = assembleDeepObject(row, itemSchema);
                     draftRaw = enforceSchemaArrays(draftRaw, itemSchema.properties || {});
+                    if (templateApiKey && !draftRaw.ApiKey && !draftRaw.apiKey) {
+                        draftRaw.ApiKey = templateApiKey;
+                    }
                     request = [draftRaw];
                 } else {
                     let draftRaw = assembleDeepObject(row, rootSchema);
                     draftRaw = enforceSchemaArrays(draftRaw, rootSchema.properties || {});
+                    if (templateApiKey && !draftRaw.ApiKey && !draftRaw.apiKey) {
+                        draftRaw.ApiKey = templateApiKey;
+                    }
                     request = draftRaw;
                 }
 

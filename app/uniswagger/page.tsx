@@ -320,6 +320,21 @@ export default function UniSwaggerPage() {
         const rootSchema = resolveSchema(bodyParam.schema, swagger);
         const total = excelData.length;
         addLog(`Iniciando integración masiva de ${total} registros...`, 'success');
+
+        // Intentar obtener la ApiKey estática de la plantilla de request unitaria
+        let templateApiKey = "";
+        if (requestBody) {
+            if (Array.isArray(requestBody) && requestBody.length > 0 && typeof requestBody[0] === 'object') {
+                const first = requestBody[0] as any;
+                if (first.ApiKey) templateApiKey = String(first.ApiKey);
+                else if (first.apiKey) templateApiKey = String(first.apiKey);
+            } else if (typeof requestBody === 'object') {
+                const rb = requestBody as any;
+                if (rb.ApiKey) templateApiKey = String(rb.ApiKey);
+                else if (rb.apiKey) templateApiKey = String(rb.apiKey);
+            }
+        }
+
         cancelRef.current = false;
         setProgress({ count: 0, total, visible: true });
         const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
@@ -334,10 +349,16 @@ export default function UniSwaggerPage() {
                     const itemSchema = resolveSchema(rootSchema.items || {}, swagger);
                     let draft = assembleDeepObject(row, mapping);
                     draft = enforceSchemaArrays(draft, itemSchema.properties || {}, swagger);
+                    if (templateApiKey && !draft.ApiKey && !draft.apiKey) {
+                        draft.ApiKey = templateApiKey;
+                    }
                     request = [draft];
                 } else {
                     let draft = assembleDeepObject(row, mapping);
                     draft = enforceSchemaArrays(draft, rootSchema.properties || {}, swagger);
+                    if (templateApiKey && !draft.ApiKey && !draft.apiKey) {
+                        draft.ApiKey = templateApiKey;
+                    }
                     request = draft;
                 }
                 if (apiKey && bodyParam.schema) injectApiKey(request, bodyParam.schema, swagger, apiKey);
