@@ -4494,6 +4494,32 @@
     "updatedAt": "2026-06-15T10:56:47.617Z"
   },
   {
+    "id": "3_2026-06-17",
+    "date": "2026-06-17",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "conclusions": "",
+        "pmNotes": "Transpais - Seguimiento semanal 17-06-2026\n\nInterfaces:\n-> Aitana Business Central: Hemos recibido hoy contestacion que tenemos que validar.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Identificados los metodos a utilziar y mapeo en proceso.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: Hemos recibido hoy contestacion que tenemos que validar.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Tomo yo el documento y continuo operación.\n-> Distribución: Hemos recibido hoy contestacion que tenemos que validar.\n",
+        "status": "active",
+        "blocks": [
+          {
+            "isCollapsed": false,
+            "content": "Transpais - Seguimiento semanal 17-06-2026\n\nInterfaces:\n-> Aitana Business Central: Hemos recibido hoy contestacion que tenemos que validar.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Identificados los metodos a utilziar y mapeo en proceso.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: Hemos recibido hoy contestacion que tenemos que validar.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Tomo yo el documento y continuo operación.\n-> Distribución: Hemos recibido hoy contestacion que tenemos que validar.\n",
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)"
+          }
+        ],
+        "nextSteps": ""
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-17T13:10:41.411Z",
+    "updatedAt": "2026-06-17T13:22:05.311Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

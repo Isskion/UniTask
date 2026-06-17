@@ -506,6 +506,21 @@
     "read": true
   },
   {
+    "id": "8sahT0VoJ0mGOSvQr69Z",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-32 - \"-Mapear y documentar en ROADMAP interfaz con Portic.\" has reached its deadline.",
+    "taskId": "n8piRujE6mjmgOItofXv",
+    "read": false,
+    "link": "/?view=task-manager&taskId=n8piRujE6mjmgOItofXv",
+    "createdAt": {
+      "_seconds": 1781702072,
+      "_nanoseconds": 726000000
+    }
+  },
+  {
     "id": "8syAy1TmOOfk5wumeQYn",
     "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
     "tenantId": "3",
@@ -981,6 +996,21 @@
     }
   },
   {
+    "id": "LmhHxCIC5bV6FxFliGdL",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-30 - \"Mapeo de MetodoObtenerGuias o liquidaciones\" has reached its deadline.",
+    "taskId": "gjnQTtWqj1UjXSn5K18H",
+    "link": "/?view=task-manager&taskId=gjnQTtWqj1UjXSn5K18H",
+    "createdAt": {
+      "_seconds": 1781701440,
+      "_nanoseconds": 229000000
+    },
+    "read": true
+  },
+  {
     "id": "MjMBbOvzrgCl6jHKlG4l",
     "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
     "type": "assignment",
@@ -1289,6 +1319,21 @@
     "createdAt": {
       "_seconds": 1771842454,
       "_nanoseconds": 828000000
+    }
+  },
+  {
+    "id": "WUq0bxZLXSI5ArsFmsoq",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-34 - \"Seguimiento de Ticket IT GPS Adapter\" has reached its deadline.",
+    "taskId": "jVQmAPJDhLKhRysca9Pe",
+    "read": false,
+    "link": "/?view=task-manager&taskId=jVQmAPJDhLKhRysca9Pe",
+    "createdAt": {
+      "_seconds": 1781701440,
+      "_nanoseconds": 616000000
     }
   },
   {
@@ -1942,6 +1987,21 @@
     "createdAt": {
       "_seconds": 1768565666,
       "_nanoseconds": 651000000
+    }
+  },
+  {
+    "id": "nFbkSJa3hhyLDsNegsE6",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-33 - \"-Mapear y documentar en ROADMAP interfaz con Maersk.\" has reached its deadline.",
+    "taskId": "Vgf7sG592FQZ06QOu0wU",
+    "read": false,
+    "link": "/?view=task-manager&taskId=Vgf7sG592FQZ06QOu0wU",
+    "createdAt": {
+      "_seconds": 1781702071,
+      "_nanoseconds": 551000000
     }
   },
   {
