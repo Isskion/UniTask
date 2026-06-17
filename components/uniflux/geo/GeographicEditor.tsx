@@ -10,7 +10,8 @@ import type { Feature, Polygon, MultiPolygon, FeatureCollection } from 'geojson'
 import {
     Map as MapIcon, Layers, PenTool, Hash, Info, AlertTriangle, X,
     ChevronRight, FileDown, Download, Timer, Loader2, Search, Plus,
-    CheckCircle2, Globe, Folder, FolderOpen, Eye, EyeOff, Pencil, Trash2
+    CheckCircle2, Globe, Folder, FolderOpen, Eye, EyeOff, Pencil, Trash2,
+    ArrowRightLeft, Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -28,6 +29,12 @@ import {
     exportZonesToGeoJSON,
     updateGeographicZoneGeometry,
 } from '@/app/actions/geo';
+import {
+    getProjectInvasions,
+    saveInvasion,
+    deleteInvasion,
+    type ZoneInvasion,
+} from '@/app/actions/geo-invasions';
 import { searchBoundaries, fetchIsochrone } from '@/app/actions/geo-search';
 import type { IsochroneProfile, BoundaryFeature, IsochroneResult } from '@/app/actions/geo-search';
 
@@ -82,6 +89,26 @@ const SELECTION_FILL    = 'boundary-selection-fill';
 const SELECTION_OUTLINE = 'boundary-selection-outline';
 
 function sid(id: string) { return `zone-${id}`; }
+function iid(id: string) { return `invasion-${id}`; }
+
+function buildInvasionCurve(
+    from: [number, number],
+    to: [number, number],
+    fromZoneId: string,
+    toZoneId: string,
+) {
+    const [mx, my] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+    const dx = to[0] - from[0], dy = to[1] - from[1];
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len === 0) return null;
+    const [nx, ny] = [-dy / len, dx / len];
+    // Signo determinista: A→B curva a un lado, B→A al opuesto (evita superposición bidireccional)
+    const sign = fromZoneId < toZoneId ? 1 : -1;
+    const ctrl: [number, number] = [mx + nx * len * 0.25 * sign, my + ny * len * 0.25 * sign];
+    try {
+        return turf.bezierSpline(turf.lineString([from, ctrl, to]), { resolution: 10000, sharpness: 0.85 });
+    } catch { return null; }
+}
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -100,7 +127,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [loadingProjects, setLoadingProjects] = useState(true);
 
     const [sidebarOpen, setSidebarOpen]   = useState(true);
-    const [activeTab, setActiveTab]       = useState<'search' | 'zones' | 'draw' | 'isochrone' | 'export'>('search');
+    const [activeTab, setActiveTab]       = useState<'search' | 'zones' | 'invasions' | 'draw' | 'isochrone' | 'export'>('search');
     const [activeTool, setActiveTool]     = useState<string | null>(null);
     const [zones, setZones]               = useState<GeographicZone[]>([]);
     const [isSaving, setIsSaving]         = useState(false);
@@ -129,6 +156,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
     const [isochroneActive, setIsochroneActive]   = useState(false);
     const [isochroneError, setIsochroneError]     = useState<string | null>(null);
     const [isochroneFeature, setIsochroneFeature] = useState<Feature<Polygon | MultiPolygon> | null>(null);
+
+    // Invasiones de zona
+    const [invasions, setInvasions]               = useState<ZoneInvasion[]>([]);
+    const [showInvasions, setShowInvasions]       = useState(true);
+    const [newFromZoneId, setNewFromZoneId]       = useState('');
+    const [newToZoneId, setNewToZoneId]           = useState('');
+    const [newInvasionLabel, setNewInvasionLabel] = useState('');
+    const [newBidireccional, setNewBidireccional] = useState(false);
+    const [isSavingInvasion, setIsSavingInvasion] = useState(false);
 
     // Edición y Visibilidad
     const geoman = useRef<any>(null);
@@ -715,6 +751,7 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 : 'https://tiles.basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
             center: [-3.703790, 40.416775], // Madrid
             zoom: 6,
+            canvasContextAttributes: { preserveDrawingBuffer: true }, // requerido para export PNG
         });
         map.current.on('load', async () => {
             if (!map.current) return;
@@ -778,6 +815,146 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLight]);
 
+    // ── Invasiones de zona ────────────────────────────────────────────────────
+
+    const renderInvasionOnMap = useCallback((invasion: ZoneInvasion, currentZones: GeographicZone[]) => {
+        if (!map.current) return;
+        const id = iid(invasion.id);
+
+        const fromZone = currentZones.find(z => z.id === invasion.fromZoneId);
+        const toZone   = currentZones.find(z => z.id === invasion.toZoneId);
+        if (!fromZone?.boundary || !toZone?.boundary) return;
+
+        let fromCentroid: [number, number], toCentroid: [number, number];
+        try {
+            const fc = turf.centroid(turf.feature(fromZone.boundary));
+            const tc = turf.centroid(turf.feature(toZone.boundary));
+            fromCentroid = fc.geometry.coordinates as [number, number];
+            toCentroid   = tc.geometry.coordinates as [number, number];
+        } catch { return; }
+
+        const curve = buildInvasionCurve(fromCentroid, toCentroid, invasion.fromZoneId, invasion.toZoneId);
+        if (!curve) return;
+
+        const color = fromZone.color || '#6366f1';
+
+        if (map.current.getSource(id)) {
+            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(curve);
+            return;
+        }
+
+        map.current.addSource(id, { type: 'geojson', data: curve });
+
+        // Capa 1: glow (halo suave)
+        map.current.addLayer({
+            id: `${id}-glow`, type: 'line', source: id,
+            paint: { 'line-color': color, 'line-width': 10, 'line-opacity': 0.13, 'line-blur': 4 },
+        });
+        // Capa 2: trazo principal con guiones
+        map.current.addLayer({
+            id: `${id}-line`, type: 'line', source: id,
+            paint: { 'line-color': color, 'line-width': 2.5, 'line-dasharray': [3, 2], 'line-opacity': 0.9 },
+        });
+        // Capa 3: flechas de dirección a lo largo del arco
+        map.current.addLayer({
+            id: `${id}-arrow`, type: 'symbol', source: id,
+            layout: {
+                'symbol-placement': 'line',
+                'symbol-spacing': 120,
+                'text-field': '▶',
+                'text-size': 13,
+                'text-keep-upright': false,
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+            },
+            paint: {
+                'text-color': color,
+                'text-halo-color': '#000000',
+                'text-halo-width': 0.5,
+            },
+        });
+    }, []);
+
+    const clearInvasionLayer = useCallback((invasionId: string) => {
+        if (!map.current) return;
+        const id = iid(invasionId);
+        if (map.current.getLayer(`${id}-arrow`)) map.current.removeLayer(`${id}-arrow`);
+        if (map.current.getLayer(`${id}-line`))  map.current.removeLayer(`${id}-line`);
+        if (map.current.getLayer(`${id}-glow`))  map.current.removeLayer(`${id}-glow`);
+        if (map.current.getSource(id))            map.current.removeSource(id);
+    }, []);
+
+    const clearAllInvasionLayers = useCallback((invasionList: ZoneInvasion[]) => {
+        invasionList.forEach(inv => clearInvasionLayer(inv.id));
+    }, [clearInvasionLayer]);
+
+    const loadInvasions = useCallback(async (currentZones: GeographicZone[]) => {
+        if (!tenantId || !projectId) { setInvasions([]); return; }
+        const data = await getProjectInvasions(tenantId, projectId);
+        setInvasions(data);
+        if (map.current && isLoaded) data.forEach(inv => renderInvasionOnMap(inv, currentZones));
+    }, [tenantId, projectId, isLoaded, renderInvasionOnMap]);
+
+    const toggleInvasionsVisibility = useCallback(() => {
+        if (!map.current) return;
+        const next = !showInvasions;
+        setShowInvasions(next);
+        const visibility = next ? 'visible' : 'none';
+        invasions.forEach(inv => {
+            const id = iid(inv.id);
+            if (map.current?.getLayer(`${id}-glow`))  map.current.setLayoutProperty(`${id}-glow`,  'visibility', visibility);
+            if (map.current?.getLayer(`${id}-line`))  map.current.setLayoutProperty(`${id}-line`,  'visibility', visibility);
+            if (map.current?.getLayer(`${id}-arrow`)) map.current.setLayoutProperty(`${id}-arrow`, 'visibility', visibility);
+        });
+    }, [showInvasions, invasions]);
+
+    const handleSaveInvasion = useCallback(async () => {
+        if (!tenantId || !projectId || !newFromZoneId || !newToZoneId) return;
+        setIsSavingInvasion(true);
+        const fromZone = zones.find(z => z.id === newFromZoneId);
+        const toZone   = zones.find(z => z.id === newToZoneId);
+        if (!fromZone || !toZone) { setIsSavingInvasion(false); return; }
+
+        const base = {
+            tenantId, projectId,
+            fromZoneId: newFromZoneId, fromZoneName: fromZone.name,
+            toZoneId: newToZoneId,     toZoneName: toZone.name,
+            label: newInvasionLabel.trim() || undefined,
+        };
+
+        const saved: ZoneInvasion[] = [];
+        const { id: id1 } = await saveInvasion(base);
+        saved.push({ ...base, id: id1, createdBy: '', createdAt: new Date(), updatedAt: new Date() });
+
+        if (newBidireccional) {
+            const reverse = { ...base, fromZoneId: newToZoneId, fromZoneName: toZone.name, toZoneId: newFromZoneId, toZoneName: fromZone.name };
+            const { id: id2 } = await saveInvasion(reverse);
+            saved.push({ ...reverse, id: id2, createdBy: '', createdAt: new Date(), updatedAt: new Date() });
+        }
+
+        setInvasions(prev => [...saved, ...prev]);
+        saved.forEach(inv => renderInvasionOnMap(inv, zones));
+        setNewFromZoneId('');
+        setNewToZoneId('');
+        setNewInvasionLabel('');
+        setNewBidireccional(false);
+        setIsSavingInvasion(false);
+    }, [tenantId, projectId, newFromZoneId, newToZoneId, newInvasionLabel, newBidireccional, zones, renderInvasionOnMap]);
+
+    const handleDeleteInvasion = useCallback(async (invasionId: string) => {
+        await deleteInvasion(invasionId);
+        clearInvasionLayer(invasionId);
+        setInvasions(prev => prev.filter(inv => inv.id !== invasionId));
+    }, [clearInvasionLayer]);
+
+    // Recargar invasiones al cambiar de proyecto (paralelo a loadZones)
+    useEffect(() => {
+        if (!isLoaded) return;
+        setInvasions(prev => { clearAllInvasionLayers(prev); return []; });
+        if (projectId) loadInvasions(zones);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [projectId, isLoaded]);
+
     // ── Exportaciones ─────────────────────────────────────────────────────────
 
     const handleExportExcel = useCallback(async () => {
@@ -799,6 +976,16 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         const a = document.createElement('a'); a.href = url; a.download = `zonas-${projectId}.geojson`; a.click();
         URL.revokeObjectURL(url);
     }, [tenantId, projectId]);
+
+    const handleExportPNG = useCallback(() => {
+        const canvas = map.current?.getCanvas();
+        if (!canvas) return;
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mapa-${projectId || 'unigeo'}.png`;
+        a.click();
+    }, [projectId]);
 
     const handleExportKML = useCallback(async () => {
         if (!tenantId) return;
@@ -891,11 +1078,12 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                     <>
                         {/* ── Tabs ────────────────────────────────────────── */}
                         <div className="flex border-b border-border shrink-0">
-                            {TAB('search',    <Search className="w-3.5 h-3.5" />,   'Buscar')}
-                            {TAB('zones',     <Layers className="w-3.5 h-3.5" />,   'Zonas', zones.length)}
-                            {TAB('draw',      <PenTool className="w-3.5 h-3.5" />,  'Dibujar')}
-                            {TAB('isochrone', <Timer className="w-3.5 h-3.5" />,    'Isócrona')}
-                            {TAB('export',    <Download className="w-3.5 h-3.5" />, 'Exportar')}
+                            {TAB('search',    <Search className="w-3.5 h-3.5" />,         'Buscar')}
+                            {TAB('zones',     <Layers className="w-3.5 h-3.5" />,         'Zonas', zones.length)}
+                            {TAB('invasions', <ArrowRightLeft className="w-3.5 h-3.5" />, 'Invasiones', invasions.length)}
+                            {TAB('draw',      <PenTool className="w-3.5 h-3.5" />,        'Dibujar')}
+                            {TAB('isochrone', <Timer className="w-3.5 h-3.5" />,          'Isócrona')}
+                            {TAB('export',    <Download className="w-3.5 h-3.5" />,       'Exportar')}
                         </div>
 
                         {/* ── Tab: Búsqueda de territorio ─────────────────── */}
@@ -1100,6 +1288,136 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                             </div>
                         )}
 
+                        {/* ── Tab: Invasiones de zona ──────────────────────── */}
+                        {activeTab === 'invasions' && (
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                                {/* Toggle visibilidad */}
+                                <div className="p-3 border-b border-border shrink-0 flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                        {invasions.length} invasión{invasions.length !== 1 ? 'es' : ''}
+                                    </span>
+                                    <button
+                                        onClick={toggleInvasionsVisibility}
+                                        className={cn(
+                                            "flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-lg border transition-colors",
+                                            showInvasions
+                                                ? "border-primary/40 text-primary hover:bg-primary/10"
+                                                : "border-border text-muted-foreground hover:text-foreground"
+                                        )}
+                                    >
+                                        {showInvasions ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                        {showInvasions ? 'Ocultar' : 'Mostrar'}
+                                    </button>
+                                </div>
+
+                                {/* Formulario nueva invasión */}
+                                <div className="p-3 border-b border-border shrink-0 space-y-2.5">
+                                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                                        Define qué zona puede invadir a otra cuando hay saturación.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Zona origen</label>
+                                            <select
+                                                value={newFromZoneId}
+                                                onChange={e => { setNewFromZoneId(e.target.value); if (e.target.value === newToZoneId) setNewToZoneId(''); }}
+                                                className="w-full bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                            >
+                                                <option value="">Selecciona zona origen...</option>
+                                                {zones.map(z => (
+                                                    <option key={z.id} value={z.id}>{z.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Zona destino</label>
+                                            <select
+                                                value={newToZoneId}
+                                                onChange={e => setNewToZoneId(e.target.value)}
+                                                className="w-full bg-muted border border-border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                                disabled={!newFromZoneId}
+                                            >
+                                                <option value="">Selecciona zona destino...</option>
+                                                {zones.filter(z => z.id !== newFromZoneId).map(z => (
+                                                    <option key={z.id} value={z.id}>{z.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Nota (opcional)</label>
+                                            <input
+                                                type="text"
+                                                value={newInvasionLabel}
+                                                onChange={e => setNewInvasionLabel(e.target.value)}
+                                                placeholder="Ej: Saturación jueves tarde"
+                                                className="w-full bg-muted border border-border rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                            />
+                                        </div>
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={newBidireccional}
+                                                onChange={e => setNewBidireccional(e.target.checked)}
+                                                className="w-3.5 h-3.5 rounded text-primary border-border focus:ring-primary/50"
+                                            />
+                                            <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                                                Bidireccional (también B→A)
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <button
+                                        onClick={handleSaveInvasion}
+                                        disabled={!newFromZoneId || !newToZoneId || isSavingInvasion}
+                                        className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2 rounded-lg text-xs font-bold hover:opacity-90 shadow-lg shadow-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        {isSavingInvasion
+                                            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Guardando...</>
+                                            : <><ArrowRightLeft className="w-3.5 h-3.5" /> Añadir Invasión{newBidireccional ? ' A↔B' : ''}</>
+                                        }
+                                    </button>
+                                </div>
+
+                                {/* Lista de invasiones */}
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+                                    {invasions.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center h-full opacity-40 text-center gap-2">
+                                            <ArrowRightLeft className="w-8 h-8" />
+                                            <p className="text-xs">No hay invasiones de zona.<br/>Define relaciones entre zonas arriba.</p>
+                                        </div>
+                                    ) : (
+                                        invasions.map(inv => {
+                                            const fromZone = zones.find(z => z.id === inv.fromZoneId);
+                                            return (
+                                                <div key={inv.id} className="flex items-start gap-2 p-2.5 bg-muted/50 border border-border rounded-lg hover:border-primary/40 transition-all group">
+                                                    <div
+                                                        className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5"
+                                                        style={{ backgroundColor: fromZone?.color || '#6366f1' }}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-xs font-semibold truncate">
+                                                            {inv.fromZoneName}
+                                                            <span className="mx-1 text-muted-foreground">→</span>
+                                                            {inv.toZoneName}
+                                                        </div>
+                                                        {inv.label && (
+                                                            <div className="text-[10px] text-muted-foreground truncate mt-0.5">{inv.label}</div>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteInvasion(inv.id)}
+                                                        className="p-1 opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground transition-all shrink-0"
+                                                        title="Eliminar invasión"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* ── Tab: Dibujo manual ───────────────────────────── */}
                         {activeTab === 'draw' && (
                             <div className="flex-1 p-3 space-y-3 overflow-y-auto">
@@ -1188,6 +1506,15 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                                     className="w-full flex items-center justify-center gap-2 bg-muted border border-border py-2.5 rounded-lg text-sm font-bold hover:border-primary/50 transition-all disabled:opacity-40">
                                     <Download className="w-4 h-4" /> KML (GPS / Google Earth)
                                 </button>
+                                <div className="pt-1 border-t border-border">
+                                    <p className="text-[10px] text-muted-foreground mb-2">
+                                        Captura la vista actual del mapa (con o sin invasiones según visibilidad activa).
+                                    </p>
+                                    <button onClick={handleExportPNG}
+                                        className="w-full flex items-center justify-center gap-2 bg-muted border border-border py-2.5 rounded-lg text-sm font-bold hover:border-primary/50 transition-all">
+                                        <Camera className="w-4 h-4" /> PNG (Vista actual)
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </>

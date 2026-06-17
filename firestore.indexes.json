@@ -801,6 +801,17 @@
                 }
             ],
             "density": "SPARSE_ALL"
+        },
+        {
+            "collectionGroup": "zone_invasions",
+            "queryScope": "COLLECTION",
+            "fields": [
+                { "fieldPath": "tenantId",  "order": "ASCENDING" },
+                { "fieldPath": "projectId", "order": "ASCENDING" },
+                { "fieldPath": "createdAt", "order": "DESCENDING" },
+                { "fieldPath": "__name__",  "order": "DESCENDING" }
+            ],
+            "density": "SPARSE_ALL"
         }
     ],
     "fieldOverrides": []
