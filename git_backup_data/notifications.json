@@ -1329,12 +1329,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-34 - \"Seguimiento de Ticket IT GPS Adapter\" has reached its deadline.",
     "taskId": "jVQmAPJDhLKhRysca9Pe",
-    "read": false,
     "link": "/?view=task-manager&taskId=jVQmAPJDhLKhRysca9Pe",
     "createdAt": {
       "_seconds": 1781701440,
       "_nanoseconds": 616000000
-    }
+    },
+    "read": true
   },
   {
     "id": "WeAStg8edIqXxW7j352y",
