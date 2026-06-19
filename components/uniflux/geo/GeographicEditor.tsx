@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createGeomanInstance } from '@geoman-io/maplibre-geoman-free';
 import '@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css';
 import * as turf from '@turf/turf';
-import type { Feature, Polygon, MultiPolygon, LineString, Point, FeatureCollection } from 'geojson';
+import type { Feature, Polygon, MultiPolygon, LineString, FeatureCollection } from 'geojson';
 import {
     Map as MapIcon, Layers, PenTool, Hash, Info, AlertTriangle, X,
     ChevronRight, FileDown, Download, Timer, Loader2, Search, Plus,
@@ -132,16 +132,22 @@ function buildTaperedSegments(curve: Feature<LineString>): FeatureCollection<Lin
     return { type: 'FeatureCollection', features };
 }
 
-// Punta de flecha en el extremo final de la curva, orientada según el último tramo real
-function buildInvasionTip(curve: Feature<LineString>): Feature<Point, { rotate: number }> {
+// Cabeza de flecha triangular real en el destino: se nota a simple vista, no se confunde
+// con el simple engrosamiento del trazo. Escala con la longitud del tramo (curvas largas → flecha algo mayor).
+function buildInvasionArrowhead(curve: Feature<LineString>): Feature<Polygon> {
     const coords = curve.geometry.coordinates as [number, number][];
     const tip  = coords[coords.length - 1];
     const prev = coords[Math.max(0, coords.length - 6)];
     const bearing = turf.bearing(turf.point(prev), turf.point(tip));
+    const totalLen = turf.length(curve, { units: 'kilometers' });
+    const size = Math.min(Math.max(totalLen * 0.06, 0.18), 3); // km, con tope para tramos muy largos
+    const back  = turf.destination(turf.point(tip), size, bearing + 180, { units: 'kilometers' }).geometry.coordinates as [number, number];
+    const left  = turf.destination(turf.point(back), size * 0.5, bearing - 90, { units: 'kilometers' }).geometry.coordinates as [number, number];
+    const right = turf.destination(turf.point(back), size * 0.5, bearing + 90, { units: 'kilometers' }).geometry.coordinates as [number, number];
     return {
         type: 'Feature',
-        properties: { rotate: bearing - 90 }, // el glifo ▶ apunta al este (bearing 90) en su orientación natural
-        geometry: { type: 'Point', coordinates: tip },
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [[tip, left, back, right, tip]] },
     };
 }
 
@@ -871,20 +877,20 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         const curve = buildInvasionCurve(fromCentroid, toCentroid, invasion.fromZoneId, invasion.toZoneId);
         if (!curve) return;
 
-        const segments = buildTaperedSegments(curve);
-        const tip       = buildInvasionTip(curve);
+        const segments  = buildTaperedSegments(curve);
+        const arrowhead = buildInvasionArrowhead(curve);
         // Toque personal: el halo recoge el color de la zona de origen, como una "firma" de procedencia,
         // mientras la flecha en sí es blanca para destacar siempre sobre el fondo del mapa.
         const accent = fromZone.color || '#6366f1';
 
         if (map.current.getSource(id)) {
             (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(segments);
-            (map.current.getSource(`${id}-tip`) as maplibregl.GeoJSONSource)?.setData(tip);
+            (map.current.getSource(`${id}-tip`) as maplibregl.GeoJSONSource)?.setData(arrowhead);
             return;
         }
 
         map.current.addSource(id, { type: 'geojson', data: segments });
-        map.current.addSource(`${id}-tip`, { type: 'geojson', data: tip });
+        map.current.addSource(`${id}-tip`, { type: 'geojson', data: arrowhead });
 
         // Capa 1: halo tintado con el color de origen (sutil, da identidad sin restar contraste)
         map.current.addLayer({
@@ -907,33 +913,27 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
                 'line-width': ['interpolate', ['linear'], ['get', 't'], 0, 1.5, 1, 6.5],
             },
         });
-        // Capa 3: punta de flecha única en el destino, orientada con certeza hacia él
+        // Capa 3: cabeza de flecha triangular (rellena) en el destino — inequívoca, no es solo el trazo engrosado
         map.current.addLayer({
-            id: `${id}-arrow`, type: 'symbol', source: `${id}-tip`,
-            layout: {
-                'text-field': '▶',
-                'text-size': 19,
-                'text-rotate': ['get', 'rotate'],
-                'text-rotation-alignment': 'map',
-                'text-pitch-alignment': 'map',
-                'text-allow-overlap': true,
-                'text-ignore-placement': true,
-            },
-            paint: {
-                'text-color': '#ffffff',
-                'text-halo-color': accent,
-                'text-halo-width': 1.4,
-            },
+            id: `${id}-arrow`, type: 'fill', source: `${id}-tip`,
+            paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.97 },
+        });
+        // Capa 4: contorno de la cabeza de flecha, tintado con el color de origen para que se recorte con nitidez
+        map.current.addLayer({
+            id: `${id}-arrow-outline`, type: 'line', source: `${id}-tip`,
+            layout: { 'line-join': 'round' },
+            paint: { 'line-color': accent, 'line-width': 1.3, 'line-opacity': 0.9 },
         });
     }, []);
 
     const clearInvasionLayer = useCallback((invasionId: string) => {
         if (!map.current) return;
         const id = iid(invasionId);
-        if (map.current.getLayer(`${id}-arrow`)) map.current.removeLayer(`${id}-arrow`);
-        if (map.current.getLayer(`${id}-line`))  map.current.removeLayer(`${id}-line`);
-        if (map.current.getLayer(`${id}-halo`))  map.current.removeLayer(`${id}-halo`);
-        if (map.current.getSource(`${id}-tip`))  map.current.removeSource(`${id}-tip`);
+        if (map.current.getLayer(`${id}-arrow-outline`)) map.current.removeLayer(`${id}-arrow-outline`);
+        if (map.current.getLayer(`${id}-arrow`))  map.current.removeLayer(`${id}-arrow`);
+        if (map.current.getLayer(`${id}-line`))   map.current.removeLayer(`${id}-line`);
+        if (map.current.getLayer(`${id}-halo`))   map.current.removeLayer(`${id}-halo`);
+        if (map.current.getSource(`${id}-tip`))   map.current.removeSource(`${id}-tip`);
         if (map.current.getSource(id))            map.current.removeSource(id);
     }, []);
 
