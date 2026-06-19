@@ -1451,189 +1451,193 @@ export default function TaskManagement({
 
                         <div className="flex-1 p-6 md:p-8 max-w-6xl mx-auto w-full">
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                {/* Col 1 - Operativa (Ancho 8) */}
-                                <div className="md:col-span-8 space-y-6">
+                                {/* Col 1 - Operativa (Ancho 9) */}
+                                <div className="md:col-span-9 space-y-6">
 
-                                    {/* [V13.2] Strategic Planning (Sprints & Client Deadlines) */}
-                                    {/* [V13.2] Strategic Planning (Sprints & Client Deadlines) */}
-                                    {/* Dates & Timeline (Schedule & Sprint) */}
-                                    <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
-                                            {t('task_manager.schedule')}
-                                        </h3>
+                                    {/* Calendar & Responsable (Side by Side Grid) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                                        {/* Dates & Timeline (Schedule & Sprint) */}
+                                        <div className={cn("border rounded-xl p-5 shadow-lg relative flex flex-col justify-between", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                            <div>
+                                                <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                    <CalendarIcon className="w-3.5 h-3.5" />
+                                                    {t('task_manager.schedule')}
+                                                </h3>
 
-                                        {/* Row 1: Sprint & Sprint End (New Integration) */}
-                                        <div className="flex items-start gap-4 mb-4 pb-4 border-b border-dashed border-zinc-200 dark:border-white/5">
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Sprint / Ciclo</label>
-                                                <select
-                                                    value={formData.sprintId || ""}
-                                                    onChange={e => {
-                                                        const newSprintId = e.target.value || null;
-                                                        const currentSprintId = selectedTask?.sprintId || null;
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    {/* Sprint & Sprint End */}
+                                                    <div className="relative group">
+                                                        <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>Sprint / Ciclo</label>
+                                                        <select
+                                                            value={formData.sprintId || ""}
+                                                            onChange={e => {
+                                                                const newSprintId = e.target.value || null;
+                                                                const currentSprintId = selectedTask?.sprintId || null;
 
-                                                        // [STRICT RULE] Completed tasks have special restrictions
-                                                        if (selectedTask?.status === 'completed' && currentSprintId) {
-                                                            // Rule 1: Cannot remove from sprint (set to backlog)
-                                                            if (!newSprintId) {
-                                                                alert(t('sprints.error_completed_no_backlog')); // "Completed tasks cannot be moved to backlog."
-                                                                return;
-                                                            }
-
-                                                            // Rule 2: Can only change sprint if Admin + source is active
-                                                            const sourceSprint = sprints.find(s => s.id === currentSprintId);
-                                                            if (newSprintId !== currentSprintId) {
-                                                                if (sourceSprint?.status === 'closed') {
-                                                                    alert(t('sprints.error_completed_closed_sprint')); // "Cannot move completed task from closed sprint."
-                                                                    return;
-                                                                }
-
-                                                                if (sourceSprint?.status === 'active') {
-                                                                    if (!isAdmin) {
-                                                                        alert(t('sprints.error_completed_active_sprint_permission')); // "Only Admins can move completed tasks from active sprint."
+                                                                // [STRICT RULE] Completed tasks have special restrictions
+                                                                if (selectedTask?.status === 'completed' && currentSprintId) {
+                                                                    // Rule 1: Cannot remove from sprint (set to backlog)
+                                                                    if (!newSprintId) {
+                                                                        alert(t('sprints.error_completed_no_backlog')); // "Completed tasks cannot be moved to backlog."
                                                                         return;
                                                                     }
 
-                                                                    const confirmMove = window.confirm(t('sprints.confirm_completed_move')); // "Admin Override: Are you sure?"
-                                                                    if (!confirmMove) return;
+                                                                    // Rule 2: Can only change sprint if Admin + source is active
+                                                                    const sourceSprint = sprints.find(s => s.id === currentSprintId);
+                                                                    if (newSprintId !== currentSprintId) {
+                                                                        if (sourceSprint?.status === 'closed') {
+                                                                            alert(t('sprints.error_completed_closed_sprint')); // "Cannot move completed task from closed sprint."
+                                                                            return;
+                                                                        }
+
+                                                                        if (sourceSprint?.status === 'active') {
+                                                                            if (!isAdmin) {
+                                                                                alert(t('sprints.error_completed_active_sprint_permission')); // "Only Admins can move completed tasks from active sprint."
+                                                                                return;
+                                                                            }
+
+                                                                            const confirmMove = window.confirm(t('sprints.confirm_completed_move')); // "Admin Override: Are you sure?"
+                                                                            if (!confirmMove) return;
+                                                                        }
+                                                                    }
                                                                 }
-                                                            }
-                                                        }
 
-                                                        // [VALIDATION] Capacity Check
-                                                        if (newSprintId) {
-                                                            const targetSprint = sprints.find(s => s.id === newSprintId);
-                                                            if (targetSprint) {
-                                                                const taskEffort = formData.estimatedEffort || 0;
+                                                                // [VALIDATION] Capacity Check
+                                                                if (newSprintId) {
+                                                                    const targetSprint = sprints.find(s => s.id === newSprintId);
+                                                                    if (targetSprint) {
+                                                                        const taskEffort = formData.estimatedEffort || 0;
 
-                                                                // Calculate current load of target sprint
-                                                                // Exclude current task id just in case (though onChange implies difference)
-                                                                const currentLoad = tasks
-                                                                    .filter(t => t.sprintId === newSprintId && t.id !== formData.id)
-                                                                    .reduce((sum, t) => sum + (t.estimatedEffort || 0), 0);
+                                                                        // Calculate current load of target sprint
+                                                                        // Exclude current task id just in case (though onChange implies difference)
+                                                                        const currentLoad = tasks
+                                                                            .filter(t => t.sprintId === newSprintId && t.id !== formData.id)
+                                                                            .reduce((sum, t) => sum + (t.estimatedEffort || 0), 0);
 
-                                                                const projectedLoad = currentLoad + taskEffort;
-                                                                const sprintLimit = targetSprint.plannedCapacity || targetSprint.capacity || 20;
+                                                                        const projectedLoad = currentLoad + taskEffort;
+                                                                        const sprintLimit = targetSprint.plannedCapacity || targetSprint.capacity || 20;
 
-                                                                if (projectedLoad > sprintLimit) {
-                                                                    const confirmOverload = window.confirm(
-                                                                        `⚠️ ALERTA DE CAPACIDAD\n\n` +
-                                                                        `Añadir esta tarea al Sprint "${targetSprint.name}" excederá su capacidad planificada.\n` +
-                                                                        `Capacidad: ${sprintLimit} días\n` +
-                                                                        `Actual + Tarea: ${projectedLoad.toFixed(1)} días\n\n` +
-                                                                        `¿Deseas continuar de todos modos?`
-                                                                    );
-                                                                    if (!confirmOverload) return;
+                                                                        if (projectedLoad > sprintLimit) {
+                                                                            const confirmOverload = window.confirm(
+                                                                                `⚠️ ALERTA DE CAPACIDAD\n\n` +
+                                                                                `Añadir esta tarea al Sprint "${targetSprint.name}" excederá su capacidad planificada.\n` +
+                                                                                `Capacidad: ${sprintLimit} días\n` +
+                                                                                `Actual + Tarea: ${projectedLoad.toFixed(1)} días\n\n` +
+                                                                                `¿Deseas continuar de todos modos?`
+                                                                            );
+                                                                            if (!confirmOverload) return;
+                                                                        }
+                                                                    }
                                                                 }
-                                                            }
-                                                        }
 
-                                                        setFormData({ ...formData, sprintId: e.target.value });
-                                                    }}
-                                                    className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
-                                                        isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
-                                                    )}
-                                                >
-                                                    <option value="">Sin Asignar (Backlog)</option>
-                                                    {sprints.map(s => (
-                                                        <option key={s.id} value={s.id}>
-                                                            {s.name} ({s.status.toUpperCase()})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && (
-                                                    <div className="absolute right-2 top-8">
-                                                        <span className="relative flex h-2 w-2">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                        </span>
+                                                                setFormData({ ...formData, sprintId: e.target.value });
+                                                            }}
+                                                            className={cn("w-full appearance-none border rounded-lg px-2.5 py-1.5 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
+                                                                isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
+                                                            )}
+                                                        >
+                                                            <option value="">Sin Asignar (Backlog)</option>
+                                                            {sprints.map(s => (
+                                                                <option key={s.id} value={s.id}>
+                                                                    {s.name} ({s.status.toUpperCase()})
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && (
+                                                            <div className="absolute right-2 top-7">
+                                                                <span className="relative flex h-2 w-2">
+                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
-                                            </div>
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1 text-zinc-400")}>
-                                                    Final de Sprint
-                                                </label>
-                                                <div
-                                                    className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border bg-muted/50 cursor-not-allowed",
-                                                        isLight ? "border-zinc-200" : "border-white/5"
-                                                    )}
-                                                >
-                                                    <CalendarIcon className={cn("w-4 h-4 text-zinc-400")} />
-                                                    <span className={cn("text-xs font-mono text-muted-foreground")}>
-                                                        {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.endDate
-                                                            ? (() => { const d = safeParseDate(sprints.find(s => s.id === formData.sprintId)?.endDate); return d ? format(d, 'dd MMM yyyy', { locale: es }) : '-'; })()
-                                                            : '-'
-                                                        }
-                                                    </span>
+                                                    <div className="relative group">
+                                                        <label className={cn("text-[9px] font-bold uppercase block mb-1 text-zinc-400")}>
+                                                            Final de Sprint
+                                                        </label>
+                                                        <div
+                                                            className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border bg-muted/50 cursor-not-allowed",
+                                                                isLight ? "border-zinc-200" : "border-white/5"
+                                                            )}
+                                                        >
+                                                            <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
+                                                            <span className="text-xs font-mono text-muted-foreground truncate">
+                                                                {formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.endDate
+                                                                    ? (() => { const d = safeParseDate(sprints.find(s => s.id === formData.sprintId)?.endDate); return d ? format(d, 'dd MMM yy', { locale: es }) : '-'; })()
+                                                                    : '-'
+                                                                }
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Dates */}
+                                                    <div className="relative group">
+                                                        <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.start_date')}</label>
+                                                        <div className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-black/20 border-white/5")}>
+                                                            <CalendarIcon className="w-3.5 h-3.5 text-zinc-500" />
+                                                            <span className="text-xs text-zinc-500 font-mono truncate">
+                                                                {(() => { const d = safeParseDate(formData.createdAt); return d ? format(d, 'dd MMM yy', { locale: es }) : (isNew ? format(new Date(), 'dd MMM yy', { locale: es }) : 'Pendiente'); })()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="relative group">
+                                                        <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-red-600" : "text-red-400")}>{t('task_manager.end_date')}</label>
+                                                        <div
+                                                            className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border cursor-pointer hover:border-indigo-500/50 transition-colors",
+                                                                isLight ? "bg-white border-zinc-200" : "bg-black/20 border-white/5"
+                                                            )}
+                                                            onClick={() => { setDatePickerTarget('endDate'); setCurrentMonth(formData.endDate ? new Date(formData.endDate) : new Date()); }}
+                                                        >
+                                                            <CalendarIcon className="w-3.5 h-3.5 text-zinc-400" />
+                                                            <span className={cn("text-xs font-mono truncate", isLight ? "text-zinc-900" : "text-zinc-300")}>
+                                                                {(() => { const d = safeParseDate(formData.endDate); return d ? format(d, 'dd MMM yy', { locale: es }) : 'Seleccionar'; })()}
+                                                            </span>
+                                                        </div>
+                                                        {datePickerTarget === 'endDate' && (
+                                                            <>
+                                                                <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setDatePickerTarget(null); }} />
+                                                                <CustomDatePicker target="endDate" value={formData.endDate} onClose={() => setDatePickerTarget(null)} onSelect={(d) => setFormData({ ...formData, endDate: d })} />
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Row 2: Standard Dates */}
-                                        {/* Row 2: Standard Dates */}
-                                        <div className="flex items-start gap-4">
-                                            {/* Start Date */}
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-zinc-500" : "text-white")}>{t('task_manager.start_date')}</label>
-                                                <div className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border", isLight ? "bg-zinc-50 border-zinc-200" : "bg-black/20 border-white/5")}>
-                                                    <CalendarIcon className="w-4 h-4 text-zinc-500" />
-                                                    <span className="text-xs text-zinc-500 font-mono">
-                                                        {(() => { const d = safeParseDate(formData.createdAt); return d ? format(d, 'dd MMM yyyy', { locale: es }) : (isNew ? format(new Date(), 'dd MMM yyyy', { locale: es }) : 'Pendiente'); })()}
-                                                    </span>
+                                        {/* Assignment (Responsable de Tarea) */}
+                                        <div className={cn("border rounded-xl p-5 shadow-lg relative flex flex-col justify-between", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
+                                            <div>
+                                                <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2", isLight ? "text-zinc-900" : "text-white")}>
+                                                    <Users className="w-3.5 h-3.5" />
+                                                    {t('task_manager.task_owner')}
+                                                </h3>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-full bg-indigo-600/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                                                        <UserIcon className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <select
+                                                            className={cn("w-full appearance-none border rounded-lg px-2.5 py-1.5 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
+                                                                isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
+                                                            )}
+                                                            value={formData.assignedTo || ""}
+                                                            onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
+                                                            disabled={!!(formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && !isAdmin && getRoleLevel(userRole) < 60)}
+                                                        >
+                                                            <option value="">{t('task_manager.select_owner')}</option>
+                                                            {users.map(u => (
+                                                                <option key={u.uid} value={u.uid}>
+                                                                    {u.displayName} ({u.role?.replace('_', ' ')})
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            {/* End Date */}
-                                            <div className="flex-1 relative group">
-                                                <label className={cn("text-[9px] font-bold uppercase block mb-1", isLight ? "text-red-600" : "text-red-400")}>{t('task_manager.end_date')}</label>
-                                                <div
-                                                    className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:border-indigo-500/50 transition-colors",
-                                                        isLight ? "bg-white border-zinc-200" : "bg-black/20 border-white/5"
-                                                    )}
-                                                    onClick={() => { setDatePickerTarget('endDate'); setCurrentMonth(formData.endDate ? new Date(formData.endDate) : new Date()); }}
-                                                >
-                                                    <CalendarIcon className={cn("w-4 h-4", isLight ? "text-zinc-400" : "text-zinc-400")} />
-                                                    <span className={cn("text-xs font-mono", isLight ? "text-zinc-900" : "text-zinc-300")}>
-                                                        {(() => { const d = safeParseDate(formData.endDate); return d ? format(d, 'dd MMM yyyy', { locale: es }) : 'Seleccionar'; })()}
-                                                    </span>
-                                                </div>
-                                                {datePickerTarget === 'endDate' && (
-                                                    <>
-                                                        <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setDatePickerTarget(null); }} />
-                                                        <CustomDatePicker target="endDate" value={formData.endDate} onClose={() => setDatePickerTarget(null)} onSelect={(d) => setFormData({ ...formData, endDate: d })} />
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Assignment (No Title) */}
-                                    <div className={cn("border rounded-xl p-5 shadow-lg relative", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg">
-                                                <UserIcon className="w-5 h-5" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <label className={cn("text-[10px] font-bold uppercase mb-1 block", isLight ? "text-zinc-500" : "text-zinc-400")}>{t('task_manager.task_owner')}</label>
-                                                <select
-                                                    className={cn("w-full appearance-none border rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 outline-none transition-all cursor-pointer",
-                                                        isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:ring-indigo-500/50" : "bg-black/20 border-white/10 text-white focus:ring-indigo-500/50"
-                                                    )}
-                                                    value={formData.assignedTo || ""}
-                                                    onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
-                                                    disabled={!!(formData.sprintId && sprints.find(s => s.id === formData.sprintId)?.status === 'active' && !isAdmin && getRoleLevel(userRole) < 60)}
-                                                >
-                                                    <option value="">{t('task_manager.select_owner')}</option>
-                                                    {users.map(u => (
-                                                        <option key={u.uid} value={u.uid}>
-                                                            {u.displayName} ({u.role?.replace('_', ' ')})
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="text-[10px] text-zinc-500 mt-1 italic">
-                                                    {t('task_manager.assignment_notification')}
-                                                </div>
+                                            <div className="text-[10px] text-zinc-500 italic mt-auto pt-4">
+                                                {t('task_manager.assignment_notification')}
                                             </div>
                                         </div>
                                     </div>
@@ -1642,7 +1646,7 @@ export default function TaskManagement({
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>
                                         <h3 className={cn("text-xs font-bold uppercase tracking-wider mb-3", isLight ? "text-zinc-900" : "text-white")}>{t('task_manager.description')}</h3>
                                         <textarea
-                                            className={cn("w-full min-h-[80px] border rounded-lg p-3 text-xs focus:outline-none resize-none font-mono",
+                                            className={cn("w-full min-h-[250px] border rounded-lg p-3 text-xs focus:outline-none resize-y font-mono",
                                                 isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-zinc-400" : "bg-black/20 border-white/5 text-zinc-300 focus:border-indigo-500/50"
                                             )}
                                             value={formData.techDescription || ""}
@@ -1694,7 +1698,7 @@ export default function TaskManagement({
                                                 <div className="relative">
                                                     <textarea
                                                         className={cn(
-                                                            "w-full min-h-[60px] border rounded-lg p-3 text-xs focus:outline-none resize-none",
+                                                            "w-full min-h-[100px] border rounded-lg p-3 text-xs focus:outline-none resize-y",
                                                             isLight
                                                                 ? "bg-zinc-50 border-zinc-300 text-zinc-900 focus:border-indigo-400 placeholder:text-zinc-400"
                                                                 : "bg-black/20 border-white/10 text-zinc-300 focus:border-indigo-500/50 placeholder:text-zinc-600"
@@ -1784,7 +1788,7 @@ export default function TaskManagement({
                                                         {t('comments.empty')}
                                                     </div>
                                                 ) : (
-                                                    <div className={cn("space-y-2 max-h-60 overflow-y-auto custom-scrollbar pl-3 border-l", isLight ? "border-zinc-200" : "border-white/10")}>
+                                                    <div className={cn("space-y-2 max-h-[350px] overflow-y-auto custom-scrollbar pl-3 border-l", isLight ? "border-zinc-200" : "border-white/10")}>
                                                         {comments.map(comment => (
                                                             <div key={comment.id} className={cn("p-3 rounded-lg", isLight ? "bg-zinc-50" : "bg-black/20")}>
                                                                 <p className={cn("text-xs mb-2 whitespace-pre-wrap", isLight ? "text-zinc-700" : "text-zinc-300")}>
@@ -1899,8 +1903,8 @@ export default function TaskManagement({
 
                                 </div>
 
-                                {/* Col 2 - Metadatos (Ancho 4) */}
-                                <div className="md:col-span-4 space-y-6">
+                                {/* Col 2 - Metadatos (Ancho 3) */}
+                                <div className="md:col-span-3 space-y-6">
 
                                     {/* Project Selector - Added context block (Movido de izquierda) */}
                                     <div className={cn("border rounded-xl p-5 shadow-lg", isLight ? "bg-white border-zinc-200" : "bg-card border-white/10")}>

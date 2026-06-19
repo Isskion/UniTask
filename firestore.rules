@@ -692,6 +692,24 @@ service cloud.firestore {
       );
     }
 
+    // --- UNIGEO: ZONE INVASIONS ---
+    match /zone_invasions/{invasionId} {
+      // READ: Tenant members can read invasions of their tenant
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+
+      // CREATE: Must belong to the same tenant; role >= 40 (operador o superior)
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (string(request.resource.data.tenantId) == getRealTenantId() && getRealRole() >= 40)
+      );
+
+      // DELETE: Admins (>= 80) or Creator or SuperAdmin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
     // --- TASK TYPES (Master Categories for Consultant Tasks) ---
     match /taskTypes/{typeId} {
       allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
