@@ -197,6 +197,21 @@
     "read": true
   },
   {
+    "id": "3QQKIdQzKDjZW2T4fp3v",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-29 - \"Revisar documentación de Tarifas por operación y documentarla\" has reached its deadline.",
+    "taskId": "FBp4k81XrKlwL3NrY8Hn",
+    "link": "/?view=task-manager&taskId=FBp4k81XrKlwL3NrY8Hn",
+    "createdAt": {
+      "_seconds": 1781848472,
+      "_nanoseconds": 787000000
+    },
+    "read": true
+  },
+  {
     "id": "3incUb8fxE0I49Kf0sj6",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "tenantId": "3",
@@ -2166,6 +2181,21 @@
       "_nanoseconds": 998000000
     },
     "read": true
+  },
+  {
+    "id": "rQ12ihHMRvi8tKwmloIK",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-31 - \"Probar Servicio de Transporeon (alta de pedidos y asignacion de vehiculo y conductor, citas)\" has reached its deadline.",
+    "taskId": "SohSBj4KhsrGlG6cTPsZ",
+    "read": false,
+    "link": "/?view=task-manager&taskId=SohSBj4KhsrGlG6cTPsZ",
+    "createdAt": {
+      "_seconds": 1781848473,
+      "_nanoseconds": 747000000
+    }
   },
   {
     "id": "rThYu7EYAjOQ5lgu6yLU",
