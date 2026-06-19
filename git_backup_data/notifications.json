@@ -2190,12 +2190,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-31 - \"Probar Servicio de Transporeon (alta de pedidos y asignacion de vehiculo y conductor, citas)\" has reached its deadline.",
     "taskId": "SohSBj4KhsrGlG6cTPsZ",
-    "read": false,
     "link": "/?view=task-manager&taskId=SohSBj4KhsrGlG6cTPsZ",
     "createdAt": {
       "_seconds": 1781848473,
       "_nanoseconds": 747000000
-    }
+    },
+    "read": true
   },
   {
     "id": "rThYu7EYAjOQ5lgu6yLU",
