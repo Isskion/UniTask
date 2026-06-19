@@ -1035,19 +1035,9 @@ export default function DailyFollowUp() {
         window.addEventListener('switch-project', asAny(handleSwitchProject));
         window.addEventListener('open-new-project-modal', handleOpenNewProject);
 
-        const handleOpenTask = (e: CustomEvent) => {
-            const { taskId } = e.detail;
-            if (taskId) {
-                setPendingTaskId(taskId);
-                setViewMode('task-manager');
-            }
-        };
-        window.addEventListener('open-task', asAny(handleOpenTask));
-
         return () => {
             window.removeEventListener('switch-project', asAny(handleSwitchProject));
             window.removeEventListener('open-new-project-modal', handleOpenNewProject);
-            window.removeEventListener('open-task', asAny(handleOpenTask));
         };
     }, [entry.projects, viewMode, activeTab]); // Dependencies
 

@@ -53,6 +53,7 @@ import FirebaseDiagnostic from "@/components/FirebaseDiagnostic";
 import { RefreshCw } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import ProfileSettingsModal from "@/components/ProfileSettingsModal";
+import TaskManagement from "@/components/TaskManagement";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -77,6 +78,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [openTaskId, setOpenTaskId] = useState<string | null>(null);
     const { t } = useLanguage();
     const [dynamicLogoSrc, setDynamicLogoSrc] = useState<string>('/brand-white.png');
 
@@ -107,6 +109,17 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
         fetchTenantLogo();
         return () => { isMounted = false; };
     }, [tenantId]);
+
+    useEffect(() => {
+        const handleOpenTask = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            if (customEvent.detail && customEvent.detail.taskId) {
+                setOpenTaskId(customEvent.detail.taskId);
+            }
+        };
+        window.addEventListener('open-task', handleOpenTask);
+        return () => window.removeEventListener('open-task', handleOpenTask);
+    }, []);
 
     // Check if user can manage permissions (with legacy role fallback)
     const canManagePermissions = can('managePermissions', 'special') ||
@@ -617,6 +630,19 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
             <AIHelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
             <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} viewContext={viewMode} />
             <ProfileSettingsModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+
+            {/* Global Task Management Modal */}
+            {openTaskId && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#09090b] border border-white/10 rounded-2xl shadow-2xl w-[95vw] max-w-6xl h-[85vh] md:h-[90vh] overflow-hidden flex flex-col relative scale-100 animate-in zoom-in-95 duration-200">
+                        <TaskManagement
+                            initialTaskId={openTaskId}
+                            isModal={true}
+                            onClose={() => setOpenTaskId(null)}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* GLOBAL RECOVERY PANEL */}
             {(userRole === 'superadmin') && <FirebaseDiagnostic />}

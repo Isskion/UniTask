@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createGeomanInstance } from '@geoman-io/maplibre-geoman-free';
 import '@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css';
 import * as turf from '@turf/turf';
-import type { Feature, Polygon, MultiPolygon, LineString, FeatureCollection } from 'geojson';
+import type { Feature, Polygon, MultiPolygon, LineString, Point, FeatureCollection } from 'geojson';
 import {
     Map as MapIcon, Layers, PenTool, Hash, Info, AlertTriangle, X,
     ChevronRight, FileDown, Download, Timer, Loader2, Search, Plus,
@@ -110,48 +110,39 @@ function buildInvasionCurve(
     } catch { return null; }
 }
 
-const INVASION_RIBBON_SAMPLES = 48;
-const INVASION_PEAK_T = 0.8; // dónde está el "vientre" más ancho antes de cerrar en punta
+const INVASION_TAPER_STEPS = 16;
 
-// Anchura (mitad) en cada punto de la cinta: sube en curva suave hasta el vientre (t = PEAK_T)
-// y luego cae hasta 0 justo en el destino, cerrando en punta — la propia línea ES la flecha.
-function invasionHalfWidth(t: number, startHalf: number, peakHalf: number): number {
-    if (t <= INVASION_PEAK_T) {
-        return startHalf + (peakHalf - startHalf) * Math.sin((t / INVASION_PEAK_T) * (Math.PI / 2));
+// Trocea la curva en tramos con un parámetro `t` (0→1, origen→destino) para poder
+// pintar cada tramo con una anchura distinta y conseguir el efecto "flecha cometa": fina en el origen, gruesa hacia el destino.
+function buildTaperedSegments(curve: Feature<LineString>): FeatureCollection<LineString, { t: number }> {
+    const coords = curve.geometry.coordinates as [number, number][];
+    const n = coords.length;
+    const steps = Math.min(INVASION_TAPER_STEPS, Math.max(1, n - 1));
+    const features: Feature<LineString, { t: number }>[] = [];
+    for (let i = 0; i < steps; i++) {
+        const startIdx = Math.floor((i / steps) * (n - 1));
+        const endIdx   = Math.floor(((i + 1) / steps) * (n - 1));
+        if (endIdx <= startIdx) continue;
+        features.push({
+            type: 'Feature',
+            properties: { t: steps === 1 ? 1 : i / (steps - 1) },
+            geometry: { type: 'LineString', coordinates: coords.slice(startIdx, endIdx + 1) },
+        });
     }
-    const fall = (t - INVASION_PEAK_T) / (1 - INVASION_PEAK_T);
-    return peakHalf * Math.sin((1 - fall) * (Math.PI / 2));
+    return { type: 'FeatureCollection', features };
 }
 
-// Construye la cinta completa como UN único polígono: fina en el origen, se ensancha hacia
-// un vientre y termina en punta exacta en el destino. Sin piezas sueltas pegadas al final.
-function buildInvasionRibbon(curve: Feature<LineString>): Feature<Polygon> {
-    const totalLen  = turf.length(curve, { units: 'kilometers' });
-    const peakHalf  = Math.min(Math.max(totalLen * 0.022, 0.05), 1.1);
-    const startHalf = peakHalf * 0.16;
-
-    const n = INVASION_RIBBON_SAMPLES;
-    const points: [number, number][] = [];
-    for (let i = 0; i < n; i++) {
-        const dist = (i / (n - 1)) * totalLen;
-        points.push(turf.along(curve, dist, { units: 'kilometers' }).geometry.coordinates as [number, number]);
-    }
-
-    const left: [number, number][] = [];
-    const right: [number, number][] = [];
-    for (let i = 0; i < n; i++) {
-        const t = i / (n - 1);
-        const a = points[Math.max(0, i - 1)];
-        const b = points[Math.min(n - 1, i + 1)];
-        const bearing = turf.bearing(turf.point(a), turf.point(b));
-        const half = invasionHalfWidth(t, startHalf, peakHalf);
-        if (half < 0.0005) { left.push(points[i]); right.push(points[i]); continue; }
-        left.push(turf.destination(turf.point(points[i]), half, bearing - 90, { units: 'kilometers' }).geometry.coordinates as [number, number]);
-        right.push(turf.destination(turf.point(points[i]), half, bearing + 90, { units: 'kilometers' }).geometry.coordinates as [number, number]);
-    }
-
-    const ring = [...left, ...right.reverse(), left[0]];
-    return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } };
+// Punta de flecha en el extremo final de la curva, orientada según el último tramo real
+function buildInvasionTip(curve: Feature<LineString>): Feature<Point, { rotate: number }> {
+    const coords = curve.geometry.coordinates as [number, number][];
+    const tip  = coords[coords.length - 1];
+    const prev = coords[Math.max(0, coords.length - 6)];
+    const bearing = turf.bearing(turf.point(prev), turf.point(tip));
+    return {
+        type: 'Feature',
+        properties: { rotate: bearing - 90 }, // el glifo ▶ apunta al este (bearing 90) en su orientación natural
+        geometry: { type: 'Point', coordinates: tip },
+    };
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -880,37 +871,70 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         const curve = buildInvasionCurve(fromCentroid, toCentroid, invasion.fromZoneId, invasion.toZoneId);
         if (!curve) return;
 
-        const ribbon = buildInvasionRibbon(curve);
-        // Toque personal: el contorno recoge el color de la zona de origen, como una "firma" de
-        // procedencia, mientras el relleno es blanco para destacar siempre sobre el fondo del mapa.
+        const segments = buildTaperedSegments(curve);
+        const tip       = buildInvasionTip(curve);
+        // Toque personal: el halo recoge el color de la zona de origen, como una "firma" de procedencia,
+        // mientras la flecha en sí es blanca para destacar siempre sobre el fondo del mapa.
         const accent = fromZone.color || '#6366f1';
 
         if (map.current.getSource(id)) {
-            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(ribbon);
+            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(segments);
+            (map.current.getSource(`${id}-tip`) as maplibregl.GeoJSONSource)?.setData(tip);
             return;
         }
 
-        map.current.addSource(id, { type: 'geojson', data: ribbon });
+        map.current.addSource(id, { type: 'geojson', data: segments });
+        map.current.addSource(`${id}-tip`, { type: 'geojson', data: tip });
 
-        // Capa 1: relleno blanco de la cinta — la propia forma (fina→ancho→punta) es la flecha
+        // Capa 1: halo tintado con el color de origen (sutil, da identidad sin restar contraste)
         map.current.addLayer({
-            id: `${id}-fill`, type: 'fill', source: id,
-            paint: { 'fill-color': '#ffffff', 'fill-opacity': 0.92 },
+            id: `${id}-halo`, type: 'line', source: id,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': accent,
+                'line-opacity': 0.28,
+                'line-blur': 2.5,
+                'line-width': ['interpolate', ['linear'], ['get', 't'], 0, 4, 1, 12],
+            },
         });
-        // Capa 2: contorno fino con el color de origen, para nitidez sobre cualquier fondo
+        // Capa 2: trazo blanco, fino en el origen y grueso hacia el destino
         map.current.addLayer({
-            id: `${id}-outline`, type: 'line', source: id,
-            layout: { 'line-join': 'round', 'line-cap': 'round' },
-            paint: { 'line-color': accent, 'line-width': 1.1, 'line-opacity': 0.85 },
+            id: `${id}-line`, type: 'line', source: id,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': '#ffffff',
+                'line-opacity': ['interpolate', ['linear'], ['get', 't'], 0, 0.55, 1, 0.95],
+                'line-width': ['interpolate', ['linear'], ['get', 't'], 0, 1.5, 1, 6.5],
+            },
+        });
+        // Capa 3: punta de flecha única en el destino, orientada con certeza hacia él
+        map.current.addLayer({
+            id: `${id}-arrow`, type: 'symbol', source: `${id}-tip`,
+            layout: {
+                'text-field': '▶',
+                'text-size': 19,
+                'text-rotate': ['get', 'rotate'],
+                'text-rotation-alignment': 'map',
+                'text-pitch-alignment': 'map',
+                'text-allow-overlap': true,
+                'text-ignore-placement': true,
+            },
+            paint: {
+                'text-color': '#ffffff',
+                'text-halo-color': accent,
+                'text-halo-width': 1.4,
+            },
         });
     }, []);
 
     const clearInvasionLayer = useCallback((invasionId: string) => {
         if (!map.current) return;
         const id = iid(invasionId);
-        if (map.current.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`);
-        if (map.current.getLayer(`${id}-fill`))    map.current.removeLayer(`${id}-fill`);
-        if (map.current.getSource(id))             map.current.removeSource(id);
+        if (map.current.getLayer(`${id}-arrow`)) map.current.removeLayer(`${id}-arrow`);
+        if (map.current.getLayer(`${id}-line`))  map.current.removeLayer(`${id}-line`);
+        if (map.current.getLayer(`${id}-halo`))  map.current.removeLayer(`${id}-halo`);
+        if (map.current.getSource(`${id}-tip`))  map.current.removeSource(`${id}-tip`);
+        if (map.current.getSource(id))            map.current.removeSource(id);
     }, []);
 
     const clearAllInvasionLayers = useCallback((invasionList: ZoneInvasion[]) => {

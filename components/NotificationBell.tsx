@@ -74,13 +74,11 @@ export function NotificationBell() {
     const handleNotificationClick = async (n: Notification) => {
         await markAsRead(n);
         setIsOpen(false);
-        if (n.link) {
-            router.push(n.link);
-        }
-        // If it's a task assignment, we might want to trigger a global event to open the specific task
+        // If it's a task notification, open the task modal directly without navigating
         if (n.taskId) {
-            // Dispatch event for TaskManagement to pick up if it's already mounted
             window.dispatchEvent(new CustomEvent('open-task', { detail: { taskId: n.taskId } }));
+        } else if (n.link) {
+            router.push(n.link);
         }
     };
 
