@@ -1,9 +1,10 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { resolveAccess, LS_TRACE_DOC_PATH } from "../access";
+import { resolveAccess, UNI_TRACE_COLLECTION } from "../../access";
+import { toSlug } from "@/lib/slug";
 
-const KEY_HASH_SECRET = process.env.LSTRACE_KEY_HASH_SECRET || "";
+const KEY_HASH_SECRET = process.env.UNITRACE_KEY_HASH_SECRET || "";
 
 function hashKey(key: string): string {
     return crypto.createHmac("sha256", KEY_HASH_SECRET).update(key).digest("hex");
@@ -11,11 +12,13 @@ function hashKey(key: string): string {
 
 function generateReadableKey(): string {
     const part = () => crypto.randomBytes(3).toString("hex").toUpperCase();
-    return `LST-${part()}-${part()}`;
+    return `UNI-${part()}-${part()}`;
 }
 
-export async function POST(request: Request) {
-    const access = await resolveAccess(request);
+export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+    const { slug: rawSlug } = await params;
+    const slug = toSlug(rawSlug);
+    const access = await resolveAccess(request, slug);
     if (access.level !== "write") {
         return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
@@ -27,7 +30,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "invalid_json" }, { status: 400 });
     }
 
-    const docRef = adminDb.doc(LS_TRACE_DOC_PATH);
+    const docRef = adminDb.collection(UNI_TRACE_COLLECTION).doc(slug);
 
     if (body.action === "rotate") {
         const newKey = generateReadableKey();

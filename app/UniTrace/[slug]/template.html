@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Luis Simoes — ABM Configuración TMS</title>
+<title>UniTrace — ABM Configuración TMS</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-.lstrace-gate{position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:100}
-.lstrace-gate-card{background:#fff;border:1px solid #e0ddd6;border-radius:12px;padding:28px;width:320px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.lstrace-gate-card input{margin-bottom:0}
+.unitrace-gate{position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:100}
+.unitrace-gate-card{background:#fff;border:1px solid #e0ddd6;border-radius:12px;padding:28px;width:320px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.unitrace-gate-card input{margin-bottom:0}
 body.readonly [onclick^="openModal"],body.readonly [onclick^="delItem"],body.readonly [onclick^="delDeposito"],body.readonly [onclick^="addInterCol"],body.readonly [onclick^="deletePlan"],body.readonly [onclick^="guardarPlan"],body.readonly [onclick^="limpiarPlan"],body.readonly [onclick^="resetData"],body.readonly #lbl-import{display:none!important}
 body.readonly .mc{pointer-events:none;cursor:default}
 #btn-key-panel{display:none}
@@ -179,13 +179,13 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
-<div id="lstrace-gate" class="lstrace-gate" style="display:none">
-  <div class="lstrace-gate-card">
+<div id="unitrace-gate" class="unitrace-gate" style="display:none">
+  <div class="unitrace-gate-card">
     <div class="logo" style="margin-bottom:4px">UNIGIS TMS <span>/ ABM Configuración</span></div>
     <p style="color:var(--tx2);font-size:13px;margin-bottom:16px">Introduce la clave de acceso para ver esta página.</p>
-    <input type="password" id="lstrace-gate-key" placeholder="Clave de acceso" autocomplete="off">
+    <input type="password" id="unitrace-gate-key" placeholder="Clave de acceso" autocomplete="off">
     <button class="btn btn-p" style="margin-top:10px;width:100%" onclick="submitGateKey()">Acceder</button>
-    <p id="lstrace-gate-error" style="color:var(--re);font-size:12px;margin-top:10px;display:none">Clave incorrecta o acceso desactivado.</p>
+    <p id="unitrace-gate-error" style="color:var(--re);font-size:12px;margin-top:10px;display:none">Clave incorrecta o acceso desactivado.</p>
   </div>
 </div>
 <div class="bd-wrap" id="key-bd" style="display:none" onclick="if(event.target===this)closeKeyPanel()">
@@ -196,7 +196,7 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 </div>
 <header>
   <div class="logo">UNIGIS TMS <span>/ ABM Configuración</span></div>
-  <span class="badge">Luis Simoes (LS)</span>
+  <span class="badge" id="unitrace-client-badge">Cliente</span>
   <div style="flex:1"></div>
   <div class="import-export">
     <button class="btn btn-sm" onclick="exportData()">↓ Exportar JSON</button>
@@ -459,7 +459,7 @@ function init() {
 function save() {
   rebuildDynamicData();
   if (ACCESS_LEVEL !== 'write') return; // los lectores (clave pública) nunca escriben
-  fetch('/api/lstrace/data', {
+  fetch('/api/unitrace/' + UNITRACE_SLUG + '/data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ID_TOKEN },
     body: JSON.stringify({ data, nextIds, planHistory: pHistorial }),
@@ -2234,9 +2234,10 @@ function renderGruposMatrix() {
 }
 
 // ── Acceso público: clave directa o sesión de UniTask ──────────────────────
+const UNITRACE_SLUG = window.__UNITRACE_SLUG__;
 let ACCESS_LEVEL = 'none'; // 'write' | 'read' | 'none'
 let ID_TOKEN = null;
-let LSTRACE_ENABLED = false;
+let UNITRACE_ENABLED = false;
 
 async function bootstrapAccess() {
   try {
@@ -2255,31 +2256,35 @@ async function bootstrapAccess() {
 async function loadFromBackend() {
   const headers = ID_TOKEN ? { 'Authorization': 'Bearer ' + ID_TOKEN } : {};
   let r;
-  try { r = await fetch('/api/lstrace/data', { headers: headers, credentials: 'include' }); }
-  catch(e) { document.getElementById('lstrace-gate').style.display = 'flex'; return; }
+  try { r = await fetch('/api/unitrace/' + UNITRACE_SLUG + '/data', { headers: headers, credentials: 'include' }); }
+  catch(e) { document.getElementById('unitrace-gate').style.display = 'flex'; return; }
 
   if (r.ok) {
     const json = await r.json();
     ACCESS_LEVEL = r.headers.get('X-Access-Level') || 'none';
-    LSTRACE_ENABLED = !!json.accessEnabled;
+    UNITRACE_ENABLED = !!json.accessEnabled;
     data = json.data; nextIds = json.nextIds; pHistorial = json.planHistory || [];
+    if (json.clientName) {
+      document.title = json.clientName + ' — ABM Configuración TMS';
+      document.getElementById('unitrace-client-badge').textContent = json.clientName;
+    }
     init();
     renderAll();
     document.body.classList.toggle('readonly', ACCESS_LEVEL !== 'write');
     document.getElementById('btn-key-panel').classList.toggle('show', ACCESS_LEVEL === 'write');
-    document.getElementById('lstrace-gate').style.display = 'none';
+    document.getElementById('unitrace-gate').style.display = 'none';
   } else {
-    document.getElementById('lstrace-gate').style.display = 'flex';
+    document.getElementById('unitrace-gate').style.display = 'flex';
   }
 }
 
 async function submitGateKey() {
-  const keyInput = document.getElementById('lstrace-gate-key');
-  const errorEl = document.getElementById('lstrace-gate-error');
+  const keyInput = document.getElementById('unitrace-gate-key');
+  const errorEl = document.getElementById('unitrace-gate-error');
   errorEl.style.display = 'none';
   const key = keyInput.value.trim();
   if (!key) return;
-  const r = await fetch('/api/lstrace/verify-key', {
+  const r = await fetch('/api/unitrace/' + UNITRACE_SLUG + '/verify-key', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ key }), credentials: 'include'
   });
@@ -2296,32 +2301,32 @@ function closeKeyPanel() {
 }
 function renderKeyPanel(generatedKey) {
   const body = document.getElementById('key-panel-body');
-  let h = '<p class="sdesc">Comparte esta clave con el cliente para que pueda ver esta página sin necesidad de cuenta en UniTask. Generar una nueva clave invalida la anterior y cualquier sesión de cliente ya abierta.</p>';
+  let h = '<p class="sdesc">Comparte esta clave con el cliente para que pueda ver esta página sin necesidad de cuenta en UniTask. La clave solo funciona para esta URL. Generar una nueva clave invalida la anterior y cualquier sesión de cliente ya abierta.</p>';
   if (generatedKey) {
     h += '<div style="background:var(--tl2);border:1px solid var(--tl);border-radius:8px;padding:12px;margin-bottom:12px">'
        + '<div style="font-size:11px;color:var(--tx2);margin-bottom:4px">Nueva clave (cópiala ahora, no se volverá a mostrar):</div>'
        + '<div style="font-family:monospace;font-size:15px;font-weight:600">' + esc(generatedKey) + '</div></div>';
   }
   h += '<button class="btn btn-p" style="width:100%;margin-bottom:8px" onclick="rotateKey()">Generar nueva clave</button>';
-  h += '<button class="btn" style="width:100%" onclick="toggleAccess()">' + (LSTRACE_ENABLED ? 'Desactivar acceso público' : 'Activar acceso público') + '</button>';
+  h += '<button class="btn" style="width:100%" onclick="toggleAccess()">' + (UNITRACE_ENABLED ? 'Desactivar acceso público' : 'Activar acceso público') + '</button>';
   body.innerHTML = h;
 }
 async function rotateKey() {
   if (!confirm('Esto invalidará la clave actual y cualquier sesión de cliente abierta. ¿Continuar?')) return;
-  const r = await fetch('/api/lstrace/manage-key', {
+  const r = await fetch('/api/unitrace/' + UNITRACE_SLUG + '/manage-key', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ID_TOKEN },
     body: JSON.stringify({ action: 'rotate' })
   });
   const j = await r.json();
-  if (j.ok) { LSTRACE_ENABLED = true; renderKeyPanel(j.key); }
+  if (j.ok) { UNITRACE_ENABLED = true; renderKeyPanel(j.key); }
 }
 async function toggleAccess() {
-  const r = await fetch('/api/lstrace/manage-key', {
+  const r = await fetch('/api/unitrace/' + UNITRACE_SLUG + '/manage-key', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ID_TOKEN },
-    body: JSON.stringify({ action: 'toggle', enabled: !LSTRACE_ENABLED })
+    body: JSON.stringify({ action: 'toggle', enabled: !UNITRACE_ENABLED })
   });
   const j = await r.json();
-  if (j.ok) { LSTRACE_ENABLED = j.accessEnabled; renderKeyPanel(); }
+  if (j.ok) { UNITRACE_ENABLED = j.accessEnabled; renderKeyPanel(); }
 }
 
 bootstrapAccess();

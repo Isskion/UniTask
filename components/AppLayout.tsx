@@ -359,7 +359,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavLink href="/uniflux/geo" target="_blank" icon={Map} label={t('nav.unigeo') || 'UniGeo'} />
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                            <NavLink href="/LSTrace" target="_blank" icon={Radar} label={t('nav.lstrace') || 'LSTrace'} />
+                            <NavLink href="/UniTrace" target="_blank" icon={Radar} label={t('nav.unitrace') || 'UniTrace'} />
                         </div>
 
                         {/* Secondary */}
@@ -580,7 +580,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/uniflux/geo" target="_blank" icon={Map} label={t('nav.unigeo') || 'UniGeo'} />
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
-                                <NavLink href="/LSTrace" target="_blank" icon={Radar} label={t('nav.lstrace') || 'LSTrace'} />
+                                <NavLink href="/UniTrace" target="_blank" icon={Radar} label={t('nav.unitrace') || 'UniTrace'} />
                             </div>
 
                             {can('knowledgeBase', 'views') && (
