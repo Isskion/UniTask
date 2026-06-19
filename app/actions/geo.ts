@@ -8,7 +8,7 @@ import {
 import ExcelJS from 'exceljs';
 // tokml es módulo CJS sin tipos oficiales
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const tokml = require('tokml') as (geojson: object) => string;
+const tokml = require('tokml') as (geojson: object, options?: any) => string;
 
 // Umbral de solapamiento (%) por encima del cual se considera conflicto real
 const OVERLAP_THRESHOLD_PCT = 40;
@@ -273,16 +273,28 @@ export async function exportZonesToKML(tenantId: string, projectId: string): Pro
     const zones = await getProjectZones(tenantId, projectId);
     const featureCollection = {
         type: 'FeatureCollection',
-        features: zones.map(z => ({
-            type: 'Feature',
-            geometry: z.boundary,
-            properties: {
-                name:        z.name,
-                description: `Código: ${z.zoneCode} | Tipo: ${z.type}`,
-            },
-        })),
+        features: zones.map(z => {
+            const color = z.color || (z.type === 'DEPOSITO' ? '#10b981' : '#6366f1');
+            return {
+                type: 'Feature',
+                geometry: z.boundary,
+                properties: {
+                    name:        z.name,
+                    description: `Código: ${z.zoneCode} | Tipo: ${z.type}`,
+                    stroke:      color,
+                    'stroke-width': 2,
+                    'stroke-opacity': 1.0,
+                    fill:        color,
+                    'fill-opacity': 0.5,
+                },
+            };
+        }),
     };
-    return tokml(featureCollection);
+    return tokml(featureCollection, {
+        simplestyle: true,
+        name: 'name',
+        description: 'description',
+    });
 }
 
 // ─── Búsqueda de Límites Administrativos (Nominatim / OSM) ───────────────────
