@@ -65,6 +65,7 @@ export async function resolveAccess(request: Request): Promise<AccessResult> {
 
             const roleLevel = user.roleLevel ?? getRoleLevel(user.role);
             if (roleLevel < RoleLevel.CONSULTANT) return { level: "none", uid };
+            if (roleLevel >= RoleLevel.SUPERADMIN) return { level: "write", uid };
 
             const projectId: string | undefined = trace?.projectId;
             if (!projectId) return { level: "none", uid };
