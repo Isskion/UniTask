@@ -1000,13 +1000,20 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         setInvasions(prev => prev.filter(inv => inv.id !== invasionId));
     }, [clearInvasionLayer]);
 
-    // Recargar invasiones al cambiar de proyecto (paralelo a loadZones)
+    // Limpiar invasiones del proyecto anterior al cambiar de proyecto
     useEffect(() => {
         if (!isLoaded) return;
         setInvasions(prev => { clearAllInvasionLayers(prev); return []; });
-        if (projectId) loadInvasions(zones);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [projectId, isLoaded]);
+
+    // Cargar invasiones una vez que las zonas del proyecto ya están en estado (loadZones es async,
+    // así que no podemos disparar esto en el mismo efecto que cambia projectId: 'zones' seguiría vacío).
+    useEffect(() => {
+        if (!isLoaded || !projectId) return;
+        loadInvasions(zones);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [zones, isLoaded, projectId]);
 
     // ── Exportaciones ─────────────────────────────────────────────────────────
 
