@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createGeomanInstance } from '@geoman-io/maplibre-geoman-free';
 import '@geoman-io/maplibre-geoman-free/dist/maplibre-geoman.css';
 import * as turf from '@turf/turf';
-import type { Feature, Polygon, MultiPolygon, FeatureCollection } from 'geojson';
+import type { Feature, Polygon, MultiPolygon, LineString, Point, FeatureCollection } from 'geojson';
 import {
     Map as MapIcon, Layers, PenTool, Hash, Info, AlertTriangle, X,
     ChevronRight, FileDown, Download, Timer, Loader2, Search, Plus,
@@ -108,6 +108,41 @@ function buildInvasionCurve(
     try {
         return turf.bezierSpline(turf.lineString([from, ctrl, to]), { resolution: 10000, sharpness: 0.85 });
     } catch { return null; }
+}
+
+const INVASION_TAPER_STEPS = 16;
+
+// Trocea la curva en tramos con un parámetro `t` (0→1, origen→destino) para poder
+// pintar cada tramo con una anchura distinta y conseguir el efecto "flecha cometa": fina en el origen, gruesa hacia el destino.
+function buildTaperedSegments(curve: Feature<LineString>): FeatureCollection<LineString, { t: number }> {
+    const coords = curve.geometry.coordinates as [number, number][];
+    const n = coords.length;
+    const steps = Math.min(INVASION_TAPER_STEPS, Math.max(1, n - 1));
+    const features: Feature<LineString, { t: number }>[] = [];
+    for (let i = 0; i < steps; i++) {
+        const startIdx = Math.floor((i / steps) * (n - 1));
+        const endIdx   = Math.floor(((i + 1) / steps) * (n - 1));
+        if (endIdx <= startIdx) continue;
+        features.push({
+            type: 'Feature',
+            properties: { t: steps === 1 ? 1 : i / (steps - 1) },
+            geometry: { type: 'LineString', coordinates: coords.slice(startIdx, endIdx + 1) },
+        });
+    }
+    return { type: 'FeatureCollection', features };
+}
+
+// Punta de flecha en el extremo final de la curva, orientada según el último tramo real
+function buildInvasionTip(curve: Feature<LineString>): Feature<Point, { rotate: number }> {
+    const coords = curve.geometry.coordinates as [number, number][];
+    const tip  = coords[coords.length - 1];
+    const prev = coords[Math.max(0, coords.length - 6)];
+    const bearing = turf.bearing(turf.point(prev), turf.point(tip));
+    return {
+        type: 'Feature',
+        properties: { rotate: bearing - 90 }, // el glifo ▶ apunta al este (bearing 90) en su orientación natural
+        geometry: { type: 'Point', coordinates: tip },
+    };
 }
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -836,41 +871,58 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         const curve = buildInvasionCurve(fromCentroid, toCentroid, invasion.fromZoneId, invasion.toZoneId);
         if (!curve) return;
 
-        const color = fromZone.color || '#6366f1';
+        const segments = buildTaperedSegments(curve);
+        const tip       = buildInvasionTip(curve);
+        // Toque personal: el halo recoge el color de la zona de origen, como una "firma" de procedencia,
+        // mientras la flecha en sí es blanca para destacar siempre sobre el fondo del mapa.
+        const accent = fromZone.color || '#6366f1';
 
         if (map.current.getSource(id)) {
-            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(curve);
+            (map.current.getSource(id) as maplibregl.GeoJSONSource).setData(segments);
+            (map.current.getSource(`${id}-tip`) as maplibregl.GeoJSONSource)?.setData(tip);
             return;
         }
 
-        map.current.addSource(id, { type: 'geojson', data: curve });
+        map.current.addSource(id, { type: 'geojson', data: segments });
+        map.current.addSource(`${id}-tip`, { type: 'geojson', data: tip });
 
-        // Capa 1: glow (halo suave)
+        // Capa 1: halo tintado con el color de origen (sutil, da identidad sin restar contraste)
         map.current.addLayer({
-            id: `${id}-glow`, type: 'line', source: id,
-            paint: { 'line-color': color, 'line-width': 10, 'line-opacity': 0.13, 'line-blur': 4 },
+            id: `${id}-halo`, type: 'line', source: id,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': accent,
+                'line-opacity': 0.28,
+                'line-blur': 2.5,
+                'line-width': ['interpolate', ['linear'], ['get', 't'], 0, 4, 1, 12],
+            },
         });
-        // Capa 2: trazo principal con guiones
+        // Capa 2: trazo blanco, fino en el origen y grueso hacia el destino
         map.current.addLayer({
             id: `${id}-line`, type: 'line', source: id,
-            paint: { 'line-color': color, 'line-width': 2.5, 'line-dasharray': [3, 2], 'line-opacity': 0.9 },
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+                'line-color': '#ffffff',
+                'line-opacity': ['interpolate', ['linear'], ['get', 't'], 0, 0.55, 1, 0.95],
+                'line-width': ['interpolate', ['linear'], ['get', 't'], 0, 1.5, 1, 6.5],
+            },
         });
-        // Capa 3: flechas de dirección a lo largo del arco
+        // Capa 3: punta de flecha única en el destino, orientada con certeza hacia él
         map.current.addLayer({
-            id: `${id}-arrow`, type: 'symbol', source: id,
+            id: `${id}-arrow`, type: 'symbol', source: `${id}-tip`,
             layout: {
-                'symbol-placement': 'line',
-                'symbol-spacing': 120,
                 'text-field': '▶',
-                'text-size': 13,
-                'text-keep-upright': false,
+                'text-size': 19,
+                'text-rotate': ['get', 'rotate'],
+                'text-rotation-alignment': 'map',
+                'text-pitch-alignment': 'map',
                 'text-allow-overlap': true,
                 'text-ignore-placement': true,
             },
             paint: {
-                'text-color': color,
-                'text-halo-color': '#000000',
-                'text-halo-width': 0.5,
+                'text-color': '#ffffff',
+                'text-halo-color': accent,
+                'text-halo-width': 1.4,
             },
         });
     }, []);
@@ -880,7 +932,8 @@ export default function GeographicEditor({ initialProjectId }: GeographicEditorP
         const id = iid(invasionId);
         if (map.current.getLayer(`${id}-arrow`)) map.current.removeLayer(`${id}-arrow`);
         if (map.current.getLayer(`${id}-line`))  map.current.removeLayer(`${id}-line`);
-        if (map.current.getLayer(`${id}-glow`))  map.current.removeLayer(`${id}-glow`);
+        if (map.current.getLayer(`${id}-halo`))  map.current.removeLayer(`${id}-halo`);
+        if (map.current.getSource(`${id}-tip`))  map.current.removeSource(`${id}-tip`);
         if (map.current.getSource(id))            map.current.removeSource(id);
     }, []);
 
