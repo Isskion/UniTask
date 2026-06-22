@@ -1,6 +1,16 @@
-export const APP_VERSION = "14.7.0";
+export const APP_VERSION = "14.8.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.8.0",
+        date: "2026-06-22",
+        features: [
+            "UniLeaks UI Redesign: Revisión completa de la experiencia de edición.",
+            "Unified TopBar: Centralización del contexto de la nota y las herramientas del documento.",
+            "Sidebar Inteligente: El panel explorador ahora se auto-colapsa para maximizar el espacio, e incluye modo fijado (Pin).",
+            "Títulos Completos: Se eliminó la compresión del texto para que los nombres largos de carpetas y notas se lean siempre enteros."
+        ]
+    },
     {
         version: "14.7.0",
         date: "2026-06-02",
