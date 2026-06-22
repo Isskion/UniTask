@@ -283,9 +283,9 @@ export default function UniLeaksSidebar({
                                             className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                         />
                                     ) : (
-                                        <span className="text-foreground font-medium truncate flex-1 select-none" title={folder.name}>{folder.name}</span>
+                                        <span className="text-foreground font-medium flex-1 select-none break-words whitespace-normal leading-tight" title={folder.name}>{folder.name}</span>
                                     )}
-                                    <div className="opacity-0 group-hover:opacity-100 flex items-center shrink-0">
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center shrink-0 bg-background/95 backdrop-blur-sm px-1 py-0.5 rounded-md shadow-sm border border-border/50">
                                         <div className="mr-1 h-5 flex items-center">
                                             <UniLeaksSearch scope="folder" contextId={folder.id} notesToSearch={notes} onResultClick={onNoteSelect} />
                                         </div>
@@ -388,7 +388,7 @@ export default function UniLeaksSidebar({
                                                 className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                             />
                                         ) : (
-                                            <span className={cn("text-sm truncate select-none flex-1", isActive && "text-primary font-medium")} title={note.title || "Nueva Nota..."}>
+                                            <span className={cn("text-sm select-none flex-1 break-words whitespace-normal leading-tight", isActive && "text-primary font-medium")} title={note.title || "Nueva Nota..."}>
                                                 {note.title || "Nueva Nota..."}
                                             </span>
                                         )}
