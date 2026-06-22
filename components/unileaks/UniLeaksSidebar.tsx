@@ -260,7 +260,7 @@ export default function UniLeaksSidebar({
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, folder.id)}
                                     className={cn(
-                                        "flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-lg cursor-pointer group text-sm transition-colors relative z-10",
+                                        "flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-lg cursor-pointer group text-sm transition-colors relative z-10 min-w-0",
                                         isRenaming === folder.id && "bg-muted",
                                         isDraggingOver && "bg-primary/30 scale-[1.02] shadow-sm ring-2 ring-primary/20"
                                     )}
@@ -283,7 +283,7 @@ export default function UniLeaksSidebar({
                                             className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                         />
                                     ) : (
-                                        <span className="text-foreground font-medium truncate flex-1 select-none">{folder.name}</span>
+                                        <span className="text-foreground font-medium truncate flex-1 select-none" title={folder.name}>{folder.name}</span>
                                     )}
                                     <div className="opacity-0 group-hover:opacity-100 flex items-center shrink-0">
                                         <div className="mr-1 h-5 flex items-center">
@@ -351,8 +351,8 @@ export default function UniLeaksSidebar({
                                 )}
                                 style={{ paddingLeft: `${depth * 32 + 12}px` }}
                             >
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 truncate flex-1">
+                                <div className="flex items-center justify-between gap-2 min-w-0">
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
                                         <div className="w-5 h-5 shrink-0 flex items-center justify-center">
                                             <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div> {/* Spacer matching chevron size */}
@@ -388,7 +388,7 @@ export default function UniLeaksSidebar({
                                                 className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                             />
                                         ) : (
-                                            <span className={cn("text-sm truncate select-none flex-1", isActive && "text-primary font-medium")}>
+                                            <span className={cn("text-sm truncate select-none flex-1", isActive && "text-primary font-medium")} title={note.title || "Nueva Nota..."}>
                                                 {note.title || "Nueva Nota..."}
                                             </span>
                                         )}

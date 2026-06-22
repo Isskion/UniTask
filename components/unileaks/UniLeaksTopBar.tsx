@@ -65,40 +65,47 @@ export default function UniLeaksTopBar({
     return (
         <div className="flex items-center justify-between h-[44px] px-4 w-full bg-white border-b shrink-0 relative z-50" style={{ borderBottom: '1px solid var(--color-border)' }}>
             
-            {/* IZQUIERDA: Logo */}
-            <div className="flex items-center">
-                <div className="flex items-center justify-center w-[26px] h-[26px] rounded-[5px]" style={{ background: 'var(--color-brand-red)' }}>
-                    <span className="text-white font-bold text-[14px] leading-none">U</span>
+            {/* IZQUIERDA: Logo + Breadcrumb */}
+            <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="flex items-center shrink-0">
+                    <div className="flex items-center justify-center w-[26px] h-[26px] rounded-[5px]" style={{ background: 'var(--color-brand-red)' }}>
+                        <span className="text-white font-bold text-[14px] leading-none">U</span>
+                    </div>
                 </div>
-            </div>
 
-            {/* CENTRO: Breadcrumb + Estado */}
-            <div className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
-                <div className="flex items-center" style={{ fontSize: '12.5px' }}>
-                    <span style={{ color: 'var(--color-text-muted)' }}>{project?.name || "Sin proyecto"}</span>
-                    <span className="mx-2" style={{ color: 'var(--color-separator)' }}>/</span>
-                    <span style={{ color: 'var(--color-text-muted)' }}>{folder?.name || "Raíz"}</span>
-                    <span className="mx-2" style={{ color: 'var(--color-separator)' }}>/</span>
-                    <span style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>{note?.title || "Nueva Nota"}</span>
+                <div className="flex items-center gap-2 min-w-0 truncate">
+                    <div className="flex items-center truncate" style={{ fontSize: '12.5px' }}>
+                        <span className="truncate max-w-[100px] sm:max-w-[150px] md:max-w-[200px]" style={{ color: 'var(--color-text-muted)' }} title={project?.name || "Sin proyecto"}>
+                            {project?.name || "Sin proyecto"}
+                        </span>
+                        <span className="mx-2 shrink-0" style={{ color: 'var(--color-separator)' }}>/</span>
+                        <span className="truncate max-w-[100px] sm:max-w-[150px] md:max-w-[200px]" style={{ color: 'var(--color-text-muted)' }} title={folder?.name || "Raíz"}>
+                            {folder?.name || "Raíz"}
+                        </span>
+                        <span className="mx-2 shrink-0" style={{ color: 'var(--color-separator)' }}>/</span>
+                        <span className="truncate" style={{ color: 'var(--color-text-primary)', fontWeight: 500 }} title={note?.title || "Nueva Nota"}>
+                            {note?.title || "Nueva Nota"}
+                        </span>
+                    </div>
+                    
+                    {autoSaveStatus === 'saved' && (
+                        <div className="flex items-center gap-1 ml-2 shrink-0" style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 500 }}>
+                            <Check className="w-3.5 h-3.5" />
+                            Guardado
+                        </div>
+                    )}
+                    {autoSaveStatus === 'saving' && (
+                        <div className="flex items-center gap-1 ml-2 shrink-0 text-amber-500" style={{ fontSize: '11px', fontWeight: 500 }}>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Guardando
+                        </div>
+                    )}
+                    {autoSaveStatus === 'error' && (
+                        <div className="flex items-center gap-1 ml-2 shrink-0 text-red-500" style={{ fontSize: '11px', fontWeight: 500 }}>
+                            Error al guardar
+                        </div>
+                    )}
                 </div>
-                
-                {autoSaveStatus === 'saved' && (
-                    <div className="flex items-center gap-1 ml-2" style={{ fontSize: '11px', color: 'var(--color-success)', fontWeight: 500 }}>
-                        <Check className="w-3.5 h-3.5" />
-                        Guardado
-                    </div>
-                )}
-                {autoSaveStatus === 'saving' && (
-                    <div className="flex items-center gap-1 ml-2 text-amber-500" style={{ fontSize: '11px', fontWeight: 500 }}>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        Guardando
-                    </div>
-                )}
-                {autoSaveStatus === 'error' && (
-                    <div className="flex items-center gap-1 ml-2 text-red-500" style={{ fontSize: '11px', fontWeight: 500 }}>
-                        Error al guardar
-                    </div>
-                )}
             </div>
 
             {/* DERECHA: Controles */}
