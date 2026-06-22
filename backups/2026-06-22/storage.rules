@@ -8,6 +8,24 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    // [SECURITY FIX] Mirrors firestore.rules: roleLevel/tenantId only trusted from
+    // the signed auth token (custom claims), never from client-supplied data.
+    function getRealRole() {
+      return (request.auth != null && request.auth.token != null && 'roleLevel' in request.auth.token)
+        ? int(request.auth.token.roleLevel)
+        : 0;
+    }
+
+    function getRealTenantId() {
+      return (request.auth != null && request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId).size() > 0)
+        ? string(request.auth.token.tenantId)
+        : "__DENY__";
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null && (getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com' || request.auth.token.email == 'daniel.delamo@unigis.com');
+    }
+
     // 1. [SPECIFIC] Profile Pictures 
     match /profile_pictures/{userId}/{allPaths=**} {
       allow read: if isAuthenticated();
@@ -20,8 +38,11 @@ service firebase.storage {
     }
 
     // 3. [SPECIFIC] Tenant-scoped data (Includes new UniLeaks path)
+    // [SECURITY FIX] Antes: isAuthenticated() sin comparar tenantId permitía a
+    // cualquier usuario leer/escribir el storage de CUALQUIER tenant (tenantId
+    // es un string secuencial y adivinable: "1", "2", "3"...).
     match /tenants/{tenantId}/{allPaths=**} {
-       allow read, write: if isAuthenticated();
+       allow read, write: if isAuthenticated() && (isSuperAdmin() || tenantId == getRealTenantId());
     }
 
     // 4. [LEGACY] Users path

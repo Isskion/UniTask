@@ -3405,10 +3405,10 @@
       "_seconds": 1781166278,
       "_nanoseconds": 86000000
     },
-    "status": "review",
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1781884545,
-      "_nanoseconds": 767000000
+      "_seconds": 1782140749,
+      "_nanoseconds": 992000000
     }
   },
   {
@@ -4461,11 +4461,11 @@
       "_seconds": 1780301838,
       "_nanoseconds": 631000000
     },
-    "endDate": "2026-06-18T22:00:00.000Z",
     "status": "in_progress",
+    "endDate": "2026-07-30T22:00:00.000Z",
     "updatedAt": {
-      "_seconds": 1781510291,
-      "_nanoseconds": 341000000
+      "_seconds": 1782140793,
+      "_nanoseconds": 681000000
     }
   },
   {
@@ -6927,7 +6927,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-33",
     "taskNumber": 33,
@@ -6936,10 +6935,18 @@
       "_seconds": 1781166803,
       "_nanoseconds": 945000000
     },
-    "status": "in_progress",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "XL",
+    "actualEffort": 14,
+    "closedAt": {
+      "_seconds": 1782139155,
+      "_nanoseconds": 523000000
+    },
+    "estimatedEffort": 10,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1781251495,
-      "_nanoseconds": 731000000
+      "_seconds": 1782139155,
+      "_nanoseconds": 523000000
     }
   },
   {
@@ -10890,7 +10897,6 @@
   {
     "id": "n8piRujE6mjmgOItofXv",
     "title": "-Mapear y documentar en ROADMAP interfaz con Portic.",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -10935,9 +10941,10 @@
       "_seconds": 1781166763,
       "_nanoseconds": 101000000
     },
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1781166763,
-      "_nanoseconds": 101000000
+      "_seconds": 1782140724,
+      "_nanoseconds": 302000000
     }
   },
   {

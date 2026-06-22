@@ -346,10 +346,12 @@ service cloud.firestore {
     }
 
     // --- [HARDENED] AUDIT LOGS ---
+    // [SECURITY FIX] Antes: isAuthenticated() sin filtro de tenant exponía el
+    // audit log de TODOS los tenants y permitía inyectar entradas falsas en cualquiera.
     match /task_activities/{activityId} {
-      allow read: if isAuthenticated(); 
-      allow create: if isAuthenticated(); 
-      allow update, delete: if false; 
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if false;
     }
 
     // --- SPRINTS (Strategic Planning) ---
@@ -614,8 +616,9 @@ service cloud.firestore {
 
     // --- [NEW] UNIFLUX FLOWS ---
     match /uniflux_flows/{flowId} {
-      // Allow individual GET if authenticated (to support exists() checks on new drafts)
-      allow get: if isAuthenticated();
+      // [SECURITY FIX] GET on a non-existent doc is allowed (exists() check before
+      // creating a new draft); GET on an existing doc now requires tenant match.
+      allow get: if isAuthenticated() && (isSuperAdmin() || resource == null || docTenantMatches(resource.data));
       // Allow LISTING only within the user's tenant
       allow list: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
       
@@ -727,15 +730,19 @@ service cloud.firestore {
     }
 
     // --- AGENDA SEMANAL DE CONSULTORES ---
-    // Aislamiento por tenant garantizado en el cliente (where tenantId == tid).
-    // getRealTenantId() falla cuando el token no tiene custom claim, por eso usamos
-    // isAuthenticated() como guardia principal para esta herramienta interna.
+    // [SECURITY FIX] Antes: isAuthenticated() sin filtro de tenant permitía leer/
+    // escribir la agenda de CUALQUIER tenant. docTenantMatches() ya cubre el caso
+    // legacy sin custom claim (fallback al doc de users/{uid}).
     match /agenda_entries/{entryId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
     }
 
     match /agenda_consultants/{consultantId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
     }
 
     // --- ACTIVE TIMERS (TaskControllerWidget) ---
