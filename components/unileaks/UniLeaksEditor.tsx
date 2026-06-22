@@ -878,7 +878,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
             />
 
             {/* Editor Area */}
-            <div className="flex-1 flex flex-col p-[52px_96px_80px] print:p-0 max-w-[1200px] mx-auto w-full">
+            <div className="flex-1 flex flex-col p-[40px_24px_60px] md:p-[48px_48px_80px] print:p-0 max-w-[1300px] mx-auto w-full">
                 <input
                     type="text"
                     value={title}
