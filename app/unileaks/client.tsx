@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import UniLeaksSidebar from "@/components/unileaks/UniLeaksSidebar";
 import UniLeaksEditor from "@/components/unileaks/UniLeaksEditor";
 import UniLeaksTopBar from "@/components/unileaks/UniLeaksTopBar";
-import FormatBar from "@/components/unileaks/FormatBar";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
