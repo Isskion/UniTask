@@ -11,9 +11,10 @@ interface UniLeaksSearchProps {
     notesToSearch?: UniLeakNote[]; // Array of notes to filter from (for folder/global)
     onResultClick?: (note: UniLeakNote) => void;
     className?: string;
+    onToggleOpen?: (isOpen: boolean) => void;
 }
 
-export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], onResultClick, className }: UniLeaksSearchProps) {
+export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], onResultClick, className, onToggleOpen }: UniLeaksSearchProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -90,6 +91,10 @@ export default function UniLeaksSearch({ scope, contextId, notesToSearch = [], o
 
         return () => clearTimeout(timer);
     }, [query, scope, contextId, notesToSearch, isOpen]);
+
+    useEffect(() => {
+        onToggleOpen?.(isOpen);
+    }, [isOpen, onToggleOpen]);
 
     // Cerrar con Escape
     useEffect(() => {

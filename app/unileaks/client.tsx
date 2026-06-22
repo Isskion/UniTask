@@ -35,7 +35,8 @@ function UniLeaksContent() {
     // New states for redesign
     const [isSidebarPinned, setIsSidebarPinned] = useState(false);
     const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-    const railExpanded = isSidebarPinned || isSidebarHovered;
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const railExpanded = isSidebarPinned || isSidebarHovered || isSearchOpen;
     
     const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
@@ -445,6 +446,7 @@ function UniLeaksContent() {
                         railExpanded={railExpanded}
                         isPinned={isSidebarPinned}
                         onTogglePin={() => setIsSidebarPinned(!isSidebarPinned)}
+                        onSearchToggle={setIsSearchOpen}
                         projects={projects}
                         activeProjectId={activeProjectId}
                         onProjectChange={setActiveProjectId}

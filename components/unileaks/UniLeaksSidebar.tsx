@@ -35,6 +35,7 @@ interface UniLeaksSidebarProps {
     loading: boolean;
     usersMap?: Map<string, NoteOwnerInfo>;
     currentUserId?: string;
+    onSearchToggle?: (isOpen: boolean) => void;
 }
 
 type ContextMenuState = {
@@ -67,7 +68,8 @@ export default function UniLeaksSidebar({
     onMoveFolder,
     loading,
     usersMap,
-    currentUserId
+    currentUserId,
+    onSearchToggle
 }: UniLeaksSidebarProps) {
     const { t } = useLanguage();
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -290,7 +292,7 @@ export default function UniLeaksSidebar({
                                     )}
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center shrink-0 bg-background/95 backdrop-blur-sm px-1 py-0.5 rounded-md shadow-sm border border-border/50">
                                         <div className="mr-1 h-5 flex items-center">
-                                            <UniLeaksSearch scope="folder" contextId={folder.id} notesToSearch={notes} onResultClick={onNoteSelect} />
+                                            <UniLeaksSearch scope="folder" contextId={folder.id} notesToSearch={notes} onResultClick={onNoteSelect} onToggleOpen={onSearchToggle} />
                                         </div>
                                         <button
                                             onClick={(e) => {
@@ -492,7 +494,7 @@ export default function UniLeaksSidebar({
                 </div>
                 <div className="flex items-center justify-between w-full mt-1">
                     <div className="flex-1 min-w-0 h-8 flex items-center">
-                        <UniLeaksSearch scope="global" contextId={null} notesToSearch={notes} onResultClick={onNoteSelect} />
+                        <UniLeaksSearch scope="global" contextId={null} notesToSearch={notes} onResultClick={onNoteSelect} onToggleOpen={onSearchToggle} />
                     </div>
                     <div className="flex gap-1 ml-2 shrink-0">
                         <button
