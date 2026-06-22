@@ -4,6 +4,7 @@ cristina-blanca@hotmail.es -> RbJjKxo4F7PSUWsneYHNy5vpu7i1
 cursoiadaniel@gmail.com -> GjkwIyjxsOXxj4OHH5D6KtV0DYt1
 daniel.delamo@unigis.com -> 6C9ZN0mfngNb5gIAWw1EMSaQcRR2
 danieldelamo2@gmail.com -> HKItfVWxI1MVy4djivVGZV9amqt2
+david.basterrechea@unigis.com -> tndDXHUhD1c6IJqb8dcxvL700Y72
 david.delamo@gmail.com -> idTSjTprwnM1GkgUSIiSzcxyi932
 delamosainznaiara@gmail.com -> RPFCzfTMnVfIZHZWdjnYC06hjSI2
 diego.senra@unigis.com -> 4Bv59XpXVHQop7puwmjRRemGcxU2
@@ -23,4 +24,4 @@ maria.isasa@unigis.com -> UsuqceJ4ylTflrGmgHQfhOLnCy13
 pilumm@gmail.com -> g1bMbjOkwoZCbIvhbivtwVuTGjA3
 siscojimenez@hotmail.com -> pt24Ktl3JQfYQgmIn2QuG7Tt3yC3
 unitaskcontroller.noreply@gmail.com -> 3avBlnAV7pOc2V0Lmrwew6PLUT72
-# TXT_BACKUP_SNAPSHOT: 22/6/2026, 0:56:48
+# TXT_BACKUP_SNAPSHOT: 23/6/2026, 0:29:03
