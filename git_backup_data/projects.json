@@ -1015,6 +1015,32 @@
     "divisionId": "CONS"
   },
   {
+    "id": "nMPNYQoRNdTaD8JoWkSQ",
+    "name": "David",
+    "code": "DAV",
+    "color": "#71717a",
+    "isActive": true,
+    "email": "",
+    "phone": "",
+    "regionId": "ES",
+    "divisionId": "CON",
+    "tenantId": "3",
+    "status": "active",
+    "health": "healthy",
+    "clientName": "",
+    "teamIds": [],
+    "address": "",
+    "_accessKey": "ES:CON",
+    "createdAt": {
+      "_seconds": 1782122843,
+      "_nanoseconds": 697000000
+    },
+    "lastUpdate": {
+      "_seconds": 1782122843,
+      "_nanoseconds": 697000000
+    }
+  },
+  {
     "id": "oojKGyu9qvjodzj225sS",
     "name": "Miguel Lobato",
     "code": "MIG-001",

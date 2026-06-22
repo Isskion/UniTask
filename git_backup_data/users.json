@@ -1184,5 +1184,51 @@
       "_seconds": 1777292639,
       "_nanoseconds": 432000000
     }
+  },
+  {
+    "id": "tndDXHUhD1c6IJqb8dcxvL700Y72",
+    "uid": "tndDXHUhD1c6IJqb8dcxvL700Y72",
+    "email": "david.basterrechea@unigis.com",
+    "displayName": "david",
+    "role": "consultant",
+    "roleLevel": 40,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1782122730,
+      "_nanoseconds": 572000000
+    },
+    "lastLogin": {
+      "_seconds": 1782122730,
+      "_nanoseconds": 572000000
+    },
+    "syncId": 1782122732743,
+    "permissionGroupId": "",
+    "photoURL": "",
+    "address": "",
+    "phone": "",
+    "worksOnWeekends": false,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "CON"
+      ]
+    },
+    "jobTitle": "",
+    "aiEnabled": false,
+    "assignedProjectIds": [
+      "DWXtB3YW0vii8A55ZQYR",
+      "HKnZypXlGdM0VjRLOysB",
+      "nMPNYQoRNdTaD8JoWkSQ"
+    ],
+    "language": "es",
+    "company": "",
+    "isConsultant": false,
+    "updatedAt": {
+      "_seconds": 1782122867,
+      "_nanoseconds": 746000000
+    }
   }
 ]
