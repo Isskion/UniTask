@@ -7,6 +7,19 @@ and this project adheres to Semantic Versioning: **V.R.E** (Version.Rama.Etapa).
 
 ---
 
+## [14.8.0] - 2026-06-22
+
+### Added
+- **UniLeaks UI Redesign**: Major interface overhaul for the UniLeaks editing experience.
+- **Unified TopBar**: Centralized context (Project / Folder / Note) and document tools (Visibility, Export, Minuta) into a clean, floating top bar.
+- **Rail Mode Sidebar**: The explorer panel now smoothly transitions between a fully expanded view (260px) and a collapsed "Rail" mode (52px) to maximize writing space.
+- **Design Tokens**: Introduced consistent glassmorphism shadows and structured CSS variables in `globals.css` for a more modern aesthetic.
+
+### Changed
+- **Editor Refactoring**: Cleaned up legacy headers inside `UniLeaksEditor` to fully utilize the new TopBar actions.
+- **Formatting Tools**: Shifted reliance entirely to the contextual `BubbleMenu` for text formatting to keep the UI decluttered without a fixed formatting bar.
+
+---
 ## [14.7.0] - 2026-06-02
 
 ### Added
