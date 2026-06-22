@@ -33,7 +33,10 @@ function UniLeaksContent() {
     const [usersMap, setUsersMap] = useState<Map<string, NoteOwnerInfo>>(new Map());
 
     // New states for redesign
-    const [railExpanded, setRailExpanded] = useState(false);
+    const [isSidebarPinned, setIsSidebarPinned] = useState(false);
+    const [isSidebarHovered, setIsSidebarHovered] = useState(false);
+    const railExpanded = isSidebarPinned || isSidebarHovered;
+    
     const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
     const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
     const [editorActions, setEditorActions] = useState<{
@@ -432,10 +435,16 @@ function UniLeaksContent() {
                     <div className="absolute inset-0 bg-black/40 z-40" style={{ pointerEvents: 'none' }} />
                 )}
 
-                <div className="print:hidden h-full z-10 shrink-0" style={{ backgroundColor: 'var(--color-bg-sidebar)', borderRight: '1px solid var(--color-border)' }}>
+                <div 
+                    className="print:hidden h-full z-10 shrink-0" 
+                    style={{ backgroundColor: 'var(--color-bg-sidebar)', borderRight: '1px solid var(--color-border)' }}
+                    onMouseEnter={() => setIsSidebarHovered(true)}
+                    onMouseLeave={() => setIsSidebarHovered(false)}
+                >
                     <UniLeaksSidebar
                         railExpanded={railExpanded}
-                        onToggleRail={() => setRailExpanded(!railExpanded)}
+                        isPinned={isSidebarPinned}
+                        onTogglePin={() => setIsSidebarPinned(!isSidebarPinned)}
                         projects={projects}
                         activeProjectId={activeProjectId}
                         onProjectChange={setActiveProjectId}

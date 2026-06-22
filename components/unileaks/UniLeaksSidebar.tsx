@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
-import { Plus, Folder, FileText, ChevronRight, ChevronLeft, ChevronDown, Lock, Globe, Users, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
+import { Plus, Folder, FileText, ChevronRight, ChevronLeft, ChevronDown, Lock, Globe, Users, MoreVertical, Edit2, Trash2, Loader2, BookMarked, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -13,6 +13,8 @@ import UniLeaksSearch from "./UniLeaksSearch";
 
 interface UniLeaksSidebarProps {
     railExpanded: boolean;
+    isPinned: boolean;
+    onTogglePin: () => void;
     onToggleRail?: () => void;
     projects: Project[];
     activeProjectId: string;
@@ -45,7 +47,8 @@ type ContextMenuState = {
 
 export default function UniLeaksSidebar({
     railExpanded,
-    onToggleRail,
+    isPinned,
+    onTogglePin,
     projects,
     activeProjectId,
     onProjectChange,
@@ -423,8 +426,8 @@ export default function UniLeaksSidebar({
                 <div className="flex flex-col items-center py-4 gap-4 w-full">
                     <button 
                         className="p-2 hover:bg-muted rounded-lg transition-colors group" 
-                        title="Proyectos"
-                        onClick={onToggleRail}
+                        title="Fijar Explorador"
+                        onClick={onTogglePin}
                     >
                         <Folder className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
                     </button>
@@ -438,8 +441,8 @@ export default function UniLeaksSidebar({
                     </button>
                     <button 
                         className="p-2 hover:bg-muted rounded-lg transition-colors group mt-2" 
-                        onClick={onToggleRail} 
-                        title="Abrir Explorador"
+                        onClick={onTogglePin} 
+                        title="Fijar Explorador"
                     >
                         <BookMarked className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
                     </button>
@@ -483,8 +486,8 @@ export default function UniLeaksSidebar({
                         )}
                         <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">Base de<br />Conocimiento</span>
                     </div>
-                    <button onClick={onToggleRail} className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" title="Colapsar explorador">
-                        <ChevronLeft className="w-5 h-5" />
+                    <button onClick={onTogglePin} className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" title={isPinned ? "Desfijar explorador" : "Fijar explorador"}>
+                        <Pin className={cn("w-5 h-5 transition-transform", !isPinned && "-rotate-45")} />
                     </button>
                 </div>
                 <div className="flex items-center justify-between w-full mt-1">
