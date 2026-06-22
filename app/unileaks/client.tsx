@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import UniLeaksSidebar from "@/components/unileaks/UniLeaksSidebar";
 import UniLeaksEditor from "@/components/unileaks/UniLeaksEditor";
+import UniLeaksTopBar from "@/components/unileaks/UniLeaksTopBar";
+import FormatBar from "@/components/unileaks/FormatBar";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -30,6 +32,19 @@ function UniLeaksContent() {
     const [loadingProjects, setLoadingProjects] = useState(true);
     const [loadingNotes, setLoadingNotes] = useState(false);
     const [usersMap, setUsersMap] = useState<Map<string, NoteOwnerInfo>>(new Map());
+
+    // New states for redesign
+    const [railExpanded, setRailExpanded] = useState(false);
+    const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+    const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'dirty' | 'error'>('idle');
+    const [editorActions, setEditorActions] = useState<{
+        onExportPDF?: () => void;
+        onExportImage?: () => void;
+        onPrintNote?: () => void;
+    }>({});
+
+    const activeProject = projects.find(p => p.id === activeProjectId);
+    const activeFolder = folders.find(f => f.id === activeNote?.folderId);
 
     // Evaluate create permission outside effect to avoid unstable function reference loops
     const canCreateProject = can('create', 'project');
@@ -174,6 +189,24 @@ function UniLeaksContent() {
             updatedAt: null,
         };
         setActiveNote(newNote);
+    };
+
+    const handleSetVisibility = async (isPublic: boolean, isInternal: boolean) => {
+        if (!activeNote || !activeNote.id) {
+            // Si no está guardada aún, solo actualizamos estado local
+            setActiveNote(prev => prev ? { ...prev, isPublic, isInternal } : null);
+            return;
+        }
+        const newNote = { ...activeNote, isPublic, isInternal };
+        try {
+            await saveNote({ id: activeNote.id, isPublic, isInternal });
+            setNotes(prev => prev.map(n => n.id === activeNote.id ? newNote : n));
+            setActiveNote(newNote);
+            showToast("Visibilidad Actualizada", "Los permisos de la nota han sido guardados", "success");
+        } catch (e) {
+            console.error("Error setting visibility", e);
+            showToast("Error", "No se pudo actualizar la visibilidad", "error");
+        }
     };
 
     const handleNoteSaveSuccess = (savedNote: UniLeakNote) => {
@@ -374,49 +407,82 @@ function UniLeaksContent() {
     }
 
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground selection:bg-primary/30 selection:text-primary print:h-auto print:overflow-visible">
-            <div className="print:hidden h-full">
-                <UniLeaksSidebar
-                    projects={projects}
-                    activeProjectId={activeProjectId}
-                    onProjectChange={setActiveProjectId}
-                    notes={notes}
-                    folders={folders}
-                    activeNoteId={activeNote?.id || null}
-                    onNoteSelect={handleNoteSelect}
-                    onNewNote={(folderId) => handleNewNote(folderId)}
-                    onUpdateNote={handleUpdateNote}
-                    onDuplicateNote={handleDuplicateNote}
-                    onDeleteNote={executeNoteDelete}
-                    onCreateFolder={handleCreateFolder}
-                    onUpdateFolder={handleUpdateFolder}
-                    onDeleteFolder={handleDeleteFolder}
-                    onMoveNote={handleMoveNote}
-                    onMoveFolder={handleMoveFolder}
-                    loading={loadingNotes}
-                    usersMap={usersMap}
-                    currentUserId={user?.uid || ""}
-                />
-            </div>
-            <div className="flex-1 overflow-y-auto">
-                {activeNote ? (
-                    <UniLeaksEditor
-                        note={activeNote}
-                        onSaveSuccess={handleNoteSaveSuccess}
-                        onDeleteSuccess={handleNoteDelete}
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                        <p>Selecciona una nota para editarla o crea una nueva.</p>
-                        <button
-                            onClick={() => handleNewNote(null)}
-                            disabled={!activeProjectId}
-                            className="mt-4 px-4 py-2 border border-border rounded hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
-                        >
-                            Crear Nueva Nota
-                        </button>
-                    </div>
+        <div className="flex flex-col h-screen w-screen overflow-hidden bg-white text-foreground selection:bg-primary/30 selection:text-primary print:h-auto print:overflow-visible">
+            <UniLeaksTopBar 
+                project={activeProject}
+                folder={activeFolder}
+                note={activeNote || undefined}
+                notes={notes}
+                onNoteSelect={handleNoteSelect}
+                autoSaveStatus={autoSaveStatus}
+                isPublic={activeNote?.isPublic || false}
+                isInternal={activeNote?.isInternal || false}
+                onSetVisibility={handleSetVisibility}
+                onNewMinuta={() => handleNewNote(activeNote?.folderId || null)}
+                onPrintNote={() => editorActions.onPrintNote?.()}
+                onExportPDF={() => editorActions.onExportPDF?.()}
+                onExportImage={() => editorActions.onExportImage?.()}
+                onDeleteNote={() => activeNote && executeNoteDelete(activeNote.id)}
+                toolsDropdownOpen={toolsDropdownOpen}
+                setToolsDropdownOpen={setToolsDropdownOpen}
+            />
+            
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Backdrop cuando se abre Herramientas */}
+                {toolsDropdownOpen && (
+                    <div className="absolute inset-0 bg-black/40 z-40" style={{ pointerEvents: 'none' }} />
                 )}
+
+                <div className="print:hidden h-full z-10 shrink-0" style={{ backgroundColor: 'var(--color-bg-sidebar)', borderRight: '1px solid var(--color-border)' }}>
+                    <UniLeaksSidebar
+                        railExpanded={railExpanded}
+                        onToggleRail={() => setRailExpanded(!railExpanded)}
+                        projects={projects}
+                        activeProjectId={activeProjectId}
+                        onProjectChange={setActiveProjectId}
+                        notes={notes}
+                        folders={folders}
+                        activeNoteId={activeNote?.id || null}
+                        onNoteSelect={handleNoteSelect}
+                        onNewNote={(folderId) => handleNewNote(folderId)}
+                        onUpdateNote={handleUpdateNote}
+                        onDuplicateNote={handleDuplicateNote}
+                        onDeleteNote={executeNoteDelete}
+                        onCreateFolder={handleCreateFolder}
+                        onUpdateFolder={handleUpdateFolder}
+                        onDeleteFolder={handleDeleteFolder}
+                        onMoveNote={handleMoveNote}
+                        onMoveFolder={handleMoveFolder}
+                        loading={loadingNotes}
+                        usersMap={usersMap}
+                        currentUserId={user?.uid || ""}
+                    />
+                </div>
+
+                <div className="flex flex-col flex-1 overflow-hidden z-0">
+                    {activeNote ? (
+                        <div className="flex-1 overflow-y-auto relative bg-white">
+                            <UniLeaksEditor
+                                note={activeNote}
+                                onSaveSuccess={handleNoteSaveSuccess}
+                                    onDeleteSuccess={handleNoteDelete}
+                                    onAutoSaveStatusChange={setAutoSaveStatus}
+                                    onRegisterActions={setEditorActions}
+                                />
+                            </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-white">
+                            <p>Selecciona una nota para editarla o crea una nueva.</p>
+                            <button
+                                onClick={() => handleNewNote(null)}
+                                disabled={!activeProjectId}
+                                className="mt-4 px-4 py-2 border rounded hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
+                            >
+                                Crear Nueva Nota
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

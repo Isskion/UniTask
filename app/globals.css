@@ -55,6 +55,21 @@
   --ring: hsl(240 4.9% 83.9%);
 
   --radius: 0.5rem;
+
+  /* UniLeaks Redesign Tokens */
+  --color-brand-red: #E03E36;
+  --color-brand-orange: #E49230;
+  --color-text-primary: #1A1A18;
+  --color-text-secondary: #3A3835;
+  --color-text-muted: #9B9591;
+  --color-text-faint: #B0ACA6;
+  --color-border-light: #F0EDE8;
+  --color-bg-sidebar: #FAFAF8;
+  --color-bg-hover: #F5F4F2;
+  --color-active-item-bg: #FFEEED;
+  --color-active-item-text: #C83028;
+  --color-success: #3D9A5C;
+  --color-separator: #D0CDC7;
 }
 
 @layer base {

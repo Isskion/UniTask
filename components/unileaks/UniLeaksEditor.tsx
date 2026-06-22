@@ -107,13 +107,16 @@ const CustomBulletList = BulletList.extend({
     },
 });
 
+
 interface UniLeaksEditorProps {
     note: UniLeakNote;
     onSaveSuccess: (note: UniLeakNote) => void;
     onDeleteSuccess: (noteId: string) => void;
+    onAutoSaveStatusChange?: (status: 'idle' | 'saving' | 'saved' | 'dirty' | 'error') => void;
+    onRegisterActions?: (actions: any) => void;
 }
 
-export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }: UniLeaksEditorProps) {
+export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, onAutoSaveStatusChange, onRegisterActions }: UniLeaksEditorProps) {
     const { showToast } = useToast();
     const { user, tenantId: currentTenantId } = useAuth();
     const { deleteDoc: deleteFirebaseDoc } = useSafeFirestore();
@@ -131,6 +134,12 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     const [showTemplatePicker, setShowTemplatePicker] = useState(false);
     const [showMinutaWizard, setShowMinutaWizard] = useState(false);
     const [verifiedWords, setVerifiedWords] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (onAutoSaveStatusChange) {
+            onAutoSaveStatusChange(autoSaveStatus);
+        }
+    }, [autoSaveStatus, onAutoSaveStatusChange]);
 
     // Excel Importer State
     const [xlsxSheets, setXlsxSheets] = useState<string[]>([]);
@@ -524,7 +533,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     }, []);
 
     // --- EXPORT LOGIC ---
-    const handleExportPDF = () => {
+    const handleExportPDF = useCallback(() => {
         if (!editor) return;
         const htmlContent = `
             <!DOCTYPE html>
@@ -569,7 +578,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         setTimeout(() => {
             printWindow.print();
         }, 500);
-    };
+    }, [editor, title]);
 
     const triggerDownload = (content: string, filename: string, mimeType: string) => {
         const blob = new Blob([content], { type: mimeType });
@@ -584,7 +593,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
         showToast('Descargado', `${filename} descargado correctamente.`, 'success');
     };
 
-    const handleExportMarkdown = () => {
+    const handleExportMarkdown = useCallback(() => {
         if (!editor) return;
         const html = editor.getHTML();
         const contentMd = html
@@ -601,9 +610,9 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
             .replace(/&lt;/g, '<')
             .replace(/&gt;/g, '>');
         triggerDownload(`# ${title}\n\n${contentMd}`, `${title || 'nota'}.md`, 'text/markdown;charset=utf-8');
-    };
+    }, [editor, title]);
 
-    const handleExportHTML = () => {
+    const handleExportHTML = useCallback(() => {
         if (!editor) return;
         const htmlContent = `<!DOCTYPE html>
 <html>
@@ -624,7 +633,19 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
 </body>
 </html>`;
         triggerDownload(htmlContent, `${title || 'nota'}.html`, 'text/html;charset=utf-8');
-    };
+    }, [editor, title]);
+
+    useEffect(() => {
+        if (onRegisterActions) {
+            onRegisterActions({
+                onPrintNote: () => setShowTemplatePicker(true),
+                onExportPDF: handleExportPDF,
+                onExportMarkdown: handleExportMarkdown,
+                onExportHTML: handleExportHTML,
+                onExportImage: handleExportPDF // Placeholder for actual image export
+            });
+        }
+    }, [onRegisterActions, handleExportPDF, handleExportMarkdown, handleExportHTML]);
 
 
     // --- AUTO-SAVE LOGIC ---
@@ -834,224 +855,30 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
     }, [importSheetToEditor]);
 
     return (
-        <div className="flex flex-col h-full max-w-5xl mx-auto">
-            {/* Header Toolbar */}
-            <div className="flex items-center justify-between py-6 px-10 border-b border-border bg-background sticky top-0 z-10">
-                <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-xl border border-border/50">
-                    <button
-                        onClick={() => {
-                            setIsPublic(false);
-                            setIsInternal(false);
-                            setAutoSaveStatus('dirty');
-                        }}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
-                            (!isPublic && !isInternal) 
-                                ? "bg-background text-foreground shadow-sm ring-1 ring-border" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                        )}
-                        title={t('unileaks.visibility.private_desc')}
-                    >
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>{t('unileaks.visibility.private')}</span>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setIsPublic(false);
-                            setIsInternal(true);
-                            setAutoSaveStatus('dirty');
-                        }}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
-                            (!isPublic && isInternal) 
-                                ? "bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/20 shadow-sm" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                        )}
-                        title={t('unileaks.visibility.internal_desc')}
-                    >
-                        <Users className="w-3.5 h-3.5" />
-                        <span>{t('unileaks.visibility.internal')}</span>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setIsPublic(true);
-                            setIsInternal(false);
-                            setAutoSaveStatus('dirty');
-                        }}
-                        className={cn(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all text-xs font-bold uppercase tracking-tight",
-                            (isPublic) 
-                                ? "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20 shadow-sm" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                        )}
-                        title={t('unileaks.visibility.public_desc')}
-                    >
-                        <Globe className="w-3.5 h-3.5" />
-                        <span>{t('unileaks.visibility.public')}</span>
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-6 print:hidden">
-                    <UniLeaksSearch scope="form" contextId={note.id} />
-                    {/* Auto-save Status Indicator */}
-                    <div className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
-                        {autoSaveStatus === 'saving' ? (
-                            <span className="text-amber-500 flex items-center gap-1">
-                                <Loader2 className="w-3 h-3 animate-spin" /> Guardando...
-                            </span>
-                        ) : autoSaveStatus === 'saved' ? (
-                            <span className="text-emerald-500 flex items-center gap-1">
-                                <Check className="w-3 h-3" /> Cambios guardados
-                            </span>
-                        ) : autoSaveStatus === 'dirty' ? (
-                            <span className="text-muted-foreground opacity-50 italic">
-                                Editando...
-                            </span>
-                        ) : autoSaveStatus === 'error' ? (
-                            <span className="text-red-500">
-                                Error al guardar
-                            </span>
-                        ) : null}
-                    </div>
-
-                    <div className="flex items-center gap-1 border-l border-border pl-4 mr-2">
-                        <div className="flex items-center bg-muted/40 rounded-xl p-1 gap-1 border border-border/50">
-                            {/* Opción 1: Impresión de Minuta (Multi-nota) */}
-                            {note.projectId && (note.tenantId || currentTenantId) && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        setShowDownloadMenu(false);
-                                        setShowMinutaWizard(true);
-                                    }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-tight text-muted-foreground hover:text-primary hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-md group"
-                                    title="Crear minuta combinando varias notas con portada"
-                                >
-                                    <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                    <span>Crear Minuta</span>
-                                </button>
-                            )}
-
-                            <div className="w-px h-4 bg-border/60 mx-0.5" />
-
-                            {/* Opción 2: Impresión de Nota Actual (UniDocs) */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    setShowDownloadMenu(false);
-                                    setShowTemplatePicker(true);
-                                }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-tight text-muted-foreground hover:text-primary hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-md group"
-                                title="Imprimir esta nota con plantilla y portada UniDocs"
-                            >
-                                <BookMarked className="w-4 h-4 group-hover:rotate-6 transition-transform" />
-                                <span>Imprimir Nota</span>
-                            </button>
-                        </div>
-                        <div className="relative">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowDownloadMenu(!showDownloadMenu);
-                                }}
-                                className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                                title="Exportar / Descargar"
-                            >
-                                <Download className="w-5 h-5" />
-                            </button>
-                            {showDownloadMenu && (
-                                <div
-                                    ref={downloadMenuRef}
-                                    className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
-                                >
-                                    <button
-                                        onClick={() => { handleExportPDF(); setShowDownloadMenu(false); }}
-                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
-                                    >
-                                        <FileText className="w-4 h-4 text-red-500" /> PDF (Imprimir)
-                                    </button>
-                                    <button
-                                        onClick={() => { handleExportMarkdown(); setShowDownloadMenu(false); }}
-                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
-                                    >
-                                        <FileCode className="w-4 h-4 text-primary" /> Markdown (.md)
-                                    </button>
-                                    <button
-                                        onClick={() => { handleExportHTML(); setShowDownloadMenu(false); }}
-                                        className="w-full text-left px-4 py-2 hover:bg-muted flex items-center gap-3 text-sm"
-                                    >
-                                        <FileType className="w-4 h-4 text-amber-500" /> HTML (.html)
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        {note.id && (
-                            <button
-                                onClick={handleDelete}
-                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                                title="Eliminar Nota"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        )}
-                        <input
-                            type="file"
-                            id="unileaks-image-upload"
-                            className="hidden"
-                            accept="image/*"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleImageUpload(file);
-                            }}
-                        />
-                        <label
-                            htmlFor="unileaks-image-upload"
-                            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
-                            title="Insertar Imagen"
-                        >
-                            {isUploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
-                        </label>
-
-                        {/* Excel Importer */}
-                        <input
-                            ref={excelInputRef}
-                            type="file"
-                            id="unileaks-excel-upload"
-                            className="hidden"
-                            accept=".xlsx,.xls,.csv"
-                            onChange={handleExcelFile}
-                        />
-                        <label
-                            htmlFor="unileaks-excel-upload"
-                            className="p-2 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
-                            title="Importar tabla desde Excel"
-                        >
-                            <FileSpreadsheet className="w-5 h-5" />
-                        </label>
-
-                        {note.id && (
-                            <button
-                                onClick={async () => {
-                                    const url = getShareUrl('unileaks', note.id);
-                                    const success = await copyToClipboard(url);
-                                    if (success) showToast("UniTask", t('common.link_copied'), "success");
-                                }}
-                                className="p-2 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-500/10 rounded-lg transition-colors"
-                                title="Compartir Nota"
-                            >
-                                <Share2 className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
+        <div className="flex flex-col h-full w-full relative bg-white">
+            
+            {/* Hidden Inputs for Editor Features */}
+            <input
+                type="file"
+                id="unileaks-image-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                }}
+            />
+            <input
+                ref={excelInputRef}
+                type="file"
+                id="unileaks-excel-upload"
+                className="hidden"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleExcelFile}
+            />
 
             {/* Editor Area */}
-            <div className="flex-1 flex flex-col p-10 pb-20 print:p-0">
+            <div className="flex-1 flex flex-col p-[52px_96px_80px] print:p-0 max-w-[1200px] mx-auto w-full">
                 <input
                     type="text"
                     value={title}
@@ -1060,7 +887,7 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess }:
                         setAutoSaveStatus('dirty');
                     }}
                     placeholder="Título de la nota..."
-                    className="w-full text-5xl font-extrabold bg-transparent border-none outline-none mb-8 text-foreground placeholder-muted-foreground placeholder-opacity-50 print:text-4xl print:mb-4"
+                    className="w-full text-[36px] font-bold bg-transparent border-none outline-none mb-4 text-black placeholder-[var(--color-text-faint)] print:text-4xl print:mb-4"
                 />
 
                 <div className="flex-1 w-full relative">

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Project, UniLeakNote, UniLeakFolder } from "@/types";
-import { Plus, Folder, FileText, ChevronRight, ChevronDown, Lock, Globe, Users, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
+import { Plus, Folder, FileText, ChevronRight, ChevronLeft, ChevronDown, Lock, Globe, Users, MoreVertical, Edit2, Trash2, Loader2, BookMarked } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -12,6 +12,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import UniLeaksSearch from "./UniLeaksSearch";
 
 interface UniLeaksSidebarProps {
+    railExpanded: boolean;
+    onToggleRail?: () => void;
     projects: Project[];
     activeProjectId: string;
     onProjectChange: (pid: string) => void;
@@ -42,6 +44,8 @@ type ContextMenuState = {
 };
 
 export default function UniLeaksSidebar({
+    railExpanded,
+    onToggleRail,
     projects,
     activeProjectId,
     onProjectChange,
@@ -408,59 +412,99 @@ export default function UniLeaksSidebar({
     };
 
     return (
-        <div className="min-w-[18rem] w-fit max-w-md border-r border-border bg-card flex flex-col h-full shrink-0 relative select-none" ref={sidebarRef}>
-            {/* Project Selector */}
-            <div className="p-4 border-b border-border bg-background z-10 shrink-0">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
-                    <Folder className="w-3 h-3" />
-                    Proyecto
-                </label>
-                <div className="relative">
-                    <select
-                        className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground appearance-none focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-                        value={activeProjectId}
-                        onChange={(e) => onProjectChange(e.target.value)}
+        <div 
+            className={cn(
+                "border-r border-border bg-card flex flex-col h-full shrink-0 relative select-none transition-all duration-300",
+                railExpanded ? "w-[260px]" : "w-[52px] items-center"
+            )} 
+            ref={sidebarRef}
+        >
+            {!railExpanded ? (
+                <div className="flex flex-col items-center py-4 gap-4 w-full">
+                    <button 
+                        className="p-2 hover:bg-muted rounded-lg transition-colors group" 
+                        title="Proyectos"
+                        onClick={onToggleRail}
                     >
-                        {projects.map(p => (
-                            <option key={p.id} value={p.id}>
-                                {p.name}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 absolute right-3 top-2.5 text-muted-foreground pointer-events-none" />
+                        <Folder className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
+                    </button>
+                    <div className="w-6 h-px bg-border/60" />
+                    <button 
+                        className="p-2 hover:bg-primary/10 rounded-lg transition-colors group" 
+                        onClick={() => onNewNote(null)} 
+                        title="Nueva Nota Raíz"
+                    >
+                        <Plus className="w-5 h-5 text-primary" />
+                    </button>
+                    <button 
+                        className="p-2 hover:bg-muted rounded-lg transition-colors group mt-2" 
+                        onClick={onToggleRail} 
+                        title="Abrir Explorador"
+                    >
+                        <BookMarked className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
+                    </button>
                 </div>
-            </div>
+            ) : (
+                <>
+                    {/* Project Selector */}
+                    <div className="p-4 border-b border-border bg-background z-10 shrink-0">
+                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Folder className="w-3 h-3" />
+                            Proyecto
+                        </label>
+                        <div className="relative">
+                            <select
+                                className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-foreground appearance-none focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+                                value={activeProjectId}
+                                onChange={(e) => onProjectChange(e.target.value)}
+                            >
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="w-4 h-4 absolute right-3 top-2.5 text-muted-foreground pointer-events-none" />
+                        </div>
+                    </div>
 
             {/* Header Toolbar */}
             <div className="p-4 flex flex-col gap-3 shrink-0 border-b border-border/40">
-                <div className="flex items-center gap-3">
-                    {tenantLogo ? (
-                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-sm shrink-0 border border-border">
-                            <img src={tenantLogo} alt="Tenant Logo" className="max-w-full max-h-full object-contain" />
-                        </div>
-                    ) : (
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                            <FileText className="w-4 h-4 text-primary" />
-                        </div>
-                    )}
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">Base de<br />Conocimiento</span>
-                    <div className="ml-2 flex-1 h-8 flex items-center">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {tenantLogo ? (
+                            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-sm shrink-0 border border-border">
+                                <img src={tenantLogo} alt="Tenant Logo" className="max-w-full max-h-full object-contain" />
+                            </div>
+                        ) : (
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                                <FileText className="w-4 h-4 text-primary" />
+                            </div>
+                        )}
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight">Base de<br />Conocimiento</span>
+                    </div>
+                    <button onClick={onToggleRail} className="p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors" title="Colapsar explorador">
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                </div>
+                <div className="flex items-center justify-between w-full mt-1">
+                    <div className="flex-1 min-w-0 h-8 flex items-center">
                         <UniLeaksSearch scope="global" contextId={null} notesToSearch={notes} onResultClick={onNoteSelect} />
                     </div>
-                    <div className="flex gap-1 ml-auto">
+                    <div className="flex gap-1 ml-2 shrink-0">
                         <button
                             onClick={() => {
                                 const name = prompt("Nombre de la nueva carpeta:");
                                 if (name) onCreateFolder(name, null);
                             }}
-                            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg transition-colors bg-muted/30 border border-border/50"
                             title="Nueva Carpeta Raíz"
                         >
                             <Folder className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => onNewNote(null)}
-                            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-primary/20 text-muted-foreground hover:text-primary rounded-lg transition-colors bg-primary/10 border border-primary/20"
                             title="Nueva Nota Raíz"
                         >
                             <Plus className="w-4 h-4" />
@@ -507,6 +551,8 @@ export default function UniLeaksSidebar({
                     )}
                 </div>
             </div>
+            </>
+            )}
 
             {/* Context Menu Overlay */}
             {contextMenu.visible && (
