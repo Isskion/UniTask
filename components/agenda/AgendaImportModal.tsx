@@ -1,14 +1,21 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin, RefreshCw } from "lucide-react";
+import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin, RefreshCw, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgendaConsultant } from "@/types/agenda";
 import {
-    parseAgendaExcel, resolveUnknownConsultants, executeImport,
+    parseAgendaExcel, resolveUnknownConsultants, executeImport, suggestConsultantMatch,
     ParsedExcelEntry, ImportPreview, ImportDiagnostics,
 } from "@/lib/agenda-import";
+import { updateConsultant } from "@/lib/agenda";
 import { ACTIVITY_CONFIG } from "@/types/agenda";
+
+// choice: '' = undecided (blocks import), 'SKIP' = explicitly leave these rows out, otherwise a consultant.userId
+interface NameResolution {
+    choice: string;
+    remember: boolean;
+}
 
 interface Props {
     file: File;
@@ -25,6 +32,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     const [phase, setPhase] = useState<Phase>('parsing');
     const [preview, setPreview] = useState<ImportPreview | null>(null);
     const [unknownConsultants, setUnknownConsultants] = useState<string[]>([]);
+    const [nameResolutions, setNameResolutions] = useState<Record<string, NameResolution>>({});
     const [result, setResult] = useState<{ written: number; skipped: number; unknownConsultants: string[] } | null>(null);
     const [error, setError] = useState<string>('');
     // consultantId → selected region (only populated for multi-region consultants in the Excel)
@@ -38,6 +46,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
         const unknown = resolveUnknownConsultants(p.entries, consultants);
         setPreview(p);
         setUnknownConsultants(unknown);
+        setNameResolutions({}); // force a fresh decision for every unknown name on each (re)parse
         setSelectedSheet(p.sheetName);
 
         // Pre-populate region overrides for multi-region consultants present in the Excel
@@ -82,7 +91,23 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
         if (!preview) return;
         setPhase('importing');
         try {
-            const res = await executeImport(preview, consultants, tenantId, userId, regionOverrides);
+            const nameResolutionMap: Record<string, string> = {};
+            Object.entries(nameResolutions).forEach(([name, r]) => {
+                if (r.choice) nameResolutionMap[name] = r.choice;
+            });
+
+            const res = await executeImport(preview, consultants, tenantId, userId, regionOverrides, nameResolutionMap);
+
+            // Persist "remember" choices as aliases so future imports resolve automatically
+            const toRemember = Object.entries(nameResolutions).filter(([, r]) => r.remember && r.choice && r.choice !== 'SKIP');
+            for (const [name, r] of toRemember) {
+                const consultant = consultants.find(c => c.userId === r.choice);
+                if (!consultant) continue;
+                const existingAliases = consultant.aliases ?? [];
+                if (existingAliases.includes(name)) continue;
+                await updateConsultant(consultant.id, { aliases: [...existingAliases, name] });
+            }
+
             setResult(res);
             setPhase('done');
             onSuccess(res.written);
@@ -90,15 +115,23 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
             setError(String(err?.message || err));
             setPhase('error');
         }
-    }, [preview, consultants, tenantId, userId, regionOverrides, onSuccess]);
+    }, [preview, consultants, tenantId, userId, regionOverrides, nameResolutions, onSuccess]);
 
     // Group by consultant for preview table
     const grouped = preview ? groupByConsultant(preview.entries) : [];
     const matchable = preview
-        ? preview.entries.filter(e =>
-            consultants.some(c => c.name.toUpperCase() === e.consultantName.toUpperCase())
-          ).length
+        ? preview.entries.filter(e => {
+            const upper = e.consultantName.toUpperCase();
+            if (consultants.some(c => c.isActive && (c.name.toUpperCase() === upper || (c.aliases ?? []).some(a => a.toUpperCase() === upper)))) {
+                return true;
+            }
+            const choice = nameResolutions[upper]?.choice;
+            return !!choice && choice !== 'SKIP';
+          }).length
         : 0;
+
+    // Unknown names the importer hasn't made a decision on yet — blocks the Import button
+    const unresolvedCount = unknownConsultants.filter(n => !nameResolutions[n]?.choice).length;
 
     // Consultants that appear in the Excel AND have multiple specific regions (excluding '*') → need region selector
     const multiRegionConsultants = preview
@@ -186,8 +219,8 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 <StatPill label="Semana" value={preview.weekLabel || '—'} />
                                 <StatPill label="Entradas en Excel" value={String(preview.entries.length)} />
                                 <StatPill label="A importar" value={String(matchable)} highlight />
-                                {unknownConsultants.length > 0 && (
-                                    <StatPill label="Sin match" value={String(unknownConsultants.length)} warn />
+                                {unresolvedCount > 0 && (
+                                    <StatPill label="Pendientes de resolver" value={String(unresolvedCount)} warn />
                                 )}
                             </div>
 
@@ -230,9 +263,21 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 <DiagnosticBanner diagnostics={preview.diagnostics} />
                             )}
 
-                            {/* Unknown consultants warning */}
+                            {/* Unknown consultants — must be resolved before importing */}
                             {unknownConsultants.length > 0 && (
-                                <UnknownBanner names={unknownConsultants} />
+                                <UnknownResolver
+                                    names={unknownConsultants}
+                                    consultants={consultants}
+                                    resolutions={nameResolutions}
+                                    onChange={(name, choice) => setNameResolutions(prev => ({
+                                        ...prev,
+                                        [name]: { choice, remember: prev[name]?.remember ?? true },
+                                    }))}
+                                    onToggleRemember={name => setNameResolutions(prev => ({
+                                        ...prev,
+                                        [name]: { choice: prev[name]?.choice ?? '', remember: !(prev[name]?.remember ?? true) },
+                                    }))}
+                                />
                             )}
 
                             {/* Region selector for multi-region consultants */}
@@ -283,7 +328,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                         </thead>
                                         <tbody>
                                             {preview.entries.map((entry, i) => {
-                                                const isUnknown = unknownConsultants.includes(entry.consultantName);
+                                                const upperName = entry.consultantName.toUpperCase();
+                                                const resolutionChoice = nameResolutions[upperName]?.choice;
+                                                const willSkip = unknownConsultants.includes(upperName) && (!resolutionChoice || resolutionChoice === 'SKIP');
                                                 const actCfg = ACTIVITY_CONFIG[entry.activityType];
                                                 const slashIdx = entry.comment.indexOf(' / ');
                                                 const project = slashIdx >= 0 ? entry.comment.slice(0, slashIdx) : entry.comment;
@@ -291,7 +338,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                                 return (
                                                     <tr key={i} className={cn(
                                                         "border-b border-border last:border-0",
-                                                        isUnknown ? "opacity-40" : "hover:bg-muted/20"
+                                                        willSkip ? "opacity-40" : "hover:bg-muted/20"
                                                     )}>
                                                         <td className="px-3 py-1.5 font-medium text-foreground whitespace-nowrap">
                                                             {entry.consultantName}
@@ -329,13 +376,15 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                         >
                             {phase === 'done' ? 'Cerrar' : 'Cancelar'}
                         </button>
-                        {phase === 'preview' && matchable > 0 && (
+                        {phase === 'preview' && (
                             <button
                                 onClick={handleImport}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all"
+                                disabled={matchable === 0 || unresolvedCount > 0}
+                                title={unresolvedCount > 0 ? `Resuelve los ${unresolvedCount} nombre(s) pendientes arriba antes de importar` : undefined}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
                             >
                                 <Upload className="w-3.5 h-3.5" />
-                                Importar {matchable} entradas
+                                {unresolvedCount > 0 ? `Resuelve ${unresolvedCount} nombre(s) pendientes` : `Importar ${matchable} entradas`}
                             </button>
                         )}
                     </div>
@@ -403,6 +452,79 @@ function UnknownBanner({ names }: { names: string[] }) {
             <div>
                 <p className="font-semibold">Consultores no encontrados en el sistema (sus entradas se omitirán):</p>
                 <p className="mt-0.5 opacity-80">{names.join(', ')}</p>
+            </div>
+        </div>
+    );
+}
+
+function UnknownResolver({ names, consultants, resolutions, onChange, onToggleRemember }: {
+    names: string[];
+    consultants: AgendaConsultant[];
+    resolutions: Record<string, NameResolution>;
+    onChange: (name: string, choice: string) => void;
+    onToggleRemember: (name: string) => void;
+}) {
+    const activeConsultants = consultants.filter(c => c.isActive).sort((a, b) => a.name.localeCompare(b.name));
+
+    return (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-3">
+            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
+                <HelpCircle className="w-3.5 h-3.5 shrink-0" />
+                Nombres del Excel sin coincidencia exacta — indica dónde deben caer estas tareas
+            </div>
+            <div className="space-y-2">
+                {names.map(name => {
+                    const resolution = resolutions[name];
+                    const choice = resolution?.choice ?? '';
+                    const remember = resolution?.remember ?? true;
+                    const suggestion = suggestConsultantMatch(name, consultants);
+                    const isMappedToConsultant = !!choice && choice !== 'SKIP';
+
+                    return (
+                        <div key={name} className="flex flex-wrap items-center gap-2 p-2 bg-background/40 border border-amber-500/10 rounded-lg">
+                            <span className="text-xs font-semibold text-foreground min-w-[140px]">{name}</span>
+
+                            <select
+                                value={choice}
+                                onChange={e => onChange(name, e.target.value)}
+                                className={cn(
+                                    "px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none transition-all",
+                                    choice ? "bg-secondary/40 border-border text-foreground" : "bg-amber-500/10 border-amber-500/40 text-amber-300"
+                                )}
+                            >
+                                <option value="">— Elige qué hacer —</option>
+                                <option value="SKIP">Omitir estas filas (no importar)</option>
+                                {activeConsultants.map(c => (
+                                    <option key={c.userId} value={c.userId}>
+                                        Asignar a: {c.name}{suggestion?.userId === c.userId ? ' (sugerido)' : ''}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {suggestion && choice === '' && (
+                                <button
+                                    type="button"
+                                    onClick={() => onChange(name, suggestion.userId)}
+                                    className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+                                >
+                                    Usar sugerencia: {suggestion.name}
+                                </button>
+                            )}
+
+                            {isMappedToConsultant && (
+                                <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer ml-auto">
+                                    <input
+                                        type="checkbox"
+                                        checked={remember}
+                                        onChange={() => onToggleRemember(name)}
+                                        className="accent-indigo-500"
+                                    />
+                                    Recordar para futuras importaciones
+                                </label>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

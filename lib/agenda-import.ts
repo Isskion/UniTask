@@ -185,14 +185,57 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
     });
 }
 
-/** Returns the set of consultant names from the Excel that don't match any known consultant. */
+/** Builds the set of names (consultant.name + aliases, uppercase) that resolve without asking. */
+function buildKnownNames(consultants: AgendaConsultant[]): Set<string> {
+    const known = new Set<string>();
+    consultants.filter(c => c.isActive).forEach(c => {
+        known.add(c.name.toUpperCase());
+        (c.aliases ?? []).forEach(a => known.add(a.toUpperCase()));
+    });
+    return known;
+}
+
+/** Returns the set of consultant names from the Excel that don't match any known consultant (by name or alias). Inactive consultants never count as a match. */
 export function resolveUnknownConsultants(
     entries: ParsedExcelEntry[],
     consultants: AgendaConsultant[]
 ): string[] {
-    const knownNames = new Set(consultants.map(c => c.name.toUpperCase()));
+    const knownNames = buildKnownNames(consultants);
     const excelNames = new Set(entries.map(e => e.consultantName.toUpperCase()));
     return [...excelNames].filter(n => !knownNames.has(n));
+}
+
+/** Naive best-guess match for an unknown Excel name, to pre-select a suggestion in the resolver UI.
+ *  Compares normalized (accent-stripped) token overlap — good enough for "Diego Senra" -> "Diego Senra Lamberti". */
+export function suggestConsultantMatch(
+    excelName: string,
+    consultants: AgendaConsultant[]
+): AgendaConsultant | null {
+    const normalize = (s: string) => s
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toUpperCase().trim();
+
+    const target = normalize(excelName);
+    const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
+    if (targetTokens.size === 0) return null;
+
+    let best: AgendaConsultant | null = null;
+    let bestScore = 0;
+
+    for (const c of consultants.filter(c => c.isActive)) {
+        const candidate = normalize(c.name);
+        if (candidate === target || candidate.startsWith(target) || target.startsWith(candidate)) {
+            return c; // strong match — short-circuit
+        }
+        const candidateTokens = candidate.split(/\s+/).filter(Boolean);
+        const overlap = candidateTokens.filter(t => targetTokens.has(t)).length;
+        if (overlap > bestScore) {
+            bestScore = overlap;
+            best = c;
+        }
+    }
+
+    return bestScore > 0 ? best : null;
 }
 
 // ─── Execute Import ───────────────────────────────────────────────────────────
@@ -201,6 +244,10 @@ export function resolveUnknownConsultants(
  * regionOverrides: consultantId → region string.
  * When a consultant has multiple regions, the caller can specify which region
  * to stamp on the imported entries instead of using consultant.region.
+ *
+ * nameResolutions: excelName.toUpperCase() → consultant.userId (manual mapping chosen
+ * by the importer for a name that didn't match any consultant/alias) or the literal
+ * string 'SKIP' (importer explicitly chose to leave those rows out).
  */
 export async function executeImport(
     preview: ImportPreview,
@@ -208,12 +255,18 @@ export async function executeImport(
     tenantId: string,
     userId: string,
     regionOverrides?: Record<string, string>,
+    nameResolutions?: Record<string, string>,
 ): Promise<ImportResult> {
     const { entries, weekStart } = preview;
 
-    // Build name → consultant lookup (uppercase for case-insensitive match)
+    // Build name → consultant lookup (uppercase for case-insensitive match).
+    // Inactive consultants never match by name/alias — only an explicit nameResolution can target them.
     const nameMap = new Map<string, AgendaConsultant>();
-    consultants.forEach(c => nameMap.set(c.name.toUpperCase(), c));
+    consultants.filter(c => c.isActive).forEach(c => {
+        nameMap.set(c.name.toUpperCase(), c);
+        (c.aliases ?? []).forEach(a => nameMap.set(a.toUpperCase(), c));
+    });
+    const consultantsByUserId = new Map(consultants.map(c => [c.userId, c]));
 
     // Load existing entries for the week to enable dedup
     const existingQ = query(
@@ -237,7 +290,18 @@ export async function executeImport(
     const unknownConsultants = new Set<string>();
 
     for (const entry of entries) {
-        const consultant = nameMap.get(entry.consultantName.toUpperCase());
+        const upperName = entry.consultantName.toUpperCase();
+        let consultant = nameMap.get(upperName);
+
+        if (!consultant) {
+            const resolution = nameResolutions?.[upperName];
+            if (resolution === 'SKIP') {
+                skipped++;
+                continue;
+            }
+            if (resolution) consultant = consultantsByUserId.get(resolution);
+        }
+
         if (!consultant) {
             unknownConsultants.add(entry.consultantName);
             skipped++;

@@ -97,6 +97,8 @@ export interface AgendaConsultant {
     divisions: string[];       // e.g. ['Consultoría'] or ['Consultoría', 'Tecnología']
     isActive: boolean;
     createdAt: Timestamp;
+    /** Alternate Excel names that should resolve to this consultant (e.g. nicknames, short names). Stored uppercase. */
+    aliases?: string[];
 }
 
 // ─── Translation key maps (use with t(ACTIVITY_TKEYS[type])) ─────────────────
