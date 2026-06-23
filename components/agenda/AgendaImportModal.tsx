@@ -133,6 +133,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     // Unknown names the importer hasn't made a decision on yet — blocks the Import button
     const unresolvedCount = unknownConsultants.filter(n => !nameResolutions[n]?.choice).length;
 
+    // Entries whose Fecha_T was broken/empty — imported anyway with an estimated date and no hours
+    const needsDateReviewCount = preview ? preview.entries.filter(e => e.needsDateReview).length : 0;
+
     // Consultants that appear in the Excel AND have multiple specific regions (excluding '*') → need region selector
     const multiRegionConsultants = preview
         ? consultants.filter(c => {
@@ -194,6 +197,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                     {result.skipped > 0 && (
                                         <p className="text-xs mt-0.5 opacity-80">{result.skipped} entradas omitidas (duplicadas o sin consultor)</p>
                                     )}
+                                    {needsDateReviewCount > 0 && (
+                                        <p className="text-xs mt-0.5 opacity-80">{needsDateReviewCount} se importaron con fecha estimada y sin horas (Fecha_T no era válida) — revísalas en la agenda o reimporta cuando el Excel tenga la fecha correcta</p>
+                                    )}
                                 </div>
                             </div>
                             {result.unknownConsultants.length > 0 && (
@@ -219,6 +225,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 <StatPill label="Semana" value={preview.weekLabel || '—'} />
                                 <StatPill label="Entradas en Excel" value={String(preview.entries.length)} />
                                 <StatPill label="A importar" value={String(matchable)} highlight />
+                                {needsDateReviewCount > 0 && (
+                                    <StatPill label="Con fecha estimada (sin horas)" value={String(needsDateReviewCount)} warn />
+                                )}
                                 {unresolvedCount > 0 && (
                                     <StatPill label="Pendientes de resolver" value={String(unresolvedCount)} warn />
                                 )}
@@ -345,6 +354,11 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                                         </td>
                                                         <td className="px-3 py-1.5 text-muted-foreground whitespace-nowrap">
                                                             {entry.date.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit', month: '2-digit' })}
+                                                            {entry.needsDateReview && (
+                                                                <span className="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Fecha estimada — Fecha_T no era válida en el Excel">
+                                                                    estimada
+                                                                </span>
+                                                            )}
                                                         </td>
                                                         <td className="px-3 py-1.5 whitespace-nowrap">
                                                             <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-semibold", actCfg.bgClass, actCfg.textClass)}>
@@ -355,7 +369,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                                             <span className="font-semibold text-foreground">{project}</span>
                                                             {desc && <span className="text-muted-foreground ml-1">· {desc}</span>}
                                                         </td>
-                                                        <td className="px-3 py-1.5 text-muted-foreground font-mono whitespace-nowrap">{entry.scheduleRaw}</td>
+                                                        <td className="px-3 py-1.5 text-muted-foreground font-mono whitespace-nowrap">
+                                                            {entry.scheduleRaw || <span className="italic text-zinc-600">sin horas</span>}
+                                                        </td>
                                                     </tr>
                                                 );
                                             })}

@@ -53,6 +53,9 @@ export interface ParsedExcelEntry {
     comment: string;
     scheduleRaw: string;
     result: ResultStatus;
+    /** True when Fecha_T couldn't be parsed and the date was inferred from the week + day column instead
+     *  of the actual cell — schedule is dropped (no hours) until someone confirms/fixes the real date. */
+    needsDateReview?: boolean;
 }
 
 export interface ImportDiagnostics {
@@ -114,7 +117,6 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     : null;
 
                 const weekLabel = String(rows[0]?.[2] || '').trim();
-                const entries: ParsedExcelEntry[] = [];
 
                 const diagnostics: ImportDiagnostics = {
                     sheetName,
@@ -123,6 +125,20 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     invalidDateCells: 0,
                     unknownActivityCells: 0,
                 };
+
+                // ── Pass 1: collect every candidate cell (Actividad + Horario filled), keeping
+                // its real date when parseable and its day-column index (0=lunes..6=domingo)
+                // so a missing date can later be inferred from the week once it's known. ──
+                interface Candidate {
+                    consultantName: string;
+                    dayIdx: number;
+                    date: Date | null;
+                    activityType: ActivityType;
+                    comment: string;
+                    scheduleRaw: string;
+                    result: ResultStatus;
+                }
+                const candidates: Candidate[] = [];
 
                 for (let ri = 3; ri < rows.length; ri++) {
                     const row = rows[ri];
@@ -140,23 +156,21 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                         if (!actividad || !horario) continue;
                         diagnostics.candidateCells++;
 
-                        let date = parseExcelDate(String(row[base] || ''));
-                        if (!date && overrideMonday) {
-                            date = addDays(overrideMonday, dayIdx); // day-block order: lunes..domingo
-                        }
-                        if (!date) {
-                            diagnostics.invalidDateCells++;
-                            continue;
-                        }
-
                         const activityType = ACTIVIDAD_MAP[actividad];
                         if (!activityType) {
                             diagnostics.unknownActivityCells++;
                             continue;
                         }
 
-                        entries.push({
+                        let date = parseExcelDate(String(row[base] || ''));
+                        if (!date && overrideMonday) {
+                            date = addDays(overrideMonday, dayIdx); // day-block order: lunes..domingo
+                        }
+                        if (!date) diagnostics.invalidDateCells++;
+
+                        candidates.push({
                             consultantName,
+                            dayIdx,
                             date,
                             activityType,
                             comment: comentario,
@@ -164,6 +178,40 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                             result: RESULTADO_MAP[resultado] || ResultStatus.POR_HACER,
                         });
                     }
+                }
+
+                // ── Pass 2: figure out the week's Monday from any cell with a real date,
+                // so cells without one can still be placed on the right weekday. ──
+                const firstRealDate = candidates.find(c => c.date)?.date ?? null;
+                const inferredMonday = firstRealDate ? getWeekStart(firstRealDate) : null;
+
+                // ── Pass 3: build final entries. Cells with no real date but a known week get
+                // a best-effort date (week + day column) and lose their schedule/hours — they're
+                // flagged so they can be reviewed/fixed once Fecha_T is corrected upstream. ──
+                const entries: ParsedExcelEntry[] = [];
+                for (const c of candidates) {
+                    if (c.date) {
+                        entries.push({
+                            consultantName: c.consultantName,
+                            date: c.date,
+                            activityType: c.activityType,
+                            comment: c.comment,
+                            scheduleRaw: c.scheduleRaw,
+                            result: c.result,
+                        });
+                    } else if (inferredMonday) {
+                        entries.push({
+                            consultantName: c.consultantName,
+                            date: addDays(inferredMonday, c.dayIdx),
+                            activityType: c.activityType,
+                            comment: c.comment,
+                            scheduleRaw: '', // sin horas hasta confirmar la fecha real
+                            result: c.result,
+                            needsDateReview: true,
+                        });
+                    }
+                    // No real date AND no inferred week (every cell in the sheet is dateless) —
+                    // still un-importable; the "Lunes de esta semana" override is the only way out.
                 }
 
                 const weekStart = entries.length
@@ -362,6 +410,7 @@ export async function executeImport(
             updatedAt:       serverTimestamp(),
             isActive:        true,
             importedFromExcel: true,
+            needsDateReview: entry.needsDateReview ?? false,
         };
 
         batch.set(doc(collection(db, ENTRIES_COLLECTION)), payload);

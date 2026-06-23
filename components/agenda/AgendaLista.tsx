@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
@@ -409,6 +409,15 @@ export function AgendaLista({
                                             <td className="px-3 py-2 whitespace-nowrap">
                                                 <div className="font-medium text-foreground">{format(date, 'dd/MM/yyyy')}</div>
                                                 <div className="text-[10px] text-muted-foreground capitalize">{format(date, 'EEE', { locale: es })}</div>
+                                                {e.needsDateReview && (
+                                                    <div
+                                                        className="flex items-center gap-1 text-[9px] font-semibold text-amber-400 mt-0.5"
+                                                        title="Fecha estimada al importar — revisa el día real o reimporta cuando el Excel tenga la fecha correcta"
+                                                    >
+                                                        <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+                                                        Revisar fecha
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-3 py-2 whitespace-nowrap text-foreground">{e.consultantName}</td>
                                             <td className="px-3 py-2">

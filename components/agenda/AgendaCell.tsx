@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgendaEntry, AgendaConsultant, DayType, ACTIVITY_CONFIG, RESULT_CONFIG, DAY_TKEYS } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
@@ -46,9 +46,11 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                     <button
                         key={entry.id}
                         onClick={() => onEdit(entry)}
+                        title={entry.needsDateReview ? 'Fecha estimada al importar — revisa el día real o reimporta cuando el Excel tenga la fecha correcta' : undefined}
                         className={cn(
                             "w-full text-left rounded-md px-2 py-1 border text-[10px] leading-tight transition-all hover:brightness-110 active:scale-[0.98]",
-                            actCfg.bgClass, actCfg.borderClass,
+                            actCfg.bgClass,
+                            entry.needsDateReview ? "border-amber-400/60 border-dashed" : actCfg.borderClass,
                             isDark ? "text-white" : actCfg.textClass,
                         )}
                     >
@@ -57,8 +59,16 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             <span className={cn("font-semibold truncate", actCfg.textClass)}>
                                 {actCfg.label}
                             </span>
-                            <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", resCfg.dotClass)} />
+                            {entry.needsDateReview ? (
+                                <AlertTriangle className="w-2.5 h-2.5 shrink-0 text-amber-400" />
+                            ) : (
+                                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", resCfg.dotClass)} />
+                            )}
                         </div>
+
+                        {entry.needsDateReview && (
+                            <p className="text-[9px] font-semibold text-amber-400 mt-0.5">Revisar fecha</p>
+                        )}
 
                         {/* Fila 2: proyecto (nombre del cliente/proyecto principal) */}
                         {entry.projectName && (

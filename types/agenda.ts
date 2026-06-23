@@ -84,6 +84,12 @@ export interface AgendaEntry {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     isActive: boolean;
+
+    // Import quality flag
+    /** True when this entry came from an Excel import whose Fecha_T cell was broken/empty — the
+     *  date was inferred from the week + day column and the schedule was dropped (no hours) until
+     *  someone confirms the real date (edit it, or delete and re-import once the source is fixed). */
+    needsDateReview?: boolean;
 }
 
 export interface AgendaConsultant {
