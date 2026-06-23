@@ -38,6 +38,56 @@
     }
   },
   {
+    "id": "0LmMfIZzFH59HHTAQnR7",
+    "title": "Preparar plan de acción de cobranza",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782201998.096,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "DLG",
+    "techDescription": "Preparar el pan de acción con Jesus y los casos de ejemplo.",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-06-25T22:00:00.000Z",
+    "priority": "Alta",
+    "area": "Interfaces",
+    "module": "TARIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-20",
+    "taskNumber": 20,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782202046,
+      "_nanoseconds": 575000000
+    },
+    "updatedAt": {
+      "_seconds": 1782202046,
+      "_nanoseconds": 575000000
+    }
+  },
+  {
     "id": "0bjHK2hScjUsNSzgovZh",
     "weekId": "2026-02-12",
     "relatedDailyStatusId": "3_2026-02-12",
