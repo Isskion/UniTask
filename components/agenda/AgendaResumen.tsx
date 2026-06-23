@@ -13,11 +13,13 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Timestamp } from "firebase/firestore";
 
 interface Props {
-    entries:     AgendaEntry[];
-    consultants: AgendaConsultant[];
-    filters:     AgendaFilters;
-    weekLabel:   string;
-    samRegions:  SAMRegion[];
+    entries:          AgendaEntry[];
+    consultants:      AgendaConsultant[];
+    filters:          AgendaFilters;
+    weekLabel:        string;
+    samRegions:       SAMRegion[];
+    activeFilterCount?: number;
+    onClearFilters?:    () => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -47,7 +49,7 @@ function filterEntries(entries: AgendaEntry[], filters: AgendaFilters, samRegion
     });
 }
 
-export function AgendaResumen({ entries, consultants, filters, weekLabel, samRegions }: Props) {
+export function AgendaResumen({ entries, consultants, filters, weekLabel, samRegions, activeFilterCount = 0, onClearFilters }: Props) {
     const { t } = useLanguage();
     const visible = useMemo(() => filterEntries(entries, filters, samRegions), [entries, filters, samRegions]);
 
@@ -108,8 +110,16 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
 
     if (visible.length === 0) {
         return (
-            <div className="flex-1 flex items-center justify-center text-zinc-600 text-sm py-24">
-                {t('agenda.noData')}
+            <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 text-sm py-24 gap-3">
+                <p>{activeFilterCount > 0 ? t('agenda.noDataFiltered') : t('agenda.noDataWeek')}</p>
+                {activeFilterCount > 0 && onClearFilters && (
+                    <button
+                        onClick={onClearFilters}
+                        className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
+                    >
+                        {t('agenda.clearFilters')} ({activeFilterCount})
+                    </button>
+                )}
             </div>
         );
     }

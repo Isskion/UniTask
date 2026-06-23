@@ -681,7 +681,7 @@ export const ca: Dictionary = {
         activeCount:"Consultors actius",projectsCount:"Projectes a l'agenda",
         hoursByConsultant:"Hores per consultor",byProject:"Distribució per projecte",
         noProjectAssigned:"Sense projecte assignat",byActivity:"Hores per tipus d'activitat",
-        byStatus:"Entrades per estat",noData:"Sense dades per a aquesta setmana amb els filtres actius.",
+        byStatus:"Entrades per estat",noData:"Sense dades per a aquesta setmana amb els filtres actius.",noDataFiltered:"No hi ha tasques que coincideixin amb els filtres actius.",noDataWeek:"Encara no hi ha tasques registrades per a tot l'equip aquesta setmana.",
         actMeetingClient:"Reunió Client",actMeetingUnigis:"Reunió UNIGIS",
         actMeetingPresential:"Reunió Presencial",actMeetingInternal:"Reunió Interna",
         actCommercial:"Comercial",actTask:"Tasca",actVacation:"Vacances",

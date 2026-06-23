@@ -692,6 +692,8 @@ export function AgendaView() {
                     filters={filters}
                     weekLabel={weekLabel}
                     samRegions={samRegions}
+                    activeFilterCount={activeFilterCount}
+                    onClearFilters={clearFilters}
                 />
             ) : viewMode === 'lista' ? (
                 <AgendaLista

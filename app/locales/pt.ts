@@ -681,7 +681,7 @@ export const pt: Dictionary = {
         activeCount:"Consultores ativos",projectsCount:"Projetos na agenda",
         hoursByConsultant:"Horas por consultor",byProject:"Distribuição por projeto",
         noProjectAssigned:"Sem projeto atribuído",byActivity:"Horas por tipo de atividade",
-        byStatus:"Entradas por estado",noData:"Sem dados para esta semana com os filtros ativos.",
+        byStatus:"Entradas por estado",noData:"Sem dados para esta semana com os filtros ativos.",noDataFiltered:"Nenhuma tarefa corresponde aos filtros ativos.",noDataWeek:"Ainda não há tarefas registadas para toda a equipa esta semana.",
         actMeetingClient:"Reunião Cliente",actMeetingUnigis:"Reunião UNIGIS",
         actMeetingPresential:"Reunião Presencial",actMeetingInternal:"Reunião Interna",
         actCommercial:"Comercial",actTask:"Tarefa",actVacation:"Férias",

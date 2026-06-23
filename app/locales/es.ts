@@ -738,6 +738,8 @@ export const es: Dictionary = {
         byActivity:         "Horas por tipo de actividad",
         byStatus:           "Entradas por estado",
         noData:             "Sin datos para esta semana con los filtros activos.",
+        noDataFiltered:     "No hay tareas que coincidan con los filtros activos.",
+        noDataWeek:         "Aún no hay tareas registradas para todo el equipo esta semana.",
         actMeetingClient:    "Reunión Cliente",
         actMeetingUnigis:    "Reunión UNIGIS",
         actMeetingPresential:"Reunión Presencial",

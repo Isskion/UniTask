@@ -743,6 +743,8 @@ export const en = {
         byActivity:         "Hours by activity type",
         byStatus:           "Entries by status",
         noData:             "No data for this week with active filters.",
+        noDataFiltered:     "No tasks match the active filters.",
+        noDataWeek:         "No tasks have been logged yet for the whole team this week.",
         // Activity types
         actMeetingClient:    "Client Meeting",
         actMeetingUnigis:    "UNIGIS Meeting",
