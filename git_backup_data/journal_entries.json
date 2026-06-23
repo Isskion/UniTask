@@ -4520,6 +4520,32 @@
     "updatedAt": "2026-06-17T13:22:05.311Z"
   },
   {
+    "id": "3_2026-06-23",
+    "date": "2026-06-23",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "Resumen sesion de hoy: Induccion a Key User para optimizar la delegacion de Madrid Urtinsa ha dado de alta tipos de vehiculos, asociar los vehiculos existentes a los nuevos tipos, revisar parametros escenario de planificacion en conjunto. Mañana se juntan con Raul bravo para validr las zonas y poder continuar el jueves con David en montar el modelo de condicion con invasion de zonas para la operativa de Madrid\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Resumen sesion de hoy: Induccion a Key User para optimizar la delegacion de Madrid Urtinsa ha dado de alta tipos de vehiculos, asociar los vehiculos existentes a los nuevos tipos, revisar parametros escenario de planificacion en conjunto. Mañana se juntan con Raul bravo para validr las zonas y poder continuar el jueves con David en montar el modelo de condicion con invasion de zonas para la operativa de Madrid\n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-23T15:21:28.146Z",
+    "updatedAt": "2026-06-23T15:21:35.262Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

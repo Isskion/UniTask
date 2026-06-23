@@ -4832,7 +4832,6 @@
   },
   {
     "id": "KahvAmT89vo2cZ3nhqlG",
-    "title": "Integrar vehículos en listado",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -4860,9 +4859,7 @@
     "isActive": true,
     "projectCode": "TSP",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "techDescription": "Integrar vehículos en listado",
     "priority": "Media",
-    "area": "Maestros",
     "scope": "Incluido",
     "module": "PLANIFICACIÓN",
     "attributes": {
@@ -4879,9 +4876,12 @@
     },
     "status": "in_progress",
     "endDate": "2026-06-18T22:00:00.000Z",
+    "area": "Interfaces",
+    "techDescription": "Integrar vehículos en listado Webfleet",
+    "title": "Integrar vehículos en listado Webfleet",
     "updatedAt": {
-      "_seconds": 1781506021,
-      "_nanoseconds": 444000000
+      "_seconds": 1782230409,
+      "_nanoseconds": 459000000
     }
   },
   {
