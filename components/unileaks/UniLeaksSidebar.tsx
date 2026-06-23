@@ -288,7 +288,7 @@ export default function UniLeaksSidebar({
                                             className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                         />
                                     ) : (
-                                        <span className="text-foreground font-medium flex-1 select-none truncate whitespace-nowrap leading-tight" title={folder.name}>{folder.name}</span>
+                                        <span className="text-foreground font-medium flex-1 select-none whitespace-nowrap leading-tight" title={folder.name}>{folder.name}</span>
                                     )}
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center shrink-0 bg-background/95 backdrop-blur-sm px-1 py-0.5 rounded-md shadow-sm border border-border/50">
                                         <div className="mr-1 h-5 flex items-center">
@@ -393,7 +393,7 @@ export default function UniLeaksSidebar({
                                                 className="flex-1 bg-background border border-primary px-2 py-0.5 rounded text-foreground text-xs outline-none focus:ring-1 focus:ring-primary w-full"
                                             />
                                         ) : (
-                                            <span className={cn("text-sm select-none flex-1 truncate whitespace-nowrap leading-tight", isActive && "text-primary font-medium")} title={note.title || "Nueva Nota..."}>
+                                            <span className={cn("text-sm select-none flex-1 whitespace-nowrap leading-tight", isActive && "text-primary font-medium")} title={note.title || "Nueva Nota..."}>
                                                 {note.title || "Nueva Nota..."}
                                             </span>
                                         )}
@@ -420,7 +420,7 @@ export default function UniLeaksSidebar({
         <div 
             className={cn(
                 "border-r border-border bg-card flex flex-col h-full shrink-0 relative select-none transition-all duration-300",
-                railExpanded ? "w-[260px]" : "w-[52px] items-center"
+                railExpanded ? "w-fit min-w-[260px] max-w-[500px]" : "w-[52px] items-center"
             )} 
             ref={sidebarRef}
         >
@@ -520,7 +520,7 @@ export default function UniLeaksSidebar({
 
             {/* Tree Content */}
             <div
-                className="flex-1 overflow-y-auto px-4 pt-3 pb-8 relative group/sidebar-content"
+                className="flex-1 overflow-auto px-4 pt-3 pb-8 relative group/sidebar-content"
                 onDragOver={(e) => handleDragOver(e, null)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, null)}
