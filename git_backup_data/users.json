@@ -1208,14 +1208,6 @@
     "address": "",
     "phone": "",
     "worksOnWeekends": false,
-    "accessScopes": {
-      "regionIds": [
-        "ES"
-      ],
-      "divisionIds": [
-        "CON"
-      ]
-    },
     "jobTitle": "",
     "aiEnabled": false,
     "assignedProjectIds": [
@@ -1226,9 +1218,17 @@
     "language": "es",
     "company": "",
     "isConsultant": false,
+    "accessScopes": {
+      "regionIds": [
+        "ES"
+      ],
+      "divisionIds": [
+        "DEV"
+      ]
+    },
     "updatedAt": {
-      "_seconds": 1782122867,
-      "_nanoseconds": 746000000
+      "_seconds": 1782223166,
+      "_nanoseconds": 966000000
     }
   }
 ]
