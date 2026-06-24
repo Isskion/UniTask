@@ -330,7 +330,8 @@ export async function executeImport(
         const _d = (e.date as Timestamp).toDate();
         const dateISO = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
         const { scheduleRaw: norm } = normalizeSchedule(e.scheduleRaw || '');
-        existingKeys.add(`${e.consultantId}::${dateISO}::${e.activityType}::${norm}`);
+        const normComment = String(e.comment || '').trim().toUpperCase();
+        existingKeys.add(`${e.consultantId}::${dateISO}::${e.activityType}::${norm}::${normComment}`);
     });
 
     const batch = writeBatch(db);
@@ -359,7 +360,8 @@ export async function executeImport(
 
         const { scheduleRaw, scheduleStart, scheduleEnd } = normalizeSchedule(entry.scheduleRaw);
         const dateISO = `${entry.date.getFullYear()}-${String(entry.date.getMonth()+1).padStart(2,'0')}-${String(entry.date.getDate()).padStart(2,'0')}`;
-        const dedupKey = `${consultant.userId}::${dateISO}::${entry.activityType}::${scheduleRaw}`;
+        const normComment = entry.comment.trim().toUpperCase();
+        const dedupKey = `${consultant.userId}::${dateISO}::${entry.activityType}::${scheduleRaw}::${normComment}`;
 
         if (existingKeys.has(dedupKey)) {
             skipped++;
