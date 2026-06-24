@@ -97,8 +97,13 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             </div>
                         )}
 
-                        {/* Fila 4: horas planificadas — siempre visibles */}
-                        {entry.scheduledHours > 0 && (
+                        {/* Fila 4: horquilla horaria + horas planificadas — siempre visibles */}
+                        {(entry.scheduleStart && entry.scheduleEnd) ? (
+                            <p className={cn("mt-0.5 text-[9px] font-mono", actCfg.textClass, "opacity-70")}>
+                                {entry.scheduleStart} - {entry.scheduleEnd}
+                                {entry.scheduledHours > 0 && ` · ${formatHours(entry.scheduledHours)}`}
+                            </p>
+                        ) : entry.scheduledHours > 0 && (
                             <p className={cn("mt-0.5 text-[9px] font-mono", actCfg.textClass, "opacity-70")}>
                                 {formatHours(entry.scheduledHours)}
                             </p>
