@@ -15,7 +15,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { formatHours } from "@/lib/agenda-utils";
 import { AgendaExportModal } from "./AgendaExportModal";
 
-type SortField = 'date' | 'consultant' | 'activityType' | 'client' | 'scheduledHours' | 'result' | 'projectName';
+type SortField = 'date' | 'consultant' | 'activityType' | 'client' | 'schedule' | 'scheduledHours' | 'result' | 'projectName';
 type SortDir   = 'asc' | 'desc';
 
 interface AgendaListaProps {
@@ -103,20 +103,35 @@ export function AgendaLista({
     }, [projectFiltered, search]);
 
     // ── 5. Sort ───────────────────────────────────────────────────────────────
+    // Tareas sin horario (scheduleStart vacío) van detrás de las que sí tienen hora.
+    // Con la misma hora de inicio, gana (va primero) la que termina antes.
+    function compareSchedule(a: AgendaEntry, b: AgendaEntry): number {
+        const sa = a.scheduleStart || '99:99';
+        const sb = b.scheduleStart || '99:99';
+        if (sa !== sb) return sa < sb ? -1 : 1;
+        const ea = a.scheduleEnd || '99:99';
+        const eb = b.scheduleEnd || '99:99';
+        return ea < eb ? -1 : ea > eb ? 1 : 0;
+    }
+
     const sorted = useMemo(() => [...searched].sort((a, b) => {
-        let va: string | number;
-        let vb: string | number;
+        let cmp: number;
         switch (sortField) {
-            case 'date':          va = (a.date as Timestamp).seconds ?? 0; vb = (b.date as Timestamp).seconds ?? 0; break;
-            case 'consultant':    va = a.consultantName;    vb = b.consultantName;    break;
-            case 'activityType':  va = a.activityType;      vb = b.activityType;      break;
-            case 'client':        va = a.client;            vb = b.client;            break;
-            case 'scheduledHours':va = a.scheduledHours;    vb = b.scheduledHours;    break;
-            case 'result':        va = a.result;            vb = b.result;            break;
-            case 'projectName':   va = a.projectName || ''; vb = b.projectName || ''; break;
-            default: return 0;
+            case 'date': {
+                const da = (a.date as Timestamp).seconds ?? 0;
+                const db = (b.date as Timestamp).seconds ?? 0;
+                cmp = da !== db ? da - db : compareSchedule(a, b);
+                break;
+            }
+            case 'schedule':      cmp = compareSchedule(a, b); break;
+            case 'consultant':    cmp = a.consultantName.localeCompare(b.consultantName); break;
+            case 'activityType':  cmp = a.activityType.localeCompare(b.activityType);     break;
+            case 'client':        cmp = a.client.localeCompare(b.client);                 break;
+            case 'scheduledHours':cmp = a.scheduledHours - b.scheduledHours;              break;
+            case 'result':        cmp = a.result.localeCompare(b.result);                 break;
+            case 'projectName':   cmp = (a.projectName || '').localeCompare(b.projectName || ''); break;
+            default: cmp = 0;
         }
-        const cmp = va < vb ? -1 : va > vb ? 1 : 0;
         return sortDir === 'asc' ? cmp : -cmp;
     }), [searched, sortField, sortDir]);
 
@@ -155,7 +170,7 @@ export function AgendaLista({
         { field: 'activityType',   label: t('agenda.activityFilter') },
         { field: 'client',         label: t('agenda.clientLabel')    },
         { field: null,             label: t('agenda.descLabel')      },
-        { field: null,             label: t('agenda.schedule')       },
+        { field: 'schedule',       label: t('agenda.schedule')       },
         { field: 'scheduledHours', label: t('agenda.plannedAbbr')   },
         { field: 'result',         label: t('agenda.statusLabel')    },
         { field: 'projectName',    label: t('agenda.project')       },
@@ -432,7 +447,18 @@ export function AgendaLista({
                                             <td className="px-3 py-2 text-muted-foreground max-w-[200px] truncate" title={e.description}>
                                                 {e.description || '—'}
                                             </td>
-                                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap tabular-nums">{e.scheduleRaw}</td>
+                                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap tabular-nums">
+                                                {e.scheduleStart && e.scheduleEnd ? (
+                                                    <>
+                                                        {e.scheduleStart} - {e.scheduleEnd}
+                                                        {e.scheduledHours > 0 && (
+                                                            <span className="ml-1.5 text-foreground font-medium">{formatHours(e.scheduledHours)}</span>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    e.scheduleRaw || '—'
+                                                )}
+                                            </td>
                                             <td className="px-3 py-2 text-right font-semibold text-foreground tabular-nums whitespace-nowrap">
                                                 {formatHours(e.scheduledHours)}
                                             </td>
