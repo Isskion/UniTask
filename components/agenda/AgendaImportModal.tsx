@@ -436,13 +436,13 @@ function DiagnosticBanner({ diagnostics }: { diagnostics: ImportDiagnostics }) {
         detail = `La hoja "${sheetName}" no tiene ningún nombre de consultor desde la fila 4 (columna B).`;
         solution = `Selecciona la hoja correcta en "Hoja del libro" arriba y pulsa "Reanalizar" — comprueba que "${sheetName}" es la semana que querías importar.`;
     } else if (candidateCells === 0) {
-        detail = `Se encontraron ${consultantRows} consultor(es) en "${sheetName}", pero ninguna celda tiene Actividad y Horario rellenos a la vez.`;
-        solution = `Revisa que "${sheetName}" es la semana correcta (cámbiala arriba si no) y que las columnas Actividad y Horario están rellenas para esos consultores.`;
+        detail = `Se encontraron ${consultantRows} consultor(es) en "${sheetName}", pero ninguna celda tiene la columna Actividad rellena.`;
+        solution = `Revisa que "${sheetName}" es la semana correcta (cámbiala arriba si no) y que la columna Actividad está rellena para esos consultores.`;
     } else if (invalidDateCells > 0) {
-        detail = `Se encontraron ${candidateCells} entrada(s) con Actividad y Horario en "${sheetName}", pero ${invalidDateCells} no tienen una fecha válida en la columna "Fecha_T" (puede mostrar #REF! u otro error de fórmula).`;
+        detail = `Se encontraron ${candidateCells} entrada(s) con Actividad en "${sheetName}", pero ${invalidDateCells} no tienen una fecha válida en la columna "Fecha_T" (puede mostrar #REF! u otro error de fórmula).`;
         solution = `La fórmula "Fecha_T" de "${sheetName}" está rota (p.ej. #REF!). Indica el lunes de esta semana en el campo "Lunes de esta semana" de arriba y pulsa "Reanalizar": las fechas se calcularán a partir de ese lunes según la columna de cada día.`;
     } else if (unknownActivityCells > 0) {
-        detail = `Se encontraron ${candidateCells} entrada(s) con fecha y horario válidos en "${sheetName}", pero ${unknownActivityCells} tienen un tipo de "Actividad" no reconocido.`;
+        detail = `Se encontraron ${candidateCells} entrada(s) con fecha válida en "${sheetName}", pero ${unknownActivityCells} tienen un tipo de "Actividad" no reconocido.`;
         solution = `Los tipos válidos son: Reunión Cliente, Reunión UNIGIS, Reunión Presencial, Reunión Interna, Comercial, Tareas a Realizar, Vacaciones, Viaje, Especial. Corrige el texto de la columna Actividad y reintenta.`;
     } else {
         detail = `No se ha encontrado ningún dato reconocible en "${sheetName}".`;

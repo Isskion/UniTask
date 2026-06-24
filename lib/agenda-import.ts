@@ -61,7 +61,7 @@ export interface ParsedExcelEntry {
 export interface ImportDiagnostics {
     sheetName: string;
     consultantRows: number;       // rows (from row 4) with a non-empty consultant name
-    candidateCells: number;       // day-cells with Actividad + Horario filled
+    candidateCells: number;       // day-cells with Actividad filled (Horario is optional)
     invalidDateCells: number;     // candidate cells without a parseable Fecha_T
     unknownActivityCells: number; // candidate cells with valid date but unrecognized Actividad
 }
@@ -126,9 +126,10 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                     unknownActivityCells: 0,
                 };
 
-                // ── Pass 1: collect every candidate cell (Actividad + Horario filled), keeping
-                // its real date when parseable and its day-column index (0=lunes..6=domingo)
-                // so a missing date can later be inferred from the week once it's known. ──
+                // ── Pass 1: collect every candidate cell (Actividad filled — Horario is optional,
+                // e.g. "Tareas a Realizar" rows often have no time range), keeping its real date
+                // when parseable and its day-column index (0=lunes..6=domingo) so a missing date
+                // can later be inferred from the week once it's known. ──
                 interface Candidate {
                     consultantName: string;
                     dayIdx: number;
@@ -153,7 +154,7 @@ export function parseAgendaExcel(file: File, opts?: ParseOptions): Promise<Impor
                         const horario    = String(row[base + 3] || '').trim();
                         const resultado  = String(row[base + 4] || '').trim();
 
-                        if (!actividad || !horario) continue;
+                        if (!actividad) continue;
                         diagnostics.candidateCells++;
 
                         const activityType = ACTIVIDAD_MAP[actividad];
