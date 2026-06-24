@@ -372,7 +372,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="app-management" icon={Shield} label={t('nav.appManagement')} />
                             )}
 
-                            {getRoleLevel(userRole) >= RoleLevel.PM && (
+                            {getRoleLevel(userRole) >= RoleLevel.CONSULTANT && (
                                 <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
                             )}
 
@@ -595,7 +595,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <div className="mt-4 space-y-1">
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.admin')}</p>
 
-                                {getRoleLevel(userRole) >= RoleLevel.PM && (
+                                {getRoleLevel(userRole) >= RoleLevel.CONSULTANT && (
                                     <NavLink href="/agenda" icon={CalendarDays} label={t('nav.agenda-semanal') || "Agenda Semanal"} target="_blank" />
                                 )}
 
