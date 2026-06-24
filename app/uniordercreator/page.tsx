@@ -328,174 +328,186 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
              setProgressLogs([...logs]);
         }
 
-        for (let i = 0; i < batch.length; i++) {
-            if (useAppStore.getState().sendCancelled) {
-                logs.push({ ref: 'CANCELADO', status: 'warn', msg: 'Envío cancelado por el usuario' });
-                setProgressLogs([...logs]);
-                break;
+        const CONCURRENCY_LIMIT = 5;
+        let indexInBatch = 0;
+
+        const runWorker = async () => {
+            while (indexInBatch < batch.length) {
+                if (useAppStore.getState().sendCancelled) {
+                    break;
+                }
+
+                const currentTaskIndex = indexInBatch++;
+                if (currentTaskIndex >= batch.length) break;
+
+                const { row, index } = batch[currentTaskIndex];
+                setRowStatus(index, 'sending');
+                setProgressCurrent(prev => prev + 1);
+
+                const refCol = mapping['Orden.RefDocumento'];
+                const ref = row[refCol] || `Fila ${index + 1}`;
+
+                let lastRawResponse = '';
+                let lastXml = ''; // #36: Store XML for failed download
+                try {
+                    // ── 1. Construir XML ─────────────────────────────────────────
+                    const xml = buildXml(row, ctx);
+                    lastXml = xml;
+                    setProgressLogs(prev => [...prev, { ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` }]);
+
+                    // ── 2. Llamada SOAP via Cloud Function con Auto-Retry (o Mock si es Dry Run) ─
+                    let res;
+                    let fetchError = null;
+                    const MAX_RETRIES = 2;
+
+                    for (let retry = 0; retry <= MAX_RETRIES; retry++) {
+                        if (useAppStore.getState().sendCancelled) break;
+                        try {
+                            if (isDryRun) {
+                                await new Promise(r => setTimeout(r, 250)); // delay de simulacion
+                                res = {
+                                    json: async () => ({
+                                        ok: true,
+                                        status: 200,
+                                        text: `<Envelop><Body><CrearOrdenesPedidoResult>${99000000 + index}</CrearOrdenesPedidoResult></Body></Envelop>`
+                                    })
+                                } as any;
+                            } else {
+                                res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        url: orderUrl,
+                                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                                        version: '1.1',
+                                        body: xml,
+                                        timeoutMs: 30000,
+                                    }),
+                                });
+                            }
+                            
+                            // Si recibimos un Bad Gateway, Gateway Timeout o Service Unavailable, provocamos reintento.
+                            if (res.status === 502 || res.status === 503 || res.status === 504) {
+                                throw new Error(`Error temporal de infraestructura (HTTP ${res.status})`);
+                            }
+                            
+                            fetchError = null;
+                            break; // Request exitoso a nivel HTTP
+                        } catch (err: any) {
+                            fetchError = err;
+                            if (retry < MAX_RETRIES && !useAppStore.getState().sendCancelled) {
+                                setProgressLogs(prev => [...prev, { ref, status: 'warn', msg: `Fallo de red (${err.message}). Auto-retry ${retry+1}/${MAX_RETRIES} en 2s...` }]);
+                                await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, retry))); // exponential backoff
+                            }
+                        }
+                    }
+
+                    if (useAppStore.getState().sendCancelled) {
+                        break;
+                    }
+
+                    if (fetchError) {
+                        throw new Error(`Fallaron ${MAX_RETRIES + 1} intentos: ${fetchError.message}`);
+                    }
+
+                    const response = await res.json();
+                    lastRawResponse = response.text || '';
+
+                    setProgressLogs(prev => [...prev, { ref, status: 'info', msg: `HTTP ${response.status} · ${lastRawResponse.length} bytes` }]);
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                    // ── 3. Parsear respuesta XML ─────────────────────────────────
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(lastRawResponse, 'text/xml');
+
+                    // 3 intentos para encontrar el nodo resultado (con/sin namespace)
+                    const resultNode =
+                        doc.getElementsByTagName('CrearOrdenesPedidoResult')[0] ||
+                        doc.getElementsByTagName('unis:CrearOrdenesPedidoResult')[0] ||
+                        doc.getElementsByTagName('Result')[0];
+
+                    const resultText  = resultNode ? (resultNode.textContent ?? '') : '';
+                    const isIntSuccess = /^\d+$/.test(resultText) && parseInt(resultText) > 0;
+                    const isBoolSuccess = resultText.toLowerCase() === 'true';
+
+                    const nodeInfo = resultNode
+                        ? `Nodo: ${resultNode.nodeName} = "${resultText}"`
+                        : 'Nodo resultado no encontrado → fallback texto';
+                    setProgressLogs(prev => [...prev, { ref, status: 'info', msg: nodeInfo }]);
+
+                    let isValid = response.ok;
+
+                    if (resultNode) {
+                        isValid = isIntSuccess || isBoolSuccess;
+                    } else {
+                        isValid = isValid &&
+                            !lastRawResponse.includes('false') &&
+                            !lastRawResponse.includes('Error') &&
+                            !lastRawResponse.includes('Exception') &&
+                            !lastRawResponse.includes('Fallo');
+                    }
+
+                    // ── 4. Éxito / Error ─────────────────────────────────────────
+                    if (isValid) {
+                        setRowStatus(index, 'success', undefined, lastRawResponse);
+                        updateRowData(index, '_UnigisId', resultText); // #78: Capture UNIGIS ID natively into row!
+                        setProgressLogs(prev => [...prev, { ref, status: 'success', msg: `Creado (ID: ${resultText || 'OK'})` }]);
+                        setProgressSuccess(prev => prev + 1);
+                    } else {
+                        let msg = '';
+
+                        if (resultNode && !isValid) {
+                            msg = UNIGIS_ERROR_CODES[resultText]
+                                ? `${resultText}: ${UNIGIS_ERROR_CODES[resultText]}`
+                                : `Fallo lógico: respuesta "${resultText}"`;
+                        }
+
+                        if (!msg && lastRawResponse) {
+                            const errorPatterns = [
+                                /<soap:Reason[^>]*>([\s\S]*?)<\/soap:Reason>/i,
+                                /<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i,
+                                /<unis:Descripcion[^>]*>([\s\S]*?)<\/unis:Descripcion>/i,
+                                /<unis:Description[^>]*>([\s\S]*?)<\/unis:Description>/i,
+                                /<unis:Mensaje[^>]*>([\s\S]*?)<\/unis:Mensaje>/i,
+                                /<unis:Error[^>]*>([\s\S]*?)<\/unis:Error>/i,
+                                /Mensaje>([\s\S]*?)<\//i,
+                                /Error>([\s\S]*?)<\//i,
+                            ];
+                            for (const pattern of errorPatterns) {
+                                const match = lastRawResponse.match(pattern);
+                                if (match) { msg = match[1].trim(); break; }
+                            }
+                        }
+
+                        if (!msg) msg = '(Error desconocido)';
+                        throw new Error(msg);
+                    }
+                } catch (err: any) {
+                    setRowStatus(index, 'error', err.message, lastRawResponse);
+                    if (err._errorCode) updateRowData(index, '_errorCode', err._errorCode);
+                    setProgressLogs(prev => [...prev, {
+                        ref,
+                        status: 'error',
+                        msg: err.message,
+                        detail: lastRawResponse ? lastRawResponse.slice(0, 2000) : undefined,
+                        xml: lastXml || undefined, // #36: Attach XML for download
+                    }]);
+                    setProgressError(prev => prev + 1);
+                }
             }
+        };
 
-            const { row, index } = batch[i];
-            setRowStatus(index, 'sending');
-            setProgressCurrent(i + 1);
+        // Iniciar los trabajadores concurrentes
+        const workers = [];
+        const limit = Math.min(CONCURRENCY_LIMIT, batch.length);
+        for (let w = 0; w < limit; w++) {
+            workers.push(runWorker());
+        }
+        await Promise.all(workers);
 
-            const refCol = mapping['Orden.RefDocumento'];
-            const ref = row[refCol] || `Fila ${index + 1}`;
-
-            let lastRawResponse = '';
-            let lastXml = ''; // #36: Store XML for failed download
-            try {
-                // ── 1. Construir XML ─────────────────────────────────────────
-                const xml = buildXml(row, ctx);
-                lastXml = xml;
-                logs.push({ ref, status: 'info', msg: `XML: ${xml.length} chars → ${orderUrl}` });
-                setProgressLogs([...logs]);
-
-                // ── 2. Llamada SOAP via Cloud Function con Auto-Retry (o Mock si es Dry Run) ─
-                let res;
-                let fetchError = null;
-                const MAX_RETRIES = 2;
-
-                for (let retry = 0; retry <= MAX_RETRIES; retry++) {
-                    try {
-                        if (isDryRun) {
-                            await new Promise(r => setTimeout(r, 250)); // delay de simulacion
-                            res = {
-                                json: async () => ({
-                                    ok: true,
-                                    status: 200,
-                                    text: `<Envelop><Body><CrearOrdenesPedidoResult>${99000000 + i}</CrearOrdenesPedidoResult></Body></Envelop>`
-                                })
-                            } as any;
-                        } else {
-                            res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    url: orderUrl,
-                                    action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                                    version: '1.1',
-                                    body: xml,
-                                    timeoutMs: 30000,
-                                }),
-                            });
-                        }
-                        
-                        // Si recibimos un Bad Gateway, Gateway Timeout o Service Unavailable, provocamos reintento.
-                        // (Nota: HTTP 500 se considera SOAP Fault en WCF, así que NO lo reintentamos, es un error lógico de UNIGIS).
-                        if (res.status === 502 || res.status === 503 || res.status === 504) {
-                            throw new Error(`Error temporal de infraestructura (HTTP ${res.status})`);
-                        }
-                        
-                        fetchError = null;
-                        break; // Request exitoso a nivel HTTP
-                    } catch (err: any) {
-                        fetchError = err;
-                        if (retry < MAX_RETRIES) {
-                            logs.push({ ref, status: 'warn', msg: `Fallo de red (${err.message}). Auto-retry ${retry+1}/${MAX_RETRIES} en 2s...` });
-                            setProgressLogs([...logs]);
-                            await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, retry))); // exponential backoff
-                        }
-                    }
-                }
-
-                if (fetchError) {
-                    throw new Error(`Fallaron ${MAX_RETRIES + 1} intentos: ${fetchError.message}`);
-                }
-
-                const response = await res.json();
-                lastRawResponse = response.text || '';
-
-                logs.push({ ref, status: 'info', msg: `HTTP ${response.status} · ${lastRawResponse.length} bytes` });
-                setProgressLogs([...logs]);
-
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-
-                // ── 3. Parsear respuesta XML ─────────────────────────────────
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(lastRawResponse, 'text/xml');
-
-                // 3 intentos para encontrar el nodo resultado (con/sin namespace)
-                const resultNode =
-                    doc.getElementsByTagName('CrearOrdenesPedidoResult')[0] ||
-                    doc.getElementsByTagName('unis:CrearOrdenesPedidoResult')[0] ||
-                    doc.getElementsByTagName('Result')[0];
-
-                const resultText  = resultNode ? (resultNode.textContent ?? '') : '';
-                const isIntSuccess = /^\d+$/.test(resultText) && parseInt(resultText) > 0;
-                const isBoolSuccess = resultText.toLowerCase() === 'true';
-
-                const nodeInfo = resultNode
-                    ? `Nodo: ${resultNode.nodeName} = "${resultText}"`
-                    : 'Nodo resultado no encontrado → fallback texto';
-                logs.push({ ref, status: 'info', msg: nodeInfo });
-                setProgressLogs([...logs]);
-
-                let isValid = response.ok;
-
-                if (resultNode) {
-                    isValid = isIntSuccess || isBoolSuccess;
-                } else {
-                    isValid = isValid &&
-                        !lastRawResponse.includes('false') &&
-                        !lastRawResponse.includes('Error') &&
-                        !lastRawResponse.includes('Exception') &&
-                        !lastRawResponse.includes('Fallo');
-                }
-
-                // ── 4. Éxito / Error ─────────────────────────────────────────
-                if (isValid) {
-                    success++;
-                    setRowStatus(index, 'success', undefined, lastRawResponse);
-                    updateRowData(index, '_UnigisId', resultText); // #78: Capture UNIGIS ID natively into row!
-                    logs.push({ ref, status: 'success', msg: `Creado (ID: ${resultText || 'OK'})` });
-                } else {
-                    let msg = '';
-                    let errorCode = '';
-
-                    if (resultNode && !isValid) {
-                        errorCode = resultText; // e.g. "-39"
-                        msg = UNIGIS_ERROR_CODES[resultText]
-                            ? `${resultText}: ${UNIGIS_ERROR_CODES[resultText]}`
-                            : `Fallo lógico: respuesta "${resultText}"`;
-                    }
-
-                    if (!msg && lastRawResponse) {
-                        const errorPatterns = [
-                            /<soap:Reason[^>]*>([\s\S]*?)<\/soap:Reason>/i,
-                            /<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i,
-                            /<unis:Descripcion[^>]*>([\s\S]*?)<\/unis:Descripcion>/i,
-                            /<unis:Description[^>]*>([\s\S]*?)<\/unis:Description>/i,
-                            /<unis:Mensaje[^>]*>([\s\S]*?)<\/unis:Mensaje>/i,
-                            /<unis:Error[^>]*>([\s\S]*?)<\/unis:Error>/i,
-                            /Mensaje>([\s\S]*?)<\//i,
-                            /Error>([\s\S]*?)<\//i,
-                        ];
-                        for (const pattern of errorPatterns) {
-                            const match = lastRawResponse.match(pattern);
-                            if (match) { msg = match[1].trim(); break; }
-                        }
-                    }
-
-                    if (!msg) msg = '(Error desconocido)';
-                    throw new Error(msg);
-                }
-            } catch (err: any) {
-                errors++;
-                setRowStatus(index, 'error', err.message, lastRawResponse);
-                if (err._errorCode) updateRowData(index, '_errorCode', err._errorCode);
-                logs.push({
-                    ref,
-                    status: 'error',
-                    msg: err.message,
-                    detail: lastRawResponse ? lastRawResponse.slice(0, 2000) : undefined,
-                    xml: lastXml || undefined, // #36: Attach XML for download
-                });
-            }
-
-            setProgressSuccess(success);
-            setProgressError(errors);
-            setProgressLogs([...logs]);
+        if (useAppStore.getState().sendCancelled) {
+            setProgressLogs(prev => [...prev, { ref: 'CANCELADO', status: 'warn', msg: 'Envío cancelado por el usuario' }]);
         }
 
         setProgressComplete(true);
@@ -509,7 +521,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
     }, [rows, sendBatch]);
 
     const handleSendSelected = useCallback(() => {
-        const batch = Array.from(selectedIndices).map((index) => ({ row: rows[index], index }));
+        const batch = Array.from(selectedIndices).map((index: number) => ({ row: rows[index], index }));
         sendBatch(batch);
     }, [rows, selectedIndices, sendBatch]);
 

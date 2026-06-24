@@ -126,3 +126,13 @@ Reemplaza el `server.js` Express que usaban ambos integradores originales.
     2. Se depuró la función `extractStaticApiKeyFromToken` para filtrar caracteres inválidos del Base64 antes de pasarlo a `atob`.
     3. Se añadió un cache-buster (`?v=202606161100`) a la carga de `main.js` en `index.html` (tanto en la carpeta Standalone como en `public`).
     4. Se portó este nuevo saneamiento robusto al integrador de Next.js (`app/uniswagger/page.tsx` y `swagger-engine.ts`).
+- **Generación de Mapa Logístico KML (Junio 2026)**:
+  - **Requerimiento**: Generar un archivo `.kml` que unifique los polígonos exactos de códigos postales de España, agrupados en Zonas específicas de reparto (Zonas 2, 3, 4, 5, 6, 7, 8, 9 y 10).
+  - **Implementación y Ejecución**:
+    1. Se ejecutó el script de descarga cartográfica `download_map.py` utilizando `osmnx` para consultar OpenStreetMap, `geopandas` / `shapely` para el tratamiento geométrico, y `fiona` para exportar a formato KML.
+    2. Dado que el entorno por defecto utilizaba Python de 32-bit (que no posee ruedas precompiladas de librerías geoespaciales para Windows), se utilizó el gestor `uv` para forzar la ejecución en una versión de Python 3.12 (64-bit) descargada al vuelo:
+       ```powershell
+       & "uv" run --python 3.12 --with osmnx --with geopandas --with pandas --with fiona --with pyogrio download_map.py
+       ```
+    3. Todos los códigos postales fueron geocodificados con éxito y disueltos (dissolve) por Zona para eliminar fronteras internas y crear una geometría unificada por zona de distribución.
+    4. Se exportó exitosamente el archivo [mapa_logistico_exacto.kml](file:///c:/Users/jesus.marquez/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/Documentos/Jesus_UniES/OneDrive%20-%20UNISOLUTIONS%20MEX%20SA%20DE%20CV/UNITASK/UniTask/mapa_logistico_exacto.kml) en la raíz del proyecto.

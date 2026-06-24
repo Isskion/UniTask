@@ -72,4 +72,8 @@ minuta-f75a4-firebase-adminsdk-fbsvc-b6ad547134.json
 !git_backup_data/
 !git_backup_data/**
 
+# KML map files (non-project assets)
+mapa_logistico_exacto.kml
+*.kml
+
 
