@@ -12179,7 +12179,6 @@
   },
   {
     "id": "t7HLRFFhKnPGrasUorUb",
-    "title": "Documentos necesarios TSP",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -12205,7 +12204,6 @@
     "dependencies": [],
     "tenantId": "3",
     "isActive": true,
-    "techDescription": "Viaje: \nCarta de porte contenedores (adjunta y debe emitirse por el TMS)\n\neCMR (obligatorio a nivel legal del TMS)\n\nDocumento de Portic (lo adjuntan los operadores de tráfico y tienen que verlo los conductores en la app).\nDocumentos del cliente (idem portic)\nOtros documentos que serán adjuntos para que queden asociados al viaje\nConductor: \nNo tenemos claridad si en el Maestro de Conductores de Unigis podemos dejar registro de Licencias, caso de conducir, ADR u otros documentos, vencimientos, etc. Si es posible, el sistema debe validar de que estos documentos no estén vencidos al momento de la selección y planificación de viajes.\nCorrecto antes de asignarle el viaje a un chofer, nosotros debemos revisar que el chofer tenga carnet o que este en vigor, , y tener previamente la documentación que nos tiene que enviar el Cliente (portic, albaran o orden de transporte, etc.) la Carta de porte hasta el momento nos lo genera automáticamente andsoft, imagino que el Nuevo TMS también lo generara automaticamente\nVehículo: \nEstamos cerrando la propuesta del Taller en Business Central. Si esto es correcto tendremos que realizar una comunicación entre sistemas para activar o inactivar vehículos (disponibilidad para planificar) por motivos de averías, ITV, mantenimientos, etc. Es decir que el sistema de Taller deberá comunicar si un vehículo está o no disponible para planificación. Que el conjunto tractora+plataforma tenga ITV",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "projectCode": "TSP",
     "priority": "Media",
@@ -12226,9 +12224,11 @@
     },
     "endDate": "2026-06-18T22:00:00.000Z",
     "status": "in_progress",
+    "techDescription": "Documentación necesaria en la operativa. Documentación vehículos, conductores, etc.\n•\tCMR\n•\tCarta de Porte\n•\tOrden del Cliente (Impresión del Portic, Albaranes del Cliente, etc) \n•\tDocumentos de carga (ADR, Packing list, etc.)\n",
+    "title": "Documentos necesarios Distribución",
     "updatedAt": {
-      "_seconds": 1781507841,
-      "_nanoseconds": 720000000
+      "_seconds": 1782298459,
+      "_nanoseconds": 237000000
     }
   },
   {
