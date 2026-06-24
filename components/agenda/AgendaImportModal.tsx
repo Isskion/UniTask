@@ -33,7 +33,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     const [preview, setPreview] = useState<ImportPreview | null>(null);
     const [unknownConsultants, setUnknownConsultants] = useState<string[]>([]);
     const [nameResolutions, setNameResolutions] = useState<Record<string, NameResolution>>({});
-    const [result, setResult] = useState<{ written: number; skipped: number; unknownConsultants: string[] } | null>(null);
+    const [result, setResult] = useState<{ written: number; updated: number; skipped: number; unknownConsultants: string[] } | null>(null);
     const [error, setError] = useState<string>('');
     // consultantId → selected region (only populated for multi-region consultants in the Excel)
     const [regionOverrides, setRegionOverrides] = useState<Record<string, string>>({});
@@ -194,6 +194,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
                                 <div>
                                     <p className="font-semibold">{result.written} entradas importadas correctamente</p>
+                                    {result.updated > 0 && (
+                                        <p className="text-xs mt-0.5 opacity-80">{result.updated} entradas actualizadas (cambio de estado/resultado detectado)</p>
+                                    )}
                                     {result.skipped > 0 && (
                                         <p className="text-xs mt-0.5 opacity-80">{result.skipped} entradas omitidas (duplicadas o sin consultor)</p>
                                     )}

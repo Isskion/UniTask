@@ -1,4 +1,5 @@
 import { Timestamp } from "firebase/firestore";
+import { Circle, PauseCircle, CheckCircle2, XCircle, LucideIcon } from "lucide-react";
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
@@ -242,6 +243,14 @@ export const RESULT_CONFIG: Record<ResultStatus, ResultConfig> = {
         textClass: 'text-red-600',
         msProjectPercent: 0,
     },
+};
+
+// Icono por estado — sustituye el punto de color en tarjetas/lista por algo legible de un vistazo.
+export const RESULT_ICON: Record<ResultStatus, LucideIcon> = {
+    [ResultStatus.POR_HACER]: Circle,
+    [ResultStatus.EN_PAUSA]:  PauseCircle,
+    [ResultStatus.HECHO]:     CheckCircle2,
+    [ResultStatus.CANCELADO]: XCircle,
 };
 
 export const DAY_TYPE_CONFIG: Record<DayType, { label: string; headerBg: string; headerText: string }> = {

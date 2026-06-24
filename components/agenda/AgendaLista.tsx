@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
     ActivityType, ResultStatus,
-    ACTIVITY_CONFIG, RESULT_CONFIG, ACTIVITY_TKEYS, RESULT_TKEYS,
+    ACTIVITY_CONFIG, RESULT_CONFIG, RESULT_ICON, ACTIVITY_TKEYS, RESULT_TKEYS,
 } from "@/types/agenda";
 import { useLanguage } from "@/context/LanguageContext";
 import { formatHours } from "@/lib/agenda-utils";
@@ -416,6 +416,8 @@ export function AgendaLista({
                                     const date   = e.date instanceof Timestamp ? e.date.toDate() : new Date(e.date as unknown as string);
                                     const actCfg = ACTIVITY_CONFIG[e.activityType];
                                     const resCfg = RESULT_CONFIG[e.result];
+                                    const StatusIcon = RESULT_ICON[e.result];
+                                    const isCancelled = e.result === ResultStatus.CANCELADO;
                                     return (
                                         <tr key={e.id} className={cn(
                                             "border-b border-border/40 transition-colors hover:bg-accent/40",
@@ -443,8 +445,8 @@ export function AgendaLista({
                                                     {t(ACTIVITY_TKEYS[e.activityType]) || e.activityType}
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-2 font-medium text-foreground whitespace-nowrap">{e.client || '—'}</td>
-                                            <td className="px-3 py-2 text-muted-foreground max-w-[200px] truncate" title={e.description}>
+                                            <td className={cn("px-3 py-2 font-medium text-foreground whitespace-nowrap", isCancelled && "line-through opacity-60")}>{e.client || '—'}</td>
+                                            <td className={cn("px-3 py-2 text-muted-foreground max-w-[200px] truncate", isCancelled && "line-through opacity-60")} title={e.description}>
                                                 {e.description || '—'}
                                             </td>
                                             <td className="px-3 py-2 text-muted-foreground whitespace-nowrap tabular-nums">
@@ -464,7 +466,7 @@ export function AgendaLista({
                                             </td>
                                             <td className="px-3 py-2">
                                                 <span className="flex items-center gap-1.5 whitespace-nowrap">
-                                                    <span className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", resCfg.dotClass)} />
+                                                    <StatusIcon className={cn("w-3 h-3 flex-shrink-0", resCfg.textClass)} />
                                                     <span className={cn("text-[10px] font-medium", resCfg.textClass)}>
                                                         {t(RESULT_TKEYS[e.result]) || e.result}
                                                     </span>

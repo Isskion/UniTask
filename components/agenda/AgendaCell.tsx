@@ -2,7 +2,7 @@
 
 import { Plus, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AgendaEntry, AgendaConsultant, DayType, ACTIVITY_CONFIG, RESULT_CONFIG, DAY_TKEYS } from "@/types/agenda";
+import { AgendaEntry, AgendaConsultant, DayType, ResultStatus, ACTIVITY_CONFIG, RESULT_CONFIG, RESULT_ICON, DAY_TKEYS } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
 import { useLanguage } from "@/context/LanguageContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -38,6 +38,8 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
             {entries.map(entry => {
                 const actCfg  = ACTIVITY_CONFIG[entry.activityType];
                 const resCfg  = RESULT_CONFIG[entry.result];
+                const StatusIcon = RESULT_ICON[entry.result];
+                const isCancelled = entry.result === ResultStatus.CANCELADO;
                 const isRunning   = runningEntryIds.has(entry.id);
                 const actualMins  = ((entry as any).actualMinutes as number) || 0;
                 const scheduledMins = Math.round((entry.scheduledHours || 0) * 60);
@@ -54,15 +56,15 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
                             isDark ? "text-white" : actCfg.textClass,
                         )}
                     >
-                        {/* Fila 1: tipo de tarea + dot de estado */}
+                        {/* Fila 1: tipo de tarea + icono de estado */}
                         <div className="flex items-center justify-between gap-1">
-                            <span className={cn("font-semibold truncate", actCfg.textClass)}>
+                            <span className={cn("font-semibold truncate", actCfg.textClass, isCancelled && "line-through opacity-60")}>
                                 {actCfg.label}
                             </span>
                             {entry.needsDateReview ? (
                                 <AlertTriangle className="w-2.5 h-2.5 shrink-0 text-amber-400" />
                             ) : (
-                                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", resCfg.dotClass)} />
+                                <StatusIcon className={cn("w-3 h-3 shrink-0", resCfg.textClass)} />
                             )}
                         </div>
 
@@ -72,14 +74,14 @@ export function AgendaCell({ consultant, date, dayType, entries, onAdd, onEdit, 
 
                         {/* Fila 2: proyecto (nombre del cliente/proyecto principal) */}
                         {entry.projectName && (
-                            <p className={cn("truncate mt-0.5", actCfg.textClass, "opacity-90")}>
+                            <p className={cn("truncate mt-0.5", actCfg.textClass, isCancelled ? "line-through opacity-60" : "opacity-90")}>
                                 {entry.projectName}
                             </p>
                         )}
 
                         {/* Fila 3: descripción truncada a una línea */}
                         {entry.description && (
-                            <p className={cn("truncate mt-0.5 opacity-75", actCfg.textClass)}>
+                            <p className={cn("truncate mt-0.5", actCfg.textClass, isCancelled ? "line-through opacity-60" : "opacity-75")}>
                                 {entry.description}
                             </p>
                         )}

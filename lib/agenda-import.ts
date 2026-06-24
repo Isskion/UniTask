@@ -84,6 +84,7 @@ export interface ParseOptions {
 
 export interface ImportResult {
     written: number;
+    updated: number;
     skipped: number;
     unknownConsultants: string[];
 }
@@ -324,18 +325,31 @@ export async function executeImport(
         where("weekStart", "==", weekStart)
     );
     const existingSnap = await getDocs(existingQ);
-    const existingKeys = new Set<string>();
+    // dedupKey → { id, result } del documento existente, para poder sincronizar el Resultado
+    // en reimportación sin necesidad de otra lectura (ya tenemos todo el doc en memoria).
+    const existingByKey = new Map<string, { id: string; result: ResultStatus }>();
     existingSnap.docs.forEach(d => {
         const e = d.data();
         const _d = (e.date as Timestamp).toDate();
         const dateISO = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
         const { scheduleRaw: norm } = normalizeSchedule(e.scheduleRaw || '');
         const normComment = String(e.comment || '').trim().toUpperCase();
-        existingKeys.add(`${e.consultantId}::${dateISO}::${e.activityType}::${norm}::${normComment}`);
+        const key = `${e.consultantId}::${dateISO}::${e.activityType}::${norm}::${normComment}`;
+        existingByKey.set(key, { id: d.id, result: e.result as ResultStatus });
     });
 
-    const batch = writeBatch(db);
+    let batch = writeBatch(db);
+    let opsInBatch = 0;
+    const flushIfFull = async () => {
+        // Firestore batch limit is 500 ops
+        if (opsInBatch < 490) return;
+        await batch.commit();
+        batch = writeBatch(db);
+        opsInBatch = 0;
+    };
+
     let written = 0;
+    let updated = 0;
     let skipped = 0;
     const unknownConsultants = new Set<string>();
 
@@ -363,11 +377,25 @@ export async function executeImport(
         const normComment = entry.comment.trim().toUpperCase();
         const dedupKey = `${consultant.userId}::${dateISO}::${entry.activityType}::${scheduleRaw}::${normComment}`;
 
-        if (existingKeys.has(dedupKey)) {
-            skipped++;
+        const existing = existingByKey.get(dedupKey);
+        if (existing) {
+            // Misma tarea ya importada — el Resultado es el único campo de la fila de Excel
+            // que no forma parte de la clave de dedup, así que es lo único que puede haber
+            // cambiado entre dos importaciones. Si cambió, lo sincronizamos; si no, se omite.
+            if (existing.id && existing.result !== entry.result) {
+                batch.update(doc(db, ENTRIES_COLLECTION, existing.id), {
+                    result:    entry.result,
+                    updatedAt: serverTimestamp(),
+                });
+                updated++;
+                opsInBatch++;
+                await flushIfFull();
+            } else {
+                skipped++;
+            }
             continue;
         }
-        existingKeys.add(dedupKey); // prevent duplicate within same import batch
+        existingByKey.set(dedupKey, { id: '', result: entry.result }); // prevent duplicate within same import batch
 
         const { client, description } = parseComment(entry.comment);
         const weekDate  = getWeekStart(entry.date);
@@ -418,14 +446,11 @@ export async function executeImport(
 
         batch.set(doc(collection(db, ENTRIES_COLLECTION)), payload);
         written++;
-
-        // Firestore batch limit is 500
-        if (written % 490 === 0) {
-            await batch.commit();
-        }
+        opsInBatch++;
+        await flushIfFull();
     }
 
-    await batch.commit();
+    if (opsInBatch > 0) await batch.commit();
 
-    return { written, skipped, unknownConsultants: [...unknownConsultants] };
+    return { written, updated, skipped, unknownConsultants: [...unknownConsultants] };
 }
