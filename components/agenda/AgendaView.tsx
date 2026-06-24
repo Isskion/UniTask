@@ -446,24 +446,26 @@ export function AgendaView() {
                         <RotateCcw className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Filters toggle */}
-                    <button
-                        onClick={() => setShowFilters(v => !v)}
-                        className={cn(
-                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                            showFilters || activeFilterCount > 0
-                                ? "bg-indigo-600 border-indigo-600 text-white"
-                                : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
-                        )}
-                    >
-                        <Filter className="w-3.5 h-3.5" />
-                        {t('agenda.filters')}
-                        {activeFilterCount > 0 && (
-                            <span className="bg-indigo-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">
-                                {activeFilterCount}
-                            </span>
-                        )}
-                    </button>
+                    {/* Filters toggle — oculto en modo Lista, que ya tiene su propia franja de filtros fija */}
+                    {viewMode !== 'lista' && (
+                        <button
+                            onClick={() => setShowFilters(v => !v)}
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+                                showFilters || activeFilterCount > 0
+                                    ? "bg-indigo-600 border-indigo-600 text-white"
+                                    : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                            )}
+                        >
+                            <Filter className="w-3.5 h-3.5" />
+                            {t('agenda.filters')}
+                            {activeFilterCount > 0 && (
+                                <span className="bg-indigo-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </button>
+                    )}
 
                     {/* Export Jira */}
                     <button
@@ -533,8 +535,8 @@ export function AgendaView() {
                 </div>
             </div>
 
-            {/* ── Filter panel ─────────────────────────────────────────────── */}
-            {showFilters && (
+            {/* ── Filter panel — no aplica en modo Lista (tiene su propia franja fija) ───── */}
+            {viewMode !== 'lista' && showFilters && (
                 <div className="border-b border-border bg-card px-4 py-3 flex flex-wrap gap-6 shrink-0 animate-in slide-in-from-top-2 duration-150">
 
                     {/* Region */}
