@@ -131,23 +131,93 @@ export default function MasterTable() {
         return map;
     }, [mapping]);
 
-    // #23, #32, #53: Inline row validation
-    const duplicateMap = useMemo(() => buildDuplicateMap(rows as Record<string, string>[], mapping), [rows, mapping]);
+    // Refs for caching duplicate map calculations to avoid loops on every status update
+    const prevRowsForDupRef = useRef<any[]>([]);
+    const prevRefColRef = useRef<string | null>(null);
+    const duplicateMapRef = useRef<Map<string, number>>(new Map());
 
-    // Filtered rows with injected validation info
+    // Calculate duplicate map efficiently
+    const duplicateMap = useMemo(() => {
+        const refCol = mapping['Orden.RefDocumento'];
+        let mustRebuild = false;
+        
+        if (prevRefColRef.current !== refCol) {
+            mustRebuild = true;
+        } else if (prevRowsForDupRef.current.length !== rows.length) {
+            mustRebuild = true;
+        } else {
+            // Check if values in the reference column have changed
+            for (let i = 0; i < rows.length; i++) {
+                if (prevRowsForDupRef.current[i]?.[refCol] !== rows[i]?.[refCol]) {
+                    mustRebuild = true;
+                    break;
+                }
+            }
+        }
+
+        if (mustRebuild) {
+            duplicateMapRef.current = buildDuplicateMap(rows as Record<string, string>[], mapping);
+            prevRefColRef.current = refCol;
+            prevRowsForDupRef.current = rows;
+        }
+
+        return duplicateMapRef.current;
+    }, [rows, mapping]);
+
+    // Refs for caching validation results per row to avoid redundant validations during sending status changes
+    const validationCacheRef = useRef<Map<number, { rowRef: any; result: { isValid: boolean; errors: number; warnings: number } }>>(new Map());
+    const prevMappingRef = useRef<any>(null);
+    const prevDuplicateMapRef = useRef<any>(null);
+    const prevRowsLengthRef = useRef<number>(0);
+
+    // Filtered rows with cached validation info
     const filteredRows = useMemo(() => {
-        let baseRows = rows.map((r, i) => {
-            const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
-            const errors = validation.issues.filter(iss => iss.severity === 'error').length;
-            const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
+        // Clear cache if mapping, duplicateMap, or rows length changes
+        if (
+            prevMappingRef.current !== mapping || 
+            prevDuplicateMapRef.current !== duplicateMap || 
+            prevRowsLengthRef.current !== rows.length
+        ) {
+            validationCacheRef.current.clear();
+            prevMappingRef.current = mapping;
+            prevDuplicateMapRef.current = duplicateMap;
+            prevRowsLengthRef.current = rows.length;
+        }
+
+        const baseRows = rows.map((r, i) => {
+            const cached = validationCacheRef.current.get(i);
             
-            // We mutate a shallow copy or inject directly if allowed. To avoid React state mutation issues, we clone IF needed, 
-            // but we can just pass an enriched object to the view logic.
+            // Fast check: if row reference changed, compare content fields (ignoring private metadata starting with '_')
+            let useCache = false;
+            if (cached) {
+                useCache = true;
+                const keys = Object.keys({ ...cached.rowRef, ...r });
+                for (const key of keys) {
+                    if (key.startsWith('_')) continue;
+                    if (cached.rowRef[key] !== r[key]) {
+                        useCache = false;
+                        break;
+                    }
+                }
+            }
+
+            let validationInfo;
+            if (useCache && cached) {
+                cached.rowRef = r; // Update stored reference to newest shallow copy
+                validationInfo = cached.result;
+            } else {
+                const validation = validateOrderRow(r as Record<string, string>, i, mapping, duplicateMap);
+                const errors = validation.issues.filter(iss => iss.severity === 'error').length;
+                const warnings = validation.issues.filter(iss => iss.severity === 'warning').length;
+                validationInfo = { isValid: validation.isValid, errors, warnings };
+                validationCacheRef.current.set(i, { rowRef: r, result: validationInfo });
+            }
+
             return {
                 originalIndex: i,
                 row: {
                     ...r,
-                    _validationInfo: { isValid: validation.isValid, errors, warnings }
+                    _validationInfo: validationInfo
                 }
             };
         });
