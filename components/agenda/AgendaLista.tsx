@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X, AlertTriangle } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X, AlertTriangle, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
@@ -55,6 +55,7 @@ export function AgendaLista({
     const [sortField,        setSortField]        = useState<SortField>('date');
     const [sortDir,          setSortDir]          = useState<SortDir>('asc');
     const [showExport,       setShowExport]       = useState(false);
+    const [showFilterStrip,  setShowFilterStrip]  = useState(false);
 
     // ── 1. Global filters (from AgendaView) ───────────────────────────────────
     const baseFiltered = useMemo(() => entries.filter(e => {
@@ -148,6 +149,8 @@ export function AgendaLista({
     const localActive  = selectedDays.length > 0 || selectedProjects.length > 0 || search.trim().length > 0;
     const globalActive = filters.consultantIds.length > 0 || filters.activityTypes.length > 0 ||
                          filters.results.length > 0 || filters.region !== 'ALL' || (filters.divisions?.length ?? 0) > 0;
+    const activeFilterCount = selectedDays.length + selectedProjects.length + filters.activityTypes.length +
+        filters.results.length + (filters.region !== 'ALL' ? 1 : 0) + (filters.divisions?.length ?? 0) + filters.consultantIds.length;
 
     function clearAll() {
         setSelectedDays([]);
@@ -194,6 +197,24 @@ export function AgendaLista({
                         />
                     </div>
 
+                    <button
+                        onClick={() => setShowFilterStrip(v => !v)}
+                        className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+                            showFilterStrip || activeFilterCount > 0
+                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                : "bg-secondary/50 border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                        )}
+                    >
+                        <Filter className="w-3.5 h-3.5" />
+                        {t('agenda.filters')}
+                        {activeFilterCount > 0 && (
+                            <span className="bg-indigo-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
                     <span className="text-xs text-muted-foreground ml-auto">
                         {sorted.length} {t('agenda.nEntries')} · <span className="font-semibold text-foreground">{formatHours(totalHours)}</span> {t('agenda.plannedAbbr')}
                     </span>
@@ -218,8 +239,9 @@ export function AgendaLista({
                     </button>
                 </div>
 
-                {/* ── Filter strip ──────────────────────────────────────────── */}
-                <div className="flex flex-col gap-2 px-4 py-2.5 border-b border-border bg-card/20 shrink-0">
+                {/* ── Filter strip — colapsado por defecto, se abre con el boton "Filtros" ── */}
+                {showFilterStrip && (
+                <div className="flex flex-col gap-2 px-4 py-2.5 border-b border-border bg-card/20 shrink-0 animate-in slide-in-from-top-2 duration-150">
 
                     {/* Row 1: Days */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -383,6 +405,7 @@ export function AgendaLista({
                         </div>
                     )}
                 </div>
+                )}
 
                 {/* ── Table ─────────────────────────────────────────────────── */}
                 <div className="flex-1 overflow-auto">
