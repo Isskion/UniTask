@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin, RefreshCw, HelpCircle } from "lucide-react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { X, Upload, AlertTriangle, CheckCircle2, Loader2, FileSpreadsheet, MapPin, RefreshCw, HelpCircle, FolderGit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgendaConsultant } from "@/types/agenda";
 import {
     parseAgendaExcel, resolveUnknownConsultants, executeImport, suggestConsultantMatch,
+    resolveUnknownProjects, suggestProjectMatch,
     ParsedExcelEntry, ImportPreview, ImportDiagnostics,
 } from "@/lib/agenda-import";
 import { updateConsultant } from "@/lib/agenda";
 import { ACTIVITY_CONFIG } from "@/types/agenda";
+import { Project, getRoleLevel } from "@/types";
+import { getActiveProjects, filterBySAMScope, updateProject } from "@/lib/projects";
+import { useAuth } from "@/context/AuthContext";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
 
 // choice: '' = undecided (blocks import), 'SKIP' = explicitly leave these rows out, otherwise a consultant.userId
 interface NameResolution {
@@ -29,6 +34,9 @@ interface Props {
 type Phase = 'parsing' | 'preview' | 'importing' | 'done' | 'error';
 
 export function AgendaImportModal({ file, consultants, tenantId, userId, onClose, onSuccess }: Props) {
+    const { user, userRole } = useAuth();
+    const accessScopes = useAccessScopes();
+
     const [phase, setPhase] = useState<Phase>('parsing');
     const [preview, setPreview] = useState<ImportPreview | null>(null);
     const [unknownConsultants, setUnknownConsultants] = useState<string[]>([]);
@@ -37,6 +45,22 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
     const [error, setError] = useState<string>('');
     // consultantId → selected region (only populated for multi-region consultants in the Excel)
     const [regionOverrides, setRegionOverrides] = useState<Record<string, string>>({});
+
+    // ── Projects (auto-match by name/alias, never blocking) ───────────────────
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [projectResolutions, setProjectResolutions] = useState<Record<string, NameResolution>>({});
+
+    useEffect(() => {
+        if (!tenantId) return;
+        getActiveProjects(tenantId, user?.uid, getRoleLevel(userRole))
+            .then(all => setProjects(filterBySAMScope(all, accessScopes)))
+            .catch(console.error);
+    }, [tenantId, user, userRole, accessScopes]);
+
+    const unknownProjects = useMemo(
+        () => preview ? resolveUnknownProjects(preview.entries, projects) : [],
+        [preview, projects]
+    );
 
     // Re-analysis controls: which sheet to read + fallback Monday when Fecha_T can't be parsed
     const [selectedSheet, setSelectedSheet] = useState<string>('');
@@ -47,6 +71,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
         setPreview(p);
         setUnknownConsultants(unknown);
         setNameResolutions({}); // force a fresh decision for every unknown name on each (re)parse
+        setProjectResolutions({});
         setSelectedSheet(p.sheetName);
 
         // Pre-populate region overrides for multi-region consultants present in the Excel
@@ -96,7 +121,15 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                 if (r.choice) nameResolutionMap[name] = r.choice;
             });
 
-            const res = await executeImport(preview, consultants, tenantId, userId, regionOverrides, nameResolutionMap);
+            const projectResolutionMap: Record<string, string> = {};
+            Object.entries(projectResolutions).forEach(([text, r]) => {
+                if (r.choice && r.choice !== 'NONE') projectResolutionMap[text] = r.choice;
+            });
+
+            const res = await executeImport(
+                preview, consultants, tenantId, userId, regionOverrides, nameResolutionMap,
+                projects, projectResolutionMap,
+            );
 
             // Persist "remember" choices as aliases so future imports resolve automatically
             const toRemember = Object.entries(nameResolutions).filter(([, r]) => r.remember && r.choice && r.choice !== 'SKIP');
@@ -108,6 +141,15 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                 await updateConsultant(consultant.id, { aliases: [...existingAliases, name] });
             }
 
+            const projectsToRemember = Object.entries(projectResolutions).filter(([, r]) => r.remember && r.choice && r.choice !== 'NONE');
+            for (const [text, r] of projectsToRemember) {
+                const project = projects.find(p => p.id === r.choice);
+                if (!project) continue;
+                const existingAliases = project.aliases ?? [];
+                if (existingAliases.includes(text)) continue;
+                await updateProject(project.id, { aliases: [...existingAliases, text] });
+            }
+
             setResult(res);
             setPhase('done');
             onSuccess(res.written);
@@ -115,7 +157,7 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
             setError(String(err?.message || err));
             setPhase('error');
         }
-    }, [preview, consultants, tenantId, userId, regionOverrides, nameResolutions, onSuccess]);
+    }, [preview, consultants, tenantId, userId, regionOverrides, nameResolutions, projects, projectResolutions, onSuccess]);
 
     // Group by consultant for preview table
     const grouped = preview ? groupByConsultant(preview.entries) : [];
@@ -132,6 +174,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
 
     // Unknown names the importer hasn't made a decision on yet — blocks the Import button
     const unresolvedCount = unknownConsultants.filter(n => !nameResolutions[n]?.choice).length;
+
+    // "Cliente" texts still unmatched to a project — informational only, never blocks Import
+    const pendingProjectCount = unknownProjects.filter(n => !projectResolutions[n]?.choice).length;
 
     // Entries whose Fecha_T was broken/empty — imported anyway with an estimated date and no hours
     const needsDateReviewCount = preview ? preview.entries.filter(e => e.needsDateReview).length : 0;
@@ -234,6 +279,9 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                 {unresolvedCount > 0 && (
                                     <StatPill label="Pendientes de resolver" value={String(unresolvedCount)} warn />
                                 )}
+                                {pendingProjectCount > 0 && (
+                                    <StatPill label="Proyectos sin asignar" value={String(pendingProjectCount)} />
+                                )}
                             </div>
 
                             {/* Re-analysis controls: pick a different sheet / supply Monday when Fecha_T is broken */}
@@ -288,6 +336,23 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                     onToggleRemember={name => setNameResolutions(prev => ({
                                         ...prev,
                                         [name]: { choice: prev[name]?.choice ?? '', remember: !(prev[name]?.remember ?? true) },
+                                    }))}
+                                />
+                            )}
+
+                            {/* "Cliente" texts unmatched to a project — optional, never blocks import */}
+                            {unknownProjects.length > 0 && (
+                                <ProjectResolver
+                                    texts={unknownProjects}
+                                    projects={projects}
+                                    resolutions={projectResolutions}
+                                    onChange={(text, choice) => setProjectResolutions(prev => ({
+                                        ...prev,
+                                        [text]: { choice, remember: prev[text]?.remember ?? true },
+                                    }))}
+                                    onToggleRemember={text => setProjectResolutions(prev => ({
+                                        ...prev,
+                                        [text]: { choice: prev[text]?.choice ?? '', remember: !(prev[text]?.remember ?? true) },
                                     }))}
                                 />
                             )}
@@ -347,6 +412,10 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                                 const slashIdx = entry.comment.indexOf(' / ');
                                                 const project = slashIdx >= 0 ? entry.comment.slice(0, slashIdx) : entry.comment;
                                                 const desc    = slashIdx >= 0 ? entry.comment.slice(slashIdx + 3) : '';
+                                                const upperProject = project.toUpperCase();
+                                                const matchedProject = projects.find(p =>
+                                                    p.name.toUpperCase() === upperProject || (p.aliases ?? []).some(a => a.toUpperCase() === upperProject)
+                                                ) ?? projects.find(p => p.id === projectResolutions[upperProject]?.choice);
                                                 return (
                                                     <tr key={i} className={cn(
                                                         "border-b border-border last:border-0",
@@ -369,6 +438,13 @@ export function AgendaImportModal({ file, consultants, tenantId, userId, onClose
                                                             </span>
                                                         </td>
                                                         <td className="px-3 py-1.5 max-w-[260px]">
+                                                            {matchedProject && (
+                                                                <span
+                                                                    className="inline-block w-1.5 h-1.5 rounded-sm mr-1.5 shrink-0"
+                                                                    style={{ backgroundColor: matchedProject.color || '#6b7280' }}
+                                                                    title={`Vinculado al proyecto: ${matchedProject.name}`}
+                                                                />
+                                                            )}
                                                             <span className="font-semibold text-foreground">{project}</span>
                                                             {desc && <span className="text-muted-foreground ml-1">· {desc}</span>}
                                                         </td>
@@ -536,6 +612,79 @@ function UnknownResolver({ names, consultants, resolutions, onChange, onToggleRe
                                         type="checkbox"
                                         checked={remember}
                                         onChange={() => onToggleRemember(name)}
+                                        className="accent-indigo-500"
+                                    />
+                                    Recordar para futuras importaciones
+                                </label>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function ProjectResolver({ texts, projects, resolutions, onChange, onToggleRemember }: {
+    texts: string[];
+    projects: Project[];
+    resolutions: Record<string, NameResolution>;
+    onChange: (text: string, choice: string) => void;
+    onToggleRemember: (text: string) => void;
+}) {
+    const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+
+    return (
+        <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-3">
+            <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold">
+                <FolderGit2 className="w-3.5 h-3.5 shrink-0" />
+                Texto "cliente" sin proyecto vinculado — opcional, no bloquea la importación
+            </div>
+            <div className="space-y-2">
+                {texts.map(text => {
+                    const resolution = resolutions[text];
+                    const choice = resolution?.choice ?? '';
+                    const remember = resolution?.remember ?? true;
+                    const suggestion = suggestProjectMatch(text, projects);
+                    const isMappedToProject = !!choice && choice !== 'NONE';
+
+                    return (
+                        <div key={text} className="flex flex-wrap items-center gap-2 p-2 bg-background/40 border border-indigo-500/10 rounded-lg">
+                            <span className="text-xs font-semibold text-foreground min-w-[140px]">{text}</span>
+
+                            <select
+                                value={choice}
+                                onChange={e => onChange(text, e.target.value)}
+                                className={cn(
+                                    "px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none transition-all",
+                                    "bg-secondary/40 border-border text-foreground"
+                                )}
+                            >
+                                <option value="">— Sin decidir (se importa sin proyecto) —</option>
+                                <option value="NONE">No es un proyecto, no preguntar más</option>
+                                {sortedProjects.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        Vincular a: {p.name}{suggestion?.id === p.id ? ' (sugerido)' : ''}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {suggestion && choice === '' && (
+                                <button
+                                    type="button"
+                                    onClick={() => onChange(text, suggestion.id)}
+                                    className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+                                >
+                                    Usar sugerencia: {suggestion.name}
+                                </button>
+                            )}
+
+                            {isMappedToProject && (
+                                <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer ml-auto">
+                                    <input
+                                        type="checkbox"
+                                        checked={remember}
+                                        onChange={() => onToggleRemember(text)}
                                         className="accent-indigo-500"
                                     />
                                     Recordar para futuras importaciones

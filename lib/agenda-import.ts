@@ -2,6 +2,7 @@
 
 import * as XLSX from "xlsx";
 import { ActivityType, ResultStatus, AgendaConsultant } from "@/types/agenda";
+import { Project } from "@/types";
 import { db } from "@/lib/firebase";
 import {
     collection, getDocs, writeBatch, doc, query, where,
@@ -43,6 +44,16 @@ const RESULTADO_MAP: Record<string, ResultStatus> = {
 
 // Day column offsets (5 fields each: Fecha_T, Actividad, Comentario, Horario, Resultado)
 const DAY_OFFSETS = [2, 7, 12, 17, 22, 27, 32];
+
+// Activity types whose "cliente" text (before " / " in Comentario) plausibly names a project.
+// Vacaciones/Viaje/Reunión Interna/Especial never carry a project — never offered for resolution.
+const PROJECT_ELIGIBLE_ACTIVITIES = new Set<ActivityType>([
+    ActivityType.REUNION_CLIENTE,
+    ActivityType.REUNION_UNIGIS,
+    ActivityType.REUNION_PRESENCIAL,
+    ActivityType.TAREAS_A_REALIZAR,
+    ActivityType.COMERCIAL,
+]);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -288,6 +299,64 @@ export function suggestConsultantMatch(
     return bestScore > 0 ? best : null;
 }
 
+/** Builds the set of names (project.name + aliases, uppercase) that resolve without asking.
+ *  Matches by NAME only, never by code — the Excel cell is a free-text label a PM types,
+ *  never the project's business code. */
+function buildKnownProjectNames(projects: Project[]): Map<string, Project> {
+    const known = new Map<string, Project>();
+    projects.forEach(p => {
+        known.set(p.name.toUpperCase(), p);
+        (p.aliases ?? []).forEach(a => known.set(a.toUpperCase(), p));
+    });
+    return known;
+}
+
+/** Returns the distinct "cliente" texts (from project-eligible entries) that don't match any
+ *  known project by name/alias. Entries with empty client text are ignored. */
+export function resolveUnknownProjects(
+    entries: ParsedExcelEntry[],
+    projects: Project[]
+): string[] {
+    const knownNames = buildKnownProjectNames(projects);
+    const clientTexts = new Set(
+        entries
+            .filter(e => PROJECT_ELIGIBLE_ACTIVITIES.has(e.activityType))
+            .map(e => parseComment(e.comment).client)
+            .filter(Boolean)
+    );
+    return [...clientTexts].filter(n => !knownNames.has(n));
+}
+
+/** Naive best-guess match for an unmatched "cliente" text, to pre-select a suggestion in the
+ *  resolver UI. Compares normalized (accent-stripped) token overlap against project.name only. */
+export function suggestProjectMatch(clientText: string, projects: Project[]): Project | null {
+    const normalize = (s: string) => s
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toUpperCase().trim();
+
+    const target = normalize(clientText);
+    const targetTokens = new Set(target.split(/\s+/).filter(Boolean));
+    if (targetTokens.size === 0) return null;
+
+    let best: Project | null = null;
+    let bestScore = 0;
+
+    for (const p of projects) {
+        const candidate = normalize(p.name);
+        if (candidate === target || candidate.startsWith(target) || target.startsWith(candidate)) {
+            return p; // strong match — short-circuit
+        }
+        const candidateTokens = candidate.split(/\s+/).filter(Boolean);
+        const overlap = candidateTokens.filter(t => targetTokens.has(t)).length;
+        if (overlap > bestScore) {
+            bestScore = overlap;
+            best = p;
+        }
+    }
+
+    return bestScore > 0 ? best : null;
+}
+
 // ─── Execute Import ───────────────────────────────────────────────────────────
 
 /**
@@ -298,6 +367,13 @@ export function suggestConsultantMatch(
  * nameResolutions: excelName.toUpperCase() → consultant.userId (manual mapping chosen
  * by the importer for a name that didn't match any consultant/alias) or the literal
  * string 'SKIP' (importer explicitly chose to leave those rows out).
+ *
+ * projects: active projects available for auto-matching by name/alias.
+ *
+ * projectResolutions: clientText.toUpperCase() → project.id (manual mapping chosen by the
+ * importer for a "cliente" text that didn't match any project name/alias). Unlike consultants,
+ * an unresolved project is never blocking — the entry is imported with projectId null and
+ * projectName set to the raw text, same as before this feature existed.
  */
 export async function executeImport(
     preview: ImportPreview,
@@ -306,6 +382,8 @@ export async function executeImport(
     userId: string,
     regionOverrides?: Record<string, string>,
     nameResolutions?: Record<string, string>,
+    projects?: Project[],
+    projectResolutions?: Record<string, string>,
 ): Promise<ImportResult> {
     const { entries, weekStart } = preview;
 
@@ -318,6 +396,10 @@ export async function executeImport(
     });
     const consultantsByUserId = new Map(consultants.map(c => [c.userId, c]));
 
+    // Build cliente-text → project lookup (by name/alias only, never by code).
+    const projectNameMap = buildKnownProjectNames(projects ?? []);
+    const projectsById = new Map((projects ?? []).map(p => [p.id, p]));
+
     // Load existing entries for the week to enable dedup
     const existingQ = query(
         collection(db, ENTRIES_COLLECTION),
@@ -325,9 +407,11 @@ export async function executeImport(
         where("weekStart", "==", weekStart)
     );
     const existingSnap = await getDocs(existingQ);
-    // dedupKey → { id, result } del documento existente, para poder sincronizar el Resultado
-    // en reimportación sin necesidad de otra lectura (ya tenemos todo el doc en memoria).
-    const existingByKey = new Map<string, { id: string; result: ResultStatus }>();
+    // dedupKey → { id, result, projectId } del documento existente, para poder sincronizar el
+    // Resultado y el Proyecto en reimportación sin necesidad de otra lectura (ya tenemos todo
+    // el doc en memoria). El Proyecto puede cambiar entre importaciones cuando se resuelve un
+    // alias después de la primera importación de esa semana.
+    const existingByKey = new Map<string, { id: string; result: ResultStatus; projectId: string | null }>();
     existingSnap.docs.forEach(d => {
         const e = d.data();
         const _d = (e.date as Timestamp).toDate();
@@ -335,7 +419,7 @@ export async function executeImport(
         const { scheduleRaw: norm } = normalizeSchedule(e.scheduleRaw || '');
         const normComment = String(e.comment || '').trim().toUpperCase();
         const key = `${e.consultantId}::${dateISO}::${e.activityType}::${norm}::${normComment}`;
-        existingByKey.set(key, { id: d.id, result: e.result as ResultStatus });
+        existingByKey.set(key, { id: d.id, result: e.result as ResultStatus, projectId: e.projectId ?? null });
     });
 
     let batch = writeBatch(db);
@@ -377,14 +461,33 @@ export async function executeImport(
         const normComment = entry.comment.trim().toUpperCase();
         const dedupKey = `${consultant.userId}::${dateISO}::${entry.activityType}::${scheduleRaw}::${normComment}`;
 
+        const { client, description } = parseComment(entry.comment);
+
+        // Project auto-match by "cliente" text (name/alias only, never by code) — not blocking:
+        // unmatched entries keep today's behavior (no projectId, projectName = raw text).
+        let project: Project | undefined;
+        if (PROJECT_ELIGIBLE_ACTIVITIES.has(entry.activityType) && client) {
+            project = projectNameMap.get(client) ?? projectsById.get(projectResolutions?.[client] ?? '');
+        }
+
         const existing = existingByKey.get(dedupKey);
         if (existing) {
-            // Misma tarea ya importada — el Resultado es el único campo de la fila de Excel
-            // que no forma parte de la clave de dedup, así que es lo único que puede haber
-            // cambiado entre dos importaciones. Si cambió, lo sincronizamos; si no, se omite.
-            if (existing.id && existing.result !== entry.result) {
+            // Misma tarea ya importada. El Resultado y el Proyecto son los únicos campos que
+            // pueden haber cambiado entre dos importaciones de la misma semana (el resto forma
+            // parte de la clave de dedup) — el Proyecto cambia cuando se resuelve un alias nuevo
+            // después de la primera importación. Si ninguno cambió, se omite.
+            const newProjectId = project?.id ?? null;
+            const projectChanged = existing.id && newProjectId !== existing.projectId;
+            const resultChanged  = existing.id && existing.result !== entry.result;
+            if (resultChanged || projectChanged) {
                 batch.update(doc(db, ENTRIES_COLLECTION, existing.id), {
-                    result:    entry.result,
+                    ...(resultChanged  ? { result: entry.result } : {}),
+                    ...(projectChanged ? {
+                        projectId:    newProjectId,
+                        projectName:  project?.name  ?? (client || null),
+                        projectCode:  project?.code  ?? null,
+                        projectColor: project?.color ?? null,
+                    } : {}),
                     updatedAt: serverTimestamp(),
                 });
                 updated++;
@@ -395,9 +498,8 @@ export async function executeImport(
             }
             continue;
         }
-        existingByKey.set(dedupKey, { id: '', result: entry.result }); // prevent duplicate within same import batch
+        existingByKey.set(dedupKey, { id: '', result: entry.result, projectId: project?.id ?? null }); // prevent duplicate within same import batch
 
-        const { client, description } = parseComment(entry.comment);
         const weekDate  = getWeekStart(entry.date);
         const weekLabel = getWeekLabel(entry.date);
         const weekMonth = getWeekMonth(entry.date);
@@ -431,10 +533,10 @@ export async function executeImport(
             scheduledHours:  parseHours(scheduleRaw),
             result:          entry.result,
             jiraRecord:      buildJiraRecord(entry.activityType, client, description),
-            projectId:       null,
-            projectName:     client || null,
-            projectCode:     null,
-            projectColor:    null,
+            projectId:       project?.id    ?? null,
+            projectName:     project?.name  ?? (client || null),
+            projectCode:     project?.code  ?? null,
+            projectColor:    project?.color ?? null,
             linkedTaskId:    null,
             createdBy:       userId,
             createdAt:       serverTimestamp(),

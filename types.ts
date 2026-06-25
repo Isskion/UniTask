@@ -35,6 +35,9 @@ export interface Project {
     phone?: string;
     address?: string;
 
+    /** Alternate names that should resolve to this project when importing free-text data (e.g. Excel agenda imports). Stored uppercase. */
+    aliases?: string[];
+
     // [SAM Architecture] Scoped Resource Fields
     regionId?: string;
     divisionId?: string;
