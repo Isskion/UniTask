@@ -73,13 +73,13 @@ export default function MockSeedPage() {
             // B. Create Tasks (1-4)
             const numTasks = Math.floor(Math.random() * 4) + 1; // 1 to 4
             for (let i = 0; i < numTasks; i++) {
-                const statusPool = ['pending', 'in_progress', 'review', 'completed'];
+                const statusPool = ['pending', 'in_progress', 'review', 'completed', 'discarded', 'out_of_scope'];
                 const status = statusPool[Math.floor(Math.random() * statusPool.length)];
 
                 // Randomly set dates
                 const created = day;
                 let closedAt = null;
-                if (status === 'completed') {
+                if (['completed', 'discarded', 'out_of_scope'].includes(status)) {
                     closedAt = addDays(created, Math.floor(Math.random() * 5)); // Closed 0-5 days later
                 }
 

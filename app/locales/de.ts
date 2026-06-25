@@ -381,6 +381,8 @@ export const de: Dictionary = {
         status_in_progress: "In Arbeit",
         status_review: "Überprüfung",
         status_completed: "Endabnahme",
+        status_discarded: "Verworfen",
+        status_out_of_scope: "Außerhalb des Rahmens",
         schedule: "Zeitplan",
         start_date: "Beginn",
         end_date: "Ende (Deadline)",

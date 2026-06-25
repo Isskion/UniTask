@@ -4,7 +4,7 @@ import { Task } from '@/types';
 
 export interface TaskFiltersState {
     projectIds: string[]; // Multi-project
-    status: ('pending' | 'in_progress' | 'review' | 'completed')[];
+    status: ('pending' | 'in_progress' | 'review' | 'completed' | 'discarded' | 'out_of_scope')[];
     priority: string[];
     area: string[];
     scope: string[];

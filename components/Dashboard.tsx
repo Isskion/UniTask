@@ -198,7 +198,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
     // This answers "How many active tasks do I have right now?"
     const totalBacklogCount = useMemo(() => {
         return tasks.filter(t => {
-            if (t.status === 'completed') return false;
+            if (['completed', 'discarded', 'out_of_scope'].includes(t.status)) return false;
             // Permission check
             if (allowedProjectIds && (!t.projectId || !allowedProjectIds.includes(t.projectId))) return false;
             // Selection Check (Dynamic) - User asked for "Activas" to reflect selection
@@ -209,7 +209,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
 
     const blockersCount = useMemo(() => {
         return tasks.filter(t => {
-            if (!t.isBlocking || t.status === 'completed') return false;
+            if (!t.isBlocking || ['completed', 'discarded', 'out_of_scope'].includes(t.status)) return false;
             if (allowedProjectIds && (!t.projectId || !allowedProjectIds.includes(t.projectId))) return false;
             if (selectedProjectIds.size > 0 && t.projectId && !selectedProjectIds.has(t.projectId)) return false;
             return true;
@@ -229,6 +229,7 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
         });
 
         accessibleTasks.forEach(t => {
+            if (t.status === 'discarded' || t.status === 'out_of_scope') return;
             const pid = t.projectId || 'global';
             if (!stats[pid]) stats[pid] = { total: 0, completed: 0, blocked: 0 };
 
@@ -394,10 +395,11 @@ export default function Dashboard({ entry, globalProjects = [], userProfile: pro
                         if (!cDate || cDate > bucketEnd) return false;
 
                         // Check if it was closed before this bucket end
+                        const isClosedStatus = (s: string) => s === 'completed' || s === 'discarded' || s === 'out_of_scope';
                         if (t.closedAt) {
                             const closedDate = safeParseDate(t.closedAt) || new Date(t.closedAt);
                             if (isValid(closedDate) && closedDate <= bucketEnd) return false;
-                        } else if (t.status === 'completed') {
+                        } else if (isClosedStatus(t.status)) {
                             if (t.updatedAt) {
                                 const uDate = safeParseDate(t.updatedAt) || new Date(t.updatedAt);
                                 if (isValid(uDate) && uDate <= bucketEnd) return false;

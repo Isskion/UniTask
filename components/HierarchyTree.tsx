@@ -1,7 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { Task } from '@/types';
-import { ChevronRight, ChevronDown, FileText, CheckCircle, Circle, AlertTriangle, Box, Layers, CheckSquare } from 'lucide-react';
+import { ChevronRight, ChevronDown, FileText, CheckCircle, Circle, AlertTriangle, Box, Layers, CheckSquare, XCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getProgressSafe } from '@/lib/data-migration';
 
@@ -139,6 +139,8 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ tasks, onSelectTas
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] opacity-50 font-mono">{node.task.friendlyId}</span>
                                 {node.task.status === 'completed' && <CheckCircle className="w-3 h-3 text-emerald-500" />}
+                                {node.task.status === 'discarded' && <XCircle className="w-3 h-3 text-rose-500" />}
+                                {node.task.status === 'out_of_scope' && <MinusCircle className="w-3 h-3 text-purple-500" />}
                             </div>
                         </div>
 

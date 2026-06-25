@@ -67,10 +67,10 @@ export async function getTasksByWeek(weekId: string, tenantId: string): Promise<
             where("isActive", "==", true)
         );
         const snapshot = await getDocs(q);
-        // Client-side Filter: Remove completed
+        // Client-side Filter: Remove closed tasks (completed, discarded, out_of_scope)
         return snapshot.docs
             .map(d => ({ id: d.id, ...d.data() } as Task))
-            .filter(t => t.status !== 'completed');
+            .filter(t => t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope');
     } catch (error) {
         console.error("Error fetching tasks for week:", error);
         return [];
@@ -85,10 +85,10 @@ export async function getAllOpenTasks(tenantId: string): Promise<Task[]> {
             where("isActive", "==", true)
         );
         const snapshot = await getDocs(q);
-        // Client-side Filter: Remove completed
+        // Client-side Filter: Remove closed tasks (completed, discarded, out_of_scope)
         return snapshot.docs
             .map(d => ({ id: d.id, ...d.data() } as Task))
-            .filter(t => t.status !== 'completed');
+            .filter(t => t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope');
     } catch (error) {
         console.error("Error fetching open tasks:", error);
         return [];
@@ -105,7 +105,7 @@ export function subscribeToOpenTasks(tenantId: string, callback: (tasks: Task[])
         (snapshot) => {
             const tasks = snapshot.docs
                 .map(d => ({ id: d.id, ...d.data() } as Task))
-                .filter(t => t.status !== 'completed');
+                .filter(t => t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope');
             callback(tasks);
         },
         (error) => {

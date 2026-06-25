@@ -356,7 +356,7 @@ export interface Task {
     // Header Info
     title: string;         // Main "Headline" of the task
     description?: string;  // Detailed description (Optional now if title is main)
-    status: 'pending' | 'in_progress' | 'review' | 'completed';
+    status: 'pending' | 'in_progress' | 'review' | 'completed' | 'discarded' | 'out_of_scope';
     isBlocking?: boolean; // New: Condition flag
 
     // [V3] Dual Progress (Shadow Strategy)

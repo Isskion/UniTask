@@ -276,8 +276,8 @@ export default function SprintManager() {
 
                         for (const taskDoc of tasksSnap.docs) {
                             const tData = taskDoc.data();
-                            // If task is NOT completed, move to Backlog
-                            if (tData.status !== 'completed') {
+                            // If task is NOT closed, move to Backlog
+                            if (tData.status !== 'completed' && tData.status !== 'discarded' && tData.status !== 'out_of_scope') {
                                 await safeUpdateDoc(doc(db, 'tasks', taskDoc.id), {
                                     sprintId: null, // Back to Backlog
                                     status: 'pending', // Reset status if it was in_progress

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Task, Project } from "@/types";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { X, Search, ZoomIn, ZoomOut, AlertTriangle, Box, Layers, CheckSquare, FileText, CheckCircle, ChevronRight, ChevronDown, Database } from "lucide-react";
+import { X, Search, ZoomIn, ZoomOut, AlertTriangle, Box, Layers, CheckSquare, FileText, CheckCircle, ChevronRight, ChevronDown, Database, XCircle, MinusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import { getProgressSafe } from "@/lib/data-migration";
@@ -274,6 +274,8 @@ export function ProjectMindMapModal({ project, onClose, initialTaskId }: Props) 
                                     <>
                                         <span className="text-[10px] font-mono text-zinc-500">{node.task?.friendlyId}</span>
                                         {node.task?.status === 'completed' && <CheckCircle className="w-3 h-3 text-emerald-500" />}
+                                        {node.task?.status === 'discarded' && <XCircle className="w-3 h-3 text-rose-500" />}
+                                        {node.task?.status === 'out_of_scope' && <MinusCircle className="w-3 h-3 text-purple-500" />}
                                     </>
                                 )}
                             </div>

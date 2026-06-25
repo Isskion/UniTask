@@ -78,7 +78,7 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
                     tasks.map(task => (
                         <div key={task.id} className={cn(
                             "flex items-start gap-4 p-3 rounded-xl border transition-all shadow-sm",
-                            task.status === 'completed' ? "bg-emerald-900/10 border-emerald-900/20 opacity-60" :
+                            ['completed', 'discarded', 'out_of_scope'].includes(task.status) ? "bg-emerald-900/10 border-emerald-900/20 opacity-60" :
                                 task.isBlocking ? "bg-destructive/5 border-destructive/20" :
                                     "bg-card border-border hover:border-primary/20 hover:shadow-md"
                         )}>
@@ -97,7 +97,7 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
                             <div className="flex-1">
                                 <p className={cn(
                                     "text-sm",
-                                    task.status === 'completed' ? "text-muted-foreground line-through" :
+                                    ['completed', 'discarded', 'out_of_scope'].includes(task.status) ? "text-muted-foreground line-through" :
                                         task.isBlocking ? "text-destructive font-medium" : "text-foreground"
                                 )}>
                                     {task.description}
@@ -112,7 +112,7 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
 
                             <div className="flex gap-2 shrink-0">
                                 {/* Block Button */}
-                                {task.status !== 'completed' && (
+                                {!['completed', 'discarded', 'out_of_scope'].includes(task.status) && (
                                     <button
                                         onClick={() => handleToggleBlock(task)}
                                         title={task.isBlocking ? "Quitar Bloqueo" : "Marcar como Bloqueante (Riesgo)"}
@@ -133,7 +133,7 @@ export default function TaskList({ projectId, projectName }: TaskListProps) {
                                     title="Completar"
                                     className={cn(
                                         "p-2 rounded transition-colors border",
-                                        task.status === 'completed'
+                                        ['completed', 'discarded', 'out_of_scope'].includes(task.status)
                                             ? "bg-emerald-500/10 border-emerald-500/50 text-emerald-500"
                                             : "bg-secondary border-border text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/50"
                                     )}

@@ -45,7 +45,9 @@ export function TaskFilters({ isOpen, onClose, filters, setFilters, projects, us
         { value: 'pending', label: 'Pendiente', color: '#71717a' }, // zinc-500
         { value: 'in_progress', label: 'En Curso', color: '#10b981' }, // emarald-500
         { value: 'review', label: 'Revisión', color: '#f59e0b' }, // amber-500
-        { value: 'completed', label: 'Completada', color: '#3b82f6' } // blue-500
+        { value: 'completed', label: 'Completada', color: '#3b82f6' }, // blue-500
+        { value: 'discarded', label: 'Descartada', color: '#f43f5e' }, // rose-500
+        { value: 'out_of_scope', label: 'Fuera de alcance', color: '#a855f7' } // purple-500
     ];
 
     const countActive = useMemo(() => {

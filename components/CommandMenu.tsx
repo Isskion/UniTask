@@ -108,7 +108,7 @@ export function CommandMenu() {
     // Task Filter: Show tasks for visible projects OR if project is missing (Orphans)
     // "Must search also in tasks" -> User wants to find THEIR tasks.
     const visibleTasks = activeTasks.filter(t => {
-        if (t.status === 'completed') return false; // Double check client side
+        if (['completed', 'discarded', 'out_of_scope'].includes(t.status)) return false; // Double check client side
 
         const p = projects.find(proj => proj.id === t.projectId);
 

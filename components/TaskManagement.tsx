@@ -201,7 +201,7 @@ export default function TaskManagement({
 
     // Sidebar Filters
     const [sidebarSearch, setSidebarSearch] = useState("");
-    const [sidebarFilter, setSidebarFilter] = useState<'all' | 'pending' | 'in_progress' | 'review' | 'completed'>('all');
+    const [sidebarFilter, setSidebarFilter] = useState<'all' | 'pending' | 'in_progress' | 'review' | 'completed' | 'discarded' | 'out_of_scope'>('all');
 
     // Selection state
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -550,7 +550,9 @@ export default function TaskManagement({
             'review': 0,
             'in_progress': 1,
             'pending': 2,
-            'completed': 3
+            'completed': 3,
+            'discarded': 4,
+            'out_of_scope': 5
         };
 
         const statusA = a.status ? a.status.toLowerCase() : '';
@@ -800,11 +802,14 @@ export default function TaskManagement({
                         }
                     }
 
-                    // [BURNDOWN FIX] Set closedAt timestamp on completion
-                    if (data.status === 'completed' && selectedTask.status !== 'completed') {
+                    // [BURNDOWN FIX] Set closedAt timestamp on completion/closure
+                    const isClosedStatus = (s?: string) => s === 'completed' || s === 'discarded' || s === 'out_of_scope';
+                    const wasClosed = selectedTask.status ? isClosedStatus(selectedTask.status) : false;
+                    const isClosed = data.status ? isClosedStatus(data.status) : wasClosed;
+                    if (isClosed && !wasClosed) {
                         data.closedAt = serverTimestamp();
                         data.closedBy = user?.uid;
-                    } else if (data.status && data.status !== 'completed' && selectedTask.status === 'completed') {
+                    } else if (!isClosed && wasClosed) {
                         // Re-opening task
                         data.closedAt = null;
                         data.closedBy = null as any;
@@ -849,10 +854,11 @@ export default function TaskManagement({
                             });
 
                             // CROSS-TRIGGER: Dependency Release
-                            if (formData.status === 'completed') {
+                            if (['completed', 'discarded', 'out_of_scope'].includes(formData.status || '')) {
                                 const q = query(collection(db, "tasks"), where("dependencies", "array-contains", selectedTask.id), where("tenantId", "==", tenantId));
                                 getDocs(q).then(snapshot => {
                                     snapshot.forEach(doc => {
+                                        const statusWord = formData.status === 'completed' ? 'completada' : formData.status === 'discarded' ? 'descartada' : 'declarada fuera de alcance';
                                         addDoc(collection(db, "task_activities"), {
                                             taskId: doc.id,
                                             tenantId: tenantId,
@@ -860,7 +866,7 @@ export default function TaskManagement({
                                             userEmail: user.email,
                                             userName: userProfile?.displayName || user.displayName || 'Usuario',
                                             type: 'dependency_released',
-                                            details: `Dependencia liberada: "${selectedTask.title}" ha sido completada.`,
+                                            details: `Dependencia liberada: "${selectedTask.title}" ha sido ${statusWord}.`,
                                             createdAt: serverTimestamp()
                                         });
                                     });
@@ -1155,6 +1161,8 @@ export default function TaskManagement({
             case 'completed': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
             case 'in_progress': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
             case 'review': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            case 'discarded': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+            case 'out_of_scope': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
             default: return 'bg-zinc-800 text-zinc-400 border-zinc-700';
         }
     };
@@ -1164,6 +1172,8 @@ export default function TaskManagement({
             case 'completed': return t('task_manager.status_completed');
             case 'in_progress': return t('task_manager.status_in_progress');
             case 'review': return t('task_manager.status_review');
+            case 'discarded': return t('task_manager.status_discarded');
+            case 'out_of_scope': return t('task_manager.status_out_of_scope');
             default: return t('task_manager.status_pending');
         }
     };
@@ -1226,8 +1236,8 @@ export default function TaskManagement({
                             </div>
 
                             {!showTree && (
-                                <div className="grid grid-cols-5 gap-0.5 bg-black/20 rounded p-0.5 border border-white/5">
-                                    {(['all', 'pending', 'in_progress', 'review', 'completed'] as const).map(f => (
+                                <div className="grid grid-cols-7 gap-0.5 bg-black/20 rounded p-0.5 border border-white/5">
+                                    {(['all', 'pending', 'in_progress', 'review', 'completed', 'discarded', 'out_of_scope'] as const).map(f => (
                                         <button
                                             key={f}
                                             onClick={() => setSidebarFilter(f)}
@@ -1237,9 +1247,9 @@ export default function TaskManagement({
                                                     ? "bg-indigo-600 text-white shadow-sm"
                                                     : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                                             )}
-                                            title={f}
+                                            title={f === 'all' ? t('task_manager.filter_all') : getStatusLabel(f)}
                                         >
-                                            {f === 'all' ? 'ALL' : f === 'in_progress' ? 'PROG' : f.substring(0, 4).toUpperCase()}
+                                            {f === 'all' ? 'ALL' : f === 'in_progress' ? 'PROG' : f === 'out_of_scope' ? 'OUT' : f === 'discarded' ? 'DESC' : f.substring(0, 4).toUpperCase()}
                                         </button>
                                     ))}
                                 </div>
@@ -1281,11 +1291,17 @@ export default function TaskManagement({
                                                             ? (isLight ? "bg-emerald-600 text-white" : "bg-emerald-500/20 text-emerald-400")
                                                             : t.status === 'review'
                                                                 ? (isLight ? "bg-amber-600 text-white" : "bg-amber-500/20 text-amber-400")
-                                                                : (isLight ? "bg-zinc-500 text-white" : "bg-zinc-700/50 text-zinc-400")
+                                                                : t.status === 'discarded'
+                                                                    ? (isLight ? "bg-rose-600 text-white" : "bg-rose-500/20 text-rose-400")
+                                                                    : t.status === 'out_of_scope'
+                                                                        ? (isLight ? "bg-purple-600 text-white" : "bg-purple-500/20 text-purple-400")
+                                                                        : (isLight ? "bg-zinc-500 text-white" : "bg-zinc-700/50 text-zinc-400")
                                                 )}>
                                                     {t.status === 'in_progress' ? 'EN PROCESO' :
                                                         t.status === 'review' ? 'REVISIÓN' :
-                                                            t.status === 'completed' ? 'HECHO' : 'PENDIENTE'}
+                                                            t.status === 'completed' ? 'HECHO' :
+                                                                t.status === 'discarded' ? 'DESCARTADA' :
+                                                                    t.status === 'out_of_scope' ? 'FUERA ALCANCE' : 'PENDIENTE'}
                                                 </span>
                                             </div>
                                             {t.isBlocking && <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />}
@@ -1405,7 +1421,7 @@ export default function TaskManagement({
                                             <>
                                                 <div className="fixed inset-0 z-40" onClick={() => setIsStatusOpen(false)} />
                                                 <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-lg shadow-2xl z-50 overflow-hidden py-1">
-                                                    {(['pending', 'in_progress', 'review', 'completed'] as const).map(s => (
+                                                    {(['pending', 'in_progress', 'review', 'completed', 'discarded', 'out_of_scope'] as const).map(s => (
                                                         <button key={s} onClick={() => { setFormData({ ...formData, status: s }); setIsStatusOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5 flex items-center gap-2">
                                                             <div className={cn("w-1.5 h-1.5 rounded-full", getStatusColor(s).replace('text-', 'bg-').split(' ')[0])} /> {getStatusLabel(s)}
                                                         </button>
@@ -1475,7 +1491,7 @@ export default function TaskManagement({
                                                                 const currentSprintId = selectedTask?.sprintId || null;
 
                                                                 // [STRICT RULE] Completed tasks have special restrictions
-                                                                if (selectedTask?.status === 'completed' && currentSprintId) {
+                                                                if (['completed', 'discarded', 'out_of_scope'].includes(selectedTask?.status || '') && currentSprintId) {
                                                                     // Rule 1: Cannot remove from sprint (set to backlog)
                                                                     if (!newSprintId) {
                                                                         alert(t('sprints.error_completed_no_backlog')); // "Completed tasks cannot be moved to backlog."
@@ -1818,8 +1834,8 @@ export default function TaskManagement({
                                                 const depNode = projectHierarchyNodes.find(n => n.id === depId);
 
                                                 if (!depTask && !depNode) return null;
-                                                // If it's a regular task, hide if completed
-                                                if (depTask && depTask.status === 'completed') return null;
+                                                // If it's a regular task, hide if closed
+                                                if (depTask && ['completed', 'discarded', 'out_of_scope'].includes(depTask.status)) return null;
 
                                                 const title = depNode ? depNode.title : depTask?.title;
                                                 const identifier = depNode ? (depNode.wbs ? `[WBS: ${depNode.wbs}]` : '') : (depTask?.friendlyId || 'Unknown');

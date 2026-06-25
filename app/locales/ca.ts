@@ -381,6 +381,8 @@ export const ca: Dictionary = {
         status_in_progress: "En Curs",
         status_review: "Revisió",
         status_completed: "Aprovació Final",
+        status_discarded: "Descartada",
+        status_out_of_scope: "Fora d'abast",
         schedule: "Calendari",
         start_date: "Inici",
         end_date: "Fi (Deadline)",

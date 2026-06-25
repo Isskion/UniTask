@@ -379,6 +379,8 @@ export const en = {
         status_in_progress: "In Progress",
         status_review: "Review",
         status_completed: "Final Approval",
+        status_discarded: "Discarded",
+        status_out_of_scope: "Out of scope",
         schedule: "Schedule",
         start_date: "Start",
         end_date: "End (Deadline)",

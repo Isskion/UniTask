@@ -103,7 +103,7 @@ export function SprintPlanningBoard() {
 
             // Separate backlog (no sprint) from sprint tasks
             // [REVERT] Backlog should NOT show completed tasks.
-            const backlog = allTasks.filter(t => !t.sprintId && t.status !== 'completed');
+            const backlog = allTasks.filter(t => !t.sprintId && t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope');
             const sprint = selectedSprintId
                 ? allTasks.filter(t => t.sprintId === selectedSprintId)
                 : [];
@@ -217,7 +217,7 @@ export function SprintPlanningBoard() {
 
             // If sprint expired yesterday or before
             if (endDate && endDate < now && selectedSprint.status === 'active') {
-                const needsUpdate = sprintTasks.filter(t => !t.needsRollover && t.status !== 'completed');
+                const needsUpdate = sprintTasks.filter(t => !t.needsRollover && t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope');
 
                 if (needsUpdate.length > 0) {
                     console.log(`Flagging ${needsUpdate.length} tasks for rollover from expired sprint ${selectedSprint.name}`);
@@ -304,8 +304,8 @@ export function SprintPlanningBoard() {
 
             // [STRICT RULE] Completed tasks CANNOT be moved via drag-and-drop at all.
             // They must be managed via the Task Manager (ABM) with Admin approval.
-            if (task.status === 'completed') {
-                console.log('[SprintBoard] BLOCKING completed task move!');
+            if (['completed', 'discarded', 'out_of_scope'].includes(task.status)) {
+                console.log('[SprintBoard] BLOCKING closed task move!');
                 alert(t('sprints.error_completed_immovable')); // "Completed tasks cannot be moved from the Sprint Board. Use Task Manager."
                 return;
             }
@@ -647,7 +647,7 @@ function DroppableColumn({ id, title, count, children, icon: Icon, className, ti
 
 // Draggable Task Card Wrapper
 function DraggableTaskCard(props: any) {
-    const isCompleted = props.task.status === 'completed';
+    const isCompleted = ['completed', 'discarded', 'out_of_scope'].includes(props.task.status);
     // [CHANGE] Disable dragging for completed tasks strict rule
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: props.task.id,
@@ -668,7 +668,7 @@ function DraggableTaskCard(props: any) {
 // Task Card Pure Component
 function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true, usersMap }: { task: Task; isLight: boolean; inSprint?: boolean; t: (key: string) => string; isDraggable?: boolean; usersMap?: Record<string, UserProfile> }) {
     const hasRisk = task.clientDeadline && task.sprintId;
-    const isCompleted = task.status === 'completed';
+    const isCompleted = ['completed', 'discarded', 'out_of_scope'].includes(task.status);
 
     // Assignee
     const assignee = task.assignedTo && usersMap ? usersMap[task.assignedTo] : null;
@@ -690,6 +690,8 @@ function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true, user
             case 'completed': return 'bg-emerald-500 text-white';
             case 'in_progress': return 'bg-blue-500 text-white';
             case 'review': return 'bg-purple-500 text-white';
+            case 'discarded': return 'bg-rose-500 text-white';
+            case 'out_of_scope': return 'bg-purple-500 text-white';
             default: return 'bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300';
         }
     };
@@ -699,6 +701,8 @@ function TaskCard({ task, isLight, inSprint = false, t, isDraggable = true, user
             case 'completed': return 'DONE'; // Compact
             case 'in_progress': return 'WIP';
             case 'review': return 'REV';
+            case 'discarded': return 'DISC';
+            case 'out_of_scope': return 'OUT';
             default: return 'PEND';
         }
     };

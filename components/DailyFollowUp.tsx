@@ -2330,7 +2330,7 @@ export default function DailyFollowUp() {
                                                             {t('follow_up.no_tasks_active')}
                                                         </div>
                                                     ) : (
-                                                        visibleTasks.filter(t => t.status !== 'completed').map(task => (
+                                                        visibleTasks.filter(t => t.status !== 'completed' && t.status !== 'discarded' && t.status !== 'out_of_scope').map(task => (
                                                             <div
                                                                 key={task.id}
                                                                 className={cn(

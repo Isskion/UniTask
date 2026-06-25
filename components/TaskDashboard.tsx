@@ -6,7 +6,7 @@ import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus, XCircle, MinusCircle } from 'lucide-react';
 
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from "@/lib/firebase";
@@ -192,7 +192,7 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
             text += `## ${pName}\n`;
             group.forEach(t => {
-                const statusIcon = t.status === 'completed' ? '[x]' : t.isBlocking ? '[!]' : '[ ]';
+                const statusIcon = t.status === 'completed' ? '[x]' : t.status === 'discarded' ? '[-]' : t.status === 'out_of_scope' ? '[/]' : t.isBlocking ? '[!]' : '[ ]';
                 text += `- ${statusIcon} ${t.description || t.title} (${t.friendlyId || 'ID'}) ${t.priority ? `[${t.priority}]` : ''}\n`;
             });
             text += `\n`;
@@ -364,12 +364,14 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                             // Priority: review > in_progress > pending > completed > others
                             // Secondary: Oldest First
                             const sortedTasks = [...pTasks].sort((a, b) => {
-                                const priority: Record<string, number> = {
-                                    'review': 0,
-                                    'in_progress': 1,
-                                    'pending': 2,
-                                    'completed': 3
-                                };
+                                 const priority: Record<string, number> = {
+                                     'review': 0,
+                                     'in_progress': 1,
+                                     'pending': 2,
+                                     'completed': 3,
+                                     'discarded': 4,
+                                     'out_of_scope': 5
+                                 };
 
                                 const statusA = a.status ? a.status.toLowerCase() : '';
                                 const statusB = b.status ? b.status.toLowerCase() : '';
@@ -410,11 +412,13 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 className="flex items-start gap-4 p-3 bg-card border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary/20 transition-all group relative overflow-hidden cursor-pointer"
                                             >
                                                 {/* Left Status Stripe */}
-                                                <div className={cn("absolute left-0 top-0 bottom-0 w-1",
-                                                    task.status === 'completed' ? "bg-emerald-500" :
-                                                        task.status === 'in_progress' ? "bg-indigo-500" :
-                                                            task.status === 'review' ? "bg-amber-500" : "bg-zinc-500"
-                                                )} />
+                                                 <div className={cn("absolute left-0 top-0 bottom-0 w-1",
+                                                     task.status === 'completed' ? "bg-emerald-500" :
+                                                         task.status === 'in_progress' ? "bg-indigo-500" :
+                                                             task.status === 'review' ? "bg-amber-500" :
+                                                                 task.status === 'discarded' ? "bg-rose-500" :
+                                                                     task.status === 'out_of_scope' ? "bg-purple-500" : "bg-zinc-500"
+                                                 )} />
 
                                                 <div
                                                     className="mt-1 ml-2 cursor-pointer hover:scale-110 transition-transform active:scale-95 relative group/icon w-6 h-6 flex items-center justify-center"
@@ -427,18 +431,22 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                 >
                                                     {/* Layer 1: Status Icon (Fades out on Hover) */}
                                                     <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover/icon:opacity-0">
-                                                        {task.status === 'completed' ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
-                                                        ) : task.isBlocking ? (
-                                                            <Ban className="w-5 h-5 text-destructive animate-pulse" />
-                                                        ) : task.status === 'in_progress' ? (
-                                                            <PlayCircle className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
-                                                        ) : task.status === 'review' ? (
-                                                            <AlertCircle className="w-5 h-5 text-amber-500 fill-amber-500/10" />
-                                                        ) : (
-                                                            <Circle className="w-5 h-5 text-zinc-400" />
-                                                        )}
-                                                    </div>
+                                                         {task.status === 'completed' ? (
+                                                             <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
+                                                         ) : task.status === 'discarded' ? (
+                                                             <XCircle className="w-5 h-5 text-rose-500 fill-rose-500/10" />
+                                                         ) : task.status === 'out_of_scope' ? (
+                                                             <MinusCircle className="w-5 h-5 text-purple-500 fill-purple-500/10" />
+                                                         ) : task.isBlocking ? (
+                                                             <Ban className="w-5 h-5 text-destructive animate-pulse" />
+                                                         ) : task.status === 'in_progress' ? (
+                                                             <PlayCircle className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                                                         ) : task.status === 'review' ? (
+                                                             <AlertCircle className="w-5 h-5 text-amber-500 fill-amber-500/10" />
+                                                         ) : (
+                                                             <Circle className="w-5 h-5 text-zinc-400" />
+                                                         )}
+                                                     </div>
 
                                                     {/* Layer 2: Edit Icon (Fades in on Hover) - "Invented" Interaction */}
                                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/icon:opacity-100 transition-opacity duration-200 scale-75 group-hover/icon:scale-110">
@@ -455,17 +463,21 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                                         </span>
 
                                                         {/* Status Label (NEW) */}
-                                                        <span className={cn(
-                                                            "text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded border",
-                                                            task.status === 'completed' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                                                task.status === 'in_progress' ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" :
-                                                                    task.status === 'review' ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
-                                                                        "bg-secondary text-muted-foreground border-border"
-                                                        )}>
-                                                            {task.status === 'in_progress' ? 'EN PROCESO' :
-                                                                task.status === 'review' ? 'REVISIÓN' :
-                                                                    task.status === 'completed' ? 'HECHO' : 'PENDIENTE'}
-                                                        </span>
+                                                         <span className={cn(
+                                                             "text-[9px] uppercase font-extrabold tracking-wider px-1.5 py-0.5 rounded border",
+                                                             task.status === 'completed' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                                                 task.status === 'in_progress' ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" :
+                                                                     task.status === 'review' ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                                                                         task.status === 'discarded' ? "bg-rose-500/10 text-rose-600 border-rose-500/20" :
+                                                                             task.status === 'out_of_scope' ? "bg-purple-500/10 text-purple-600 border-purple-500/20" :
+                                                                                 "bg-secondary text-muted-foreground border-border"
+                                                         )}>
+                                                             {task.status === 'in_progress' ? 'EN PROCESO' :
+                                                                 task.status === 'review' ? 'REVISIÓN' :
+                                                                     task.status === 'completed' ? 'HECHO' :
+                                                                         task.status === 'discarded' ? 'DESCARTADA' :
+                                                                             task.status === 'out_of_scope' ? 'FUERA ALCANCE' : 'PENDIENTE'}
+                                                         </span>
 
                                                         {/* [NEW] Sprint Badge */}
                                                         {(task.sprintId && sprints.find(s => s.id === task.sprintId)) && (
