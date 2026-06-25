@@ -9184,7 +9184,6 @@
     "tenantId": "3",
     "isActive": true,
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "techDescription": "Tener en cuenta que el Taller estará dentro de M365 Business Central.\nSerá quien comunique la información de activación o inactivación de vehículos por problemas mecánicos para que dejarlos fuera de planificación, etc.",
     "endDate": "2026-08-13T22:00:00.000Z",
     "projectCode": "TSP",
     "area": "Interfaces",
@@ -9198,9 +9197,11 @@
       "_seconds": 1781599502,
       "_nanoseconds": 521000000
     },
+    "techDescription": "Tener en cuenta que el Taller estará dentro de M365 Business Central.\nSerá quien comunique la información de activación o inactivación de vehículos por problemas mecánicos para que dejarlos fuera de planificación, etc.\n\nfuera de alcance!!!!!!",
+    "attributes": {},
     "updatedAt": {
-      "_seconds": 1781599502,
-      "_nanoseconds": 521000000
+      "_seconds": 1782395768,
+      "_nanoseconds": 276000000
     }
   },
   {
