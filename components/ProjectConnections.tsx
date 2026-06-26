@@ -304,8 +304,8 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                     <input 
                                         className={inputClasses}
                                         value={isTechnical ? (env.mapiToken || "") : '••••••••'}
-                                        onChange={e => handleUpdateField(env.id, 'mapiToken', e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
-                                        placeholder="p.ej. A1B2C3D4E5F6G7H8I9J0KLMNOPQRST"
+                                        onChange={e => handleUpdateField(env.id, 'mapiToken', e.target.value.replace(/[^a-zA-Z0-9-]/g, ''))}
+                                        placeholder="p.ej. 38-78-75-CB-4A-8"
                                         maxLength={30}
                                         disabled={!isTechnical}
                                     />
