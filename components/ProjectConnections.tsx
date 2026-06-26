@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check, Plus, Trash2 } from "lucide-react";
+import { Server, User, Key, Globe, Save, ExternalLink, Loader2, Database, Copy, Check, Plus, Trash2, Fingerprint } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Project, ProjectEnvironment } from "@/types";
 import { useToast } from "@/context/ToastContext";
@@ -39,7 +39,8 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
             // Apply sanitization mask on load
             const sanitized = project.environments.map(env => ({
                 ...env,
-                user: maskCredential(env.user)
+                user: maskCredential(env.user),
+                mapiToken: env.mapiToken || ""
             }));
             setEnvironments(sanitized);
         } else if (project.connections) {
@@ -53,6 +54,7 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     user: maskCredential(project.connections.prodUser),
                     pass: project.connections.prodPass || "",
                     url: project.connections.prodUrl || "",
+                    mapiToken: "",
                 },
                 {
                     id: "test",
@@ -62,14 +64,15 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                     user: maskCredential(project.connections.testUser),
                     pass: project.connections.testPass || "",
                     url: project.connections.testUrl || "",
+                    mapiToken: "",
                 }
             ];
             setEnvironments(legacyEnvironments);
         } else {
             // New defaults
             setEnvironments([
-                { id: "prod", name: "Producción", isProduction: true, ip: "", user: "", pass: "", url: "" },
-                { id: "test", name: "Test", isProduction: false, ip: "", user: "", pass: "", url: "" }
+                { id: "prod", name: "Producción", isProduction: true, ip: "", user: "", pass: "", url: "", mapiToken: "" },
+                { id: "test", name: "Test", isProduction: false, ip: "", user: "", pass: "", url: "", mapiToken: "" }
             ]);
         }
     }, [project.environments, project.connections]);
@@ -100,7 +103,8 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
             ip: "",
             user: "",
             pass: "",
-            url: ""
+            url: "",
+            mapiToken: ""
         };
         setEnvironments([...environments, newEnv]);
         showToast("Entorno", "Nuevo entorno de pruebas añadido", "success");
@@ -292,6 +296,20 @@ export function ProjectConnections({ project }: ProjectConnectionsProps) {
                                         disabled={!isTechnical}
                                     />
                                     <CopyButton text={env.pass || ""} fieldId={`${env.id}-pass`} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className={labelClasses}><Fingerprint className="w-3 h-3" /> Mapi token</label>
+                                <div className="relative">
+                                    <input 
+                                        className={inputClasses}
+                                        value={isTechnical ? (env.mapiToken || "") : '••••••••'}
+                                        onChange={e => handleUpdateField(env.id, 'mapiToken', e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
+                                        placeholder="p.ej. A1B2C3D4E5F6G7H8I9J0KLMNOPQRST"
+                                        maxLength={30}
+                                        disabled={!isTechnical}
+                                    />
+                                    <CopyButton text={env.mapiToken || ""} fieldId={`${env.id}-mapiToken`} />
                                 </div>
                             </div>
                             <div className="pt-2">

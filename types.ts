@@ -17,6 +17,7 @@ export interface ProjectEnvironment {
     pass?: string;
     url?: string;
     isProduction?: boolean;
+    mapiToken?: string;
 }
 
 export interface Project {
