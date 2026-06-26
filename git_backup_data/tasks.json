@@ -9157,7 +9157,6 @@
   {
     "id": "fd81FlY3rWr2Hi5CaC2U",
     "title": "activación o inactivación de vehículos por problemas mecánicos para que dejarlos fuera de planificación,",
-    "status": "pending",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "acceptanceCriteria": [
       {
@@ -9199,9 +9198,15 @@
     },
     "techDescription": "Tener en cuenta que el Taller estará dentro de M365 Business Central.\nSerá quien comunique la información de activación o inactivación de vehículos por problemas mecánicos para que dejarlos fuera de planificación, etc.\n\nfuera de alcance!!!!!!",
     "attributes": {},
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "closedAt": {
+      "_seconds": 1782470645,
+      "_nanoseconds": 748000000
+    },
+    "status": "out_of_scope",
     "updatedAt": {
-      "_seconds": 1782395768,
-      "_nanoseconds": 276000000
+      "_seconds": 1782470645,
+      "_nanoseconds": 748000000
     }
   },
   {
