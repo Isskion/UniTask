@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Project, Task, UserProfile, AttributeDefinition, MasterDataItem } from '@/types';
 import { subscribeToAllTasks } from '@/lib/tasks';
 import { useAuth } from '@/context/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useTaskAdvancedFilters, initialFilters, TaskFiltersState } from '@/hooks/useTaskAdvancedFilters';
-import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus, XCircle, MinusCircle } from 'lucide-react';
+import { Download, ClipboardCopy, FileText, Filter, CheckCircle2, Ban, Circle, Search, LayoutTemplate, X, Calendar as CalendarIcon, User as UserIcon, TrendingUp, PlayCircle, AlertCircle, Pencil, Plus, XCircle, MinusCircle, Camera } from 'lucide-react';
 
 import { format, isBefore, startOfToday } from 'date-fns';
 import { db } from "@/lib/firebase";
@@ -26,6 +26,7 @@ import { TaskFilters } from './TaskFilters';
 import { useLanguage } from '@/context/LanguageContext';
 import HighlightText from './ui/HighlightText';
 import TaskManagement from './TaskManagement';
+import { toPng } from 'html-to-image';
 
 
 
@@ -179,11 +180,52 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
     }, [filteredTasks, projects, allowedProjectIds, filters.projectIds]);
 
 
+    const exportRef = useRef<HTMLDivElement>(null);
+    const [isExportingImage, setIsExportingImage] = useState(false);
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'pending': return 'Pendiente';
+            case 'in_progress': return 'En Curso';
+            case 'review': return 'Revisión';
+            case 'completed': return 'Completada';
+            case 'discarded': return 'Descartada';
+            case 'out_of_scope': return 'Fuera de alcance';
+            default: return status || 'Pendiente';
+        }
+    };
+
+    const exportToImage = async () => {
+        if (!exportRef.current) return;
+        setIsExportingImage(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            const computedBg = window.getComputedStyle(document.body).backgroundColor || '#09090b';
+            const dataUrl = await toPng(exportRef.current, {
+                backgroundColor: computedBg,
+                style: {
+                    padding: '24px',
+                    borderRadius: '16px',
+                }
+            });
+            const link = document.createElement('a');
+            link.download = `tasks_report_${format(new Date(), 'yyyyMMdd_HHmmss')}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Error exporting image:', error);
+            alert('No se pudo generar la imagen del reporte.');
+        } finally {
+            setIsExportingImage(false);
+        }
+    };
+
     // Export Handlers
     const copyToClipboard = () => {
         let text = `# Reporte de Tareas - ${format(new Date(), 'dd/MM/yyyy')}\n\n`;
         // Filters Summary
-        text += `> Filtros: ${filters.status.join(', ')} | ${filters.search ? `Busqueda: "${filters.search}"` : ''}\n\n`;
+        const filterLabels = filters.status.map(getStatusLabel).join(', ');
+        text += `> Filtros: ${filterLabels || 'Ninguno'} | ${filters.search ? `Busqueda: "${filters.search}"` : ''}\n\n`;
 
         Object.keys(groupedTasks).forEach(pid => {
             const group = groupedTasks[pid];
@@ -192,8 +234,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
 
             text += `## ${pName}\n`;
             group.forEach(t => {
-                const statusIcon = t.status === 'completed' ? '[x]' : t.status === 'discarded' ? '[-]' : t.status === 'out_of_scope' ? '[/]' : t.isBlocking ? '[!]' : '[ ]';
-                text += `- ${statusIcon} ${t.description || t.title} (${t.friendlyId || 'ID'}) ${t.priority ? `[${t.priority}]` : ''}\n`;
+                const statusLabel = getStatusLabel(t.status);
+                text += `- [${statusLabel}] ${t.description || t.title} (${t.friendlyId || 'ID'}) ${t.priority ? `[${t.priority}]` : ''}\n`;
             });
             text += `\n`;
         });
@@ -325,6 +367,18 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                     </button>
 
                     <button
+                        onClick={exportToImage}
+                        disabled={isExportingImage}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 bg-secondary text-secondary-foreground text-xs font-bold rounded hover:bg-secondary/80 transition-colors border border-border",
+                            isExportingImage && "opacity-50 cursor-not-allowed"
+                        )}
+                        title="Exportar Pantallazo (Imagen)"
+                    >
+                        <Camera className={cn("w-3.5 h-3.5", isExportingImage && "animate-spin")} />
+                    </button>
+
+                    <button
                         onClick={downloadCSV}
                         className="flex items-center gap-2 px-3 py-1.5 bg-primary text-primary-foreground text-xs font-bold rounded hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                         title="Exportar a CSV"
@@ -353,7 +407,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                             </button>
                         </div>
                     ) : (
-                        Object.keys(groupedTasks).map(pid => {
+                        <div ref={exportRef} className="space-y-8 bg-background p-2">
+                            {Object.keys(groupedTasks).map(pid => {
                             const pTasks = groupedTasks[pid];
                             if (!pTasks || pTasks.length === 0) return null;
                             const project = projects.find(p => p.id === pid);
@@ -575,7 +630,8 @@ export default function TaskDashboard({ projects, userProfile, permissionLoading
                                     </div>
                                 </div>
                             );
-                        })
+                        })}
+                        </div>
                     )
                 )}
             </div>
