@@ -819,7 +819,29 @@
     },
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "environments": [
+      {
+        "isProduction": true,
+        "name": "Producción",
+        "mapiToken": "",
+        "pass": "[REDACTED]",
+        "ip": "",
+        "url": "",
+        "user": "",
+        "id": "prod"
+      },
+      {
+        "user": "[REDACTED]",
+        "id": "test",
+        "url": "https://eu-test.unigis.com/transpais/Login/",
+        "name": "Test",
+        "pass": "[REDACTED]",
+        "ip": "172.17.133.4",
+        "mapiToken": "38-78-75-CB-4A-8",
+        "isProduction": false
+      }
+    ]
   },
   {
     "id": "b1jomMQVWkW2EhNDIUch",

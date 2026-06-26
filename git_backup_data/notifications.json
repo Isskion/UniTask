@@ -916,6 +916,21 @@
     "read": true
   },
   {
+    "id": "Jn6b99jfJCL8FC1zrGht",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-20 - \"Preparar plan de acción de cobranza\" has reached its deadline.",
+    "taskId": "0LmMfIZzFH59HHTAQnR7",
+    "link": "/?view=task-manager&taskId=0LmMfIZzFH59HHTAQnR7",
+    "createdAt": {
+      "_seconds": 1782454997,
+      "_nanoseconds": 184000000
+    },
+    "read": true
+  },
+  {
     "id": "JumUondpKnC3h1IE9VAh",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "type": "assignment",
