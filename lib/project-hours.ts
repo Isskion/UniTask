@@ -239,7 +239,7 @@ export function aggregateProjectHours(
     void tasks;
 
     const rows = [...acc.values()];
-    rows.forEach(r => { r.health = hoursHealth(r.real, r.budget); });
+    rows.forEach(r => { r.health = hoursHealth(r.planned, r.budget); });
     // Orden: primero los que tienen presupuesto, luego por horas reales desc, luego planificadas.
     rows.sort((a, b) =>
         (Number(b.hasBudget) - Number(a.hasBudget)) ||

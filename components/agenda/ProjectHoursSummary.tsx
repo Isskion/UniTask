@@ -198,8 +198,11 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
 
 function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: boolean; onToggle: () => void }) {
     const style = HEALTH_STYLE[row.health];
-    const pct = row.budget > 0 ? Math.min((row.real / row.budget) * 100, 100) : 0;
-    const plannedPct = row.budget > 0 ? Math.min((row.planned / row.budget) * 100, 100) : 0;
+    // Barra: Previstas como fill principal, Realizadas como marcador interior
+    const prevPct  = row.budget > 0 ? Math.min((row.planned / row.budget) * 100, 100) : 0;
+    const realPct  = row.budget > 0 ? Math.min((row.real    / row.budget) * 100, 100) : 0;
+    const prevPctLabel = row.budget > 0 ? Math.round((row.planned / row.budget) * 100) : 0;
+    const realPctLabel = row.budget > 0 ? Math.round((row.real    / row.budget) * 100) : 0;
     const hasPhases = row.byPhase.length > 0 || row.unphased.planned > 0 || row.unphased.real > 0;
 
     return (
@@ -214,31 +217,35 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
 
                 {/* Cifras (desktop) */}
                 <div className="hidden sm:flex items-center gap-4 text-xs shrink-0">
-                    <Stat label="Agend." value={fmt(row.planned)} cls="text-zinc-400" />
-                    <Stat label="Hecho" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
+                    <Stat label="Previstas" value={fmt(row.planned)} cls="text-zinc-400" />
+                    <Stat label="Realizadas" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
                     <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
                 </div>
 
-                {/* Semáforo + % */}
+                {/* Barra + % doble */}
                 {row.hasBudget ? (
-                    <div className="flex items-center gap-2 shrink-0 w-32">
+                    <div className="flex items-center gap-2 shrink-0 w-36">
                         <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden relative">
-                            <div className={cn("h-full rounded-full", style.bar)} style={{ width: `${pct}%` }} />
-                            {row.planned > 0 && (
-                                <div className="absolute top-0 bottom-0 w-0.5 bg-white/60" style={{ left: `${plannedPct}%` }} title={`Planificado: ${fmt(row.planned)}`} />
+                            {/* Previstas: fill traslúcido */}
+                            <div className={cn("h-full rounded-full opacity-40", style.bar)} style={{ width: `${prevPct}%` }} />
+                            {/* Realizadas: fill sólido encima */}
+                            {row.real > 0 && (
+                                <div className={cn("absolute inset-y-0 left-0 rounded-full", style.bar)} style={{ width: `${realPct}%` }} />
                             )}
                         </div>
-                        <span className={cn("text-xs font-bold w-9 text-right", style.text)}>{Math.round((row.real / row.budget) * 100)}%</span>
+                        <span className={cn("text-xs font-bold text-right whitespace-nowrap", style.text)}>
+                            {prevPctLabel}%<span className="text-zinc-600 font-normal"> / </span>{realPctLabel}%
+                        </span>
                     </div>
                 ) : (
-                    <span className="text-[10px] text-zinc-600 italic w-32 text-right shrink-0">sin presupuesto</span>
+                    <span className="text-[10px] text-zinc-600 italic w-36 text-right shrink-0">sin presupuesto</span>
                 )}
             </div>
 
             {/* Cifras (móvil) */}
             <div className="sm:hidden flex items-center gap-4 text-xs px-3 pb-3 -mt-1">
-                <Stat label="Agend." value={fmt(row.planned)} cls="text-zinc-400" />
-                <Stat label="Hecho" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
+                <Stat label="Previstas" value={fmt(row.planned)} cls="text-zinc-400" />
+                <Stat label="Realizadas" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
                 <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
             </div>
 
@@ -250,14 +257,15 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
                             <tr className="text-zinc-500">
                                 <th className="text-left font-semibold py-1.5">Fase</th>
                                 <th className="text-right font-semibold py-1.5 w-20">Pres.</th>
-                                <th className="text-right font-semibold py-1.5 w-20">Agend.</th>
-                                <th className="text-right font-semibold py-1.5 w-20">Hecho</th>
-                                <th className="text-right font-semibold py-1.5 w-12">%</th>
+                                <th className="text-right font-semibold py-1.5 w-20">Previstas</th>
+                                <th className="text-right font-semibold py-1.5 w-20">Realizadas</th>
+                                <th className="text-right font-semibold py-1.5 w-20">%</th>
                             </tr>
                         </thead>
                         <tbody>
                             {row.byPhase.map(ph => {
-                                const p = ph.budget > 0 ? Math.round((ph.real / ph.budget) * 100) : 0;
+                                const pPrev = ph.budget > 0 ? Math.round((ph.planned / ph.budget) * 100) : 0;
+                                const pReal = ph.budget > 0 ? Math.round((ph.real    / ph.budget) * 100) : 0;
                                 return (
                                     <tr key={ph.phaseId} className="border-t border-white/5">
                                         <td className="py-1.5 text-zinc-300">
@@ -269,8 +277,8 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
                                         <td className="py-1.5 text-right text-zinc-400">{ph.budget > 0 ? fmt(ph.budget) : '—'}</td>
                                         <td className="py-1.5 text-right text-zinc-400">{fmt(ph.planned)}</td>
                                         <td className="py-1.5 text-right text-zinc-200 font-medium">{fmt(ph.real)}</td>
-                                        <td className={cn("py-1.5 text-right font-semibold", ph.budget > 0 && p > 100 ? "text-red-400" : "text-zinc-400")}>
-                                            {ph.budget > 0 ? `${p}%` : '—'}
+                                        <td className={cn("py-1.5 text-right font-semibold whitespace-nowrap", ph.budget > 0 && pPrev > 100 ? "text-red-400" : "text-zinc-400")}>
+                                            {ph.budget > 0 ? `${pPrev}% / ${pReal}%` : '—'}
                                         </td>
                                     </tr>
                                 );
