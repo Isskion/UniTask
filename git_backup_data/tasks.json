@@ -1876,6 +1876,55 @@
     }
   },
   {
+    "id": "8zIetZ7eiwRLSBST5mzs",
+    "title": "Integración con DEliverea",
+    "status": "in_progress",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782746356.735,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "UNI",
+    "endDate": "2026-07-09T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Integración con DEliverea\n\n-- Solicitada reunión con ellos hoy.",
+    "area": "Interfaces",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "UNI-3",
+    "taskNumber": 3,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782746378,
+      "_nanoseconds": 85000000
+    },
+    "updatedAt": {
+      "_seconds": 1782746378,
+      "_nanoseconds": 85000000
+    }
+  },
+  {
     "id": "9UUam9aXSGhwxckBnKds",
     "title": "Define Design Tokens",
     "projectId": "mockup-product-2026",
@@ -3670,6 +3719,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "FkQMg2OFFfIkePrlv71P",
+    "title": "Integración con Tookane",
+    "status": "pending",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782746443.857,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "UNI",
+    "techDescription": "Proponer call y definir Integración con Tookane",
+    "endDate": "2026-07-09T22:00:00.000Z",
+    "area": "Interfaces",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "UNI-4",
+    "taskNumber": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782746431,
+      "_nanoseconds": 334000000
+    },
+    "updatedAt": {
+      "_seconds": 1782746431,
+      "_nanoseconds": 334000000
     }
   },
   {
@@ -9608,6 +9705,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "hVMVLwZrRnzwrY2LKlZu",
+    "title": "Diego trabajar matriz de riesgos para presentar a LS",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782728130.402,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "LSM",
+    "endDate": "2026-07-09T22:00:00.000Z",
+    "area": "Documentación",
+    "module": "PEDIDOS",
+    "techDescription": "Diego trabajar matriz de riesgos para presentar a LS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-3",
+    "taskNumber": 3,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782728125,
+      "_nanoseconds": 536000000
+    },
+    "updatedAt": {
+      "_seconds": 1782728125,
+      "_nanoseconds": 536000000
     }
   },
   {

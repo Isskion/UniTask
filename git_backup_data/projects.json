@@ -227,7 +227,18 @@
         "pass": "[REDACTED]",
         "url": "https://eu-test.unigis.com/EUROPASTRY/Login/"
       }
-    ]
+    ],
+    "endDate": "2026-09-30",
+    "budgetHours": 4000,
+    "budgetPhases": [
+      {
+        "id": "d9d8f826-79b5-4ab6-875e-5810d2838259",
+        "name": "Fase I -- Iberia",
+        "hours": 4000,
+        "color": "#6366f1"
+      }
+    ],
+    "startDate": "2026-07-01"
   },
   {
     "id": "Au1xfXgivgl6VYj2zscs",
@@ -538,7 +549,18 @@
         "pass": "[REDACTED]",
         "url": ""
       }
-    ]
+    ],
+    "endDate": "2027-03-22",
+    "budgetHours": 3550,
+    "budgetPhases": [
+      {
+        "id": "8b36fd95-dcbc-4d8c-8f1b-33744f92dbb6",
+        "name": "FASE II",
+        "hours": 3550,
+        "color": "#6366f1"
+      }
+    ],
+    "startDate": "2026-02-02"
   },
   {
     "id": "QZSIMHxzQlZOvshQYBgU",
