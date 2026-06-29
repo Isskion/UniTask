@@ -41,7 +41,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
 
     const [projects, setProjects] = useState<Project[]>([]);
     const [entries, setEntries]   = useState<AgendaEntry[]>([]);
-    const [tasks, setTasks]       = useState<ConsultantTaskLite[]>([]);
+    const tasks: ConsultantTaskLite[] = []; // Timer pendiente de integración
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState<string | null>(null);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -76,11 +76,9 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
         setError(null);
         Promise.all([
             getAgendaEntriesRange(tenantId, range),
-            getConsultantTasksRange(tenantId, range),
-        ]).then(([ag, ts]) => {
+        ]).then(([ag]) => {
             if (cancelled) return;
             setEntries(ag);
-            setTasks(ts);
         }).catch(err => {
             if (cancelled) return;
             console.error('[ProjectHoursSummary] error consultando horas por rango:', err);
@@ -161,8 +159,8 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
 
             {/* KPIs de cartera */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Kpi label="Horas reales" value={fmt(totals.real)} accent="indigo" />
-                <Kpi label="Horas planificadas" value={fmt(totals.planned)} accent="zinc" />
+                <Kpi label="Horas realizadas" value={fmt(totals.real)} accent="indigo" />
+                <Kpi label="Horas agendadas" value={fmt(totals.planned)} accent="zinc" />
                 <Kpi label="Presupuesto" value={totals.budget > 0 ? fmt(totals.budget) : '—'} accent="zinc" />
                 <Kpi label="% presupuesto usado" value={totals.budget > 0 ? `${Math.round(totals.pctBudget)}%` : '—'} accent="zinc" />
             </div>
@@ -216,8 +214,8 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
 
                 {/* Cifras (desktop) */}
                 <div className="hidden sm:flex items-center gap-4 text-xs shrink-0">
-                    <Stat label="Plan." value={fmt(row.planned)} cls="text-zinc-400" />
-                    <Stat label="Real" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
+                    <Stat label="Agend." value={fmt(row.planned)} cls="text-zinc-400" />
+                    <Stat label="Hecho" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
                     <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
                 </div>
 
@@ -239,8 +237,8 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
 
             {/* Cifras (móvil) */}
             <div className="sm:hidden flex items-center gap-4 text-xs px-3 pb-3 -mt-1">
-                <Stat label="Plan." value={fmt(row.planned)} cls="text-zinc-400" />
-                <Stat label="Real" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
+                <Stat label="Agend." value={fmt(row.planned)} cls="text-zinc-400" />
+                <Stat label="Hecho" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
                 <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
             </div>
 
@@ -252,8 +250,8 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
                             <tr className="text-zinc-500">
                                 <th className="text-left font-semibold py-1.5">Fase</th>
                                 <th className="text-right font-semibold py-1.5 w-20">Pres.</th>
-                                <th className="text-right font-semibold py-1.5 w-20">Plan.</th>
-                                <th className="text-right font-semibold py-1.5 w-20">Real</th>
+                                <th className="text-right font-semibold py-1.5 w-20">Agend.</th>
+                                <th className="text-right font-semibold py-1.5 w-20">Hecho</th>
                                 <th className="text-right font-semibold py-1.5 w-12">%</th>
                             </tr>
                         </thead>

@@ -5,7 +5,7 @@ import {
     startOfMonth, endOfMonth, addWeeks, isAfter,
 } from "date-fns";
 import { format } from "date-fns";
-import { AgendaEntry } from "@/types/agenda";
+import { AgendaEntry, ResultStatus } from "@/types/agenda";
 import { Project, ProjectPhase } from "@/types";
 
 // ─── Periodo temporal ──────────────────────────────────────────────────────────
@@ -155,16 +155,29 @@ export interface ProjectHours {
 
 const PHASE_NONE = '__none__';
 
-/** Combina presupuesto + planificado (agenda) + real (temporizador) por proyecto y fase.
- *  - planned: suma de scheduledHours, atribuida a fase por phaseMapping.activityToPhase[activityType]
- *  - real:    suma de durationMinutes/60, atribuida a fase por phaseMapping.taskTypeToPhase[taskTypeId]
- *  Lo no mapeado cae en `unphased`. */
+/** Combina presupuesto + agendado + realizado (agenda) por proyecto y fase.
+ *  - planned: suma de scheduledHours de todas las entradas activas (agendado total)
+ *  - real:    suma de scheduledHours de entradas con result === HECHO (trabajo completado)
+ *  Resolución de proyecto: primero por projectId; si es null, por nombre de cliente (e.client)
+ *  contra project.name / project.clientName / project.code. Lo no mapeado cae en `unphased`. */
 export function aggregateProjectHours(
     projects: Project[],
     entries: AgendaEntry[],
-    tasks: ConsultantTaskLite[],
+    tasks: ConsultantTaskLite[],   // reservado para integración de timer — no se usa aún
 ): ProjectHours[] {
     const projById = new Map(projects.map(p => [p.id, p]));
+
+    // Índice de nombres/códigos para matching cuando projectId es null.
+    const nameIndex = new Map<string, string>(); // upperCase → projectId
+    projects.forEach(p => {
+        if (p.name)       nameIndex.set(p.name.trim().toUpperCase(), p.id);
+        if ((p as any).clientName) nameIndex.set((p as any).clientName.trim().toUpperCase(), p.id);
+        if (p.code)       nameIndex.set(p.code.trim().toUpperCase(), p.id);
+    });
+
+    const resolveId = (e: AgendaEntry): string | null =>
+        e.projectId || nameIndex.get(e.client?.trim().toUpperCase() ?? '') || null;
+
     const acc = new Map<string, ProjectHours>();
 
     const ensure = (projectId: string, fallback?: { name?: string; code?: string; color?: string }): ProjectHours => {
@@ -194,38 +207,36 @@ export function aggregateProjectHours(
         return row;
     };
 
-    // Semilla con todos los proyectos que tengan presupuesto (aparecen aunque no haya horas).
+    // Semilla con proyectos con presupuesto (aparecen aunque no haya horas en el periodo).
     projects.forEach(p => {
         const phases = p.budgetPhases ?? [];
         const hasBudget = (p.budgetHours ?? 0) > 0 || phases.some(ph => (ph.hours ?? 0) > 0);
         if (hasBudget) ensure(p.id);
     });
 
-    // Planificado (agenda)
+    // Horas de agenda: planned = todas las entradas; real = solo HECHO.
     entries.forEach(e => {
-        if (!e.projectId) return;
-        const row = ensure(e.projectId, { name: e.projectName, code: e.projectCode, color: e.projectColor });
+        const projectId = resolveId(e);
+        if (!projectId) return;
+        const row = ensure(projectId, { name: e.projectName || e.client, code: e.projectCode, color: e.projectColor });
         const h = Number(e.scheduledHours) || 0;
         if (h <= 0) return;
         row.planned += h;
-        const p = projById.get(e.projectId);
+        if (e.result === ResultStatus.HECHO) row.real += h;
+        const p = projById.get(projectId);
         const phaseId = p?.phaseMapping?.activityToPhase?.[e.activityType] ?? PHASE_NONE;
         const phase = phaseId !== PHASE_NONE ? row.byPhase.find(ph => ph.phaseId === phaseId) : undefined;
-        if (phase) phase.planned += h; else row.unphased.planned += h;
+        if (phase) {
+            phase.planned += h;
+            if (e.result === ResultStatus.HECHO) phase.real += h;
+        } else {
+            row.unphased.planned += h;
+            if (e.result === ResultStatus.HECHO) row.unphased.real += h;
+        }
     });
 
-    // Real (temporizador)
-    tasks.forEach(t => {
-        if (!t.projectId) return;
-        const row = ensure(t.projectId, { name: t.projectName });
-        const h = (Number(t.durationMinutes) || 0) / 60;
-        if (h <= 0) return;
-        row.real += h;
-        const p = projById.get(t.projectId);
-        const phaseId = (t.taskTypeId && p?.phaseMapping?.taskTypeToPhase?.[t.taskTypeId]) ?? PHASE_NONE;
-        const phase = phaseId !== PHASE_NONE ? row.byPhase.find(ph => ph.phaseId === phaseId) : undefined;
-        if (phase) phase.real += h; else row.unphased.real += h;
-    });
+    // Timer (consultantTasks) — integración pendiente, se ignora por ahora.
+    void tasks;
 
     const rows = [...acc.values()];
     rows.forEach(r => { r.health = hoursHealth(r.real, r.budget); });
