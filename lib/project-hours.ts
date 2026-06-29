@@ -175,8 +175,22 @@ export function aggregateProjectHours(
         if (p.code)       nameIndex.set(p.code.trim().toUpperCase(), p.id);
     });
 
-    const resolveId = (e: AgendaEntry): string | null =>
-        e.projectId || nameIndex.get(e.client?.trim().toUpperCase() ?? '') || null;
+    const resolveId = (e: AgendaEntry): string | null => {
+        if (e.projectId) return e.projectId;
+        const client = (e as any).client?.trim().toUpperCase() ?? '';
+        if (!client) return null;
+        // 1. Coincidencia exacta (name, clientName, code)
+        const exact = nameIndex.get(client);
+        if (exact) return exact;
+        // 2. Coincidencia parcial: el nombre del proyecto empieza por el cliente o viceversa
+        for (const [id, p] of projById) {
+            const pName = p.name?.trim().toUpperCase() ?? '';
+            if (pName && (pName.startsWith(client) || client.startsWith(pName))) return id;
+            const pClient = (p as any).clientName?.trim().toUpperCase() ?? '';
+            if (pClient && (pClient.startsWith(client) || client.startsWith(pClient))) return id;
+        }
+        return null;
+    };
 
     const acc = new Map<string, ProjectHours>();
 

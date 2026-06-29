@@ -78,6 +78,9 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
             getAgendaEntriesRange(tenantId, range),
         ]).then(([ag]) => {
             if (cancelled) return;
+            const noId = ag.filter(e => !e.projectId);
+            const clientSample = [...new Set(noId.map(e => (e as any).client).filter(Boolean))].slice(0, 20);
+            console.log('[PHS] entries sin projectId:', noId.length, '| clients únicos:', clientSample);
             setEntries(ag);
         }).catch(err => {
             if (cancelled) return;
@@ -217,9 +220,9 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
 
                 {/* Cifras (desktop) */}
                 <div className="hidden sm:flex items-center gap-4 text-xs shrink-0">
-                    <Stat label="Previstas" value={fmt(row.planned)} cls="text-zinc-400" />
-                    <Stat label="Realizadas" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
-                    <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
+                    <Stat label="Previstas"  value={fmt(row.planned)} cls="text-zinc-100 font-semibold" />
+                    <Stat label="Realizadas" value={fmt(row.real)}    cls="text-zinc-400" />
+                    <Stat label="Pres."      value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-500" />
                 </div>
 
                 {/* Barra + % doble */}
@@ -244,9 +247,9 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
 
             {/* Cifras (móvil) */}
             <div className="sm:hidden flex items-center gap-4 text-xs px-3 pb-3 -mt-1">
-                <Stat label="Previstas" value={fmt(row.planned)} cls="text-zinc-400" />
-                <Stat label="Realizadas" value={fmt(row.real)} cls="text-zinc-100 font-semibold" />
-                <Stat label="Pres." value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-400" />
+                <Stat label="Previstas"  value={fmt(row.planned)} cls="text-zinc-100 font-semibold" />
+                <Stat label="Realizadas" value={fmt(row.real)}    cls="text-zinc-400" />
+                <Stat label="Pres."      value={row.budget > 0 ? fmt(row.budget) : '—'} cls="text-zinc-500" />
             </div>
 
             {/* Drill-down de fases */}
