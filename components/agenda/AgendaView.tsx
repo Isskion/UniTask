@@ -694,6 +694,8 @@ export function AgendaView() {
                     filters={filters}
                     weekLabel={weekLabel}
                     samRegions={samRegions}
+                    tenantId={tid}
+                    weekStartIso={weekStartIso}
                     activeFilterCount={activeFilterCount}
                     onClearFilters={clearFilters}
                 />

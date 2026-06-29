@@ -11,6 +11,7 @@ import { formatHours } from "@/lib/agenda-utils";
 import { SAMRegion } from "@/lib/agenda";
 import { useLanguage } from "@/context/LanguageContext";
 import { Timestamp } from "firebase/firestore";
+import { ProjectHoursSummary } from "./ProjectHoursSummary";
 
 interface Props {
     entries:          AgendaEntry[];
@@ -18,6 +19,8 @@ interface Props {
     filters:          AgendaFilters;
     weekLabel:        string;
     samRegions:       SAMRegion[];
+    tenantId?:        string;
+    weekStartIso?:    string;
     activeFilterCount?: number;
     onClearFilters?:    () => void;
 }
@@ -49,7 +52,7 @@ function filterEntries(entries: AgendaEntry[], filters: AgendaFilters, samRegion
     });
 }
 
-export function AgendaResumen({ entries, consultants, filters, weekLabel, samRegions, activeFilterCount = 0, onClearFilters }: Props) {
+export function AgendaResumen({ entries, consultants, filters, weekLabel, samRegions, tenantId, weekStartIso, activeFilterCount = 0, onClearFilters }: Props) {
     const { t } = useLanguage();
     const visible = useMemo(() => filterEntries(entries, filters, samRegions), [entries, filters, samRegions]);
 
@@ -108,25 +111,28 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
         Object.values(ActivityType).filter(actType => byConsultant.some(r => (r.byActivity[actType] || 0) > 0)),
     [byConsultant]);
 
-    if (visible.length === 0) {
-        return (
-            <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 text-sm py-24 gap-3">
-                <p>{activeFilterCount > 0 ? t('agenda.noDataFiltered') : t('agenda.noDataWeek')}</p>
-                {activeFilterCount > 0 && onClearFilters && (
-                    <button
-                        onClick={onClearFilters}
-                        className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
-                    >
-                        {t('agenda.clearFilters')} ({activeFilterCount})
-                    </button>
-                )}
-            </div>
-        );
-    }
-
     return (
         <div className="flex-1 overflow-auto custom-scrollbar p-5 space-y-6">
 
+            {/* ── Proyectos: presupuesto vs planificado vs real (rango temporal) ── */}
+            {tenantId && weekStartIso && (
+                <ProjectHoursSummary tenantId={tenantId} anchorIso={weekStartIso} />
+            )}
+
+            {visible.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-zinc-600 text-sm py-16 gap-3">
+                    <p>{activeFilterCount > 0 ? t('agenda.noDataFiltered') : t('agenda.noDataWeek')}</p>
+                    {activeFilterCount > 0 && onClearFilters && (
+                        <button
+                            onClick={onClearFilters}
+                            className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
+                        >
+                            {t('agenda.clearFilters')} ({activeFilterCount})
+                        </button>
+                    )}
+                </div>
+            ) : (
+            <>
             {/* ── KPIs ─────────────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <Kpi label={t('agenda.hoursPlanned')} value={formatHours(totalHours)} accent="indigo" />
@@ -285,6 +291,8 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
                     </div>
                 </section>
             </div>
+            </>
+            )}
         </div>
     );
 }

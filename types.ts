@@ -59,12 +59,36 @@ export interface Project {
     };
     environments?: ProjectEnvironment[];
 
+    // [Horas de proyecto] Presupuesto de horas por fase/actividad — todo opcional,
+    // los proyectos existentes siguen válidos y sin presupuesto hasta que se configure.
+    budgetHours?: number;          // total presupuestado (normalmente = suma de fases, override manual posible)
+    budgetPhases?: ProjectPhase[]; // desglose por fase/actividad
+    startDate?: any;               // opcional: para ritmo esperado / proyección (burn rate)
+    endDate?: any;                 // opcional
+    phaseMapping?: ProjectPhaseMapping; // cómo atribuir lo consumido (planificado/real) a cada fase
+
     // Security & Metadata
     tenantId: string; // Multi-tenant isolation
     teamIds: string[]; // New: UIDs of allowed consultants
     isActive: boolean; // Legacy flag (keep for backward compat, sync with status)
     createdAt?: any;
     lastUpdate?: any; // New: Timestamp of last activity
+}
+
+// [Horas de proyecto] Una fase/actividad presupuestada dentro de un proyecto.
+export interface ProjectPhase {
+    id: string;        // estable (crypto.randomUUID al crear)
+    name: string;      // "Análisis", "Desarrollo", "Puesta en marcha"…
+    hours: number;     // horas presupuestadas de la fase
+    color?: string;    // color hex para barras/badges
+}
+
+// [Horas de proyecto] Atribución de horas consumidas a fases del proyecto.
+// Lo planificado se clasifica por ActivityType (agenda); lo real por taskTypeId (temporizador).
+// Lo no mapeado se contabiliza como "Sin fase".
+export interface ProjectPhaseMapping {
+    activityToPhase?: Record<string, string>; // ActivityType -> phaseId  (horas planificadas)
+    taskTypeToPhase?: Record<string, string>; // taskTypeId   -> phaseId  (horas reales)
 }
 
 export interface TenantLogo {

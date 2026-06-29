@@ -22,6 +22,7 @@ import { ProjectDocuments } from "./ProjectDocuments";
 import { ProjectInterfaces } from "./ProjectInterfaces";
 import { ProjectConnections } from "./ProjectConnections";
 import ProjectMoscow from "./ProjectMoscow";
+import ProjectBudgetEditor from "./ProjectBudgetEditor";
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
@@ -831,6 +832,15 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Presupuesto de horas por fase */}
+                                        <ProjectBudgetEditor
+                                            formData={formData}
+                                            setFormData={setFormData}
+                                            isLight={isLight}
+                                            canEdit={canEdit}
+                                            tenantId={tenantId || undefined}
+                                        />
 
                                         <div className={cn("pt-6 border-t flex items-center justify-end gap-3", isLight ? "border-zinc-100" : "border-white/5")}>
                                             <button
