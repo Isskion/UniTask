@@ -12,7 +12,8 @@ import {
     aggregateProjectHours, portfolioTotals, ProjectHours, HoursHealth,
 } from "@/lib/project-hours";
 import { AgendaEntry } from "@/types/agenda";
-import { AlertTriangle, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronRight, Loader2, BarChart2 } from "lucide-react";
+import ProjectReportModal from "./ProjectReportModal";
 
 interface Props {
     tenantId: string;
@@ -45,6 +46,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState<string | null>(null);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
+    const [reportRow, setReportRow] = useState<ProjectHours | null>(null);
 
     // Rango temporal efectivo (hora local — nunca UTC).
     const range: PeriodRange = useMemo(() => {
@@ -92,6 +94,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
         return () => { cancelled = true; };
     }, [tenantId, range]);
 
+    const periodLabel = `${format(range.from, 'dd/MM/yyyy')} – ${format(range.to, 'dd/MM/yyyy')}`;
     const rows = useMemo(() => aggregateProjectHours(projects, entries, tasks), [projects, entries, tasks]);
     const totals = useMemo(() => portfolioTotals(rows), [rows]);
     const withBudget = rows.filter(r => r.hasBudget);
@@ -147,11 +150,17 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
                                 className="bg-secondary/40 border border-border rounded-md px-2 py-1 text-xs text-foreground outline-none focus:border-primary" />
                         </div>
                     )}
-                    <span className="text-[10px] text-zinc-500 hidden md:block">
-                        {format(range.from, 'dd/MM/yyyy')} – {format(range.to, 'dd/MM/yyyy')}
-                    </span>
+                    <span className="text-[10px] text-zinc-500 hidden md:block">{periodLabel}</span>
                 </div>
             </div>
+
+            {reportRow && (
+                <ProjectReportModal
+                    row={reportRow}
+                    periodLabel={periodLabel}
+                    onClose={() => setReportRow(null)}
+                />
+            )}
 
             {error && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
@@ -188,7 +197,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
                     )}
                     <div className="space-y-2">
                         {rows.map(row => (
-                            <ProjectRow key={row.projectId} row={row} expanded={expanded.has(row.projectId)} onToggle={() => toggle(row.projectId)} />
+                            <ProjectRow key={row.projectId} row={row} expanded={expanded.has(row.projectId)} onToggle={() => toggle(row.projectId)} onReport={() => setReportRow(row)} />
                         ))}
                     </div>
                 </>
@@ -199,7 +208,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
 
 // ── Fila de proyecto ─────────────────────────────────────────────────────────
 
-function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: boolean; onToggle: () => void }) {
+function ProjectRow({ row, expanded, onToggle, onReport }: { row: ProjectHours; expanded: boolean; onToggle: () => void; onReport: () => void }) {
     const style = HEALTH_STYLE[row.health];
     // Barra: Previstas como fill principal, Realizadas como marcador interior
     const prevPct  = row.budget > 0 ? Math.min((row.planned / row.budget) * 100, 100) : 0;
@@ -216,6 +225,13 @@ function ProjectRow({ row, expanded, onToggle }: { row: ProjectHours; expanded: 
                 <button onClick={onToggle} className="flex-1 min-w-0 text-left flex items-center gap-1.5">
                     {hasPhases && (expanded ? <ChevronDown className="w-3.5 h-3.5 text-zinc-500 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-zinc-500 shrink-0" />)}
                     <span className="text-sm text-zinc-200 truncate">{row.name}</span>
+                </button>
+                <button
+                    onClick={onReport}
+                    title="Ver informe del proyecto"
+                    className="p-1.5 rounded-lg text-zinc-600 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors shrink-0"
+                >
+                    <BarChart2 className="w-3.5 h-3.5" />
                 </button>
 
                 {/* Cifras (desktop) */}

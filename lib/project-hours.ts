@@ -144,13 +144,14 @@ export interface ProjectHours {
     code: string;
     color: string;
     hasBudget: boolean;
-    budget: number;        // total presupuestado
-    planned: number;       // horas planificadas (agenda)
-    real: number;          // horas reales (temporizador)
+    budget: number;
+    planned: number;
+    real: number;
     health: HoursHealth;
     byPhase: PhaseHours[];
-    /** Horas no atribuidas a ninguna fase (mapeo ausente). */
     unphased: { planned: number; real: number };
+    /** Entradas de agenda que pertenecen a este proyecto (para informes de detalle). */
+    matchedEntries: AgendaEntry[];
 }
 
 const PHASE_NONE = '__none__';
@@ -216,6 +217,7 @@ export function aggregateProjectHours(
                 budget: Number(ph.hours) || 0, planned: 0, real: 0,
             })),
             unphased: { planned: 0, real: 0 },
+            matchedEntries: [],
         };
         acc.set(projectId, row);
         return row;
@@ -233,6 +235,7 @@ export function aggregateProjectHours(
         const projectId = resolveId(e);
         if (!projectId) return;
         const row = ensure(projectId, { name: e.projectName || e.client, code: e.projectCode, color: e.projectColor });
+        row.matchedEntries.push(e);
         const h = Number(e.scheduledHours) || 0;
         if (h <= 0) return;
         row.planned += h;
