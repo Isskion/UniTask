@@ -4546,6 +4546,32 @@
     "updatedAt": "2026-06-23T15:21:35.262Z"
   },
   {
+    "id": "3_2026-06-29",
+    "date": "2026-06-29",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "Luis Simoes - seguimiento semanal 29-06-26\nReunión de los lunes 30 minutos más temprano\nReuniones de interfaces - mover a las 16:30hs ESP hasta las 6\nCarga de horas de JS en JIRA: pendiente Unigis\nAgendar sesiones de esta semana para cerrar diseño: agendadas martes y jueves y probablemente se deben añadir otra de 2hs\nFASE I: Gonzalo: mobile cambios de estado masivos a revisar\nDoc de TI: revisado Anny y equipo + a enviar feedback durante hoy\nDiego trabajar matriz de riesgos para presentar a LS\nVitor\nTerminar el documento de alcance: falta la claridad del proceso de docimicilios fijos y variables, gestión de incidencias y logística inversa, dispatch, delegaciones y agendas de transporte (ampliar en el documento)\nTarificacion: agendas en paralelo - 21 de agosto para cerrar y presentar el documento de diseño para validar y revisar (para tener en septiembre validado el diseño)\nAvanzar el plan y cronograma definitivo\nCoordinar la sesión se presentación de julio 13 y 15 + el formato de la presentación",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Luis Simoes - seguimiento semanal 29-06-26\nReunión de los lunes 30 minutos más temprano\nReuniones de interfaces - mover a las 16:30hs ESP hasta las 6\nCarga de horas de JS en JIRA: pendiente Unigis\nAgendar sesiones de esta semana para cerrar diseño: agendadas martes y jueves y probablemente se deben añadir otra de 2hs\nFASE I: Gonzalo: mobile cambios de estado masivos a revisar\nDoc de TI: revisado Anny y equipo + a enviar feedback durante hoy\nDiego trabajar matriz de riesgos para presentar a LS\nVitor\nTerminar el documento de alcance: falta la claridad del proceso de docimicilios fijos y variables, gestión de incidencias y logística inversa, dispatch, delegaciones y agendas de transporte (ampliar en el documento)\nTarificacion: agendas en paralelo - 21 de agosto para cerrar y presentar el documento de diseño para validar y revisar (para tener en septiembre validado el diseño)\nAvanzar el plan y cronograma definitivo\nCoordinar la sesión se presentación de julio 13 y 15 + el formato de la presentación",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-29T10:14:45.257Z",
+    "updatedAt": "2026-06-29T10:14:53.431Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
