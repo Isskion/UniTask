@@ -4572,6 +4572,48 @@
     "updatedAt": "2026-06-29T10:14:53.431Z"
   },
   {
+    "id": "3_2026-06-30",
+    "date": "2026-06-30",
+    "tenantId": "3",
+    "projects": [
+      {
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "conclusions": "",
+        "nextSteps": "",
+        "pmNotes": "Hola Oscar y equipos,\n\n \n\nComparto las previsiones y propuestas de avance desde Unigis.\n\n \n\nVacaciones y licencias durante el verano\n\n\nJesús Márquez: licencia desde el lunes 06-07 volviendo a inicios de septiembre\nDaniel del Amo: del 20 al 31-07 y del 17 al 28-08\nDiego Senra: del 27 al 31-07\n \n\nTareas previstas TMS\n\n\nJulio 2026:\n- Completar las pruebas de optimizaciones sobre planificación de Madrid y pasaje a PRD\n- Revisar y validar el Plan de Construcción Etapas III, IV y V de FASE II\nJulio – Agosto 2026:\n- Avanzar con la configuración de optimizaciones de operaciones ahora aplicadas a Segovia, Asturias, etc; pruebas en TEST y pasaje a PRD\n- Iniciar carga de datos de estados y transiciones correspondientes al diseño de solución aprobado de FASE II\nSeptiembre 2026:\n- Iniciar mapeo de interfaces\n- Continuar con la Construcción de FASE II, procesos, ajustes de pedidos, módulo de cobranzas y resto del alcance\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,\n\n ",
+        "name": "DELGADO",
+        "status": "active",
+        "blocks": [
+          {
+            "isCollapsed": false,
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola Oscar y equipos,\n\n \n\nComparto las previsiones y propuestas de avance desde Unigis.\n\n \n\nVacaciones y licencias durante el verano\n\n\nJesús Márquez: licencia desde el lunes 06-07 volviendo a inicios de septiembre\nDaniel del Amo: del 20 al 31-07 y del 17 al 28-08\nDiego Senra: del 27 al 31-07\n \n\nTareas previstas TMS\n\n\nJulio 2026:\n- Completar las pruebas de optimizaciones sobre planificación de Madrid y pasaje a PRD\n- Revisar y validar el Plan de Construcción Etapas III, IV y V de FASE II\nJulio – Agosto 2026:\n- Avanzar con la configuración de optimizaciones de operaciones ahora aplicadas a Segovia, Asturias, etc; pruebas en TEST y pasaje a PRD\n- Iniciar carga de datos de estados y transiciones correspondientes al diseño de solución aprobado de FASE II\nSeptiembre 2026:\n- Iniciar mapeo de interfaces\n- Continuar con la Construcción de FASE II, procesos, ajustes de pedidos, módulo de cobranzas y resto del alcance\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,\n\n "
+          }
+        ]
+      },
+      {
+        "name": "SPAR",
+        "projectId": "WcF8wTccm1LkaFBfWvug",
+        "pmNotes": "Extendidas las reuniones de lunes y jueves para avance de pruebas y configuraciones con negocio\nFelipe a enviar fechas de cierre de pruebas de interfaces 2 3 y 4 para actualizar el plan\nEric a mandar un ejemplo del trip id para que Felipe ajuste sus pruebas + pasarle el obtenerViaje qué campo se usa para la referencia de la tienda (ya hecho por desarrollo) + sobre el obtenerViajeCompleto especificar cuál es el campo de la tienda y dónde ira el código de la etiqueta",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Extendidas las reuniones de lunes y jueves para avance de pruebas y configuraciones con negocio\nFelipe a enviar fechas de cierre de pruebas de interfaces 2 3 y 4 para actualizar el plan\nEric a mandar un ejemplo del trip id para que Felipe ajuste sus pruebas + pasarle el obtenerViaje qué campo se usa para la referencia de la tienda (ya hecho por desarrollo) + sobre el obtenerViajeCompleto especificar cuál es el campo de la tienda y dónde ira el código de la etiqueta",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-06-30T09:21:52.399Z",
+    "updatedAt": "2026-06-30T11:42:13.652Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
