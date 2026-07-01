@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import {
     ChevronLeft, ChevronRight, CalendarDays, Download, Filter,
     Users, RefreshCw, FileSpreadsheet, Settings2, UserPlus, RotateCcw,
-    LayoutGrid, BarChart3, List, FolderInput,
+    LayoutGrid, BarChart3, List, FolderInput, Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addWeeks, subWeeks } from "date-fns";
@@ -27,6 +27,7 @@ import { AgendaResumen } from "./AgendaResumen";
 import { AgendaConsultantsManager } from "./AgendaConsultantsManager";
 import { AgendaImportModal } from "./AgendaImportModal";
 import { AgendaImportInfoModal } from "./AgendaImportInfoModal";
+import { AgendaProjectAudit } from "./AgendaProjectAudit";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
@@ -34,16 +35,18 @@ import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { useAuth } from "@/context/AuthContext";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 import { useToast } from "@/context/ToastContext";
+import { RoleLevel } from "@/types";
 
 const MAX_IMPORT_SIZE_MB = 25;
 const MAX_IMPORT_SIZE_BYTES = MAX_IMPORT_SIZE_MB * 1024 * 1024;
 
 export function AgendaView() {
-    const { tenantId, user } = useAuth();
+    const { tenantId, user, userRole } = useAuth();
     const { t } = useLanguage();
     const tid = tenantId || "";
     const accessScopes = useAccessScopes();
     const { showToast } = useToast();
+    const canAuditProjects = getRoleLevel(userRole) >= RoleLevel.PM;
     useTheme();
 
     // ── Week navigation ────────────────────────────────────────────────────────
@@ -312,6 +315,7 @@ export function AgendaView() {
 
     // ── Consultants manager ───────────────────────────────────────────────────
     const [showConsultantsManager, setShowConsultantsManager] = useState(false);
+    const [showProjectAudit, setShowProjectAudit] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showImportInfo, setShowImportInfo] = useState(false);
     const importInputRef = useRef<HTMLInputElement>(null);
@@ -515,6 +519,18 @@ export function AgendaView() {
                         <Settings2 className="w-3.5 h-3.5" />
                         {t('agenda.manageBtn')}
                     </button>
+
+                    {/* Project audit — PM+ only */}
+                    {canAuditProjects && (
+                        <button
+                            onClick={() => setShowProjectAudit(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 hover:border-indigo-500/30 hover:text-indigo-400 transition-all"
+                            title="Revisar y completar proyectos sin asignar en la semana"
+                        >
+                            <Wand2 className="w-3.5 h-3.5" />
+                            Auditoría de proyectos
+                        </button>
+                    )}
 
                     {/* Theme selector */}
                     <div className="pl-1 border-l border-border">
@@ -736,6 +752,16 @@ export function AgendaView() {
                     samRegions={samRegions}
                     samDivisions={samDivisions}
                     onClose={() => setShowConsultantsManager(false)}
+                />
+            )}
+
+            {showProjectAudit && (
+                <AgendaProjectAudit
+                    entries={entries}
+                    consultants={consultants}
+                    tenantId={tid}
+                    samDivisions={samDivisions}
+                    onClose={() => setShowProjectAudit(false)}
                 />
             )}
 

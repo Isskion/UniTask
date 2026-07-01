@@ -47,7 +47,7 @@ const DAY_OFFSETS = [2, 7, 12, 17, 22, 27, 32];
 
 // Activity types whose "cliente" text (before " / " in Comentario) plausibly names a project.
 // Vacaciones/Viaje/Reunión Interna/Especial never carry a project — never offered for resolution.
-const PROJECT_ELIGIBLE_ACTIVITIES = new Set<ActivityType>([
+export const PROJECT_ELIGIBLE_ACTIVITIES = new Set<ActivityType>([
     ActivityType.REUNION_CLIENTE,
     ActivityType.REUNION_UNIGIS,
     ActivityType.REUNION_PRESENCIAL,
@@ -302,7 +302,7 @@ export function suggestConsultantMatch(
 /** Builds the set of names (project.name + aliases, uppercase) that resolve without asking.
  *  Matches by NAME only, never by code — the Excel cell is a free-text label a PM types,
  *  never the project's business code. */
-function buildKnownProjectNames(projects: Project[]): Map<string, Project> {
+export function buildKnownProjectNames(projects: Project[]): Map<string, Project> {
     const known = new Map<string, Project>();
     projects.forEach(p => {
         known.set(p.name.toUpperCase(), p);

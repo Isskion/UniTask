@@ -17,7 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
 
 // choice: '' = undecided (blocks import), 'SKIP' = explicitly leave these rows out, otherwise a consultant.userId
-interface NameResolution {
+export interface NameResolution {
     choice: string;
     remember: boolean;
 }
@@ -625,7 +625,7 @@ function UnknownResolver({ names, consultants, resolutions, onChange, onToggleRe
     );
 }
 
-function ProjectResolver({ texts, projects, resolutions, onChange, onToggleRemember }: {
+export function ProjectResolver({ texts, projects, resolutions, onChange, onToggleRemember }: {
     texts: string[];
     projects: Project[];
     resolutions: Record<string, NameResolution>;
