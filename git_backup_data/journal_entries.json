@@ -4645,25 +4645,25 @@
     "tenantId": "3",
     "projects": [
       {
-        "name": "TRANSPAIS",
         "projectId": "aAb2HIajQVhXnLAzmVo8",
-        "pmNotes": "Transpais - Seguimiento semanal 01-06-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n",
+        "pmNotes": "Transpais - Seguimiento semanal 01-07-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo. /// Si debe crear pedidos, y hacer matching con los prepedidos si existen.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n------------\nSolictan comenzar relevamientos de tarifas. Proponemos dar fechas la semana que viene para arrancar lo antes posible.\n\n",
         "conclusions": "",
         "nextSteps": "",
         "status": "active",
+        "name": "TRANSPAIS",
         "blocks": [
           {
             "id": "default",
-            "title": "Título del bloque (ej. Reunión de Equipo)",
-            "content": "Transpais - Seguimiento semanal 01-06-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n",
-            "isCollapsed": false
+            "isCollapsed": false,
+            "content": "Transpais - Seguimiento semanal 01-07-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo. /// Si debe crear pedidos, y hacer matching con los prepedidos si existen.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n------------\nSolictan comenzar relevamientos de tarifas. Proponemos dar fechas la semana que viene para arrancar lo antes posible.\n\n",
+            "title": "Título del bloque (ej. Reunión de Equipo)"
           }
         ]
       }
     ],
     "generalNotes": "",
     "createdAt": "2026-07-01T06:15:43.774Z",
-    "updatedAt": "2026-07-01T06:18:53.316Z"
+    "updatedAt": "2026-07-01T13:48:01.282Z"
   },
   {
     "id": "4_2026-01-12",

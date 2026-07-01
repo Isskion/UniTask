@@ -392,7 +392,6 @@
     "name": "FACTOR V",
     "code": "FAV",
     "color": "#f59e0b",
-    "isActive": true,
     "email": "argoss01@gmail.com",
     "phone": "605997132",
     "tenantId": "3",
@@ -413,7 +412,8 @@
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "isActive": false
   },
   {
     "id": "HKnZypXlGdM0VjRLOysB",
@@ -519,10 +519,6 @@
       "_seconds": 1768897234,
       "_nanoseconds": 555000000
     },
-    "lastUpdate": {
-      "_seconds": 1768897234,
-      "_nanoseconds": 555000000
-    },
     "color": "#10b981",
     "name": "LUIS SIMOES Fase II",
     "_migrated": true,
@@ -560,7 +556,14 @@
         "color": "#6366f1"
       }
     ],
-    "startDate": "2026-02-02"
+    "startDate": "2026-02-02",
+    "aliases": [
+      "LUIS SIMOES"
+    ],
+    "lastUpdate": {
+      "_seconds": 1782907388,
+      "_nanoseconds": 471000000
+    }
   },
   {
     "id": "QZSIMHxzQlZOvshQYBgU",
@@ -1063,7 +1066,6 @@
     "name": "David",
     "code": "DAV",
     "color": "#71717a",
-    "isActive": true,
     "email": "",
     "phone": "",
     "regionId": "ES",
@@ -1082,7 +1084,8 @@
     "lastUpdate": {
       "_seconds": 1782122843,
       "_nanoseconds": 697000000
-    }
+    },
+    "isActive": false
   },
   {
     "id": "oojKGyu9qvjodzj225sS",

@@ -770,6 +770,55 @@
     }
   },
   {
+    "id": "3eMMOqi2USIr0zJVpvZq",
+    "title": "Relevamiento de tarifas",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782913463.412,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "endDate": "2026-07-06T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Terminar de generar el documento 360 de tarifas y proponer fechas para comenzar relevamiento de la tarifas.",
+    "area": "Documentación",
+    "module": "TARIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-37",
+    "taskNumber": 37,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782913495,
+      "_nanoseconds": 585000000
+    },
+    "updatedAt": {
+      "_seconds": 1782913495,
+      "_nanoseconds": 585000000
+    }
+  },
+  {
     "id": "3pgf2UKLDJNM7yf3VlUl",
     "friendlyId": "MOCK-27-2",
     "organizationId": "1",
