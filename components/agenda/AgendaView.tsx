@@ -708,6 +708,8 @@ export function AgendaView() {
                     weekDays={weekDays}
                     availableRegions={availableRegions}
                     availableDivisions={availableDivisions}
+                    tenantId={tid}
+                    samDivisions={samDivisions}
                     onToggleConsultant={toggleConsultant}
                     onToggleActivity={toggleActivity}
                     onToggleResult={toggleResult}

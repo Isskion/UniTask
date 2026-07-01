@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore";
-import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X, AlertTriangle, Filter } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Search, List, Download, X, AlertTriangle, Filter, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
@@ -12,8 +12,14 @@ import {
     ACTIVITY_CONFIG, RESULT_CONFIG, RESULT_ICON, ACTIVITY_TKEYS, RESULT_TKEYS,
 } from "@/types/agenda";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { useAccessScopes } from "@/hooks/useAccessScopes";
+import { getActiveProjects, filterBySAMScope } from "@/lib/projects";
+import { Project, getRoleLevel } from "@/types";
+import { SAMDivision } from "@/lib/agenda";
 import { formatHours } from "@/lib/agenda-utils";
 import { AgendaExportModal } from "./AgendaExportModal";
+import { AgendaEntryModal } from "./AgendaEntryModal";
 
 type SortField = 'date' | 'consultant' | 'activityType' | 'client' | 'schedule' | 'scheduledHours' | 'result' | 'projectName';
 type SortDir   = 'asc' | 'desc';
@@ -26,6 +32,8 @@ interface AgendaListaProps {
     weekDays:             Date[];
     availableRegions:     string[];
     availableDivisions:   string[];
+    tenantId:             string;
+    samDivisions:         SAMDivision[];
     onToggleConsultant:   (id: string) => void;
     onToggleActivity:     (act: ActivityType) => void;
     onToggleResult:       (r: ResultStatus) => void;
@@ -33,6 +41,15 @@ interface AgendaListaProps {
     onSetRegion:          (r: string) => void;
     onClearGlobalFilters: () => void;
 }
+
+interface ModalState {
+    open:       boolean;
+    consultant: AgendaConsultant | null;
+    date:       Date | null;
+    entry:      AgendaEntry | null;
+}
+
+const CLOSED_MODAL: ModalState = { open: false, consultant: null, date: null, entry: null };
 
 function toIso(date: Date): string { return format(date, 'yyyy-MM-dd'); }
 function entryIso(e: AgendaEntry): string {
@@ -42,11 +59,13 @@ function entryIso(e: AgendaEntry): string {
 
 export function AgendaLista({
     entries, consultants, filters, weekLabel, weekDays,
-    availableRegions, availableDivisions,
+    availableRegions, availableDivisions, tenantId, samDivisions,
     onToggleConsultant, onToggleActivity, onToggleResult,
     onToggleDivision, onSetRegion, onClearGlobalFilters,
 }: AgendaListaProps) {
     const { t } = useLanguage();
+    const { user, userRole } = useAuth();
+    const accessScopes = useAccessScopes();
 
     // ── Local filter state (lista-only) ───────────────────────────────────────
     const [search,           setSearch]           = useState('');
@@ -56,6 +75,16 @@ export function AgendaLista({
     const [sortDir,          setSortDir]          = useState<SortDir>('asc');
     const [showExport,       setShowExport]       = useState(false);
     const [showFilterStrip,  setShowFilterStrip]  = useState(false);
+    const [modal,            setModal]            = useState<ModalState>(CLOSED_MODAL);
+
+    // ── Active projects (para el filtro — independiente de las entradas de la semana) ──
+    const [activeProjects, setActiveProjects] = useState<Project[]>([]);
+    useEffect(() => {
+        if (!tenantId) return;
+        getActiveProjects(tenantId, user?.uid, getRoleLevel(userRole))
+            .then(all => setActiveProjects(filterBySAMScope(all, accessScopes)))
+            .catch(console.error);
+    }, [tenantId, user, userRole, accessScopes]);
 
     // ── 1. Global filters (from AgendaView) ───────────────────────────────────
     const baseFiltered = useMemo(() => entries.filter(e => {
@@ -72,19 +101,7 @@ export function AgendaLista({
             : baseFiltered.filter(e => selectedDays.includes(entryIso(e)))
     , [baseFiltered, selectedDays]);
 
-    // ── 3. Project filter ─────────────────────────────────────────────────────
-    const availableProjects = useMemo(() => {
-        const map = new Map<string, { id: string; code: string; name: string; color: string }>();
-        baseFiltered.forEach(e => {
-            if (e.projectId && !map.has(e.projectId))
-                map.set(e.projectId, {
-                    id: e.projectId, code: e.projectCode || e.projectId,
-                    name: e.projectName || '', color: e.projectColor || '#6b7280',
-                });
-        });
-        return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
-    }, [baseFiltered]);
-
+    // ── 3. Project filter (proyectos activos del tenant, no solo los de esta semana) ──
     const projectFiltered = useMemo(() =>
         selectedProjects.length === 0 ? dayFiltered
             : dayFiltered.filter(e => e.projectId && selectedProjects.includes(e.projectId))
@@ -146,6 +163,15 @@ export function AgendaLista({
     const toggleDay     = (iso: string) => setSelectedDays(p => p.includes(iso) ? p.filter(d => d !== iso) : [...p, iso]);
     const toggleProject = (id: string)  => setSelectedProjects(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
 
+    function openEdit(e: AgendaEntry) {
+        const date = e.date instanceof Timestamp ? e.date.toDate() : new Date(e.date as unknown as string);
+        const consultant = consultants.find(c => c.userId === e.consultantId) || null;
+        setModal({ open: true, consultant, date, entry: e });
+    }
+    function openCreate() {
+        setModal({ open: true, consultant: null, date: null, entry: null });
+    }
+
     const localActive  = selectedDays.length > 0 || selectedProjects.length > 0 || search.trim().length > 0;
     const globalActive = filters.consultantIds.length > 0 || filters.activityTypes.length > 0 ||
                          filters.results.length > 0 || filters.region !== 'ALL' || (filters.divisions?.length ?? 0) > 0;
@@ -177,6 +203,7 @@ export function AgendaLista({
         { field: 'scheduledHours', label: t('agenda.plannedAbbr')   },
         { field: 'result',         label: t('agenda.statusLabel')    },
         { field: 'projectName',    label: t('agenda.project')       },
+        { field: null,             label: ''                         },
     ];
 
     // ── Render ────────────────────────────────────────────────────────────────
@@ -237,6 +264,14 @@ export function AgendaLista({
                         <Download className="w-3.5 h-3.5" />
                         {t('agenda.exportBtn')}
                     </button>
+
+                    <button
+                        onClick={openCreate}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        Nueva entrada
+                    </button>
                 </div>
 
                 {/* ── Filter strip — colapsado por defecto, se abre con el boton "Filtros" ── */}
@@ -270,12 +305,12 @@ export function AgendaLista({
                         </div>
                     </div>
 
-                    {/* Row 2: Projects (only if any exist in data) */}
-                    {availableProjects.length > 0 && (
+                    {/* Row 2: Projects (proyectos activos del tenant) */}
+                    {activeProjects.length > 0 && (
                         <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider w-16 shrink-0">{t('agenda.project')}</span>
                             <div className="flex flex-wrap gap-1">
-                                {availableProjects.map(p => {
+                                {activeProjects.map(p => {
                                     const active = selectedProjects.includes(p.id);
                                     return (
                                         <button key={p.id} onClick={() => toggleProject(p.id)}
@@ -287,7 +322,7 @@ export function AgendaLista({
                                         >
                                             <span
                                                 className={cn("w-1.5 h-1.5 rounded-sm shrink-0", !active && "bg-muted-foreground/40")}
-                                                style={active ? { backgroundColor: p.color } : undefined}
+                                                style={active ? { backgroundColor: p.color || '#6b7280' } : undefined}
                                             />
                                             {p.code}
                                         </button>
@@ -442,8 +477,8 @@ export function AgendaLista({
                                     const StatusIcon = RESULT_ICON[e.result];
                                     const isCancelled = e.result === ResultStatus.CANCELADO;
                                     return (
-                                        <tr key={e.id} className={cn(
-                                            "border-b border-border/40 transition-colors hover:bg-accent/40",
+                                        <tr key={e.id} onClick={() => openEdit(e)} className={cn(
+                                            "border-b border-border/40 transition-colors hover:bg-accent/40 cursor-pointer",
                                             idx % 2 !== 0 && "bg-secondary/10"
                                         )}>
                                             <td className="px-3 py-2 whitespace-nowrap">
@@ -510,6 +545,15 @@ export function AgendaLista({
                                                     <span className="text-muted-foreground/40">—</span>
                                                 )}
                                             </td>
+                                            <td className="px-3 py-2 text-right">
+                                                <button
+                                                    onClick={ev => { ev.stopPropagation(); openEdit(e); }}
+                                                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
+                                                    title="Editar"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -523,7 +567,7 @@ export function AgendaLista({
                                     <td className="px-3 py-2 text-right text-sm font-bold text-foreground tabular-nums">
                                         {formatHours(totalHours)}
                                     </td>
-                                    <td colSpan={2} />
+                                    <td colSpan={3} />
                                 </tr>
                             </tfoot>
                         </table>
@@ -537,6 +581,19 @@ export function AgendaLista({
                     totalHours={totalHours}
                     weekLabel={weekLabel}
                     onClose={() => setShowExport(false)}
+                />
+            )}
+
+            {modal.open && (
+                <AgendaEntryModal
+                    isOpen={modal.open}
+                    onClose={() => setModal(CLOSED_MODAL)}
+                    consultant={modal.consultant}
+                    allConsultants={consultants}
+                    date={modal.date}
+                    entry={modal.entry}
+                    tenantId={tenantId}
+                    samDivisions={samDivisions}
                 />
             )}
         </>

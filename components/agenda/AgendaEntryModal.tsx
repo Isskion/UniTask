@@ -18,7 +18,7 @@ import { ACTIVITY_TKEYS, RESULT_TKEYS } from "@/types/agenda";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { filterBySAMScope, getActiveProjects } from "@/lib/projects";
 import { useAccessScopes } from "@/hooks/useAccessScopes";
-import { Project, getRoleLevel } from "@/types";
+import { Project, getRoleLevel, RoleLevel } from "@/types";
 import { SAMDivision } from "@/lib/agenda";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -26,9 +26,11 @@ import { es } from "date-fns/locale";
 interface Props {
     isOpen: boolean;
     onClose: () => void;
-    consultant: AgendaConsultant;
+    /** null cuando se crea desde la vista de lista (sin celda consultor+fecha fija) */
+    consultant: AgendaConsultant | null;
     allConsultants?: AgendaConsultant[];
-    date: Date;
+    /** null cuando se crea desde la vista de lista (sin celda consultor+fecha fija) */
+    date: Date | null;
     entry?: AgendaEntry | null;
     tenantId: string;
     samDivisions?: SAMDivision[];
@@ -94,6 +96,19 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
     const accessScopes = useAccessScopes(); // SAM scope — null = sin restricción
     const isEdit = !!entry;
 
+    const userLevel = getRoleLevel(userRole);
+    const canPickConsultant = userLevel >= RoleLevel.PM;
+
+    // ── Standalone mode: creando desde la lista, sin celda consultor+fecha fija ──
+    const [pickedConsultantId, setPickedConsultantId] = useState('');
+    const [pickedDateIso,      setPickedDateIso]      = useState(() => format(new Date(), 'yyyy-MM-dd'));
+
+    const effectiveConsultant = consultant || allConsultants.find(c => c.userId === pickedConsultantId) || null;
+    const effectiveDate = date || (() => {
+        const [y, m, d] = pickedDateIso.split('-').map(Number);
+        return isNaN(y) ? null : new Date(y, m - 1, d);
+    })();
+
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [saving,   setSaving]   = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -101,8 +116,8 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
 
     // Clone state
     const [showClone, setShowClone] = useState(false);
-    const [cloneDate, setCloneDate] = useState<string>(format(date, 'yyyy-MM-dd'));
-    const [cloneConsultantId, setCloneConsultantId] = useState<string>(consultant.userId);
+    const [cloneDate, setCloneDate] = useState<string>(format(date || new Date(), 'yyyy-MM-dd'));
+    const [cloneConsultantId, setCloneConsultantId] = useState<string>(consultant?.userId || '');
     const [cloneSuccess, setCloneSuccess] = useState('');
 
     // ── Projects ──────────────────────────────────────────────────────────────
@@ -148,16 +163,16 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
     // 2. If empty and SAM catalog available → show all catalog divisions (user assigns)
     // 3. Absolute fallback → ['Consultoría']
     const consultantDivisions = useMemo(() => {
-        if (consultant.divisions?.length) {
+        if (effectiveConsultant?.divisions?.length) {
             // Might be IDs (stored before name-resolution fix) — resolve via catalog if possible
-            return consultant.divisions.map(d => {
+            return effectiveConsultant.divisions.map(d => {
                 const match = samDivisions.find(s => s.id === d || s.name === d);
                 return match ? match.name : d;
             });
         }
         if (samDivisions.length > 0) return samDivisions.map(d => d.name);
         return [DEFAULT_DIVISION];
-    }, [consultant.divisions, samDivisions]);
+    }, [effectiveConsultant, samDivisions]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -182,6 +197,12 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
         } else {
             // Auto-fill with consultant's first (or only) division
             setForm({ ...EMPTY_FORM, divisionId: consultantDivisions[0], divisionName: consultantDivisions[0] });
+            if (!consultant) {
+                // Standalone create: fecha por defecto hoy, consultor forzado al propio salvo PM+
+                setPickedDateIso(format(new Date(), 'yyyy-MM-dd'));
+                const ownConsultant = allConsultants.find(c => c.userId === user?.uid);
+                setPickedConsultantId(canPickConsultant ? '' : (ownConsultant?.userId || ''));
+            }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, entry]);
@@ -215,6 +236,14 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
 
     async function handleSave() {
         if (!user) return;
+        if (!form.projectId) {
+            setSaveError('Selecciona un proyecto para continuar.');
+            return;
+        }
+        if (!effectiveConsultant || !effectiveDate) {
+            setSaveError('Selecciona un consultor y una fecha.');
+            return;
+        }
         setSaving(true);
         setSaveError(null);
         try {
@@ -236,13 +265,13 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
             } else {
                 const input: CreateEntryInput = {
                     tenantId,
-                    consultantId:    consultant.userId,
-                    consultantName:  consultant.name,
-                    consultantOrder: consultant.sortOrder,
-                    region:          consultant.region,
+                    consultantId:    effectiveConsultant.userId,
+                    consultantName:  effectiveConsultant.name,
+                    consultantOrder: effectiveConsultant.sortOrder,
+                    region:          effectiveConsultant.region,
                     divisionId:      form.divisionId,
                     divisionName:    form.divisionName,
-                    date,
+                    date:            effectiveDate,
                     activityType:    form.activityType,
                     comment:         form.comment,
                     scheduleRaw,
@@ -334,14 +363,38 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
 
                 {/* ── Header ─────────────────────────────────────────────────── */}
                 <div className="flex items-start justify-between p-5 border-b border-border shrink-0">
-                    <div>
+                    <div className="flex-1 min-w-0">
                         <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">
                             {isEdit ? t('agenda.editEntry') : t('agenda.newEntry')}
                         </p>
-                        <h2 className="text-foreground font-semibold text-base leading-tight">{consultant.name}</h2>
-                        <p className="text-muted-foreground text-sm mt-0.5 capitalize">
-                            {format(date, "EEEE d 'de' MMMM yyyy", { locale: es })}
-                        </p>
+                        {consultant && date ? (
+                            <>
+                                <h2 className="text-foreground font-semibold text-base leading-tight">{consultant.name}</h2>
+                                <p className="text-muted-foreground text-sm mt-0.5 capitalize">
+                                    {format(date, "EEEE d 'de' MMMM yyyy", { locale: es })}
+                                </p>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-2 mt-1">
+                                <select
+                                    value={pickedConsultantId}
+                                    onChange={e => setPickedConsultantId(e.target.value)}
+                                    disabled={!canPickConsultant}
+                                    className="flex-1 min-w-0 px-2.5 py-1.5 bg-secondary/40 border border-border rounded-lg text-sm text-foreground disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:border-indigo-500/60"
+                                >
+                                    <option value="">Selecciona un consultor…</option>
+                                    {allConsultants.map(c => (
+                                        <option key={c.userId} value={c.userId}>{c.name}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="date"
+                                    value={pickedDateIso}
+                                    onChange={e => setPickedDateIso(e.target.value)}
+                                    className="px-2.5 py-1.5 bg-secondary/40 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-indigo-500/60"
+                                />
+                            </div>
+                        )}
                     </div>
                     <button onClick={onClose} className="text-zinc-500 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors">
                         <X className="w-5 h-5" />
@@ -406,7 +459,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                         <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
                             <FolderGit2 className="w-3.5 h-3.5" />
                             {t('agenda.project')}
-                            <span className="text-zinc-600 font-normal normal-case">{t('agenda.optional')}</span>
+                            <span className="text-red-400 font-normal normal-case">*</span>
                         </label>
 
                         {/* Selected project chip */}
@@ -779,7 +832,7 @@ export function AgendaEntryModal({ isOpen, onClose, consultant, allConsultants =
                         </button>
                         <button
                             onClick={handleSave}
-                            disabled={saving}
+                            disabled={saving || !form.projectId}
                             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
