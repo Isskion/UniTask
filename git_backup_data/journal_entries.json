@@ -4520,6 +4520,32 @@
     "updatedAt": "2026-06-24T08:06:58.948Z"
   },
   {
+    "id": "3_2026-06-18",
+    "date": "2026-06-18",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "FATHOM\tGet your own FREE AI Meeting Assistant\n#1 rated on G2, 5/5, 5000+ reviews\nMeeting with Deliverea\nIntegración GENERIX - CBL - TMS\nJune 18, 2026  •  25 mins  •  View Meeting or Ask Fathom\nAction Items ✨\n\t\t\nConfirmar con Carlos/Iván flujo olas/consolidación; luego definir con Joan API/webhooks y configurar Deliverea (credenciales, etiquetas, bulto abierto)\nPUIG Santiago\n\t\t\nEnviar a Leonardo propuesta integración CBL (fases, jornadas, pricing conector)\nJoan Rovira\n\t\t\nAgendar reunión con Carlos/Santiago para avanzar integración CBL\nLeonardo Bianchini\n\t\t\nEnviar grabación a asistentes\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nDefinir la estrategia de integración para Generix, Deliverea y CBL.\n\nPuntos clave\nObjetivo inmediato: Automatizar los envíos manuales de CBL para eliminar la entrada de datos redundante entre Generix, el TMS y el portal de CBL.\n\nEnfoque por fases: El proyecto tiene dos fases. La Fase 1 integra Generix con Deliverea para automatizar los procesos de CBL. La Fase 2 integrará el nuevo TMS de Unigis, que se convertirá en el hub central para todas las órdenes de transporte.\n\nEstrategia de cross-docking: Las órdenes de cross-dock se crearán manualmente en Generix por ahora. El equipo debe confirmar si estas pueden agruparse con las órdenes de almacén en una sola \"ola de consolidación\" para CBL.\n\nSeguimiento completo requerido: La integración debe proporcionar actualizaciones de estado completas y en tiempo real (por ejemplo, \"en tránsito\", \"entregado\") vía webhook, no solo una confirmación final de \"entregado\", para cumplir con las nuevas exigencias de los clientes.\n\nTemas\nEstado actual y problema\nFlujo automatizado (Petronas): Órdenes → Generix → Carga por lotes de archivos en el portal de CBL → Generación de etiquetas.\n\nFlujo manual (Cross-Dock): Los envíos se crean manualmente en el portal de CBL.\n\nProblema central: El proceso manual requiere entrada de datos redundante entre Generix, el TMS y el portal de CBL. El objetivo es un único punto de entrada, idealmente el TMS, para automatizar el resto.\n\nSolución propuesta: Integración con Deliverea\nDeliverea actuará como middleware, conectando Generix con CBL vía API para automatizar la generación de etiquetas y el seguimiento.\n\nProcesamiento por lotes: Deliverea soporta \"olas\", alineándose con el flujo actual de Generix de agrupar envíos por transportista.\n\nEntrada manual: Para los envíos no automatizados, los usuarios pueden crearlos directamente en Deliverea, que luego se comunica con CBL.\n\nSeguimiento: Deliverea proporcionará actualizaciones de estado completas y en tiempo real (por ejemplo, \"en tránsito\", \"entregado\") vía webhook, junto con la Prueba de Entrega (POD).\n\nEstado futuro: TMS como hub (Fase 2)\nEl nuevo TMS de Unigis se convertirá en el hub central para todas las órdenes de transporte.\n\nFlujo de cross-dock: El TMS creará órdenes de cross-dock → las inyectará en Generix → Generix consolidará con órdenes de almacén → Deliverea comunicará la ola final a CBL.\n\nSeguimiento: Deliverea enviará actualizaciones de estado al TMS, proporcionando una fuente única de la verdad para todas las partes interesadas.\n\nPróximos pasos\nSantiago:\n\nConfirmar con Carlos si las órdenes de cross-dock pueden agruparse en una sola \"ola de consolidación\" con las órdenes de almacén en Generix.\n\nCoordinar con Leonardo y Carlos para definir el alcance final de la integración y estimar el esfuerzo de implementación.\n\nJoan:\n\nEnviar la grabación de la reunión a todos los participantes.\n\nPreparar una propuesta basada en el alcance definido.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "FATHOM\tGet your own FREE AI Meeting Assistant\n#1 rated on G2, 5/5, 5000+ reviews\nMeeting with Deliverea\nIntegración GENERIX - CBL - TMS\nJune 18, 2026  •  25 mins  •  View Meeting or Ask Fathom\nAction Items ✨\n\t\t\nConfirmar con Carlos/Iván flujo olas/consolidación; luego definir con Joan API/webhooks y configurar Deliverea (credenciales, etiquetas, bulto abierto)\nPUIG Santiago\n\t\t\nEnviar a Leonardo propuesta integración CBL (fases, jornadas, pricing conector)\nJoan Rovira\n\t\t\nAgendar reunión con Carlos/Santiago para avanzar integración CBL\nLeonardo Bianchini\n\t\t\nEnviar grabación a asistentes\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nDefinir la estrategia de integración para Generix, Deliverea y CBL.\n\nPuntos clave\nObjetivo inmediato: Automatizar los envíos manuales de CBL para eliminar la entrada de datos redundante entre Generix, el TMS y el portal de CBL.\n\nEnfoque por fases: El proyecto tiene dos fases. La Fase 1 integra Generix con Deliverea para automatizar los procesos de CBL. La Fase 2 integrará el nuevo TMS de Unigis, que se convertirá en el hub central para todas las órdenes de transporte.\n\nEstrategia de cross-docking: Las órdenes de cross-dock se crearán manualmente en Generix por ahora. El equipo debe confirmar si estas pueden agruparse con las órdenes de almacén en una sola \"ola de consolidación\" para CBL.\n\nSeguimiento completo requerido: La integración debe proporcionar actualizaciones de estado completas y en tiempo real (por ejemplo, \"en tránsito\", \"entregado\") vía webhook, no solo una confirmación final de \"entregado\", para cumplir con las nuevas exigencias de los clientes.\n\nTemas\nEstado actual y problema\nFlujo automatizado (Petronas): Órdenes → Generix → Carga por lotes de archivos en el portal de CBL → Generación de etiquetas.\n\nFlujo manual (Cross-Dock): Los envíos se crean manualmente en el portal de CBL.\n\nProblema central: El proceso manual requiere entrada de datos redundante entre Generix, el TMS y el portal de CBL. El objetivo es un único punto de entrada, idealmente el TMS, para automatizar el resto.\n\nSolución propuesta: Integración con Deliverea\nDeliverea actuará como middleware, conectando Generix con CBL vía API para automatizar la generación de etiquetas y el seguimiento.\n\nProcesamiento por lotes: Deliverea soporta \"olas\", alineándose con el flujo actual de Generix de agrupar envíos por transportista.\n\nEntrada manual: Para los envíos no automatizados, los usuarios pueden crearlos directamente en Deliverea, que luego se comunica con CBL.\n\nSeguimiento: Deliverea proporcionará actualizaciones de estado completas y en tiempo real (por ejemplo, \"en tránsito\", \"entregado\") vía webhook, junto con la Prueba de Entrega (POD).\n\nEstado futuro: TMS como hub (Fase 2)\nEl nuevo TMS de Unigis se convertirá en el hub central para todas las órdenes de transporte.\n\nFlujo de cross-dock: El TMS creará órdenes de cross-dock → las inyectará en Generix → Generix consolidará con órdenes de almacén → Deliverea comunicará la ola final a CBL.\n\nSeguimiento: Deliverea enviará actualizaciones de estado al TMS, proporcionando una fuente única de la verdad para todas las partes interesadas.\n\nPróximos pasos\nSantiago:\n\nConfirmar con Carlos si las órdenes de cross-dock pueden agruparse en una sola \"ola de consolidación\" con las órdenes de almacén en Generix.\n\nCoordinar con Leonardo y Carlos para definir el alcance final de la integración y estimar el esfuerzo de implementación.\n\nJoan:\n\nEnviar la grabación de la reunión a todos los participantes.\n\nPreparar una propuesta basada en el alcance definido.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-01T06:09:46.833Z",
+    "updatedAt": "2026-07-01T06:09:53.717Z"
+  },
+  {
     "id": "3_2026-06-23",
     "date": "2026-06-23",
     "tenantId": "3",
@@ -4612,6 +4638,32 @@
     "generalNotes": "",
     "createdAt": "2026-06-30T09:21:52.399Z",
     "updatedAt": "2026-06-30T11:42:13.652Z"
+  },
+  {
+    "id": "3_2026-07-01",
+    "date": "2026-07-01",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 01-06-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 01-06-2026\n\nPORTIC -- > Confirmar que Portic no crea pedidos con equipo.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definri el mapeo de la creación de pedidos.\n-> Webfleet: en proceso de inicio de pruebas internas.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas.\n-> Internacional: Entregado documento con anotaciones respondidas.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos.\n\n",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-01T06:15:43.774Z",
+    "updatedAt": "2026-07-01T06:18:53.316Z"
   },
   {
     "id": "4_2026-01-12",

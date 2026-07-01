@@ -1093,7 +1093,6 @@
   {
     "id": "5kyOpzigqVwnWf9YQyLQ",
     "title": "Documento de alcance -- completarlo ",
-    "status": "pending",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "acceptanceCriteria": [
       {
@@ -1140,9 +1139,10 @@
       "_seconds": 1780307536,
       "_nanoseconds": 938000000
     },
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1780307536,
-      "_nanoseconds": 938000000
+      "_seconds": 1782887589,
+      "_nanoseconds": 10000000
     }
   },
   {
@@ -3724,7 +3724,6 @@
   {
     "id": "FkQMg2OFFfIkePrlv71P",
     "title": "Integración con Tookane",
-    "status": "pending",
     "projectId": "HKnZypXlGdM0VjRLOysB",
     "acceptanceCriteria": [
       {
@@ -3764,9 +3763,11 @@
       "_seconds": 1782746431,
       "_nanoseconds": 334000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1782746431,
-      "_nanoseconds": 334000000
+      "_seconds": 1782887577,
+      "_nanoseconds": 542000000
     }
   },
   {
