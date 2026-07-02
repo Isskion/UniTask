@@ -4666,6 +4666,32 @@
     "updatedAt": "2026-07-01T13:48:01.282Z"
   },
   {
+    "id": "3_2026-07-02",
+    "date": "2026-07-02",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "EUROPASTRY",
+        "projectId": "9iqygviz3AGJnbJOLc8E",
+        "pmNotes": "Europastry - Seguimiento semanal proyecto 02-07-26\nReunión de comité: miércoles 08-07\nPruebas de jornadas y escenarios de planificación - rutas terminadas en la forma que europastry espera\n-> Ver escenarios de ruteo\nAlarmas, notificaciones y reportes + tipos de documentos: iniciada la revisión y documentación compartida\n-> A ver Xavi y Merce\nInterfaces: en avance y cierre según reuniones semanales \"on demand\"\n-> La versión de cobranza que tenemos hoy pueden llegar a ajustarse o tocar el armado del mensaje de la interfaz (pero es mas interno de unigis)\n-> Contacto de Francisco para enviar reporte/resumen de estado de avance 22/06 iban a cerrarse las PUs de interfaces (salieron cosas y hay que cerrar cuanto antes)\n-> Alvaro de Mulesoft tiene vacaciones desde el 10-07 entonces las PUs tienen que estar listas",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Europastry - Seguimiento semanal proyecto 02-07-26\nReunión de comité: miércoles 08-07\nPruebas de jornadas y escenarios de planificación - rutas terminadas en la forma que europastry espera\n-> Ver escenarios de ruteo\nAlarmas, notificaciones y reportes + tipos de documentos: iniciada la revisión y documentación compartida\n-> A ver Xavi y Merce\nInterfaces: en avance y cierre según reuniones semanales \"on demand\"\n-> La versión de cobranza que tenemos hoy pueden llegar a ajustarse o tocar el armado del mensaje de la interfaz (pero es mas interno de unigis)\n-> Contacto de Francisco para enviar reporte/resumen de estado de avance 22/06 iban a cerrarse las PUs de interfaces (salieron cosas y hay que cerrar cuanto antes)\n-> Alvaro de Mulesoft tiene vacaciones desde el 10-07 entonces las PUs tienen que estar listas",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-02T14:00:14.851Z",
+    "updatedAt": "2026-07-02T14:00:21.199Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
