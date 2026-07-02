@@ -706,6 +706,19 @@
     }
   },
   {
+    "id": "E4VKPiswe5nQsU02vJOB",
+    "userId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "type": "assignment",
+    "title": "Tarea Asignada",
+    "message": "Te han asignado la tarea: LUI-3 - Diego trabajar matriz de riesgos para presentar a LS",
+    "taskId": "hVMVLwZrRnzwrY2LKlZu",
+    "read": false,
+    "createdAt": {
+      "_seconds": 1782989953,
+      "_nanoseconds": 869000000
+    }
+  },
+  {
     "id": "EL2bRugDpS2tL7fevTzM",
     "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
     "type": "assignment",

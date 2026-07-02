@@ -506,6 +506,54 @@
     }
   },
   {
+    "id": "25D6gHK2kWg0pzYKCsQF",
+    "title": "Logistica inversa",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782988687.845,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "LSM",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-02T22:00:00.000Z",
+    "area": "Documentación",
+    "module": "ROUTING",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-4",
+    "taskNumber": 4,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782988723,
+      "_nanoseconds": 904000000
+    },
+    "updatedAt": {
+      "_seconds": 1782988723,
+      "_nanoseconds": 904000000
+    }
+  },
+  {
     "id": "2BVXE0LJug3Jf9cwFN2v",
     "friendlyId": "MOCK-04-2",
     "organizationId": "1",
@@ -816,6 +864,54 @@
     "updatedAt": {
       "_seconds": 1782913495,
       "_nanoseconds": 585000000
+    }
+  },
+  {
+    "id": "3m6r4gq7jmuCQp2OQcfd",
+    "title": "Delegaciones Ajenas analisis",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782989701.4,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "LSM",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-06T22:00:00.000Z",
+    "area": "Documentación",
+    "module": "ROUTING",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-5",
+    "taskNumber": 5,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782989776,
+      "_nanoseconds": 683000000
+    },
+    "updatedAt": {
+      "_seconds": 1782989776,
+      "_nanoseconds": 683000000
     }
   },
   {
@@ -9800,9 +9896,11 @@
       "_seconds": 1782728125,
       "_nanoseconds": 536000000
     },
+    "attributes": {},
+    "assignedTo": "4Bv59XpXVHQop7puwmjRRemGcxU2",
     "updatedAt": {
-      "_seconds": 1782728125,
-      "_nanoseconds": 536000000
+      "_seconds": 1782989953,
+      "_nanoseconds": 154000000
     }
   },
   {
@@ -12070,6 +12168,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "s4Vc1juH3reJmNwXKDLO",
+    "title": "Dispatch",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1782989806.943,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-06T22:00:00.000Z",
+    "projectCode": "LSM",
+    "area": "Documentación",
+    "module": "ROUTING",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-6",
+    "taskNumber": 6,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1782989828,
+      "_nanoseconds": 756000000
+    },
+    "updatedAt": {
+      "_seconds": 1782989828,
+      "_nanoseconds": 756000000
     }
   },
   {
