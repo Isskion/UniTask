@@ -508,7 +508,6 @@
   {
     "id": "25D6gHK2kWg0pzYKCsQF",
     "title": "Logistica inversa",
-    "status": "pending",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "acceptanceCriteria": [
       {
@@ -548,9 +547,11 @@
       "_seconds": 1782988723,
       "_nanoseconds": 904000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1782988723,
-      "_nanoseconds": 904000000
+      "_seconds": 1783068680,
+      "_nanoseconds": 975000000
     }
   },
   {
@@ -8590,6 +8591,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "bfQXxYXvzHcjRqPVOYGL",
+    "title": "Gestion de incidencias y ejecución -- Revisarlo en el documento.",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783075311.074,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "LSM",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-09T22:00:00.000Z",
+    "area": "Documentación",
+    "module": "PLANIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-7",
+    "taskNumber": 7,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783075349,
+      "_nanoseconds": 403000000
+    },
+    "updatedAt": {
+      "_seconds": 1783075349,
+      "_nanoseconds": 403000000
     }
   },
   {

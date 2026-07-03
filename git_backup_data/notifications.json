@@ -1790,12 +1790,12 @@
     "title": "Overdue Task",
     "message": "Your task LUI-4 - \"Logistica inversa\" has reached its deadline.",
     "taskId": "25D6gHK2kWg0pzYKCsQF",
-    "read": false,
     "link": "/?view=task-manager&taskId=25D6gHK2kWg0pzYKCsQF",
     "createdAt": {
       "_seconds": 1783059033,
       "_nanoseconds": 4000000
-    }
+    },
+    "read": true
   },
   {
     "id": "i8sKwW47P73m081X4e8m",
