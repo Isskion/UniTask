@@ -2321,7 +2321,7 @@ export default function ClientPage() {
                     )}
 
                     {/* Flow Configuration Dashboard */}
-                    {nodes.length > 0 && viewMode === 'table' && (
+                    {nodes.length > 0 && (
                         <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
                             <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5">
                                 Configuración de Flujo
