@@ -1,6 +1,14 @@
-export const APP_VERSION = "14.8.0";
+export const APP_VERSION = "14.9.0";
 
 export const CHANGELOG = [
+    {
+        version: "14.9.0",
+        date: "2026-07-06",
+        features: [
+            "UniVisio Flow Control: Selección manual de nodo de inicio, exclusión de nodos específicos y control de dirección.",
+            "UniVisio Draft Review: Nuevo sistema de Borrador de Revisión para editar y validar lotes antes de la integración al relato."
+        ]
+    },
     {
         version: "14.8.0",
         date: "2026-06-22",
