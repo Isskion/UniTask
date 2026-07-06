@@ -4692,6 +4692,32 @@
     "updatedAt": "2026-07-02T14:00:21.199Z"
   },
   {
+    "id": "3_2026-07-06",
+    "date": "2026-07-06",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "Luis Simoes - seguimiento semanal 06-07-26 (sobre correo Paulo del 03-07)\nPuntos pendientes:\n-Asignación estinatarios + contratos: doc entregados y pendientes LS analisis = si están OK ya se pueden agregar al Diseño To Be (SEM 29/06)\n-Gestión incidencias + logistica inversa + dispatch + delegaciones ajenas + anexos + apartado de ejecución + interfaces = trabajar en el doc procesando todo + dudas (Daniel con Gonza y Jorge)\nPróximas semanas:\n-Sesión del 07/07 adelantada 30 minutos\n-Sesiones de tarifación agregar 2 a las 14hs para el 08 y 10/07 PROPUESTA de CANCELAR porque lo prioritario hoy es cerrar el diseño de solución de planificación que se presenta la semana que viene a dirección. Luego, seguiremos con las sesiones\nSesión de definición de planeamiento = modelo + capacidad + flota = definición de tipos de vehiculos para agregar sección al ToBE PROP. LS esta tarde 06/07 a las 15:30 ES // PROP UNIGIS que sea a las 15 o a las 16 hs ES porque en el medio tenemos otra cosa\nNotas Finales:\n-\"Importante dar el máximo enfoque a su producción y finalización\": por ello es importante no sobrecargar al equipo con la parte de tarifación en estas 2 semanas a la vez que cerramos y aprobamos el doc de diseño de planificación (lo dijo antes)\n-\"tarificación de ventas y costes hasta dia 21/08/2026\": tenemos 1 mes más al cierre de diseño de planificación para continuar y cerrar tarifación\n-\"En Septiembre deberíamos de empezar la configuración del TMS\": NO, la propuesta de Ungis era empezar ahora la construcción e ir validando con ellos a medidad que se avanza como en FASE I y luego incluir la parte de tarifas cuando corresponda",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Luis Simoes - seguimiento semanal 06-07-26 (sobre correo Paulo del 03-07)\nPuntos pendientes:\n-Asignación estinatarios + contratos: doc entregados y pendientes LS analisis = si están OK ya se pueden agregar al Diseño To Be (SEM 29/06)\n-Gestión incidencias + logistica inversa + dispatch + delegaciones ajenas + anexos + apartado de ejecución + interfaces = trabajar en el doc procesando todo + dudas (Daniel con Gonza y Jorge)\nPróximas semanas:\n-Sesión del 07/07 adelantada 30 minutos\n-Sesiones de tarifación agregar 2 a las 14hs para el 08 y 10/07 PROPUESTA de CANCELAR porque lo prioritario hoy es cerrar el diseño de solución de planificación que se presenta la semana que viene a dirección. Luego, seguiremos con las sesiones\nSesión de definición de planeamiento = modelo + capacidad + flota = definición de tipos de vehiculos para agregar sección al ToBE PROP. LS esta tarde 06/07 a las 15:30 ES // PROP UNIGIS que sea a las 15 o a las 16 hs ES porque en el medio tenemos otra cosa\nNotas Finales:\n-\"Importante dar el máximo enfoque a su producción y finalización\": por ello es importante no sobrecargar al equipo con la parte de tarifación en estas 2 semanas a la vez que cerramos y aprobamos el doc de diseño de planificación (lo dijo antes)\n-\"tarificación de ventas y costes hasta dia 21/08/2026\": tenemos 1 mes más al cierre de diseño de planificación para continuar y cerrar tarifación\n-\"En Septiembre deberíamos de empezar la configuración del TMS\": NO, la propuesta de Ungis era empezar ahora la construcción e ir validando con ellos a medidad que se avanza como en FASE I y luego incluir la parte de tarifas cuando corresponda",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-06T09:06:05.713Z",
+    "updatedAt": "2026-07-06T09:06:13.561Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

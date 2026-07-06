@@ -1577,6 +1577,54 @@
     }
   },
   {
+    "id": "7pnsSZbEtbOtzK12l6FG",
+    "title": "Estados y Categorias ",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319720.067,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "Ajustar los estados de la paradas \n\nrevisar y crear\n\nCategoria de pedido\nContado\nCredito\nCategoria de Parada\nContado\nCredito\nCategoria de Orden\n\n\n\n\n\nContado\n\n\n\nCredito",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-26",
+    "taskNumber": 26,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319774,
+      "_nanoseconds": 220000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319774,
+      "_nanoseconds": 220000000
+    }
+  },
+  {
     "id": "7uh2QcArYzB1vKmgaTw5",
     "weekId": "2026-01-28",
     "relatedDailyStatusId": "3_2026-01-28_1769591787074",
@@ -2024,8 +2072,6 @@
   },
   {
     "id": "8zIetZ7eiwRLSBST5mzs",
-    "title": "Integración con DEliverea",
-    "status": "in_progress",
     "projectId": "HKnZypXlGdM0VjRLOysB",
     "acceptanceCriteria": [
       {
@@ -2066,9 +2112,60 @@
       "_seconds": 1782746378,
       "_nanoseconds": 85000000
     },
+    "attributes": {},
+    "status": "in_progress",
+    "title": "Integración con Deliverea",
     "updatedAt": {
-      "_seconds": 1782746378,
-      "_nanoseconds": 85000000
+      "_seconds": 1783326028,
+      "_nanoseconds": 803000000
+    }
+  },
+  {
+    "id": "9HOx6PRraDl052WDvron",
+    "title": "Validar pedido -- Como en EUP",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319486.7,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-22",
+    "taskNumber": 22,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319507,
+      "_nanoseconds": 118000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319507,
+      "_nanoseconds": 118000000
     }
   },
   {
@@ -2559,6 +2656,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "Aq4cjTzfrnj7eUC9liyM",
+    "title": "Crear el SP Crear pedido cero (validar lo campos que recibimos y precisamos)",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319113.899,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-07-29T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-21",
+    "taskNumber": 21,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319145,
+      "_nanoseconds": 12000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319145,
+      "_nanoseconds": 12000000
     }
   },
   {
@@ -3913,8 +4058,8 @@
     "attributes": {},
     "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1782887577,
-      "_nanoseconds": 542000000
+      "_seconds": 1783326018,
+      "_nanoseconds": 406000000
     }
   },
   {
@@ -5720,6 +5865,55 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "O72FDaFvJ7YF1tScxNGV",
+    "title": "Generación de los documentos.",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319545.109,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "Generación de los documentos.\n\n\nHay que levantar los requerimientos.\n\n\n\nHay que saber que documentos se precisan",
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-23",
+    "taskNumber": 23,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319566,
+      "_nanoseconds": 876000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319566,
+      "_nanoseconds": 876000000
     }
   },
   {
@@ -12909,6 +13103,55 @@
     }
   },
   {
+    "id": "uuLnfauOLa053rF0fwHf",
+    "title": "Retornables",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319671.825,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "Retornables\n\n\n\n\n\nDocumento de retornos\n\n\n\nSi los datos que tengo que enviar puedo sacarlos (maestros de productos?)\n\n\n\nDefinir el contador para el documento de retorno -\n\n\n\n\n\nLogica propuesta R - Idparada - Codigo parada - Fecha\n\n\n\n\n\nR - Retorno\n\n\n\nP - Pickup\n\n\n\nD - Delivery\n\n\n\n",
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "PEDIDOS",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-25",
+    "taskNumber": 25,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319693,
+      "_nanoseconds": 519000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319693,
+      "_nanoseconds": 519000000
+    }
+  },
+  {
     "id": "v6SLN1HOPdWNuLQHlCwA",
     "title": "Select UI Library",
     "projectId": "mockup-product-2026",
@@ -13378,6 +13621,55 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "yEmL3lxtNhmt6abjlja0",
+    "title": "Gestión de cobranza",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783319579.876,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "techDescription": "Los datos de cobro los tenemos en TMS\n\n\n\nValidar que los datos se pueblan correctamente en los campos nuevos.\n\n\n\nIdentificar en los metodos de pago\n\n\n\n\n\nNº de comprobante que recibimos\n\n\n\nQue datos tenemos que validar en cada medio de pago\n\n\n\ncuales serán necesarios según parada -- De donde lo saco? ClienteOrden?\n\n\n\nProbar el servicio Web de Crearordenpedido -- Validarlo",
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "DLG",
+    "area": "Parametrización",
+    "module": "TARIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-24",
+    "taskNumber": 24,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783319623,
+      "_nanoseconds": 492000000
+    },
+    "updatedAt": {
+      "_seconds": 1783319623,
+      "_nanoseconds": 492000000
     }
   },
   {
