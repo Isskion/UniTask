@@ -685,7 +685,7 @@ export interface MoscowRequirement {
 
 // --- UniVisio Types ---
 
-export type NodeCoverageStatus = 'pending' | 'covered' | 'orphan' | 'skipped';
+export type NodeCoverageStatus = 'pending' | 'covered' | 'orphan' | 'skipped' | 'excluded';
 export type NodeCoverageMap = Record<string, NodeCoverageStatus>;
 
 export interface TableRow {
@@ -757,6 +757,11 @@ export interface UniVisioSession {
     swimlanes: string[];
     cycles: string[][];
     nodeMap?: NodeCoverageMap;
+    initiatorNodeId?: string | null;
+    traversalMode?: 'forward' | 'backward' | 'undirected';
+    flowDirection?: 'TB' | 'LR' | 'BT' | 'RL';
+    edgeOverrides?: Record<string, boolean>;
+    excludedNodeIds?: string[];
     version: number;     // Control de concurrencia
     createdAt: any;
     updatedAt: any;

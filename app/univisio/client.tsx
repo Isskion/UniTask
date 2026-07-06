@@ -95,6 +95,11 @@ export default function ClientPage() {
 
     const [tableRows, setTableRows] = useState<TableRow[]>([]);
     const [doubts, setDoubts] = useState<Doubt[]>([]);
+    const [draftRows, setDraftRows] = useState<TableRow[]>([]);
+    const [activeBatchUnderReview, setActiveBatchUnderReview] = useState<{ index: number, nodeIds: string[] } | null>(null);
+    const [startNodeId, setStartNodeId] = useState<string | null>(null);
+    const [excludedNodeIds, setExcludedNodeIds] = useState<Set<string>>(new Set());
+    const [traversalMode, setTraversalMode] = useState<'forward' | 'backward' | 'undirected'>('forward');
     
     const [parsingStatus, setParsingStatus] = useState<string>('');
     const [isParsing, setIsParsing] = useState<boolean>(false);
@@ -331,18 +336,19 @@ export default function ClientPage() {
 
     // Computed sub-flows (lotes)
     const lotes = useMemo(() => {
-        if (nodes.length === 0) return [];
+        const activeNodes = nodes.filter(n => !excludedNodeIds.has(n.id));
+        if (activeNodes.length === 0) return [];
         const result = [];
-        for (let i = 0; i < nodes.length; i += lotSize) {
+        for (let i = 0; i < activeNodes.length; i += lotSize) {
             result.push({
                 index: i / lotSize + 1,
                 start: i + 1,
-                end: Math.min(i + lotSize, nodes.length),
-                nodeIds: nodes.slice(i, i + lotSize).map(n => n.id)
+                end: Math.min(i + lotSize, activeNodes.length),
+                nodeIds: activeNodes.slice(i, i + lotSize).map(n => n.id)
             });
         }
         return result;
-    }, [nodes]);
+    }, [nodes, excludedNodeIds]);
 
     const availableStates = useMemo(() => {
         const states = new Set<string>();
@@ -1319,51 +1325,100 @@ export default function ClientPage() {
 
     // Topological Sort Logic
     const topologicalSort = (nodesList: ParsedNode[], edgesList: ParsedEdge[]) => {
+        // 1. Filter out excluded nodes
+        const filteredNodes = nodesList.filter(n => !excludedNodeIds.has(n.id));
+        const filteredNodeIds = new Set(filteredNodes.map(n => n.id));
+        const filteredEdges = edgesList.filter(e => filteredNodeIds.has(e.from) && filteredNodeIds.has(e.to));
+
         const adj: Record<string, string[]> = {};
         const inDegree: Record<string, number> = {};
-        nodesList.forEach(n => {
+        
+        filteredNodes.forEach(n => {
             adj[n.id] = [];
             inDegree[n.id] = 0;
         });
 
-        edgesList.forEach(e => {
-            if (adj[e.from] && adj[e.to] !== undefined) {
-                adj[e.from].push(e.to);
-                inDegree[e.to]++;
+        filteredEdges.forEach(e => {
+            let from = e.from;
+            let to = e.to;
+            if (traversalMode === 'backward') {
+                from = e.to;
+                to = e.from;
             }
-        });
-
-        const queue: string[] = [];
-        nodesList.forEach(n => {
-            if (inDegree[n.id] === 0) {
-                queue.push(n.id);
+            if (adj[from] && adj[to] !== undefined) {
+                adj[from].push(to);
+                inDegree[to]++;
+                if (traversalMode === 'undirected') {
+                    adj[to].push(from);
+                    inDegree[from]++;
+                }
             }
         });
 
         const order: string[] = [];
-        while (queue.length > 0) {
-            const u = queue.shift()!;
-            order.push(u);
+        const orderedSet = new Set<string>();
 
-            const neighbors = adj[u] || [];
-            neighbors.forEach(v => {
-                inDegree[v]--;
-                if (inDegree[v] === 0) {
-                    queue.push(v);
+        if (startNodeId && filteredNodeIds.has(startNodeId)) {
+            // BFS from startNodeId
+            const queue: string[] = [startNodeId];
+            const visited = new Set<string>([startNodeId]);
+            
+            while (queue.length > 0) {
+                const u = queue.shift()!;
+                order.push(u);
+                orderedSet.add(u);
+                
+                const neighbors = adj[u] || [];
+                neighbors.forEach(v => {
+                    if (!visited.has(v)) {
+                        visited.add(v);
+                        queue.push(v);
+                    }
+                });
+            }
+        } else {
+            // Standard Kahn's algorithm
+            const queue: string[] = [];
+            filteredNodes.forEach(n => {
+                if (inDegree[n.id] === 0) {
+                    queue.push(n.id);
                 }
             });
+
+            while (queue.length > 0) {
+                const u = queue.shift()!;
+                order.push(u);
+                orderedSet.add(u);
+
+                const neighbors = adj[u] || [];
+                neighbors.forEach(v => {
+                    inDegree[v]--;
+                    if (inDegree[v] === 0) {
+                        queue.push(v);
+                    }
+                });
+            }
         }
 
-        // Add nodes inside loops/cycles
-        const orderedSet = new Set(order);
-        nodesList.forEach(n => {
+        // Add nodes inside loops/cycles or unreached nodes
+        filteredNodes.forEach(n => {
             if (!orderedSet.has(n.id)) {
                 order.push(n.id);
             }
         });
 
-        const nodeMap = new Map(nodesList.map(n => [n.id, n]));
-        return order.map(id => nodeMap.get(id)).filter(Boolean) as ParsedNode[];
+        const nodeMap = new Map(filteredNodes.map(n => [n.id, n]));
+        const orderedNodes = order.map(id => nodeMap.get(id)).filter(Boolean) as ParsedNode[];
+        const excludedNodesArr = nodesList.filter(n => excludedNodeIds.has(n.id));
+        return [...orderedNodes, ...excludedNodesArr];
+    };
+
+    const recalculateFlow = () => {
+        if (nodes.length === 0) return;
+        setParsingStatus('Re-calculando flujos y dependencias causales...');
+        const orderedNodes = topologicalSort(nodes, edges);
+        setNodes(orderedNodes);
+        setParsingStatus('');
     };
 
     // Detect loops using Tarjan's strongly connected components algorithm
@@ -1539,28 +1594,11 @@ export default function ClientPage() {
                     needsReview: (step.confidence || 1.0) < 0.7
                 }));
 
-                // Update nodeMap based on active lote and coveredNodeIds
-                const coveredInThisCall = new Set<string>();
-                newRows.forEach(step => {
-                    step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
-                    if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
-                });
-
-                setNodeMap(prev => {
-                    const next = { ...prev };
-                    activeNodeIds.forEach(id => {
-                        if (coveredInThisCall.has(id)) {
-                            next[id] = 'covered';
-                        } else if (next[id] === 'pending') {
-                            next[id] = 'skipped';
-                        }
-                    });
-                    return next;
-                });
-
-                setTableRows(prev => {
-                    setIsDirty(true);
-                    return mergeNewRows(prev, newRows, activeNodeIds);
+                // Store in draft instead of immediate merge
+                setDraftRows(newRows);
+                setActiveBatchUnderReview({
+                    index: activeLoteIndex,
+                    nodeIds: Array.from(activeNodeIds)
                 });
             } else if (response && response.error) {
                 alert(`Error al analizar sub-flujo: ${response.error}`);
@@ -1573,6 +1611,42 @@ export default function ClientPage() {
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    const approveDraftBatch = () => {
+        if (!activeBatchUnderReview) return;
+        const activeNodeIds = new Set(activeBatchUnderReview.nodeIds);
+        
+        const coveredInThisCall = new Set<string>();
+        draftRows.forEach(step => {
+            step.coveredNodeIds?.forEach(id => coveredInThisCall.add(id));
+            if (step.linkedNodeId) coveredInThisCall.add(step.linkedNodeId);
+        });
+
+        setNodeMap(prev => {
+            const next = { ...prev };
+            activeNodeIds.forEach(id => {
+                if (coveredInThisCall.has(id)) {
+                    next[id] = 'covered';
+                } else if (next[id] === 'pending') {
+                    next[id] = 'skipped';
+                }
+            });
+            return next;
+        });
+
+        setTableRows(prev => {
+            setIsDirty(true);
+            return mergeNewRows(prev, draftRows, activeNodeIds);
+        });
+        
+        setDraftRows([]);
+        setActiveBatchUnderReview(null);
+    };
+
+    const discardDraftBatch = () => {
+        setDraftRows([]);
+        setActiveBatchUnderReview(null);
     };
 
     const runImageAnalysis = async () => {
@@ -2246,6 +2320,74 @@ export default function ClientPage() {
                         </div>
                     )}
 
+                    {/* Flow Configuration Dashboard */}
+                    {nodes.length > 0 && viewMode === 'table' && (
+                        <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
+                            <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-800/60 pb-1.5">
+                                Configuración de Flujo
+                            </div>
+                            
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] text-zinc-400 uppercase font-semibold">Nodo de Inicio (Opcional)</label>
+                                <select 
+                                    value={startNodeId || ''} 
+                                    onChange={(e) => setStartNodeId(e.target.value || null)}
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-300 focus:outline-none focus:border-red-500 truncate"
+                                >
+                                    <option value="">-- Autodetectar --</option>
+                                    {nodes.map(n => (
+                                        <option key={n.id} value={n.id}>{n.label || n.id}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] text-zinc-400 uppercase font-semibold">Modo de Recorrido</label>
+                                <select 
+                                    value={traversalMode} 
+                                    onChange={(e) => setTraversalMode(e.target.value as any)}
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-300 focus:outline-none focus:border-red-500"
+                                >
+                                    <option value="forward">Normal (Sigue las flechas)</option>
+                                    <option value="backward">Inverso (Contra las flechas)</option>
+                                    <option value="undirected">Sin dirección (Ignora flechas)</option>
+                                </select>
+                            </div>
+
+                            <div className="flex flex-col gap-2 mt-2">
+                                <label className="text-[10px] text-zinc-400 uppercase font-semibold flex justify-between">
+                                    <span>Nodos Excluidos ({excludedNodeIds.size})</span>
+                                    {excludedNodeIds.size > 0 && (
+                                        <button onClick={() => setExcludedNodeIds(new Set())} className="text-red-500 hover:text-red-400">Limpiar</button>
+                                    )}
+                                </label>
+                                <select 
+                                    multiple
+                                    value={Array.from(excludedNodeIds)} 
+                                    onChange={(e) => {
+                                        const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                        setExcludedNodeIds(new Set(selected));
+                                    }}
+                                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs text-zinc-300 focus:outline-none focus:border-red-500 h-24 custom-scrollbar"
+                                >
+                                    {nodes.map(n => (
+                                        <option key={n.id} value={n.id}>{n.label || n.id}</option>
+                                    ))}
+                                </select>
+                                <div className="text-[9px] text-zinc-500">Usa Ctrl+Click o arrastra para seleccionar nodos a excluir del análisis.</div>
+                            </div>
+                            
+                            {(startNodeId || excludedNodeIds.size > 0 || traversalMode !== 'forward') && (
+                                <button 
+                                    onClick={recalculateFlow} 
+                                    className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs py-2 rounded-lg font-semibold mt-1 transition-colors"
+                                >
+                                    Re-calcular Lotes
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Coverage Dashboard */}
                     {coverage && (
                         <div className="flex flex-col gap-3 bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-4">
@@ -2623,9 +2765,56 @@ export default function ClientPage() {
                                     )}
                                 </div>
                             </div>
-                        ) : tableRows.length > 0 ? (
-                            viewMode === 'table' ? (
-                                <div className={cn("overflow-x-auto min-w-full border rounded-xl print:border-none", isLight ? "border-zinc-200 bg-white" : "border-zinc-800/80 bg-zinc-900/10")}>
+                        ) : (tableRows.length > 0 || draftRows.length > 0) ? (
+                            <div className="flex flex-col gap-8 w-full">
+                                {draftRows.length > 0 && (
+                                    <div className={cn("border rounded-xl p-4 md:p-6 shadow-xl", isLight ? "border-amber-400 bg-amber-50" : "border-amber-500/30 bg-amber-950/20")}>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                                            <div>
+                                                <h3 className={cn("font-bold text-lg", isLight ? "text-amber-800" : "text-amber-500")}>Lote en Borrador (Pendiente de Revisión)</h3>
+                                                <p className={cn("text-xs mt-1", isLight ? "text-amber-700" : "text-amber-400/80")}>Revisa y ajusta estos pasos antes de integrarlos al Relato principal.</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 shrink-0">
+                                                <button onClick={discardDraftBatch} className={cn("px-4 py-2 rounded-lg text-xs font-semibold transition-colors", isLight ? "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50" : "bg-zinc-900 border border-zinc-700 text-zinc-300 hover:bg-zinc-800")}>
+                                                    Descartar Lote
+                                                </button>
+                                                <button onClick={approveDraftBatch} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-amber-950 rounded-lg text-xs font-bold transition-colors shadow-lg hover:shadow-amber-500/20 flex items-center gap-2">
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    Aprobar e Integrar
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className={cn("overflow-x-auto min-w-full border rounded-lg", isLight ? "border-amber-200 bg-white" : "border-amber-500/20 bg-zinc-950/50")}>
+                                            <table className={cn("min-w-full divide-y text-xs", isLight ? "divide-amber-200" : "divide-amber-500/20")}>
+                                                <thead className={cn("uppercase tracking-widest text-[9px]", isLight ? "bg-amber-100/50 text-amber-800" : "bg-amber-500/10 text-amber-400")}>
+                                                    <tr>
+                                                        <th className="px-3 py-3 font-semibold text-left">Paso</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Título</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Actor</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Evento</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Descripción Operativa</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className={cn("divide-y", isLight ? "divide-amber-100" : "divide-amber-500/10")}>
+                                                    {draftRows.map((row, idx) => (
+                                                        <tr key={idx} className={isLight ? "hover:bg-amber-50/50" : "hover:bg-amber-500/5"}>
+                                                            <td className="px-3 py-2 text-center font-bold">{row.step}</td>
+                                                            <td className="px-3 py-2"><input value={row.title} onChange={(e) => { const newD = [...draftRows]; newD[idx].title = e.target.value; setDraftRows(newD); }} className="w-full bg-transparent border-b border-transparent focus:border-amber-500 focus:outline-none" /></td>
+                                                            <td className="px-3 py-2"><input value={row.actor} onChange={(e) => { const newD = [...draftRows]; newD[idx].actor = e.target.value; setDraftRows(newD); }} className="w-full bg-transparent border-b border-transparent focus:border-amber-500 focus:outline-none" /></td>
+                                                            <td className="px-3 py-2"><input value={row.event} onChange={(e) => { const newD = [...draftRows]; newD[idx].event = e.target.value; setDraftRows(newD); }} className="w-full bg-transparent border-b border-transparent focus:border-amber-500 focus:outline-none" /></td>
+                                                            <td className="px-3 py-2"><textarea value={row.operativeDesc} onChange={(e) => { const newD = [...draftRows]; newD[idx].operativeDesc = e.target.value; setDraftRows(newD); }} className="w-full bg-transparent border-b border-transparent focus:border-amber-500 focus:outline-none resize-y min-h-[40px] text-xs" /></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {tableRows.length > 0 && (
+                                    viewMode === 'table' ? (
+                                        <div className={cn("overflow-x-auto min-w-full border rounded-xl print:border-none", isLight ? "border-zinc-200 bg-white" : "border-zinc-800/80 bg-zinc-900/10")}>
                                     <table className={cn("min-w-full divide-y text-xs print:divide-zinc-400", isLight ? "divide-zinc-200" : "divide-zinc-800")}>
                                         <thead className={cn("uppercase tracking-widest text-[9px] print:bg-zinc-100 print:text-zinc-700", isLight ? "bg-zinc-50 text-zinc-600 border-b border-zinc-200" : "bg-zinc-900/60 text-zinc-400")}>
                                             <tr>
@@ -3236,7 +3425,9 @@ export default function ClientPage() {
                                         
                                     </div>
                                 </div>
-                            )
+                                    )
+                                )}
+                            </div>
                         ) : isImageMode && imagePreviewUrl ? (
                             <div className={cn("border rounded-xl p-6 md:p-8 font-sans flex flex-col gap-6", isLight ? "border-zinc-200 bg-white" : "border-zinc-800 bg-zinc-900/10")}>
                                 <div className="flex items-center gap-3">
