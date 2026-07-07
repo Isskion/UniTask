@@ -4692,6 +4692,32 @@
     "updatedAt": "2026-07-02T14:00:21.199Z"
   },
   {
+    "id": "3_2026-07-03",
+    "date": "2026-07-03",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Hola equipo Transpais,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\n \n\nDocumentación de Diseño y Circuitos: El equipo de Unigis ha compartido las versiones ajustadas de los documentos de diseño y sus anexos, los cuales incorporan las definiciones completas para la gestión de prepedidos en el flujo intermodal.\nToda esta documentación se encuentra actualmente bajo proceso de revisión final y firma por parte de Transpais.\n \n\nIntegraciones y Estado de Interfaces:\nAitana: Se continúa avanzando activamente en el intercambio de correos técnicos y en la documentación detallada del mapa de integraciones con Unigis.\nGenerix: El avance de este frente se mantiene condicionado a la aprobación y firma del contrato correspondiente.\n \n\nGestor de Citas y demo comercial Unigis: Se acordó que Leo enviará una descripción formal y detallada de los casos de uso requeridos para el Gestor de Citas desde el TMS.   \nImportante para diagnosticar la necesidad exacta, evaluar su dependencia con Transporeon y determinar qué módulo nativo de la plataforma se ajusta mejor a la operación.\nPlanificación de Tarifas: A retomar la mesa de trabajo para el módulo de Tarifas tomando como base la documentación cargada en SharePoint por Daniel del Amo. Aquí será importante la participación de Jésica, JM Bravo y José Villares.\nNuevos integrantes en el equipo de TRNP: José Meyer y Adrián Lara – correos agregados y en copia en esta cadena.\nPróxima reunión de Comité: establecida de manera tentativa para la semana del 13-07\n \n\nAccionables Equipo Transpais\n\n \n\nEquipo Transpais: Completar la revisión y proceder con la firma de los documentos de diseño ajustados y anexos de intermodal compartidos.\nLeo: Redactar y enviar el correo descriptivo con los escenarios del Gestor de Citas y sus interacciones con Transporeon (si corresponden).\nCoordinar internamente la agenda para la reunión de análisis del módulo de tarifación basándose en el documento de SharePoint.\nEquipo Transpais: Gestionar la agilización de la firma del contrato pendiente con Generix para liberar el frente técnico.\n \n\nAccionables Equipo Unigis\n\n \n\nEric / Daniel: Mantener el seguimiento del intercambio técnico con el proveedor de Aitana para consolidar la documentación de la interfaz.\nDaniel del Amo: Brindar el soporte metodológico necesario sobre el documento de tarifas cargado en el repositorio compartido.\nDiego: Configurar la agenda y realizar la convocatoria formal para el Comité Mensual de la semana del 13-07.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Hola equipo Transpais,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\n \n\nDocumentación de Diseño y Circuitos: El equipo de Unigis ha compartido las versiones ajustadas de los documentos de diseño y sus anexos, los cuales incorporan las definiciones completas para la gestión de prepedidos en el flujo intermodal.\nToda esta documentación se encuentra actualmente bajo proceso de revisión final y firma por parte de Transpais.\n \n\nIntegraciones y Estado de Interfaces:\nAitana: Se continúa avanzando activamente en el intercambio de correos técnicos y en la documentación detallada del mapa de integraciones con Unigis.\nGenerix: El avance de este frente se mantiene condicionado a la aprobación y firma del contrato correspondiente.\n \n\nGestor de Citas y demo comercial Unigis: Se acordó que Leo enviará una descripción formal y detallada de los casos de uso requeridos para el Gestor de Citas desde el TMS.   \nImportante para diagnosticar la necesidad exacta, evaluar su dependencia con Transporeon y determinar qué módulo nativo de la plataforma se ajusta mejor a la operación.\nPlanificación de Tarifas: A retomar la mesa de trabajo para el módulo de Tarifas tomando como base la documentación cargada en SharePoint por Daniel del Amo. Aquí será importante la participación de Jésica, JM Bravo y José Villares.\nNuevos integrantes en el equipo de TRNP: José Meyer y Adrián Lara – correos agregados y en copia en esta cadena.\nPróxima reunión de Comité: establecida de manera tentativa para la semana del 13-07\n \n\nAccionables Equipo Transpais\n\n \n\nEquipo Transpais: Completar la revisión y proceder con la firma de los documentos de diseño ajustados y anexos de intermodal compartidos.\nLeo: Redactar y enviar el correo descriptivo con los escenarios del Gestor de Citas y sus interacciones con Transporeon (si corresponden).\nCoordinar internamente la agenda para la reunión de análisis del módulo de tarifación basándose en el documento de SharePoint.\nEquipo Transpais: Gestionar la agilización de la firma del contrato pendiente con Generix para liberar el frente técnico.\n \n\nAccionables Equipo Unigis\n\n \n\nEric / Daniel: Mantener el seguimiento del intercambio técnico con el proveedor de Aitana para consolidar la documentación de la interfaz.\nDaniel del Amo: Brindar el soporte metodológico necesario sobre el documento de tarifas cargado en el repositorio compartido.\nDiego: Configurar la agenda y realizar la convocatoria formal para el Comité Mensual de la semana del 13-07.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-07T07:41:45.853Z",
+    "updatedAt": "2026-07-07T07:41:57.855Z"
+  },
+  {
     "id": "3_2026-07-06",
     "date": "2026-07-06",
     "tenantId": "3",

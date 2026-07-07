@@ -492,6 +492,21 @@
     }
   },
   {
+    "id": "8Pxrbtp4ZJypUH8rJ1rQ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-37 - \"Relevamiento de tarifas\" has reached its deadline.",
+    "taskId": "3eMMOqi2USIr0zJVpvZq",
+    "read": false,
+    "link": "/?view=task-manager&taskId=3eMMOqi2USIr0zJVpvZq",
+    "createdAt": {
+      "_seconds": 1783406304,
+      "_nanoseconds": 611000000
+    }
+  },
+  {
     "id": "8ZCtVarvl8ca3mlpKAts",
     "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
     "tenantId": "3",
@@ -1813,6 +1828,21 @@
     "read": true
   },
   {
+    "id": "i9CTPaeanRVhGA7kciYK",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LUI-6 - \"Dispatch\" has reached its deadline.",
+    "taskId": "s4Vc1juH3reJmNwXKDLO",
+    "read": false,
+    "link": "/?view=task-manager&taskId=s4Vc1juH3reJmNwXKDLO",
+    "createdAt": {
+      "_seconds": 1783406308,
+      "_nanoseconds": 394000000
+    }
+  },
+  {
     "id": "iXPAGAU1PVIpl6mjfwcl",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "type": "assignment",
@@ -2017,6 +2047,21 @@
     "createdAt": {
       "_seconds": 1769616148,
       "_nanoseconds": 167000000
+    }
+  },
+  {
+    "id": "meO3zBE1cDmFVLD8kOhd",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LUI-5 - \"Delegaciones Ajenas analisis\" has reached its deadline.",
+    "taskId": "3m6r4gq7jmuCQp2OQcfd",
+    "read": false,
+    "link": "/?view=task-manager&taskId=3m6r4gq7jmuCQp2OQcfd",
+    "createdAt": {
+      "_seconds": 1783406305,
+      "_nanoseconds": 462000000
     }
   },
   {
