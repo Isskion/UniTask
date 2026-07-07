@@ -2821,17 +2821,12 @@ export default function ClientPage() {
                                                 <th className="px-2 py-3 font-semibold text-center w-12 print:hidden">#</th>
                                                 <th className="px-2 py-3 font-semibold text-center w-10">Paso</th>
                                                 <th className="px-3 py-3 font-semibold text-left w-36">Fase</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Actor / Swimlane</th>
+                                                <th className="px-3 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Evento / Transición</th>
+                                                <th className="px-4 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Descripción Operativa</th>
                                                 <th className="px-3 py-3 font-semibold text-left">Origen</th>
                                                 <th className="px-3 py-3 font-semibold text-left">Destino</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Evento / Transición</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Estado Resultante</th>
                                                 <th className="px-2 py-3 font-semibold text-center w-20">Acción</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Precondición</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Excepción</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Regla de Negocio</th>
                                                 <th className="px-3 py-3 font-semibold text-left w-20">Ref. Interfaz</th>
-                                                <th className="px-4 py-3 font-semibold text-left min-w-[200px]">Descripción Operativa</th>
                                                 <th className="px-2 py-3 font-semibold text-center w-10 print:hidden"></th>
                                             </tr>
                                         </thead>
@@ -2853,7 +2848,7 @@ export default function ClientPage() {
                                                         <React.Fragment key={idx}>
                                                             {renderPhaseHeader && (
                                                                 <tr className={cn("border-y", isLight ? "bg-red-50/80 border-zinc-200" : "bg-red-950/25 border-zinc-800/80")}>
-                                                                    <td colSpan={15} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
+                                                                    <td colSpan={10} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
                                                                         <div className="flex items-center gap-2">
                                                                             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
                                                                             <span>{row.phase}</span>
@@ -2916,10 +2911,19 @@ export default function ClientPage() {
                                                                 <td className="px-3 py-3 align-middle">
                                                                     <input 
                                                                         type="text" 
-                                                                        value={row.actor}
-                                                                        list="available-actors"
-                                                                        onChange={(e) => handleCellChange(idx, 'actor', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 print:border-none", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                        value={row.event}
+                                                                        size={50}
+                                                                        onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
+                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                                    />
+                                                                </td>
+
+                                                                <td className="px-4 py-3 align-middle">
+                                                                    <textarea 
+                                                                        rows={2}
+                                                                        value={row.operativeDesc || ''}
+                                                                        onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
+                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 resize-y min-h-[40px]", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
                                                                 </td>
 
@@ -2943,25 +2947,6 @@ export default function ClientPage() {
                                                                     />
                                                                 </td>
 
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.event}
-                                                                        onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.resultState}
-                                                                        list="available-states"
-                                                                        onChange={(e) => handleCellChange(idx, 'resultState', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
                                                                 <td className="px-2 py-3 text-center align-middle whitespace-nowrap">
                                                                     <input 
                                                                         type="text" 
@@ -2974,46 +2959,10 @@ export default function ClientPage() {
                                                                 <td className="px-3 py-3 align-middle">
                                                                     <input 
                                                                         type="text" 
-                                                                        value={row.precondition}
-                                                                        onChange={(e) => handleCellChange(idx, 'precondition', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.exception}
-                                                                        onChange={(e) => handleCellChange(idx, 'exception', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <textarea 
-                                                                        rows={1}
-                                                                        value={row.rule}
-                                                                        onChange={(e) => handleCellChange(idx, 'rule', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 resize-none h-auto overflow-y-hidden", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
                                                                         value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
                                                                         onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
                                                                         placeholder="Ej: 4"
                                                                         className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-4 py-3 align-middle">
-                                                                    <textarea 
-                                                                        rows={2}
-                                                                        value={row.operativeDesc || ''}
-                                                                        onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 resize-none h-auto", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
                                                                     />
                                                                 </td>
 
