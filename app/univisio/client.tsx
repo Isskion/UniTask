@@ -225,6 +225,36 @@ const SortableRow = ({
             <td className="px-3 py-3 align-middle">
                 <input 
                     type="text" 
+                    value={row.title || ''}
+                    onChange={(e) => handleCellChange(idx, 'title', e.target.value)}
+                    placeholder="Título"
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.subtitle || ''}
+                    onChange={(e) => handleCellChange(idx, 'subtitle', e.target.value)}
+                    placeholder="Subtítulo"
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.systems || ''}
+                    onChange={(e) => handleCellChange(idx, 'systems', e.target.value)}
+                    placeholder="Sistemas"
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
                     value={row.origin}
                     list="available-states"
                     onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
@@ -3100,6 +3130,9 @@ export default function ClientPage() {
                                                         <th className="px-3 py-3 font-semibold text-left w-36">Fase</th>
                                                         <th className="px-3 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Evento / Transición</th>
                                                         <th className="px-4 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Descripción Operativa</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-48">Título</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-48">Subtítulo</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-32">Sistemas</th>
                                                         <th className="px-3 py-3 font-semibold text-left">Origen</th>
                                                         <th className="px-3 py-3 font-semibold text-left">Destino</th>
                                                         <th className="px-2 py-3 font-semibold text-center w-20">Acción</th>
@@ -3125,7 +3158,7 @@ export default function ClientPage() {
                                                                 <React.Fragment key={row.id || row.step}>
                                                                     {renderPhaseHeader && (
                                                                         <tr className={cn("border-y", isLight ? "bg-red-50/80 border-zinc-200" : "bg-red-950/25 border-zinc-800/80")}>
-                                                                            <td colSpan={10} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
+                                                                            <td colSpan={13} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
                                                                                 <div className="flex items-center gap-2">
                                                                                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
                                                                                     <span>{row.phase}</span>
@@ -3163,7 +3196,7 @@ export default function ClientPage() {
                                     <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto w-full print:max-w-full">
                                         {tableRows.map((row, idx) => (
                                             <div 
-                                                key={idx}
+                                                key={row.id || row.step}
                                                 onClick={() => setActiveRowIndex(idx)}
                                                 className={cn(
                                                     "border rounded-xl transition-all shadow-xl backdrop-blur-sm relative overflow-hidden flex flex-col",
@@ -3193,11 +3226,24 @@ export default function ClientPage() {
                                                                     🔄 Bucle {row.loopNote ? `(${row.loopNote})` : ''}
                                                                 </span>
                                                             )}
-                                                            {row.phase && (
-                                                                <span className={cn("text-[10px] px-2 py-0.5 rounded-md uppercase font-semibold tracking-wider font-mono", isLight ? "bg-zinc-200 text-zinc-700" : "bg-zinc-800 text-zinc-400")}>
-                                                                    {row.phase}
-                                                                </span>
-                                                            )}
+                                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                                <input 
+                                                                    type="text"
+                                                                    value={row.phase || ''}
+                                                                    onChange={(e) => handleCellChange(idx, 'phase', e.target.value)}
+                                                                    placeholder="Fase"
+                                                                    title="Fase del paso"
+                                                                    className={cn(
+                                                                        "text-[10px] px-2 py-0.5 rounded-md uppercase font-semibold tracking-wider font-mono bg-transparent border border-dashed border-zinc-500/20 text-center w-28 focus:ring-1 focus:ring-red-500 focus:outline-none print:hidden", 
+                                                                        isLight 
+                                                                            ? "bg-zinc-100/60 text-zinc-700 hover:border-zinc-400" 
+                                                                            : "bg-zinc-800/60 text-zinc-400 focus:bg-zinc-950/60 hover:border-zinc-600"
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                            <span className="hidden print:inline text-[10px] px-2 py-0.5 rounded-md uppercase font-semibold tracking-wider font-mono bg-zinc-250 text-zinc-700">
+                                                                {row.phase}
+                                                            </span>
                                                         </div>
                                                         <div className="flex flex-col gap-1 mt-1">
                                                             <input 
@@ -3278,6 +3324,24 @@ export default function ClientPage() {
                                                     
                                                     {/* Left column: Systems and state changes */}
                                                     <div className="p-5 flex flex-col gap-4 col-span-2">
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Evento / Transición</div>
+                                                            <input 
+                                                                type="text"
+                                                                value={row.event || ''}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                }}
+                                                                onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
+                                                                placeholder="Evento o transición"
+                                                                className={cn("border rounded-lg px-3 py-1.5 text-xs w-full focus:ring-1 focus:ring-red-500 focus:outline-none print:hidden", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}
+                                                            />
+                                                            <div className="hidden print:block text-xs font-semibold text-zinc-850 bg-zinc-50 border border-zinc-200 rounded px-2.5 py-1">
+                                                                {row.event || 'N/A'}
+                                                            </div>
+                                                        </div>
+
                                                         <div>
                                                             <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Sistemas Involucrados</div>
                                                             <input 
@@ -3381,7 +3445,7 @@ export default function ClientPage() {
                                                                         if (activeRowIndex !== idx) setActiveRowIndex(idx);
                                                                     }}
                                                                     onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
-                                                                    className={cn("bg-transparent border-none w-full text-xs font-semibold focus:ring-1 focus:ring-red-500 rounded p-0.5 focus:outline-none cursor-pointer print:hidden", isLight ? "text-zinc-850" : "text-zinc-200")}
+                                                                    className={cn("bg-transparent border-none w-full text-xs font-semibold focus:ring-1 focus:ring-red-500 rounded p-0.5 focus:outline-none cursor-pointer print:hidden", isLight ? "text-zinc-855" : "text-zinc-200")}
                                                                 >
                                                                     <option value="H">Humana (👤)</option>
                                                                     <option value="A">Automática (⚙️)</option>
@@ -3390,6 +3454,24 @@ export default function ClientPage() {
                                                                 <span className="hidden print:inline text-xs font-semibold text-zinc-850 ml-1">
                                                                     {row.actionType === 'H' ? 'Humana' : row.actionType === 'A' ? 'Automática' : 'Integración'}
                                                                 </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1.5">Referencias Interfaz</div>
+                                                            <input 
+                                                                type="text"
+                                                                value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (activeRowIndex !== idx) setActiveRowIndex(idx);
+                                                                }}
+                                                                onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
+                                                                placeholder="Ej: 4"
+                                                                className={cn("border rounded-lg px-3 py-1.5 text-xs w-full focus:ring-1 focus:ring-red-500 focus:outline-none print:hidden", isLight ? "text-zinc-800 bg-white border-zinc-200" : "text-zinc-200 bg-zinc-950/40 border-zinc-800/60")}
+                                                            />
+                                                            <div className="hidden print:block text-xs font-semibold text-zinc-850 bg-zinc-50 border border-zinc-200 rounded px-2.5 py-1">
+                                                                {row.interfaceRefs?.map(i => `#${i.num}`).join(', ') || 'N/A'}
                                                             </div>
                                                         </div>
                                                     </div>
