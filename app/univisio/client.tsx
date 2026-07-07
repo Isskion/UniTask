@@ -5,11 +5,29 @@ import JSZip from 'jszip';
 import { 
     Upload, FileCode, Network, CheckCircle, AlertTriangle, Play,
     Plus, Trash2, ArrowUp, ArrowDown, Download, Send, RefreshCw, FileText,
-    Save, FolderOpen, Folder, Image as ImageIcon, ChevronLeft, ChevronRight, Copy
+    Save, FolderOpen, Folder, Image as ImageIcon, ChevronLeft, ChevronRight, Copy,
+    GripVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { analyzeSubflowWithGemini, chatWithUniVisio, analyzeDiagramImageWithGemini } from './actions';
 import * as XLSX from 'xlsx';
+
+import { 
+    DndContext, 
+    closestCenter, 
+    KeyboardSensor, 
+    PointerSensor, 
+    useSensor, 
+    useSensors, 
+    DragEndEvent 
+} from '@dnd-kit/core';
+import { 
+    SortableContext, 
+    sortableKeyboardCoordinates, 
+    verticalListSortingStrategy, 
+    useSortable 
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { TableRow, ParsedNode, ParsedEdge, Doubt, UniVisioSession, Project, NodeCoverageMap, NodeCoverageStatus } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -62,13 +80,213 @@ const StepPositionInput = ({
             onChange={(e) => setVal(e.target.value.replace(/\D/g, ''))}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
+            title="Haz clic para escribir un número de paso y pulsa Enter para mover"
             className={cn(
-                "w-10 text-center font-bold bg-transparent border rounded px-1 py-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 text-xs",
+                "w-10 text-center font-bold bg-transparent border rounded px-1 py-0.5 transition-colors focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 text-xs cursor-text",
                 isLight 
-                    ? "border-zinc-300 text-zinc-800 focus:bg-white" 
-                    : "border-zinc-800 text-zinc-250 focus:bg-zinc-950/60"
+                    ? "border-zinc-300 text-zinc-800 focus:bg-white hover:border-zinc-400 hover:bg-zinc-100/50" 
+                    : "border-zinc-800 text-zinc-250 focus:bg-zinc-950/60 hover:border-zinc-750 hover:bg-zinc-900/40"
             )}
         />
+    );
+};
+
+const SortableRow = ({
+    row,
+    idx,
+    isLight,
+    activeRowIndex,
+    setActiveRowIndex,
+    moveRow,
+    moveRowToPosition,
+    handleCellChange,
+    handleInterfaceRefsChange,
+    handleDuplicateRow,
+    handleInsertRow,
+    handleDeleteRow,
+    tableRowsLength
+}: {
+    row: TableRow;
+    idx: number;
+    isLight: boolean;
+    activeRowIndex: number | null;
+    setActiveRowIndex: (idx: number | null) => void;
+    moveRow: (index: number, direction: 'up' | 'down') => void;
+    moveRowToPosition: (fromIndex: number, toStep: number) => void;
+    handleCellChange: (rowIndex: number, column: keyof TableRow, value: any) => void;
+    handleInterfaceRefsChange: (rowIndex: number, val: string) => void;
+    handleDuplicateRow: (index: number) => void;
+    handleInsertRow: (index: number) => void;
+    handleDeleteRow: (index: number) => void;
+    tableRowsLength: number;
+}) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: row.id || row.step.toString() });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.6 : 1,
+        backgroundColor: isDragging ? (isLight ? '#fef2f2' : 'rgba(69, 10, 10, 0.3)') : undefined,
+        zIndex: isDragging ? 50 : undefined,
+        position: isDragging ? 'relative' as const : undefined,
+    };
+
+    return (
+        <tr 
+            ref={setNodeRef}
+            style={style}
+            onClick={() => setActiveRowIndex(idx)}
+            className={cn(
+                "transition-colors",
+                activeRowIndex === idx 
+                    ? (isLight ? "bg-red-50" : "bg-red-500/5")
+                    : (isLight ? "hover:bg-zinc-50" : "hover:bg-zinc-900/30"),
+                row.needsReview ? (isLight ? "bg-amber-50" : "bg-amber-950/15") : "",
+                "print:bg-transparent"
+            )}
+        >
+            <td className="px-2 py-3 text-center align-middle whitespace-nowrap print:hidden">
+                <div className="flex items-center gap-1 justify-center">
+                    <button 
+                        {...attributes} 
+                        {...listeners} 
+                        className="text-zinc-500 hover:text-zinc-350 dark:hover:text-zinc-200 p-1 cursor-grab active:cursor-grabbing hover:bg-zinc-800/10 dark:hover:bg-zinc-800/40 rounded transition-colors"
+                        title="Arrastrar para reordenar"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <GripVertical className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="flex flex-col gap-0.5 items-center">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
+                            className="text-zinc-600 hover:text-zinc-350 p-0.5"
+                            disabled={idx === 0}
+                        >
+                            <ArrowUp className="w-3 h-3" />
+                        </button>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
+                            className="text-zinc-600 hover:text-zinc-350 p-0.5"
+                            disabled={idx === tableRowsLength - 1}
+                        >
+                            <ArrowDown className="w-3 h-3" />
+                        </button>
+                    </div>
+                </div>
+            </td>
+
+            <td className={cn("px-2 py-3 text-center font-bold align-middle", isLight ? "text-zinc-700" : "text-zinc-300")}>
+                <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    {row.needsReview && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 print:hidden" />}
+                    <StepPositionInput 
+                        step={row.step} 
+                        max={tableRowsLength} 
+                        onMove={(newStep) => moveRowToPosition(idx, newStep)} 
+                        isLight={isLight}
+                    />
+                </div>
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.phase}
+                    onChange={(e) => handleCellChange(idx, 'phase', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.event}
+                    size={50}
+                    onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-4 py-3 align-middle">
+                <textarea 
+                    rows={2}
+                    value={row.operativeDesc || ''}
+                    onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 resize-y min-h-[40px]", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.origin}
+                    list="available-states"
+                    onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.destination}
+                    list="available-states"
+                    onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-2 py-3 text-center align-middle whitespace-nowrap">
+                <input 
+                    type="text" 
+                    value={row.actionType}
+                    onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-3 py-3 align-middle">
+                <input 
+                    type="text" 
+                    value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
+                    onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
+                    placeholder="Ej: 4"
+                    className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                />
+            </td>
+
+            <td className="px-2 py-3 text-center align-middle print:hidden">
+                <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <button 
+                        onClick={() => handleDuplicateRow(idx)}
+                        className="text-zinc-500 hover:text-red-500 transition-colors"
+                        title="Duplicar paso"
+                    >
+                        <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                        onClick={() => handleInsertRow(idx)}
+                        className="text-zinc-500 hover:text-red-500 transition-colors"
+                        title="Insertar paso después"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                        onClick={() => handleDeleteRow(idx)}
+                        className="text-zinc-500 hover:text-red-500 transition-colors"
+                        title="Eliminar paso"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </td>
+        </tr>
     );
 };
 
@@ -115,6 +333,34 @@ export default function ClientPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const keepProgressRef = useRef<boolean>(false);
+
+    // DND Kit Sensors & Handlers
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const activeId = active.id.toString();
+        const overId = over.id.toString();
+
+        const fromIndex = tableRows.findIndex(r => (r.id || r.step.toString()) === activeId);
+        const toIndex = tableRows.findIndex(r => (r.id || r.step.toString()) === overId);
+
+        if (fromIndex !== -1 && toIndex !== -1) {
+            const toStep = tableRows[toIndex].step;
+            moveRowToPosition(fromIndex, toStep);
+        }
+    };
 
     // Drag-and-drop state
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -221,7 +467,11 @@ export default function ClientPage() {
         setIsDirty(false);
         setSelectedSessionId(session.id);
         setSessionNameInput(session.sessionName);
-        setTableRows(session.tableRows || []);
+        const rowsWithId = (session.tableRows || []).map((row, idx) => ({
+            ...row,
+            id: row.id || `${Date.now()}-${idx}-${Math.random()}`
+        }));
+        setTableRows(rowsWithId);
         setDoubts(session.doubts || []);
         setSwimlanes(session.swimlanes || []);
         setCycles(session.cycles || []);
@@ -504,7 +754,11 @@ export default function ClientPage() {
 
         if (nodes.length === 0) {
             const combined = [...filteredPrev, ...newRows];
-            return combined.map((r, i) => ({ ...r, step: i + 1 }));
+            return combined.map((r, i) => ({
+                ...r,
+                id: r.id || `${Date.now()}-${i}-${Math.random()}`,
+                step: i + 1
+            }));
         }
 
         const nodeToIndex = new Map<string, number>();
@@ -564,6 +818,7 @@ export default function ClientPage() {
 
         return combined.map((item, i) => ({
             ...item.row,
+            id: item.row.id || `${Date.now()}-${i}-${Math.random()}`,
             step: i + 1
         }));
     };
@@ -728,7 +983,10 @@ export default function ClientPage() {
             }
         });
 
-        const finalSteps = consolidatorSteps.map(({ _sourceSessionName, ...r }: any) => r);
+        const finalSteps = consolidatorSteps.map(({ _sourceSessionName, ...r }: any, i: number) => ({
+            ...r,
+            id: r.id || `${Date.now()}-${i}-${Math.random()}`
+        }));
 
         setTableRows(finalSteps);
         setDoubts(mergedDoubts);
@@ -1046,12 +1304,17 @@ export default function ClientPage() {
                 const migrationNodeIds = new Set(orderedNodes.map(n => n.id));
                 setTableRows(prev => {
                     let changed = false;
-                    const next = prev.map(row => {
+                    const next = prev.map((row, idx) => {
+                        let updated = row;
                         if (row.linkedNodeId && migrationNodeIds.has(row.linkedNodeId) && !row.pagePath) {
                             changed = true;
-                            return { ...row, pagePath };
+                            updated = { ...row, pagePath };
                         }
-                        return row;
+                        if (!updated.id) {
+                            changed = true;
+                            updated = { ...updated, id: `${Date.now()}-${idx}-${Math.random()}` };
+                        }
+                        return updated;
                     });
                     return changed ? next : prev;
                 });
@@ -1658,7 +1921,8 @@ export default function ClientPage() {
             const response = await analyzeDiagramImageWithGemini(imagePreviewUrl, imageInstruction);
 
             if (response && response.success && response.steps) {
-                const newRows: TableRow[] = response.steps.map(step => ({
+                const newRows: TableRow[] = response.steps.map((step: any, i: number) => ({
+                    id: `${Date.now()}-${i}-${Math.random()}`,
                     step: step.step || 1,
                     title: step.title || 'Paso',
                     subtitle: step.subtitle || '',
@@ -1747,13 +2011,14 @@ export default function ClientPage() {
                         setIsDirty(true);
                     } else if (cmd.type === 'delete_row' && cmd.params.stepIndex !== undefined) {
                         setTableRows(prev => prev.filter(row => row.step !== cmd.params.stepIndex)
-                            .map((row, i) => ({ ...row, step: i + 1 }))
+                            .map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }))
                         );
                         setIsDirty(true);
                     } else if (cmd.type === 'insert_row' && cmd.params.index !== undefined) {
                         setTableRows(prev => {
                             const copy = [...prev];
                             copy.splice(cmd.params.index, 0, {
+                                id: `${Date.now()}-${Math.random()}`,
                                 step: cmd.params.index + 1,
                                 title: cmd.params.row.title || 'Nuevo Paso',
                                 subtitle: cmd.params.row.subtitle || '',
@@ -1778,7 +2043,7 @@ export default function ClientPage() {
                                 operativeDesc: cmd.params.row.operativeDesc || ''
                             });
                             setIsDirty(true);
-                            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+                            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
                         });
                     }
                 }
@@ -1825,6 +2090,7 @@ export default function ClientPage() {
         setTableRows(prev => [
             ...prev,
             {
+                id: `${Date.now()}-${prev.length}-${Math.random()}`,
                 step: prev.length + 1,
                 title: 'NUEVO PASO',
                 subtitle: 'Descripción breve',
@@ -1856,7 +2122,7 @@ export default function ClientPage() {
         if (!confirm('¿Estás seguro de eliminar este paso?')) return;
         setIsDirty(true);
         setTableRows(prev => prev.filter((_, i) => i !== index)
-            .map((row, i) => ({ ...row, step: i + 1 }))
+            .map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }))
         );
     };
 
@@ -1866,12 +2132,13 @@ export default function ClientPage() {
             const rowToDuplicate = prev[index];
             const duplicatedRow = {
                 ...rowToDuplicate,
+                id: `${Date.now()}-${Math.random()}`,
                 linkedNodeId: '', 
                 step: index + 2
             };
             const copy = [...prev];
             copy.splice(index + 1, 0, duplicatedRow);
-            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
         });
     };
 
@@ -1879,6 +2146,7 @@ export default function ClientPage() {
         setIsDirty(true);
         setTableRows(prev => {
             const newRow = {
+                id: `${Date.now()}-${Math.random()}`,
                 step: index + 2,
                 title: 'NUEVO PASO',
                 subtitle: 'Descripción breve',
@@ -1905,7 +2173,7 @@ export default function ClientPage() {
             };
             const copy = [...prev];
             copy.splice(index + 1, 0, newRow);
-            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
         });
     };
 
@@ -1921,7 +2189,7 @@ export default function ClientPage() {
             copy[index] = copy[target];
             copy[target] = temp;
 
-            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
         });
     };
 
@@ -1936,7 +2204,7 @@ export default function ClientPage() {
             const [movedRow] = copy.splice(fromIndex, 1);
             copy.splice(toIndex, 0, movedRow);
 
-            return copy.map((row, i) => ({ ...row, step: i + 1 }));
+            return copy.map((row, i) => ({ ...row, id: row.id || `${Date.now()}-${i}-${Math.random()}`, step: i + 1 }));
         });
     };
 
@@ -2815,189 +3083,80 @@ export default function ClientPage() {
                                 {tableRows.length > 0 && (
                                     viewMode === 'table' ? (
                                         <div className={cn("overflow-x-auto min-w-full border rounded-xl print:border-none", isLight ? "border-zinc-200 bg-white" : "border-zinc-800/80 bg-zinc-900/10")}>
-                                    <table className={cn("min-w-full divide-y text-xs print:divide-zinc-400", isLight ? "divide-zinc-200" : "divide-zinc-800")}>
-                                        <thead className={cn("uppercase tracking-widest text-[9px] print:bg-zinc-100 print:text-zinc-700", isLight ? "bg-zinc-50 text-zinc-600 border-b border-zinc-200" : "bg-zinc-900/60 text-zinc-400")}>
-                                            <tr>
-                                                <th className="px-2 py-3 font-semibold text-center w-12 print:hidden">#</th>
-                                                <th className="px-2 py-3 font-semibold text-center w-10">Paso</th>
-                                                <th className="px-3 py-3 font-semibold text-left w-36">Fase</th>
-                                                <th className="px-3 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Evento / Transición</th>
-                                                <th className="px-4 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Descripción Operativa</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Origen</th>
-                                                <th className="px-3 py-3 font-semibold text-left">Destino</th>
-                                                <th className="px-2 py-3 font-semibold text-center w-20">Acción</th>
-                                                <th className="px-3 py-3 font-semibold text-left w-20">Ref. Interfaz</th>
-                                                <th className="px-2 py-3 font-semibold text-center w-10 print:hidden"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-zinc-800/50 print:divide-zinc-300">
-                                            {(() => {
-                                                let lastPhase = '';
-                                                return tableRows.map((row, idx) => {
-                                                    const renderPhaseHeader = row.phase && row.phase !== lastPhase;
-                                                    if (renderPhaseHeader) {
-                                                        lastPhase = row.phase;
-                                                    }
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        <SortableContext
+                                            items={tableRows.map(r => r.id || r.step.toString())}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            <table className={cn("min-w-full divide-y text-xs print:divide-zinc-400", isLight ? "divide-zinc-200" : "divide-zinc-800")}>
+                                                <thead className={cn("uppercase tracking-widest text-[9px] print:bg-zinc-100 print:text-zinc-700", isLight ? "bg-zinc-50 text-zinc-600 border-b border-zinc-200" : "bg-zinc-900/60 text-zinc-400")}>
+                                                    <tr>
+                                                        <th className="px-2 py-3 font-semibold text-center w-12 print:hidden">#</th>
+                                                        <th className="px-2 py-3 font-semibold text-center w-10">Paso</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-36">Fase</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Evento / Transición</th>
+                                                        <th className="px-4 py-3 font-semibold text-left w-[50ch] min-w-[400px]">Descripción Operativa</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Origen</th>
+                                                        <th className="px-3 py-3 font-semibold text-left">Destino</th>
+                                                        <th className="px-2 py-3 font-semibold text-center w-20">Acción</th>
+                                                        <th className="px-3 py-3 font-semibold text-left w-20">Ref. Interfaz</th>
+                                                        <th className="px-2 py-3 font-semibold text-center w-10 print:hidden"></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-zinc-800/50 print:divide-zinc-300">
+                                                    {(() => {
+                                                        let lastPhase = '';
+                                                        return tableRows.map((row, idx) => {
+                                                            const renderPhaseHeader = row.phase && row.phase !== lastPhase;
+                                                            if (renderPhaseHeader) {
+                                                                lastPhase = row.phase;
+                                                            }
 
-                                                    const phaseSteps = tableRows.filter(r => r.phase === row.phase);
-                                                    const firstStep = phaseSteps[0]?.step;
-                                                    const lastStep = phaseSteps[phaseSteps.length - 1]?.step;
-                                                    const rangeText = firstStep && lastStep ? `(Pasos ${firstStep}–${lastStep})` : '';
+                                                            const phaseSteps = tableRows.filter(r => r.phase === row.phase);
+                                                            const firstStep = phaseSteps[0]?.step;
+                                                            const lastStep = phaseSteps[phaseSteps.length - 1]?.step;
+                                                            const rangeText = firstStep && lastStep ? `(Pasos ${firstStep}–${lastStep})` : '';
 
-                                                    return (
-                                                        <React.Fragment key={idx}>
-                                                            {renderPhaseHeader && (
-                                                                <tr className={cn("border-y", isLight ? "bg-red-50/80 border-zinc-200" : "bg-red-950/25 border-zinc-800/80")}>
-                                                                    <td colSpan={10} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-                                                                            <span>{row.phase}</span>
-                                                                            <span className="text-zinc-500 font-normal normal-case ml-2">{rangeText}</span>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            )}
-                                                            <tr 
-                                                                onClick={() => setActiveRowIndex(idx)}
-                                                                className={cn(
-                                                                    "transition-colors",
-                                                                    activeRowIndex === idx 
-                                                                        ? (isLight ? "bg-red-50" : "bg-red-500/5")
-                                                                        : (isLight ? "hover:bg-zinc-50" : "hover:bg-zinc-900/30"),
-                                                                    row.needsReview ? (isLight ? "bg-amber-50" : "bg-amber-950/15") : "",
-                                                                    "print:bg-transparent"
-                                                                )}
-                                                            >
-                                                                <td className="px-2 py-3 text-center align-middle whitespace-nowrap print:hidden">
-                                                                    <div className="flex flex-col gap-1 items-center">
-                                                                        <button 
-                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'up'); }}
-                                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
-                                                                            disabled={idx === 0}
-                                                                        >
-                                                                            <ArrowUp className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={(e) => { e.stopPropagation(); moveRow(idx, 'down'); }}
-                                                                            className="text-zinc-600 hover:text-zinc-300 p-0.5"
-                                                                            disabled={idx === tableRows.length - 1}
-                                                                        >
-                                                                            <ArrowDown className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-
-                                                                <td className={cn("px-2 py-3 text-center font-bold align-middle", isLight ? "text-zinc-700" : "text-zinc-300")}>
-                                                                    <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                                                        {row.needsReview && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 print:hidden" />}
-                                                                        <StepPositionInput 
-                                                                            step={row.step} 
-                                                                            max={tableRows.length} 
-                                                                            onMove={(newStep) => moveRowToPosition(idx, newStep)} 
-                                                                            isLight={isLight}
-                                                                        />
-                                                                    </div>
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.phase}
-                                                                        onChange={(e) => handleCellChange(idx, 'phase', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
+                                                            return (
+                                                                <React.Fragment key={row.id || row.step}>
+                                                                    {renderPhaseHeader && (
+                                                                        <tr className={cn("border-y", isLight ? "bg-red-50/80 border-zinc-200" : "bg-red-950/25 border-zinc-800/80")}>
+                                                                            <td colSpan={10} className={cn("px-4 py-2.5 font-black tracking-wider text-[10px] uppercase font-sans", isLight ? "text-red-700" : "text-red-400")}>
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+                                                                                    <span>{row.phase}</span>
+                                                                                    <span className="text-zinc-500 font-normal normal-case ml-2">{rangeText}</span>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    <SortableRow
+                                                                        row={row}
+                                                                        idx={idx}
+                                                                        isLight={isLight}
+                                                                        activeRowIndex={activeRowIndex}
+                                                                        setActiveRowIndex={setActiveRowIndex}
+                                                                        moveRow={moveRow}
+                                                                        moveRowToPosition={moveRowToPosition}
+                                                                        handleCellChange={handleCellChange}
+                                                                        handleInterfaceRefsChange={handleInterfaceRefsChange}
+                                                                        handleDuplicateRow={handleDuplicateRow}
+                                                                        handleInsertRow={handleInsertRow}
+                                                                        handleDeleteRow={handleDeleteRow}
+                                                                        tableRowsLength={tableRows.length}
                                                                     />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.event}
-                                                                        size={50}
-                                                                        onChange={(e) => handleCellChange(idx, 'event', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-4 py-3 align-middle">
-                                                                    <textarea 
-                                                                        rows={2}
-                                                                        value={row.operativeDesc || ''}
-                                                                        onChange={(e) => handleCellChange(idx, 'operativeDesc', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1 resize-y min-h-[40px]", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.origin}
-                                                                        list="available-states"
-                                                                        onChange={(e) => handleCellChange(idx, 'origin', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.destination}
-                                                                        list="available-states"
-                                                                        onChange={(e) => handleCellChange(idx, 'destination', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-2 py-3 text-center align-middle whitespace-nowrap">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.actionType}
-                                                                        onChange={(e) => handleCellChange(idx, 'actionType', e.target.value)}
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-3 py-3 align-middle">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={row.interfaceRefs?.map(i => i.num).join(', ') || ''}
-                                                                        onChange={(e) => handleInterfaceRefsChange(idx, e.target.value)}
-                                                                        placeholder="Ej: 4"
-                                                                        className={cn("bg-transparent border-none w-full focus:ring-1 focus:ring-red-500 rounded p-1", isLight ? "text-zinc-800 focus:bg-zinc-100" : "text-zinc-200 focus:bg-zinc-900")}
-                                                                    />
-                                                                </td>
-
-                                                                <td className="px-2 py-3 text-center align-middle print:hidden">
-                                                                    <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                                                        <button 
-                                                                            onClick={() => handleDuplicateRow(idx)}
-                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
-                                                                            title="Duplicar paso"
-                                                                        >
-                                                                            <Copy className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={() => handleInsertRow(idx)}
-                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
-                                                                            title="Insertar paso después"
-                                                                        >
-                                                                            <Plus className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={() => handleDeleteRow(idx)}
-                                                                            className="text-zinc-500 hover:text-red-500 transition-colors"
-                                                                            title="Eliminar paso"
-                                                                        >
-                                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        </React.Fragment>
-                                                    );
-                                                });
-                                            })()}
-                                        </tbody>
-                                    </table>
+                                                                </React.Fragment>
+                                                            );
+                                                        });
+                                                    })()}
+                                                </tbody>
+                                            </table>
+                                        </SortableContext>
+                                    </DndContext>
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-6 max-w-4xl mx-auto w-full pb-16">

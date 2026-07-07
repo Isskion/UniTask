@@ -689,6 +689,7 @@ export type NodeCoverageStatus = 'pending' | 'covered' | 'orphan' | 'skipped' | 
 export type NodeCoverageMap = Record<string, NodeCoverageStatus>;
 
 export interface TableRow {
+    id?: string;
     step: number;
     title: string;
     subtitle: string;
