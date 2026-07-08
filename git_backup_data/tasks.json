@@ -548,10 +548,10 @@
       "_nanoseconds": 904000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1783068680,
-      "_nanoseconds": 975000000
+      "_seconds": 1783494298,
+      "_nanoseconds": 961000000
     }
   },
   {
@@ -900,7 +900,6 @@
     "endDate": "2026-07-06T22:00:00.000Z",
     "area": "Documentación",
     "module": "ROUTING",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-5",
     "taskNumber": 5,
@@ -910,10 +909,18 @@
       "_nanoseconds": 683000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "M",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1783494320,
+      "_nanoseconds": 553000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783059110,
-      "_nanoseconds": 880000000
+      "_seconds": 1783494320,
+      "_nanoseconds": 553000000
     }
   },
   {
@@ -4901,11 +4908,11 @@
       "_seconds": 1780301838,
       "_nanoseconds": 631000000
     },
-    "status": "in_progress",
     "endDate": "2026-07-30T22:00:00.000Z",
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1782140793,
-      "_nanoseconds": 681000000
+      "_seconds": 1783494370,
+      "_nanoseconds": 298000000
     }
   },
   {
