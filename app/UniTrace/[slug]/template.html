@@ -1793,6 +1793,7 @@ function renderPlanResult() {
 
   orders.forEach(o=>{
     const ptbCls=PTB_CLS[o.estadoCod]||'';
+    const stName=getEstado('Pedido',o.estadoCod)?.nombre||'';
     const tr=o.tramo||{};
     const tramoBg=tr.isLocal===false?'var(--am2)':'var(--tl2)';
     const tramoColor=tr.isLocal===false?'var(--am)':'var(--tl)';
@@ -1828,7 +1829,7 @@ function renderPlanResult() {
         </div>
         <div style="padding:8px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center">
           ${pill(String(o.estadoCod),'p-pu')}
-          <span style="font-size:10px;color:var(--tx3);text-align:center">${esc(st?.n||'')}</span>
+          <span style="font-size:10px;color:var(--tx3);text-align:center">${esc(stName)}</span>
         </div>
       </div>
       ${o.nota?'<div class="plan-warn">&#9888; '+esc(o.nota)+'</div>':''}
