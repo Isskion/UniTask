@@ -4766,6 +4766,32 @@
     "updatedAt": "2026-07-06T15:55:01.556Z"
   },
   {
+    "id": "3_2026-07-08",
+    "date": "2026-07-08",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 08-07-2026\n\nInterfaces:\n-> Aitana Business Central: Esta semana se ha pasado el metodo de creación de pedidos a Luis Barquin. Solictaron un caso mas concreto, queda por hacerselo llegar.\n-> Webfleet: en proceso de inicio de pruebas internas. Seguimos con la imposibiliad de recuperar eventos.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n        PORTIC -- > Hemos encontrado los metodos para crear pedidos, pero necesitamos validarlos con Portic para garantizar que el desarrollo sea certero. Contactar a David Benito.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Internacional: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. Sin respuesta.\nRevisar mail de 14 de mayo para encontrar el mail de David Benito.\n\n------------\nSolicitan comenzar relevamientos de tarifas. Jorge Sureda es ok a esto, proponer fechas la proxima semana para arrancar el proceso, Luego empiezan los periodos vacacionales.\n\nEnviamos mail con las disponibilidades de los recursos.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 08-07-2026\n\nInterfaces:\n-> Aitana Business Central: Esta semana se ha pasado el metodo de creación de pedidos a Luis Barquin. Solictaron un caso mas concreto, queda por hacerselo llegar.\n-> Webfleet: en proceso de inicio de pruebas internas. Seguimos con la imposibiliad de recuperar eventos.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n        PORTIC -- > Hemos encontrado los metodos para crear pedidos, pero necesitamos validarlos con Portic para garantizar que el desarrollo sea certero. Contactar a David Benito.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Internacional: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. Sin respuesta.\nRevisar mail de 14 de mayo para encontrar el mail de David Benito.\n\n------------\nSolicitan comenzar relevamientos de tarifas. Jorge Sureda es ok a esto, proponer fechas la proxima semana para arrancar el proceso, Luego empiezan los periodos vacacionales.\n\nEnviamos mail con las disponibilidades de los recursos.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-08T13:27:39.617Z",
+    "updatedAt": "2026-07-08T15:34:00.824Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
