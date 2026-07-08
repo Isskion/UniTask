@@ -221,10 +221,18 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Catálogo de estados</span>
       <input type="text" class="search" placeholder="Buscar..." id="q-estados" oninput="renderEstados()">
+      <select id="f-est-ent" onchange="renderEstados()" style="width:auto">
+        <option value="">Todas las entidades</option>
+        <option value="Pedido">Pedido</option>
+        <option value="Orden">Orden</option>
+        <option value="Ruta">Ruta</option>
+        <option value="Viaje">Viaje</option>
+        <option value="Parada">Parada</option>
+      </select>
     </div>
     <button class="btn btn-p" onclick="openModal('estados',null)">+ Nuevo estado</button>
   </div>
-  <p class="sdesc">Define los estados del pedido en UNIGIS. Los estados aquí configurados están disponibles en la matriz de transiciones.</p>
+  <p class="sdesc">Define los estados de cada entidad del flujo operativo (Pedido, Orden, Ruta, Viaje, Parada) y en qué momento se aplica cada uno. El Planificador reproduce automáticamente estos estados en su jerarquía de entidades. Los estados de Pedido son además los disponibles en la matriz de transiciones.</p>
   <div id="stats-estados" class="stats"></div>
   <div id="tbl-estados"></div>
 </div>
@@ -433,6 +441,45 @@ const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"
 
 let data, nextIds, curSection, editId;
 
+// Estados: catálogo multi-entidad (Pedido/Orden/Ruta/Viaje/Parada). Migra filas viejas
+// (todas Pedido) y siembra las entidades nuevas una sola vez (idempotente por entidad).
+function migrateEstadosMultiEntidad() {
+  (data.estados||[]).forEach(e=>{ if(!e.entidad) e.entidad='Pedido'; if(e.momento===undefined) e.momento=''; });
+  let nid = nextIds.estados || 20;
+  const seed = (entidad, items) => {
+    if (data.estados.some(e=>e.entidad===entidad)) return;
+    items.forEach(it=>{ data.estados.push({id:nid++, entidad, codigo:it[0], nombre:it[1], momento:it[2], descripcion:'', activo:true}); });
+  };
+  seed('Orden', [
+    [1,'Recolección en Remitente','Pickup · recolección de la mercancía en las instalaciones del remitente'],
+    [2,'Recolección en COL','Pickup · recolección de la mercancía en un depósito propio (COL)'],
+    [3,'Recolección en Depósito Ajena','Pickup · recolección de la mercancía en un depósito de una delegación ajena'],
+    [4,'Entrega en COL','Delivery · entrega de la mercancía en un depósito propio (COL)'],
+    [5,'Entrega en COL Crossdock','Delivery · entrega en un depósito propio en tránsito hacia otro COL (crossdock)'],
+    [6,'Entrega destinatario','Delivery · entrega final de la mercancía en las instalaciones del destinatario'],
+    [7,'Entrega en Depósito Ajena','Delivery · entrega de la mercancía en un depósito de una delegación ajena'],
+  ]);
+  seed('Ruta', [
+    [1,'Borrador','Ruta creada, aún sin órdenes asignadas ni ejecución prevista'],
+    [2,'En planificación','Ruta con órdenes asignadas, pendiente de vehículo y chofer'],
+    [3,'Cerrada','Ruta con vehículo y chofer asignados; da lugar al Viaje'],
+  ]);
+  seed('Viaje', [
+    [1,'PENDIENTE','Ruta creada, sin recurso'],
+    [9,'PROGRAMADO','Vehículo + chofer asignados'],
+    [100,'ACTIVO','En ejecución, no reversible'],
+    [300,'FINALIZADO','Todas las paradas ejecutadas'],
+  ]);
+  seed('Parada', [
+    [35,'Recolectado en remitente','Pickup · Recogida (recolección en cliente)'],
+    [45,'Entregado en COL salida','Delivery · Recogida (entrega en depósito de salida)'],
+    [275,'Recolectado en depósito salida','Pickup · Arrastre (recolección en depósito de carga)'],
+    [255,'Entregado en COL llegada','Delivery · Arrastre (entrega en depósito de llegada)'],
+    [315,'Entregado en destinatario','Delivery · Entrega Directa (entrega final al cliente)'],
+  ]);
+  nextIds.estados = nid;
+}
+
 function init() {
   // data/nextIds llegan ya cargados desde el backend (bootstrapAccess -> loadFromBackend);
   // aquí solo aplicamos la migración de secciones nuevas, igual que antes con localStorage.
@@ -450,8 +497,10 @@ function init() {
     } else {
       data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
     }
+    migrateEstadosMultiEntidad();
   } catch(e) {
     data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
+    migrateEstadosMultiEntidad();
   }
   rebuildDynamicData();
 }
@@ -680,16 +729,28 @@ function sv(id, val) { const el = document.getElementById(id); if (el) el.value 
 function sb(id, val) { const el = document.getElementById(id); if (el) el.checked = !!val; }
 
 /* ── ESTADOS ── */
+const ENT_ORDER = ['Pedido','Orden','Ruta','Viaje','Parada'];
+const ENT_CLS = {Pedido:'p-bl',Orden:'p-tl',Ruta:'p-am',Viaje:'p-co',Parada:'p-pu'};
+
 function renderEstados() {
   const q = (document.getElementById('q-estados')||{value:''}).value.toLowerCase();
-  const rows = data.estados.filter(e => !q || e.nombre.toLowerCase().includes(q) || String(e.codigo).includes(q));
-  document.getElementById('stats-estados').innerHTML = statsHtml(data.estados) +
-    '<div class="sc"><div class="sl">Con transiciones</div><div class="sv">' +
+  const entFilter = (document.getElementById('f-est-ent')||{value:''}).value;
+  const rows = data.estados
+    .filter(e => (!entFilter || e.entidad===entFilter) && (!q || e.nombre.toLowerCase().includes(q) || String(e.codigo).includes(q) || (e.momento||'').toLowerCase().includes(q)))
+    .sort((a,b) => ENT_ORDER.indexOf(a.entidad)-ENT_ORDER.indexOf(b.entidad) || a.codigo-b.codigo);
+  const counts = ENT_ORDER.map(ent => '<div class="sc"><div class="sl">'+ent+'</div><div class="sv">'+data.estados.filter(e=>e.entidad===ent).length+'</div></div>').join('');
+  document.getElementById('stats-estados').innerHTML = statsHtml(data.estados) + counts +
+    '<div class="sc"><div class="sl">Pedido con transiciones</div><div class="sv">' +
     new Set(data.transiciones.map(t=>t.estadoOrigen)).size + '</div></div>';
   if (!rows.length) { document.getElementById('tbl-estados').innerHTML = emptyHtml('Sin resultados.'); return; }
-  let h = '<table><thead><tr><th>Código</th><th>Nombre</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+  let h = '<table><thead><tr><th>Entidad</th><th>Código</th><th>Nombre</th><th>Momento en que se aplica</th><th>Descripción</th><th>Activo</th><th></th></tr></thead><tbody>';
+  let lastEnt = null;
   rows.forEach(e => {
-    h += '<tr><td>' + pill(e.codigo,'p-pu') + '</td><td style="font-weight:500">' + esc(e.nombre) + '</td><td class="tdm">' + esc(e.descripcion||'—') + '</td><td>' + tog(e.activo,'estados',e.id) + '</td><td><div class="tda"><button class="bi ed" onclick="openModal(\'estados\',' + e.id + ')">✎</button><button class="bi dl" onclick="delItem(\'estados\',' + e.id + ')">✕</button></div></td></tr>';
+    if (e.entidad !== lastEnt) {
+      lastEnt = e.entidad;
+      h += '<tr><td colspan="7" style="background:var(--sf2);font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;padding:6px 10px">' + esc(e.entidad) + '</td></tr>';
+    }
+    h += '<tr><td>' + pill(e.entidad, ENT_CLS[e.entidad]||'p-gy') + '</td><td>' + pill(e.codigo,'p-gy') + '</td><td style="font-weight:500">' + esc(e.nombre) + '</td><td class="tdm">' + esc(e.momento||'—') + '</td><td class="tdm">' + esc(e.descripcion||'—') + '</td><td>' + tog(e.activo,'estados',e.id) + '</td><td><div class="tda"><button class="bi ed" onclick="openModal(\'estados\',' + e.id + ')">✎</button><button class="bi dl" onclick="delItem(\'estados\',' + e.id + ')">✕</button></div></td></tr>';
   });
   h += '</tbody></table>';
   document.getElementById('tbl-estados').innerHTML = h;
@@ -731,12 +792,13 @@ function renderMatriz() {
 }
 
 /* ── TRANSICIONES ── */
-function getNombreEstado(cod) {
-  const e = data.estados.find(x => x.codigo === cod);
+function getNombreEstado(cod, entidad) {
+  entidad = entidad || 'Pedido';
+  const e = data.estados.find(x => x.codigo === cod && x.entidad === entidad);
   return e ? e.nombre : String(cod);
 }
 function renderTransiciones() {
-  const estados = data.estados.filter(e => e.activo).sort((a,b) => a.codigo - b.codigo);
+  const estados = data.estados.filter(e => e.entidad==='Pedido' && e.activo).sort((a,b) => a.codigo - b.codigo);
   const rolCls = {SAC:'sac', Distribuidor:'dist', Automatico:'auto'};
 
   // Matrix
@@ -793,16 +855,21 @@ function openModal(section, id) {
 }
 
 function buildForm(sec, item) {
-  const estadoOpts = data.estados.sort((a,b) => a.codigo-b.codigo)
+  const estadoOpts = data.estados.filter(e=>e.entidad==='Pedido').sort((a,b) => a.codigo-b.codigo)
     .map(e => '<option value="' + e.codigo + '">' + esc(e.codigo + ' — ' + e.nombre) + '</option>').join('');
 
   if (sec === 'estados') {
+    const curFilter = (document.getElementById('f-est-ent')||{value:''}).value;
+    const defEnt = item ? item.entidad : (curFilter || 'Pedido');
+    const entOpts = ENT_ORDER.map(ent => '<option' + (defEnt===ent?' selected':'') + '>' + ent + '</option>').join('');
     return '<div class="frow">' +
+      '<div class="fg"><label class="fl">Entidad <span class="req">*</span></label><select id="f-ent">' + entOpts + '</select></div>' +
       '<div class="fg"><label class="fl">Código <span class="req">*</span></label><input type="number" id="f-cod" value="' + esc(item ? item.codigo : '') + '" placeholder="ej: 1035"></div>' +
-      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-act" ' + (item ? (item.activo?'checked':'') : 'checked') + '><span class="tog-s"></span></label></div>' +
       '</div>' +
       '<div class="fg"><label class="fl">Nombre <span class="req">*</span></label><input type="text" id="f-nom" value="' + esc(item ? item.nombre : '') + '" placeholder="ej: PROGRAMADO"></div>' +
-      '<div class="fg"><label class="fl">Descripción</label><textarea id="f-desc">' + esc(item ? item.descripcion : '') + '</textarea></div>';
+      '<div class="fg"><label class="fl">Momento en que se aplica</label><input type="text" id="f-mom" value="' + esc(item ? item.momento : '') + '" placeholder="ej: Recolección en cliente"></div>' +
+      '<div class="fg"><label class="fl">Descripción</label><textarea id="f-desc">' + esc(item ? item.descripcion : '') + '</textarea></div>' +
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-act" ' + (item ? (item.activo?'checked':'') : 'checked') + '><span class="tog-s"></span></label></div>';
   }
 
   if (sec === 'jornadas') {
@@ -1000,7 +1067,10 @@ function saveModal() {
 
   if (sec === 'estados') {
     if (!gv('f-cod') || !gv('f-nom')) { alert('Código y Nombre son obligatorios.'); return; }
-    item = {codigo: parseInt(gv('f-cod')), nombre: gv('f-nom'), descripcion: gv('f-desc'), activo: gb('f-act')};
+    const ent = gv('f-ent'); const cod = parseInt(gv('f-cod'));
+    const dupEst = data.estados.find(x => x.entidad===ent && x.codigo===cod && x.id!==editId);
+    if (dupEst) { alert('Ya existe un estado con ese código para la entidad ' + ent + '.'); return; }
+    item = {entidad: ent, codigo: cod, nombre: gv('f-nom'), momento: gv('f-mom'), descripcion: gv('f-desc'), activo: gb('f-act')};
   } else if (sec === 'jornadas') {
     if (!gv('f-idep') || !gv('f-ndep') || !gv('f-tjor') || !gv('f-oper')) { alert('Rellena los campos obligatorios.'); return; }
     const idDep = parseInt(gv('f-idep'));
@@ -1153,12 +1223,15 @@ function rebuildDynamicData() {
   PLOCS=(data.zonas||[]).filter(z=>z.activo!==false).map(z=>({z:z.zona,col:z.col}));
 }
 
-const PSTADOS = {
-  7:{n:'Prog. Punto a Punto', cls:'ptb-7'},
-  8:{n:'Prog. Entrega Directa',cls:'ptb-8'},
-  9:{n:'Prog. Recogida',      cls:'ptb-9'},
-  10:{n:'Prog. Arrastre',     cls:'ptb-10'}
-};
+// Clases CSS (colores fijos, sin equivalente en el catálogo de datos) para las 4
+// transiciones de programación que puede emitir el Planificador. Los nombres mostrados
+// ahora vienen siempre del catálogo de estados (entidad Pedido) vía getEstado().
+const PTB_CLS = {7:'ptb-7', 8:'ptb-8', 9:'ptb-9', 10:'ptb-10'};
+
+// Busca un estado del catálogo multi-entidad por entidad + código (Pedido/Orden/Ruta/Viaje/Parada).
+function getEstado(entidad, cod) {
+  return cod != null ? data.estados.find(e => e.entidad === entidad && e.codigo === cod) : undefined;
+}
 
 // ── Cálculo Local / Larga Distancia ──────────────────────────────
 // Según hoja "Flujos estados":
@@ -1413,30 +1486,6 @@ function planResumen(orders) {
   return parts.join(' + ') || '—';
 }
 
-// ── Mapeo de ejecución: EstadoPedido + EstadoParada por tipo de orden ──
-// Documenta qué paradas nacen de cada tipo de planificación y qué estados generan
-const PEJEC = {
-  9: { nombre:'Recogida', paradas:[
-    {epa:35, ep:1035, desc:'Recolectado en remitente', tipo:'pickup', campo:'Domicilio Orden 2'},
-    {epa:45, ep:1045, desc:'Entregado en COL salida',  tipo:'delivery',campo:'Depósito Descarga'}
-  ]},
-  10:{ nombre:'Arrastre', paradas:[
-    {epa:275,ep:1275, desc:'Recolectado en depósito salida', tipo:'pickup', campo:'Depósito Carga'},
-    {epa:255,ep:1255, desc:'Entregado en COL llegada',       tipo:'delivery',campo:'Depósito Descarga'}
-  ]},
-  8: { nombre:'Entrega Directa', paradas:[
-    {epa:null,ep:null, desc:'Recolectado en COL (inicio reparto)', tipo:'pickup', campo:'Depósito Carga'},
-    {epa:315, ep:1315, desc:'Entregado en destinatario',           tipo:'delivery',campo:'Domicilio Orden'}
-  ]}
-};
-
-const EVIAJE = [
-  {v:1,  n:'PENDIENTE',  desc:'Ruta creada, sin recurso'},
-  {v:9,  n:'PROGRAMADO', desc:'Vehículo + chofer asignados'},
-  {v:100,n:'ACTIVO',     desc:'En ejecución, no reversible'},
-  {v:300,n:'FINALIZADO', desc:'Todas las paradas ejecutadas'}
-];
-
 function buildHierarchy(orders) {
   if(!orders||!orders.length) return '';
 
@@ -1452,8 +1501,8 @@ function buildHierarchy(orders) {
       <div style="font-size:12px;color:var(--tx2);margin-bottom:5px">Existe primero. Las transiciones de estado generan las órdenes.</div>
       <div>
         ${estadosPedido.map(cod=>{
-          const st=PSTADOS[cod];
-          return `<span class="hier-ep">${cod}</span><span style="font-size:11px;color:var(--tx2);margin-right:8px">${esc(st?.n||cod)}</span>`;
+          const st=getEstado('Pedido',cod);
+          return `<span class="hier-ep">${cod}</span><span style="font-size:11px;color:var(--tx2);margin-right:8px">${esc(st?.nombre||cod)}</span>`;
         }).join('')}
       </div>
     </div>
@@ -1467,17 +1516,21 @@ function buildHierarchy(orders) {
       <div class="hier-title" style="color:var(--tl)">2. Órdenes</div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Cada transición de estado genera <strong>2 órdenes</strong>: 1 de pickup y 1 de delivery. Estos son los campos UNIGIS que se pueblan en cada una:</div>
       ${orders.map(o=>{
-        const st=PSTADOS[o.estadoCod];
+        const cls=PTB_CLS[o.estadoCod]||'';
         const u=o.unigis||{};
         const tr=o.tramo||{};
+        const ordPickup=data.estados.find(e=>e.entidad==='Orden'&&e.nombre===u.pickupTipo);
+        const ordDelivery=data.estados.find(e=>e.entidad==='Orden'&&e.nombre===u.deliveryTipo);
         return `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;padding:6px 8px;background:var(--sf2);border-radius:6px;border:1px solid var(--bd)">
-          <span class="ptb ${st?.cls||''}" style="flex-shrink:0">${o.num}</span>
+          <span class="ptb ${cls}" style="flex-shrink:0">${o.num}</span>
           <div style="flex:1;min-width:0">
             <div style="font-size:11px;font-weight:600;margin-bottom:3px">${esc(o.tipo)}</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px">
               <span class="hier-chip">&#128228; <span style="font-family:monospace;color:var(--bl)">${esc(u.pickupCampo||'')}</span> = ${esc(u.pickupValor||'')}</span>
               <span class="hier-chip">&#128229; <span style="font-family:monospace;color:var(--tl)">${esc(u.deliveryCampo||'')}</span> = ${esc(u.deliveryValor||'')}</span>
               <span class="hier-chip" style="background:${tr.isLocal===false?'var(--am2)':'var(--tl2)'}">&#128200; ${esc(tr.tipo||'?')} &bull; ${esc(tr.jornada||'—')}</span>
+              ${ordPickup?.momento?`<span class="hier-chip" style="background:var(--tl2);color:var(--tl)">&#128228; ${esc(ordPickup.momento)}</span>`:''}
+              ${ordDelivery?.momento?`<span class="hier-chip" style="background:var(--tl2);color:var(--tl)">&#128229; ${esc(ordDelivery.momento)}</span>`:''}
             </div>
           </div>
         </div>`;
@@ -1492,30 +1545,35 @@ function buildHierarchy(orders) {
   let absOrdenNum = 0;
   orders.forEach(o=>{
     const plt=o.plantilla||getPlantilla(o.estadoCod);
-    const ejec=plt||PEJEC[o.estadoCod];
-    if(!ejec) return;
+    if(!plt) return;
     // Orden pickup → Parada N
     absOrdenNum++;
+    const epaP=plt.epaPickup??null;
+    const estParadaP=getEstado('Parada',epaP);
     todasParadas.push({
       absNum: absOrdenNum,
       tipo:'pickup',
-      epa: ejec.epaPickup??ejec.paradas?.[0]?.epa??null,
-      ep:  ejec.epPickup ??ejec.paradas?.[0]?.ep??null,
-      desc: ejec.pickupTipo??ejec.paradas?.[0]?.desc??'',
-      campo: ejec.pickupCampo??ejec.paradas?.[0]?.campo??'',
+      epa: epaP,
+      ep:  plt.epPickup??null,
+      desc: estParadaP?.nombre ?? plt.pickupTipo ?? '',
+      momento: estParadaP?.momento ?? '',
+      campo: plt.pickupCampo??'',
       estadoPlan: o.num,
       tipoOrden: o.tipo,
       col: o.depCarga
     });
     // Orden delivery → Parada N+1
     absOrdenNum++;
+    const epaD=plt.epaDelivery??null;
+    const estParadaD=getEstado('Parada',epaD);
     todasParadas.push({
       absNum: absOrdenNum,
       tipo:'delivery',
-      epa: ejec.epaDelivery??ejec.paradas?.[1]?.epa??null,
-      ep:  ejec.epDelivery ??ejec.paradas?.[1]?.ep??null,
-      desc: ejec.deliveryTipo??ejec.paradas?.[1]?.desc??'',
-      campo: ejec.deliveryCampo??ejec.paradas?.[1]?.campo??'',
+      epa: epaD,
+      ep:  plt.epDelivery??null,
+      desc: estParadaD?.nombre ?? plt.deliveryTipo ?? '',
+      momento: estParadaD?.momento ?? '',
+      campo: plt.deliveryCampo??'',
       estadoPlan: o.num,
       tipoOrden: o.tipo,
       col: o.depDescarga
@@ -1544,6 +1602,7 @@ function buildHierarchy(orders) {
               <span style="font-size:9px;color:var(--tx3)">= Parada ${p.absNum}</span>
             </div>
             <div style="font-size:11px;color:var(--tx2)">${esc(p.desc)}</div>
+            ${p.momento?`<div style="font-size:10px;color:var(--pu)">${esc(p.momento)}</div>`:''}
             <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px">
               ${p.epa!=null?`<span class="hier-epa">EPA:${p.epa}</span>`:'<span style="font-size:10px;color:var(--tx3)">EPA:—</span>'}
               ${p.ep!=null?`<span class="hier-ep">EP:${p.ep}</span>`:''}
@@ -1566,12 +1625,15 @@ function buildHierarchy(orders) {
       <div class="hier-title" style="color:var(--co)">4. Viaje (EstadoViaje)</div>
       <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Agrupa las paradas de la ruta. Solo puede revertirse antes de estar en estado ACTIVO.</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        ${EVIAJE.map((e,i)=>`
-          <span style="display:inline-flex;align-items:center;gap:4px">
-            <span class="pill ${i===2?'p-re':i===3?'p-tl':'p-gy'}">${e.v} — ${esc(e.n)}</span>
-            <span style="font-size:10px;color:var(--tx3)">${esc(e.desc)}</span>
-            ${i<EVIAJE.length-1?'<span style="color:var(--bd2)">&#8594;</span>':''}
-          </span>`).join('')}
+        ${(() => {
+          const viajeEstados = data.estados.filter(e=>e.entidad==='Viaje'&&e.activo).sort((a,b)=>a.codigo-b.codigo);
+          return viajeEstados.map((e,i)=>`
+            <span style="display:inline-flex;align-items:center;gap:4px">
+              <span class="pill ${e.codigo===100?'p-re':e.codigo===300?'p-tl':'p-gy'}">${e.codigo} — ${esc(e.nombre)}</span>
+              <span style="font-size:10px;color:var(--tx3)">${esc(e.momento||'')}</span>
+              ${i<viajeEstados.length-1?'<span style="color:var(--bd2)">&#8594;</span>':''}
+            </span>`).join('');
+        })()}
       </div>
       <div style="margin-top:8px;font-size:11px;padding:6px 10px;background:var(--re2);border-radius:6px;color:var(--re)">
         &#9888; Si EstadoViaje = ACTIVO (100) el viaje ya no puede cancelarse. Solo se gestiona con incidencias de ejecución.
@@ -1730,7 +1792,7 @@ function renderPlanResult() {
     </div>`;
 
   orders.forEach(o=>{
-    const st=PSTADOS[o.estadoCod];
+    const ptbCls=PTB_CLS[o.estadoCod]||'';
     const tr=o.tramo||{};
     const tramoBg=tr.isLocal===false?'var(--am2)':'var(--tl2)';
     const tramoColor=tr.isLocal===false?'var(--am)':'var(--tl)';
@@ -1743,7 +1805,7 @@ function renderPlanResult() {
       <div style="display:grid;grid-template-columns:32px 160px 1fr 1fr 130px 180px 64px;border-bottom:1px solid #f0ede6"${rowBg}>
         <div style="padding:10px 8px;font-weight:700;font-size:14px;color:var(--tx2);text-align:center;border-right:1px solid var(--bd);display:flex;align-items:center;justify-content:center">${o.num}</div>
         <div style="padding:8px 10px;border-right:1px solid var(--bd);display:flex;flex-direction:column;gap:3px;justify-content:center">
-          <span class="ptb ${st?.cls||''}">${esc(o.tipo)}</span>
+          <span class="ptb ${ptbCls}">${esc(o.tipo)}</span>
           ${o.autoGen?'<span style="font-size:10px;color:var(--am)">&#9650; AUTO</span>':''}
         </div>
         <div style="padding:8px 10px;border-right:1px solid var(--bd);display:flex;flex-direction:column;gap:2px;justify-content:center">
@@ -2216,7 +2278,7 @@ function renderGruposMatrix() {
 
   orders.forEach(o=>{
     const label = o.depDescarga ? esc(o.depCarga)+' &#8594; '+esc(o.depDescarga) : esc(o.depCarga);
-    h+='<tr><td style="font-size:12px"><span class="ptb '+(PSTADOS[o.estadoCod]?.cls||'')+'" style="margin-right:4px">'+esc(o.tipo)+'</span><div class="tdm" style="font-family:monospace;margin-top:3px">'+label+'</div></td>';
+    h+='<tr><td style="font-size:12px"><span class="ptb '+(PTB_CLS[o.estadoCod]||'')+'" style="margin-right:4px">'+esc(o.tipo)+'</span><div class="tdm" style="font-family:monospace;margin-top:3px">'+label+'</div></td>';
     grupos.forEach(g=>{
       const acc=grupoAccesoTramo(g, o.depCarga, o.depDescarga);
       let cell;
