@@ -538,7 +538,6 @@
     "endDate": "2026-07-02T22:00:00.000Z",
     "area": "Documentación",
     "module": "ROUTING",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-4",
     "taskNumber": 4,
@@ -548,10 +547,18 @@
       "_nanoseconds": 904000000
     },
     "attributes": {},
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "M",
+    "actualEffort": 2,
+    "closedAt": {
+      "_seconds": 1783579102,
+      "_nanoseconds": 441000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783494298,
-      "_nanoseconds": 961000000
+      "_seconds": 1783579102,
+      "_nanoseconds": 441000000
     }
   },
   {
@@ -1293,10 +1300,10 @@
       "_seconds": 1780307536,
       "_nanoseconds": 938000000
     },
-    "status": "in_progress",
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1782887589,
-      "_nanoseconds": 10000000
+      "_seconds": 1783579224,
+      "_nanoseconds": 859000000
     }
   },
   {
@@ -4899,7 +4906,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-25",
     "taskNumber": 25,
@@ -4909,10 +4915,18 @@
       "_nanoseconds": 631000000
     },
     "endDate": "2026-07-30T22:00:00.000Z",
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "M",
+    "actualEffort": 16,
+    "closedAt": {
+      "_seconds": 1783579241,
+      "_nanoseconds": 979000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783494370,
-      "_nanoseconds": 298000000
+      "_seconds": 1783579241,
+      "_nanoseconds": 979000000
     }
   },
   {
@@ -8797,7 +8811,6 @@
   {
     "id": "bfQXxYXvzHcjRqPVOYGL",
     "title": "Gestion de incidencias y ejecución -- Revisarlo en el documento.",
-    "status": "pending",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "acceptanceCriteria": [
       {
@@ -8828,7 +8841,6 @@
     "endDate": "2026-07-09T22:00:00.000Z",
     "area": "Documentación",
     "module": "PLANIFICACIÓN",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-7",
     "taskNumber": 7,
@@ -8837,9 +8849,20 @@
       "_seconds": 1783075349,
       "_nanoseconds": 403000000
     },
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Añadido en el documento de logistica inversa entregado el 20260709",
+    "estimatedEffortSize": "M",
+    "actualEffort": 8,
+    "attributes": {},
+    "closedAt": {
+      "_seconds": 1783579205,
+      "_nanoseconds": 9000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783075349,
-      "_nanoseconds": 403000000
+      "_seconds": 1783579205,
+      "_nanoseconds": 9000000
     }
   },
   {
@@ -10807,7 +10830,6 @@
     "projectCode": "TSP",
     "area": "Interfaces",
     "module": "PLANIFICACIÓN",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-34",
     "taskNumber": 34,
@@ -10817,10 +10839,18 @@
       "_nanoseconds": 876000000
     },
     "attributes": {},
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "XS",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1783579252,
+      "_nanoseconds": 771000000
+    },
+    "estimatedEffort": 0.125,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1782825359,
-      "_nanoseconds": 289000000
+      "_seconds": 1783579252,
+      "_nanoseconds": 771000000
     }
   },
   {
