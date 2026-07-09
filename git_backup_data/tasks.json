@@ -7498,6 +7498,54 @@
     }
   },
   {
+    "id": "WQkcdmjioh7LfIR3VAq9",
+    "title": "Definir flujo de recepción de contratos",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783589872.934,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-07-13T22:00:00.000Z",
+    "projectCode": "LSM",
+    "priority": "Alta",
+    "assignedTo": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "techDescription": "Definir la formula de recpeción de los contratos a traves de EAL.\n\n1. que vamos a recibir.\n2. Definir metodo y alimentar mapeo de campos.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-8",
+    "taskNumber": 8,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783589969,
+      "_nanoseconds": 287000000
+    },
+    "updatedAt": {
+      "_seconds": 1783589969,
+      "_nanoseconds": 287000000
+    }
+  },
+  {
     "id": "WcR8xHuptELMLXfc3SEx",
     "weekId": "2026-02-12",
     "relatedDailyStatusId": "3_2026-02-12",
