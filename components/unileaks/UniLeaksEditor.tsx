@@ -71,7 +71,7 @@ import { saveNote } from "@/lib/unileaks";
 import { addTenantWord, getTenantWords } from "@/lib/dictionary";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
-import { Check, Loader2, Globe, Lock, Users, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus, FileSpreadsheet } from "lucide-react";
+import { Check, Loader2, Globe, Lock, Users, Trash2, List, Code, MessageSquareQuote, Download, FileText, FileCode, FileType, BookMarked, ImageIcon, Share2, PaintRoller, ClipboardCopy, Plus, Minus, FileSpreadsheet, ListChecks } from "lucide-react";
 import { getShareUrl, copyToClipboard } from "@/lib/share";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSafeFirestore } from "@/hooks/useSafeFirestore";
@@ -88,6 +88,8 @@ import UniDocsTemplatePickerModal from "@/components/unileaks/UniDocsTemplatePic
 import UniDocsMinutaWizard from "@/components/unidocs/UniDocsMinutaWizard";
 import EditorContextMenu from "@/components/unileaks/EditorContextMenu";
 import BulletList from '@tiptap/extension-bullet-list';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import UniLeaksSearch from "./UniLeaksSearch";
 
 const CustomBulletList = BulletList.extend({
@@ -201,6 +203,10 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
             }),
             FoldableHeading,
             CustomBulletList,
+            TaskList,
+            TaskItem.configure({
+                nested: true,
+            }),
             Table.configure({
                 resizable: true,
                 HTMLAttributes: {
@@ -937,6 +943,13 @@ export default function UniLeaksEditor({ note, onSaveSuccess, onDeleteSuccess, o
                                 title="Lista de viñetas"
                             >
                                 <List className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => editor.chain().focus().toggleTaskList().run()}
+                                className={cn("px-3 py-2 text-sm hover:bg-muted transition-colors", editor.isActive('taskList') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+                                title="Lista de tareas (checklist)"
+                            >
+                                <ListChecks className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
