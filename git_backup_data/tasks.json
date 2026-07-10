@@ -11167,6 +11167,54 @@
     }
   },
   {
+    "id": "kgZ8yA5ylIVmBGnnrXOy",
+    "title": "LS debe definir como se asignan los recursos en fleet para definir la lista final.",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783689754.057,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "LSM",
+    "area": "Maestros",
+    "module": "PLANIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-9",
+    "taskNumber": 9,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783689817,
+      "_nanoseconds": 369000000
+    },
+    "updatedAt": {
+      "_seconds": 1783689817,
+      "_nanoseconds": 369000000
+    }
+  },
+  {
     "id": "kuuaW4RG0Ut8JWxBciGz",
     "weekId": "2026-01-19",
     "relatedJournalEntryId": "3_2026-01-19",
