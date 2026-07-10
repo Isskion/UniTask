@@ -538,7 +538,6 @@
     "endDate": "2026-07-02T22:00:00.000Z",
     "area": "Documentación",
     "module": "ROUTING",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-4",
     "taskNumber": 4,
@@ -548,10 +547,18 @@
       "_nanoseconds": 904000000
     },
     "attributes": {},
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "M",
+    "actualEffort": 2,
+    "closedAt": {
+      "_seconds": 1783579102,
+      "_nanoseconds": 441000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783494298,
-      "_nanoseconds": 961000000
+      "_seconds": 1783579102,
+      "_nanoseconds": 441000000
     }
   },
   {
@@ -1293,10 +1300,10 @@
       "_seconds": 1780307536,
       "_nanoseconds": 938000000
     },
-    "status": "in_progress",
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1782887589,
-      "_nanoseconds": 10000000
+      "_seconds": 1783579224,
+      "_nanoseconds": 859000000
     }
   },
   {
@@ -2107,7 +2114,6 @@
     "projectCode": "UNI",
     "endDate": "2026-07-09T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "techDescription": "Integración con DEliverea\n\n-- Solicitada reunión con ellos hoy.",
     "area": "Interfaces",
     "module": "PEDIDOS",
     "actualEffort": null,
@@ -2122,9 +2128,10 @@
     "attributes": {},
     "status": "in_progress",
     "title": "Integración con Deliverea",
+    "techDescription": "Integración con DEliverea\n\n-- Solicitada reunión con ellos hoy.\n\nMeeting with Deliverea\nUnigis x Deliverea\nJuly 09, 2026  •  15 mins  •  Request Access to Recording & Summary or Ask Fathom\nAction Items ✨\n\t\t\nEmail Javier Martínez (CM) intro to Joan Rovira; schedule follow-up to align on commercial model\nDaniel Del Amo\n\t\t\nUpdate internal evaluation w/ call notes; submit to management next week\nDaniel Del Amo\n\t\t\nEmail Deliverea sandbox credentials to Daniel; activate 2–3 keys\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nExplorar una asociación estratégica para middleware de integración.\n\nPuntos clave\nAsociación propuesta: Deliverea se convertiría en el middleware de integración exclusivo de Unigis para Europa, resolviendo un cuello de botella técnico crítico a medida que Unigis pasa de la última milla a un TMS completo.\n\nPosicionamiento de Deliverea: Un proveedor premium centrado en clientes empresariales complejos que requieren soluciones robustas (ISO 27001, SLAs elevados), no una commodity de bajo coste.\n\nModelos de negocio: Opciones flexibles que incluyen marca blanca (que requiere compromisos de licencia) o una asociación estándar de reparto de ingresos.\n\nPróximo paso: Daniel presentará Deliverea a la dirección de Unigis como el principal candidato, utilizando una cuenta sandbox proporcionada por Deliverea para demostrar la solución técnica.\n\nTemas\nEl desafío de integración de Unigis\nCambio del negocio: Ampliándose de la entrega de última milla a un TMS completo, lo que requiere muchas más integraciones (p. ej., GPS, ERPs, transportistas).\n\nCuello de botella técnico: Integrar nuevos socios directamente en el producto principal de Unigis es un proceso de alto riesgo y alto coste debido a su arquitectura distribuida LTS.\n\nObjetivo estratégico: Externalizar todas las integraciones no esenciales a un socio dedicado de middleware.\n\nAsociación propuesta con Deliverea\nRol: Middleware exclusivo para Unigis en Europa, comenzando con España y ampliándose a Italia y Francia.\n\nModelo: Unigis gestionaría la relación con el cliente, y el cliente pagaría los servicios de integración de Deliverea.\n\nCatalizador: El proyecto Transpaís es el impulsor inmediato. Unigis se integrará con quien seleccione Transpaís, y Deliverea es el candidato principal.\n\nSolución y posicionamiento de Deliverea\nOferta principal: Una solución premium y robusta para clientes empresariales complejos (p. ej., Luis Simón) que requieren alta seguridad (ISO 27001) y SLAs.\n\nProceso de integración:\n\nAutoservicio: Los socios pueden integrarse mediante la API estándar de Deliverea a un coste inferior (~4.000 €).\n\nServicio completo: Deliverea gestiona integraciones legacy complejas (transferencias de archivos, servicios web) en 3–4 semanas.\n\nPrecios: No es una opción de bajo coste. Se posiciona como una alternativa de alto valor frente a proveedores comoditizados como Tucán.\n\nPróximos pasos\nJoan: Crear una cuenta sandbox para que Daniel acceda a la documentación técnica privada.\n\nDaniel:\n\nRevisar la documentación técnica y el portafolio de Deliverea.\n\nPresentar a Deliverea como el candidato principal a la dirección de Unigis (Javier Martínez).\n\n",
     "updatedAt": {
-      "_seconds": 1783326028,
-      "_nanoseconds": 803000000
+      "_seconds": 1783663357,
+      "_nanoseconds": 893000000
     }
   },
   {
@@ -4899,7 +4906,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-25",
     "taskNumber": 25,
@@ -4909,10 +4915,18 @@
       "_nanoseconds": 631000000
     },
     "endDate": "2026-07-30T22:00:00.000Z",
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "M",
+    "actualEffort": 16,
+    "closedAt": {
+      "_seconds": 1783579241,
+      "_nanoseconds": 979000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783494370,
-      "_nanoseconds": 298000000
+      "_seconds": 1783579241,
+      "_nanoseconds": 979000000
     }
   },
   {
@@ -7484,6 +7498,54 @@
     }
   },
   {
+    "id": "WQkcdmjioh7LfIR3VAq9",
+    "title": "Definir flujo de recepción de contratos",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783589872.934,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-07-13T22:00:00.000Z",
+    "projectCode": "LSM",
+    "priority": "Alta",
+    "assignedTo": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "techDescription": "Definir la formula de recpeción de los contratos a traves de EAL.\n\n1. que vamos a recibir.\n2. Definir metodo y alimentar mapeo de campos.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-8",
+    "taskNumber": 8,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783589969,
+      "_nanoseconds": 287000000
+    },
+    "updatedAt": {
+      "_seconds": 1783589969,
+      "_nanoseconds": 287000000
+    }
+  },
+  {
     "id": "WcR8xHuptELMLXfc3SEx",
     "weekId": "2026-02-12",
     "relatedDailyStatusId": "3_2026-02-12",
@@ -8797,7 +8859,6 @@
   {
     "id": "bfQXxYXvzHcjRqPVOYGL",
     "title": "Gestion de incidencias y ejecución -- Revisarlo en el documento.",
-    "status": "pending",
     "projectId": "OH4sjML9byhLuzMXSTss",
     "acceptanceCriteria": [
       {
@@ -8828,7 +8889,6 @@
     "endDate": "2026-07-09T22:00:00.000Z",
     "area": "Documentación",
     "module": "PLANIFICACIÓN",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "LUI-7",
     "taskNumber": 7,
@@ -8837,9 +8897,20 @@
       "_seconds": 1783075349,
       "_nanoseconds": 403000000
     },
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "techDescription": "Añadido en el documento de logistica inversa entregado el 20260709",
+    "estimatedEffortSize": "M",
+    "actualEffort": 8,
+    "attributes": {},
+    "closedAt": {
+      "_seconds": 1783579205,
+      "_nanoseconds": 9000000
+    },
+    "estimatedEffort": 2,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1783075349,
-      "_nanoseconds": 403000000
+      "_seconds": 1783579205,
+      "_nanoseconds": 9000000
     }
   },
   {
@@ -10807,7 +10878,6 @@
     "projectCode": "TSP",
     "area": "Interfaces",
     "module": "PLANIFICACIÓN",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-34",
     "taskNumber": 34,
@@ -10817,10 +10887,18 @@
       "_nanoseconds": 876000000
     },
     "attributes": {},
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "XS",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1783579252,
+      "_nanoseconds": 771000000
+    },
+    "estimatedEffort": 0.125,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1782825359,
-      "_nanoseconds": 289000000
+      "_seconds": 1783579252,
+      "_nanoseconds": 771000000
     }
   },
   {
@@ -11086,6 +11164,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "kgZ8yA5ylIVmBGnnrXOy",
+    "title": "LS debe definir como se asignan los recursos en fleet para definir la lista final.",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1783689754.057,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-07-30T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "LSM",
+    "area": "Maestros",
+    "module": "PLANIFICACIÓN",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-9",
+    "taskNumber": 9,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1783689817,
+      "_nanoseconds": 369000000
+    },
+    "updatedAt": {
+      "_seconds": 1783689817,
+      "_nanoseconds": 369000000
     }
   },
   {

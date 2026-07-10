@@ -4766,6 +4766,64 @@
     "updatedAt": "2026-07-06T15:55:01.556Z"
   },
   {
+    "id": "3_2026-07-08",
+    "date": "2026-07-08",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "pmNotes": "Transpais - Seguimiento semanal 08-07-2026\n\nInterfaces:\n-> Aitana Business Central: Esta semana se ha pasado el metodo de creación de pedidos a Luis Barquin. Solictaron un caso mas concreto, queda por hacerselo llegar.\n-> Webfleet: en proceso de inicio de pruebas internas. Seguimos con la imposibiliad de recuperar eventos.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n        PORTIC -- > Hemos encontrado los metodos para crear pedidos, pero necesitamos validarlos con Portic para garantizar que el desarrollo sea certero. Contactar a David Benito.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Internacional: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. Sin respuesta.\nRevisar mail de 14 de mayo para encontrar el mail de David Benito.\n\n------------\nSolicitan comenzar relevamientos de tarifas. Jorge Sureda es ok a esto, proponer fechas la proxima semana para arrancar el proceso, Luego empiezan los periodos vacacionales.\n\nEnviamos mail con las disponibilidades de los recursos.",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "blocks": [
+          {
+            "content": "Transpais - Seguimiento semanal 08-07-2026\n\nInterfaces:\n-> Aitana Business Central: Esta semana se ha pasado el metodo de creación de pedidos a Luis Barquin. Solictaron un caso mas concreto, queda por hacerselo llegar.\n-> Webfleet: en proceso de inicio de pruebas internas. Seguimos con la imposibiliad de recuperar eventos.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n        PORTIC -- > Hemos encontrado los metodos para crear pedidos, pero necesitamos validarlos con Portic para garantizar que el desarrollo sea certero. Contactar a David Benito.\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Internacional: Entregado documento con anotaciones respondidas. Sin respuesta.\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. Sin respuesta.\nRevisar mail de 14 de mayo para encontrar el mail de David Benito.\n\n------------\nSolicitan comenzar relevamientos de tarifas. Jorge Sureda es ok a esto, proponer fechas la proxima semana para arrancar el proceso, Luego empiezan los periodos vacacionales.\n\nEnviamos mail con las disponibilidades de los recursos.",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "isCollapsed": false,
+            "id": "default"
+          }
+        ],
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active"
+      },
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "Ejemplo de petición curl:\n\n \n\ncurl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' --header 'X-Token: 67-92-02-40-01-4' -d '[ \\\n\n   { \\\n\n     \"Codigo Pedido\": \"P0000043\", \\\n\n     \"Codigo Pedido Adicional\": \"P0000043\", \\\n\n     \"Fecha Entrega\": \"2026-07-08T11:50:11.747Z\", \\\n\n     \"Fecha Jornada\": \"2026-07-08T11:50:11.747Z\", \\\n\n     \"Pedido\": { \\\n\n       \"Estado\": \"EN PREPARACION\" \\\n\n     } \\\n\n   } \\\n\n ]' 'h",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Ejemplo de petición curl:\n\n \n\ncurl -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' --header 'X-Token: 67-92-02-40-01-4' -d '[ \\\n\n   { \\\n\n     \"Codigo Pedido\": \"P0000043\", \\\n\n     \"Codigo Pedido Adicional\": \"P0000043\", \\\n\n     \"Fecha Entrega\": \"2026-07-08T11:50:11.747Z\", \\\n\n     \"Fecha Jornada\": \"2026-07-08T11:50:11.747Z\", \\\n\n     \"Pedido\": { \\\n\n       \"Estado\": \"EN PREPARACION\" \\\n\n     } \\\n\n   } \\\n\n ]' 'h",
+            "isCollapsed": false
+          }
+        ]
+      },
+      {
+        "name": "UNIGIS",
+        "projectId": "HKnZypXlGdM0VjRLOysB",
+        "pmNotes": "Meeting with Deliverea\nUnigis x Deliverea\nJuly 09, 2026  •  15 mins  •  Request Access to Recording & Summary or Ask Fathom\nAction Items ✨\n\t\t\nEmail Javier Martínez (CM) intro to Joan Rovira; schedule follow-up to align on commercial model\nDaniel Del Amo\n\t\t\nUpdate internal evaluation w/ call notes; submit to management next week\nDaniel Del Amo\n\t\t\nEmail Deliverea sandbox credentials to Daniel; activate 2–3 keys\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nExplorar una asociación estratégica para middleware de integración.\n\nPuntos clave\nAsociación propuesta: Deliverea se convertiría en el middleware de integración exclusivo de Unigis para Europa, resolviendo un cuello de botella técnico crítico a medida que Unigis pasa de la última milla a un TMS completo.\n\nPosicionamiento de Deliverea: Un proveedor premium centrado en clientes empresariales complejos que requieren soluciones robustas (ISO 27001, SLAs elevados), no una commodity de bajo coste.\n\nModelos de negocio: Opciones flexibles que incluyen marca blanca (que requiere compromisos de licencia) o una asociación estándar de reparto de ingresos.\n\nPróximo paso: Daniel presentará Deliverea a la dirección de Unigis como el principal candidato, utilizando una cuenta sandbox proporcionada por Deliverea para demostrar la solución técnica.\n\nTemas\nEl desafío de integración de Unigis\nCambio del negocio: Ampliándose de la entrega de última milla a un TMS completo, lo que requiere muchas más integraciones (p. ej., GPS, ERPs, transportistas).\n\nCuello de botella técnico: Integrar nuevos socios directamente en el producto principal de Unigis es un proceso de alto riesgo y alto coste debido a su arquitectura distribuida LTS.\n\nObjetivo estratégico: Externalizar todas las integraciones no esenciales a un socio dedicado de middleware.\n\nAsociación propuesta con Deliverea\nRol: Middleware exclusivo para Unigis en Europa, comenzando con España y ampliándose a Italia y Francia.\n\nModelo: Unigis gestionaría la relación con el cliente, y el cliente pagaría los servicios de integración de Deliverea.\n\nCatalizador: El proyecto Transpaís es el impulsor inmediato. Unigis se integrará con quien seleccione Transpaís, y Deliverea es el candidato principal.\n\nSolución y posicionamiento de Deliverea\nOferta principal: Una solución premium y robusta para clientes empresariales complejos (p. ej., Luis Simón) que requieren alta seguridad (ISO 27001) y SLAs.\n\nProceso de integración:\n\nAutoservicio: Los socios pueden integrarse mediante la API estándar de Deliverea a un coste inferior (~4.000 €).\n\nServicio completo: Deliverea gestiona integraciones legacy complejas (transferencias de archivos, servicios web) en 3–4 semanas.\n\nPrecios: No es una opción de bajo coste. Se posiciona como una alternativa de alto valor frente a proveedores comoditizados como Tucán.\n\nPróximos pasos\nJoan: Crear una cuenta sandbox para que Daniel acceda a la documentación técnica privada.\n\nDaniel:\n\nRevisar la documentación técnica y el portafolio de Deliverea.\n\nPresentar a Deliverea como el candidato principal a la dirección de Unigis (Javier Martínez).",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Meeting with Deliverea\nUnigis x Deliverea\nJuly 09, 2026  •  15 mins  •  Request Access to Recording & Summary or Ask Fathom\nAction Items ✨\n\t\t\nEmail Javier Martínez (CM) intro to Joan Rovira; schedule follow-up to align on commercial model\nDaniel Del Amo\n\t\t\nUpdate internal evaluation w/ call notes; submit to management next week\nDaniel Del Amo\n\t\t\nEmail Deliverea sandbox credentials to Daniel; activate 2–3 keys\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nExplorar una asociación estratégica para middleware de integración.\n\nPuntos clave\nAsociación propuesta: Deliverea se convertiría en el middleware de integración exclusivo de Unigis para Europa, resolviendo un cuello de botella técnico crítico a medida que Unigis pasa de la última milla a un TMS completo.\n\nPosicionamiento de Deliverea: Un proveedor premium centrado en clientes empresariales complejos que requieren soluciones robustas (ISO 27001, SLAs elevados), no una commodity de bajo coste.\n\nModelos de negocio: Opciones flexibles que incluyen marca blanca (que requiere compromisos de licencia) o una asociación estándar de reparto de ingresos.\n\nPróximo paso: Daniel presentará Deliverea a la dirección de Unigis como el principal candidato, utilizando una cuenta sandbox proporcionada por Deliverea para demostrar la solución técnica.\n\nTemas\nEl desafío de integración de Unigis\nCambio del negocio: Ampliándose de la entrega de última milla a un TMS completo, lo que requiere muchas más integraciones (p. ej., GPS, ERPs, transportistas).\n\nCuello de botella técnico: Integrar nuevos socios directamente en el producto principal de Unigis es un proceso de alto riesgo y alto coste debido a su arquitectura distribuida LTS.\n\nObjetivo estratégico: Externalizar todas las integraciones no esenciales a un socio dedicado de middleware.\n\nAsociación propuesta con Deliverea\nRol: Middleware exclusivo para Unigis en Europa, comenzando con España y ampliándose a Italia y Francia.\n\nModelo: Unigis gestionaría la relación con el cliente, y el cliente pagaría los servicios de integración de Deliverea.\n\nCatalizador: El proyecto Transpaís es el impulsor inmediato. Unigis se integrará con quien seleccione Transpaís, y Deliverea es el candidato principal.\n\nSolución y posicionamiento de Deliverea\nOferta principal: Una solución premium y robusta para clientes empresariales complejos (p. ej., Luis Simón) que requieren alta seguridad (ISO 27001) y SLAs.\n\nProceso de integración:\n\nAutoservicio: Los socios pueden integrarse mediante la API estándar de Deliverea a un coste inferior (~4.000 €).\n\nServicio completo: Deliverea gestiona integraciones legacy complejas (transferencias de archivos, servicios web) en 3–4 semanas.\n\nPrecios: No es una opción de bajo coste. Se posiciona como una alternativa de alto valor frente a proveedores comoditizados como Tucán.\n\nPróximos pasos\nJoan: Crear una cuenta sandbox para que Daniel acceda a la documentación técnica privada.\n\nDaniel:\n\nRevisar la documentación técnica y el portafolio de Deliverea.\n\nPresentar a Deliverea como el candidato principal a la dirección de Unigis (Javier Martínez).",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-08T13:27:39.617Z",
+    "updatedAt": "2026-07-10T06:03:25.051Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
