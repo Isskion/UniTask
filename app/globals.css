@@ -272,6 +272,41 @@
   padding-left: 0;
 }
 
+/* Bullet list marker types (Punto/Cuadrado/Línea/Flecha) — CustomBulletList sets
+   data-list-type, but @tailwindcss/typography forces `disc` on .prose ul, so the
+   marker has to be drawn manually via ::before instead of list-style-type. */
+.ProseMirror ul[data-list-type] {
+  list-style: none;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror ul[data-list-type] > li {
+  position: relative;
+}
+
+.ProseMirror ul[data-list-type] > li::before {
+  position: absolute;
+  left: -1.25rem;
+  top: 0;
+}
+
+.ProseMirror ul[data-list-type="disc"] > li::before {
+  content: '\2022';
+}
+
+.ProseMirror ul[data-list-type="square"] > li::before {
+  content: '\25AA';
+}
+
+.ProseMirror ul[data-list-type="dash"] > li::before {
+  content: '\2013';
+}
+
+.ProseMirror ul[data-list-type="arrow"] > li::before {
+  content: '\2192';
+  font-weight: 600;
+}
+
 .ProseMirror ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;

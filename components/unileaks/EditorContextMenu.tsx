@@ -290,14 +290,20 @@ export default function EditorContextMenu({
                 <div className="px-1 space-y-0.5">
                     <button
                         onClick={() => { editor.chain().focus().toggleBlockquote().run(); onClose(); }}
-                        className="w-full flex items-center gap-3 px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors text-foreground"
+                        className={cn(
+                            "w-full flex items-center gap-3 px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors",
+                            editor.isActive('blockquote') ? 'bg-primary/10 text-primary' : 'text-foreground'
+                        )}
                     >
                         <Quote className="w-4 h-4 text-muted-foreground" />
                         <span>Cita</span>
                     </button>
                     <button
-                        onClick={() => { editor.chain().focus().toggleCode().run(); onClose(); }}
-                        className="w-full flex items-center gap-3 px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors text-foreground"
+                        onClick={() => { editor.chain().focus().toggleCodeBlock().run(); onClose(); }}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-2 py-1.5 text-sm hover:bg-muted rounded-lg transition-colors",
+                            editor.isActive('codeBlock') ? 'bg-primary/10 text-primary' : 'text-foreground'
+                        )}
                     >
                         <Code className="w-4 h-4 text-muted-foreground" />
                         <span>Bloque de código</span>
