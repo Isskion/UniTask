@@ -2114,7 +2114,6 @@
     "projectCode": "UNI",
     "endDate": "2026-07-09T22:00:00.000Z",
     "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
-    "techDescription": "Integración con DEliverea\n\n-- Solicitada reunión con ellos hoy.",
     "area": "Interfaces",
     "module": "PEDIDOS",
     "actualEffort": null,
@@ -2129,9 +2128,10 @@
     "attributes": {},
     "status": "in_progress",
     "title": "Integración con Deliverea",
+    "techDescription": "Integración con DEliverea\n\n-- Solicitada reunión con ellos hoy.\n\nMeeting with Deliverea\nUnigis x Deliverea\nJuly 09, 2026  •  15 mins  •  Request Access to Recording & Summary or Ask Fathom\nAction Items ✨\n\t\t\nEmail Javier Martínez (CM) intro to Joan Rovira; schedule follow-up to align on commercial model\nDaniel Del Amo\n\t\t\nUpdate internal evaluation w/ call notes; submit to management next week\nDaniel Del Amo\n\t\t\nEmail Deliverea sandbox credentials to Daniel; activate 2–3 keys\nJoan Rovira\nMeeting Summary ✨\nPropósito de la reunión\nExplorar una asociación estratégica para middleware de integración.\n\nPuntos clave\nAsociación propuesta: Deliverea se convertiría en el middleware de integración exclusivo de Unigis para Europa, resolviendo un cuello de botella técnico crítico a medida que Unigis pasa de la última milla a un TMS completo.\n\nPosicionamiento de Deliverea: Un proveedor premium centrado en clientes empresariales complejos que requieren soluciones robustas (ISO 27001, SLAs elevados), no una commodity de bajo coste.\n\nModelos de negocio: Opciones flexibles que incluyen marca blanca (que requiere compromisos de licencia) o una asociación estándar de reparto de ingresos.\n\nPróximo paso: Daniel presentará Deliverea a la dirección de Unigis como el principal candidato, utilizando una cuenta sandbox proporcionada por Deliverea para demostrar la solución técnica.\n\nTemas\nEl desafío de integración de Unigis\nCambio del negocio: Ampliándose de la entrega de última milla a un TMS completo, lo que requiere muchas más integraciones (p. ej., GPS, ERPs, transportistas).\n\nCuello de botella técnico: Integrar nuevos socios directamente en el producto principal de Unigis es un proceso de alto riesgo y alto coste debido a su arquitectura distribuida LTS.\n\nObjetivo estratégico: Externalizar todas las integraciones no esenciales a un socio dedicado de middleware.\n\nAsociación propuesta con Deliverea\nRol: Middleware exclusivo para Unigis en Europa, comenzando con España y ampliándose a Italia y Francia.\n\nModelo: Unigis gestionaría la relación con el cliente, y el cliente pagaría los servicios de integración de Deliverea.\n\nCatalizador: El proyecto Transpaís es el impulsor inmediato. Unigis se integrará con quien seleccione Transpaís, y Deliverea es el candidato principal.\n\nSolución y posicionamiento de Deliverea\nOferta principal: Una solución premium y robusta para clientes empresariales complejos (p. ej., Luis Simón) que requieren alta seguridad (ISO 27001) y SLAs.\n\nProceso de integración:\n\nAutoservicio: Los socios pueden integrarse mediante la API estándar de Deliverea a un coste inferior (~4.000 €).\n\nServicio completo: Deliverea gestiona integraciones legacy complejas (transferencias de archivos, servicios web) en 3–4 semanas.\n\nPrecios: No es una opción de bajo coste. Se posiciona como una alternativa de alto valor frente a proveedores comoditizados como Tucán.\n\nPróximos pasos\nJoan: Crear una cuenta sandbox para que Daniel acceda a la documentación técnica privada.\n\nDaniel:\n\nRevisar la documentación técnica y el portafolio de Deliverea.\n\nPresentar a Deliverea como el candidato principal a la dirección de Unigis (Javier Martínez).\n\n",
     "updatedAt": {
-      "_seconds": 1783326028,
-      "_nanoseconds": 803000000
+      "_seconds": 1783663357,
+      "_nanoseconds": 893000000
     }
   },
   {

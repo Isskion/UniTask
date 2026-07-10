@@ -693,6 +693,21 @@
     }
   },
   {
+    "id": "DNCjp6p6wJng4l6D4qNU",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task UNI-3 - \"Integración con Deliverea\" has reached its deadline.",
+    "taskId": "8zIetZ7eiwRLSBST5mzs",
+    "link": "/?view=task-manager&taskId=8zIetZ7eiwRLSBST5mzs",
+    "createdAt": {
+      "_seconds": 1783663047,
+      "_nanoseconds": 258000000
+    },
+    "read": true
+  },
+  {
     "id": "DimApPkcztEQKw81cceb",
     "userId": "YYmPVQhCJUXrjgKgDj07G4aeuQ42",
     "type": "assignment",
