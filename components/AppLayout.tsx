@@ -313,6 +313,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
                             <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
                             <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                            <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
                             <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                             <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                             <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
@@ -554,6 +555,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.workspace')}</p>
                                 <NavItem mode="dashboard" icon={Inbox} label={t('nav.dashboard')} />
                                 <NavItem mode="editor" icon={Briefcase} label={t('nav.followUp')} />
+                                <NavItem mode="relevamiento" icon={ClipboardCheck} label={t('nav.relevamiento') || "Relevamiento Proyectos"} />
                                 <NavItem mode="projects" icon={FolderGit2} label={t('nav.projects')} />
                                 <NavItem mode="task-manager" icon={ClipboardList} label={t('nav.task-manager')} />
                                 <NavItem mode="tasks" icon={Layout} label={t('nav.allTasks')} />
