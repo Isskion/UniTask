@@ -4869,11 +4869,27 @@
             "isCollapsed": false
           }
         ]
+      },
+      {
+        "name": "SMSA",
+        "projectId": "c0HRtaCkKXxeiQf897sY",
+        "pmNotes": "SMSA - Resumen fechas, demoras y actas de solicitud de cambios a 07-2026\nFecha 0 de GL sobre propuesta comercial (fecha inicio + cantidad de meses proyecto vendido) = 12-2025\nActa 1 por demora en cierre de relevamiento 14-10-25\nFecha 1 de GL ajustada por demora + Plan Inicial tras diseño (sobre Plan EIII Inicial) = 26-01-26\nActa 2 por pedido extensión en la fecha de salida a GL desde SMSA para alinear sistemas TMS + WMS pero recortando el MVP sin reportes ni B2C = 02-02-26\nFecha 2 de GL tras ajuste anterior y demora en avance y cierre de interfaces SupplyNexus + SMSA = 23-04-26\nActa 3 por pedido SMSA de restablecer todo el MVP para asegurar operación conjunta completa TMS + WMS y pasaje de fecha de GL para posterior a verano\n=> Esto requiere de un último ajuste de Plan con nueva fecha de salida a GL, pero no se pudo hacer aún porque se necesita de dedicación del consultor para entregar pendientes al cliente para avanzar sus pruebas + restimación de reportes\n=> Sobre esto sabemos que la salida será en Sep 2026, pero necesitamos acta del cliente para certificar esa fecha y todos los hitos intermedios pendientes",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "SMSA - Resumen fechas, demoras y actas de solicitud de cambios a 07-2026\nFecha 0 de GL sobre propuesta comercial (fecha inicio + cantidad de meses proyecto vendido) = 12-2025\nActa 1 por demora en cierre de relevamiento 14-10-25\nFecha 1 de GL ajustada por demora + Plan Inicial tras diseño (sobre Plan EIII Inicial) = 26-01-26\nActa 2 por pedido extensión en la fecha de salida a GL desde SMSA para alinear sistemas TMS + WMS pero recortando el MVP sin reportes ni B2C = 02-02-26\nFecha 2 de GL tras ajuste anterior y demora en avance y cierre de interfaces SupplyNexus + SMSA = 23-04-26\nActa 3 por pedido SMSA de restablecer todo el MVP para asegurar operación conjunta completa TMS + WMS y pasaje de fecha de GL para posterior a verano\n=> Esto requiere de un último ajuste de Plan con nueva fecha de salida a GL, pero no se pudo hacer aún porque se necesita de dedicación del consultor para entregar pendientes al cliente para avanzar sus pruebas + restimación de reportes\n=> Sobre esto sabemos que la salida será en Sep 2026, pero necesitamos acta del cliente para certificar esa fecha y todos los hitos intermedios pendientes",
+            "isCollapsed": false
+          }
+        ]
       }
     ],
     "generalNotes": "",
     "createdAt": "2026-07-14T11:05:52.362Z",
-    "updatedAt": "2026-07-14T11:05:58.059Z"
+    "updatedAt": "2026-07-14T13:13:00.855Z"
   },
   {
     "id": "4_2026-01-12",
