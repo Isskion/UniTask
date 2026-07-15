@@ -5495,6 +5495,55 @@
     }
   },
   {
+    "id": "Li2uPveVA1fvL0bhMaeV",
+    "title": "Generación de retornables",
+    "status": "pending",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1784130494.624,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "DLG",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-07-16T22:00:00.000Z",
+    "area": "Interfaces",
+    "module": "PLANIFICACIÓN",
+    "techDescription": "Select * from Recurso\nSelect * from tipoRecurso --Nominado=0, ControlUbicacion=1, PermiteMobile (estos mirara la APP)\nSelect * from TipoRecursoMovimiento--1. Deposito a Viaje 2. Viaje a Parada 3. Parada a Viaje 4.Viaje a Deposito\n \nSelect * from UbicacionRecurso\nSelect * from UbicacionRecursoMovimiento\n \n \nSelect * from Producto\nSelect * from TipoProducto\n \nselect top 10  * from ViajeRecurso\nselect top 10  * from ParadaRecurso\n \nMetodo: Ver que hace y si se puede usar\n-LiberarRecursoViajes\n-TransferirRecursosViajeDepositoLlegada\n-TransferirRecursosViajeDepositoSalida\n-Y cualquier metodo para conocer su logica en Unidocs\n \n \nCrear Un SP que Genere en:\n-Todos los Recursos estaran en el DepositoSalida del Viaje (Select * from UbicacionRecurso)\n \n-DomicilioOrden todos los Recursos posibles de recolectar con una cantidad alta (Poblar:  UbicacionRecursoMovimiento.IdDomicilioOrden UbicacionRecursoMovimiento.CantidadSelect * from UbicacionRecursoMovimiento)\n-Esto garantiza que mobile muestre los recursos retornables\n-El proceso se configura por operación que valide el tipo de parada o si es contado o credito, o cualquier regla de negocio , etc\n \n \n-Al finalizar el viaje, vuelva todos los recursos al deposito de salida del Viaje, para \"resetear\" todos los recursos y llevarlos al origen.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "DEL-27",
+    "taskNumber": 27,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1784130533,
+      "_nanoseconds": 499000000
+    },
+    "updatedAt": {
+      "_seconds": 1784130533,
+      "_nanoseconds": 499000000
+    }
+  },
+  {
     "id": "M2kNIq9Xq490yqlJW6Lx",
     "weekId": "2026-01-27",
     "relatedDailyStatusId": "3_2026-01-27_1769515038787",
