@@ -4892,6 +4892,32 @@
     "updatedAt": "2026-07-14T13:13:00.855Z"
   },
   {
+    "id": "3_2026-07-16",
+    "date": "2026-07-16",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "SMSA",
+        "projectId": "c0HRtaCkKXxeiQf897sY",
+        "pmNotes": "SMSA Sync diario con Gonzalo 16-07-26\n Interfaces\nSMSA-Unigis: pedidos sin nodo de artículos con cantidad = 0 \n\n-Int1: JOANA A ENVIAR + PEDIDOS (para asegurar que es un caso borde y no vuelve a ocurrir)\n\n-Int3: AJUSTE DE DATOS A PEDIDO DE SMSA porque ahora no hace falta en TMS calcular las unidades de carga porque nos lo envian ERP (ver captura Gonzalo arriba) - véase como nos están enviando el campo \"unis\" que es necesario para hacer la conversión sobre las unidades de ese pedido \nSN-Unigis: \n\n-Int4: desarrollado - prueba de devoluciones: PENDIENTE (comunicación automática por proceso Unigis)\n\n-Int5: desarrollado - pruebas unitarias: LISTO (sn tiene que probablemente ajustar algo mínimo de viajes de su lado)\n\n-Int6: desarrollado - pruebas unitarias: LISTO (sn tiene que ajustar caso carga parcial)\n\n2. Routing y casos desbloqueo pruebas\nVolumetria: dimensiones de ítems en DC (TMS divide en cm) - RITA a revisar de su lado envíos ++ 64 casos enviados en las últimas horas que están OK validados. SIG PASO CONFIRMAR SMSA\nSplit de órdenes: se hace en base a pallets y UC pero en el TMS no tenemos todos los datos para hacerlo correctamente. Gonzalo haciendo pruebas para separar unidades como pedidos con unidad = 1. SIG PASO GONZALO INVESTIGAR Y VALIDAR INTERNAMENTE (SMSA tiene que definir limite)\nEjecución de la segunda vuelta: hay veces que quedan sin rutear ordenes - SIG PASO Gonzalo hacer más pruebas, ajustar parámetros de escenarios o configuraciones para no dejar sin rutear órdenes cuando hay disponibilidad de camiones\nTiempo de vuelta a depósito: hay rutas que por algún motivo la ida son X minutos y la vuelta a deposito tarda mucho más - SIG PASO Gonzalo hacer más pruebas para ver si tiene que ver con velocidades o algún parámetro que afecte\nGeorreferenciación: reportado SOP-12148 a Jorge Velazquez de Cartografía Unigis - SIG PASO ticket en Aprobado validar cuando lo entregan\nTiempos de espera: para varias órdenes del mismo cliente el tiempo no debería ser espera X cada orden. SMSA plantea que el tiempo teórico debería ser uno sólo (no se están usando consolidaciones). SIG PASO Gonzalo hacer pruebas y validar procesos o cuál es la mejor alternativa\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "SMSA Sync diario con Gonzalo 16-07-26\n Interfaces\nSMSA-Unigis: pedidos sin nodo de artículos con cantidad = 0 \n\n-Int1: JOANA A ENVIAR + PEDIDOS (para asegurar que es un caso borde y no vuelve a ocurrir)\n\n-Int3: AJUSTE DE DATOS A PEDIDO DE SMSA porque ahora no hace falta en TMS calcular las unidades de carga porque nos lo envian ERP (ver captura Gonzalo arriba) - véase como nos están enviando el campo \"unis\" que es necesario para hacer la conversión sobre las unidades de ese pedido \nSN-Unigis: \n\n-Int4: desarrollado - prueba de devoluciones: PENDIENTE (comunicación automática por proceso Unigis)\n\n-Int5: desarrollado - pruebas unitarias: LISTO (sn tiene que probablemente ajustar algo mínimo de viajes de su lado)\n\n-Int6: desarrollado - pruebas unitarias: LISTO (sn tiene que ajustar caso carga parcial)\n\n2. Routing y casos desbloqueo pruebas\nVolumetria: dimensiones de ítems en DC (TMS divide en cm) - RITA a revisar de su lado envíos ++ 64 casos enviados en las últimas horas que están OK validados. SIG PASO CONFIRMAR SMSA\nSplit de órdenes: se hace en base a pallets y UC pero en el TMS no tenemos todos los datos para hacerlo correctamente. Gonzalo haciendo pruebas para separar unidades como pedidos con unidad = 1. SIG PASO GONZALO INVESTIGAR Y VALIDAR INTERNAMENTE (SMSA tiene que definir limite)\nEjecución de la segunda vuelta: hay veces que quedan sin rutear ordenes - SIG PASO Gonzalo hacer más pruebas, ajustar parámetros de escenarios o configuraciones para no dejar sin rutear órdenes cuando hay disponibilidad de camiones\nTiempo de vuelta a depósito: hay rutas que por algún motivo la ida son X minutos y la vuelta a deposito tarda mucho más - SIG PASO Gonzalo hacer más pruebas para ver si tiene que ver con velocidades o algún parámetro que afecte\nGeorreferenciación: reportado SOP-12148 a Jorge Velazquez de Cartografía Unigis - SIG PASO ticket en Aprobado validar cuando lo entregan\nTiempos de espera: para varias órdenes del mismo cliente el tiempo no debería ser espera X cada orden. SMSA plantea que el tiempo teórico debería ser uno sólo (no se están usando consolidaciones). SIG PASO Gonzalo hacer pruebas y validar procesos o cuál es la mejor alternativa\n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-16T10:48:25.082Z",
+    "updatedAt": "2026-07-16T10:48:35.363Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
