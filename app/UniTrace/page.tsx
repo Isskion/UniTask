@@ -6,6 +6,7 @@ import { auth } from "@/lib/firebase";
 import { getActiveProjects } from "@/lib/projects";
 import { toSlug } from "@/lib/slug";
 import { RoleLevel, type Project } from "@/types";
+import { Trash2 } from "lucide-react";
 
 interface UniTraceEntry {
     slug: string;
@@ -25,9 +26,12 @@ export default function UniTracePage() {
     const [slug, setSlug] = useState("");
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
+    const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
 
     const roleLevel = userProfile?.roleLevel ?? 0;
     const canCreate = roleLevel >= RoleLevel.ADMIN;
+    // Mismo nivel que requiere el endpoint DELETE — solo admin puede borrar clientes UniTrace.
+    const canDelete = canCreate;
 
     async function loadEntries() {
         if (!auth.currentUser) return;
@@ -87,6 +91,28 @@ export default function UniTracePage() {
         }
     }
 
+    async function handleDelete(e: React.MouseEvent, entrySlug: string, clientLabel: string) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!auth.currentUser) return;
+        if (!confirm(`¿Eliminar "${clientLabel}" (/UniTrace/${entrySlug})? Esta acción no se puede deshacer.`)) return;
+
+        setDeletingSlug(entrySlug);
+        try {
+            const token = await auth.currentUser.getIdToken();
+            const res = await fetch(`/api/unitrace?slug=${encodeURIComponent(entrySlug)}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error("No se pudo eliminar");
+            await loadEntries();
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Error eliminando el cliente");
+        } finally {
+            setDeletingSlug(null);
+        }
+    }
+
     if (loading) {
         return <div className="p-8 text-center text-slate-500">Cargando…</div>;
     }
@@ -130,13 +156,25 @@ export default function UniTracePage() {
                                 <div className="font-medium text-slate-800">{entry.clientName || entry.slug}</div>
                                 <div className="text-xs text-slate-500">/UniTrace/{entry.slug}</div>
                             </div>
-                            <span
-                                className={`text-xs font-medium px-2 py-1 rounded-full ${
-                                    entry.accessEnabled ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                                }`}
-                            >
-                                {entry.accessEnabled ? "Clave activa" : "Sin clave activa"}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                        entry.accessEnabled ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                                    }`}
+                                >
+                                    {entry.accessEnabled ? "Clave activa" : "Sin clave activa"}
+                                </span>
+                                {canDelete && (
+                                    <button
+                                        onClick={(e) => handleDelete(e, entry.slug, entry.clientName || entry.slug)}
+                                        disabled={deletingSlug === entry.slug}
+                                        title="Eliminar cliente UniTrace"
+                                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
                         </a>
                     ))}
                 </div>

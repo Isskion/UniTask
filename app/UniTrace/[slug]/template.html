@@ -11,7 +11,7 @@
 .unitrace-gate{position:fixed;inset:0;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:100}
 .unitrace-gate-card{background:#fff;border:1px solid #e0ddd6;border-radius:12px;padding:28px;width:320px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
 .unitrace-gate-card input{margin-bottom:0}
-body.readonly [onclick^="openModal"],body.readonly [onclick^="delItem"],body.readonly [onclick^="delDeposito"],body.readonly [onclick^="addInterCol"],body.readonly [onclick^="deletePlan"],body.readonly [onclick^="guardarPlan"],body.readonly [onclick^="limpiarPlan"],body.readonly [onclick^="resetData"],body.readonly #lbl-import{display:none!important}
+body.readonly [onclick^="openModal"],body.readonly [onclick^="delItem"],body.readonly [onclick^="delDeposito"],body.readonly [onclick^="addInterCol"],body.readonly [onclick^="deletePlan"],body.readonly [onclick^="guardarPlan"],body.readonly [onclick^="limpiarPlan"],body.readonly [onclick^="resetData"],body.readonly #lbl-import,body.readonly #lbl-import-xlsx{display:none!important}
 body.readonly .mc{pointer-events:none;cursor:default}
 #btn-key-panel{display:none}
 #btn-key-panel.show{display:inline-flex}
@@ -106,6 +106,75 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .leg{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
 .li{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx2)}
 .ld{width:12px;height:12px;border-radius:3px}
+
+/* ── Selector de operación (chips redondeados, un color por operación) ── */
+.op-chip-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.op-chip{padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;cursor:pointer;border:2px solid transparent;background:var(--sf2);color:var(--tx2);font-family:inherit;transition:all .15s;line-height:1.2}
+.op-chip:hover{filter:brightness(0.96)}
+.op-chip-none{background:var(--sf2);color:var(--tx2)}
+.op-chip-none.active{border-color:var(--bd2);color:var(--tx);background:var(--sf3)}
+.op-chip-bl{background:var(--bl2);color:var(--bl)}.op-chip-bl.active{border-color:var(--bl)}
+.op-chip-tl{background:var(--tl2);color:var(--tl)}.op-chip-tl.active{border-color:var(--tl)}
+.op-chip-am{background:var(--am2);color:var(--am)}.op-chip-am.active{border-color:var(--am)}
+.op-chip-co{background:var(--co2);color:var(--co)}.op-chip-co.active{border-color:var(--co)}
+.op-chip-re{background:var(--re2);color:var(--re)}.op-chip-re.active{border-color:var(--re)}
+.op-chip-gr{background:var(--gr2);color:var(--gr)}.op-chip-gr.active{border-color:var(--gr)}
+.op-chip-pu{background:var(--pu2);color:var(--pu)}.op-chip-pu.active{border-color:var(--pu)}
+.op-chip-gy{background:var(--gy2);color:var(--gy)}.op-chip-gy.active{border-color:var(--gy)}
+.op-chip-wrap{display:inline-flex;align-items:center;gap:2px}
+.op-chip-edit{padding:6px;width:0;overflow:hidden;border-radius:50%;border:none;background:var(--sf3);color:var(--tx3);cursor:pointer;font-size:11px;opacity:0;transition:all .15s}
+.op-chip-wrap:hover .op-chip-edit{opacity:1;width:24px;padding:6px;margin-left:2px}
+.op-chip-add{padding:10px 18px;border-radius:24px;font-size:13px;font-weight:500;cursor:pointer;border:2px dashed var(--bd2);background:none;color:var(--tx2);font-family:inherit;transition:all .15s}
+.op-chip-add:hover{border-color:var(--bl);color:var(--bl)}
+
+/* ── Selector de color (formulario de operación) ── */
+.color-swatch-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.color-swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;padding:0;transition:transform .15s}
+.color-swatch:hover{transform:scale(1.08)}
+.color-swatch.sel{transform:scale(1.12);box-shadow:0 0 0 2px var(--sf),0 0 0 4px var(--tx)}
+
+/* ── Pestañas de entidad (Pedido/Orden/Ruta/Viaje/Parada) dentro de una pestaña de página ──
+   Nombre distinto de ".tab" a propósito: esa clase ya la usa <main> para mostrar/ocultar
+   secciones completas (.tab{display:none}.tab.on{display:block}) — reusarla aquí las dejaba
+   invisibles. */
+.etabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.etab{padding:6px 16px;border-radius:20px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx2);font-size:12.5px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.etab:hover{background:var(--sf2)}
+.etab.active{background:var(--bl);color:#fff;border-color:var(--bl)}
+
+/* ── Iconos de check para columnas booleanas (Foto/Firma/Motivo/Geocerca) ── */
+.ci{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;font-size:12px;font-weight:700}
+.ci-y{background:var(--gr2);color:var(--gr)}
+.ci-n{color:var(--tx3)}
+.origs{display:flex;flex-direction:column;gap:3px}
+
+/* ── Badges de estado con borde (mismo look que la web de referencia de la matriz TSP:
+   chip con relleno suave + borde 1px del mismo tono + esquinas 5px, no el pill 100% redondo
+   sin borde que usa el resto de la app) — usados solo en Matriz de Estados/Transiciones. */
+.bx{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10.5px;font-weight:500;border:1px solid;white-space:nowrap;line-height:1.5}
+.b-amb{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+.b-red{background:#FCEBEB;border-color:#E24B4A;color:#501313}
+.b-blu{background:#E6F1FB;border-color:#378ADD;color:#042C53}
+.b-grn{background:#EAF3DE;border-color:#639922;color:#173404}
+.b-tel{background:#E1F5EE;border-color:#1D9E75;color:#04342C}
+.b-gry{background:#F1EFE8;border-color:#888780;color:#2C2C2A}
+.b-cor{background:#FAECE7;border-color:#D85A30;color:#4A1B0C}
+.b-pur{background:#EEEDFE;border-color:#7F77DD;color:#26215C}
+.vbx{display:inline-block;padding:2px 7px;border-radius:5px;font-size:9.5px;font-weight:500;border:1px solid;white-space:nowrap;line-height:1.5;background:#EEEDFE;border-color:#7F77DD;color:#26215C}
+.tt{display:inline-block;background:#EAF3DE;color:#3B6D11;border:.5px solid #97C459;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:500;margin:2px 2px 2px 0;white-space:nowrap}
+.tc{display:inline-block;background:#FAEEDA;color:#854F0B;border:.5px solid #EF9F27;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:500;margin:2px 0;white-space:nowrap}
+.no-trig{color:var(--tx3);font-size:11px}
+
+/* ── Tarjetas de estadística estilo "web de referencia" (número grande arriba, label debajo) —
+   distinto del .sc/.sl/.sv del resto de la app (que va label arriba, valor abajo); se usa solo
+   en Matriz de Estados/Transiciones para igualar el aspecto pedido. ── */
+.mstat-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.mstat{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:10px 15px;min-width:90px}
+.mstat-n{font-size:20px;font-weight:600;line-height:1;color:var(--tx)}
+.mstat-l{font-size:10px;color:var(--tx2);margin-top:3px}
+.mgroup-hdr{background:var(--sf2);font-size:10px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;padding:5px 12px}
+.mcount-label{font-size:11px;color:var(--tx3);margin-left:auto;align-self:center}
+
 .import-export{display:flex;gap:8px}
 /* ── PLANIFICADOR ── */
 .plan-flow{display:flex;align-items:flex-start;gap:0;flex-wrap:nowrap;overflow-x:auto;padding:8px 0 16px;margin-bottom:4px}
@@ -199,6 +268,8 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <span class="badge" id="unitrace-client-badge">Cliente</span>
   <div style="flex:1"></div>
   <div class="import-export">
+    <button class="btn btn-sm" onclick="downloadExcelTemplate()">⊞ Plantilla Excel</button>
+    <label class="btn btn-sm" id="lbl-import-xlsx" style="cursor:pointer">↑ Importar Excel<input type="file" accept=".xlsx,.xls" style="display:none;width:auto" onchange="importExcelFile(event)"></label>
     <button class="btn btn-sm" onclick="exportData()">↓ Exportar JSON</button>
     <label class="btn btn-sm" id="lbl-import" style="cursor:pointer">↑ Importar JSON<input type="file" accept=".json" style="display:none;width:auto" onchange="importData(event)"></label>
     <button class="btn btn-sm" style="color:var(--re)" onclick="resetData()">↺ Resetear</button>
@@ -210,6 +281,8 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <button onclick="showTab('jornadas',this)"><span class="dot" style="background:#185FA5"></span>Jornada / Operación</button>
   <button onclick="showTab('matriz',this)"><span class="dot" style="background:#0F6E56"></span>Matriz Programación</button>
   <button onclick="showTab('transiciones',this)"><span class="dot" style="background:#534AB7"></span>Transiciones</button>
+  <button onclick="showTab('matriz-estados',this);renderMatrizEstados()"><span class="dot" style="background:#639922"></span>Matriz de Estados</button>
+  <button onclick="showTab('matriz-transiciones',this);renderMatrizTransiciones()"><span class="dot" style="background:#7F77DD"></span>Matriz de Transiciones</button>
   <button onclick="showTab('plantillas',this)"><span class="dot" style="background:#3B6D11"></span>Plantillas</button>
   <button onclick="showTab('depositos',this)"><span class="dot" style="background:#0F6E56"></span>Depósitos</button>
   <button onclick="showTab('planificador',this);ensurePlanInit()"><span class="dot" style="background:#854F0B"></span>Planificador</button>
@@ -267,6 +340,37 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
   <p class="sdesc">Controla qué rol puede ejecutar cada cambio de estado. Haz clic en cualquier celda de la matriz para añadir o editar la transición.</p>
   <div id="mx-transiciones"></div>
   <div id="tbl-transiciones" style="margin-top:22px"></div>
+</div>
+
+<div id="tab-matriz-estados" class="tab">
+  <div class="toolbar">
+    <div class="tl-l"><span class="stitle">Matriz de estados por entidad</span></div>
+  </div>
+  <p class="sdesc">Vista de solo lectura de los estados de cada entidad (Pedido, Orden, Ruta, Viaje, Parada), agrupados por fase — mismos datos que la pestaña "Estados", en formato de referencia rápida. Para editar, ve a "Estados".</p>
+  <div id="me-stats" class="mstat-row"></div>
+  <div id="me-tabs" class="etabs"></div>
+  <div class="toolbar">
+    <input type="text" class="search" placeholder="Buscar por código o nombre..." id="q-matriz-estados" oninput="renderMatrizEstados()">
+    <span id="me-count" class="mcount-label"></span>
+  </div>
+  <div id="me-content"></div>
+</div>
+
+<div id="tab-matriz-transiciones" class="tab">
+  <div class="toolbar">
+    <div class="tl-l"><span class="stitle">Matriz de transiciones (validaciones y cascada)</span></div>
+    <button class="btn btn-p" onclick="openModal('transicionesTsp',null)">+ Nueva transición</button>
+  </div>
+  <p class="sdesc">Transiciones estructurales por entidad y operación: validaciones requeridas en App Mobile, triggers en cascada hacia otras entidades y qué transiciones son automáticas. Independiente de la pestaña "Transiciones" (esa controla permisos por rol).</p>
+  <div id="mt-op-switcher" style="margin-bottom:12px"></div>
+  <div id="mt-stats" class="mstat-row"></div>
+  <div id="mt-tabs" class="etabs"></div>
+  <div class="toolbar">
+    <input type="text" class="search" placeholder="Buscar por estado, trigger..." id="q-matriz-transiciones" oninput="renderMatrizTransiciones()">
+    <span id="mt-count" class="mcount-label"></span>
+  </div>
+  <div id="mt-mx"></div>
+  <div id="mt-tbl" style="margin-top:22px"></div>
 </div>
 
 
@@ -361,90 +465,21 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-const DEFAULT_DATA = {"estados":[{"id":1,"codigo":1,"nombre":"Inicial","descripcion":"Estado inicial del pedido al entrar al sistema","activo":true},{"id":2,"codigo":2,"nombre":"Error","descripcion":"Pedido con errores de validación en campos de integración","activo":true},{"id":3,"codigo":3,"nombre":"Confirmado","descripcion":"Pedido confirmado, pendiente de validación final","activo":true},{"id":4,"codigo":4,"nombre":"Registrado Ok","descripcion":"Pedido integrado correctamente, validado sin errores","activo":true},{"id":5,"codigo":5,"nombre":"Programable","descripcion":"Pedido listo para ser programado por el distribuidor","activo":true},{"id":6,"codigo":6,"nombre":"Anulado","descripcion":"Pedido anulado por SAC","activo":true},{"id":7,"codigo":7,"nombre":"Programar Punto a Punto","descripcion":"Tramo directo remitente → destinatario","activo":true},{"id":8,"codigo":8,"nombre":"Programar Entrega Direta","descripcion":"Tramo final desde depósito hacia destinatario","activo":true},{"id":9,"codigo":9,"nombre":"Programar Recogida","descripcion":"Recolección desde remitente hacia depósito/hub","activo":true},{"id":10,"codigo":10,"nombre":"Programar Arrastre","descripcion":"Troncal entre depósitos (crossdock)","activo":true},{"id":11,"codigo":11,"nombre":"AJENA - Programar Punto a Punto","descripcion":"P2P ejecutado por agencia ajena","activo":true},{"id":12,"codigo":12,"nombre":"AJENA - Programar Arrastre","descripcion":"Arrastre ejecutado por agencia ajena","activo":true},{"id":13,"codigo":13,"nombre":"AJENA - Programar Recogida","descripcion":"Recogida ejecutada por agencia ajena","activo":true},{"id":14,"codigo":14,"nombre":"Programar Paqueteria","descripcion":"Tramo de paquetería con jornada específica por zona","activo":true},{"id":15,"codigo":15,"nombre":"Replanificar","descripcion":"Re-planificación tras incidencia de ejecución","activo":true},{"id":16,"codigo":16,"nombre":"Reprogramable","descripcion":"Pedido en estado que permite re-programación","activo":true},{"id":17,"codigo":17,"nombre":"Reentrega/Rerecogida","descripcion":"Segundo intento de entrega o recogida","activo":true},{"id":18,"codigo":18,"nombre":"Retorno deposito origen","descripcion":"Retorno de mercancía al depósito de origen","activo":true},{"id":19,"codigo":19,"nombre":"Retorno Cliente","descripcion":"Retorno de mercancía al cliente remitente","activo":true}],"jornadas":[{"id":1,"idDeposito":100,"nombreDeposito":"Guadalajara","tipoTramo":"Local","tipoJornada":"ES Madrid Local","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":2,"idDeposito":100,"nombreDeposito":"Guadalajara","tipoTramo":"Larga Distancia","tipoJornada":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":3,"idDeposito":101,"nombreDeposito":"Centralidad","tipoTramo":"Local","tipoJornada":"ES Madrid Local","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":4,"idDeposito":101,"nombreDeposito":"Centralidad","tipoTramo":"Larga Distancia","tipoJornada":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":false,"activo":true},{"id":5,"idDeposito":102,"nombreDeposito":"Lliça del Vale","tipoTramo":"Local","tipoJornada":"ES Barcelona Local","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":6,"idDeposito":102,"nombreDeposito":"Lliça del Vale","tipoTramo":"Larga Distancia","tipoJornada":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":7,"idDeposito":103,"nombreDeposito":"Zona Franca","tipoTramo":"Local","tipoJornada":"ES Barcelona Local","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":8,"idDeposito":103,"nombreDeposito":"Zona Franca","tipoTramo":"Larga Distancia","tipoJornada":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","esAjena":false,"esPaqueteria":false,"activo":true},{"id":9,"idDeposito":104,"nombreDeposito":"Porto","tipoTramo":"Local","tipoJornada":"PT Porto Local","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":10,"idDeposito":104,"nombreDeposito":"Porto","tipoTramo":"Paqueteria","tipoJornada":"PT Noroeste Paqueteria","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":11,"idDeposito":105,"nombreDeposito":"Coimbra","tipoTramo":"Local","tipoJornada":"PT Coimbra Local","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":12,"idDeposito":105,"nombreDeposito":"Coimbra","tipoTramo":"Paqueteria","tipoJornada":"PT Noroeste Paqueteria","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":13,"idDeposito":106,"nombreDeposito":"Lisboa","tipoTramo":"Local","tipoJornada":"PT Lisboa Local","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":14,"idDeposito":106,"nombreDeposito":"Lisboa","tipoTramo":"Paqueteria","tipoJornada":"PT Sudoeste Paqueteria","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":15,"idDeposito":107,"nombreDeposito":"Algarve","tipoTramo":"Local","tipoJornada":"PT Algarve Local","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":16,"idDeposito":107,"nombreDeposito":"Algarve","tipoTramo":"Paqueteria","tipoJornada":"PT Sudoeste Paqueteria","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":true,"activo":true},{"id":17,"idDeposito":108,"nombreDeposito":"PT Noroeste","tipoTramo":"Larga Distancia","tipoJornada":"PT Noroeste  Larga distancia","operacion":"PT Noroeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":18,"idDeposito":109,"nombreDeposito":"PT Sudoeste","tipoTramo":"Larga Distancia","tipoJornada":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","esAjena":false,"esPaqueteria":false,"activo":true},{"id":19,"idDeposito":110,"nombreDeposito":"Vila Real","tipoTramo":"Ajena","tipoJornada":"PT Ajena - Vila Real","operacion":"PT Noroeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":20,"idDeposito":111,"nombreDeposito":"Braga","tipoTramo":"Ajena","tipoJornada":"PT Ajena - Braga","operacion":"PT Noroeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":21,"idDeposito":112,"nombreDeposito":"Lisboa (Ajena)","tipoTramo":"Ajena","tipoJornada":"PT Ajena LISB","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":22,"idDeposito":113,"nombreDeposito":"Portimão","tipoTramo":"Ajena","tipoJornada":"PT Ajena PTOM","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":23,"idDeposito":114,"nombreDeposito":"Marselha","tipoTramo":"Ajena","tipoJornada":"PT Ajena MARS","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":24,"idDeposito":115,"nombreDeposito":"Évora","tipoTramo":"Ajena","tipoJornada":"PT Ajena EVR","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":25,"idDeposito":116,"nombreDeposito":"Alcácer","tipoTramo":"Ajena","tipoJornada":"PT Ajena ALC","operacion":"PT Sudoeste","esAjena":true,"esPaqueteria":false,"activo":true},{"id":26,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Local","tipoJornada":"ES Valencia Local","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":false,"activo":true},{"id":27,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Larga Distancia","tipoJornada":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":false,"activo":true},{"id":28,"idDeposito":117,"nombreDeposito":"Valencia","tipoTramo":"Paqueteria","tipoJornada":"ES Valencia Paqueteria","operacion":"Nordeste Valencia","esAjena":false,"esPaqueteria":true,"activo":true},{"id":29,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Local","tipoJornada":"ES Sevilha Local","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":false,"activo":true},{"id":30,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Larga Distancia","tipoJornada":"ES Sevilha Larga distancia","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":false,"activo":true},{"id":31,"idDeposito":118,"nombreDeposito":"Sevilla","tipoTramo":"Paqueteria","tipoJornada":"ES Sevilha Paqueteria","operacion":"Sur Sevilla","esAjena":false,"esPaqueteria":true,"activo":true},{"id":32,"idDeposito":119,"nombreDeposito":"Barcelona (BCN)","tipoTramo":"Paqueteria","tipoJornada":"ES Barcelona Paqueteria","operacion":"Nordeste Barcelona","esAjena":false,"esPaqueteria":true,"activo":true},{"id":33,"idDeposito":120,"nombreDeposito":"Madrid","tipoTramo":"Paqueteria","tipoJornada":"ES Madrid Paqueteria","operacion":"Centro Norte Madrid","esAjena":false,"esPaqueteria":true,"activo":true}],"matriz":[{"id":1,"tipoDomOrigen":"Remitente","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Punto a Punto","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en destinatario","prioridad":10,"descripcion":"P2P directo remitente a destinatario. Aplica local y larga distancia.","activo":true},{"id":2,"tipoDomOrigen":"Remitente","tipoDomDestino":"Deposito","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Recogida","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en Depósito","prioridad":10,"descripcion":"Recogida en remitente → hub/depósito propio","activo":true},{"id":3,"tipoDomOrigen":"Deposito","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"Programar Entrega Direta","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en destinatario","prioridad":10,"descripcion":"Reparto final desde depósito GE hacia destinatario. Generalmente tramo local.","activo":true},{"id":4,"tipoDomOrigen":"Deposito","tipoDomDestino":"Deposito","relDepositos":"Diferente Deposito","relZona":"N/A","estadoSugerido":"Programar Arrastre","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en Depósito Crossdock","prioridad":10,"descripcion":"Movimiento troncal entre delegaciones LS. Larga distancia por defecto.","activo":true},{"id":5,"tipoDomOrigen":"Deposito","tipoDomDestino":"Deposito","relDepositos":"Mismo Deposito","relZona":"N/A","estadoSugerido":"Invalido","tipoPickup":"","tipoDelivery":"","prioridad":99,"descripcion":"Flujo inválido: origen y destino en el mismo depósito.","activo":true},{"id":6,"tipoDomOrigen":"Remitente","tipoDomDestino":"Deposito Ajena","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"AJENA - Programar Recogida","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en Depósito Ajena","prioridad":20,"descripcion":"Recogida hacia agencia ajena (seleccionar motivo con depósito ajena)","activo":true},{"id":7,"tipoDomOrigen":"Remitente","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"N/A","estadoSugerido":"AJENA - Programar Punto a Punto","tipoPickup":"Recolección en Remitente","tipoDelivery":"Entrega en destinatario","prioridad":20,"descripcion":"P2P ejecutado por agencia ajena. Seleccionar motivo con depósito ajena.","activo":true},{"id":8,"tipoDomOrigen":"Deposito Ajena","tipoDomDestino":"Deposito","relDepositos":"Diferente Deposito","relZona":"N/A","estadoSugerido":"AJENA - Programar Arrastre","tipoPickup":"Recolección en Depósito Ajena","tipoDelivery":"Entrega en Depósito Crossdock","prioridad":20,"descripcion":"Arrastre ejecutado por agencia ajena hacia depósito LS","activo":true},{"id":9,"tipoDomOrigen":"Deposito","tipoDomDestino":"Destinatario","relDepositos":"N/A","relZona":"Misma Zona","estadoSugerido":"Programar Paqueteria","tipoPickup":"Recolección en Depósito","tipoDelivery":"Entrega en destinatario","prioridad":5,"descripcion":"Paquetería: misma zona depósito carga. Jornada según tabla de paquetería por zona.","activo":true}],"transiciones":[{"id":1,"estadoOrigen":1,"estadoDestino":2,"rolPermitido":"Automatico","restriccionFormula":"Auto: error de validación de campos","editable":true,"descripcion":"Inicial → Error","activo":true},{"id":2,"estadoOrigen":1,"estadoDestino":3,"rolPermitido":"Automatico","restriccionFormula":"","editable":true,"descripcion":"Inicial → Confirmado","activo":true},{"id":3,"estadoOrigen":1,"estadoDestino":4,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Inicial → Registrado Ok","activo":true},{"id":4,"estadoOrigen":2,"estadoDestino":3,"rolPermitido":"SAC","restriccionFormula":"Realizar las validaciones despues de corrigir","editable":true,"descripcion":"Error → Confirmado","activo":true},{"id":5,"estadoOrigen":2,"estadoDestino":6,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Error → Anulado","activo":true},{"id":6,"estadoOrigen":3,"estadoDestino":2,"rolPermitido":"Automatico","restriccionFormula":"El pedido no fue validado","editable":true,"descripcion":"Confirmado → Error","activo":true},{"id":7,"estadoOrigen":3,"estadoDestino":4,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Confirmado → Registrado Ok","activo":true},{"id":8,"estadoOrigen":3,"estadoDestino":5,"rolPermitido":"Automatico","restriccionFormula":"Se no hay errores en la validacion de los campos de pedido","editable":true,"descripcion":"Confirmado → Programable","activo":true},{"id":9,"estadoOrigen":4,"estadoDestino":3,"rolPermitido":"SAC","restriccionFormula":"Realizar las validaciones despues de corrigir","editable":true,"descripcion":"Registrado Ok → Confirmado","activo":true},{"id":10,"estadoOrigen":4,"estadoDestino":6,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Registrado Ok → Anulado","activo":true},{"id":11,"estadoOrigen":5,"estadoDestino":4,"rolPermitido":"Distribuidor","restriccionFormula":"Se es necesario que equipo de SAC haga cambio al pedido","editable":true,"descripcion":"Programable → Registrado Ok","activo":true},{"id":12,"estadoOrigen":5,"estadoDestino":7,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → Programar Punto a Punto","activo":true},{"id":13,"estadoOrigen":5,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden != Deposito AND TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Entrega Direta","activo":true},{"id":14,"estadoOrigen":5,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → Programar Recogida","activo":true},{"id":15,"estadoOrigen":5,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Arrastre","activo":true},{"id":16,"estadoOrigen":5,"estadoDestino":11,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Punto a Punto","activo":true},{"id":17,"estadoOrigen":5,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Arrastre","activo":true},{"id":18,"estadoOrigen":5,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden2 != Deposito","editable":true,"descripcion":"Programable → AJENA - Programar Recogida","activo":true},{"id":19,"estadoOrigen":5,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden != Deposito AND TipoDomicilioOrden2 = Deposito","editable":true,"descripcion":"Programable → Programar Paqueteria","activo":true},{"id":20,"estadoOrigen":6,"estadoDestino":1,"rolPermitido":"SAC","restriccionFormula":"","editable":true,"descripcion":"Anulado → Inicial","activo":true},{"id":21,"estadoOrigen":7,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Punto a Punto → Programable","activo":true},{"id":22,"estadoOrigen":7,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Punto a Punto → Replanificar","activo":true},{"id":23,"estadoOrigen":8,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Entrega Direta → Programable","activo":true},{"id":24,"estadoOrigen":8,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → Programar Arrastre","activo":true},{"id":25,"estadoOrigen":8,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → AJENA - Programar Arrastre","activo":true},{"id":26,"estadoOrigen":8,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Entrega Direta → Programar Paqueteria","activo":true},{"id":27,"estadoOrigen":8,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Entrega Direta → Replanificar","activo":true},{"id":28,"estadoOrigen":9,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Recogida → Programable","activo":true},{"id":29,"estadoOrigen":9,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"Programar Recogida → Programar Entrega Direta","activo":true},{"id":30,"estadoOrigen":9,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Recogida → Programar Recogida","activo":true},{"id":31,"estadoOrigen":9,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Recogida → Programar Arrastre","activo":true},{"id":32,"estadoOrigen":9,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Recogida → AJENA - Programar Arrastre","activo":true},{"id":33,"estadoOrigen":9,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Recogida → AJENA - Programar Recogida","activo":true},{"id":34,"estadoOrigen":9,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Recogida → Replanificar","activo":true},{"id":35,"estadoOrigen":10,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Arrastre → Programable","activo":true},{"id":36,"estadoOrigen":10,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"Programar Arrastre → Programar Entrega Direta","activo":true},{"id":37,"estadoOrigen":10,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Deposito AND DomicilioOrden != DepositoDescarga","editable":true,"descripcion":"Programar Arrastre → Programar Arrastre","activo":true},{"id":38,"estadoOrigen":10,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Arrastre → AJENA - Programar Arrastre","activo":true},{"id":39,"estadoOrigen":10,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Arrastre → Programar Paqueteria","activo":true},{"id":40,"estadoOrigen":10,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Arrastre → Replanificar","activo":true},{"id":41,"estadoOrigen":11,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Punto a Punto → Programable","activo":true},{"id":42,"estadoOrigen":11,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Punto a Punto → Replanificar","activo":true},{"id":43,"estadoOrigen":12,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Arrastre → Programable","activo":true},{"id":44,"estadoOrigen":12,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDomicilioOrden = Destinatario","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Entrega Direta","activo":true},{"id":45,"estadoOrigen":12,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"TipoDepositoDescarga = LS AND DepositoDescarga != DomicilioOrden","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Arrastre","activo":true},{"id":46,"estadoOrigen":12,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Arrastre → AJENA - Programar Arrastre","activo":true},{"id":47,"estadoOrigen":12,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Arrastre → Programar Paqueteria","activo":true},{"id":48,"estadoOrigen":12,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Arrastre → Replanificar","activo":true},{"id":49,"estadoOrigen":13,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"AJENA - Programar Recogida → Programable","activo":true},{"id":50,"estadoOrigen":13,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Entrega Direta","activo":true},{"id":51,"estadoOrigen":13,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Recogida","activo":true},{"id":52,"estadoOrigen":13,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → Programar Arrastre","activo":true},{"id":53,"estadoOrigen":13,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → AJENA - Programar Arrastre","activo":true},{"id":54,"estadoOrigen":13,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"AJENA - Programar Recogida → AJENA - Programar Recogida","activo":true},{"id":55,"estadoOrigen":13,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"AJENA - Programar Recogida → Replanificar","activo":true},{"id":56,"estadoOrigen":14,"estadoDestino":5,"rolPermitido":"Distribuidor","restriccionFormula":"PE - Replanificación previa","editable":true,"descripcion":"Programar Paqueteria → Programable","activo":true},{"id":57,"estadoOrigen":14,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Entrega Direta","activo":true},{"id":58,"estadoOrigen":14,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Recogida","activo":true},{"id":59,"estadoOrigen":14,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Programar Paqueteria → Programar Arrastre","activo":true},{"id":60,"estadoOrigen":14,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"Se estado de ejecucion del pedido es no entregado o entregado parcial","editable":true,"descripcion":"Programar Paqueteria → Replanificar","activo":true},{"id":61,"estadoOrigen":15,"estadoDestino":3,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Replanificar → Confirmado","activo":true},{"id":62,"estadoOrigen":15,"estadoDestino":16,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Replanificar → Reprogramable","activo":true},{"id":63,"estadoOrigen":16,"estadoDestino":17,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Reentrega/Rerecogida","activo":true},{"id":64,"estadoOrigen":16,"estadoDestino":18,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Retorno deposito origen","activo":true},{"id":65,"estadoOrigen":16,"estadoDestino":19,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reprogramable → Retorno Cliente","activo":true},{"id":66,"estadoOrigen":17,"estadoDestino":7,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Punto a Punto","activo":true},{"id":67,"estadoOrigen":17,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Entrega Direta","activo":true},{"id":68,"estadoOrigen":17,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Recogida","activo":true},{"id":69,"estadoOrigen":17,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Arrastre","activo":true},{"id":70,"estadoOrigen":17,"estadoDestino":11,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Punto a Punto","activo":true},{"id":71,"estadoOrigen":17,"estadoDestino":12,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Arrastre","activo":true},{"id":72,"estadoOrigen":17,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → AJENA - Programar Recogida","activo":true},{"id":73,"estadoOrigen":17,"estadoDestino":14,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Reentrega/Rerecogida → Programar Paqueteria","activo":true},{"id":74,"estadoOrigen":17,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Reentrega/Rerecogida → Replanificar","activo":true},{"id":75,"estadoOrigen":18,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno deposito origen → Programar Recogida","activo":true},{"id":76,"estadoOrigen":18,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno deposito origen → Programar Arrastre","activo":true},{"id":77,"estadoOrigen":18,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Retorno deposito origen → Replanificar","activo":true},{"id":78,"estadoOrigen":19,"estadoDestino":8,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Entrega Direta","activo":true},{"id":79,"estadoOrigen":19,"estadoDestino":9,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Recogida","activo":true},{"id":80,"estadoOrigen":19,"estadoDestino":10,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → Programar Arrastre","activo":true},{"id":81,"estadoOrigen":19,"estadoDestino":13,"rolPermitido":"Distribuidor","restriccionFormula":"","editable":true,"descripcion":"Retorno Cliente → AJENA - Programar Recogida","activo":true},{"id":82,"estadoOrigen":19,"estadoDestino":15,"rolPermitido":"Distribuidor","restriccionFormula":"PE","editable":true,"descripcion":"Retorno Cliente → Replanificar","activo":true}],
-"plantillas":[
-  {"id":1,"activo":true,"estadoCod":9,"nombre":"Programar Recogida","descripcion":"Recogida en remitente → primer depósito. Genera auto Entrega Directa (se reemplaza por Arrastre si hay más tramos).","pickupTipo":"Recolección en Remitente","pickupCampo":"Domicilio Orden 2","pickupOrigenTipo":"remitente","deliveryTipo":"Entrega en COL","deliveryCampo":"Depósito Descarga","deliveryDestinoTipo":"col","epPickup":1035,"epaPickup":35,"epDelivery":1045,"epaDelivery":45,"autoNext":"Programar Entrega Direta","borrarAntes":null,"esArrastre":false},
-  {"id":2,"activo":true,"estadoCod":10,"nombre":"Programar Arrastre","descripcion":"Arrastre entre COLs (troncal). Borra Entrega Directa previa. Genera auto nueva Entrega Directa o nuevo Arrastre.","pickupTipo":"Recolección en COL","pickupCampo":"Depósito Carga","pickupOrigenTipo":"col","deliveryTipo":"Entrega en COL Crossdock","deliveryCampo":"Depósito Descarga","deliveryDestinoTipo":"col","epPickup":1275,"epaPickup":275,"epDelivery":1255,"epaDelivery":255,"autoNext":"Programar Entrega Direta","borrarAntes":"Programar Entrega Direta","esArrastre":true},
-  {"id":3,"activo":true,"estadoCod":8,"nombre":"Programar Entrega Direta","descripcion":"Reparto final desde COL a destinatario. Fin de cadena. Creada automáticamente por el motor.","pickupTipo":"Recolección en COL","pickupCampo":"Depósito Carga","pickupOrigenTipo":"col","deliveryTipo":"Entrega destinatario","deliveryCampo":"Domicilio Orden","deliveryDestinoTipo":"destinatario","epPickup":null,"epaPickup":null,"epDelivery":1315,"epaDelivery":315,"autoNext":null,"borrarAntes":null,"esArrastre":false},
-  {"id":4,"activo":true,"estadoCod":7,"nombre":"Programar Punto a Punto","descripcion":"Directo de remitente a destinatario sin pasar por COL.","pickupTipo":"Recolección en Remitente","pickupCampo":"Domicilio Orden 2","pickupOrigenTipo":"remitente","deliveryTipo":"Entrega destinatario","deliveryCampo":"Domicilio Orden","deliveryDestinoTipo":"destinatario","epPickup":1035,"epaPickup":35,"epDelivery":1315,"epaDelivery":315,"autoNext":null,"borrarAntes":null,"esArrastre":false},
-  {"id":5,"activo":true,"estadoCod":11,"nombre":"AJENA - Programar Punto a Punto","descripcion":"P2P ejecutado por agencia ajena. Requiere selección de depósito ajena como motivo.","pickupTipo":"Recolección en Remitente","pickupCampo":"Domicilio Orden 2","pickupOrigenTipo":"remitente","deliveryTipo":"Entrega destinatario","deliveryCampo":"Domicilio Orden","deliveryDestinoTipo":"destinatario","epPickup":1035,"epaPickup":35,"epDelivery":1315,"epaDelivery":315,"autoNext":null,"borrarAntes":null,"esArrastre":false},
-  {"id":6,"activo":true,"estadoCod":12,"nombre":"AJENA - Programar Arrastre","descripcion":"Arrastre ejecutado por agencia ajena. Borra ED previa.","pickupTipo":"Recolección en Depósito Ajena","pickupCampo":"Depósito Ajena","pickupOrigenTipo":"col","deliveryTipo":"Entrega en COL","deliveryCampo":"Depósito Descarga","deliveryDestinoTipo":"col","epPickup":1275,"epaPickup":275,"epDelivery":1255,"epaDelivery":255,"autoNext":"Programar Entrega Direta","borrarAntes":"Programar Entrega Direta","esArrastre":true},
-  {"id":7,"activo":true,"estadoCod":13,"nombre":"AJENA - Programar Recogida","descripcion":"Recogida ejecutada por agencia ajena. Requiere motivo con depósito ajena.","pickupTipo":"Recolección en Remitente","pickupCampo":"Domicilio Orden 2","pickupOrigenTipo":"remitente","deliveryTipo":"Entrega en Depósito Ajena","deliveryCampo":"Depósito Ajena","deliveryDestinoTipo":"col","epPickup":1035,"epaPickup":35,"epDelivery":1045,"epaDelivery":45,"autoNext":"Programar Arrastre","borrarAntes":null,"esArrastre":false},
-  {"id":8,"activo":true,"estadoCod":14,"nombre":"Programar Paqueteria","descripcion":"Paquetería desde COL a destinatario con jornada específica por zona postal.","pickupTipo":"Recolección en COL","pickupCampo":"Depósito Carga","pickupOrigenTipo":"col","deliveryTipo":"Entrega destinatario","deliveryCampo":"Domicilio Orden","deliveryDestinoTipo":"destinatario","epPickup":null,"epaPickup":null,"epDelivery":1315,"epaDelivery":315,"autoNext":null,"borrarAntes":null,"esArrastre":false}
-],
-"depositos":[
-  {"id":1,"codigo":"AD","nombre":"Madrid (AD)","region":"ZCN","pais":"ES","zona":"ES_Madrid","jornadaLocal":"ES Madrid Local","jornadaLD":"ES Madrid Larga distancia","operacion":"Centro Norte Madrid","activo":true},
-  {"id":2,"codigo":"BP","nombre":"Barcelona-Palleja (BP)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
-  {"id":3,"codigo":"BF","nombre":"Barcelona-ZFranca (BF)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
-  {"id":4,"codigo":"BR","nombre":"Barcelona-Girona (BR)","region":"BCN","pais":"ES","zona":"ES_Barcelona","jornadaLocal":"ES Barcelona Local","jornadaLD":"ES Barcelona Larga distancia","operacion":"NORDESTE BARCELONA","activo":true},
-  {"id":5,"codigo":"VL","nombre":"Valencia (VL)","region":"LEV","pais":"ES","zona":"ES_Valencia","jornadaLocal":"ES Valencia Local","jornadaLD":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","activo":true},
-  {"id":6,"codigo":"AM","nombre":"Valencia-AM (AM)","region":"LEV","pais":"ES","zona":"ES_Valencia","jornadaLocal":"ES Valencia Local","jornadaLD":"ES Valencia Larga distancia","operacion":"Nordeste Valencia","activo":true},
-  {"id":7,"codigo":"SV","nombre":"Sevilla (SV)","region":"AND","pais":"ES","zona":"ES_Sevilla","jornadaLocal":"ES Sevilha Local","jornadaLD":"ES Sevilha Larga distancia","operacion":"Sur Sevilla","activo":true},
-  {"id":8,"codigo":"BRG","nombre":"Braga (BRG)","region":"NW","pais":"PT","zona":"PT_Braga","jornadaLocal":"PT Ajena - Braga","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
-  {"id":9,"codigo":"CMB","nombre":"Coimbra (CMB)","region":"NW","pais":"PT","zona":"PT_Coimbra","jornadaLocal":"PT Coimbra Local","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
-  {"id":10,"codigo":"R","nombre":"Porto/Noroeste (R)","region":"NW","pais":"PT","zona":"PT_Porto","jornadaLocal":"PT Porto Local","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
-  {"id":11,"codigo":"VR","nombre":"Vila Real (VR)","region":"NW","pais":"PT","zona":"PT_VR","jornadaLocal":"PT Ajena - Vila Real","jornadaLD":"PT Noroeste Larga distancia","operacion":"PT Noroeste","activo":true},
-  {"id":12,"codigo":"C","nombre":"Lisboa/SW (C)","region":"SW","pais":"PT","zona":"PT_Lisboa","jornadaLocal":"PT Lisboa Local","jornadaLD":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","activo":true},
-  {"id":13,"codigo":"ALG","nombre":"Algarve (ALG)","region":"SW","pais":"PT","zona":"PT_Algarve","jornadaLocal":"PT Algarve Local","jornadaLD":"PT Sudoeste Larga distancia","operacion":"PT Sudoeste","activo":true}
-],
-"zonas":[
-  {"id":1,"zona":"Madrid","col":"AD"},{"id":2,"zona":"Guadalajara","col":"AD"},{"id":3,"zona":"Toledo","col":"AD"},
-  {"id":4,"zona":"Ciudad Real","col":"AD"},{"id":5,"zona":"Cuenca","col":"AD"},{"id":6,"zona":"Avila","col":"AD"},
-  {"id":7,"zona":"Segovia","col":"AD"},{"id":8,"zona":"Merida / Badajoz","col":"AD"},
-  {"id":9,"zona":"Navalmoral / Caceres","col":"AD"},{"id":10,"zona":"Valladolid / Salamanca","col":"AD"},
-  {"id":11,"zona":"Leon","col":"AD"},{"id":12,"zona":"Burgos","col":"AD"},{"id":13,"zona":"Cantabria","col":"AD"},
-  {"id":14,"zona":"Asturias","col":"AD"},{"id":15,"zona":"Galicia","col":"AD"},
-  {"id":16,"zona":"Bilbao / Pais Vasco","col":"AD"},{"id":17,"zona":"Vitoria / Alava","col":"AD"},
-  {"id":18,"zona":"Navarra","col":"AD"},{"id":19,"zona":"Logrono / La Rioja","col":"AD"},
-  {"id":20,"zona":"Zaragoza","col":"AD"},{"id":21,"zona":"Islas Baleares","col":"AD"},{"id":22,"zona":"Islas Canarias","col":"AD"},
-  {"id":23,"zona":"Barcelona","col":"BP"},{"id":24,"zona":"Tarragona","col":"BP"},{"id":25,"zona":"Lerida","col":"BP"},
-  {"id":26,"zona":"Girona / Gerona","col":"BR"},{"id":27,"zona":"Andorra","col":"BR"},
-  {"id":28,"zona":"Valencia","col":"VL"},{"id":29,"zona":"Castellon","col":"VL"},
-  {"id":30,"zona":"Alicante","col":"VL"},{"id":31,"zona":"Murcia","col":"VL"},{"id":32,"zona":"Albacete","col":"VL"},
-  {"id":33,"zona":"Sevilla","col":"SV"},{"id":34,"zona":"Huelva","col":"SV"},{"id":35,"zona":"Cadiz","col":"SV"},
-  {"id":36,"zona":"Cordoba","col":"SV"},{"id":37,"zona":"Granada","col":"SV"},{"id":38,"zona":"Almeria","col":"SV"},
-  {"id":39,"zona":"Jaen","col":"SV"},{"id":40,"zona":"Malaga / Gibraltar","col":"SV"},{"id":41,"zona":"Ceuta / Melilla","col":"SV"},
-  {"id":42,"zona":"Braga","col":"BRG"},{"id":43,"zona":"Guimaraes","col":"BRG"},{"id":44,"zona":"Esposende","col":"BRG"},
-  {"id":45,"zona":"Famalicao","col":"BRG"},{"id":46,"zona":"Barcelos","col":"BRG"},{"id":47,"zona":"Vila Verde","col":"BRG"},
-  {"id":48,"zona":"Fafe","col":"BRG"},{"id":49,"zona":"Vizela","col":"BRG"},
-  {"id":50,"zona":"Coimbra","col":"CMB"},{"id":51,"zona":"Figueira da Foz","col":"CMB"},
-  {"id":52,"zona":"Oliveira do Hospital","col":"CMB"},{"id":53,"zona":"Pombal","col":"CMB"},
-  {"id":54,"zona":"Leiria (norte)","col":"CMB"},{"id":55,"zona":"Guarda","col":"CMB"},{"id":56,"zona":"Viseu","col":"CMB"},
-  {"id":57,"zona":"Aveiro","col":"R"},{"id":58,"zona":"Porto","col":"R"},{"id":59,"zona":"Gaia","col":"R"},
-  {"id":60,"zona":"Santa Maria da Feira","col":"R"},{"id":61,"zona":"Ovar","col":"R"},
-  {"id":62,"zona":"Espinho","col":"R"},{"id":63,"zona":"Arouca","col":"R"},{"id":64,"zona":"Sao Joao da Madeira","col":"R"},
-  {"id":65,"zona":"Oliveira de Azemeis","col":"R"},{"id":66,"zona":"Vale de Cambra","col":"R"},
-  {"id":67,"zona":"Vila Real","col":"VR"},{"id":68,"zona":"Chaves","col":"VR"},{"id":69,"zona":"Braganca","col":"VR"},
-  {"id":70,"zona":"Mirandela","col":"VR"},{"id":71,"zona":"Lamego","col":"VR"},{"id":72,"zona":"Peso da Regua","col":"VR"},
-  {"id":73,"zona":"Lisboa","col":"C"},{"id":74,"zona":"Carregado","col":"C"},{"id":75,"zona":"Setubal","col":"C"},
-  {"id":76,"zona":"Palmela","col":"C"},{"id":77,"zona":"Montijo","col":"C"},{"id":78,"zona":"Grandola","col":"C"},
-  {"id":79,"zona":"Santiago do Cacem","col":"C"},{"id":80,"zona":"Sines","col":"C"},
-  {"id":81,"zona":"Nazare","col":"C"},{"id":82,"zona":"Caldas da Rainha","col":"C"},
-  {"id":83,"zona":"Peniche","col":"C"},{"id":84,"zona":"Leiria (sul)","col":"C"},{"id":85,"zona":"Alcobaca","col":"C"},
-  {"id":86,"zona":"Evora","col":"C"},{"id":87,"zona":"Beja","col":"C"},{"id":88,"zona":"Castelo Branco","col":"C"},
-  {"id":89,"zona":"Viana do Castelo","col":"C"},{"id":90,"zona":"Santarem","col":"C"},
-  {"id":91,"zona":"Faro","col":"ALG"},{"id":92,"zona":"Portimao","col":"ALG"},{"id":93,"zona":"Lagos","col":"ALG"},
-  {"id":94,"zona":"Albufeira","col":"ALG"},{"id":95,"zona":"Loule","col":"ALG"},{"id":96,"zona":"Tavira","col":"ALG"},
-  {"id":97,"zona":"Olhao","col":"ALG"},{"id":98,"zona":"Silves","col":"ALG"},
-  {"id":99,"zona":"Vila Real de Sto. Antonio","col":"ALG"}
-],
-"rutas":[],
-"grupos":[
-  {"id":1,"nombre":"Madrid (AD)","descripcion":"Equipo de operaciones del COL Madrid.","cols":["AD"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
-  {"id":2,"nombre":"Barcelona (BP)","descripcion":"Equipo de operaciones del COL Barcelona-Palleja.","cols":["BP"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
-  {"id":3,"nombre":"Lisboa (C)","descripcion":"Equipo de operaciones del COL Lisboa/SW.","cols":["C"],"tipoAcceso":"ejecucion","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":true,"camposEditables":{"fechas":true,"recursos":true},"activo":true},
-  {"id":4,"nombre":"Supervisión Central","descripcion":"Visión global de todos los COLs, sin capacidad de edición.","cols":["AD","BP","BF","BR","VL","AM","SV","BRG","CMB","R","VR","C","ALG"],"tipoAcceso":"visibilidad","verEntrante":true,"verSaliente":true,"editarEntrante":false,"editarSaliente":false,"camposEditables":{"fechas":false,"recursos":false},"activo":true}
-]
-};
-const DEFAULT_NEXT = {"estados":20,"jornadas":34,"matriz":10,"transiciones":83,"plantillas":9,"depositos":14,"zonas":100,"rutas":1,"grupos":5};
+const DEFAULT_DATA = {"estados":[],"jornadas":[],"matriz":[],"transiciones":[],"plantillas":[],"depositos":[],"zonas":[],"rutas":[],"grupos":[],"operaciones":[],"transicionesTsp":[]};
+const DEFAULT_NEXT = {"estados":1,"jornadas":1,"matriz":1,"transiciones":1,"plantillas":1,"depositos":1,"zonas":1,"rutas":1,"grupos":1,"operaciones":1,"transicionesTsp":1};
 
 let data, nextIds, curSection, editId;
 
 // Estados: catálogo multi-entidad (Pedido/Orden/Ruta/Viaje/Parada). Migra filas viejas
-// (todas Pedido) y siembra las entidades nuevas una sola vez (idempotente por entidad).
+// (todas Pedido) y siembra las entidades nuevas una sola vez (idempotente por entidad) —
+// SOLO si el cliente ya tenía estados cargados (migración real de un cliente existente).
+// Un cliente nuevo/en blanco no debe recibir ejemplos precargados de otro cliente.
 function migrateEstadosMultiEntidad() {
+  const hadExistingEstados = (data.estados||[]).length > 0;
   (data.estados||[]).forEach(e=>{ if(!e.entidad) e.entidad='Pedido'; if(e.momento===undefined) e.momento=''; });
+  if (!hadExistingEstados) return;
   let nid = nextIds.estados || 20;
   const seed = (entidad, items) => {
     if (data.estados.some(e=>e.entidad===entidad)) return;
@@ -485,14 +520,13 @@ function init() {
   // aquí solo aplicamos la migración de secciones nuevas, igual que antes con localStorage.
   try {
     if (data && nextIds) {
-      if (!data.depositos) { data.depositos = JSON.parse(JSON.stringify(DEFAULT_DATA.depositos)); }
-      if (!data.zonas)     { data.zonas     = JSON.parse(JSON.stringify(DEFAULT_DATA.zonas)); }
-      if (!data.rutas)     { data.rutas     = []; }
-      if (!data.grupos)    { data.grupos    = JSON.parse(JSON.stringify(DEFAULT_DATA.grupos)); }
-      if (!nextIds.depositos) nextIds.depositos = DEFAULT_NEXT.depositos;
-      if (!nextIds.zonas)     nextIds.zonas     = DEFAULT_NEXT.zonas;
-      if (!nextIds.rutas)     nextIds.rutas     = 1;
-      if (!nextIds.grupos)    nextIds.grupos    = DEFAULT_NEXT.grupos;
+      // Un cliente en blanco (recién creado) llega con data:{} desde el backend — ninguna de
+      // estas claves existe todavía. Cada una debe quedar como array vacío, nunca undefined,
+      // o las funciones de render (data.X.filter/.map sin guarda) explotan con TypeError.
+      ['estados','jornadas','matriz','transiciones','plantillas','depositos','zonas','rutas','grupos','operaciones','transicionesTsp'].forEach(k=>{
+        if (!data[k]) data[k] = [];
+        if (!nextIds[k]) nextIds[k] = DEFAULT_NEXT[k] || 1;
+      });
       (data.depositos||[]).forEach(d=>{ if(!d.tipoCol) d.tipoCol='propio'; });
     } else {
       data = JSON.parse(JSON.stringify(DEFAULT_DATA)); nextIds = Object.assign({}, DEFAULT_NEXT);
@@ -517,7 +551,7 @@ function save() {
 }
 
 function resetData() {
-  if (!confirm('¿Resetear todos los datos al estado inicial del Excel?')) return;
+  if (!confirm('¿Borrar TODOS los datos de este cliente (' + UNITRACE_SLUG + ') y dejarlo en blanco? Esta acción no se puede deshacer.')) return;
   data = JSON.parse(JSON.stringify(DEFAULT_DATA));
   nextIds = Object.assign({}, DEFAULT_NEXT);
   save();
@@ -527,7 +561,7 @@ function resetData() {
 function exportData() {
   const b = new Blob([JSON.stringify({data,nextIds},null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-  a.download = 'ls_tms_abm.json'; a.click();
+  a.download = UNITRACE_SLUG + '_tms_abm.json'; a.click();
 }
 
 function importData(e) {
@@ -540,6 +574,230 @@ function importData(e) {
     } catch(err) { alert('Error: archivo inválido.'); }
   };
   r.readAsText(f);
+}
+
+/* ── PLANTILLA / IMPORT EXCEL ──────────────────────────────────────
+   Esquema de cada hoja = exactamente los campos que guarda saveModal() para esa
+   sección (ver arriba). Los códigos de referencia (estadoOrigen/estadoDestino en
+   Transiciones, col en Zonas/Rutas/Grupos) se validan contra Estados/Depositos ya
+   presentes al importar — Estados y Depositos se procesan siempre primero. */
+const XLSX_SHEETS = {
+  Estados:      { key:'estados',      cols:['entidad','codigo','nombre','momento','descripcion','activo'] },
+  Depositos:    { key:'depositos',    cols:['codigo','nombre','pais','tipoCol','region','zona','jornadaLocal','jornadaLD','operacion','activo'] },
+  Jornadas:     { key:'jornadas',     cols:['idDeposito','nombreDeposito','tipoTramo','tipoJornada','operacion','esAjena','esPaqueteria','activo'] },
+  Matriz:       { key:'matriz',       cols:['tipoDomOrigen','tipoDomDestino','relDepositos','relZona','estadoSugerido','tipoPickup','tipoDelivery','prioridad','descripcion','activo'] },
+  Transiciones: { key:'transiciones', cols:['estadoOrigen','estadoDestino','rolPermitido','restriccionFormula','descripcion','activo'] },
+  Plantillas:   { key:'plantillas',   cols:['estadoCod','nombre','descripcion','pickupTipo','pickupCampo','epPickup','epaPickup','deliveryTipo','deliveryCampo','epDelivery','epaDelivery','autoNext','borrarAntes','esArrastre','activo'] },
+  Zonas:        { key:'zonas',        cols:['zona','col'] },
+  Rutas:        { key:'rutas',        cols:['colOrigen','colDestino','descripcion','activo'] },
+  Grupos:       { key:'grupos',       cols:['nombre','descripcion','cols','tipoAcceso','verEntrante','verSaliente','editarEntrante','editarSaliente','camposEditables_fechas','camposEditables_recursos','activo'] },
+  TransicionesTSP: { key:'transicionesTsp', cols:['entidad','estadoOrigen','estadoDestino','requiereFoto','requiereFirma','requiereMotivo','validarGeocerca','idEstadoParadaVisita','triggerCascada','disparadoPor','nota','activo'] },
+};
+// Orden de import: Estados y Depositos primero (todo lo demás puede referenciarlos).
+const XLSX_IMPORT_ORDER = ['Estados','Depositos','Jornadas','Matriz','Transiciones','Plantillas','Zonas','Rutas','Grupos','TransicionesTSP'];
+
+function downloadExcelTemplate() {
+  const wb = XLSX.utils.book_new();
+
+  const leeme = [
+    ['Plantilla de integración UNIGIS TMS — ' + (document.getElementById('unitrace-client-badge').textContent || UNITRACE_SLUG)],
+    [''],
+    ['Rellena cada hoja con los datos reales de este cliente y súbela con "↑ Importar Excel".'],
+    ['No borres la fila de cabeceras. Elimina las filas de ejemplo antes de importar (son solo orientativas).'],
+    [''],
+    ['Booleanos (columnas activo, esAjena, esPaqueteria, esArrastre, verEntrante, verSaliente...): escribe TRUE o FALSE.'],
+    ['Estados.entidad debe ser una de: Pedido, Orden, Ruta, Viaje, Parada.'],
+    ['Transiciones.estadoOrigen / estadoDestino son códigos de Estados con entidad=Pedido (deben existir en la hoja Estados).'],
+    ['Zonas.col, Rutas.colOrigen/colDestino y Grupos.cols deben ser códigos existentes en la hoja Depositos (Grupos.cols: varios códigos separados por coma).'],
+    ['Rellena Estados y Depositos primero — el resto de hojas dependen de esos códigos.'],
+    [''],
+    ['TransicionesTSP (pestaña "Matriz de Transiciones", distinta de la hoja "Transiciones" de permisos):'],
+    ['  - entidad: Pedido, Orden, Ruta, Viaje o Parada.'],
+    ['  - estadoOrigen: uno o varios códigos de Estados de esa entidad, separados por coma (ej: 101,102,103).'],
+    ['  - estadoDestino: un único código de Estados de esa entidad.'],
+    ['  - idEstadoParadaVisita: solo si entidad=Parada — 1 Visitando, 2 Visitado, 3 Fuera de horario, 4 Fuera de orden.'],
+    ['  - triggerCascada: una o varias, separadas por " | " (ej: Orden = 202 | Viaje = 105).'],
+    ['  - disparadoPor: nombre de la entidad que la dispara automáticamente (Parada, Viaje...), vacío si la ejecuta el usuario.'],
+    ['  - Al importar esta hoja se te preguntará si asignarla a una operación existente (Internacional, Intermodal...) o crear una nueva. Puedes dejarla sin operación.'],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(leeme), 'LEEME');
+
+  const examples = {
+    Estados:      [
+      {entidad:'Pedido', codigo:100, nombre:'CONFIRMADO', momento:'Tras validar el pedido', descripcion:'Ejemplo — bórrame', activo:'TRUE'},
+      {entidad:'Pedido', codigo:101, nombre:'EN PLANIFICACION', momento:'Tras confirmar el pedido', descripcion:'Ejemplo — bórrame', activo:'TRUE'},
+    ],
+    Depositos:    [
+      {codigo:'EJ1', nombre:'Depósito Ejemplo 1', pais:'ES', tipoCol:'propio', region:'ZCN', zona:'ES_Ejemplo1', jornadaLocal:'ES Ejemplo Local', jornadaLD:'ES Ejemplo Larga distancia', operacion:'Operación Ejemplo', activo:'TRUE'},
+      {codigo:'EJ2', nombre:'Depósito Ejemplo 2', pais:'ES', tipoCol:'propio', region:'ZCN', zona:'ES_Ejemplo2', jornadaLocal:'ES Ejemplo Local', jornadaLD:'ES Ejemplo Larga distancia', operacion:'Operación Ejemplo', activo:'TRUE'},
+    ],
+    Jornadas:     [{idDeposito:1, nombreDeposito:'Depósito Ejemplo 1', tipoTramo:'Local', tipoJornada:'ES Ejemplo Local', operacion:'Operación Ejemplo', esAjena:'FALSE', esPaqueteria:'FALSE', activo:'TRUE'}],
+    Matriz:       [{tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Punto a Punto', tipoPickup:'', tipoDelivery:'', prioridad:10, descripcion:'Ejemplo — bórrame', activo:'TRUE'}],
+    Transiciones: [{estadoOrigen:100, estadoDestino:101, rolPermitido:'SAC', restriccionFormula:'', descripcion:'Ejemplo — bórrame', activo:'TRUE'}],
+    Plantillas:   [{estadoCod:100, nombre:'Ejemplo — bórrame', descripcion:'', pickupTipo:'', pickupCampo:CAMPO_UNIGIS_OPTS[0], epPickup:'', epaPickup:'', deliveryTipo:'', deliveryCampo:CAMPO_UNIGIS_OPTS[0], epDelivery:'', epaDelivery:'', autoNext:'', borrarAntes:'', esArrastre:'FALSE', activo:'TRUE'}],
+    Zonas:        [{zona:'Ciudad Ejemplo', col:'EJ1'}],
+    Rutas:        [{colOrigen:'EJ1', colDestino:'EJ2', descripcion:'Ejemplo — bórrame', activo:'TRUE'}],
+    Grupos:       [{nombre:'Equipo Ejemplo', descripcion:'', cols:'EJ1,EJ2', tipoAcceso:'ejecucion', verEntrante:'TRUE', verSaliente:'TRUE', editarEntrante:'FALSE', editarSaliente:'TRUE', camposEditables_fechas:'TRUE', camposEditables_recursos:'TRUE', activo:'TRUE'}],
+    TransicionesTSP: [{entidad:'Pedido', estadoOrigen:'100', estadoDestino:101, requiereFoto:'FALSE', requiereFirma:'FALSE', requiereMotivo:'FALSE', validarGeocerca:'FALSE', idEstadoParadaVisita:'', triggerCascada:'Orden = 102', disparadoPor:'', nota:'Ejemplo — bórrame', activo:'TRUE'}],
+  };
+
+  XLSX_IMPORT_ORDER.forEach(sheetName => {
+    const cols = XLSX_SHEETS[sheetName].cols;
+    const ws = XLSX.utils.json_to_sheet(examples[sheetName], { header: cols });
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  XLSX.writeFile(wb, (UNITRACE_SLUG || 'unitrace') + '_plantilla_integracion.xlsx');
+}
+
+function xlsxBool(v, def) {
+  if (v === undefined || v === null || v === '') return def;
+  if (typeof v === 'boolean') return v;
+  const s = String(v).trim().toLowerCase();
+  return s === 'true' || s === 'sí' || s === 'si' || s === '1' || s === 'x';
+}
+
+// Antes de importar TransicionesTSP, pregunta si las filas van a una operación existente
+// (Internacional, Intermodal...), a una nueva (se crea con el nombre escrito) o a ninguna.
+function resolveImportOperacion() {
+  const activos = (data.operaciones||[]).filter(o=>o.activo);
+  const lista = activos.map((o,i) => (i+1)+': '+o.nombre).join('\n');
+  const msg = 'La hoja "TransicionesTSP" va a importarse.\n' +
+    (activos.length ? '\nOperaciones existentes:\n'+lista+'\n' : '') +
+    '\nEscribe el NÚMERO de una operación existente, un NOMBRE NUEVO para crear una, o deja vacío para no asignar ninguna:';
+  const resp = prompt(msg, '');
+  if (resp === null || resp.trim() === '') return null;
+  const asNum = parseInt(resp);
+  if (!isNaN(asNum) && String(asNum) === resp.trim() && activos[asNum-1]) return activos[asNum-1].id;
+  const nombre = resp.trim();
+  const existing = activos.find(o=>o.nombre.toLowerCase()===nombre.toLowerCase());
+  if (existing) return existing.id;
+  const op = { id: nextIds.operaciones++, nombre, descripcion:'', activo:true };
+  data.operaciones.push(op);
+  return op.id;
+}
+
+function importExcelFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    let wb;
+    try { wb = XLSX.read(ev.target.result, { type: 'array' }); }
+    catch (err) { alert('Error: archivo Excel inválido.'); e.target.value = ''; return; }
+
+    const hasTsp = wb.SheetNames.some(n => n.trim().toLowerCase() === 'transicionestsp');
+    const importOperacionId = hasTsp ? resolveImportOperacion() : null;
+
+    let totalOk = 0;
+    const errors = [];
+    const estadoCodesPedido = new Set((data.estados||[]).filter(x=>x.entidad==='Pedido').map(x=>x.codigo));
+    const depositoCodes = new Set((data.depositos||[]).map(x=>x.codigo));
+    // Mismos criterios de unicidad que saveModal() (ver arriba) — evita duplicados silenciosos
+    // al importar, tanto contra lo ya guardado como entre filas del propio Excel.
+    const dupEstados = new Set((data.estados||[]).map(x=>x.entidad+'|'+x.codigo));
+    const dupJornadas = new Set((data.jornadas||[]).map(x=>x.idDeposito+'|'+x.tipoTramo));
+    const dupDepositos = new Set((data.depositos||[]).map(x=>x.codigo));
+    const dupRutas = new Set((data.rutas||[]).map(x=>x.colOrigen+'|'+x.colDestino));
+    const dupTransiciones = new Set((data.transiciones||[]).map(x=>x.estadoOrigen+'|'+x.estadoDestino+'|'+x.rolPermitido));
+
+    XLSX_IMPORT_ORDER.forEach(sheetName => {
+      const wsName = wb.SheetNames.find(n => n.trim().toLowerCase() === sheetName.toLowerCase());
+      if (!wsName) return;
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: '' });
+      const cfg = XLSX_SHEETS[sheetName];
+
+      rows.forEach((row, i) => {
+        const rowLabel = sheetName + ' fila ' + (i + 2);
+        try {
+          let item = null;
+
+          if (sheetName === 'Estados') {
+            if (!row.codigo || !row.nombre || !row.entidad) { errors.push(rowLabel + ': entidad, codigo y nombre son obligatorios.'); return; }
+            if (!ENT_ORDER.includes(row.entidad)) { errors.push(rowLabel + ': entidad "' + row.entidad + '" inválida (debe ser ' + ENT_ORDER.join('/') + ').'); return; }
+            const codigo = parseInt(row.codigo);
+            const dupKey = row.entidad + '|' + codigo;
+            if (dupEstados.has(dupKey)) { errors.push(rowLabel + ': ya existe un estado con código ' + codigo + ' para la entidad ' + row.entidad + '.'); return; }
+            dupEstados.add(dupKey);
+            item = { entidad: row.entidad, codigo, nombre: String(row.nombre), momento: String(row.momento||''), descripcion: String(row.descripcion||''), activo: xlsxBool(row.activo, true) };
+            if (row.entidad === 'Pedido') estadoCodesPedido.add(codigo);
+          } else if (sheetName === 'Depositos') {
+            if (!row.codigo || !row.nombre || !row.zona) { errors.push(rowLabel + ': codigo, nombre y zona son obligatorios.'); return; }
+            const codigo = String(row.codigo).toUpperCase();
+            if (dupDepositos.has(codigo)) { errors.push(rowLabel + ': ya existe un depósito con código ' + codigo + '.'); return; }
+            dupDepositos.add(codigo);
+            item = { codigo, nombre: String(row.nombre), region: String(row.region||''), pais: String(row.pais||'ES'), tipoCol: String(row.tipoCol||'propio'), zona: String(row.zona), jornadaLocal: String(row.jornadaLocal||''), jornadaLD: String(row.jornadaLD||''), operacion: String(row.operacion||''), activo: xlsxBool(row.activo, true) };
+            depositoCodes.add(codigo);
+          } else if (sheetName === 'Jornadas') {
+            if (!row.idDeposito || !row.nombreDeposito || !row.tipoJornada || !row.operacion) { errors.push(rowLabel + ': idDeposito, nombreDeposito, tipoJornada y operacion son obligatorios.'); return; }
+            const tramo = String(row.tipoTramo||'Local');
+            const dupKey = parseInt(row.idDeposito) + '|' + tramo;
+            if (dupJornadas.has(dupKey)) { errors.push(rowLabel + ': ya existe una regla de jornada para ese Depósito y Tramo.'); return; }
+            dupJornadas.add(dupKey);
+            item = { idDeposito: parseInt(row.idDeposito), nombreDeposito: String(row.nombreDeposito), tipoTramo: tramo, tipoJornada: String(row.tipoJornada), operacion: String(row.operacion), esAjena: xlsxBool(row.esAjena, false), esPaqueteria: xlsxBool(row.esPaqueteria, false), activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'Matriz') {
+            if (!row.estadoSugerido) { errors.push(rowLabel + ': estadoSugerido es obligatorio.'); return; }
+            item = { tipoDomOrigen: String(row.tipoDomOrigen||''), tipoDomDestino: String(row.tipoDomDestino||''), relDepositos: String(row.relDepositos||'N/A'), relZona: String(row.relZona||'N/A'), estadoSugerido: String(row.estadoSugerido), tipoPickup: String(row.tipoPickup||''), tipoDelivery: String(row.tipoDelivery||''), prioridad: parseInt(row.prioridad)||10, descripcion: String(row.descripcion||''), activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'Transiciones') {
+            const orig = parseInt(row.estadoOrigen), dest = parseInt(row.estadoDestino), rol = String(row.rolPermitido||'');
+            if (!row.estadoOrigen || !row.estadoDestino || !row.rolPermitido) { errors.push(rowLabel + ': estadoOrigen, estadoDestino y rolPermitido son obligatorios.'); return; }
+            if (orig === dest) { errors.push(rowLabel + ': estadoOrigen y estadoDestino no pueden ser iguales.'); return; }
+            if (!estadoCodesPedido.has(orig) || !estadoCodesPedido.has(dest)) { errors.push(rowLabel + ': estadoOrigen/estadoDestino debe ser un código de Estados con entidad=Pedido ya existente.'); return; }
+            const dupKey = orig + '|' + dest + '|' + rol;
+            if (dupTransiciones.has(dupKey)) { errors.push(rowLabel + ': ya existe esa transición para ese rol.'); return; }
+            dupTransiciones.add(dupKey);
+            item = { estadoOrigen: orig, estadoDestino: dest, rolPermitido: rol, restriccionFormula: String(row.restriccionFormula||''), descripcion: String(row.descripcion||''), activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'Plantillas') {
+            if (!row.estadoCod || !row.nombre) { errors.push(rowLabel + ': estadoCod y nombre son obligatorios.'); return; }
+            item = { estadoCod: parseInt(row.estadoCod), nombre: String(row.nombre), descripcion: String(row.descripcion||''), pickupTipo: String(row.pickupTipo||''), pickupCampo: String(row.pickupCampo||''), epPickup: row.epPickup!==''?parseInt(row.epPickup):null, epaPickup: row.epaPickup!==''?parseInt(row.epaPickup):null, deliveryTipo: String(row.deliveryTipo||''), deliveryCampo: String(row.deliveryCampo||''), epDelivery: row.epDelivery!==''?parseInt(row.epDelivery):null, epaDelivery: row.epaDelivery!==''?parseInt(row.epaDelivery):null, autoNext: row.autoNext||null, borrarAntes: row.borrarAntes||null, esArrastre: xlsxBool(row.esArrastre, false), activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'Zonas') {
+            if (!row.zona || !row.col) { errors.push(rowLabel + ': zona y col son obligatorios.'); return; }
+            const col = String(row.col).toUpperCase();
+            if (!depositoCodes.has(col)) { errors.push(rowLabel + ': col "' + col + '" no existe en Depositos.'); return; }
+            item = { zona: String(row.zona), col };
+          } else if (sheetName === 'Rutas') {
+            const orig = String(row.colOrigen||'').toUpperCase(), dest = String(row.colDestino||'').toUpperCase();
+            if (!orig || !dest) { errors.push(rowLabel + ': colOrigen y colDestino son obligatorios.'); return; }
+            if (!depositoCodes.has(orig) || !depositoCodes.has(dest)) { errors.push(rowLabel + ': colOrigen/colDestino debe existir en Depositos.'); return; }
+            if (orig === dest) { errors.push(rowLabel + ': colOrigen y colDestino no pueden ser iguales.'); return; }
+            const dupKey = orig + '|' + dest;
+            if (dupRutas.has(dupKey)) { errors.push(rowLabel + ': ya existe esa ruta.'); return; }
+            dupRutas.add(dupKey);
+            item = { colOrigen: orig, colDestino: dest, descripcion: String(row.descripcion||''), activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'Grupos') {
+            if (!row.nombre || !row.cols) { errors.push(rowLabel + ': nombre y cols son obligatorios.'); return; }
+            const cols = String(row.cols).split(',').map(c=>c.trim().toUpperCase()).filter(Boolean);
+            const badCols = cols.filter(c => !depositoCodes.has(c));
+            if (badCols.length) { errors.push(rowLabel + ': cols contiene códigos que no existen en Depositos: ' + badCols.join(', ')); return; }
+            item = { nombre: String(row.nombre), descripcion: String(row.descripcion||''), cols, tipoAcceso: String(row.tipoAcceso||'ejecucion'), verEntrante: xlsxBool(row.verEntrante, true), verSaliente: xlsxBool(row.verSaliente, true), editarEntrante: xlsxBool(row.editarEntrante, false), editarSaliente: xlsxBool(row.editarSaliente, false), camposEditables: { fechas: xlsxBool(row.camposEditables_fechas, true), recursos: xlsxBool(row.camposEditables_recursos, true) }, activo: xlsxBool(row.activo, true) };
+          } else if (sheetName === 'TransicionesTSP') {
+            if (!ENT_ORDER.includes(row.entidad)) { errors.push(rowLabel + ': entidad "' + row.entidad + '" inválida (debe ser ' + ENT_ORDER.join('/') + ').'); return; }
+            const orig = String(row.estadoOrigen||'').split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+            const dest = parseInt(row.estadoDestino);
+            if (!orig.length || !row.estadoDestino) { errors.push(rowLabel + ': estadoOrigen y estadoDestino son obligatorios.'); return; }
+            const estadosEnt = new Set((data.estados||[]).filter(x=>x.entidad===row.entidad).map(x=>x.codigo));
+            const badOrig = orig.filter(c => !estadosEnt.has(c));
+            if (badOrig.length || !estadosEnt.has(dest)) { errors.push(rowLabel + ': estadoOrigen/estadoDestino debe ser un código de Estados con entidad=' + row.entidad + ' ya existente.'); return; }
+            const trig = String(row.triggerCascada||'').split('|').map(s=>s.trim()).filter(Boolean);
+            const visita = row.idEstadoParadaVisita!=='' ? parseInt(row.idEstadoParadaVisita) : null;
+            item = { entidad: row.entidad, operacionId: importOperacionId, estadoOrigen: orig, estadoDestino: dest, requiereFoto: xlsxBool(row.requiereFoto,false), requiereFirma: xlsxBool(row.requiereFirma,false), requiereMotivo: xlsxBool(row.requiereMotivo,false), validarGeocerca: xlsxBool(row.validarGeocerca,false), idEstadoParadaVisita: visita, triggerCascada: trig, disparadoPor: row.disparadoPor||null, nota: String(row.nota||''), activo: xlsxBool(row.activo, true) };
+          }
+
+          if (item) {
+            item.id = nextIds[cfg.key]++;
+            data[cfg.key].push(item);
+            totalOk++;
+          }
+        } catch (err) {
+          errors.push(rowLabel + ': ' + err.message);
+        }
+      });
+    });
+
+    if (totalOk > 0) { save(); renderAll(); }
+    alert('Importación completada: ' + totalOk + ' fila(s) añadidas.' + (errors.length ? '\n\n' + errors.length + ' error(es):\n' + errors.slice(0, 15).join('\n') + (errors.length > 15 ? '\n…' : '') : ''));
+    e.target.value = '';
+  };
+  reader.readAsArrayBuffer(f);
 }
 
 function showTab(id, btn) {
@@ -705,7 +963,7 @@ function renderGrupos() {
   document.getElementById('tbl-grupos').innerHTML = h;
 }
 
-function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); }
+function renderAll() { renderEstados(); renderJornadas(); renderMatriz(); renderTransiciones(); renderMatrizEstados(); renderMatrizTransiciones(); renderPlantillas(); renderDepositos(); renderZonas(); renderRutas(); renderGrupos(); renderGruposMatrix(); }
 
 /* ── utils ── */
 function pill(txt, cls) { return '<span class="pill ' + cls + '">' + esc(txt) + '</span>'; }
@@ -730,6 +988,8 @@ function sb(id, val) { const el = document.getElementById(id); if (el) el.checke
 
 /* ── ESTADOS ── */
 const ENT_ORDER = ['Pedido','Orden','Ruta','Viaje','Parada'];
+// Gama de colores fija para operaciones (mismos tokens de color que usa el resto de la app).
+const OP_COLORS = ['bl','tl','am','co','re','gr','pu','gy'];
 const ENT_CLS = {Pedido:'p-bl',Orden:'p-tl',Ruta:'p-am',Viaje:'p-co',Parada:'p-pu'};
 
 function renderEstados() {
@@ -844,11 +1104,217 @@ function mxClick(orig, dest) {
   }
 }
 
+/* ── MATRIZ DE ESTADOS (solo lectura, agrupada por entidad y fase) ──────────── */
+let meEntidad = 'Todas';
+
+// Heurística de color por fase a partir del nombre del estado, usando la MISMA paleta de
+// pills que el resto de la app (p-bl/p-tl/p-am/p-co/p-re/p-gr/p-pu/p-gy) — no clases nuevas.
+function fasePorNombre(nombre) {
+  const n = (nombre||'').toUpperCase();
+  if (/ERROR|RECHAZAD|NO ENTREGAD|NO CARGAD|NO RECOLECTAD/.test(n)) return 'b-red';
+  if (/ACTIVO|EN RUTA|RESERVA/.test(n)) return 'b-cor';
+  if (/VISITAD|LIQUIDABLE|PLANIFICA|PROG\.|RECOLECTADO PARCIAL/.test(n)) return 'b-tel';
+  if (/CONFIRMAD|ENTREGAD|FINALIZAD|CARGAD|RECOLECTAD|REGISTRADO/.test(n)) return 'b-grn';
+  if (/GRABAD|TRANSITO|TRÁNSITO|CREADA|ASIGNAD|EN VIAJE/.test(n)) return 'b-blu';
+  if (/INACTIVO|LIQUIDAD/.test(n)) return 'b-gry';
+  return 'b-amb';
+}
+function bx(txt, cls) { return '<span class="bx ' + cls + '">' + esc(txt) + '</span>'; }
+
+function mstat(n, l) { return '<div class="mstat"><div class="mstat-n">' + n + '</div><div class="mstat-l">' + esc(l) + '</div></div>'; }
+
+function renderMatrizEstados() {
+  const tabsEl = document.getElementById('me-tabs');
+  if (!tabsEl) return;
+  const allEnts = ['Todas', ...ENT_ORDER];
+  tabsEl.innerHTML = allEnts.map(ent =>
+    '<button class="etab' + (ent===meEntidad?' active':'') + '" onclick="meEntidad=\'' + ent + '\';renderMatrizEstados()">' + ent + '</button>'
+  ).join('');
+
+  const q = (document.getElementById('q-matriz-estados')||{value:''}).value.toLowerCase();
+  const scoped = meEntidad==='Todas' ? (data.estados||[]) : (data.estados||[]).filter(e => e.entidad === meEntidad);
+  const rows = scoped.filter(e => !q || String(e.codigo).includes(q) || e.nombre.toLowerCase().includes(q) || (e.momento||'').toLowerCase().includes(q));
+
+  document.getElementById('me-stats').innerHTML =
+    mstat((data.estados||[]).length, 'Estados totales') +
+    ENT_ORDER.map(ent => mstat((data.estados||[]).filter(e=>e.entidad===ent).length, ent)).join('');
+
+  const countEl = document.getElementById('me-count');
+  if (countEl) countEl.textContent = rows.length ? rows.length + (rows.length!==1?' estados':' estado') : '';
+
+  const content = document.getElementById('me-content');
+  if (!rows.length) { content.innerHTML = emptyHtml(q ? 'Sin resultados para "' + esc(q) + '".' : 'Sin estados definidos para ' + meEntidad + ' todavía — ve a "Estados" para crearlos.'); return; }
+
+  let h = '<table><thead><tr><th>Código</th><th>Nombre</th><th>Momento en que se aplica</th><th>Descripción</th><th>Activo</th></tr></thead><tbody>';
+  const order = meEntidad==='Todas' ? ENT_ORDER : [meEntidad];
+  order.forEach(ent => {
+    const entRows = rows.filter(e => e.entidad === ent).sort((a,b) => a.codigo - b.codigo);
+    if (!entRows.length) return;
+    if (meEntidad==='Todas') h += '<tr><td colspan="5" class="mgroup-hdr">' + ent + '</td></tr>';
+    entRows.forEach(e => {
+      h += '<tr' + (!e.activo?' style="opacity:.5"':'') + '>' +
+        '<td class="tdm" style="font-weight:600">' + esc(e.codigo) + '</td>' +
+        '<td>' + bx(e.nombre, fasePorNombre(e.nombre)) + '</td>' +
+        '<td class="tdm">' + esc(e.momento||'—') + '</td>' +
+        '<td class="tdm">' + esc(e.descripcion||'—') + '</td>' +
+        '<td>' + (e.activo?'<span class="ci ci-y">✓</span>':'<span class="ci ci-n">—</span>') + '</td>' +
+        '</tr>';
+    });
+  });
+  h += '</tbody></table>';
+  content.innerHTML = h;
+}
+
+/* ── MATRIZ DE TRANSICIONES TSP (validaciones + cascada + operación) ────────── */
+let mtOp = null; // null = "Sin operación"; si no, id de data.operaciones
+let mtEntidad = 'Todas';
+
+function renderOpSwitcher() {
+  const el = document.getElementById('mt-op-switcher');
+  if (!el) return;
+  let h = '<div class="op-chip-row">';
+  h += '<button class="op-chip op-chip-none' + (mtOp===null?' active':'') + '" onclick="mtOp=null;renderMatrizTransiciones()">Sin operación</button>';
+  (data.operaciones||[]).filter(o=>o.activo).forEach(o => {
+    const c = o.color || 'bl';
+    h += '<div class="op-chip-wrap">' +
+      '<button class="op-chip op-chip-' + c + (mtOp===o.id?' active':'') + '" onclick="mtOp=' + o.id + ';renderMatrizTransiciones()">' + esc(o.nombre) + '</button>' +
+      '<button class="op-chip-edit" onclick="event.stopPropagation();openModal(\'operaciones\',' + o.id + ')" title="Editar operación">✎</button>' +
+      '</div>';
+  });
+  h += '<button class="op-chip-add" onclick="openModal(\'operaciones\',null)">+ Nueva operación</button>';
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function tsRows() {
+  return (data.transicionesTsp||[]).filter(t => (mtEntidad==='Todas' || t.entidad === mtEntidad) && (t.operacionId||null) === mtOp);
+}
+
+const VISITAS = { 1:'Visitando', 2:'Visitado', 3:'Fuera de horario', 4:'Fuera de orden' };
+
+function renderMatrizTransiciones() {
+  if (!document.getElementById('mt-tabs')) return;
+  renderOpSwitcher();
+
+  const allEnts = ['Todas', ...ENT_ORDER];
+  document.getElementById('mt-tabs').innerHTML = allEnts.map(ent =>
+    '<button class="etab' + (ent===mtEntidad?' active':'') + '" onclick="mtEntidad=\'' + ent + '\';renderMatrizTransiciones()">' + ent + '</button>'
+  ).join('');
+
+  const allRows = tsRows();
+  const q = (document.getElementById('q-matriz-transiciones')||{value:''}).value.toLowerCase();
+  const nombreEnt = (entidad, c) => { const e = (data.estados||[]).find(x=>x.entidad===entidad && x.codigo===c); return e ? e.nombre : String(c); };
+  const rows = !q ? allRows : allRows.filter(t =>
+    (t.estadoOrigen||[]).some(c => nombreEnt(t.entidad,c).toLowerCase().includes(q)) ||
+    nombreEnt(t.entidad,t.estadoDestino).toLowerCase().includes(q) ||
+    (t.triggerCascada||[]).some(x => x.toLowerCase().includes(q)) ||
+    (t.disparadoPor||'').toLowerCase().includes(q) ||
+    (t.nota||'').toLowerCase().includes(q)
+  );
+
+  document.getElementById('mt-stats').innerHTML =
+    mstat(allRows.length, 'Transiciones totales') +
+    ENT_ORDER.map(ent => mstat(allRows.filter(r=>r.entidad===ent).length, ent)).join('') +
+    mstat(allRows.filter(r=>(r.triggerCascada||[]).length || r.disparadoPor).length, 'Con trigger / cascada');
+
+  const countEl = document.getElementById('mt-count');
+  if (countEl) countEl.textContent = rows.length ? rows.length + (rows.length!==1?' transiciones':' transición') : '';
+
+  // La matriz origen×destino solo tiene sentido para una entidad concreta (no en "Todas").
+  const estadosEnt = mtEntidad==='Todas' ? [] : (data.estados||[]).filter(e => e.entidad === mtEntidad).sort((a,b)=>a.codigo-b.codigo);
+  const mxEl = document.getElementById('mt-mx');
+  if (mtEntidad==='Todas') {
+    mxEl.innerHTML = '';
+  } else if (!estadosEnt.length) {
+    mxEl.innerHTML = emptyHtml('No hay estados definidos para ' + mtEntidad + ' — ve a "Estados" para crearlos primero.');
+  } else {
+    // Matriz origen×destino: mismo estilo que la de "Transiciones" (permisos), pero por-entidad
+    // y admitiendo más de un estado origen por fila.
+    let mh = '<div class="mx-wrap"><table class="mx"><thead><tr><th style="min-width:130px">Origen \\ Destino</th>';
+    estadosEnt.forEach(e => { mh += '<th style="text-align:center;min-width:76px" title="'+esc(e.nombre)+'">'+esc(e.nombre.substring(0,10))+(e.nombre.length>10?'…':'')+'</th>'; });
+    mh += '</tr></thead><tbody>';
+    estadosEnt.forEach(orig => {
+      mh += '<tr><td style="background:var(--sf2);font-size:12px;font-weight:500;white-space:nowrap">'+esc(orig.nombre.substring(0,18))+(orig.nombre.length>18?'…':'')+'</td>';
+      estadosEnt.forEach(dest => {
+        const match = allRows.filter(r => (r.estadoOrigen||[]).includes(orig.codigo) && r.estadoDestino === dest.codigo && r.activo);
+        let cls = 'none', lbl = '—';
+        if (match.length === 1) { cls = match[0].disparadoPor ? 'multi' : 'sac'; lbl = match[0].disparadoPor ? '↓' : '✓'; }
+        else if (match.length > 1) { cls = 'multi'; lbl = match.length; }
+        mh += '<td><div class="mc ' + cls + '" onclick="mtMxClick(' + orig.codigo + ',' + dest.codigo + ')" title="' + esc(orig.nombre) + ' → ' + esc(dest.nombre) + '">' + lbl + '</div></td>';
+      });
+      mh += '</tr>';
+    });
+    mh += '</tbody></table></div>';
+    mh += '<p style="font-size:12px;color:var(--tx3);margin-top:8px">Haz clic en una celda para crear o editar la transición.</p>';
+    mh += '<div class="leg">' +
+      '<div class="li"><div class="ld" style="background:#EF9F27"></div>Inicial / Pendiente / Rendido</div>' +
+      '<div class="li"><div class="ld" style="background:#378ADD"></div>En proceso / Asignado</div>' +
+      '<div class="li"><div class="ld" style="background:#1D9E75"></div>Visitado / Liquidable / Prog.</div>' +
+      '<div class="li"><div class="ld" style="background:#639922"></div>Confirmado / Entregado / Finalizado</div>' +
+      '<div class="li"><div class="ld" style="background:#D85A30"></div>Activo / En ruta / Reserva</div>' +
+      '<div class="li"><div class="ld" style="background:#E24B4A"></div>Error / Rechazado / No entregado</div>' +
+      '<div class="li"><div class="ld" style="background:#888780"></div>Inactivo / Liquidado</div>' +
+      '<div class="li"><span class="tt" style="margin:0">Orden = 202</span>Trigger en cascada</div>' +
+      '<div class="li"><span class="tc" style="margin:0">↓ Parada</span>Disparado por entidad</div>' +
+      '</div>';
+    mxEl.innerHTML = mh;
+  }
+
+  if (!rows.length) { document.getElementById('mt-tbl').innerHTML = allRows.length ? emptyHtml('Sin resultados para "' + esc(q) + '".') : emptyHtml('Sin transiciones configuradas todavía para esta operación.'); return; }
+  let lh = '<table><thead><tr><th>Origen</th><th>Destino</th><th title="Foto">📷</th><th title="Firma">✍</th><th title="Motivo">📝</th><th title="Geocerca">📍</th><th>Visita</th>' +
+    '<th>Trigger / disparado por</th><th>Nota</th><th>Activo</th><th></th></tr></thead><tbody>';
+  const order = mtEntidad==='Todas' ? ENT_ORDER : [mtEntidad];
+  order.forEach(ent => {
+    const entRows = rows.filter(t => t.entidad === ent);
+    if (!entRows.length) return;
+    if (mtEntidad==='Todas') lh += '<tr><td colspan="11" class="mgroup-hdr">' + ent + '</td></tr>';
+    entRows.forEach(t => {
+      const origPills = '<div class="origs">' + (t.estadoOrigen||[]).map(c => bx(nombreEnt(t.entidad,c), fasePorNombre(nombreEnt(t.entidad,c)))).join('') + '</div>';
+      const destPill = bx(nombreEnt(t.entidad,t.estadoDestino), fasePorNombre(nombreEnt(t.entidad,t.estadoDestino)));
+      // Si la transición está "disparada por" otra entidad, las validaciones de App Mobile se
+      // ignoran (las ejecuta el sistema internamente) — mismo criterio que el documento fuente.
+      const showVal = !t.disparadoPor;
+      const trig = [
+        ...(t.triggerCascada||[]).map(x=>'<span class="tt">'+esc(x)+'</span>'),
+        ...(t.disparadoPor?['<span class="tc">↓ Disparado por '+esc(t.disparadoPor)+'</span>']:[]),
+      ].join('') || '<span class="no-trig">—</span>';
+      lh += '<tr' + (!t.activo?' style="opacity:.5"':'') + '>' +
+        '<td>' + origPills + '</td>' +
+        '<td>' + destPill + '</td>' +
+        '<td>' + (showVal && t.requiereFoto?'<span class="ci ci-y">✓</span>':'<span class="ci ci-n">—</span>') + '</td>' +
+        '<td>' + (showVal && t.requiereFirma?'<span class="ci ci-y">✓</span>':'<span class="ci ci-n">—</span>') + '</td>' +
+        '<td>' + (showVal && t.requiereMotivo?'<span class="ci ci-y">✓</span>':'<span class="ci ci-n">—</span>') + '</td>' +
+        '<td>' + (showVal && t.validarGeocerca?'<span class="ci ci-y">✓</span>':'<span class="ci ci-n">—</span>') + '</td>' +
+        '<td>' + (t.idEstadoParadaVisita ? '<span class="vbx">'+esc(VISITAS[t.idEstadoParadaVisita]||('#'+t.idEstadoParadaVisita))+'</span>' : '<span class="tdm">—</span>') + '</td>' +
+        '<td>' + trig + '</td>' +
+        '<td class="tdm">' + esc(t.nota||'—') + '</td>' +
+        '<td>' + tog(t.activo,'transicionesTsp',t.id) + '</td>' +
+        '<td><div class="tda"><button class="bi ed" onclick="openModal(\'transicionesTsp\',' + t.id + ')">✎</button><button class="bi dl" onclick="delItem(\'transicionesTsp\',' + t.id + ')">✕</button></div></td>' +
+        '</tr>';
+    });
+  });
+  lh += '</tbody></table>';
+  document.getElementById('mt-tbl').innerHTML = lh;
+}
+
+function mtMxClick(orig, dest) {
+  const ex = tsRows().find(t => (t.estadoOrigen||[]).includes(orig) && t.estadoDestino === dest);
+  if (ex) { openModal('transicionesTsp', ex.id); }
+  else {
+    openModal('transicionesTsp', null);
+    setTimeout(() => {
+      const origSel = document.getElementById('f-tsorig');
+      if (origSel) Array.from(origSel.options).forEach(o => { if (parseInt(o.value) === orig) o.selected = true; });
+      sv('f-tsdest', dest);
+    }, 30);
+  }
+}
+
 /* ── MODAL ── */
 function openModal(section, id) {
   curSection = section; editId = id;
   const item = id !== null ? data[section].find(x => x.id === id) : null;
-  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL', grupos:'grupo de usuario'};
+  const titles = {estados:'estado', jornadas:'regla de jornada', matriz:'regla de matriz', transiciones:'transición', depositos:'depósito (COL)', zonas:'zona de influencia', rutas:'ruta inter-COL', grupos:'grupo de usuario', transicionesTsp:'transición (matriz de transiciones)', operaciones:'operación'};
   document.getElementById('m-title').textContent = (id !== null ? 'Editar ' : 'Nuevo ') + titles[section];
   document.getElementById('m-body').innerHTML = buildForm(section, item);
   document.getElementById('bd').classList.add('on');
@@ -1053,8 +1519,56 @@ function buildForm(sec, item) {
       '</div>'+
       '</div>';
   }
+
+  if (sec === 'transicionesTsp') {
+    const ent = item ? item.entidad : (ENT_ORDER.includes(mtEntidad) ? mtEntidad : 'Pedido');
+    const entOpts = ENT_ORDER.map(e => '<option' + (ent===e?' selected':'') + '>' + e + '</option>').join('');
+    const estadosEnt = (data.estados||[]).filter(e=>e.entidad===ent).sort((a,b)=>a.codigo-b.codigo);
+    const origOpts = estadosEnt.map(e => '<option value="'+e.codigo+'"'+(item&&(item.estadoOrigen||[]).includes(e.codigo)?' selected':'')+'>'+esc(e.codigo+' — '+e.nombre)+'</option>').join('');
+    const destOpts = estadosEnt.map(e => '<option value="'+e.codigo+'"'+(item&&item.estadoDestino===e.codigo?' selected':'')+'>'+esc(e.codigo+' — '+e.nombre)+'</option>').join('');
+    const opOpts = '<option value="">— Sin operación —</option>' + (data.operaciones||[]).filter(o=>o.activo).map(o=>'<option value="'+o.id+'"'+(item&&item.operacionId===o.id?' selected':'')+'>'+esc(o.nombre)+'</option>').join('');
+    return '<div style="background:var(--pu2);color:var(--pu);border:1px solid #cdc8f0;border-radius:var(--r);padding:10px 12px;font-size:12px;margin-bottom:4px">Los estados disponibles vienen del catálogo "Estados" para la entidad elegida. Cambia de entidad en "Estados" si te falta alguno.</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label class="fl">Entidad <span class="req">*</span></label><select id="f-tsent" onchange="reloadTsForm()">'+entOpts+'</select></div>'+
+        '<div class="fg"><label class="fl">Operación</label><select id="f-tsop">'+opOpts+'</select></div>'+
+      '</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label class="fl">Estado(s) origen <span class="req">*</span></label><select id="f-tsorig" multiple size="4">'+origOpts+'</select></div>'+
+        '<div class="fg"><label class="fl">Estado destino <span class="req">*</span></label><select id="f-tsdest">'+destOpts+'</select></div>'+
+      '</div>'+
+      '<div style="margin:10px 0 4px;font-size:11px;font-weight:700;color:var(--bl);text-transform:uppercase;letter-spacing:.5px">Validaciones requeridas en App Mobile</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label class="fl">📷 Foto</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-tsfoto"'+(item&&item.requiereFoto?' checked':'')+'><span class="tog-s"></span></label></div>'+
+        '<div class="fg"><label class="fl">✍ Firma</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-tsfirma"'+(item&&item.requiereFirma?' checked':'')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      '<div class="frow">'+
+        '<div class="fg"><label class="fl">📝 Motivo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-tsmotivo"'+(item&&item.requiereMotivo?' checked':'')+'><span class="tog-s"></span></label></div>'+
+        '<div class="fg"><label class="fl">📍 Validar geocerca</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-tsgeo"'+(item&&item.validarGeocerca?' checked':'')+'><span class="tog-s"></span></label></div>'+
+      '</div>'+
+      (ent === 'Parada' ? '<div class="fg"><label class="fl">Tipo de visita (IdEstadoParadaVisita)</label><select id="f-tsvisita"><option value="">— Ninguno —</option>'+[1,2,3,4].map(v=>'<option value="'+v+'"'+(item&&item.idEstadoParadaVisita===v?' selected':'')+'>'+v+' — '+({1:'Visitando',2:'Visitado',3:'Fuera de horario',4:'Fuera de orden'}[v])+'</option>').join('')+'</select></div>' : '')+
+      '<div style="margin:10px 0 4px;font-size:11px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px">Cascada</div>'+
+      '<div class="fg"><label class="fl">Trigger en cascada (una por línea, ej: Orden = 202)</label><textarea id="f-tstrig" style="min-height:44px">'+esc((item&&item.triggerCascada||[]).join('\n'))+'</textarea></div>'+
+      '<div class="fg"><label class="fl">Disparado por (entidad, si es automática — dejar vacío si la ejecuta el usuario)</label><select id="f-tsdisp"><option value="">— Acción del usuario —</option>'+ENT_ORDER.map(e=>'<option'+(item&&item.disparadoPor===e?' selected':'')+'>'+e+'</option>').join('')+'</select></div>'+
+      '<div class="fg"><label class="fl">Nota</label><input type="text" id="f-tsnota" value="'+esc(item?item.nota:'')+'" placeholder="ej: PIN Code, eCMR, Round Trip..."></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-tsact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
+  }
+
+  if (sec === 'operaciones') {
+    const colorLabels = {bl:'Azul',tl:'Teal',am:'Ámbar',co:'Coral',re:'Rojo',gr:'Verde',pu:'Morado',gy:'Gris'};
+    const selColor = (item && item.color) || 'bl';
+    const swatches = OP_COLORS.map(c =>
+      '<button type="button" class="color-swatch'+(selColor===c?' sel':'')+'" data-color="'+c+'" style="background:var(--'+c+'2);border-color:var(--'+c+')" onclick="selectOpColor(\''+c+'\')" title="'+colorLabels[c]+'"></button>'
+    ).join('');
+    return '<div class="fg"><label class="fl">Nombre <span class="req">*</span></label><input type="text" id="f-opnom" value="'+esc(item?item.nombre:'')+'" placeholder="ej: Internacional"></div>'+
+      '<div class="fg"><label class="fl">Descripción</label><input type="text" id="f-opdesc" value="'+esc(item?item.descripcion||'':'')+'"></div>'+
+      '<div class="fg"><label class="fl">Color</label><div class="color-swatch-row">'+swatches+'</div><input type="hidden" id="f-opcolor" value="'+selColor+'"></div>'+
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-opact"'+(item?(item.activo?' checked':''):' checked')+'><span class="tog-s"></span></label></div>';
+  }
+
   return '';
 }
+
+function reloadTsForm() { document.getElementById('m-body').innerHTML = buildForm('transicionesTsp', editId!==null ? data.transicionesTsp.find(x=>x.id===editId) : { entidad: gv('f-tsent') }); }
 
 function toggleGrupoExecFields(val) {
   const el = document.getElementById('g-exec-fields');
@@ -1134,8 +1648,28 @@ function saveModal() {
       camposEditables: {fechas: gb('f-gcfecha'), recursos: gb('f-gcrec')},
       activo: gb('f-gact')
     };
+  } else if (sec === 'transicionesTsp') {
+    const ent = gv('f-tsent');
+    const origSel = document.getElementById('f-tsorig');
+    const orig = origSel ? Array.from(origSel.selectedOptions).map(o => parseInt(o.value)) : [];
+    const dest = parseInt(gv('f-tsdest'));
+    if (!orig.length || !gv('f-tsdest')) { alert('Selecciona al menos un estado origen y un estado destino.'); return; }
+    const visitaEl = document.getElementById('f-tsvisita');
+    const trigLines = gv('f-tstrig').split('\n').map(s=>s.trim()).filter(Boolean);
+    item = {
+      entidad: ent, operacionId: gv('f-tsop') ? parseInt(gv('f-tsop')) : null,
+      estadoOrigen: orig, estadoDestino: dest,
+      requiereFoto: gb('f-tsfoto'), requiereFirma: gb('f-tsfirma'), requiereMotivo: gb('f-tsmotivo'), validarGeocerca: gb('f-tsgeo'),
+      idEstadoParadaVisita: (visitaEl && visitaEl.value) ? parseInt(visitaEl.value) : null,
+      triggerCascada: trigLines, disparadoPor: gv('f-tsdisp') || null,
+      nota: gv('f-tsnota'), activo: gb('f-tsact')
+    };
+  } else if (sec === 'operaciones') {
+    if (!gv('f-opnom')) { alert('El nombre es obligatorio.'); return; }
+    item = { nombre: gv('f-opnom'), descripcion: gv('f-opdesc'), color: gv('f-opcolor') || 'bl', activo: gb('f-opact') };
   }
 
+  const wasNewOperacion = sec === 'operaciones' && editId === null;
   if (editId !== null) {
     const idx = data[sec].findIndex(x => x.id === editId);
     if (idx > -1) data[sec][idx] = Object.assign({}, data[sec][idx], item);
@@ -1143,7 +1677,13 @@ function saveModal() {
     item.id = nextIds[sec]++;
     data[sec].push(item);
   }
+  if (wasNewOperacion) mtOp = item.id; // recién creada: seleccionarla directamente
   save(); closeModal(); renderAll();
+}
+
+function selectOpColor(c) {
+  sv('f-opcolor', c);
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('sel', s.dataset.color === c));
 }
 
 function closeModal() {

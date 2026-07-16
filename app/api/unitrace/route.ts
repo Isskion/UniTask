@@ -80,3 +80,25 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, slug });
 }
+
+export async function DELETE(request: Request) {
+    const caller = await getCallerRole(request);
+    if (!caller || caller.roleLevel < RoleLevel.ADMIN) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const slug = toSlug(searchParams.get("slug") || "");
+    if (!slug) {
+        return NextResponse.json({ error: "missing_slug" }, { status: 400 });
+    }
+
+    const docRef = adminDb.collection(UNI_TRACE_COLLECTION).doc(slug);
+    const existing = await docRef.get();
+    if (!existing.exists) {
+        return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
+
+    await docRef.delete();
+    return NextResponse.json({ ok: true });
+}
