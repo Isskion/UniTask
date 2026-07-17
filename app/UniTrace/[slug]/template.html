@@ -101,7 +101,6 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 .mc{width:76px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;transition:opacity .15s}
 .mc:hover{opacity:.8}
 .mc.none{background:var(--sf2);color:var(--tx3)}
-.mc.sac{background:var(--bl2);color:var(--bl)}
 .mc.dist{background:var(--am2);color:var(--am)}
 .mc.auto{background:var(--tl2);color:var(--tl)}
 .mc.multi{background:var(--pu2);color:var(--pu)}
@@ -542,15 +541,25 @@ function init() {
   rebuildDynamicData();
 }
 
-function save() {
+async function save() {
   rebuildDynamicData();
   if (ACCESS_LEVEL !== 'write') return; // los lectores (clave pública) nunca escriben
-  fetch('/api/unitrace/' + UNITRACE_SLUG + '/data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ID_TOKEN },
-    body: JSON.stringify({ data, nextIds, planHistory: pHistorial }),
-    credentials: 'include'
-  }).catch(function(){});
+  try {
+    // El ID token de Firebase caduca a la hora; si la pestaña lleva abierta más tiempo,
+    // un guardado con el token viejo fallaría en silencio si no lo refrescamos antes.
+    if (window.firebase && firebase.auth().currentUser) {
+      ID_TOKEN = await firebase.auth().currentUser.getIdToken(true);
+    }
+    const res = await fetch('/api/unitrace/' + UNITRACE_SLUG + '/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ID_TOKEN },
+      body: JSON.stringify({ data, nextIds, planHistory: pHistorial }),
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('save_failed_' + res.status);
+  } catch (e) {
+    alert('No se pudo guardar el cambio (sesión caducada o error de conexión). Recarga la página antes de seguir editando: los cambios hechos desde el último guardado correcto se perderán si no lo haces.');
+  }
 }
 
 function resetData() {
@@ -1060,9 +1069,22 @@ function getNombreEstado(cod, entidad) {
   const e = data.estados.find(x => x.codigo === cod && x.entidad === entidad);
   return e ? e.nombre : String(cod);
 }
+// "Rol permitido" ya no es un enum fijo (SAC/Distribuidor/Automatico) — viene de los nombres
+// de "Grupos de Usuario". El color por rol se deriva por hash del nombre sobre la misma
+// paleta que usan las Operaciones (OP_COLORS), así cualquier nombre nuevo recibe un color
+// estable sin tener que mantener un mapa fijo.
+const ROL_COLOR_VARS = {bl:['--bl2','--bl'],tl:['--tl2','--tl'],am:['--am2','--am'],co:['--co2','--co'],re:['--re2','--re'],gr:['--gr2','--gr'],pu:['--pu2','--pu'],gy:['--gy2','--gy']};
+function rolColorKey(rol) {
+  let h = 0;
+  for (let i = 0; i < rol.length; i++) h = (h * 31 + rol.charCodeAt(i)) >>> 0;
+  return OP_COLORS[h % OP_COLORS.length];
+}
+function rolColorStyle(rol) {
+  const vars = ROL_COLOR_VARS[rolColorKey(rol)];
+  return 'background:var(' + vars[0] + ');color:var(' + vars[1] + ')';
+}
 function renderTransiciones() {
   const estados = data.estados.filter(e => e.entidad==='Pedido' && e.activo).sort((a,b) => a.codigo - b.codigo);
-  const rolCls = {SAC:'sac', Distribuidor:'dist', Automatico:'auto'};
 
   // Matrix
   let h = '<div class="mx-wrap"><table class="mx"><thead><tr><th style="min-width:130px">Origen \\ Destino</th>';
@@ -1075,15 +1097,17 @@ function renderTransiciones() {
     estados.forEach(dest => {
       if (orig.codigo === dest.codigo) { h += '<td><div class="mc self"></div></td>'; return; }
       const ts = data.transiciones.filter(t => t.estadoOrigen === orig.codigo && t.estadoDestino === dest.codigo && t.activo);
-      let cls = 'none', lbl = '—';
-      if (ts.length === 1) { cls = rolCls[ts[0].rolPermitido] || 'none'; lbl = ts[0].rolPermitido.substring(0,4); }
+      let cls = 'none', lbl = '—', style = '';
+      if (ts.length === 1) { cls = ''; style = rolColorStyle(ts[0].rolPermitido); lbl = ts[0].rolPermitido.substring(0,4); }
       else if (ts.length > 1) { cls = 'multi'; lbl = ts.length + ' roles'; }
-      h += '<td><div class="mc ' + cls + '" onclick="mxClick(' + orig.codigo + ',' + dest.codigo + ')" title="' + esc(orig.nombre) + ' → ' + esc(dest.nombre) + '">' + lbl + '</div></td>';
+      h += '<td><div class="mc ' + cls + '" style="' + style + '" onclick="mxClick(' + orig.codigo + ',' + dest.codigo + ')" title="' + esc(orig.nombre) + ' → ' + esc(dest.nombre) + '">' + esc(lbl) + '</div></td>';
     });
     h += '</tr>';
   });
   h += '</tbody></table></div>';
-  h += '<div class="leg"><div class="li"><div class="ld" style="background:var(--bl2);border:1px solid var(--bl)"></div>SAC</div><div class="li"><div class="ld" style="background:var(--am2);border:1px solid var(--am)"></div>Distribuidor</div><div class="li"><div class="ld" style="background:var(--tl2);border:1px solid var(--tl)"></div>Automático</div><div class="li"><div class="ld" style="background:var(--pu2);border:1px solid var(--pu)"></div>Múltiples</div><div class="li"><div class="ld" style="background:var(--sf2);border:1px solid var(--bd)"></div>Sin transición</div></div>';
+  const rolesUsados = Array.from(new Set(data.transiciones.filter(t=>t.activo).map(t=>t.rolPermitido))).sort();
+  const rolLeg = rolesUsados.map(r => '<div class="li"><div class="ld" style="' + rolColorStyle(r) + '"></div>' + esc(r) + '</div>').join('');
+  h += '<div class="leg">' + rolLeg + '<div class="li"><div class="ld" style="background:var(--pu2);border:1px solid var(--pu)"></div>Múltiples</div><div class="li"><div class="ld" style="background:var(--sf2);border:1px solid var(--bd)"></div>Sin transición</div></div>';
   h += '<p style="font-size:12px;color:var(--tx3);margin-top:8px">Haz clic en una celda para crear o editar la transición.</p>';
   document.getElementById('mx-transiciones').innerHTML = h;
 
@@ -1091,7 +1115,7 @@ function renderTransiciones() {
   if (!data.transiciones.length) { document.getElementById('tbl-transiciones').innerHTML = ''; return; }
   let lh = '<table><thead><tr><th>Estado origen</th><th>Estado destino</th><th>Rol</th><th>Restricción / Fórmula</th><th>Activo</th><th></th></tr></thead><tbody>';
   data.transiciones.forEach(t => {
-    const rc = t.rolPermitido==='SAC'?'p-bl':t.rolPermitido==='Distribuidor'?'p-am':'p-tl';
+    const rc = 'p-' + rolColorKey(t.rolPermitido);
     lh += '<tr' + (!t.activo?' style="opacity:.5"':'') + '><td>' + pill(t.estadoOrigen,'p-gy') + ' <span class="tdm">' + esc(getNombreEstado(t.estadoOrigen)) + '</span></td><td>' + pill(t.estadoDestino,'p-pu') + ' <span class="tdm">' + esc(getNombreEstado(t.estadoDestino)) + '</span></td><td>' + pill(t.rolPermitido,rc) + '</td><td class="tdm" style="font-size:12px;font-family:monospace">' + esc(t.restriccionFormula||'—') + '</td><td>' + tog(t.activo,'transiciones',t.id) + '</td><td><div class="tda"><button class="bi ed" onclick="openModal(\'transiciones\',' + t.id + ')">✎</button><button class="bi dl" onclick="delItem(\'transiciones\',' + t.id + ')">✕</button></div></td></tr>';
   });
   lh += '</tbody></table>';
@@ -1473,7 +1497,15 @@ function buildForm(sec, item) {
   }
 
   if (sec === 'transiciones') {
-    const rolOpts = ['SAC','Distribuidor','Automatico'].map(r => '<option' + (item&&item.rolPermitido===r?' selected':'') + '>' + r + '</option>').join('');
+    // "Rol permitido" viene del listado de "Grupos de Usuario" (data.grupos), no de un enum fijo.
+    // Si el registro que se edita tiene un rol que ya no corresponde a ningún grupo activo
+    // (renombrado/borrado), se antepone igualmente para no perder/corromper el valor guardado.
+    const grupoNames = (data.grupos||[]).filter(g=>g.activo).map(g=>g.nombre);
+    const rolValues = grupoNames.slice();
+    if (item && item.rolPermitido && !rolValues.includes(item.rolPermitido)) rolValues.unshift(item.rolPermitido);
+    const rolOpts = rolValues.length
+      ? rolValues.map(r => '<option' + (item&&item.rolPermitido===r?' selected':'') + '>' + esc(r) + '</option>').join('')
+      : '<option value="" disabled selected>— No hay grupos de usuario activos —</option>';
     return '<div style="background:var(--bl2);color:var(--bl);border:1px solid #b5d4f4;border-radius:var(--r);padding:10px 12px;font-size:12px;margin-bottom:4px">Los estados disponibles provienen del catálogo. Para añadir nuevos, ve a la pestaña <strong>Estados</strong>.</div>' +
       '<div class="frow">' +
       '<div class="fg"><label class="fl">Estado origen <span class="req">*</span></label><select id="f-eorig">' + estadoOpts + '</select></div>' +
@@ -1481,7 +1513,9 @@ function buildForm(sec, item) {
       '</div>' +
       (item ? '<script>document.getElementById("f-eorig").value="' + item.estadoOrigen + '";document.getElementById("f-edest").value="' + item.estadoDestino + '";<\/script>' : '') +
       '<div class="frow">' +
-      '<div class="fg"><label class="fl">Rol permitido <span class="req">*</span></label><select id="f-rol">' + rolOpts + '</select></div>' +
+      '<div class="fg"><label class="fl">Rol permitido <span class="req">*</span></label><select id="f-rol">' + rolOpts + '</select>' +
+      (rolValues.length ? '' : '<div class="tdm" style="font-size:11px;margin-top:4px">Ve a la pestaña <strong>Grupos de Usuario</strong> y crea al menos uno.</div>') +
+      '</div>' +
       '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-act" ' + (item ? (item.activo?'checked':'') : 'checked') + '><span class="tog-s"></span></label></div>' +
       '</div>' +
       '<div class="fg"><label class="fl">Restricción / Fórmula</label><input type="text" id="f-rest" value="' + esc(item ? item.restriccionFormula : '') + '" placeholder="ej: TipoDomicilioOrden2 != Deposito"></div>' +
@@ -1635,6 +1669,7 @@ function saveModal() {
     const orig = parseInt(gv('f-eorig'));
     const dest = parseInt(gv('f-edest'));
     const rol = gv('f-rol');
+    if (!rol) { alert('Rol permitido es obligatorio. Crea un grupo de usuario primero en la pestaña "Grupos de Usuario".'); return; }
     if (orig === dest) { alert('El estado origen y destino no pueden ser iguales.'); return; }
     const dup = data.transiciones.find(t => t.estadoOrigen === orig && t.estadoDestino === dest && t.rolPermitido === rol && t.id !== editId);
     if (dup) { alert('Ya existe esa transición para ese rol.'); return; }
