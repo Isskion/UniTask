@@ -327,9 +327,10 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 <div id="tab-matriz" class="tab">
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Matriz de programación</span></div>
+    <button class="btn" onclick="generarMatrizAutomatica()">&#9889; Generar automáticamente</button>
     <button class="btn btn-p" onclick="openModal('matriz',null)">+ Nueva regla</button>
   </div>
-  <p class="sdesc">Determina qué estado de programación y tipos de orden se generan según el tipo de domicilio origen/destino y la relación entre depósitos.</p>
+  <p class="sdesc">Determina qué estado de programación y tipos de orden se generan según el tipo de domicilio origen/destino y la relación entre depósitos. "Generar automáticamente" comprueba que ya existan Depósitos, Estados y Transiciones, y crea las reglas estándar que falten (basadas en el patrón validado en producción) para editarlas después.</p>
   <div id="stats-matriz" class="stats"></div>
   <div id="tbl-matriz"></div>
 </div>
@@ -1051,6 +1052,58 @@ function renderJornadas() {
 
 /* ── MATRIZ ── */
 const estadoColor = {'Programar Punto a Punto':'p-bl','Programar Recogida':'p-tl','Programar Entrega Direta':'p-gr','Programar Arrastre':'p-am','Invalido':'p-re','AJENA - Programar Punto a Punto':'p-co','AJENA - Programar Arrastre':'p-co','AJENA - Programar Recogida':'p-co','Programar Paqueteria':'p-pu'};
+
+// Tabla de decisión estándar de la Matriz de Programación: combina tipo de domicilio
+// origen/destino y relación entre depósitos/zona para sugerir el estado de programación.
+// Es independiente del cliente — los 8 estados "Programar X" + "Invalido" son genéricos
+// de cualquier proyecto con esta arquitectura (validado en producción, proyecto Luis Simoes).
+const MATRIZ_SEED = [
+  {tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Punto a Punto', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'P2P directo remitente a destinatario. Aplica local y larga distancia.'},
+  {tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Recogida', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito', prioridad:10, descripcion:'Recogida en remitente hacia un depósito propio (COL).'},
+  {tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Entrega Direta', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'Reparto final desde depósito hacia destinatario. Generalmente tramo local.'},
+  {tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', estadoSugerido:'Programar Arrastre', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:10, descripcion:'Movimiento troncal entre depósitos (crossdock). Larga distancia por defecto.'},
+  {tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Mismo Deposito', relZona:'N/A', estadoSugerido:'Invalido', tipoPickup:'', tipoDelivery:'', prioridad:99, descripcion:'Flujo inválido: origen y destino en el mismo depósito.'},
+  {tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito Ajena', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'AJENA - Programar Recogida', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito Ajena', prioridad:20, descripcion:'Recogida hacia agencia ajena.'},
+  {tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'AJENA - Programar Punto a Punto', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:20, descripcion:'P2P ejecutado por agencia ajena — misma combinación que la regla P2P propia, se distingue por prioridad/motivo ajena.'},
+  {tipoDomOrigen:'Deposito Ajena', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', estadoSugerido:'AJENA - Programar Arrastre', tipoPickup:'Recolección en Depósito Ajena', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:20, descripcion:'Arrastre ejecutado por agencia ajena hacia un depósito propio.'},
+  {tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'Misma Zona', estadoSugerido:'Programar Paqueteria', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:5, descripcion:'Paquetería: misma zona que el depósito de carga. Jornada según tabla de paquetería por zona.'}
+];
+
+function generarMatrizAutomatica() {
+  const depositosActivos = (data.depositos||[]).filter(d=>d.activo).length;
+  const estadosPedido = (data.estados||[]).filter(e=>e.entidad==='Pedido' && e.activo);
+  const nombresEstado = new Set(estadosPedido.map(e=>e.nombre));
+  const requeridos = Array.from(new Set(MATRIZ_SEED.map(r=>r.estadoSugerido).filter(n=>n!=='Invalido')));
+  const faltanEstados = requeridos.filter(n=>!nombresEstado.has(n));
+  const transicionesActivas = (data.transiciones||[]).filter(t=>t.activo).length;
+
+  const problemas = [];
+  if (!depositosActivos) problemas.push('No hay ningún depósito (COL) activo. Ve a la pestaña "Depósitos".');
+  if (faltanEstados.length) problemas.push('Faltan estados de Pedido: ' + faltanEstados.join(', ') + '. Créalos en la pestaña "Estados".');
+  if (!transicionesActivas) problemas.push('No hay ninguna transición de estado activa. Ve a la pestaña "Transiciones".');
+
+  if (problemas.length) {
+    alert('No se puede generar la matriz automáticamente todavía:\n\n— ' + problemas.join('\n— ') + '\n\nCompleta esto primero y vuelve a intentarlo.');
+    return;
+  }
+
+  const existentes = new Set((data.matriz||[]).map(m=>m.estadoSugerido));
+  const nuevas = MATRIZ_SEED.filter(r => !existentes.has(r.estadoSugerido));
+
+  if (!nuevas.length) {
+    alert('Ya existen las ' + MATRIZ_SEED.length + ' reglas estándar de la matriz. No hay nada nuevo que generar.');
+    return;
+  }
+
+  if (!confirm('Se van a crear ' + nuevas.length + ' regla(s) estándar en la Matriz de Programación:\n\n' + nuevas.map(r=>'• ' + r.estadoSugerido).join('\n') + '\n\nPodrás editarlas o desactivarlas después. ¿Continuar?')) return;
+
+  nuevas.forEach(r => {
+    data.matriz.push(Object.assign({}, r, {id: nextIds.matriz++, activo: true}));
+  });
+  save(); renderAll();
+  alert('Se han creado ' + nuevas.length + ' regla(s) en la Matriz de Programación.');
+}
+
 function renderMatriz() {
   document.getElementById('stats-matriz').innerHTML = statsHtml(data.matriz) +
     '<div class="sc"><div class="sl">Con pickup</div><div class="sv">' + data.matriz.filter(m=>m.tipoPickup).length + '</div></div>';
