@@ -1746,6 +1746,21 @@
     }
   },
   {
+    "id": "h4zUBkkK1GQa8Bqug4Ez",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-27 - \"Generación de retornables\" has reached its deadline.",
+    "taskId": "Li2uPveVA1fvL0bhMaeV",
+    "read": false,
+    "link": "/?view=task-manager&taskId=Li2uPveVA1fvL0bhMaeV",
+    "createdAt": {
+      "_seconds": 1784268915,
+      "_nanoseconds": 750000000
+    }
+  },
+  {
     "id": "h5YprGgfuN1q9h53SBvv",
     "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
     "type": "assignment",
