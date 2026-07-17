@@ -1366,14 +1366,21 @@ function buildForm(sec, item) {
   }
 
   if (sec === 'jornadas') {
+    // El depósito se elige del catálogo "Depositos (COL)" (data.depositos) en vez de teclear
+    // a mano su ID y nombre — idDeposito guarda el id interno del depósito seleccionado.
+    const depActivos = (data.depositos||[]).filter(d=>d.activo).sort((a,b)=>a.codigo.localeCompare(b.codigo));
+    let depOpts = depActivos.map(d => '<option value="'+d.id+'"'+(item&&item.idDeposito===d.id?' selected':'')+'>'+esc(d.codigo)+' — '+esc(d.nombre)+'</option>').join('');
+    if (item && item.idDeposito != null && !depActivos.some(d=>d.id===item.idDeposito)) {
+      depOpts = '<option value="'+item.idDeposito+'" selected>'+esc(item.nombreDeposito||('ID '+item.idDeposito))+' (no vinculado a un COL activo)</option>' + depOpts;
+    }
+    if (!depOpts) depOpts = '<option value="" disabled selected>— No hay depósitos (COL) activos —</option>';
     return '<div class="frow">' +
-      '<div class="fg"><label class="fl">ID Depósito <span class="req">*</span></label><input type="number" id="f-idep" value="' + esc(item ? item.idDeposito : '') + '" placeholder="101"></div>' +
-      '<div class="fg"><label class="fl">Nombre Depósito <span class="req">*</span></label><input type="text" id="f-ndep" value="' + esc(item ? item.nombreDeposito : '') + '" placeholder="ES Madrid"></div>' +
+      '<div class="fg"><label class="fl">Depósito (COL) <span class="req">*</span></label><select id="f-idep">' + depOpts + '</select>' +
+      (depActivos.length ? '' : '<div class="tdm" style="font-size:11px;margin-top:4px">Ve a la pestaña <strong>Depósitos</strong> y crea al menos uno.</div>') +
       '</div>' +
-      '<div class="frow">' +
       '<div class="fg"><label class="fl">Tipo Tramo <span class="req">*</span></label><select id="f-ttra"><option' + (item&&item.tipoTramo==='Local'?' selected':'') + '>Local</option><option' + (item&&item.tipoTramo==='Larga Distancia'?' selected':'') + '>Larga Distancia</option><option' + (item&&item.tipoTramo==='Paqueteria'?' selected':'') + '>Paqueteria</option><option' + (item&&item.tipoTramo==='Ajena'?' selected':'') + '>Ajena</option></select></div>' +
-      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-act" ' + (item ? (item.activo?'checked':'') : 'checked') + '><span class="tog-s"></span></label></div>' +
       '</div>' +
+      '<div class="fg"><label class="fl">Activo</label><label class="tog" style="margin-top:6px"><input type="checkbox" id="f-act" ' + (item ? (item.activo?'checked':'') : 'checked') + '><span class="tog-s"></span></label></div>' +
       '<div class="fg"><label class="fl">Tipo Jornada <span class="req">*</span></label><input type="text" id="f-tjor" value="' + esc(item ? item.tipoJornada : '') + '" placeholder="ES Madrid Local"></div>' +
       '<div class="fg"><label class="fl">Operación <span class="req">*</span></label><input type="text" id="f-oper" value="' + esc(item ? item.operacion : '') + '" placeholder="Centro Norte Madrid"></div>' +
       '<div class="frow">' +
@@ -1623,12 +1630,15 @@ function saveModal() {
     if (dupEst) { alert('Ya existe un estado con ese código para la entidad ' + ent + '.'); return; }
     item = {entidad: ent, codigo: cod, nombre: gv('f-nom'), momento: gv('f-mom'), descripcion: gv('f-desc'), activo: gb('f-act')};
   } else if (sec === 'jornadas') {
-    if (!gv('f-idep') || !gv('f-ndep') || !gv('f-tjor') || !gv('f-oper')) { alert('Rellena los campos obligatorios.'); return; }
+    if (!gv('f-idep') || !gv('f-tjor') || !gv('f-oper')) { alert('Rellena los campos obligatorios. Selecciona un depósito de la pestaña "Depósitos".'); return; }
     const idDep = parseInt(gv('f-idep'));
     const tramo = gv('f-ttra');
     const dup = data.jornadas.find(j => j.idDeposito === idDep && j.tipoTramo === tramo && j.id !== editId);
     if (dup) { alert('Ya existe una regla para ese Depósito y Tramo.'); return; }
-    item = {idDeposito: idDep, nombreDeposito: gv('f-ndep'), tipoTramo: tramo, tipoJornada: gv('f-tjor'), operacion: gv('f-oper'), esAjena: gb('f-ajen'), esPaqueteria: gb('f-paq'), activo: gb('f-act')};
+    const dep = (data.depositos||[]).find(d => d.id === idDep);
+    const existing = editId !== null ? data.jornadas.find(x => x.id === editId) : null;
+    const nombreDep = dep ? dep.nombre : (existing ? existing.nombreDeposito : '');
+    item = {idDeposito: idDep, nombreDeposito: nombreDep, tipoTramo: tramo, tipoJornada: gv('f-tjor'), operacion: gv('f-oper'), esAjena: gb('f-ajen'), esPaqueteria: gb('f-paq'), activo: gb('f-act')};
   } else if (sec === 'matriz') {
     if (!gv('f-esug')) { alert('Estado sugerido es obligatorio.'); return; }
     item = {tipoDomOrigen: gv('f-torig'), tipoDomDestino: gv('f-tdest'), relDepositos: gv('f-rdep'), relZona: gv('f-rzona'), estadoSugerido: gv('f-esug'), tipoPickup: gv('f-tpick'), tipoDelivery: gv('f-tdeli'), prioridad: parseInt(gv('f-prio'))||10, descripcion: gv('f-desc'), activo: gb('f-act')};
