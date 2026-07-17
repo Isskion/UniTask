@@ -330,7 +330,7 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
     <button class="btn" onclick="generarMatrizAutomatica()">&#9889; Generar automáticamente</button>
     <button class="btn btn-p" onclick="openModal('matriz',null)">+ Nueva regla</button>
   </div>
-  <p class="sdesc">Determina qué estado de programación y tipos de orden se generan según el tipo de domicilio origen/destino y la relación entre depósitos. "Generar automáticamente" comprueba que ya existan Depósitos, Estados y Transiciones, y crea las reglas estándar que falten (basadas en el patrón validado en producción) para editarlas después.</p>
+  <p class="sdesc">Determina qué estado de programación y tipos de orden se generan según el tipo de domicilio origen/destino y la relación entre depósitos. "Generar automáticamente" comprueba que ya existan Depósitos, Estados y Transiciones, sugiere para cada tipología estándar cuál de tus propios estados de Pedido corresponde (puedes confirmar, cambiar u omitir cada una) y crea las reglas resultantes para editarlas después.</p>
   <div id="stats-matriz" class="stats"></div>
   <div id="tbl-matriz"></div>
 </div>
@@ -1053,33 +1053,45 @@ function renderJornadas() {
 /* ── MATRIZ ── */
 const estadoColor = {'Programar Punto a Punto':'p-bl','Programar Recogida':'p-tl','Programar Entrega Direta':'p-gr','Programar Arrastre':'p-am','Invalido':'p-re','AJENA - Programar Punto a Punto':'p-co','AJENA - Programar Arrastre':'p-co','AJENA - Programar Recogida':'p-co','Programar Paqueteria':'p-pu'};
 
-// Tabla de decisión estándar de la Matriz de Programación: combina tipo de domicilio
-// origen/destino y relación entre depósitos/zona para sugerir el estado de programación.
-// Es independiente del cliente — los 8 estados "Programar X" + "Invalido" son genéricos
-// de cualquier proyecto con esta arquitectura (validado en producción, proyecto Luis Simoes).
-const MATRIZ_SEED = [
-  {tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Punto a Punto', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'P2P directo remitente a destinatario. Aplica local y larga distancia.'},
-  {tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Recogida', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito', prioridad:10, descripcion:'Recogida en remitente hacia un depósito propio (COL).'},
-  {tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'Programar Entrega Direta', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'Reparto final desde depósito hacia destinatario. Generalmente tramo local.'},
-  {tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', estadoSugerido:'Programar Arrastre', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:10, descripcion:'Movimiento troncal entre depósitos (crossdock). Larga distancia por defecto.'},
-  {tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Mismo Deposito', relZona:'N/A', estadoSugerido:'Invalido', tipoPickup:'', tipoDelivery:'', prioridad:99, descripcion:'Flujo inválido: origen y destino en el mismo depósito.'},
-  {tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito Ajena', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'AJENA - Programar Recogida', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito Ajena', prioridad:20, descripcion:'Recogida hacia agencia ajena.'},
-  {tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', estadoSugerido:'AJENA - Programar Punto a Punto', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:20, descripcion:'P2P ejecutado por agencia ajena — misma combinación que la regla P2P propia, se distingue por prioridad/motivo ajena.'},
-  {tipoDomOrigen:'Deposito Ajena', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', estadoSugerido:'AJENA - Programar Arrastre', tipoPickup:'Recolección en Depósito Ajena', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:20, descripcion:'Arrastre ejecutado por agencia ajena hacia un depósito propio.'},
-  {tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'Misma Zona', estadoSugerido:'Programar Paqueteria', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:5, descripcion:'Paquetería: misma zona que el depósito de carga. Jornada según tabla de paquetería por zona.'}
+// Tipologías estándar de la Matriz de Programación: combinan tipo de domicilio origen/destino
+// y relación entre depósitos/zona para sugerir un estado de programación. La COMBINACIÓN es
+// genérica de cualquier proyecto con esta arquitectura (validado en producción, proyecto Luis
+// Simoes), pero el NOMBRE del estado lo define cada cliente — por eso cada tipología solo
+// guarda un "role" + palabras clave para intentar detectar automáticamente cuál de los
+// estados de Pedido ya creados por el cliente le corresponde; si no hay match, se le pregunta.
+const MATRIZ_ROLES = [
+  {role:'p2p', label:'Punto a Punto — remitente → destinatario, directo', ajena:false, keywords:['punto a punto'], tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'P2P directo remitente a destinatario. Aplica local y larga distancia.'},
+  {role:'recogida', label:'Recogida — remitente → depósito propio', ajena:false, keywords:['recogida'], tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito', relDepositos:'N/A', relZona:'N/A', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito', prioridad:10, descripcion:'Recogida en remitente hacia un depósito propio (COL).'},
+  {role:'entregaDirecta', label:'Entrega Directa — depósito propio → destinatario', ajena:false, keywords:['entrega direct'], tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:10, descripcion:'Reparto final desde depósito hacia destinatario. Generalmente tramo local.'},
+  {role:'arrastre', label:'Arrastre — depósito → depósito (diferente COL)', ajena:false, keywords:['arrastre'], tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:10, descripcion:'Movimiento troncal entre depósitos (crossdock). Larga distancia por defecto.'},
+  {role:'ajenaRecogida', label:'AJENA — Recogida (remitente → depósito ajena)', ajena:true, keywords:['recogida'], tipoDomOrigen:'Remitente', tipoDomDestino:'Deposito Ajena', relDepositos:'N/A', relZona:'N/A', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en Depósito Ajena', prioridad:20, descripcion:'Recogida hacia agencia ajena.'},
+  {role:'ajenaP2p', label:'AJENA — Punto a Punto', ajena:true, keywords:['punto a punto'], tipoDomOrigen:'Remitente', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'N/A', tipoPickup:'Recolección en Remitente', tipoDelivery:'Entrega en destinatario', prioridad:20, descripcion:'P2P ejecutado por agencia ajena — misma combinación que la regla P2P propia, se distingue por prioridad/motivo ajena.'},
+  {role:'ajenaArrastre', label:'AJENA — Arrastre (depósito ajena → depósito propio)', ajena:true, keywords:['arrastre'], tipoDomOrigen:'Deposito Ajena', tipoDomDestino:'Deposito', relDepositos:'Diferente Deposito', relZona:'N/A', tipoPickup:'Recolección en Depósito Ajena', tipoDelivery:'Entrega en Depósito Crossdock', prioridad:20, descripcion:'Arrastre ejecutado por agencia ajena hacia un depósito propio.'},
+  {role:'paqueteria', label:'Paquetería — depósito → destinatario, misma zona', ajena:false, keywords:['paqueter'], tipoDomOrigen:'Deposito', tipoDomDestino:'Destinatario', relDepositos:'N/A', relZona:'Misma Zona', tipoPickup:'Recolección en Depósito', tipoDelivery:'Entrega en destinatario', prioridad:5, descripcion:'Paquetería: misma zona que el depósito de carga. Jornada según tabla de paquetería por zona.'}
 ];
+// Fila fija que no depende de ningún estado del cliente: marca el combo mismo-depósito como inválido.
+const MATRIZ_INVALIDO = {tipoDomOrigen:'Deposito', tipoDomDestino:'Deposito', relDepositos:'Mismo Deposito', relZona:'N/A', estadoSugerido:'Invalido', tipoPickup:'', tipoDelivery:'', prioridad:99, descripcion:'Flujo inválido: origen y destino en el mismo depósito.'};
+
+function normTxt(s) { return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function matrizRuleKey(r) { return [r.tipoDomOrigen,r.tipoDomDestino,r.relDepositos,r.relZona,r.prioridad].join('|'); }
+// Intenta encontrar, entre los estados de Pedido ya creados por el cliente, el que corresponde
+// a esta tipología por nombre (ej. "AJENA - Recogida Cliente X" para el role ajenaRecogida).
+function autoMatchEstado(role, estadosPedido) {
+  return estadosPedido.find(e => {
+    const n = normTxt(e.nombre);
+    if (n.includes('ajena') !== role.ajena) return false;
+    return role.keywords.every(k => n.includes(k));
+  }) || null;
+}
 
 function generarMatrizAutomatica() {
   const depositosActivos = (data.depositos||[]).filter(d=>d.activo).length;
   const estadosPedido = (data.estados||[]).filter(e=>e.entidad==='Pedido' && e.activo);
-  const nombresEstado = new Set(estadosPedido.map(e=>e.nombre));
-  const requeridos = Array.from(new Set(MATRIZ_SEED.map(r=>r.estadoSugerido).filter(n=>n!=='Invalido')));
-  const faltanEstados = requeridos.filter(n=>!nombresEstado.has(n));
   const transicionesActivas = (data.transiciones||[]).filter(t=>t.activo).length;
 
   const problemas = [];
   if (!depositosActivos) problemas.push('No hay ningún depósito (COL) activo. Ve a la pestaña "Depósitos".');
-  if (faltanEstados.length) problemas.push('Faltan estados de Pedido: ' + faltanEstados.join(', ') + '. Créalos en la pestaña "Estados".');
+  if (!estadosPedido.length) problemas.push('No hay ningún estado de Pedido activo. Ve a la pestaña "Estados" y crea al menos los estados de programación (Punto a Punto, Recogida, Arrastre, Entrega Directa...).');
   if (!transicionesActivas) problemas.push('No hay ninguna transición de estado activa. Ve a la pestaña "Transiciones".');
 
   if (problemas.length) {
@@ -1087,21 +1099,60 @@ function generarMatrizAutomatica() {
     return;
   }
 
-  const existentes = new Set((data.matriz||[]).map(m=>m.estadoSugerido));
-  const nuevas = MATRIZ_SEED.filter(r => !existentes.has(r.estadoSugerido));
+  openMatrizGenModal(estadosPedido);
+}
 
-  if (!nuevas.length) {
-    alert('Ya existen las ' + MATRIZ_SEED.length + ' reglas estándar de la matriz. No hay nada nuevo que generar.');
-    return;
-  }
+function openMatrizGenModal(estadosPedido) {
+  curSection = 'matrizGen'; editId = null;
+  document.getElementById('m-title').textContent = 'Generar Matriz de Programación';
+  document.getElementById('m-body').innerHTML = buildMatrizGenForm(estadosPedido);
+  document.getElementById('bd').classList.add('on');
+}
 
-  if (!confirm('Se van a crear ' + nuevas.length + ' regla(s) estándar en la Matriz de Programación:\n\n' + nuevas.map(r=>'• ' + r.estadoSugerido).join('\n') + '\n\nPodrás editarlas o desactivarlas después. ¿Continuar?')) return;
-
-  nuevas.forEach(r => {
-    data.matriz.push(Object.assign({}, r, {id: nextIds.matriz++, activo: true}));
+function buildMatrizGenForm(estadosPedido) {
+  const existentes = new Set((data.matriz||[]).map(matrizRuleKey));
+  let h = '<div style="background:var(--bl2);color:var(--bl);border:1px solid #b5d4f4;border-radius:var(--r);padding:10px 12px;font-size:12px;margin-bottom:8px">Cada cliente nombra sus estados de forma distinta. Para cada tipología estándar, confirma cuál de tus estados de Pedido corresponde (se preseleccionó el más probable por nombre). Deja "— Omitir —" si esa tipología no aplica a este cliente.</div>';
+  MATRIZ_ROLES.forEach(r => {
+    const yaExiste = existentes.has(matrizRuleKey(r));
+    if (yaExiste) {
+      h += '<div class="fg" style="margin-bottom:10px"><label class="fl">' + esc(r.label) + '</label><div class="tdm" style="font-size:12px">Ya existe una regla con esta combinación — omitida.</div></div>';
+      return;
+    }
+    const auto = autoMatchEstado(r, estadosPedido);
+    const opts = '<option value="">— Omitir —</option>' + estadosPedido.map(e => '<option value="' + e.id + '"' + (auto && auto.id === e.id ? ' selected' : '') + '>' + esc(e.nombre) + '</option>').join('');
+    h += '<div class="fg" style="margin-bottom:10px"><label class="fl">' + esc(r.label) + '</label><select class="f-mgrole" data-role="' + r.role + '">' + opts + '</select></div>';
   });
+  const invExiste = existentes.has(matrizRuleKey(MATRIZ_INVALIDO));
+  h += '<div class="fg"><label class="fl">Combo mismo-depósito (regla fija, no depende de un estado)</label><div class="tdm" style="font-size:12px">' + (invExiste ? 'Ya existe — omitida.' : 'Se creará como "Invalido" automáticamente.') + '</div></div>';
+  return h;
+}
+
+function guardarMatrizGen() {
+  const estadosPedido = (data.estados||[]).filter(e=>e.entidad==='Pedido');
+  const existentes = new Set((data.matriz||[]).map(matrizRuleKey));
+  let creadas = 0;
+  document.querySelectorAll('.f-mgrole').forEach(sel => {
+    if (!sel.value) return;
+    const role = MATRIZ_ROLES.find(r => r.role === sel.dataset.role);
+    const estado = estadosPedido.find(e => e.id === parseInt(sel.value));
+    if (!role || !estado || existentes.has(matrizRuleKey(role))) return;
+    data.matriz.push({
+      id: nextIds.matriz++, tipoDomOrigen: role.tipoDomOrigen, tipoDomDestino: role.tipoDomDestino,
+      relDepositos: role.relDepositos, relZona: role.relZona, estadoSugerido: estado.nombre,
+      tipoPickup: role.tipoPickup, tipoDelivery: role.tipoDelivery, prioridad: role.prioridad,
+      descripcion: role.descripcion, activo: true
+    });
+    existentes.add(matrizRuleKey(role));
+    creadas++;
+  });
+  if (!existentes.has(matrizRuleKey(MATRIZ_INVALIDO))) {
+    data.matriz.push(Object.assign({id: nextIds.matriz++, activo: true}, MATRIZ_INVALIDO));
+    creadas++;
+  }
+  closeModal();
+  if (!creadas) { alert('No se ha creado ninguna regla nueva (todo se omitió o ya existía).'); return; }
   save(); renderAll();
-  alert('Se han creado ' + nuevas.length + ' regla(s) en la Matriz de Programación.');
+  alert('Se han creado ' + creadas + ' regla(s) en la Matriz de Programación. Puedes editarlas o desactivarlas cuando quieras.');
 }
 
 function renderMatriz() {
@@ -1443,12 +1494,17 @@ function buildForm(sec, item) {
   }
 
   if (sec === 'matriz') {
-    const sugs = ['Programar Punto a Punto','Programar Recogida','Programar Entrega Direta','Programar Arrastre','AJENA - Programar Punto a Punto','AJENA - Programar Arrastre','AJENA - Programar Recogida','Programar Paqueteria','Invalido'];
+    // "Estado sugerido" viene de los propios estados de Pedido del cliente (cada uno usa
+    // nombres distintos) + un pseudo-valor fijo "Invalido" que no corresponde a ningún
+    // estado real, solo marca combinaciones que no deben darse (ej. mismo depósito).
+    const estadosPedidoNom = (data.estados||[]).filter(e=>e.entidad==='Pedido'&&e.activo).sort((a,b)=>a.codigo-b.codigo).map(e=>e.nombre);
+    const sugs = estadosPedidoNom.concat(['Invalido']);
+    if (item && item.estadoSugerido && !sugs.includes(item.estadoSugerido)) sugs.unshift(item.estadoSugerido);
     const origOpts = ['Remitente','Deposito','Deposito Ajena'].map(o => '<option' + (item&&item.tipoDomOrigen===o?' selected':'') + '>' + o + '</option>').join('');
     const destOpts = ['Destinatario','Deposito','Deposito Ajena'].map(o => '<option' + (item&&item.tipoDomDestino===o?' selected':'') + '>' + o + '</option>').join('');
     const relOpts = ['N/A','Mismo Deposito','Diferente Deposito'].map(o => '<option' + (item&&item.relDepositos===o?' selected':'') + '>' + o + '</option>').join('');
     const zonaOpts = ['N/A','Misma Zona','Diferente Zona'].map(o => '<option' + (item&&item.relZona===o?' selected':'') + '>' + o + '</option>').join('');
-    const sugOpts = sugs.map(o => '<option' + (item&&item.estadoSugerido===o?' selected':'') + '>' + o + '</option>').join('');
+    const sugOpts = sugs.map(o => '<option' + (item&&item.estadoSugerido===o?' selected':'') + '>' + esc(o) + '</option>').join('');
     return '<div class="frow">' +
       '<div class="fg"><label class="fl">Tipo domicilio origen <span class="req">*</span></label><select id="f-torig">' + origOpts + '</select></div>' +
       '<div class="fg"><label class="fl">Tipo domicilio destino <span class="req">*</span></label><select id="f-tdest">' + destOpts + '</select></div>' +
@@ -1674,6 +1730,7 @@ function toggleGrupoExecFields(val) {
 
 function saveModal() {
   const sec = curSection;
+  if (sec === 'matrizGen') { guardarMatrizGen(); return; }
   let item = {};
 
   if (sec === 'estados') {
