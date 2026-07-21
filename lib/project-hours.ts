@@ -68,15 +68,24 @@ export interface ConsultantTaskLite {
     createdAt?: any;
 }
 
+function chunkArray<T>(arr: T[], size: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+}
+
 /** Horas PLANIFICADAS: agenda_entries dentro del rango. Reutiliza el índice
- *  (tenantId, weekStart) consultando semana a semana y filtrando por fecha exacta. */
+ *  (tenantId, weekStart) agrupando las semanas del rango en bloques de hasta 30 (límite de
+ *  Firestore para 'in') en vez de una query por semana — un rango de vida de proyecto de 2 años
+ *  (~104 semanas) hace 4 peticiones en vez de 104. */
 export async function getAgendaEntriesRange(tenantId: string, range: PeriodRange): Promise<AgendaEntry[]> {
     const weekStarts = listWeekStarts(range);
-    const chunks = await Promise.all(weekStarts.map(ws =>
+    const weekChunks = chunkArray(weekStarts, 30);
+    const chunks = await Promise.all(weekChunks.map(wc =>
         getDocs(query(
             collection(db, "agenda_entries"),
             where("tenantId", "==", tenantId),
-            where("weekStart", "==", ws),
+            where("weekStart", "in", wc),
         ))
     ));
     const all = chunks.flatMap(s => s.docs.map(d => ({ id: d.id, ...d.data() } as AgendaEntry)));

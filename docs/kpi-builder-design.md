@@ -103,6 +103,14 @@ export interface KpiResult {
     points: KpiResultPoint[];       // 1 elemento si no hay groupBy ni timeseries
     isTimeSeries: boolean;
 }
+
+/** Datos auxiliares que el engine necesita para resolver labels/colores de grupos (§6.3) —
+ *  los carga una vez el contenedor (AgendaResumen) y se pasan por referencia a cada KpiCard/computeKpi,
+ *  nunca se vuelven a pedir dentro del engine. */
+export interface KpiContext {
+    projects: import("../types").Project[];
+    consultants: import("./agenda").AgendaConsultant[];
+}
 ```
 
 ### 4.2 Colección Firestore `kpiDefinitions`
@@ -230,19 +238,144 @@ function aggregate(rows: AgendaEntry[], metric: KpiDefinition['metric']): number
   Si el proyecto no tiene `startDate`, fallback a "desde el primer `AgendaEntry` con ese `projectId`" (igual de
   razonable, pero flag como caso raro — la mayoría de proyectos ya tienen `startDate` por la feature de presupuesto).
 
-### 6.2 Regla de fetch — evitar recomputar sobre datos ya cargados
+### 6.2 `buildBuckets` — generación de intervalos para series temporales
+
+```ts
+export interface KpiBucket { key: string; label: string; from: Date; to: Date }
+
+const BUCKET_STEP = { day: addDays, week: addWeeks, month: addMonths } as const;
+const BUCKET_START = { day: startOfDay, week: (d: Date) => startOfWeek(d, { weekStartsOn: 1 }), month: startOfMonth } as const;
+const BUCKET_END   = { day: endOfDay,   week: (d: Date) => endOfWeek(d,   { weekStartsOn: 1 }), month: endOfMonth   } as const;
+const BUCKET_LABEL_FMT = { day: 'dd/MM', week: "'Sem' dd/MM", month: 'MMM yyyy' } as const;
+const BUCKET_KEY_FMT   = { day: 'yyyy-MM-dd', week: 'yyyy-MM-dd', month: 'yyyy-MM' } as const;
+
+/** Límite de puntos por serie — un bucket diario sobre 2 años de vida de proyecto daría ~730
+ *  puntos, ilegible en un recharts LineChart y caro de calcular en cliente. Ver validación §12.8:
+ *  el wizard debe bloquear la combinación antes de llegar aquí, este tope es cinturón de seguridad. */
+export const MAX_BUCKETS = 180;
+
+export function buildBuckets(range: PeriodRange, bucket: TimeBucket): KpiBucket[] {
+    const buckets: KpiBucket[] = [];
+    let cursor = BUCKET_START[bucket](range.from);
+    let i = 0;
+    while (!isAfter(cursor, range.to) && i < MAX_BUCKETS) {
+        const bucketEnd = BUCKET_END[bucket](cursor);
+        buckets.push({
+            key: format(cursor, BUCKET_KEY_FMT[bucket]),
+            label: format(cursor, BUCKET_LABEL_FMT[bucket], { locale: es }),
+            from: cursor,
+            to: isAfter(bucketEnd, range.to) ? range.to : bucketEnd,
+        });
+        cursor = BUCKET_STEP[bucket](cursor, 1);
+        i++;
+    }
+    return buckets;
+}
+
+function inBucket(date: Date, b: KpiBucket): boolean {
+    return date >= b.from && date <= b.to;
+}
+```
+
+> **Garantía a preservar en `aggregate()` (§6): nunca `undefined`/`null` para un bucket vacío.** Un
+> `LineChart`/`AreaChart` de recharts con un punto `value: undefined` rompe la continuidad visual de la línea
+> (hueco o corte) en vez de tocar 0. El pseudocódigo de `aggregate()` en §6 ya cumple esto por construcción —
+> `sum`/`count` sobre un array vacío devuelven `0` de forma natural (`reduce(...,0)`, `.length`), y
+> `avg`/`min`/`max` comprueban `vals.length` explícitamente antes de devolver `0` — pero es una invariante que
+> hay que mantener en la implementación real, no solo en este pseudocódigo: cualquier test/QA manual de
+> `computeKpi()` con `chartType:'timeseries'` debe incluir un bucket sin filas y comprobar que el punto
+> resultante es `{ value: 0, ... }`, nunca ausente del array `points`.
+
+Reutiliza `startOfDay/endOfDay/startOfWeek/endOfWeek/startOfMonth/endOfMonth` ya importados en
+`lib/project-hours.ts` — mismo patrón, sin dependencia nueva. `date-fns/locale/es` ya se usa en
+`ProjectReportModal.tsx:6`.
+
+### 6.3 Resolución de filtros y agrupación
+
+```ts
+function matchFilter(entry: AgendaEntry, filter: KpiFilter): boolean {
+    const raw = (entry as any)[filter.field];
+    switch (filter.op) {
+        case 'eq':  return raw === filter.value;
+        case 'neq': return raw !== filter.value;
+        case 'in':  return Array.isArray(filter.value) && filter.value.includes(raw);
+        case 'gte': return Number(raw) >= Number(filter.value);
+        case 'lte': return Number(raw) <= Number(filter.value);
+    }
+}
+
+interface KpiGroup { key: string; label: string; color?: string; rows: AgendaEntry[] }
+
+const UNASSIGNED_KEY = '__unassigned__';
+
+function groupRowsBy(rows: AgendaEntry[], field: string, ctx: KpiContext): KpiGroup[] {
+    const map = new Map<string, KpiGroup>();
+    rows.forEach(r => {
+        // Clave/etiqueta de fallback EXPLÍCITA para campos ausentes (típico: projectId en entradas
+        // vinculadas solo por `client`, ver §5) — nunca dejar pasar undefined/null a Recharts como
+        // key o label: rompe el render o produce sectores/barras "fantasma" sin texto.
+        const raw = (r as any)[field];
+        const key = raw === undefined || raw === null || raw === '' ? UNASSIGNED_KEY : String(raw);
+        if (!map.has(key)) {
+            const label = key === UNASSIGNED_KEY ? 'Sin proyecto' : resolveLabel(field, key, ctx); // label genérico ajustado por campo — ver nota abajo
+            map.set(key, { key, label, color: key === UNASSIGNED_KEY ? '#6b7280' : resolveColor(field, key, ctx), rows: [] });
+        }
+        map.get(key)!.rows.push(r);
+    });
+    return [...map.values()];
+}
+
+// El label de fallback depende del campo agrupado — 'Sin proyecto' para projectId (mismo texto que
+// AgendaResumen.tsx:234 hoy), 'Sin consultor'/'Sin región'/etc. para el resto; no hay un único texto
+// genérico válido para todos los campos agrupables del catálogo (§5).
+//
+// 'consultantId'/'projectId' resuelven contra ctx.consultants/ctx.projects (pasados desde AgendaResumen,
+// ya cargados ahí); 'activityType'/'result' resuelven contra ACTIVITY_CONFIG/RESULT_CONFIG + sus *_TKEYS
+// (mismo patrón que AgendaResumen.tsx:154-156 y :282). Los demás campos devuelven la key tal cual.
+function resolveLabel(field: string, key: string, ctx: KpiContext): string { /* ver detalle arriba */ return key; }
+function resolveColor(field: string, key: string, ctx: KpiContext): string | undefined {
+    if (field === 'activityType') return ACTIVITY_CONFIG[key as ActivityType]?.color;
+    if (field === 'projectId')    return ctx.projects.find(p => p.id === key)?.color;
+    return undefined; // KpiCard asigna de PIE_COLORS por índice si no hay color propio del dominio
+}
+```
+
+`KpiContext = { projects: Project[]; consultants: AgendaConsultant[] }` — se le pasa a `computeKpi()` (§6)
+junto con `def` y `allEntries`.
+
+### 6.4 Regla de fetch — evitar recomputar sobre datos ya cargados
 
 `AgendaResumen.tsx` ya recibe `entries: AgendaEntry[]` como prop (de la semana activa). **Los KPIs de usuario
 casi nunca cubren solo la semana activa** (su rango por defecto es la vida del proyecto), así que el engine
 necesita su propio fetch por KPI usando `getAgendaEntriesRange(tenantId, range)` — no se puede reutilizar la
 prop `entries`. Igual que hace `ProjectHoursSummary.tsx` hoy (fetch propio, independiente del resto de la
 página). Cachear por `(tenantId, range serializado)` si varios KPIs comparten rango, para no repetir fetches
-idénticos — optimización razonable pero no bloqueante para el MVP.
+idénticos — optimización razonable pero no bloqueante para el MVP (ver §17, decisión de no montar esa caché
+en el MVP tras corregir el problema de fondo abajo).
+
+> **Corrección aplicada 2026-07-21 (hallazgo de revisión externa, crítico):** `getAgendaEntriesRange`
+> lanzaba **una query por semana** del rango (`Promise.all` de N llamadas). En modo `projectLifetime` sobre un
+> proyecto de 2 años eso son ~104 peticiones paralelas a Firestore **por cada tarjeta de KPI** — con 4-5
+> tarjetas en el Resumen, cientos de llamadas simultáneas al montar el componente. Ya corregido directamente
+> en `lib/project-hours.ts` (código real, no solo diseño — esta función la usa también `ProjectHoursSummary`
+> hoy en producción): las semanas del rango se agrupan en bloques de hasta 30 (límite de Firestore para el
+> operador `in`) y se consulta con `where("weekStart", "in", chunk)`, reduciendo 104 queries a 4. Firma y
+> comportamiento externo sin cambios — reutilizable tal cual por el engine de KPIs sin ningún ajuste adicional.
+> Con este fix, la decisión de §17 (no montar caché compartida entre tarjetas en el MVP) vuelve a ser
+> razonable: 4-5 KPIs × ~4 queries cada uno son ~20 peticiones por carga del Resumen, no cientos.
 
 ## 7. KPI de capacidad semanal (KPI de sistema, no genérico)
 
 Componente propio, ej. `components/agenda/TeamCapacityKpi.tsx`, con la misma cabecera de selector de periodo
 que `ProjectHoursSummary.tsx` para consistencia visual.
+
+> **Asunción regional a documentar en el propio componente (comentario, no solo aquí):** `getDayType()`
+> (`lib/agenda-utils.ts:57`) usa un calendario de festivos **hardcoded a Madrid** (`MADRID_HOLIDAYS`). El
+> modelo de `AgendaEntry`/`AgendaConsultant` ya soporta `region` (consultores fuera de Madrid), así que la
+> capacidad teórica calculada con este KPI puede estar equivocada para consultores en otras regiones/países
+> (festivo real no coincide con festivo de Madrid). No se corrige en el MVP — sería un feature aparte
+> (calendario de festivos por región) — pero `TeamCapacityKpi.tsx` debe llevar un comentario explícito
+> señalándolo, para que quien lo lea no asuma que el % de utilización es exacto fuera de Madrid.
 
 **Fórmula acordada:**
 
@@ -284,6 +417,13 @@ doc `tenants/{tenantId}`, ya escribible por ese rol.
 
 **No** se modela por consultor en el MVP (decisión tomada: jornada global, no per-consultor — más simple,
 aunque no distingue part-time).
+
+> **v2 (anotado, no MVP):** en equipos de consultoría es habitual tener personas a media jornada o con
+> reducción — usar siempre `standardHoursPerDay` global falsea su % de utilización (aparecerían
+> permanentemente "por debajo" de capacidad). Cuando haga falta, añadir un override opcional
+> `AgendaConsultant.standardHoursPerDay?: number` que, si está presente, gana sobre el valor del tenant en
+> el cálculo de §7 solo para ese consultor. No romper compatibilidad: el campo del tenant sigue siendo el
+> default para quien no tenga override.
 
 ### 7.2 Fuente de datos para este KPI
 
@@ -386,7 +526,12 @@ contexto. Aplicado a KPIs dinámicos:
 4. Si `timeRange.mode === 'projectLifetime'` → exactamente un `filters` con `field: 'projectId', op: 'eq'`.
 5. `groupBy`, si está presente, debe cumplir `groupable: true` en el catálogo de la fuente elegida.
 6. Cada `KpiFilter.field` debe cumplir `filterable: true` en el catálogo.
-7. Si `visibility` pasa de `'private'` a `'shared'` en una edición, no se pide confirmación adicional (es
+7. Si `chartType === 'timeseries'`, calcular `buildBuckets(range, bucket).length` (§6.2) con el rango
+   resuelto (§6.1) **antes** de guardar: si supera `MAX_BUCKETS` (180), bloquear con
+   "El rango es demasiado amplio para el intervalo elegido (Nº de puntos). Elige un intervalo mayor
+   (semana/mes) o acorta el rango." — evita series ilegibles en recharts y cálculos caros repetidos en
+   cada carga del Resumen.
+8. Si `visibility` pasa de `'private'` a `'shared'` en una edición, no se pide confirmación adicional (es
    reversible por el propio dueño) — pero si pasa de `'shared'` a `'private'` y hay otros usuarios con la
    tarjeta ya en pantalla, no hace falta notificarles (no hay sistema de notificaciones para esto en MVP;
    simplemente deja de aparecer en su próxima carga del Resumen).
@@ -442,6 +587,76 @@ añade en el mismo PR/commit que la crea a `COLLECTIONS` en `scripts/run-dated-b
 listas en un único archivo fuente de verdad (ej. `scripts/backup-collections.js`, importado por ambos) para
 que esta clase de olvido deje de ser posible — no se implementó en esta sesión por mantener el cambio acotado
 al hallazgo, pero queda anotado para no repetirlo.
+
+## 15. Interfaces de componentes React (props) — listas para implementar
+
+```ts
+// components/agenda/KpiBuilderModal.tsx
+interface KpiBuilderModalProps {
+    tenantId: string;
+    ownerUserId: string;
+    projects: Project[];
+    consultants: AgendaConsultant[];
+    samRegions: SAMRegion[];
+    editing?: KpiDefinition;        // si viene, edita; si no, alta nueva
+    onClose: () => void;
+    onSaved: (def: KpiDefinition) => void;
+}
+
+// components/agenda/KpiCard.tsx
+interface KpiCardProps {
+    definition: KpiDefinition;
+    result: KpiResult | null;       // null mientras carga
+    loading: boolean;
+    error?: string;                 // ver tabla de §11 para el texto exacto según la causa
+    isOwner: boolean;                // gatea botones editar/compartir; borrar además permite role>=60 en shared (§4.2)
+    canDelete: boolean;              // resuelto por el padre: isOwner || (definition.visibility==='shared' && roleLevel>=60)
+    onEdit: () => void;
+    onDelete: () => void;
+    onToggleShare: () => void;      // solo visible si isOwner
+}
+
+// components/agenda/TeamCapacityKpi.tsx (KPI de sistema, §7 — no usa KpiCard/KpiResult genérico)
+interface TeamCapacityKpiProps {
+    tenantId: string;
+    anchorIso: string;               // mismo contrato que ProjectHoursSummary.tsx
+    consultants: AgendaConsultant[];
+    standardHoursPerDay: number;     // Tenant.standardHoursPerDay ?? 8, ya resuelto por el padre (AgendaResumen)
+}
+```
+
+`AgendaResumen.tsx` pasa `projects`/`consultants`/`samRegions` porque ya los tiene o los puede obtener igual
+que hace hoy `ProjectHoursSummary` (`getActiveProjects(tenantId)`); no se vuelven a pedir dentro del modal.
+
+## 16. `lib/kpi-store.ts` — CRUD de `kpiDefinitions`
+
+```ts
+export async function listOwnKpis(tenantId: string, ownerUserId: string): Promise<KpiDefinition[]>;
+export async function listSharedKpis(tenantId: string): Promise<KpiDefinition[]>;
+export async function createKpi(def: Omit<KpiDefinition, 'id' | 'createdAt' | 'updatedAt'>): Promise<string>;
+export async function updateKpi(id: string, patch: Partial<KpiDefinition>): Promise<void>;
+export async function deleteKpi(id: string): Promise<void>;
+```
+
+Dos queries (`listOwnKpis`/`listSharedKpis`) en vez de una sola con `OR` porque Firestore no soporta `OR`
+entre campos distintos (`ownerUserId == X` OR `visibility == 'shared'`) en una sola consulta — patrón estándar
+en Firestore: dos queries en paralelo (`Promise.all`) y merge en cliente, deduplicando por `id` si el dueño
+mismo comparte un KPI (aparecería en ambas). `AgendaResumen`/el contenedor de la sección de KPIs hace ese
+`Promise.all` + merge, no `kpi-store.ts` (mantiene el store como acceso a datos puro, sin lógica de UI).
+
+## 17. Estrategia de fetch/caché entre tarjetas (MVP: sin caché compartida, documentado el porqué)
+
+Cada `KpiCard` dispara su propio `getAgendaEntriesRange(tenantId, range)` (§6.4) al montarse — mismo patrón
+que `ProjectHoursSummary.tsx` hoy (fetch propio e independiente). Con varios KPIs de usuario compartiendo
+rango (ej. varios KPIs todos en modo `'month'` del mes actual), esto genera fetches duplicados a Firestore.
+
+**Decisión MVP: aceptar la duplicación, no construir caché compartida.** Motivo: la mayoría de tenants no
+tendrán más de un puñado de KPIs simultáneos visibles en el Resumen, y `getAgendaEntriesRange` ya reutiliza el
+índice `(tenantId, weekStart)` semana a semana — el coste real es bajo. Construir una caché
+(`Map<rangeKey, Promise<AgendaEntry[]>>` a nivel de `AgendaResumen`) es la optimización obvia si en producción
+se ve lentitud con muchos KPIs por tenant — no se hace ahora para no invertir esfuerzo en un problema que
+todavía no se ha observado. Revisar si en algún momento el Resumen tarda perceptiblemente en cargar con varios
+KPIs activos.
 
 ## Referencias cruzadas (memoria del asistente)
 
