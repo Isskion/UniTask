@@ -1,0 +1,155 @@
+[
+  {
+    "id": "0wNDTDHvvdGwyi8jmSkr",
+    "tenantId": "3",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "vacation",
+    "startDate": {
+      "_seconds": 1774224000,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1774224000,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "",
+    "createdBy": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "createdAt": {
+      "_seconds": 1772540621,
+      "_nanoseconds": 726000000
+    },
+    "consumedDays": 1
+  },
+  {
+    "id": "NdJu5QtWQOxDwKebpfgB",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "sick_leave",
+    "startDate": {
+      "_seconds": 1770681600,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1770681600,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1770810203,
+      "_nanoseconds": 101000000
+    },
+    "notes": "Dentista, no consume días, solo falté un par de horas y a medio día."
+  },
+  {
+    "id": "TcCnY0CgNTf4BTii7EOc",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "vacation",
+    "startDate": {
+      "_seconds": 1784505600,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1776262556,
+      "_nanoseconds": 847000000
+    },
+    "consumedDays": 10,
+    "endDate": {
+      "_seconds": 1785628800,
+      "_nanoseconds": 0
+    }
+  },
+  {
+    "id": "a3iJ2APtkYU1vXxEG2nB",
+    "tenantId": "3",
+    "userId": "hWXayiILtLPRzXnn27pIrB1mHTZ2",
+    "type": "vacation",
+    "startDate": {
+      "_seconds": 1773014400,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "Vacaciones en Letonia, ver cuantos días son del pasado año.",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1773040556,
+      "_nanoseconds": 137000000
+    },
+    "endDate": {
+      "_seconds": 1773360000,
+      "_nanoseconds": 0
+    },
+    "consumedDays": 5
+  },
+  {
+    "id": "eOb0b87RD67ylPP7WFuc",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "other",
+    "startDate": {
+      "_seconds": 1779926400,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1779926400,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "Reunión con Simoes",
+    "consumedDays": 0,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1779983752,
+      "_nanoseconds": 918000000
+    }
+  },
+  {
+    "id": "kdRgjB2BpopfrCX0CloX",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "type": "vacation",
+    "startDate": {
+      "_seconds": 1786924800,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1788048000,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "",
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1776262583,
+      "_nanoseconds": 960000000
+    },
+    "consumedDays": 10
+  },
+  {
+    "id": "vMUg7RP2voVC6Bjoy3OA",
+    "tenantId": "3",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "type": "vacation",
+    "startDate": {
+      "_seconds": 1773619200,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1773964800,
+      "_nanoseconds": 0
+    },
+    "status": "approved",
+    "notes": "",
+    "createdBy": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "createdAt": {
+      "_seconds": 1772540612,
+      "_nanoseconds": 750000000
+    },
+    "consumedDays": 5
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "GP5GZ9QCZ8oMTs5KMIDP",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Danie el guapo",
+    "userEmail": "daniel.delamo@unigis.com",
+    "tenantId": "3",
+    "message": "No puedo guardar el formulario de usuarios con un usuario admin. No tengo permisos",
+    "context": "users",
+    "createdAt": {
+      "_seconds": 1769007517,
+      "_nanoseconds": 931000000
+    },
+    "status": "closed",
+    "updatedAt": {
+      "_seconds": 1771346485,
+      "_nanoseconds": 141000000
+    }
+  },
+  {
+    "id": "WcGsZ7fH0zFvErwHzCCB",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Danie el guapo",
+    "userEmail": "daniel.delamo@unigis.com",
+    "tenantId": "3",
+    "message": "No puedo crear nuevos registros en gestión de tareas",
+    "context": "admin-task-master",
+    "createdAt": {
+      "_seconds": 1769007390,
+      "_nanoseconds": 980000000
+    },
+    "status": "closed",
+    "updatedAt": {
+      "_seconds": 1771346481,
+      "_nanoseconds": 717000000
+    }
+  }
+]

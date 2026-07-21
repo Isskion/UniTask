@@ -1,0 +1,692 @@
+[
+  {
+    "id": "4vClPx5GvQq1fxLbXOUx",
+    "name": "Relevamiento Onsite Feb '26",
+    "parentId": null,
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771832220,
+      "_nanoseconds": 440000000
+    },
+    "updatedAt": {
+      "_seconds": 1771832220,
+      "_nanoseconds": 440000000
+    }
+  },
+  {
+    "id": "4zm3BlZpyV0ncd2E6wuO",
+    "name": "Configuraciones",
+    "parentId": null,
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1772038435,
+      "_nanoseconds": 40000000
+    },
+    "updatedAt": {
+      "_seconds": 1772038435,
+      "_nanoseconds": 40000000
+    }
+  },
+  {
+    "id": "5sj0WtboTYTTUwvX5rSJ",
+    "name": "Diseño de solución",
+    "parentId": null,
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1772470964,
+      "_nanoseconds": 463000000
+    },
+    "updatedAt": {
+      "_seconds": 1772470964,
+      "_nanoseconds": 463000000
+    }
+  },
+  {
+    "id": "5xXXL1q6jKp3EJJiirpT",
+    "name": "Documentos LS Planeamiento",
+    "parentId": null,
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1773386179,
+      "_nanoseconds": 166000000
+    },
+    "updatedAt": {
+      "_seconds": 1773386179,
+      "_nanoseconds": 166000000
+    }
+  },
+  {
+    "id": "7e7wQ4hwXG1evrs28Hfr",
+    "name": "Fieldeas",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781621968,
+      "_nanoseconds": 130000000
+    },
+    "updatedAt": {
+      "_seconds": 1781621968,
+      "_nanoseconds": 130000000
+    }
+  },
+  {
+    "id": "8gaWDk9PHHdxjH4EZrAS",
+    "name": "Transporeon DeCa",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781622009,
+      "_nanoseconds": 710000000
+    },
+    "updatedAt": {
+      "_seconds": 1781622009,
+      "_nanoseconds": 710000000
+    }
+  },
+  {
+    "id": "8uFQ5gQ8MiPmK3w4P92u",
+    "name": "Dinamycs365",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1779955312,
+      "_nanoseconds": 614000000
+    },
+    "updatedAt": {
+      "_seconds": 1779955312,
+      "_nanoseconds": 614000000
+    }
+  },
+  {
+    "id": "9HAVxNzKRiJTPLs8leP4",
+    "name": "Mobilitiy",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 813000000
+    },
+    "updatedAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 813000000
+    }
+  },
+  {
+    "id": "ASH0DF3mvzkBhonlNgKR",
+    "name": "Flujos",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1773158918,
+      "_nanoseconds": 948000000
+    },
+    "updatedAt": {
+      "_seconds": 1773158918,
+      "_nanoseconds": 948000000
+    }
+  },
+  {
+    "id": "Ap84FhPqgYSi2T1giP1c",
+    "name": "Xavi Formación",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1776766765,
+      "_nanoseconds": 352000000
+    },
+    "updatedAt": {
+      "_seconds": 1776766765,
+      "_nanoseconds": 352000000
+    }
+  },
+  {
+    "id": "ApSwH6kuKOiPgsf6wM0V",
+    "name": "Tarifas",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1784207786,
+      "_nanoseconds": 507000000
+    },
+    "updatedAt": {
+      "_seconds": 1784207786,
+      "_nanoseconds": 507000000
+    }
+  },
+  {
+    "id": "CSlJlwPxnDxxEZ8CNBk3",
+    "name": "Relevamiento Interfaces",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771830263,
+      "_nanoseconds": 929000000
+    },
+    "updatedAt": {
+      "_seconds": 1771830263,
+      "_nanoseconds": 929000000
+    }
+  },
+  {
+    "id": "Cg33fyRdrK90BQXcTXTT",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1774449421,
+      "_nanoseconds": 221000000
+    },
+    "name": "Interfaces -- Definición",
+    "updatedAt": {
+      "_seconds": 1774456620,
+      "_nanoseconds": 430000000
+    }
+  },
+  {
+    "id": "E61VXcfOsAYdoBkTBGa6",
+    "name": "Actas sesiones ",
+    "parentId": "n85fK4XWfferuTyeBP4L",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1773247990,
+      "_nanoseconds": 101000000
+    },
+    "updatedAt": {
+      "_seconds": 1773247990,
+      "_nanoseconds": 101000000
+    }
+  },
+  {
+    "id": "FIRvzlGvgbrcGUQZf2wT",
+    "name": "Tookan",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1776412877,
+      "_nanoseconds": 416000000
+    },
+    "updatedAt": {
+      "_seconds": 1776412877,
+      "_nanoseconds": 416000000
+    }
+  },
+  {
+    "id": "Fzfwci17UvEfG4bodqZm",
+    "name": "PalletSystem",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778653304,
+      "_nanoseconds": 458000000
+    },
+    "updatedAt": {
+      "_seconds": 1778653304,
+      "_nanoseconds": 458000000
+    }
+  },
+  {
+    "id": "I14tOCcLqtvAPCpIRssr",
+    "name": "CMA",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778653859,
+      "_nanoseconds": 714000000
+    },
+    "updatedAt": {
+      "_seconds": 1778653859,
+      "_nanoseconds": 714000000
+    }
+  },
+  {
+    "id": "IDUaNL8RpXNzatQRcBeb",
+    "name": "Portic",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778660123,
+      "_nanoseconds": 797000000
+    },
+    "updatedAt": {
+      "_seconds": 1778660123,
+      "_nanoseconds": 797000000
+    }
+  },
+  {
+    "id": "K43u0HtTguMOiB2QHbOh",
+    "name": "Documentos de Cliente",
+    "parentId": null,
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1773397039,
+      "_nanoseconds": 179000000
+    },
+    "updatedAt": {
+      "_seconds": 1773397039,
+      "_nanoseconds": 179000000
+    }
+  },
+  {
+    "id": "LlWj8YPh8nTjAEMJxaOl",
+    "name": "Carpeta privada Daniel",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1772389803,
+      "_nanoseconds": 393000000
+    },
+    "updatedAt": {
+      "_seconds": 1772389803,
+      "_nanoseconds": 393000000
+    }
+  },
+  {
+    "id": "M4yk0KxZZjgDQiXv1tfv",
+    "name": "Cobros",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 637000000
+    },
+    "updatedAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 637000000
+    }
+  },
+  {
+    "id": "Nxbfh2loNTVtXLOAglUJ",
+    "name": "WebFleet",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1775036507,
+      "_nanoseconds": 282000000
+    },
+    "updatedAt": {
+      "_seconds": 1775036507,
+      "_nanoseconds": 282000000
+    }
+  },
+  {
+    "id": "RJwKbwvvBawCcknm7QGs",
+    "name": "Generix",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1779714717,
+      "_nanoseconds": 952000000
+    },
+    "updatedAt": {
+      "_seconds": 1779714717,
+      "_nanoseconds": 952000000
+    }
+  },
+  {
+    "id": "T15DPUObRspJSudplhf8",
+    "name": "Formación de Tarifas",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1782115137,
+      "_nanoseconds": 671000000
+    },
+    "updatedAt": {
+      "_seconds": 1782115137,
+      "_nanoseconds": 671000000
+    }
+  },
+  {
+    "id": "TiqPvit2yeXWS7x1A2Un",
+    "name": "Relevamiento proyecto",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771828307,
+      "_nanoseconds": 360000000
+    },
+    "updatedAt": {
+      "_seconds": 1771828307,
+      "_nanoseconds": 360000000
+    }
+  },
+  {
+    "id": "UJav4rZFzzPWJ0nLcnlV",
+    "name": "Docuten",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781171988,
+      "_nanoseconds": 542000000
+    },
+    "updatedAt": {
+      "_seconds": 1781171988,
+      "_nanoseconds": 542000000
+    }
+  },
+  {
+    "id": "VBgJT457L2GzsrbgpGe0",
+    "name": "Relevamiento interfaces",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 994000000
+    },
+    "updatedAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 994000000
+    }
+  },
+  {
+    "id": "Vzx7exAGfSZ9XLqBRGd5",
+    "name": "Diseño de solución",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771830262,
+      "_nanoseconds": 534000000
+    },
+    "updatedAt": {
+      "_seconds": 1771830262,
+      "_nanoseconds": 534000000
+    }
+  },
+  {
+    "id": "WLLxb4s84sD5tB3P0rMY",
+    "name": "Reuniónes previas",
+    "parentId": null,
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1779874511,
+      "_nanoseconds": 933000000
+    },
+    "updatedAt": {
+      "_seconds": 1779874511,
+      "_nanoseconds": 933000000
+    }
+  },
+  {
+    "id": "XT2d3o2b7qVi3d6nSdbS",
+    "name": "Analisis inicial y demo de producto",
+    "parentId": null,
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771832044,
+      "_nanoseconds": 804000000
+    },
+    "updatedAt": {
+      "_seconds": 1771832044,
+      "_nanoseconds": 804000000
+    }
+  },
+  {
+    "id": "XmLtRe8vOPTyw6NhQJGI",
+    "name": "Construcción",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781524400,
+      "_nanoseconds": 60000000
+    },
+    "updatedAt": {
+      "_seconds": 1781524400,
+      "_nanoseconds": 60000000
+    }
+  },
+  {
+    "id": "XxUI5SMUTisb2XEY33IQ",
+    "name": "Iñaki EUP",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771838584,
+      "_nanoseconds": 195000000
+    },
+    "updatedAt": {
+      "_seconds": 1771838584,
+      "_nanoseconds": 195000000
+    }
+  },
+  {
+    "id": "atOPTX5Ik6ioqQprO9mE",
+    "name": "Comite",
+    "parentId": null,
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1783940625,
+      "_nanoseconds": 116000000
+    },
+    "updatedAt": {
+      "_seconds": 1783940625,
+      "_nanoseconds": 116000000
+    }
+  },
+  {
+    "id": "fRXuURZPthvGbgc2tV2i",
+    "name": "Steering comite",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1772189750,
+      "_nanoseconds": 463000000
+    },
+    "updatedAt": {
+      "_seconds": 1772189750,
+      "_nanoseconds": 463000000
+    }
+  },
+  {
+    "id": "kE8vwvsQH0WCUAlWqFX5",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1782403580,
+      "_nanoseconds": 519000000
+    },
+    "name": "Deliverea",
+    "updatedAt": {
+      "_seconds": 1782403594,
+      "_nanoseconds": 700000000
+    }
+  },
+  {
+    "id": "kuvXS61JGUZJxKDqNLPT",
+    "name": "Diseño Interfaces",
+    "parentId": "5sj0WtboTYTTUwvX5rSJ",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1775811958,
+      "_nanoseconds": 774000000
+    },
+    "updatedAt": {
+      "_seconds": 1775811958,
+      "_nanoseconds": 774000000
+    }
+  },
+  {
+    "id": "lIpPBNFMMPmB3E4HqndR",
+    "name": "Adelantos",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 288000000
+    },
+    "updatedAt": {
+      "_seconds": 1771828305,
+      "_nanoseconds": 288000000
+    }
+  },
+  {
+    "id": "n85fK4XWfferuTyeBP4L",
+    "name": "Relevamiento fase II",
+    "parentId": null,
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771921827,
+      "_nanoseconds": 248000000
+    },
+    "updatedAt": {
+      "_seconds": 1771921827,
+      "_nanoseconds": 248000000
+    }
+  },
+  {
+    "id": "okDIWjHg9mxJkAZb1GoK",
+    "name": "Relevamiento de proyecto",
+    "parentId": null,
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771830262,
+      "_nanoseconds": 864000000
+    },
+    "updatedAt": {
+      "_seconds": 1771830262,
+      "_nanoseconds": 864000000
+    }
+  },
+  {
+    "id": "q4OCBkeqke0e6frLh1AS",
+    "name": "Transporeon",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778653023,
+      "_nanoseconds": 846000000
+    },
+    "updatedAt": {
+      "_seconds": 1778653023,
+      "_nanoseconds": 846000000
+    }
+  },
+  {
+    "id": "sVV3zh5A9pBZmnwtnWO9",
+    "name": "presentación de operación Intermodal",
+    "parentId": "Vzx7exAGfSZ9XLqBRGd5",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1776839948,
+      "_nanoseconds": 378000000
+    },
+    "updatedAt": {
+      "_seconds": 1776839948,
+      "_nanoseconds": 378000000
+    }
+  },
+  {
+    "id": "v2gLWfBNg1FT1QiBt2EY",
+    "name": "Translogistica Daimiel",
+    "parentId": null,
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1782999216,
+      "_nanoseconds": 998000000
+    },
+    "updatedAt": {
+      "_seconds": 1782999216,
+      "_nanoseconds": 998000000
+    }
+  },
+  {
+    "id": "w6KljKJVz9YCDEOdxlQv",
+    "name": "Maersk",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1774456541,
+      "_nanoseconds": 711000000
+    },
+    "updatedAt": {
+      "_seconds": 1774456541,
+      "_nanoseconds": 711000000
+    }
+  },
+  {
+    "id": "xSekTzORCztnTKKvMBfr",
+    "name": "Documento de clientes",
+    "parentId": null,
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1773418488,
+      "_nanoseconds": 160000000
+    },
+    "updatedAt": {
+      "_seconds": 1773418488,
+      "_nanoseconds": 160000000
+    }
+  },
+  {
+    "id": "xYxbWvAjnyQkldKC39i9",
+    "name": "Deliverea",
+    "parentId": "Cg33fyRdrK90BQXcTXTT",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781773373,
+      "_nanoseconds": 670000000
+    },
+    "updatedAt": {
+      "_seconds": 1781773373,
+      "_nanoseconds": 670000000
+    }
+  },
+  {
+    "id": "yR8WByZfjNuAn6Pgw1MB",
+    "name": "Generix",
+    "parentId": "CSlJlwPxnDxxEZ8CNBk3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1776767642,
+      "_nanoseconds": 199000000
+    },
+    "updatedAt": {
+      "_seconds": 1776767642,
+      "_nanoseconds": 199000000
+    }
+  }
+]

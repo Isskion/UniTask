@@ -1,0 +1,222 @@
+[
+  {
+    "id": "1dZoH4WAhHwDSdWpKwr0",
+    "code": "ASIS",
+    "name": "Documento final de relevamiento con cliente ",
+    "description": "Se explican los flujos de negocio del cliente",
+    "isProjectChecklist": true,
+    "tenantId": "2",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770555283,
+      "_nanoseconds": 780000000
+    }
+  },
+  {
+    "id": "6d9y21qVUC1ttHDyjMCF",
+    "code": "TOBE",
+    "name": "Diseño de solución",
+    "description": "Documento fruto de los relevamientos y analisis interno con la propuesta de solución para el cliente",
+    "isProjectChecklist": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770189581,
+      "_nanoseconds": 137000000
+    },
+    "isImage": false,
+    "order": 11
+  },
+  {
+    "id": "8gVlXQKpIwMwZ9N4qY1T",
+    "code": "KICKOFF",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772471953,
+      "_nanoseconds": 986000000
+    },
+    "name": "KickOff",
+    "order": 6
+  },
+  {
+    "id": "HoJC0uzye6GyWddLqJwN",
+    "code": "INDUCCIÓN A TMS",
+    "name": "INDUCCIÓN A TMS",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772472048,
+      "_nanoseconds": 307000000
+    },
+    "order": 7
+  },
+  {
+    "id": "IUz26Oxw5P1TaGIYR8UK",
+    "code": "RELEVAMIENTO",
+    "description": "Toma de notas con cliente o proveedor",
+    "isProjectChecklist": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770046528,
+      "_nanoseconds": 945000000
+    },
+    "name": "Relevamiento",
+    "isImage": false,
+    "order": 39
+  },
+  {
+    "id": "KY9ffar6CD7x9OdXlino",
+    "code": "MOSCOW",
+    "name": "Definición de requerimientos de cliente",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772471340,
+      "_nanoseconds": 715000000
+    },
+    "order": 10
+  },
+  {
+    "id": "L3RMg0chWnjOqwZxYvDI",
+    "code": "RFP / RFI",
+    "name": "RFP / RFI",
+    "description": "Analisis interno de cliente de requisitos en fase comercial",
+    "isProjectChecklist": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770189916,
+      "_nanoseconds": 220000000
+    },
+    "isImage": false,
+    "order": 3
+  },
+  {
+    "id": "Rsp2O3XJI3PWW4ACkKAb",
+    "code": "FLUJOS LOGISTICOS",
+    "name": "Flujos de proyecto",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770972912,
+      "_nanoseconds": 636000000
+    },
+    "order": 9
+  },
+  {
+    "id": "T73uO8ZfOdNc0h1tpBLf",
+    "code": "PRE KICKOFF",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772471881,
+      "_nanoseconds": 544000000
+    },
+    "name": "Pre KickOff",
+    "order": 4
+  },
+  {
+    "id": "if8InsoaglLvMKNOmqXC",
+    "code": "CRONOGRAMA",
+    "name": "Cronograma macro preliminar",
+    "description": "Cronograma macro preliminar",
+    "isProjectChecklist": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1770189975,
+      "_nanoseconds": 496000000
+    },
+    "isActive": false
+  },
+  {
+    "id": "iwzSqbPST6Sr8MrDbpTY",
+    "code": "RESUMEN OPERATIVO DEL CONTRATO",
+    "name": "RESUMEN OPERATIVO DEL CONTRATO",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772471745,
+      "_nanoseconds": 776000000
+    },
+    "order": 2
+  },
+  {
+    "id": "ixyPX4KMCj7EiwgPRIJT",
+    "code": "LOGO EMPRESA",
+    "name": "LOGO",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772002875,
+      "_nanoseconds": 301000000
+    }
+  },
+  {
+    "id": "oM28nYM0xeYcVJJyff45",
+    "description": "Funcional que explica como funciona el cliente",
+    "isProjectChecklist": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770046566,
+      "_nanoseconds": 604000000
+    },
+    "isImage": false,
+    "code": "ASIS",
+    "name": "Asis",
+    "order": 8
+  },
+  {
+    "id": "xSWV9SvaJquKQi3ZL7In",
+    "code": "CRONOGRAMA ",
+    "name": "Cronograma de proyecto",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": true,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770972845,
+      "_nanoseconds": 778000000
+    },
+    "order": 5
+  },
+  {
+    "id": "zPmpKCBncNteOQ9INm3J",
+    "code": "PASE DE PROYECTO DE COMERCIAL A SERVICIOS",
+    "description": "",
+    "isProjectChecklist": true,
+    "isImage": false,
+    "tenantId": "3",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1772471651,
+      "_nanoseconds": 680000000
+    },
+    "name": "Contractual y promesa comercial",
+    "order": 1
+  }
+]

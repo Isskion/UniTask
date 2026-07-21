@@ -1,0 +1,212 @@
+[
+  {
+    "id": "4U12muw8gkp0Ork0XGno",
+    "tenantId": "3",
+    "userId": "P2ouXNOxWDeJ5YdliRVE0p5cAp42",
+    "name": "JESUS MARQUEZ",
+    "sortOrder": 1,
+    "createdAt": {
+      "_seconds": 1779223155,
+      "_nanoseconds": 114000000
+    },
+    "isActive": true,
+    "region": "España",
+    "regions": [
+      "España"
+    ],
+    "divisions": [
+      "Consultoría"
+    ]
+  },
+  {
+    "id": "Be4CTcrOYhdA9q0lTAQf",
+    "tenantId": "3",
+    "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "name": "IÑAKI IRABURU",
+    "sortOrder": 4,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1778671198,
+      "_nanoseconds": 462000000
+    },
+    "region": "España",
+    "regions": [
+      "España"
+    ],
+    "divisions": [
+      "Consultoría"
+    ]
+  },
+  {
+    "id": "GTUR12Xs78KDAo9gVUK1",
+    "tenantId": "3",
+    "userId": "4Bv59XpXVHQop7puwmjRRemGcxU2",
+    "name": "DIEGO SENRA LAMBERTI",
+    "sortOrder": 1,
+    "region": "España",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1779285676,
+      "_nanoseconds": 119000000
+    },
+    "divisions": [
+      "Consultoría"
+    ],
+    "regions": [
+      "España",
+      "Francia",
+      "Argentina"
+    ],
+    "aliases": [
+      "DIEGO SENRA"
+    ],
+    "updatedAt": {
+      "_seconds": 1782205078,
+      "_nanoseconds": 594000000
+    }
+  },
+  {
+    "id": "IX663KNxxiBrE7gdk5JQ",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "name": "DANIEL TENANT ADMIN",
+    "sortOrder": 1,
+    "region": "España",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1779285676,
+      "_nanoseconds": 177000000
+    },
+    "regions": [
+      "*"
+    ],
+    "divisions": [
+      "Consultoría"
+    ],
+    "aliases": [
+      "DANIEL DEL AMO"
+    ],
+    "updatedAt": {
+      "_seconds": 1782205078,
+      "_nanoseconds": 506000000
+    }
+  },
+  {
+    "id": "JLDuWc2AsvsJXb0IvH6j",
+    "tenantId": "3",
+    "userId": "BO61B1BKb5Zyo4LCpUtDvjy3Tvf2",
+    "name": "EDUARDO GARCIA  GMC",
+    "sortOrder": 1,
+    "region": "",
+    "createdAt": {
+      "_seconds": 1779223153,
+      "_nanoseconds": 807000000
+    },
+    "isActive": false
+  },
+  {
+    "id": "OwxtnX7hWij3sJl7Y4GW",
+    "tenantId": "1",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "name": "DANIEL DEL AMO",
+    "sortOrder": 1,
+    "region": "",
+    "regions": [
+      "*"
+    ],
+    "divisions": [
+      "CON"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1782730848,
+      "_nanoseconds": 973000000
+    }
+  },
+  {
+    "id": "WYqCtEqjjXMAir5Aa2oM",
+    "tenantId": "3",
+    "userId": "kUZXUUXtufZdvDAG8lCuAw7J1Ez1",
+    "name": "JAIME JESUS ARMAS",
+    "sortOrder": 8,
+    "region": "España",
+    "createdAt": {
+      "_seconds": 1778758756,
+      "_nanoseconds": 246000000
+    },
+    "isActive": true,
+    "regions": [
+      "España",
+      "Francia",
+      "Argentina"
+    ],
+    "divisions": [
+      "Consultoría",
+      "Gestión de mejora continua"
+    ],
+    "aliases": [
+      "JAIME ARMAS"
+    ],
+    "updatedAt": {
+      "_seconds": 1782221153,
+      "_nanoseconds": 260000000
+    }
+  },
+  {
+    "id": "aIkr0XeOk1SWPPAFe3Qj",
+    "tenantId": "3",
+    "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
+    "name": "ERIC WALTHER",
+    "sortOrder": 3,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1778671195,
+      "_nanoseconds": 562000000
+    },
+    "region": "España",
+    "regions": [
+      "España"
+    ],
+    "divisions": [
+      "Consultoría"
+    ]
+  },
+  {
+    "id": "hfeCEoy1RDkt2jXzH84H",
+    "tenantId": "3",
+    "userId": "spXyzUi0NUZXRlqUOrMep8bv0gf2",
+    "name": "JORGE MARTINEZ",
+    "sortOrder": 6,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1778671201,
+      "_nanoseconds": 530000000
+    },
+    "region": "España",
+    "regions": [
+      "España"
+    ],
+    "divisions": [
+      "Consultoría"
+    ]
+  },
+  {
+    "id": "jJHVuVY7a8Ftt26jn8FI",
+    "tenantId": "3",
+    "userId": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "name": "GONZALO CASTRO",
+    "sortOrder": 5,
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1778671200,
+      "_nanoseconds": 91000000
+    },
+    "region": "España",
+    "regions": [
+      "España"
+    ],
+    "divisions": [
+      "Consultoría"
+    ]
+  }
+]

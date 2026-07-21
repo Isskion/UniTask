@@ -4944,6 +4944,32 @@
     "updatedAt": "2026-07-17T09:40:29.661Z"
   },
   {
+    "id": "3_2026-07-21",
+    "updatedAt": "2026-07-21T10:33:05.621Z",
+    "date": "2026-07-21",
+    "generalNotes": "",
+    "tenantId": "3",
+    "createdAt": "2026-07-21T10:26:41.233Z",
+    "projects": [
+      {
+        "conclusions": "",
+        "name": "TRANSPAIS",
+        "nextSteps": "",
+        "pmNotes": "Datos de conexión Webfleet\n\ntranspais\neWalther\nUnigis-2025\n\nhttps://login.webfleet.com/auth/realms/webfleet/protocol/openid-connect/auth?response_type=code&client_id=atlantis&redirect_uri=https%3A%2F%2Flive-wf.webfleet.com%2Flogin%3FlogoutRedirect%3Dhttps%253A%252F%252Flive-wf.webfleet.com%252Fweb%252Findex.html&state=3%28x0%2F%21%7E&scope=openid&brand_id=webfleet",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "status": "active",
+        "blocks": [
+          {
+            "isCollapsed": false,
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Datos de conexión Webfleet\n\ntranspais\neWalther\nUnigis-2025\n\nhttps://login.webfleet.com/auth/realms/webfleet/protocol/openid-connect/auth?response_type=code&client_id=atlantis&redirect_uri=https%3A%2F%2Flive-wf.webfleet.com%2Flogin%3FlogoutRedirect%3Dhttps%253A%252F%252Flive-wf.webfleet.com%252Fweb%252Findex.html&state=3%28x0%2F%21%7E&scope=openid&brand_id=webfleet"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

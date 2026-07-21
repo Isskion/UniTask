@@ -1,0 +1,1084 @@
+[
+  {
+    "id": "0aoUoquDP0qeGZkOWEPd",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Crar docuemnto de uso Uniflux",
+    "durationMinutes": 34,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778573839,
+      "_nanoseconds": 284000000
+    }
+  },
+  {
+    "id": "19loT76vUbKJniWambJr",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "SzsYovyAN8h9WLAq701E",
+    "taskTypeName": "Demo Cliente",
+    "details": "Demo Tiva + crear flujo",
+    "durationMinutes": 65,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778256196,
+      "_nanoseconds": 62000000
+    }
+  },
+  {
+    "id": "207Cm6V9b7gL2gqVjvb5",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "userName": "Daniel Del Amo",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Crear la herramienta de gestión de tareas",
+    "durationMinutes": 1,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778253005,
+      "_nanoseconds": 4000000
+    }
+  },
+  {
+    "id": "2R595Y2YpivrQDbktufF",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "durationMinutes": 108,
+    "agendaEntryId": "Eob2HWLs2I0gcFpjafHA",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779897091,
+      "_nanoseconds": 433000000
+    },
+    "details": "Reunion interna para moscow de Gaps",
+    "updatedAt": {
+      "_seconds": 1779897124,
+      "_nanoseconds": 628000000
+    }
+  },
+  {
+    "id": "2dXzC7UvYIasAHOzBjHc",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "userName": "Daniel Del Amo",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "Th1fUveiJNqHEXsooj9B",
+    "taskTypeName": "Reunión interna",
+    "details": "Reunión interna para definir flujos y documetanción, trabajos de verano.",
+    "durationMinutes": 120,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1782731696,
+      "_nanoseconds": 929000000
+    }
+  },
+  {
+    "id": "537chmkiUhEm1acuCvnv",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Preparar información solciitada por Gonzao para reunión de la tarde",
+    "durationMinutes": 196,
+    "agendaEntryId": "TmlGVpEby8a8S2xb8HVp",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1780319189,
+      "_nanoseconds": 553000000
+    }
+  },
+  {
+    "id": "6Ra3EQH5dhK5GS3R0AXK",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Sigo con las interfaces, y valido que funciona el contador en tiempo real\nGenerar flujo de Portic / intermodal",
+    "durationMinutes": 86,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778498105,
+      "_nanoseconds": 92000000
+    }
+  },
+  {
+    "id": "6xmTwnA9oGqnS1zq4Nhg",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Leer documentación de integraciónes.\nReunión con equipo Unigis\nReunión con TSP - Segumiento de interfaces",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778491247,
+      "_nanoseconds": 486000000
+    },
+    "durationMinutes": 226,
+    "updatedAt": {
+      "_seconds": 1778492928,
+      "_nanoseconds": 670000000
+    }
+  },
+  {
+    "id": "9ltgf2WBdUiyt5Yeox1Y",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Diseño de solución",
+    "durationMinutes": 200,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778753530,
+      "_nanoseconds": 390000000
+    }
+  },
+  {
+    "id": "9nDGWgumF2BAMxi44Sef",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "documentar alcance",
+    "durationMinutes": 240,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1780578551,
+      "_nanoseconds": 132000000
+    }
+  },
+  {
+    "id": "9ydZogoh1YX1CdEhwoyg",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Crear SP Asociar conduca operación",
+    "durationMinutes": 30,
+    "agendaEntryId": "wTtJ2Jb18lGpa3KlZJtd",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779784201,
+      "_nanoseconds": 260000000
+    }
+  },
+  {
+    "id": "BeVu2ed1R07KaqqvCrSM",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "Th1fUveiJNqHEXsooj9B",
+    "taskTypeName": "Reunión interna",
+    "durationMinutes": 74,
+    "agendaEntryId": "2jLv86ng7HaBnQ6SdoTD",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779872619,
+      "_nanoseconds": 833000000
+    },
+    "details": "Reunión con Javier y Jorge, charla TRansfollow y futuro. Aparte preparar documento de road for sucess para Javier.",
+    "updatedAt": {
+      "_seconds": 1779872651,
+      "_nanoseconds": 267000000
+    }
+  },
+  {
+    "id": "D9oGYjywmE0eWzUoDKTZ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "sZDav2CndgdmhfYc8BTt",
+    "projectName": "DE HEUS",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "durationMinutes": 103,
+    "agendaEntryId": "18qsjsmU53MvepUh30RO",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779880324,
+      "_nanoseconds": 715000000
+    },
+    "details": "Reunión con TRansfollow",
+    "updatedAt": {
+      "_seconds": 1779880344,
+      "_nanoseconds": 509000000
+    }
+  },
+  {
+    "id": "EITVswHC00YG2tcsKTHP",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Preparar documento de minuta de la visita Oniste",
+    "durationMinutes": 112,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779442282,
+      "_nanoseconds": 287000000
+    }
+  },
+  {
+    "id": "EKhyzDaT18RsIzmgfnyF",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Documentar prepedidos para mail a TSP",
+    "durationMinutes": 125,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1782718352,
+      "_nanoseconds": 667000000
+    }
+  },
+  {
+    "id": "F3kRz6CcmcjLH7zqLdj8",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "durationMinutes": 23,
+    "agendaEntryId": "DeiYTlg4j8jVu4F971aO",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779874086,
+      "_nanoseconds": 44000000
+    },
+    "details": "Reunión de seguimiento Maersk con el equipo de TSP y MAersk",
+    "updatedAt": {
+      "_seconds": 1779880368,
+      "_nanoseconds": 509000000
+    }
+  },
+  {
+    "id": "FJEyVq0tUFMB631KVtHs",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "sp Retorno almacen",
+    "durationMinutes": 90,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778752714,
+      "_nanoseconds": 961000000
+    }
+  },
+  {
+    "id": "JcwxaJQkuXw8ajloVjQ3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "details": "Reuni´ponón Compliance",
+    "durationMinutes": 62,
+    "agendaEntryId": "vQBIR5W6C2FRfa0lsNgY",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779810586,
+      "_nanoseconds": 562000000
+    }
+  },
+  {
+    "id": "K45qtWCrs9sM2yfyrMkH",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Valdiar y configurar SP de generación de parada de rendición",
+    "durationMinutes": 180,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778687216,
+      "_nanoseconds": 628000000
+    }
+  },
+  {
+    "id": "KYuLjNS1W3Kw7iXQMoDJ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "Th1fUveiJNqHEXsooj9B",
+    "taskTypeName": "Reunión interna",
+    "details": "PM weekely",
+    "durationMinutes": 50,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1780578573,
+      "_nanoseconds": 260000000
+    }
+  },
+  {
+    "id": "KqHUtl69awlQHKPp25PQ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Configurar SP de asignación de choferes",
+    "durationMinutes": 120,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778254497,
+      "_nanoseconds": 617000000
+    }
+  },
+  {
+    "id": "NHJdmIAMzqjge9FUY2im",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "PM reunión",
+    "durationMinutes": 44,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778670604,
+      "_nanoseconds": 888000000
+    }
+  },
+  {
+    "id": "Nt0PPWdVIr5jH3SjWLmG",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Reunión Generix -- Flujos y estados",
+    "agendaEntryId": "O4LvxubNhS4wcKE2zq0Q",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779722532,
+      "_nanoseconds": 79000000
+    },
+    "durationMinutes": 51,
+    "updatedAt": {
+      "_seconds": 1779722542,
+      "_nanoseconds": 312000000
+    }
+  },
+  {
+    "id": "Om3lI5rBEBWfFm7SHmwA",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "seguimiento pm",
+    "durationMinutes": 45,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1779442384,
+      "_nanoseconds": 450000000
+    }
+  },
+  {
+    "id": "PqLJrrhKCrtRCxipRVPr",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión Cliente",
+    "details": "",
+    "durationMinutes": 1149,
+    "agendaEntryId": "ncRd5h3ogbs9xCDRnNGf",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1780034116,
+      "_nanoseconds": 640000000
+    }
+  },
+  {
+    "id": "Q9tcEgf6Y9JqxV38MxHj",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Preparar Recap de tareas de intermodal",
+    "agendaEntryId": "SUBAa3EISiUKl1VrIUTW",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779722659,
+      "_nanoseconds": 193000000
+    },
+    "durationMinutes": 56,
+    "updatedAt": {
+      "_seconds": 1779722669,
+      "_nanoseconds": 776000000
+    }
+  },
+  {
+    "id": "TDnTtoUolOYbM5oRuQBi",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Prearar tareas de intermodal según maol de Leonardo. Completar documento de diseño internodal.",
+    "durationMinutes": 180,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1780307382,
+      "_nanoseconds": 895000000
+    }
+  },
+  {
+    "id": "UF7tAlkfSJbaAPYMhgsV",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Weekley con PM",
+    "durationMinutes": 60,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778256148,
+      "_nanoseconds": 915000000
+    }
+  },
+  {
+    "id": "URZQ15hfZxoai4S6LjnG",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "myRfpiAMhN62iLZQKORd",
+    "taskTypeName": "Diseño de solución",
+    "details": "REvisar mail de Leonardo y reunión con Jorge",
+    "durationMinutes": 120,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1781511908,
+      "_nanoseconds": 711000000
+    }
+  },
+  {
+    "id": "VqJxiPNEiPDpRJ4gmtiz",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Nueva prueba de pedido de rendición con vije id 76",
+    "durationMinutes": 114,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778748960,
+      "_nanoseconds": 428000000
+    }
+  },
+  {
+    "id": "Wrc4IzAwvifzi15pfe8L",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Repàrto de tareas con Jorge y definir validaciones",
+    "durationMinutes": 50,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778573975,
+      "_nanoseconds": 739000000
+    }
+  },
+  {
+    "id": "YHaWwtX2Hgzy1YJoFYgT",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Seguimiento de interfaces y mapeo.",
+    "durationMinutes": 50,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778663719,
+      "_nanoseconds": 34000000
+    }
+  },
+  {
+    "id": "Z1ATeFV5qEmQAz2erZTK",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Documento de Distribución",
+    "durationMinutes": 106,
+    "agendaEntryId": "NCo9dwJ1d0w62ZPFQpUP",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782376385,
+      "_nanoseconds": 62000000
+    }
+  },
+  {
+    "id": "aDhCvrm5LBgr0KAVke5g",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "details": "Revisar y cerrar documento de distribución",
+    "durationMinutes": 376,
+    "agendaEntryId": "e7kWilzKWJmSj7UEdh5L",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782307588,
+      "_nanoseconds": 507000000
+    }
+  },
+  {
+    "id": "aO9nANn76xX0NDkbW8v1",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "projectName": "DELGADO",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión Cliente",
+    "details": "acompañamiento en capacitación a clinete",
+    "durationMinutes": 65,
+    "agendaEntryId": "w1qc1JujYBbJx9TOgZLZ",
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1782224850,
+      "_nanoseconds": 285000000
+    }
+  },
+  {
+    "id": "azjJgBSTOuOkBuD1FrcP",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "durationMinutes": 102,
+    "agendaEntryId": "BJGhNiHk4755iH7IiMYF",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779806831,
+      "_nanoseconds": 591000000
+    },
+    "details": "validar SP Z_SP_RelacionarConductorOperacion",
+    "updatedAt": {
+      "_seconds": 1779810658,
+      "_nanoseconds": 123000000
+    }
+  },
+  {
+    "id": "baSK6qK5XCjMPgTWludm",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Capacitación  tarifas",
+    "durationMinutes": 70,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778513452,
+      "_nanoseconds": 577000000
+    }
+  },
+  {
+    "id": "bnhiez8RHqb9PshpLicY",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Validar Asignación de choferes",
+    "durationMinutes": 80,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778659367,
+      "_nanoseconds": 104000000
+    }
+  },
+  {
+    "id": "g5TCYSRkDbF7HpMUVKML",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "REsponder mail de E-cmr y envíár documentación.",
+    "durationMinutes": 35,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778574512,
+      "_nanoseconds": 425000000
+    }
+  },
+  {
+    "id": "hMGyUPwU4RF4iOGwKnm0",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Cerrar maersk con equipo y preaprar portic",
+    "durationMinutes": 50,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1780404232,
+      "_nanoseconds": 869000000
+    }
+  },
+  {
+    "id": "iQIq5dBR5au1ZQa91qTi",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Priorizar los REQ pactados para que MFCS se peuda seguri",
+    "agendaEntryId": "iisCyHB5WiHa7zaHKXIn",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779722231,
+      "_nanoseconds": 954000000
+    },
+    "durationMinutes": 56,
+    "updatedAt": {
+      "_seconds": 1779722242,
+      "_nanoseconds": 153000000
+    }
+  },
+  {
+    "id": "iVJ9UPFCTVut6W6FsD4v",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Revisar tareas de los proyectos y alinear trabajos de equipo",
+    "agendaEntryId": "uKcT2W7ZgbEQKPNeZZgi",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779722364,
+      "_nanoseconds": 566000000
+    },
+    "durationMinutes": 51,
+    "updatedAt": {
+      "_seconds": 1779722434,
+      "_nanoseconds": 426000000
+    }
+  },
+  {
+    "id": "jKZ376UjJXVtMkQnCBak",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Formación interna, metodos y flujos",
+    "durationMinutes": 70,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778687242,
+      "_nanoseconds": 395000000
+    }
+  },
+  {
+    "id": "jhpbTtFHftnogCMEu6QC",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "userName": "Daniel Del Amo",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "prueba",
+    "durationMinutes": 1,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778253755,
+      "_nanoseconds": 746000000
+    }
+  },
+  {
+    "id": "mbFAzBYq6b6os8H1Q1uH",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Mejora de producto uniflux para añadir el logo de emrpesa como fondo transparente. Crear nuevo flujo para TIva",
+    "durationMinutes": 60,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778484914,
+      "_nanoseconds": 924000000
+    }
+  },
+  {
+    "id": "mlaoz4aQJwb08QbVHvWo",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "details": "",
+    "durationMinutes": 287,
+    "agendaEntryId": "T2WPxufDpRQaNs3o9Jcu",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782223169,
+      "_nanoseconds": 345000000
+    }
+  },
+  {
+    "id": "peX3zlFpavQ8R2wYcIDS",
+    "userId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "userName": "Daniel Del Amo",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Terminar con el SP de asignación de choferes automatica",
+    "durationMinutes": 120,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778253621,
+      "_nanoseconds": 967000000
+    }
+  },
+  {
+    "id": "rbiOnFwaxC1KpVbZUOoP",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "9iqygviz3AGJnbJOLc8E",
+    "projectName": "EUROPASTRY",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "mapeo de XML de interfaz\nWIP I11 Retorno tickets trans\nWIP I10 Retorno Ingresos",
+    "durationMinutes": 80,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778256055,
+      "_nanoseconds": 580000000
+    }
+  },
+  {
+    "id": "rft2D459ZkRcYCVjFJmp",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "bGeacYFR1Fk4xv0Yh9XV",
+    "projectName": "Logifrio",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Revisar mail de e-Cmr y enviar contestación",
+    "durationMinutes": 40,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1778256392,
+      "_nanoseconds": 228000000
+    }
+  },
+  {
+    "id": "szYA9KYTx2vtNSdZhzWZ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "projectName": "DELGADO",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Mapeo de Json y pasar documentación a Iecisa",
+    "durationMinutes": 127,
+    "agendaEntryId": "PQNQdPa4HDvLHl1mquPO",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782406120,
+      "_nanoseconds": 208000000
+    }
+  },
+  {
+    "id": "txfYMJEUrFaS29E2G2D5",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Diseño solicón",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778582223,
+      "_nanoseconds": 975000000
+    },
+    "durationMinutes": 281,
+    "updatedAt": {
+      "_seconds": 1778599610,
+      "_nanoseconds": 643000000
+    }
+  },
+  {
+    "id": "uiHMDcuTyRUIIR69C9Xl",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Terminar documentoa de intermodal para enviarlo finalizado.",
+    "durationMinutes": 60,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1779881923,
+      "_nanoseconds": 138000000
+    }
+  },
+  {
+    "id": "wWyRfJnuEZ4O7WdK3qtY",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "details": "Cerrar documento de internacioonal",
+    "durationMinutes": 179,
+    "agendaEntryId": "NUGVISMl5g4gQYvR2nU1",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782205923,
+      "_nanoseconds": 257000000
+    }
+  },
+  {
+    "id": "wo3ymZY8BUGkv1blPBlC",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Documento de alcance",
+    "durationMinutes": 240,
+    "agendaEntryId": null,
+    "type": "retroactive",
+    "createdAt": {
+      "_seconds": 1780404214,
+      "_nanoseconds": 104000000
+    }
+  },
+  {
+    "id": "xPCns22HvZigtNqzB1kq",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "projectName": "TRANSPAIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Preparar y revisar documetnación",
+    "durationMinutes": 64,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779449729,
+      "_nanoseconds": 739000000
+    }
+  },
+  {
+    "id": "xwIlwPF2rkKZ2GN2vU3A",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "J7yTWR2f2lSlEwwm8sQ7",
+    "taskTypeName": "Reunión",
+    "details": "Capcacitación ransporeon",
+    "agendaEntryId": "LyDyguqVwoVIrDMEcHWZ",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1779722154,
+      "_nanoseconds": 88000000
+    },
+    "durationMinutes": 96,
+    "updatedAt": {
+      "_seconds": 1779722164,
+      "_nanoseconds": 689000000
+    }
+  },
+  {
+    "id": "yN8coBrslHddFk4HqrLJ",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "Th1fUveiJNqHEXsooj9B",
+    "taskTypeName": "Reunión interna",
+    "details": "",
+    "durationMinutes": 253,
+    "agendaEntryId": "HUfKWbnxGtQJrJnP2bXb",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1782391559,
+      "_nanoseconds": 175000000
+    }
+  },
+  {
+    "id": "ygKuSYBCEStHbTALxhid",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "HKnZypXlGdM0VjRLOysB",
+    "projectName": "UNIGIS",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "details": "Analisis de documento de agenada semanal para incrustar en Unitask ",
+    "durationMinutes": 68,
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1778667915,
+      "_nanoseconds": 819000000
+    }
+  },
+  {
+    "id": "zsh4m62B7QcpxsKkIdf5",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "projectName": "LUIS SIMOES Fase II",
+    "taskTypeId": "Ct3Tl520npAnz7Y3fDoe",
+    "taskTypeName": "Capacitación",
+    "details": "",
+    "durationMinutes": 537,
+    "agendaEntryId": "OgX6cu3OTtnmiMPXj0WV",
+    "type": "live",
+    "createdAt": {
+      "_seconds": 1780072515,
+      "_nanoseconds": 541000000
+    }
+  }
+]
