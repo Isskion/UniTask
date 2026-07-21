@@ -11707,7 +11707,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-32",
     "taskNumber": 32,
@@ -11716,10 +11715,18 @@
       "_seconds": 1781166763,
       "_nanoseconds": 101000000
     },
-    "status": "review",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "estimatedEffortSize": "L",
+    "actualEffort": 3,
+    "closedAt": {
+      "_seconds": 1784281305,
+      "_nanoseconds": 824000000
+    },
+    "estimatedEffort": 5,
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1782140724,
-      "_nanoseconds": 302000000
+      "_seconds": 1784281305,
+      "_nanoseconds": 824000000
     }
   },
   {

@@ -4918,6 +4918,32 @@
     "updatedAt": "2026-07-16T15:39:30.989Z"
   },
   {
+    "id": "3_2026-07-17",
+    "date": "2026-07-17",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "LUIS SIMOES Fase II",
+        "projectId": "OH4sjML9byhLuzMXSTss",
+        "pmNotes": "Plan de actividades - Unigis:\nObjectivo crítico - tener la versión final del documento de alcance operativo. Tener en cuenta los seguientes puntos:\n1. Incorporar en la versión final los comentários que fuímos discutindo;\n2. Logística inversa estar de forma detallada lo que hemos hablado;\n3. Tablas de anexos, en especial los campos del pedido, no olbidar los que hemos definido (tipo servicio, canal, tipo producto, condición temperatura).\n4. Documento Interfaces.\n5. Incorporar nota que faltan integrar los interfaces con SGAs automatismos en PT y ES (hay sesión interna dia 29/07).\n\n\n[Descripcion del flujo de creación y asignación de destinatarios fijos y variables; Gestion de incidencias; Logistica Inversa; Dispatch; Delegaciones Ajenas y Subcontratacion TI (LS Transporte); Anexos]",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Plan de actividades - Unigis:\nObjectivo crítico - tener la versión final del documento de alcance operativo. Tener en cuenta los seguientes puntos:\n1. Incorporar en la versión final los comentários que fuímos discutindo;\n2. Logística inversa estar de forma detallada lo que hemos hablado;\n3. Tablas de anexos, en especial los campos del pedido, no olbidar los que hemos definido (tipo servicio, canal, tipo producto, condición temperatura).\n4. Documento Interfaces.\n5. Incorporar nota que faltan integrar los interfaces con SGAs automatismos en PT y ES (hay sesión interna dia 29/07).\n\n\n[Descripcion del flujo de creación y asignación de destinatarios fijos y variables; Gestion de incidencias; Logistica Inversa; Dispatch; Delegaciones Ajenas y Subcontratacion TI (LS Transporte); Anexos]",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-07-17T09:40:23.731Z",
+    "updatedAt": "2026-07-17T09:40:29.661Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",

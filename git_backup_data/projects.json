@@ -433,15 +433,18 @@
       "_seconds": 1769591721,
       "_nanoseconds": 324000000
     },
-    "lastUpdate": {
-      "_seconds": 1769591721,
-      "_nanoseconds": 324000000
-    },
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "aliases": [
+      "TOUKANEE"
+    ],
+    "lastUpdate": {
+      "_seconds": 1784287668,
+      "_nanoseconds": 889000000
+    }
   },
   {
     "id": "IL23eIjvSIdwLgqwz0pY",
@@ -958,15 +961,18 @@
       "_seconds": 1767970217,
       "_nanoseconds": 613000000
     },
-    "lastUpdate": {
-      "_seconds": 1767970217,
-      "_nanoseconds": 613000000
-    },
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "aliases": [
+      "SNSA"
+    ],
+    "lastUpdate": {
+      "_seconds": 1784287669,
+      "_nanoseconds": 417000000
+    }
   },
   {
     "id": "dHNSYIcubssqhwk3fmPc",
@@ -1127,17 +1133,20 @@
       "_seconds": 1768467846,
       "_nanoseconds": 412000000
     },
-    "lastUpdate": {
-      "_seconds": 1768467846,
-      "_nanoseconds": 412000000
-    },
     "isActive": true,
     "name": "DE HEUS",
     "_migrated": true,
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "aliases": [
+      "DEHEUS"
+    ],
+    "lastUpdate": {
+      "_seconds": 1784287668,
+      "_nanoseconds": 455000000
+    }
   },
   {
     "id": "waufJthvDTLwRRRXNPWd",
