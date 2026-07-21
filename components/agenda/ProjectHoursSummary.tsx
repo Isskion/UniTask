@@ -157,7 +157,8 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
             {reportRow && (
                 <ProjectReportModal
                     row={reportRow}
-                    periodLabel={periodLabel}
+                    tenantId={tenantId}
+                    project={projects.find(p => p.id === reportRow.projectId)}
                     onClose={() => setReportRow(null)}
                 />
             )}
