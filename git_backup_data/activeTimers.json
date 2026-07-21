@@ -1,0 +1,23 @@
+[
+  {
+    "id": "ASpv6MuM2nNvak3Pr2tN",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userName": "Daniel Tenant Admin",
+    "tenantId": "3",
+    "details": "",
+    "isRunning": false,
+    "startTime": null,
+    "accumulatedSeconds": 0,
+    "agendaEntryId": null,
+    "agendaEntryLabel": null,
+    "projectName": "TRANSPAIS",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "taskTypeId": "ai1JaTkl4LYLtrTCF23J",
+    "taskTypeName": "Configuración // Construcción",
+    "writerTabId": "68mhrgxxxnn",
+    "updatedAt": {
+      "_seconds": 1784620673,
+      "_nanoseconds": 675000000
+    }
+  }
+]

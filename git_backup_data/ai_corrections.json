@@ -1,0 +1,38 @@
+[
+  {
+    "id": "GOhNIOEwH0UDTavbCKMP",
+    "question": "Si son errores de unitask tambien se incluyen ahí? Bug de la aplicación me defiero",
+    "correction": "No, los bugs de unitask se envian por soprote, icono de salvavidas\n",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "status": "pending",
+    "timestamp": {
+      "_seconds": 1770711284,
+      "_nanoseconds": 746000000
+    }
+  },
+  {
+    "id": "UtCJTOkpZH5qlMGEB3Jt",
+    "question": "Donde incluyo los mensajes de solucion para errores? TEngo una par de Fix que quiero compartir",
+    "correction": "Lo ideal es introducirlo en REGISTRO DE ERRORES. La bitacora y seguimiento son para minutas y comunicaciones de cliente para documentar el proyecto.",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "status": "pending",
+    "timestamp": {
+      "_seconds": 1770711222,
+      "_nanoseconds": 852000000
+    }
+  },
+  {
+    "id": "Xly4L3EShJXIN0QdvAGA",
+    "question": "Si son errores de unitask tambien se incluyen ahí? Bug de la aplicación me defiero",
+    "correction": "No, los bugs de unitask se envian por soprote, icono de salvavidas\n",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "status": "pending",
+    "timestamp": {
+      "_seconds": 1770711419,
+      "_nanoseconds": 349000000
+    }
+  }
+]

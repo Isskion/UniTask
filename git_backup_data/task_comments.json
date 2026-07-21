@@ -1,0 +1,266 @@
+[
+  {
+    "id": "1ZPDB7aVXrbNJPkYqW6d",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Danie el guapo",
+    "authorPhotoURL": null,
+    "content": "@Iñaki iraburu  prueba noti desde tarea con comentario",
+    "mentions": [
+      "lE4z434rFRUSaGo4uQw2Guspo1j2"
+    ],
+    "createdAt": {
+      "_seconds": 1769186837,
+      "_nanoseconds": 504000000
+    }
+  },
+  {
+    "id": "4OQRMIJqF3XPNre1VF7o",
+    "taskId": "KahvAmT89vo2cZ3nhqlG",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Se va a hacer a traves del GPs adapter de Webfleet\n",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1780666645,
+      "_nanoseconds": 674000000
+    }
+  },
+  {
+    "id": "85qT0GJ7NGjuIU2yM6jW",
+    "taskId": "ThUJBkjIeHe6lhc18Cnv",
+    "tenantId": "3",
+    "authorId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
+    "authorName": "Iñaki iraburu",
+    "authorPhotoURL": null,
+    "content": "Correo enviado a EUP:\n\n\nDudas operativas\n\nPara la lógica de adelantos de preparación, como hemos ido comentando, necesitamos que nos indiquéis lo siguiente:\nLas Zonas Buffer y su vinculación a las Zonas de Reparto (001, 002, 003, 004 y 005).\nEl mínimo y máximo de cajas por VL en cada depósito.\n\n\nDudas interfaces\n\nDuda en API Order Confirmation (solicitud de confirmación y/o generación de VL para adelantaos):\n    \n[\n    {\n        \"companyId\": \"00001\",\n        \"warehouseId\": \"L02\",\n        \"date\": \"2026-02-03T16:55:00Z\",\n        \"orderId\": \"99894040\",\n        \"orderType\": \"V6\",\n        \"vlNumber\": \"12345678\",\n        \"route\": \"\",\n        \"zone\": \"\"\n    }\n]\n\nPara el caso donde enviamos adelantos de preparación, los campos que el servicio nos solicita son vlNumber, route y zone.\n\nSabemos que vlNumber es un agrupador que nosotros mandamos, Zona es la zona Buffer, pero para el campo Route, necesitamos saber si debemos seguir una lógica en particular.\n",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1771846360,
+      "_nanoseconds": 886000000
+    }
+  },
+  {
+    "id": "8tpNoBE18YToqTrbvONw",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Danie el guapo",
+    "authorPhotoURL": null,
+    "content": "@Iñaki iraburu prueba de notificación",
+    "mentions": [
+      "6C9ZN0mfngNb5gIAWw1EMSaQcRR2"
+    ],
+    "createdAt": {
+      "_seconds": 1769186145,
+      "_nanoseconds": 492000000
+    }
+  },
+  {
+    "id": "HiOfZ5vIhWOIebkb621Q",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "tenantId": "3",
+    "authorId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "authorName": "Daniel Del Amo",
+    "authorPhotoURL": "https://lh3.googleusercontent.com/a/ACg8ocLowV1lQRxeWkEOXc1rTQOIlkGQxTZonugpT5yFIiDmjpufvq3mJg=s96-c",
+    "content": "@Iñaki iraburu prueba de comentario",
+    "mentions": [
+      "6C9ZN0mfngNb5gIAWw1EMSaQcRR2"
+    ],
+    "createdAt": {
+      "_seconds": 1769185461,
+      "_nanoseconds": 288000000
+    }
+  },
+  {
+    "id": "KZ0J3iDkJWouyowp7lOx",
+    "taskId": "8Khj09KXSevl8fVfCgSG",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Según mail de Leonardo solo se controla si duermen fuera.",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781510412,
+      "_nanoseconds": 192000000
+    }
+  },
+  {
+    "id": "LTkCbpnAzqYxVISOmPap",
+    "taskId": "KhWjBZLvxEvpsP25pGhJ",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Danie el guapo",
+    "authorPhotoURL": null,
+    "content": "@Iñaki iraburu  prueba notificación en tarea",
+    "mentions": [
+      "lE4z434rFRUSaGo4uQw2Guspo1j2"
+    ],
+    "createdAt": {
+      "_seconds": 1769186421,
+      "_nanoseconds": 255000000
+    }
+  },
+  {
+    "id": "duOSt86VgfaIGnsZIbK6",
+    "taskId": "t7HLRFFhKnPGrasUorUb",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Carta de porte contenedores (adjunta y debe emitirse por el TMS)\n\neCMR (obligatorio a nivel legal del TMS)\n\nDocumento de Portic (lo adjuntan los operadores de tráfico y tienen que verlo los conductores en la app).\nDocumentos del cliente (idem portic)\nOtros documentos que serán adjuntos para que queden asociados al viaje",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781506356,
+      "_nanoseconds": 180000000
+    }
+  },
+  {
+    "id": "kViS7y5dsRBUU1hn5m4S",
+    "taskId": "Ims270hZTATIJmmQuQfi",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Añado entrada en unitask con los prepedidos del diseño",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781510291,
+      "_nanoseconds": 288000000
+    }
+  },
+  {
+    "id": "pGq4R6WTm4Mg2l7qxfL4",
+    "taskId": "8bEkguXAVObjfg3DaNdg",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Danie el guapo",
+    "authorPhotoURL": null,
+    "content": "@Eric Walther prueba de notificación!!!!!\n",
+    "mentions": [
+      "bw9Qc9zqH4OfOC4HLawEexZFJ6D3"
+    ],
+    "createdAt": {
+      "_seconds": 1769186310,
+      "_nanoseconds": 209000000
+    }
+  },
+  {
+    "id": "pgsEjl9goH7pnJNNNLsC",
+    "taskId": "Y3rthOThwile74jnJSOx",
+    "tenantId": "3",
+    "authorId": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
+    "authorName": "Daniel Del Amo",
+    "authorPhotoURL": "https://lh3.googleusercontent.com/a/ACg8ocLowV1lQRxeWkEOXc1rTQOIlkGQxTZonugpT5yFIiDmjpufvq3mJg=s96-c",
+    "content": "@Eric Walther prueba de cometnario en tarea\n",
+    "mentions": [
+      "bw9Qc9zqH4OfOC4HLawEexZFJ6D3"
+    ],
+    "createdAt": {
+      "_seconds": 1769185534,
+      "_nanoseconds": 245000000
+    }
+  },
+  {
+    "id": "pnEBrdhUwjxnYBkUzDo6",
+    "taskId": "FWnzf8xcc9Z1wOMjIJ7V",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "•\tFin de viaje.\n•\tTiempo de estadía máximo superado\n•\tRetiro de contenedor (de terminal o Depot)\n•\tLlegada al cliente\n•\tEstadía Maxima (>2h)\n•\tHora de Salida del cliente\n•\tEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\n•\t\n",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781510737,
+      "_nanoseconds": 469000000
+    }
+  },
+  {
+    "id": "rEJvDraTHuxetg3pn0Jj",
+    "taskId": "KahvAmT89vo2cZ3nhqlG",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Enviado soporte https://unigis.atlassian.net/browse/SMI-364\n",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781166154,
+      "_nanoseconds": 431000000
+    }
+  },
+  {
+    "id": "rfJmDcdbIV9VfpN9TcC2",
+    "taskId": "FBp4k81XrKlwL3NrY8Hn",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Terminado Internacional y Distribución para validar con Jorge ",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781884527,
+      "_nanoseconds": 290000000
+    }
+  },
+  {
+    "id": "vHEPlAnu0mj2z9KnHG7q",
+    "taskId": "t7HLRFFhKnPGrasUorUb",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "El día 24 de junio '26 enviamos mail con recap de documentos para validar",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1782886483,
+      "_nanoseconds": 315000000
+    }
+  },
+  {
+    "id": "vHZDIJBTMdDvvybjxvW9",
+    "taskId": "FBp4k81XrKlwL3NrY8Hn",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Prepararo primer documento de mapeo de post /mapi/rest/logistic/service/ObtenerGuiasLiquidacion",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781251438,
+      "_nanoseconds": 994000000
+    }
+  },
+  {
+    "id": "xpkwHOeJwYswn7ZzbD2E",
+    "taskId": "Ims270hZTATIJmmQuQfi",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Documento creado, a falta de revisión con Jorge",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1782974729,
+      "_nanoseconds": 875000000
+    }
+  },
+  {
+    "id": "z7fR0NAB7Ekl5Y244Jtb",
+    "taskId": "FBp4k81XrKlwL3NrY8Hn",
+    "tenantId": "3",
+    "authorId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "authorName": "Daniel Tenant Admin",
+    "authorPhotoURL": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/profile_pictures%2F6C9ZN0mfngNb5gIAWw1EMSaQcRR2%2F1771600221894_Foto_frontal_Daniel.png?alt=media&token=dea4c461-250b-47aa-8647-0317b63ee6c8",
+    "content": "Entregado intermodal\n",
+    "mentions": [],
+    "createdAt": {
+      "_seconds": 1781884503,
+      "_nanoseconds": 735000000
+    }
+  }
+]

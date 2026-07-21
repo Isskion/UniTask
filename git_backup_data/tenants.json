@@ -1,0 +1,130 @@
+[
+  {
+    "id": "10",
+    "name": "Pablo Pedrosa",
+    "code": "pablo-pedrosa",
+    "isActive": true,
+    "createdAt": "2026-02-08T10:54:03.632Z",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1776438399,
+      "_nanoseconds": 283000000
+    }
+  },
+  {
+    "id": "11",
+    "name": "Anabel Pardo",
+    "code": "anabel-pardo",
+    "isActive": true,
+    "createdAt": "2026-02-08T10:58:16.884Z",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1772782224,
+      "_nanoseconds": 280000000
+    }
+  },
+  {
+    "id": "12",
+    "name": "Gabriel Arcos",
+    "code": "gabriel-arcos",
+    "isActive": true,
+    "createdAt": "2026-02-08T10:59:59.632Z",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1772782225,
+      "_nanoseconds": 120000000
+    }
+  },
+  {
+    "id": "16",
+    "name": "Almudena Sainz",
+    "code": "almudena-sainz",
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1770884738,
+      "_nanoseconds": 960000000
+    },
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1772782228,
+      "_nanoseconds": 778000000
+    }
+  },
+  {
+    "id": "17",
+    "code": "ls-",
+    "isActive": true,
+    "name": "LS ",
+    "createdAt": {
+      "_seconds": 1780318550,
+      "_nanoseconds": 132000000
+    }
+  },
+  {
+    "id": "2",
+    "name": "UniTaskController",
+    "code": "unitaskcontroller",
+    "isActive": true,
+    "createdAt": "2026-01-09T14:32:20.274Z",
+    "aiDailyLimit": 200,
+    "dailyFileLimit": 2,
+    "updatedAt": {
+      "_seconds": 1769674885,
+      "_nanoseconds": 932000000
+    }
+  },
+  {
+    "id": "3",
+    "name": "Unigis",
+    "code": "unigis",
+    "isActive": true,
+    "createdAt": "2026-01-09T14:32:26.949Z",
+    "aiDailyLimit": 200,
+    "logos": [
+      {
+        "id": "2htd8hd7",
+        "label": "Logo Principal",
+        "url": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
+        "storagePath": "tenants/3/logos/1772987356850_Logo_uni_blanco.png",
+        "uploadedAt": "2026-03-08T16:29:20.376Z"
+      }
+    ],
+    "logoUrl": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
+    "unitaskToolsEnabled": true,
+    "enabledTools": [
+      "uniordercreator",
+      "swagger",
+      "soap"
+    ],
+    "aiEnabled": true,
+    "taskControlEnabled": true,
+    "updatedAt": {
+      "_seconds": 1778249291,
+      "_nanoseconds": 313000000
+    }
+  },
+  {
+    "id": "7",
+    "name": "Andsoft",
+    "code": "andsoft",
+    "isActive": true,
+    "createdAt": "2026-02-05T19:53:35.939Z",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1775648885,
+      "_nanoseconds": 145000000
+    }
+  },
+  {
+    "id": "9",
+    "name": "Miguel Lobato",
+    "code": "miguel-lobato",
+    "isActive": true,
+    "createdAt": "2026-02-08T10:53:03.724Z",
+    "aiEnabled": false,
+    "updatedAt": {
+      "_seconds": 1775648879,
+      "_nanoseconds": 817000000
+    }
+  }
+]

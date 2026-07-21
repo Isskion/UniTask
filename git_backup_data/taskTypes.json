@@ -1,0 +1,97 @@
+[
+  {
+    "id": "Ct3Tl520npAnz7Y3fDoe",
+    "name": "Capacitación",
+    "icon": "ClipboardList",
+    "color": "#F59E0B",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1779722950,
+      "_nanoseconds": 422000000
+    },
+    "usageCount": 8
+  },
+  {
+    "id": "J7yTWR2f2lSlEwwm8sQ7",
+    "icon": "Users",
+    "color": "#8B5CF6",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778252513,
+      "_nanoseconds": 890000000
+    },
+    "name": "Reunión Cliente",
+    "updatedAt": {
+      "_seconds": 1779722930,
+      "_nanoseconds": 669000000
+    },
+    "usageCount": 19
+  },
+  {
+    "id": "SzsYovyAN8h9WLAq701E",
+    "name": "Demo Cliente",
+    "icon": "Sparkles",
+    "color": "#F97316",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778252546,
+      "_nanoseconds": 586000000
+    },
+    "usageCount": 1
+  },
+  {
+    "id": "Th1fUveiJNqHEXsooj9B",
+    "name": "Reunión interna",
+    "icon": "Users",
+    "color": "#E11D48",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1779722922,
+      "_nanoseconds": 197000000
+    },
+    "usageCount": 4
+  },
+  {
+    "id": "ai1JaTkl4LYLtrTCF23J",
+    "name": "Configuración // Construcción",
+    "icon": "Settings",
+    "color": "#3B82F6",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778252493,
+      "_nanoseconds": 982000000
+    },
+    "usageCount": 25
+  },
+  {
+    "id": "gdPPQOlSjNfliUxjZ9Jx",
+    "name": "Soportes // Ayuda GMC",
+    "icon": "Wrench",
+    "color": "#E11D48",
+    "active": true,
+    "usageCount": 0,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1778252535,
+      "_nanoseconds": 105000000
+    }
+  },
+  {
+    "id": "myRfpiAMhN62iLZQKORd",
+    "name": "Diseño de solución",
+    "icon": "FileText",
+    "color": "#F97316",
+    "active": true,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1781511864,
+      "_nanoseconds": 636000000
+    },
+    "usageCount": 1
+  }
+]

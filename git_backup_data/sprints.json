@@ -1,0 +1,125 @@
+[
+  {
+    "id": "AWaHXnaiLewTJOVDFPd6",
+    "name": "Sprint W7",
+    "status": "planning",
+    "startDate": {
+      "_seconds": 1770595200,
+      "_nanoseconds": 0
+    },
+    "goal": "prueba de paso de tareas",
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1770484560,
+      "_nanoseconds": 916000000
+    },
+    "resourceCount": 6,
+    "pointsPerUserPerDay": 1,
+    "endDate": {
+      "_seconds": 1770940800,
+      "_nanoseconds": 0
+    },
+    "plannedCapacity": 29,
+    "updatedAt": {
+      "_seconds": 1770981716,
+      "_nanoseconds": 343000000
+    },
+    "regionId": "EU",
+    "divisionId": "OPERATIONS"
+  },
+  {
+    "id": "c6vdt3NGatKr2syyvYHP",
+    "name": "Sprint W6",
+    "status": "planning",
+    "startDate": {
+      "_seconds": 1770595200,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1771545600,
+      "_nanoseconds": 0
+    },
+    "tenantId": "2",
+    "createdAt": {
+      "_seconds": 1770541091,
+      "_nanoseconds": 452000000
+    },
+    "updatedAt": {
+      "_seconds": 1770541091,
+      "_nanoseconds": 452000000
+    }
+  },
+  {
+    "id": "lfp0b6NnFvcdEfBL58Vu",
+    "name": "Sprint W9",
+    "status": "planning",
+    "startDate": {
+      "_seconds": 1771804800,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1772755200,
+      "_nanoseconds": 0
+    },
+    "pointsPerUserPerDay": 1,
+    "resourceCount": 6,
+    "includeWeekends": false,
+    "plannedCapacity": 57,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771578625,
+      "_nanoseconds": 430000000
+    },
+    "updatedAt": {
+      "_seconds": 1771578625,
+      "_nanoseconds": 430000000
+    }
+  },
+  {
+    "id": "sprint-jan-2026",
+    "name": "Sprint January 2026",
+    "startDate": {
+      "_seconds": 1767225600,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1769817600,
+      "_nanoseconds": 0
+    },
+    "status": "closed",
+    "tenantId": "2",
+    "goal": "Launch MVP Mockup",
+    "createdAt": {
+      "_seconds": 1769921671,
+      "_nanoseconds": 909000000
+    }
+  },
+  {
+    "id": "wTGejKpuJJG7ogAxdq9F",
+    "name": "Sprint W8",
+    "status": "planning",
+    "startDate": {
+      "_seconds": 1771200000,
+      "_nanoseconds": 0
+    },
+    "endDate": {
+      "_seconds": 1771545600,
+      "_nanoseconds": 0
+    },
+    "pointsPerUserPerDay": 1,
+    "resourceCount": 6,
+    "includeWeekends": false,
+    "plannedCapacity": 30,
+    "tenantId": "3",
+    "createdAt": {
+      "_seconds": 1771049890,
+      "_nanoseconds": 960000000
+    },
+    "updatedAt": {
+      "_seconds": 1771049890,
+      "_nanoseconds": 960000000
+    },
+    "regionId": "EU",
+    "divisionId": "OPERATIONS"
+  }
+]
