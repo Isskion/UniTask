@@ -1,8 +1,17 @@
 # KPIs dinámicos en el Resumen de Agenda — Diseño técnico
 
-> Estado: **diseño, sin implementar**. Cero líneas de código escritas a fecha de 2026-07-21.
+> **Estado: DEPRECADO / en pausa (2026-07-21).** Se implementó el MVP completo (los 8 archivos de §13, más
+> las modificaciones a `AgendaResumen`/`AgendaConsultantsManager`/`AgendaView`/`types.ts`/`firestore.rules`),
+> se probó en local y en producción (reglas desplegadas y revertidas después), y el usuario decidió no
+> llevarlo a producción — "no me gusta el resultado". Todo el código de implementación se revirtió (nunca se
+> commiteó, así que el repo queda limpio) y las reglas de Firestore se redesplegaron a su estado anterior. Lo
+> que **sí queda vivo**: la optimización de `getAgendaEntriesRange` en `lib/project-hours.ts` (batching de
+> queries por semana, §6.4) — es una mejora real a código ya en producción, independiente de este feature, y
+> se mantiene. Este documento se conserva íntegro como base para retomarlo más adelante — ver §18 para el
+> resumen de qué se probó y qué se aprendió, antes de reabrir el desarrollo.
+>
 > Este documento es autocontenido: no depende de ninguna conversación previa. Cualquier persona (o modelo)
-> que lo lea junto con el repo debería poder implementar el MVP sin más contexto.
+> que lo lea junto con el repo debería poder retomar el MVP sin más contexto que lo escrito aquí.
 
 ## 1. Objetivo
 
@@ -381,12 +390,15 @@ que `ProjectHoursSummary.tsx` para consistencia visual.
 
 ```
 Capacidad semanal (por consultor, por semana) =
-    (Nº de días con getDayType(d) ∈ {DH, DNH} en esa semana)   // festivos ya excluidos vía MADRID_HOLIDAYS
-    × jornada_estandar_tenant                                  // ver 7.1, nuevo campo
-    − Σ días de UserAvailability con status='approved'
+    (Nº de días con getDayType(d) === DH en esa semana)   // DNH=festivo y FDS=fin de semana NO cuentan
+    × jornada_estandar_tenant                              // ver 7.1, nuevo campo
+    − Σ días DH de esa semana con alguna UserAvailability status='approved'
           y type ∈ {'vacation', 'sick_leave', 'personal_days'}
-          que solapan esa semana para userId === consultant.userId
+          que cubra ese día para userId === consultant.userId
 ```
+> Corrección 2026-07-21: una versión anterior de esta fórmula incluía por error `{DH, DNH}` en el primer
+> término, lo que habría contado los festivos como capacidad disponible — justo lo contrario de la intención
+> ("festivos ya excluidos"). Detectado al implementar `TeamCapacityKpi.tsx`. Solo `DH` cuenta.
 
 `public_holiday`, `training`, `remote_work`, `other` de `UserAvailability` **no restan** capacidad (decisión
 explícita, ver §3 y la conversación de diseño — revisar si en la práctica se necesita ampliar la lista).
@@ -454,8 +466,13 @@ se migran al motor genérico en el MVP — son baratos de mantener y ya están o
 6. **Visualización** — lista / tarta / barras / serie temporal. Si serie temporal → selector de bucket
    (día/semana/mes) y el paso 5 (agrupación) queda deshabilitado (una serie temporal ya "agrupa" por tiempo;
    combinar groupBy + timeseries es v2, no MVP — evita el caso "N líneas por Y grupos" que complica el chart).
-7. **Rango temporal** — por defecto `projectLifetime` si hay un filtro de proyecto único; si no, obliga a
-   elegir `fixed`/`rolling` (no tiene sentido "vida del proyecto" sin proyecto fijado).
+7. **Rango temporal** — **por defecto `rolling` (90 días)**, no `projectLifetime`. Corrección 2026-07-21
+   tras un bug real en pruebas: al abrir por defecto en `projectLifetime` (que exige exactamente un
+   proyecto, §12.4), el usuario se veía forzado a elegir un proyecto irrelevante solo para poder guardar un
+   KPI simple sin intención de filtrar por proyecto — ese proyecto arbitrario acababa vaciando el resultado
+   sin que la causa fuera evidente ("sin datos" parecía un fallo del filtro que sí importaba, cuando el
+   culpable era el que se había elegido sin querer). `projectLifetime` sigue disponible y se activa solo
+   cuando el usuario lo elige explícitamente y selecciona un proyecto en Filtros.
 8. **Visibilidad** — privado (default) / compartir con el equipo.
 
 ### 8.3 Renderizado
@@ -657,6 +674,49 @@ tendrán más de un puñado de KPIs simultáneos visibles en el Resumen, y `getA
 se ve lentitud con muchos KPIs por tenant — no se hace ahora para no invertir esfuerzo en un problema que
 todavía no se ha observado. Revisar si en algún momento el Resumen tarda perceptiblemente en cargar con varios
 KPIs activos.
+
+## 18. Retrospectiva de la implementación (2026-07-21) — leer antes de retomar
+
+Se llegó a construir y probar en vivo el MVP completo descrito en §13. Quedó revertido, pero estas son las
+lecciones reales de esa implementación, no solo hipótesis de diseño:
+
+**Bugs encontrados y corregidos durante la construcción (si se retoma, no reintroducirlos):**
+1. La fórmula de capacidad semanal (§7) tenía un error real: contaba días `{DH, DNH}` en vez de solo `DH`,
+   lo que habría contado festivos como capacidad disponible. Corregido en código y en este documento.
+2. Firestore rechaza `undefined` como valor de campo (`addDoc`/`updateDoc` fallan con
+   `Unsupported field value: undefined`). `KpiFilter`/`KpiTimeRange` tienen varios campos opcionales que se
+   quedaban `undefined` al construir el payload (`groupBy`, `bucket`, `fromIso`, `rollingDays`...). Hace falta
+   un saneador recursivo antes de escribir — y en `update` (no en `create`), los campos raíz que se quieren
+   *borrar* de verdad (ej. quitar `groupBy` al editar) deben mapearse a `deleteField()`, no simplemente
+   omitirse, o el valor viejo queda huérfano en Firestore para siempre.
+3. **Bug de UX más importante, el que motivó abandonar el desarrollo indirectamente:** el wizard abría por
+   defecto en `timeRange.mode: 'projectLifetime'`, que exige elegir exactamente un proyecto (§12.4). Un
+   usuario probando solo "filtrar por consultor" se veía forzado a elegir un proyecto arbitrario para poder
+   guardar, y ese proyecto (irrelevante para su intención real) acababa vaciando el resultado sin que la
+   causa fuera evidente. Se corrigió cambiando el default a `'rolling'` (90 días) — `projectLifetime` sigue
+   disponible pero ya no forzado.
+4. `chartType: 'bar'`/`'pie'` sin `groupBy` degenera en un único punto — Recharts lo pinta como una barra
+   sólida a todo ancho o una tarta de una sola porción: visualmente "un bloque rectangular sin información",
+   justo lo que reportó el usuario al probar un KPI de evolución en TRANSPAIS (había elegido barras en vez de
+   serie temporal). Se corrigió con dos capas: (a) `KpiCard` trata ese caso degenerado igual que `'list'` sin
+   agrupar — muestra una cifra grande en vez de un gráfico sin sentido — y (b) el wizard avisa en el momento
+   ("sin agrupación, Tarta/Barras solo mostrará una cifra... usa Serie temporal para ver evolución") en vez de
+   dejar que el usuario lo descubra después de guardar.
+5. Tipos de `recharts@3.6.0`: la prop `formatter` de `<Tooltip>` no infiere bien una función `(v: number) =>
+   string` simple — hace falta `as any` en el cast (cosmético, no afecta a runtime, pero da error de `tsc`).
+
+**Por qué se decidió no llevarlo a producción:** el usuario probó el flujo real (crear KPI de consultor,
+luego uno de evolución de proyecto) y "no le gustó el resultado" — after fixing bug #4 el mecanismo ya
+funcionaba correctamente, pero el juicio de producto fue que la experiencia global del builder (pasos,
+fricción de configurar filtro+métrica+agrupación+visualización+rango para cada KPI) no está al nivel deseado
+todavía. No se registró un motivo más específico — si se retoma, vale la pena empezar preguntando
+directamente qué parte de la experiencia no convenció, en vez de asumir que era solo el bug #4 (ya arreglado).
+
+**Qué NO hay que rehacer si se retoma:** la arquitectura de §4-§6 (modelo de datos, motor de agregación,
+`buildBuckets`, `groupRowsBy`) funcionó correctamente una vez arreglados los bugs de arriba — el problema fue
+de UX del wizard/builder, no del motor de cálculo. Priorizar rediseñar el flujo de creación (¿wizard paso a
+paso en vez de formulario largo? ¿plantillas predefinidas en vez de configurar desde cero?) antes de tocar el
+engine.
 
 ## Referencias cruzadas (memoria del asistente)
 
