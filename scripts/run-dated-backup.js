@@ -55,7 +55,30 @@ const COLLECTIONS = [
     'attribute_definitions',
     'invites',
     'report_templates',
-    'permission_groups'
+    'permission_groups',
+    // --- Añadidas 2026-07-21: no tenían backup automático (auditoría al diseñar KPIs de Agenda) ---
+    'tenants',
+    'agenda_entries',
+    'agenda_consultants',
+    'user_availability',
+    'consultantTasks',
+    'activeTimers',
+    'sprints',
+    'taskTypes',
+    'task_activities',
+    'task_comments',
+    'document_types',
+    'interfaces',
+    'project_hierarchy',
+    'project_interfaces',
+    'support_tickets',
+    'tenant_dictionary',
+    'unidocs_templates',
+    'unileaks_folders',
+    'unileaks_notes',
+    'ai_corrections',
+    'ai_performance_logs',
+    // Cuando exista kpiDefinitions (feature de KPIs dinámicos, ver docs/kpi-builder-design.md), añadirla aquí también.
 ];
 
 async function backupDatabase() {

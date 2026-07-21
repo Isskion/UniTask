@@ -51,7 +51,30 @@ const COLLECTIONS = [
     'permission_groups',
     'attribute_definitions',
     'master_data',
-    'knowledge_entries'
+    'knowledge_entries',
+    // --- Sincronizada 2026-07-21 con scripts/run-dated-backup.js (ver docs/kpi-builder-design.md) ---
+    'notifications',
+    'invites',
+    'report_templates',
+    'agenda_entries',
+    'agenda_consultants',
+    'user_availability',
+    'consultantTasks',
+    'activeTimers',
+    'taskTypes',
+    'task_activities',
+    'task_comments',
+    'document_types',
+    'interfaces',
+    'project_hierarchy',
+    'project_interfaces',
+    'support_tickets',
+    'tenant_dictionary',
+    'unidocs_templates',
+    'unileaks_folders',
+    'unileaks_notes',
+    'ai_corrections',
+    'ai_performance_logs',
 ];
 
 async function runBackup() {
