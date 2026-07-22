@@ -1,0 +1,767 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- HELPERS ---
+    
+    // --- HELPERS (SAM ARCHITECTURE) ---
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Get Real Role: STRICT TOKEN ONLY
+    function getRealRole() {
+      return (request.auth != null && request.auth.token != null && 'roleLevel' in request.auth.token) 
+        ? int(request.auth.token.roleLevel) 
+        : 0;
+    }
+
+    // Get Real TenantId: STRICT TOKEN ONLY
+    function getRealTenantId() {
+       return (request.auth != null && request.auth.token != null && 'tenantId' in request.auth.token && string(request.auth.token.tenantId).size() > 0)
+         ? string(request.auth.token.tenantId)
+         : "__DENY__";
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null && (getRealRole() >= 100 || request.auth.token.email == 'argoss01@gmail.com' || request.auth.token.email == 'daniel.delamo@unigis.com');
+    }
+
+    // Check if a document's tenant matches the user's tenant (Type-Safe String Comparison)
+    function docTenantMatches(docData) {
+      return getRealTenantId() != "__DENY__" 
+        ? string(docData.get('tenantId', '1')) == getRealTenantId()
+        : (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(docData.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')));
+    }
+
+    // [SAM] Integrity Check: Key must match dimensions
+    function isKeyValid(data) {
+       // If no scope data is present (legacy), we might skip this or enforce it. 
+       // Strategy: If _accessKey is present, it MUST be valid.
+       return !('_accessKey' in data) || 
+              (data._accessKey == string(data.regionId) + ":" + string(data.divisionId));
+    }
+
+    // [SAM] Isolation Check: User Scope vs Resource Data
+    // null-safe: usuarios sin accessScopes (legacy) tienen acceso completo a su tenant
+    function hasAccess(userData, docData) {
+      let rId = docData.get('regionId', '');
+      let dId = docData.get('divisionId', '');
+      let scopes = userData.get('accessScopes', null);
+      return string(docData.get('tenantId', '1')) == userData.tenantId &&
+             (
+               userData.get('roleLevel', 0) >= 80 ||
+               scopes == null ||
+               (
+                 (rId == '' || scopes.get('regionIds', []).hasAny(['*', rId])) &&
+                 (dId == '' || scopes.get('divisionIds', []).hasAny(['*', dId]))
+               )
+             );
+    }
+
+    function getUserData() {
+        return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // --- RULES ---
+
+    // [SAM] Phase 3: Hard Isolation (Physical Namespacing)
+    match /tenants/{tenantId} {
+        
+        // Helper: Check if request is for this tenant
+        function isTenantAuth() {
+            return isAuthenticated() && (isSuperAdmin() || string(tenantId) == getRealTenantId());
+        }
+
+        // Projects (Nested)
+        match /projects/{projectId} {
+            // [SAM] List: Allow tenant members to see existence of projects (Query Fix)
+            allow list: if isTenantAuth();
+            // [SAM] Get: Enforce strict access control
+            allow get: if isTenantAuth() && hasAccess(getUserData(), resource.data);
+            
+            allow create: if isTenantAuth() && (
+                isSuperAdmin() || (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
+            );
+            allow update: if isTenantAuth() && (
+                isSuperAdmin() || 
+                (hasAccess(getUserData(), resource.data) && 
+                 hasAccess(getUserData(), request.resource.data) &&
+                 (getRealRole() >= 80 || 
+                  (resource.data.regionId == request.resource.data.regionId && 
+                   resource.data.divisionId == request.resource.data.divisionId)))
+            );
+            allow delete: if isTenantAuth() && (
+                isSuperAdmin() || (getRealRole() >= 80)
+            );
+        }
+
+        // Tasks (Nested)
+        match /tasks/{taskId} {
+            // [SAM] List: Allow tenant members to see tasks (Query Fix)
+            allow list: if isTenantAuth();
+            // [SAM] Get: Enforce strict access control
+            allow get: if isTenantAuth() && hasAccess(getUserData(), resource.data);
+
+            allow create: if isTenantAuth() && (
+                 isSuperAdmin() || (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
+            );
+            allow update: if isTenantAuth() && (
+                 isSuperAdmin() || 
+                 (hasAccess(getUserData(), resource.data) && 
+                  hasAccess(getUserData(), request.resource.data) &&
+                  (getRealRole() >= 80 || (
+                      // Validation logic copied from root
+                      (!('estimatedEffortSize' in request.resource.data) || request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
+                      (!('estimatedEffort' in request.resource.data) || (request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort is string) || request.resource.data.estimatedEffort == null) &&
+                      (!('actualEffort' in request.resource.data) || (request.resource.data.actualEffort is number || request.resource.data.actualEffort is string) || request.resource.data.actualEffort == null)
+                  )))
+            );
+            allow delete: if isTenantAuth() && (
+                 isSuperAdmin() || 
+                 (resource.data.createdBy == request.auth.uid || getRealRole() >= 80)
+            );
+        }
+
+        // --- Phase 4: Auxiliary Collections ---
+
+        // Journal Entries (Weekly Logs)
+        match /journal_entries/{entryId} {
+            allow read: if isTenantAuth(); // Broad read for tenant members for now, or refine to hasAccess
+            allow create: if isTenantAuth(); 
+            allow update: if isTenantAuth();
+            allow delete: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Project Activity Feed
+        match /project_activity_feed/{eventId} {
+            allow read: if isTenantAuth();
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth(); // Soft delete uses update
+            allow delete: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Task Comments
+        match /task_comments/{commentId} {
+            allow read: if isTenantAuth();
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth() && resource.data.authorId == request.auth.uid;
+            allow delete: if isTenantAuth() && (resource.data.authorId == request.auth.uid || getRealRole() >= 80);
+        }
+
+        // Notifications
+        match /notifications/{notifId} {
+            // Split into list/get for better query support
+            allow list: if isTenantAuth(); // Query filters by userId, rule implicitly relies on that or we rely on tenant isolation
+            allow get: if isTenantAuth() && resource.data.userId == request.auth.uid;
+            allow create: if isTenantAuth();
+            allow update: if isTenantAuth() && resource.data.userId == request.auth.uid;
+            allow delete: if isTenantAuth() && resource.data.userId == request.auth.uid;
+        }
+
+        // [SAM] Settings & Configuration (Master Data)
+        match /settings/{settingId} {
+            allow read: if isTenantAuth();
+            allow write: if isTenantAuth() && getRealRole() >= 80;
+        }
+
+        // Users (Nested Ref - Read Only for internal consistency if needed)
+        // Note: Users are still global 'users/{uid}' for Authentication, but we might mirror them?
+        // No, Keep Users Global for now.
+    }
+
+    // Tenants Collection: Only SuperAdmins view the list
+    match /tenants/{tenantId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && string(tenantId) == getRealTenantId());
+      // App Admins (>= 80) pueden actualizar SU PROPIO tenant (logos, branding, etc.)
+      // SuperAdmins pueden actualizar cualquier tenant
+      allow write: if isSuperAdmin() || (isAuthenticated() && string(tenantId) == getRealTenantId() && getRealRole() >= 80);
+    }
+
+    // AI Performance Logs: SuperAdmins see all, users see their own
+    match /ai_performance_logs/{logId} {
+      allow create: if isAuthenticated();
+      allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+      allow delete: if isSuperAdmin();
+    }
+
+    // Global Application Configuration
+    match /app_config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Master Data (Regions, Divisions, etc - Tenant Scoped)
+    // Admins (>= 80) can manage their own tenant's SAM masters
+    match /global_data/{docId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getRealTenantId());
+      allow write: if isSuperAdmin() || (isAuthenticated() && request.resource.data.tenantId == getRealTenantId() && getRealRole() >= 80);
+    }
+
+    // Projects & Subcollections (Recursive): Strict Multi-tenancy
+    match /projects/{document=**} {
+      // [SAM] Read: Uses hasAccess() which checks Intersect(UserScope, ResourceData)
+      // [FIX] PMs (Level >= 60) can LIST all tenant projects (client filters by assignedProjectIds)
+      allow read: if isSuperAdmin() || 
+                  (isAuthenticated() && (
+                    getRealRole() >= 80 || 
+                    (docTenantMatches(resource.data) && getRealRole() >= 60) ||
+                    hasAccess(getUserData(), resource.data)
+                  ));
+      
+      // [SAM] Create: Must have access to target scope + Maintain Key Integrity
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (hasAccess(getUserData(), request.resource.data) && 
+         isKeyValid(request.resource.data))
+      );
+      
+      // [SAM] Update: Must have access to BEFORE and AFTER states
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Admin Bypass: Role >= 80 can update regardless of scope
+        (getRealRole() >= 80) ||
+        // Standard User: Must have access to both states AND cannot change scope
+        (hasAccess(getUserData(), resource.data) && 
+         hasAccess(getUserData(), request.resource.data) &&
+         (resource.data.regionId == request.resource.data.regionId && 
+          resource.data.divisionId == request.resource.data.divisionId))
+      );
+
+      // Delete: Only App Admins (Level >= 80) or SuperAdmins
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && getRealRole() >= 80)
+      );
+
+    }
+
+    // --- [HARDENED] INVITES RULES ---
+    match /invites/{code} {
+      allow get: if isAuthenticated();
+      allow list: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 80);
+      allow create: if false; // Created via Server Action ONLY
+      allow update: if isAuthenticated() && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed', 'usedBy', 'usedAt'])
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Notifications: User-specific
+    match /notifications/{notificationId} {
+        allow read, write: if isAuthenticated() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+        allow create: if isAuthenticated() && (
+            request.resource.data.userId == request.auth.uid || 
+            request.resource.data.type == 'mention' ||
+            request.resource.data.type == 'assignment' ||
+            isSuperAdmin() ||
+            (request.resource.data.type == 'system' && request.resource.data.tenantId == "1")
+        );
+    }
+
+    // Alerts (System/Global alerts)
+    match /alerts/{alertId} {
+        allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+        allow write: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data) && getRealRole() >= 80);
+        allow create: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(request.resource.data) && getRealRole() >= 80);
+    }
+    // Support Tickets
+    match /support_tickets/{ticketId} {
+        allow create: if isAuthenticated();
+        allow read: if isSuperAdmin();
+        allow write: if isSuperAdmin();
+    }
+
+    // Tasks Rules
+    match /tasks/{taskId} {
+      // [SAM] Read: Enforce Scope Intersection OR Tenant-Level Access for PMs/Admins querying by Project
+      allow read: if isSuperAdmin() || 
+                  (isAuthenticated() && (
+                    getRealRole() >= 80 || 
+                    (docTenantMatches(resource.data) && getRealRole() >= 60) ||
+                    hasAccess(getUserData(), resource.data)
+                  ));
+      
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (hasAccess(getUserData(), request.resource.data) && isKeyValid(request.resource.data))
+      );
+
+      // [V13.3] Allow effort tracking fields + [SAM] Update checks
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Admin Bypass: Role >= 80 can update regardless of scope
+        (getRealRole() >= 80) ||
+        // Standard User: Limited updates + Scope Check
+        (hasAccess(getUserData(), resource.data) && 
+         hasAccess(getUserData(), request.resource.data) &&
+         // Validate effort tracking fields if present
+         ((
+             (!('estimatedEffortSize' in request.resource.data) || 
+              request.resource.data.estimatedEffortSize in ['XS', 'S', 'M', 'L', 'XL', '']) &&
+             (!('estimatedEffort' in request.resource.data) || 
+              request.resource.data.estimatedEffort is number || request.resource.data.estimatedEffort == null) &&
+             (!('actualEffort' in request.resource.data) || 
+              request.resource.data.actualEffort is number || request.resource.data.actualEffort == null)
+         ))
+        )
+      );
+      
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (
+            resource.data.createdBy == request.auth.uid || 
+            getRealRole() >= 80
+        ))
+      );
+    }
+
+    // Task Comments
+    match /task_comments/{commentId} {
+      allow read: if isSuperAdmin() || 
+                  (isAuthenticated() && docTenantMatches(resource.data));
+      
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+    }
+
+    // Project Hierarchy (MS Project Import Nodes)
+    match /project_hierarchy/{nodeId} {
+        // READ: Broad tenant access for hierarchy visibility
+        allow read: if isSuperAdmin() || 
+                    (isAuthenticated() && docTenantMatches(resource.data));
+        
+        // WRITE/DELETE: Only Admins or Project Managers (Role >= 60) can import/rollback
+        allow create: if isAuthenticated() && (
+            isSuperAdmin() || 
+            (docTenantMatches(request.resource.data) && getRealRole() >= 60)
+        );
+        allow update, delete: if isAuthenticated() && (
+            isSuperAdmin() || 
+            (docTenantMatches(resource.data) && getRealRole() >= 60)
+        );
+    }
+
+    // --- [HARDENED] AUDIT LOGS ---
+    // [SECURITY FIX] Antes: isAuthenticated() sin filtro de tenant exponía el
+    // audit log de TODOS los tenants y permitía inyectar entradas falsas en cualquiera.
+    match /task_activities/{activityId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if false;
+    }
+
+    // --- SPRINTS (Strategic Planning) ---
+    match /sprints/{sprintId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      // Only PMs (Level 60) and above can manage sprints
+      allow write: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data) && getRealRole() >= 60);
+      allow create: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(request.resource.data) && getRealRole() >= 60);
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // GET: Self, SuperAdmin, OR any authenticated user in the same tenant
+      allow get: if isSuperAdmin() || 
+                 (request.auth != null && request.auth.uid == userId) ||
+                 (isAuthenticated() && docTenantMatches(resource.data));
+      
+      // LIST: Admins see all. Regular users see all IN THEIR TENANT (for mentions/assigning)
+      allow list: if isSuperAdmin() || 
+                  (isAuthenticated() && request.auth.uid == userId) ||
+                  (isAuthenticated() && docTenantMatches(resource.data));
+      
+      // [SECURE] Prevent Privilege Escalation
+      // 1. SuperAdmins can modify everything.
+      allow update: if isSuperAdmin();
+
+      // 2. Self-update for common users (restricted fields)
+      allow update: if isAuthenticated() && 
+                    request.auth.uid == userId && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                      ['displayName', 'photoURL', 'phoneNumber', 'jobTitle', 'bio', 'preferences', 'theme', 'language', 'updatedAt', 'isConsultant']
+                    );
+
+      // 3. App Admin (80) managing others in their tenant (INCLUDING THEMSELVES)
+      allow update: if isAuthenticated() && 
+                    getRealRole() >= 80 && 
+                    docTenantMatches(resource.data) && 
+                    // Cannot promote anyone to SuperAdmin (100)
+                    int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) <= 80 &&
+                    // Cannot change a user's tenant
+                    request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
+
+      // 4. [NEW] PM / Global PM (60) managing non-admin users in their tenant
+      allow update: if isAuthenticated() && 
+                    getRealRole() >= 60 && 
+                    docTenantMatches(resource.data) && 
+                    // The user being edited MUST NOT currently be an Admin/SuperAdmin (Level >= 80)
+                    int(resource.data.get('roleLevel', 0)) < 80 &&
+                    // Cannot promote the user to Admin/SuperAdmin (Level >= 80)
+                    int(request.resource.data.get('roleLevel', resource.data.get('roleLevel', 0))) < 80 &&
+                    // Cannot change a user's tenant
+                    request.resource.data.get('tenantId', resource.data.tenantId) == resource.data.tenantId;
+      
+      // Users cannot DELETE or CREATE their own full docs via client (handled by backend/admin)
+      // Exception: If you have a specific creation flow, verify it here. Assuming backend does creation on auth.
+      allow create, delete: if isSuperAdmin();
+    }
+
+    // --- AVAILABILITY (Dispoplan) ---
+    match /user_availability/{availId} {
+      // READ: Everyone in the tenant can see everyone else's availability (Transparency)
+      allow read: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data));
+      
+      // CREATE: Use must match tenant
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+
+      // UPDATE/DELETE: 
+      // 1. Owner can modify their own.
+      // 2. Managers (Role >= 60) can modify anyone in their tenant.
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (
+            resource.data.userId == request.auth.uid || 
+            getRealRole() >= 60
+        ))
+      );
+    }
+
+    // --- ENTRIES & STORAGE ---
+
+    match /journal_entries/{entryId} {
+      allow read, write: if isSuperAdmin() || 
+                  (isAuthenticated() && docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+    }
+
+    match /weekly_entries/{entryId} {
+      allow read, write: if isSuperAdmin() || 
+                  (isAuthenticated() && docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+    }
+
+    // --- UNILEAKS NOTES & FOLDERS ---
+    match /unileaks_notes/{noteId} {
+      // READ: Tenant-scoped read (Client handles strict filtering)
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+      
+      // CREATE: Must match tenant and author
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(request.resource.data) && request.resource.data.userId == request.auth.uid)
+      );
+      
+      // UPDATE/DELETE: Only author can modify their own note
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && resource.data.userId == request.auth.uid)
+      );
+    }
+
+    match /unileaks_folders/{folderId} {
+      // READ: Tenant-scoped read
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+      
+      // CREATE: Must match tenant
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(request.resource.data)
+      );
+      
+      // UPDATE/DELETE: Tenant-scoped
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        docTenantMatches(resource.data)
+      );
+    }
+
+
+
+    // --- MASTER DATA & CONFIG ---
+
+    match /master_data/{itemId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow write: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 60));
+      allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && getRealRole() >= 60));
+    }
+
+    match /attribute_definitions/{attrId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow write: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 60));
+      allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && getRealRole() >= 60));
+    }
+
+    match /permission_groups/{groupId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow write: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(resource.data) && getRealRole() >= 80);
+      allow create: if isSuperAdmin() || (isAuthenticated() && docTenantMatches(request.resource.data) && getRealRole() >= 80);
+    }
+    
+    match /export_templates/{templateId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60))
+      );
+    }
+
+    // --- [NEW] UNILEAKS: PROJECT INTERFACES ---
+    match /project_interfaces/{interfaceId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || resource.data.tenantId == getRealTenantId());
+      allow create: if isAuthenticated() && (isSuperAdmin() || request.resource.data.tenantId == getRealTenantId());
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (resource.data.tenantId == getRealTenantId() && (getRealRole() >= 60))
+      );
+    }
+
+    // --- [NEW] MOSCOW REQUIREMENTS ---
+    match /moscow_requirements/{reqId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && docTenantMatches(request.resource.data))
+      );
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60))
+      );
+    }
+
+    // --- [NEW] UNILEAKS: TENANT DICTIONARY ---
+    match /tenant_dictionary/{wordId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+    }
+
+    // --- [NEW] UNIDOCS: TEMPLATES ---
+    match /unidocs_templates/{templateId} {
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(resource.data.tenantId) == string(request.auth.token.tenantId)
+      );
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(request.resource.data.tenantId) == string(request.auth.token.tenantId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        (string(resource.data.tenantId) == string(request.auth.token.tenantId) && getRealRole() >= 60)
+      );
+    }
+
+    // --- [NEW] UNIGIS: TEMPLATES ---
+    match /unigis_templates/{templateId} {
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) ||
+        resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')
+      );
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(request.resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) ||
+        request.resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')
+      );
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        ((string(resource.data.get('tenantId', '')) == string(request.auth.token.get('tenantId', '')) || resource.data.get('tenantId', '') == request.auth.token.get('tenantId', '')) && getRealRole() >= 60)
+      );
+    }
+
+    // --- UNIVISIO SESSIONS ---
+    // Contenido colaborativo: cualquier miembro del tenant puede leer sesiones de cualquier proyecto.
+    // Sin restricción SAM (los flujos Visio son documentación compartida, no datos operacionales).
+    match /projects/{projectId}/univisio_sessions/{sessionId} {
+      // Lectura: cualquier miembro del tenant (no SAM-scoped)
+      allow read: if isAuthenticated() && (
+        isSuperAdmin() || 
+        string(get(/databases/$(database)/documents/projects/$(projectId)).data.get('tenantId', '1')) == getRealTenantId() ||
+        (request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && string(get(/databases/$(database)/documents/projects/$(projectId)).data.get('tenantId', '1')) == string(getUserData().get('tenantId', '1')))
+      );
+      // Creación: miembro del tenant
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      // Actualización: creador o PM/Admin del tenant
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 60))
+      );
+      // Borrado: creador o Admin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
+    // --- [NEW] UNIFLUX FLOWS ---
+    match /uniflux_flows/{flowId} {
+      // [SECURITY FIX] GET on a non-existent doc is allowed (exists() check before
+      // creating a new draft); GET on an existing doc now requires tenant match.
+      allow get: if isAuthenticated() && (isSuperAdmin() || resource == null || docTenantMatches(resource.data));
+      // Allow LISTING only within the user's tenant
+      allow list: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      
+      allow update, delete: if isAuthenticated() && (
+        isSuperAdmin() || 
+        // Must belong to the tenant
+        docTenantMatches(resource.data) && 
+        // Cannot change tenantId on update
+        (!('tenantId' in request.resource.data) || request.resource.data.tenantId == resource.data.tenantId)
+      );
+      
+      // Subcollection for published flow versions
+      match /snapshots/{snapshotId} {
+        allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(get(/databases/$(database)/documents/uniflux_flows/$(flowId)).data));
+        allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(get(/databases/$(database)/documents/uniflux_flows/$(flowId)).data));
+        allow update, delete: if isSuperAdmin();
+      }
+    }
+
+    // --- KNOWLEDGE AREA (Lessons Learned & Solution Records) ---
+    // Open access for all authenticated users within the same tenant
+    match /knowledge_entries/{entryId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && docTenantMatches(request.resource.data)));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (resource.data.createdBy == request.auth.uid || getRealRole() >= 60)));
+    }
+
+    match /knowledge_tags/{tagId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 60));
+    }
+
+    // --- DOCUMENT TYPES (Minute Types) ---
+    match /document_types/{typeId} {
+        // [SECURE] Tenant-scoped read access
+        allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+        // Only Admins (>=80) can manage master data
+        allow write: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && getRealRole() >= 80)); 
+        allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && getRealRole() >= 80));
+    }
+
+    match /project_activity_feed/{eventId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (resource.data.authorId == request.auth.uid || getRealRole() >= 60)));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (resource.data.authorId == request.auth.uid || getRealRole() >= 60)));
+    }
+    
+    // --- UNIGEO: GEOGRAPHIC ZONES ---
+    match /geographic_zones/{zoneId} {
+      // READ: Tenant members can read zones of their tenant
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+
+      // CREATE: Must belong to the same tenant; role >= 40 (operador o superior)
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (string(request.resource.data.tenantId) == getRealTenantId() && getRealRole() >= 40)
+      );
+
+      // UPDATE: Admins (>= 80) or the creator can update
+      allow update: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+
+      // DELETE: Admins (>= 80) or Creator or SuperAdmin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
+    // --- UNIGEO: ZONE INVASIONS ---
+    match /zone_invasions/{invasionId} {
+      // READ: Tenant members can read invasions of their tenant
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+
+      // CREATE: Must belong to the same tenant; role >= 40 (operador o superior)
+      allow create: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (string(request.resource.data.tenantId) == getRealTenantId() && getRealRole() >= 40)
+      );
+
+      // DELETE: Admins (>= 80) or Creator or SuperAdmin
+      allow delete: if isAuthenticated() && (
+        isSuperAdmin() ||
+        (docTenantMatches(resource.data) && (resource.data.get('createdBy', '') == request.auth.uid || getRealRole() >= 80))
+      );
+    }
+
+    // --- TASK TYPES (Master Categories for Consultant Tasks) ---
+    match /taskTypes/{typeId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(request.resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+      allow update: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || (docTenantMatches(resource.data) && (getRealRole() >= 80 || (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().get('roleLevel', 0) >= 80 || getUserData().get('role', '') == 'app_admin')))));
+    }
+
+    // --- CONSULTANT TASKS (Time Tracker / Consultant Activity) ---
+    match /consultantTasks/{taskId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+    }
+
+    // --- AGENDA SEMANAL DE CONSULTORES ---
+    // [SECURITY FIX] Antes: isAuthenticated() sin filtro de tenant permitía leer/
+    // escribir la agenda de CUALQUIER tenant. docTenantMatches() ya cubre el caso
+    // legacy sin custom claim (fallback al doc de users/{uid}).
+    match /agenda_entries/{entryId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+    }
+
+    match /agenda_consultants/{consultantId} {
+      allow read: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+      allow create: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(request.resource.data));
+      allow update, delete: if isAuthenticated() && (isSuperAdmin() || docTenantMatches(resource.data));
+    }
+
+    // --- ACTIVE TIMERS (TaskControllerWidget) ---
+    match /activeTimers/{timerId} {
+      // Un consultor puede leer y gestionar solo sus propios temporizadores activos. Admins y SuperAdmins pueden ver y borrar.
+      allow read: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 80 || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (isSuperAdmin() || getRealRole() >= 80 || resource.data.userId == request.auth.uid);
+    }
+
+    // --- SYSTEM DATA (Counters, etc.) ---
+    match /system/{document=**} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // --- DIAGNOSTIC (Restricted to SuperAdmin) ---
+    match /_diagnostic/{docId} {
+      allow read, write: if isSuperAdmin();
+    }
+  }
+}
