@@ -54,6 +54,7 @@ import AvailabilityManager from "./availability/AvailabilityManager"; // Added D
 import AvailabilityRegistry from "./availability/AvailabilityRegistry"; // Added Availability Registry import
 import RelevamientoTool from "./relevamiento/RelevamientoTool";
 import ProjectMonitoringDashboard from "./relevamiento/ProjectMonitoringDashboard";
+import DiscoveryContainer from "./discovery/DiscoveryContainer";
 import { ProjectInterfaces } from "./ProjectInterfaces";
 import UnifluxWorkspace from "./uniflux/UnifluxWorkspace";
 import { es, enUS, de, fr, ca, pt } from 'date-fns/locale';
@@ -68,7 +69,27 @@ const localeMap: Record<string, any> = {
     pt: pt
 };
 
-type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control';
+// Traduce los códigos de error de Firebase Auth a mensajes que no exponen el backend
+function getFriendlyAuthError(code?: string): string {
+    switch (code) {
+        case 'auth/invalid-email':
+            return 'El formato del email no es válido.';
+        case 'auth/user-disabled':
+            return 'Esta cuenta ha sido deshabilitada. Contacta con el administrador.';
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+            return 'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo.';
+        case 'auth/too-many-requests':
+            return 'Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.';
+        case 'auth/network-request-failed':
+            return 'Error de red. Comprueba tu conexión a internet.';
+        default:
+            return 'No se pudo iniciar sesión. Inténtalo de nuevo o contacta con soporte.';
+    }
+}
+
+type ViewMode = 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control';
 
 export default function DailyFollowUp() {
     const searchParams = useSearchParams();
@@ -153,6 +174,8 @@ export default function DailyFollowUp() {
     const [globalProjects, setGlobalProjects] = useState<Project[]>([]);
     const [selectedRelevamientoProject, setSelectedRelevamientoProject] = useState<string | null>(null);
     const [selectedRelevamientoProjectName, setSelectedRelevamientoProjectName] = useState<string>('');
+    const [selectedDiscoveryProject, setSelectedDiscoveryProject] = useState<string | null>(null);
+    const [selectedDiscoveryProjectName, setSelectedDiscoveryProjectName] = useState<string>('');
 
 
 
@@ -172,7 +195,7 @@ export default function DailyFollowUp() {
             // 2. Load View Mode (Priority: URL > LocalStorage > Default)
             const urlMode = (searchParams.get('mode') || searchParams.get('view')) as ViewMode;
             const savedView = localStorage.getItem('daily_view_mode') as ViewMode;
-            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox', 'relevamiento', 'admin-task-control'];
+            const allowedViews = ['dashboard', 'projects', 'users', 'trash', 'tasks', 'task-manager', 'user-roles', 'admin-task-master', 'admin-document-types', 'reports', 'support-management', 'user-manual', 'tenant-management', 'editor', 'sprint-cycles', 'sprint-planning', 'app-management', 'lessons-learned', 'solution-records', 'product-proposals', 'dispoplan', 'availability-registry', 'uniflux', 'unidocs', 'inbox', 'relevamiento', 'discovery', 'admin-task-control'];
 
             if (urlMode && allowedViews.includes(urlMode)) {
                 setViewMode(urlMode);
@@ -1532,7 +1555,7 @@ export default function DailyFollowUp() {
                                 alert("Error: Función de registro no disponible. Recarga la página.");
                             }
                         } else {
-                            loginWithEmail(email, password).catch(err => alert(err.message));
+                            loginWithEmail(email, password).catch((err: any) => showToast("Error", getFriendlyAuthError(err.code), "error"));
                         }
                     }} className="space-y-3">
                         {isRegistering && (
@@ -2481,9 +2504,45 @@ export default function DailyFollowUp() {
                                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Editando: {selectedRelevamientoProjectName}</span>
                                         </div>
                                         <div className="flex-1 min-h-0 overflow-hidden">
-                                            <RelevamientoTool 
-                                                projectId={selectedRelevamientoProject} 
+                                            <RelevamientoTool
+                                                projectId={selectedRelevamientoProject}
                                                 projectName={selectedRelevamientoProjectName}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : viewMode === 'discovery' ? (
+                            <div className="flex-1 h-full min-h-0 overflow-hidden flex flex-col">
+                                {!selectedDiscoveryProject ? (
+                                    <ProjectMonitoringDashboard
+                                        globalProjects={globalProjects}
+                                        title="Descubrimiento TMS"
+                                        subtitle="Guión de discovery UNIGIS — seleccione un proyecto para comenzar"
+                                        onSelectProject={(id, name) => {
+                                            setSelectedDiscoveryProject(id);
+                                            setSelectedDiscoveryProjectName(name);
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="flex flex-col h-full min-h-0 overflow-hidden">
+                                        <div className="bg-card border-b border-border p-2 flex items-center gap-4 shrink-0">
+                                            <button
+                                                onClick={() => setSelectedDiscoveryProject(null)}
+                                                className="text-[10px] font-black uppercase tracking-widest bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-1.5 rounded-lg border border-border transition-all active:scale-95"
+                                            >
+                                                ← Volver al Listado
+                                            </button>
+                                            <div className="h-4 w-px bg-border" />
+                                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Discovery: {selectedDiscoveryProjectName}</span>
+                                        </div>
+                                        <div className="flex-1 min-h-0 overflow-hidden">
+                                            <DiscoveryContainer
+                                                tenantId={tenantId || "1"}
+                                                projectId={selectedDiscoveryProject}
+                                                projectName={selectedDiscoveryProjectName}
+                                                uid={user?.uid || ''}
+                                                isInternalViewer={(userProfile?.roleLevel || 0) >= 2}
                                             />
                                         </div>
                                     </div>
