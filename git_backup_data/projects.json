@@ -451,7 +451,6 @@
     "name": "HAVI",
     "code": "HAV",
     "color": "#71717a",
-    "isActive": true,
     "email": "",
     "phone": "",
     "tenantId": "3",
@@ -472,7 +471,8 @@
     "_tenantAccessKey": "3:CL:CONS",
     "_accessKey": "ES:CON",
     "regionId": "ES",
-    "divisionId": "CON"
+    "divisionId": "CON",
+    "isActive": false
   },
   {
     "id": "LJ8QSs4ka3xWZbEOmlM8",
