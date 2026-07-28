@@ -1,29 +1,5 @@
 [
   {
-    "id": "10",
-    "name": "Pablo Pedrosa",
-    "code": "pablo-pedrosa",
-    "isActive": true,
-    "createdAt": "2026-02-08T10:54:03.632Z",
-    "aiEnabled": false,
-    "updatedAt": {
-      "_seconds": 1776438399,
-      "_nanoseconds": 283000000
-    }
-  },
-  {
-    "id": "11",
-    "name": "Anabel Pardo",
-    "code": "anabel-pardo",
-    "isActive": true,
-    "createdAt": "2026-02-08T10:58:16.884Z",
-    "aiEnabled": false,
-    "updatedAt": {
-      "_seconds": 1772782224,
-      "_nanoseconds": 280000000
-    }
-  },
-  {
     "id": "12",
     "name": "Gabriel Arcos",
     "code": "gabriel-arcos",
@@ -36,21 +12,6 @@
     }
   },
   {
-    "id": "16",
-    "name": "Almudena Sainz",
-    "code": "almudena-sainz",
-    "isActive": true,
-    "createdAt": {
-      "_seconds": 1770884738,
-      "_nanoseconds": 960000000
-    },
-    "aiEnabled": false,
-    "updatedAt": {
-      "_seconds": 1772782228,
-      "_nanoseconds": 778000000
-    }
-  },
-  {
     "id": "17",
     "code": "ls-",
     "isActive": true,
@@ -59,6 +20,16 @@
       "_seconds": 1780318550,
       "_nanoseconds": 132000000
     }
+  },
+  {
+    "id": "18",
+    "code": "trans_ia",
+    "createdAt": "2026-07-28T17:04:05.674Z",
+    "taskControlEnabled": true,
+    "aiEnabled": true,
+    "name": "Trans_IA",
+    "unitaskToolsEnabled": true,
+    "isActive": true
   },
   {
     "id": "2",
@@ -113,18 +84,6 @@
     "updatedAt": {
       "_seconds": 1775648885,
       "_nanoseconds": 145000000
-    }
-  },
-  {
-    "id": "9",
-    "name": "Miguel Lobato",
-    "code": "miguel-lobato",
-    "isActive": true,
-    "createdAt": "2026-02-08T10:53:03.724Z",
-    "aiEnabled": false,
-    "updatedAt": {
-      "_seconds": 1775648879,
-      "_nanoseconds": 817000000
     }
   }
 ]

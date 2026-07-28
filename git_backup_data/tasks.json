@@ -1639,6 +1639,52 @@
     }
   },
   {
+    "id": "7sFQ3YHhaCFgYn8AusLb",
+    "friendlyId": "TRA-3",
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "order": 1785260791.34,
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "tenantId": "18",
+    "type": "task",
+    "status": "pending",
+    "dependencies": [],
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "progressV13": {
+      "planned": 0,
+      "actual": 0
+    },
+    "title": "Ver la integración de Tookane",
+    "taskNumber": 3,
+    "actualEffort": null,
+    "isActive": true,
+    "raci": {
+      "responsible": [],
+      "informed": [],
+      "accountable": [],
+      "consulted": []
+    },
+    "ancestorIds": [],
+    "creationSource": "manual_main",
+    "projectCode": "TRIA",
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "createdAt": {
+      "_seconds": 1785260823,
+      "_nanoseconds": 449000000
+    },
+    "updatedAt": {
+      "_seconds": 1785260823,
+      "_nanoseconds": 449000000
+    }
+  },
+  {
     "id": "7uh2QcArYzB1vKmgaTw5",
     "weekId": "2026-01-28",
     "relatedDailyStatusId": "3_2026-01-28_1769591787074",
@@ -2937,6 +2983,52 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "CCdBoHkmAUfoyP0pE6B6",
+    "status": "pending",
+    "type": "task",
+    "tenantId": "18",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "order": 1785260750.791,
+    "friendlyId": "TRA-2",
+    "progress": 0,
+    "acceptanceCriteria": [
+      {
+        "completed": false,
+        "text": "Criterio de aceptación 1",
+        "id": "1"
+      }
+    ],
+    "creationSource": "manual_main",
+    "projectCode": "TRIA",
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "taskNumber": 2,
+    "actualEffort": null,
+    "isActive": true,
+    "raci": {
+      "responsible": [],
+      "informed": [],
+      "accountable": [],
+      "consulted": []
+    },
+    "ancestorIds": [],
+    "progressV13": {
+      "planned": 0,
+      "actual": 0
+    },
+    "title": "Mejorar las opciones de Flota y mantenimientos.",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "dependencies": [],
+    "createdAt": {
+      "_seconds": 1785260780,
+      "_nanoseconds": 891000000
+    },
+    "updatedAt": {
+      "_seconds": 1785260780,
+      "_nanoseconds": 891000000
     }
   },
   {
@@ -6111,6 +6203,52 @@
     }
   },
   {
+    "id": "PvvNyd225S7gEBaYmmVS",
+    "tenantId": "18",
+    "ancestorIds": [],
+    "order": 1785262156.372,
+    "dependencies": [],
+    "progress": 0,
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "taskNumber": 4,
+    "acceptanceCriteria": [
+      {
+        "text": "Criterio de aceptación 1",
+        "completed": false,
+        "id": "1"
+      }
+    ],
+    "isActive": true,
+    "raci": {
+      "accountable": [],
+      "informed": [],
+      "consulted": [],
+      "responsible": []
+    },
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-4",
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "type": "task",
+    "actualEffort": null,
+    "status": "pending",
+    "title": "Trabajar el apartado b2b",
+    "projectCode": "TRIA",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "createdAt": {
+      "_seconds": 1785262179,
+      "_nanoseconds": 501000000
+    },
+    "updatedAt": {
+      "_seconds": 1785262179,
+      "_nanoseconds": 501000000
+    }
+  },
+  {
     "id": "PzpcWLhL6BbxukclJfvL",
     "title": "Draft MVP Requirements",
     "projectId": "mockup-product-2026",
@@ -8319,6 +8457,54 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "Zh4owtfSwoHYmDkUtDei",
+    "progressV13": {
+      "planned": 0,
+      "actual": 0
+    },
+    "title": "Revisar Tokken, da error.",
+    "dependencies": [],
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "progress": 0,
+    "creationSource": "manual_main",
+    "projectCode": "TRIA",
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "taskNumber": 1,
+    "actualEffort": null,
+    "isActive": true,
+    "raci": {
+      "consulted": [],
+      "accountable": [],
+      "informed": [],
+      "responsible": []
+    },
+    "ancestorIds": [],
+    "acceptanceCriteria": [
+      {
+        "text": "Criterio de aceptación 1",
+        "id": "1",
+        "completed": false
+      }
+    ],
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "order": 1785260667.413,
+    "friendlyId": "TRA-1",
+    "status": "pending",
+    "priority": "high",
+    "tenantId": "18",
+    "type": "task",
+    "createdAt": {
+      "_seconds": 1785260722,
+      "_nanoseconds": 421000000
+    },
+    "attributes": {},
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "updatedAt": {
+      "_seconds": 1785260746,
+      "_nanoseconds": 733000000
     }
   },
   {

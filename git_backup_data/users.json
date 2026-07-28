@@ -619,6 +619,32 @@
     "syncId": 1775652344872
   },
   {
+    "id": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "uid": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "email": "securedroutes@gmail.com",
+    "displayName": "Daniel del Amo",
+    "role": "app_admin",
+    "roleLevel": 80,
+    "tenantId": "18",
+    "assignedProjectIds": [
+      "wRKrnv7OK4xgyRt5ejJ6"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1785260562,
+      "_nanoseconds": 760000000
+    },
+    "lastLogin": {
+      "_seconds": 1785260562,
+      "_nanoseconds": 760000000
+    },
+    "updatedAt": {
+      "_seconds": 1785260562,
+      "_nanoseconds": 760000000
+    },
+    "syncId": 1785260564960
+  },
+  {
     "id": "UsuqceJ4ylTflrGmgHQfhOLnCy13",
     "uid": "UsuqceJ4ylTflrGmgHQfhOLnCy13",
     "email": "maria.isasa@unigis.com",

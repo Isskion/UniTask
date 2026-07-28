@@ -2660,6 +2660,20 @@
     }
   },
   {
+    "id": "IF1mmh6T4lpdZEGbAa2X",
+    "userName": "Daniel del Amo",
+    "tenantId": "18",
+    "type": "assignment_change",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "taskId": "Zh4owtfSwoHYmDkUtDei",
+    "details": "Responsable cambiado de Sin asignar a securedroutes@gmail.com",
+    "userEmail": "securedroutes@gmail.com",
+    "createdAt": {
+      "_seconds": 1785260747,
+      "_nanoseconds": 25000000
+    }
+  },
+  {
     "id": "IG3NqkMAVrYTdFmSSLrb",
     "taskId": "WcR8xHuptELMLXfc3SEx",
     "tenantId": "3",
