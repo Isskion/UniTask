@@ -8492,7 +8492,6 @@
     "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
     "order": 1785260667.413,
     "friendlyId": "TRA-1",
-    "status": "pending",
     "priority": "high",
     "tenantId": "18",
     "type": "task",
@@ -8502,9 +8501,10 @@
     },
     "attributes": {},
     "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "status": "review",
     "updatedAt": {
-      "_seconds": 1785260746,
-      "_nanoseconds": 733000000
+      "_seconds": 1785316520,
+      "_nanoseconds": 633000000
     }
   },
   {
