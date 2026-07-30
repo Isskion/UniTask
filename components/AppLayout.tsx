@@ -58,8 +58,8 @@ import TaskManagement from "@/components/TaskManagement";
 
 interface AppLayoutProps {
     children: React.ReactNode;
-    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control';
-    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'admin-task-control') => void;
+    viewMode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control';
+    onViewChange: (mode: 'editor' | 'trash' | 'users' | 'projects' | 'dashboard' | 'tasks' | 'task-manager' | 'user-roles' | 'tenant-management' | 'admin-task-master' | 'admin-document-types' | 'reports' | 'support-management' | 'user-manual' | 'sprint-cycles' | 'sprint-planning' | 'app-management' | 'lessons-learned' | 'solution-records' | 'product-proposals' | 'dispoplan' | 'availability-registry' | 'uniflux' | 'unidocs' | 'inbox' | 'relevamiento' | 'discovery' | 'admin-task-control') => void;
     onOpenChangelog?: () => void; // Added prop
 }
 
@@ -348,8 +348,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                             )}
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                            <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                            <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                            {can('uniordercreator', 'views') && (
+                                <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                            )}
+                            {can('univehiclecreator', 'views') && (
+                                <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                            )}
                             {can('swagger', 'views') && (
                                 <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.swagger.label') || 'UNIGIS Swagger'} />
                             )}
@@ -361,6 +365,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                             <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                             <NavLink href="/UniTrace" target="_blank" icon={Radar} label={t('nav.unitrace') || 'UniTrace'} />
+                            {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
+                                <NavLink href="/ai-detector" target="_blank" icon={Sparkles} label="UniHumanize" />
+                            )}
                         </div>
 
                         {/* Secondary */}
@@ -570,8 +577,12 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                     <NavItem mode="availability-registry" icon={ClipboardList} label={t('nav.availability_registry') || "Registro Indisponibilidades"} />
                                 )}
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
-                                <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
-                                <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                                {can('uniordercreator', 'views') && (
+                                    <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                )}
+                                {can('univehiclecreator', 'views') && (
+                                    <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
+                                )}
                                 {can('swagger', 'views') && (
                                     <NavLink href="/integrators/uni-swagger/index.html" target="_blank" icon={FileText} label={t('roles_page.permissions.views.swagger.label') || 'UNIGIS Swagger'} />
                                 )}
@@ -583,6 +594,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                 <NavLink href="/UniTrace" target="_blank" icon={Radar} label={t('nav.unitrace') || 'UniTrace'} />
+                            <NavLink href="/ai-detector" target="_blank" icon={Sparkles} label="UniHumanize" />
                             </div>
 
                             {can('knowledgeBase', 'views') && (

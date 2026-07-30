@@ -201,7 +201,7 @@ export function usePermissions() {
         if (context === 'views') {
             // Identify tool category
             const isTechnicalTool = ['dispoPlan', 'unavailabilityRegistry', 'uniflux', 'unidocs', 'unileaks', 'inbox'].includes(action);
-            const isSpecificTool = ['uniordercreator', 'swagger', 'soap'].includes(action);
+            const isSpecificTool = ['uniordercreator', 'univehiclecreator', 'swagger', 'soap'].includes(action);
             
             // Check if tenant has the tool active
             const tenantHasTool = isTechnicalTool ? tenantConfig.unitaskToolsEnabled : 
