@@ -4519,6 +4519,52 @@
     }
   },
   {
+    "id": "HNfmdtlI3sVXPHwTPnxX",
+    "title": "Mejorar pantalla de login, trabajar logo y login",
+    "status": "pending",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1785360824.613,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-08-14T22:00:00.000Z",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "projectCode": "TRIA",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-5",
+    "taskNumber": 5,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1785360860,
+      "_nanoseconds": 621000000
+    },
+    "updatedAt": {
+      "_seconds": 1785360860,
+      "_nanoseconds": 621000000
+    }
+  },
+  {
     "id": "HTXqPnkp36LDhignvXET",
     "friendlyId": "MOCK-30-0",
     "organizationId": "1",
