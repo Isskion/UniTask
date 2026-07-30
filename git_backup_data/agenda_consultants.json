@@ -38,6 +38,25 @@
     ]
   },
   {
+    "id": "GDUAe55f6L7yOW2jhmIb",
+    "regions": [
+      "*"
+    ],
+    "divisions": [
+      "Consultoría"
+    ],
+    "region": "",
+    "isActive": true,
+    "tenantId": "18",
+    "sortOrder": 1,
+    "name": "DANIEL DEL AMO",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1785264583,
+      "_nanoseconds": 444000000
+    }
+  },
+  {
     "id": "GTUR12Xs78KDAo9gVUK1",
     "tenantId": "3",
     "userId": "4Bv59XpXVHQop7puwmjRRemGcxU2",

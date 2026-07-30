@@ -2660,6 +2660,20 @@
     }
   },
   {
+    "id": "IF1mmh6T4lpdZEGbAa2X",
+    "userName": "Daniel del Amo",
+    "tenantId": "18",
+    "type": "assignment_change",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "taskId": "Zh4owtfSwoHYmDkUtDei",
+    "details": "Responsable cambiado de Sin asignar a securedroutes@gmail.com",
+    "userEmail": "securedroutes@gmail.com",
+    "createdAt": {
+      "_seconds": 1785260747,
+      "_nanoseconds": 25000000
+    }
+  },
+  {
     "id": "IG3NqkMAVrYTdFmSSLrb",
     "taskId": "WcR8xHuptELMLXfc3SEx",
     "tenantId": "3",
@@ -8565,6 +8579,20 @@
     "createdAt": {
       "_seconds": 1769830382,
       "_nanoseconds": 232000000
+    }
+  },
+  {
+    "id": "zF76PP9A9PyLuJuxke9d",
+    "taskId": "Zh4owtfSwoHYmDkUtDei",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a Revisión",
+    "createdAt": {
+      "_seconds": 1785316520,
+      "_nanoseconds": 852000000
     }
   },
   {
