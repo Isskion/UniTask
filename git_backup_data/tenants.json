@@ -62,16 +62,17 @@
     ],
     "logoUrl": "https://firebasestorage.googleapis.com/v0/b/minuta-f75a4.firebasestorage.app/o/tenants%2F3%2Flogos%2F1772987356850_Logo_uni_blanco.png?alt=media&token=4881e38b-99a5-4402-a499-99fe43feeb6d",
     "unitaskToolsEnabled": true,
+    "aiEnabled": true,
+    "taskControlEnabled": true,
     "enabledTools": [
       "uniordercreator",
       "swagger",
-      "soap"
+      "soap",
+      "univehiclecreator"
     ],
-    "aiEnabled": true,
-    "taskControlEnabled": true,
     "updatedAt": {
-      "_seconds": 1778249291,
-      "_nanoseconds": 313000000
+      "_seconds": 1785432954,
+      "_nanoseconds": 46000000
     }
   },
   {
