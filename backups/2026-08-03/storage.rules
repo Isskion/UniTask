@@ -32,10 +32,7 @@ service firebase.storage {
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // 2. [SPECIFIC] UniLeaks Notes Images (Compatibility with old path)
-    match /unileaks/{allPaths=**} {
-       allow read, write: if isAuthenticated();
-    }
+
 
     // 3. [SPECIFIC] Tenant-scoped data (Includes new UniLeaks path)
     // [SECURITY FIX] Antes: isAuthenticated() sin comparar tenantId permitía a
