@@ -5604,6 +5604,52 @@
     }
   },
   {
+    "id": "L2lJ8WQUI341U4prg9pj",
+    "title": "Trabajar documento de Distribución para construcción",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1785742923.769,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "endDate": "2026-08-12T22:00:00.000Z",
+    "techDescription": "Documento aprobado. Empezar analisis para construcción y crear estados y transiciones para distribución.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-39",
+    "taskNumber": 39,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1785742991,
+      "_nanoseconds": 254000000
+    },
+    "updatedAt": {
+      "_seconds": 1785742991,
+      "_nanoseconds": 254000000
+    }
+  },
+  {
     "id": "L7slMMD4KnCjn7zxyHid",
     "weekId": "2026-01-14",
     "relatedJournalEntryId": "2_2026-01-14_1768380022440",
@@ -10335,6 +10381,56 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "gQztmXm4RLq1KLXtpP7T",
+    "title": "REvisar campos de equivalencia en integraciones",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1785742064.58,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "TSP",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "endDate": "2026-08-12T22:00:00.000Z",
+    "attributes": {
+      "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
+    },
+    "techDescription": "CRear equivalencia entre la información recibida a traves NiFi para relaccionar los pedidos con lo que tenemos en unigis.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-38",
+    "taskNumber": 38,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1785742142,
+      "_nanoseconds": 561000000
+    },
+    "updatedAt": {
+      "_seconds": 1785742142,
+      "_nanoseconds": 561000000
     }
   },
   {
