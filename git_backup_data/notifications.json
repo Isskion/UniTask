@@ -142,6 +142,21 @@
     }
   },
   {
+    "id": "2cvgw3YbGZP3VuY6oD8l",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task LUI-9 - \"LS debe definir como se asignan los recursos en fleet para definir la lista final.\" has reached its deadline.",
+    "taskId": "kgZ8yA5ylIVmBGnnrXOy",
+    "read": false,
+    "link": "/?view=task-manager&taskId=kgZ8yA5ylIVmBGnnrXOy",
+    "createdAt": {
+      "_seconds": 1785741519,
+      "_nanoseconds": 466000000
+    }
+  },
+  {
     "id": "2iA6GKvlyWoWuG16Nzao",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "type": "deadline_expired",
@@ -858,6 +873,21 @@
     "createdAt": {
       "_seconds": 1770885979,
       "_nanoseconds": 451000000
+    }
+  },
+  {
+    "id": "HLjQood4B2KnKzRITYkr",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-21 - \"Crear el SP Crear pedido cero (validar lo campos que recibimos y precisamos)\" has reached its deadline.",
+    "taskId": "Aq4cjTzfrnj7eUC9liyM",
+    "read": false,
+    "link": "/?view=task-manager&taskId=Aq4cjTzfrnj7eUC9liyM",
+    "createdAt": {
+      "_seconds": 1785741517,
+      "_nanoseconds": 841000000
     }
   },
   {
@@ -1800,6 +1830,21 @@
     }
   },
   {
+    "id": "hYdGIlGPES2UOIwbebou",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-25 - \"Retornables\" has reached its deadline.",
+    "taskId": "uuLnfauOLa053rF0fwHf",
+    "read": false,
+    "link": "/?view=task-manager&taskId=uuLnfauOLa053rF0fwHf",
+    "createdAt": {
+      "_seconds": 1785741520,
+      "_nanoseconds": 159000000
+    }
+  },
+  {
     "id": "hdbdtyRKh7B7VzRScSxF",
     "userId": "uw3iVoNRc9MRkaXsjiU0ugSLoDL2",
     "tenantId": "2",
@@ -1873,6 +1918,21 @@
     "read": true
   },
   {
+    "id": "iPhHqPGrbymFnvks1HFG",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-23 - \"Generación de los documentos.\" has reached its deadline.",
+    "taskId": "O72FDaFvJ7YF1tScxNGV",
+    "read": false,
+    "link": "/?view=task-manager&taskId=O72FDaFvJ7YF1tScxNGV",
+    "createdAt": {
+      "_seconds": 1785741518,
+      "_nanoseconds": 741000000
+    }
+  },
+  {
     "id": "iXPAGAU1PVIpl6mjfwcl",
     "userId": "bw9Qc9zqH4OfOC4HLawEexZFJ6D3",
     "type": "assignment",
@@ -1883,6 +1943,21 @@
     "createdAt": {
       "_seconds": 1769073234,
       "_nanoseconds": 465000000
+    }
+  },
+  {
+    "id": "ibWXmkyHset3b3FB0bDl",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-22 - \"Validar pedido -- Como en EUP\" has reached its deadline.",
+    "taskId": "9HOx6PRraDl052WDvron",
+    "read": false,
+    "link": "/?view=task-manager&taskId=9HOx6PRraDl052WDvron",
+    "createdAt": {
+      "_seconds": 1785741517,
+      "_nanoseconds": 541000000
     }
   },
   {
@@ -2120,6 +2195,21 @@
     "createdAt": {
       "_seconds": 1768565666,
       "_nanoseconds": 651000000
+    }
+  },
+  {
+    "id": "mpL4xZUByndntiemJCWL",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task DEL-24 - \"Gestión de cobranza\" has reached its deadline.",
+    "taskId": "yEmL3lxtNhmt6abjlja0",
+    "read": false,
+    "link": "/?view=task-manager&taskId=yEmL3lxtNhmt6abjlja0",
+    "createdAt": {
+      "_seconds": 1785741520,
+      "_nanoseconds": 411000000
     }
   },
   {
