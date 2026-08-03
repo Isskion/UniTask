@@ -338,9 +338,10 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 <div id="tab-transiciones" class="tab">
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Transiciones de estado</span></div>
+    <button class="btn" onclick="autoGenerarTransiciones()">&#9889; Auto-rellenar Transiciones</button>
     <button class="btn btn-p" onclick="openModal('transiciones',null)">+ Nueva transición</button>
   </div>
-  <p class="sdesc">Controla qué rol puede ejecutar cada cambio de estado. Haz clic en cualquier celda de la matriz para añadir o editar la transición.</p>
+  <p class="sdesc">Controla qué rol puede ejecutar cada cambio de estado. Haz clic en cualquier celda de la matriz para añadir o editar la transición o usa el botón de auto-rellenado para poblarla automáticamente según los estados y la matriz de programación.</p>
   <div id="mx-transiciones"></div>
   <div id="tbl-transiciones" style="margin-top:22px"></div>
 </div>
@@ -362,6 +363,7 @@ td{padding:8px 12px;font-size:13px;color:var(--tx);vertical-align:middle}
 <div id="tab-matriz-transiciones" class="tab">
   <div class="toolbar">
     <div class="tl-l"><span class="stitle">Matriz de transiciones (validaciones y cascada)</span></div>
+    <button class="btn" onclick="autoGenerarTransicionesTSP()">&#9889; Auto-rellenar Transiciones TSP</button>
     <button class="btn btn-p" onclick="openModal('transicionesTsp',null)">+ Nueva transición</button>
   </div>
   <p class="sdesc">Transiciones estructurales por entidad y operación: validaciones requeridas en App Mobile, triggers en cascada hacia otras entidades y qué transiciones son automáticas. Independiente de la pestaña "Transiciones" (esa controla permisos por rol).</p>
@@ -1183,6 +1185,132 @@ function rolColorKey(rol) {
   for (let i = 0; i < rol.length; i++) h = (h * 31 + rol.charCodeAt(i)) >>> 0;
   return OP_COLORS[h % OP_COLORS.length];
 }
+function autoGenerarTransiciones() {
+  const estadosPedido = (data.estados||[]).filter(e => e.entidad === 'Pedido' && e.activo).sort((a,b) => a.codigo - b.codigo);
+  if (!estadosPedido.length) {
+    alert('No hay estados de Pedido activos creados todavía. Ve a la pestaña "Estados" primero.');
+    return;
+  }
+
+  const existentes = new Set((data.transiciones||[]).map(t => t.estadoOrigen + '->' + t.estadoDestino));
+  const codigos = estadosPedido.map(e => e.codigo);
+
+  let creadas = 0;
+  function addT(orig, dest, rol, nota) {
+    if (codigos.includes(orig) && codigos.includes(dest)) {
+      const key = orig + '->' + dest;
+      if (!existentes.has(key)) {
+        const nextId = (data.transiciones||[]).reduce((max, x) => Math.max(max, x.id||0), 0) + 1;
+        data.transiciones.push({
+          id: nextId,
+          estadoOrigen: orig,
+          estadoDestino: dest,
+          rolPermitido: rol || 'SAC',
+          restriccionFormula: '',
+          descripcion: nota || 'Generada automáticamente',
+          activo: true
+        });
+        existentes.add(key);
+        creadas++;
+      }
+    }
+  }
+
+  // Reglas estándar de flujo de estados
+  addT(1, 2, 'Sistema', 'Validación error');
+  addT(1, 3, 'Sistema', 'Ingreso validado');
+  addT(2, 3, 'SAC', 'Ajuste manual de pedido');
+  addT(3, 100, 'SAC', 'Confirmación de Customer Service');
+
+  [101, 102, 103, 104, 105].forEach(p => {
+    addT(100, p, 'Planificador', 'Planificación y ruteo');
+    [303, 304, 305, 400, 404, 405].forEach(ex => {
+      addT(p, ex, 'Conductor', 'Ejecución en App Mobile');
+    });
+  });
+
+  [303, 304, 400, 405].forEach(ex => {
+    addT(ex, 502, 'Tráfico', 'Preliquidación enviada a BC');
+  });
+
+  if (creadas === 0) {
+    alert('Las transiciones estándar ya están creadas para estos estados.');
+  } else {
+    alert('Se han auto-generado ' + creadas + ' transiciones de estado para Pedido.');
+    renderTransiciones();
+    save();
+  }
+}
+
+function autoGenerarTransicionesTSP() {
+  if (!data.transicionesTsp) data.transicionesTsp = [];
+
+  const tspTrans = [
+    // Pedido
+    {entidad:'Pedido', estadoOrigen:[1], estadoDestino:2, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Error de datos o geocodificación', activo:true},
+    {entidad:'Pedido', estadoOrigen:[1], estadoDestino:3, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Validación automática OK', activo:true},
+    {entidad:'Pedido', estadoOrigen:[2], estadoDestino:3, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Ajuste manual de pedido', activo:true},
+    {entidad:'Pedido', estadoOrigen:[3], estadoDestino:100, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Customer Service confirma', activo:true},
+    {entidad:'Pedido', estadoOrigen:[100], estadoDestino:105, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 102'], disparadoPor:'', nota:'Planificador asigna ruta reparto', activo:true},
+    {entidad:'Pedido', estadoOrigen:[100], estadoDestino:101, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 102'], disparadoPor:'', nota:'Planificador asigna servicio directo', activo:true},
+    {entidad:'Pedido', estadoOrigen:[100], estadoDestino:102, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 102'], disparadoPor:'', nota:'Planificador asigna recogida', activo:true},
+    {entidad:'Pedido', estadoOrigen:[105, 101, 102], estadoDestino:303, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'Parada', nota:'POD firmado en destino', activo:true},
+    {entidad:'Pedido', estadoOrigen:[105, 101, 102], estadoDestino:304, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'Parada', nota:'Entrega parcial en destinatario', activo:true},
+    {entidad:'Pedido', estadoOrigen:[105, 101, 102], estadoDestino:305, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'Parada', nota:'Rechazo o ausente', activo:true},
+    {entidad:'Pedido', estadoOrigen:[102], estadoDestino:400, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'Parada', nota:'Recogida completada', activo:true},
+    {entidad:'Pedido', estadoOrigen:[303, 304, 400, 405], estadoDestino:502, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'Viaje', nota:'Preliquidación enviada a BC', activo:true},
+
+    // Orden
+    {entidad:'Orden', estadoOrigen:[102], estadoDestino:104, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Parada = 203', 'Viaje = 105'], disparadoPor:'', nota:'Ruta creada y asignada', activo:true},
+    {entidad:'Orden', estadoOrigen:[104], estadoDestino:202, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Salida a reparto', activo:true},
+    {entidad:'Orden', estadoOrigen:[202], estadoDestino:306, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Parada entrega ejecutada', activo:true},
+
+    // Ruta
+    {entidad:'Ruta', estadoOrigen:[103], estadoDestino:201, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Viaje activado', activo:true},
+    {entidad:'Ruta', estadoOrigen:[201], estadoDestino:401, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Paradas finalizadas', activo:true},
+
+    // Viaje
+    {entidad:'Viaje', estadoOrigen:[105], estadoDestino:106, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Asignación vehículo/conductor', activo:true},
+    {entidad:'Viaje', estadoOrigen:[106], estadoDestino:108, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Asignación aceptada', activo:true},
+    {entidad:'Viaje', estadoOrigen:[106], estadoDestino:107, requiereFoto:false, requiereFirma:false, requiereMotivo:true, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Rechazado por tercero', activo:true},
+    {entidad:'Viaje', estadoOrigen:[108], estadoDestino:200, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Ruta = 201'], disparadoPor:'', nota:'Salida a reparto', activo:true},
+    {entidad:'Viaje', estadoOrigen:[200], estadoDestino:403, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Ruta = 401'], disparadoPor:'', nota:'Paradas completadas', activo:true},
+    {entidad:'Viaje', estadoOrigen:[403], estadoDestino:402, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Rendición en almacén / Interfaz 9 WMS', activo:true},
+    {entidad:'Viaje', estadoOrigen:[402], estadoDestino:500, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Incidencias aprobadas', activo:true},
+    {entidad:'Viaje', estadoOrigen:[500], estadoDestino:501, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Pedido = 502'], disparadoPor:'', nota:'Preliquidaciones BC confirmadas', activo:true},
+
+    // Parada
+    {entidad:'Parada', estadoOrigen:[203], estadoDestino:204, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 202'], disparadoPor:'', nota:'Inicio tramo a parada', activo:true},
+    {entidad:'Parada', estadoOrigen:[204], estadoDestino:205, requiereFoto:false, requiereFirma:false, requiereMotivo:false, validarGeocerca:true, idEstadoParadaVisita:2, triggerCascada:[], disparadoPor:'', nota:'GPS automático — Arribo en geocerca', activo:true},
+    {entidad:'Parada', estadoOrigen:[204, 205], estadoDestino:300, requiereFoto:false, requiereFirma:true, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:[], disparadoPor:'', nota:'Carga en muelle OK', activo:true},
+    {entidad:'Parada', estadoOrigen:[204, 205], estadoDestino:303, requiereFoto:true, requiereFirma:true, requiereMotivo:false, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 306', 'Pedido = 303'], disparadoPor:'', nota:'POD (Firma + Foto). Interfaz 8 CM Logistics', activo:true},
+    {entidad:'Parada', estadoOrigen:[204, 205], estadoDestino:304, requiereFoto:true, requiereFirma:true, requiereMotivo:true, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Orden = 306', 'Pedido = 304'], disparadoPor:'', nota:'Entrega parcial (Parada Rendición)', activo:true},
+    {entidad:'Parada', estadoOrigen:[204, 205], estadoDestino:305, requiereFoto:true, requiereFirma:false, requiereMotivo:true, validarGeocerca:false, idEstadoParadaVisita:null, triggerCascada:['Pedido = 305'], disparadoPor:'', nota:'No entregado (Parada Rendición)', activo:true}
+  ];
+
+  const existentesTsp = new Set((data.transicionesTsp||[]).map(t => t.entidad + '|' + JSON.stringify(t.estadoOrigen) + '|' + t.estadoDestino));
+  let creadas = 0;
+
+  tspTrans.forEach(t => {
+    const key = t.entidad + '|' + JSON.stringify(t.estadoOrigen) + '|' + t.estadoDestino;
+    if (!existentesTsp.has(key)) {
+      const nextId = (data.transicionesTsp||[]).reduce((max, x) => Math.max(max, x.id||0), 0) + 1;
+      t.id = nextId;
+      data.transicionesTsp.push(t);
+      existentesTsp.add(key);
+      creadas++;
+    }
+  });
+
+  if (creadas === 0) {
+    alert('Las transiciones estructurales TSP ya están cargadas en esta matriz.');
+  } else {
+    alert('Se han auto-generado ' + creadas + ' transiciones estructurales TSP.');
+    if (typeof renderMatrizTransiciones === 'function') renderMatrizTransiciones();
+    save();
+  }
+}
+
 function rolColorStyle(rol) {
   const vars = ROL_COLOR_VARS[rolColorKey(rol)];
   return 'background:var(' + vars[0] + ');color:var(' + vars[1] + ')';
