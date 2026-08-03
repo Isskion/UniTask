@@ -594,7 +594,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavItem mode="unidocs" icon={LayoutTemplate} label={t('nav.unidocs') || "UniDocs"} />
                                 <NavLink href="/uniflux" target="_blank" icon={Sparkles} label={t('nav.uniflux') || "Uniflux Engine"} />
                                 <NavLink href="/UniTrace" target="_blank" icon={Radar} label={t('nav.unitrace') || 'UniTrace'} />
-                            <NavLink href="/ai-detector" target="_blank" icon={Sparkles} label="UniHumanize" />
+                                {getRoleLevel(userRole) >= RoleLevel.ADMIN && (
+                                    <NavLink href="/ai-detector" target="_blank" icon={Sparkles} label="UniHumanize" />
+                                )}
                             </div>
 
                             {can('knowledgeBase', 'views') && (
