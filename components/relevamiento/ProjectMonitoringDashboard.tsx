@@ -17,9 +17,11 @@ import { useLanguage } from '@/context/LanguageContext';
 interface ProjectMonitoringDashboardProps {
   globalProjects: Project[];
   onSelectProject: (projectId: string, projectName: string) => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export default function ProjectMonitoringDashboard({ globalProjects, onSelectProject }: ProjectMonitoringDashboardProps) {
+export default function ProjectMonitoringDashboard({ globalProjects, onSelectProject, title, subtitle }: ProjectMonitoringDashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useLanguage();
 
@@ -49,9 +51,9 @@ export default function ProjectMonitoringDashboard({ globalProjects, onSelectPro
               <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg">
                 <BarChart3 className="w-5 h-5" />
               </div>
-              <h1 className="text-2xl font-black tracking-tighter uppercase">{t('nav.relevamiento') || 'Relevamientos'}</h1>
+              <h1 className="text-2xl font-black tracking-tighter uppercase">{title || t('nav.relevamiento') || 'Relevamientos'}</h1>
             </div>
-            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] ml-1 opacity-50">Seleccione un proyecto para comenzar</p>
+            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] ml-1 opacity-50">{subtitle || 'Seleccione un proyecto para comenzar'}</p>
           </div>
           
           <div className="relative w-full md:w-80 group">
