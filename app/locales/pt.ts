@@ -96,7 +96,8 @@ export const pt: Dictionary = {
         administration: "Administração",
         unileaks: "UniLeaks",
         univisio: "UniVisio",
-        unigeo: "UniGeo"
+        unigeo: "UniGeo",
+        unitrace: "UniTrace"
     },
 
     "uni-order-manager": {

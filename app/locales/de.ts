@@ -96,7 +96,8 @@ export const de: Dictionary = {
         administration: "Verwaltung",
         unileaks: "UniLeaks",
         univisio: "UniVisio",
-        unigeo: "UniGeo"
+        unigeo: "UniGeo",
+        unitrace: "UniTrace"
     },
 
     "uni-order-manager": {

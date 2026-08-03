@@ -13,7 +13,6 @@ import {
 } from "@/lib/project-hours";
 import { AgendaEntry } from "@/types/agenda";
 import { AlertTriangle, ChevronDown, ChevronRight, Loader2, BarChart2 } from "lucide-react";
-import ProjectReportModal from "./ProjectReportModal";
 
 interface Props {
     tenantId: string;
@@ -46,7 +45,13 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState<string | null>(null);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
-    const [reportRow, setReportRow] = useState<ProjectHours | null>(null);
+
+    /** El informe por proyecto se abre en pestaña propia — a pantalla completa dentro del propio
+     *  layout de la app se veía con la barra lateral de navegación duplicada/confusa detrás. Comparte
+     *  sesión de Firebase Auth (misma origin, persistencia local), no hace falta re-login. */
+    function openReport(projectId: string) {
+        window.open(`/agenda/report?tenantId=${encodeURIComponent(tenantId)}&projectId=${encodeURIComponent(projectId)}`, '_blank', 'noopener,noreferrer');
+    }
 
     // Rango temporal efectivo (hora local — nunca UTC).
     const range: PeriodRange = useMemo(() => {
@@ -154,15 +159,6 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
                 </div>
             </div>
 
-            {reportRow && (
-                <ProjectReportModal
-                    row={reportRow}
-                    tenantId={tenantId}
-                    project={projects.find(p => p.id === reportRow.projectId)}
-                    onClose={() => setReportRow(null)}
-                />
-            )}
-
             {error && (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-xs">
                     <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -198,7 +194,7 @@ export function ProjectHoursSummary({ tenantId, anchorIso }: Props) {
                     )}
                     <div className="space-y-2">
                         {rows.map(row => (
-                            <ProjectRow key={row.projectId} row={row} expanded={expanded.has(row.projectId)} onToggle={() => toggle(row.projectId)} onReport={() => setReportRow(row)} />
+                            <ProjectRow key={row.projectId} row={row} expanded={expanded.has(row.projectId)} onToggle={() => toggle(row.projectId)} onReport={() => openReport(row.projectId)} />
                         ))}
                     </div>
                 </>

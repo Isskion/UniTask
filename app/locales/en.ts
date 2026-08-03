@@ -94,7 +94,8 @@ export const en = {
         administration: "Administration",
         unileaks: "UniLeaks",
         univisio: "UniVisio",
-        unigeo: "UniGeo"
+        unigeo: "UniGeo",
+        unitrace: "UniTrace"
     },
 
     "uni-order-manager": {

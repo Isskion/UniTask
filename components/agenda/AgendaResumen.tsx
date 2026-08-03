@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
     AgendaEntry, AgendaConsultant, AgendaFilters,
@@ -9,6 +9,7 @@ import {
 } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
 import { SAMRegion } from "@/lib/agenda";
+import { getActiveProjects } from "@/lib/projects";
 import { useLanguage } from "@/context/LanguageContext";
 import { Timestamp } from "firebase/firestore";
 import { ProjectHoursSummary } from "./ProjectHoursSummary";
@@ -56,6 +57,19 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
     const { t } = useLanguage();
     const visible = useMemo(() => filterEntries(entries, filters, samRegions), [entries, filters, samRegions]);
 
+    // Proyectos inactivos (ej. dados de baja) no deben aparecer en "Por proyecto" — algunas entradas
+    // llevan projectId denormalizado de un proyecto ya desactivado, así que hay que comprobar contra
+    // la lista de proyectos activos, no basta con que la entrada tenga projectId.
+    const [activeProjectIds, setActiveProjectIds] = useState<Set<string>>(new Set());
+    useEffect(() => {
+        if (!tenantId) return;
+        let cancelled = false;
+        getActiveProjects(tenantId)
+            .then(list => { if (!cancelled) setActiveProjectIds(new Set(list.map(p => p.id))); })
+            .catch(err => console.error('[AgendaResumen] error cargando proyectos activos:', err));
+        return () => { cancelled = true; };
+    }, [tenantId]);
+
     // ── 1. Por consultor ──────────────────────────────────────────────────────
     const byConsultant = useMemo(() => {
         const map = new Map<string, { consultant: AgendaConsultant; hours: number; byActivity: Partial<Record<ActivityType, number>> }>();
@@ -74,7 +88,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
     // ── 2. Por proyecto ───────────────────────────────────────────────────────
     const byProject = useMemo(() => {
         const map = new Map<string, { id: string; name: string; code: string; color: string; hours: number; consultants: Set<string> }>();
-        visible.filter(e => e.projectId).forEach(e => {
+        visible.filter(e => e.projectId && activeProjectIds.has(e.projectId)).forEach(e => {
             const key = e.projectId!;
             if (!map.has(key)) {
                 map.set(key, { id: key, name: e.projectName || key, code: e.projectCode || '', color: e.projectColor || '#6b7280', hours: 0, consultants: new Set() });
@@ -84,7 +98,7 @@ export function AgendaResumen({ entries, consultants, filters, weekLabel, samReg
             row.consultants.add(e.consultantName);
         });
         return [...map.values()].sort((a, b) => b.hours - a.hours);
-    }, [visible]);
+    }, [visible, activeProjectIds]);
 
     // ── 3. Por actividad ──────────────────────────────────────────────────────
     const byActivity = useMemo(() => {

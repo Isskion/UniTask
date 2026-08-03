@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
     format, isValid, startOfDay, endOfDay, startOfWeek, endOfWeek,
@@ -9,8 +9,8 @@ import {
 } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-    X, BarChart2, PieChart as PieChartIcon, TrendingUp, Download, FileSpreadsheet, Loader2,
-    ChevronLeft, ChevronRight, AlertTriangle,
+    X, BarChart2, PieChart as PieChartIcon, TrendingUp, SlidersHorizontal, Download, FileSpreadsheet, Loader2,
+    ChevronLeft, ChevronRight, ChevronDown, AlertTriangle,
 } from "lucide-react";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -21,10 +21,13 @@ import {
     getAgendaEntriesRange, aggregateProjectHours,
 } from "@/lib/project-hours";
 import { Project } from "@/types";
-import { AgendaEntry, ActivityType, ACTIVITY_CONFIG, ResultStatus } from "@/types/agenda";
+import { AgendaEntry, ActivityType, ACTIVITY_CONFIG, ResultStatus, RESULT_CONFIG } from "@/types/agenda";
 import { formatHours } from "@/lib/agenda-utils";
 
-type ChartType  = 'bar' | 'pie' | 'wave';
+type ChartType  = 'bar' | 'pie' | 'wave' | 'custom';
+// El tipo de gráfico "final" dentro de Personalizada — reutiliza las mismas 3 visualizaciones, nunca
+// 'custom' anidado en sí mismo.
+type CustomChartKind = 'bar' | 'pie' | 'wave';
 // 'week' se quitó del desglose de la tabla: con el selector de fechas propio (día/semana/mes/horquilla)
 // y la vista "Evolución" (agrupación temporal real), un desglose "por semana" en la tabla quedaba redundante.
 type Breakdown  = 'activity' | 'consultant' | 'phase';
@@ -136,6 +139,27 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
     const [breakdown, setBreakdown] = useState<Breakdown>('activity');
     const [exporting, setExporting] = useState(false);
 
+    // ── Drill-down: qué fila del "Informe de actividad" está expandida (null = ninguna) ────────────
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+    // ── Personalizada: filtro por consultor/actividad/estado + gráfico final a elegir ────────────
+    const [customConsultants, setCustomConsultants] = useState<string[]>([]);
+    const [customActivities, setCustomActivities]   = useState<ActivityType[]>([]);
+    const [customResults, setCustomResults]         = useState<ResultStatus[]>([]);
+    const [customChartKind, setCustomChartKind]     = useState<CustomChartKind>('bar');
+
+    // "Fase" no existe como desglose en modo Personalizada (ver breakdownBtns) — si el usuario estaba
+    // ahí y entra en Personalizada, cae a "Actividad" en vez de quedarse en un desglose que ya no está
+    // en la lista de botones (dejaría la tabla mostrando un dato sin filtrar bajo un encabezado que dice
+    // "filtrado", y `subtitle` quedaría undefined).
+    useEffect(() => {
+        if (chartType === 'custom' && breakdown === 'phase') setBreakdown('activity');
+    }, [chartType, breakdown]);
+
+    // El nombre de fila expandida es específico de la dimensión actual — al cambiar de desglose o
+    // de filtro personalizado, una fila expandida de "Actividad" no tiene sentido bajo "Consultor".
+    useEffect(() => { setExpandedRow(null); }, [breakdown, chartType]);
+
     // ── Rango de fechas propio del informe (independiente del selector del padre) ──────────────
     const [period, setPeriod]   = useState<PeriodKind>('month');
     const [anchorIso, setAnchorIso] = useState<string>(() => format(new Date(), 'yyyy-MM-dd'));
@@ -182,9 +206,31 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
 
     const entries = row.matchedEntries;
 
+    // Opciones de filtro disponibles — derivadas de las entradas ya cargadas para este proyecto/periodo,
+    // no de un catálogo aparte: solo se ofrece filtrar por lo que realmente existe aquí.
+    const consultantOptions = useMemo(() => {
+        const names = new Set<string>();
+        entries.forEach(e => { if ((e as any).consultantName) names.add((e as any).consultantName); });
+        return [...names].sort();
+    }, [entries]);
+
+    const filteredEntries = useMemo<AgendaEntry[]>(() => {
+        if (!customConsultants.length && !customActivities.length && !customResults.length) return entries;
+        return entries.filter(e =>
+            (!customConsultants.length || customConsultants.includes((e as any).consultantName)) &&
+            (!customActivities.length  || customActivities.includes(e.activityType)) &&
+            (!customResults.length     || customResults.includes(e.result))
+        );
+    }, [entries, customConsultants, customActivities, customResults]);
+
+    const hasCustomFilters = customConsultants.length > 0 || customActivities.length > 0 || customResults.length > 0;
+    // Fuente de datos para gráfico + tabla: la selección personalizada filtra ambos a la vez — de lo
+    // contrario el "Informe de actividad" seguiría mostrando todo mientras el gráfico ya está filtrado.
+    const sourceEntries = chartType === 'custom' ? filteredEntries : entries;
+
     const byActivity = useMemo<BreakdownItem[]>(() => {
         const map = new Map<string, BreakdownItem>();
-        entries.forEach(e => {
+        sourceEntries.forEach(e => {
             const cfg   = ACTIVITY_CONFIG[e.activityType as ActivityType];
             const name  = cfg?.label ?? (e.activityType || 'Sin actividad');
             const color = cfg?.color;
@@ -194,11 +240,11 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
             map.set(name, item);
         });
         return [...map.values()].sort((a, b) => b.previstas - a.previstas);
-    }, [entries]);
+    }, [sourceEntries]);
 
     const byConsultant = useMemo<BreakdownItem[]>(() => {
         const map = new Map<string, BreakdownItem>();
-        entries.forEach(e => {
+        sourceEntries.forEach(e => {
             const name = (e as any).consultantName || 'Desconocido';
             const item = map.get(name) ?? { name, previstas: 0, realizadas: 0 };
             item.previstas += Number(e.scheduledHours) || 0;
@@ -206,7 +252,7 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
             map.set(name, item);
         });
         return [...map.values()].sort((a, b) => b.previstas - a.previstas);
-    }, [entries]);
+    }, [sourceEntries]);
 
     const byPhase = useMemo<BreakdownItem[]>(() => {
         const items: BreakdownItem[] = row.byPhase.map(ph => ({
@@ -228,6 +274,29 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
         }
     }, [breakdown, byActivity, byConsultant, byPhase]);
 
+    // ── Drill-down: entradas concretas detrás de una fila del "Informe de actividad" ────────────
+    const drillDownEntries = useMemo<AgendaEntry[]>(() => {
+        if (!expandedRow) return [];
+        switch (breakdown) {
+            case 'consultant':
+                return sourceEntries.filter(e => ((e as any).consultantName || 'Desconocido') === expandedRow);
+            case 'phase': {
+                if (!project) return [];
+                if (expandedRow === 'Sin fase') {
+                    return sourceEntries.filter(e => {
+                        const pid = project.phaseMapping?.activityToPhase?.[e.activityType];
+                        return !pid || !row.byPhase.some(ph => ph.phaseId === pid);
+                    });
+                }
+                const phaseId = row.byPhase.find(ph => (ph.name || '(fase)') === expandedRow)?.phaseId;
+                if (!phaseId) return [];
+                return sourceEntries.filter(e => project.phaseMapping?.activityToPhase?.[e.activityType] === phaseId);
+            }
+            default:
+                return sourceEntries.filter(e => (ACTIVITY_CONFIG[e.activityType as ActivityType]?.label ?? (e.activityType || 'Sin actividad')) === expandedRow);
+        }
+    }, [expandedRow, breakdown, sourceEntries, project, row.byPhase]);
+
     // ── Gráfica de dos olas: creadas por bucket vs. sin cerrar (snapshot) ────────────────────────
     // Porta la misma lógica que components/Dashboard.tsx (chartData: active/totalActive) sobre
     // agenda_entries en vez de tasks — pero bucketizando por `date` (fecha de la entrada en la agenda),
@@ -243,7 +312,7 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
     const waveData = useMemo<WavePoint[]>(() => {
         return waveBuckets.map(b => {
             let creadas = 0, sinCerrar = 0;
-            entries.forEach(e => {
+            sourceEntries.forEach(e => {
                 const entryDate = toDate(e.date);
                 if (entryDate >= b.start && entryDate <= b.end) creadas++;
                 if (entryDate <= b.end) {
@@ -253,12 +322,15 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
             });
             return { name: b.label, creadas, sinCerrar };
         });
-    }, [waveBuckets, entries]);
+    }, [waveBuckets, sourceEntries]);
 
+    // "Fase" no es filter-aware (viene de row.byPhase, agregado a nivel de proyecto completo, no de
+    // sourceEntries) — se oculta en modo Personalizada para no mostrar una fase sin filtrar bajo un
+    // encabezado que dice "filtrado".
     const breakdownBtns: { key: Breakdown; label: string }[] = [
         { key: 'activity',   label: 'Actividad' },
         { key: 'consultant', label: 'Consultor' },
-        { key: 'phase',      label: 'Fase' },
+        ...(chartType === 'custom' ? [] : [{ key: 'phase' as Breakdown, label: 'Fase' }]),
     ];
 
     // ── Export PDF ────────────────────────────────────────────────────────────
@@ -307,8 +379,8 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
             doc.rect(c0, y - 4, 182, 7, 'F');
             doc.setFont('helvetica', 'bold');
             doc.text('TOTAL', c0 + 2, y);
-            doc.text(row.planned.toFixed(1), c1, y, { align: 'right' });
-            doc.text(row.real.toFixed(1),    c2, y, { align: 'right' });
+            doc.text(displayPlanned.toFixed(1), c1, y, { align: 'right' });
+            doc.text(displayReal.toFixed(1),    c2, y, { align: 'right' });
 
             if (row.budget > 0) {
                 y += 9;
@@ -352,11 +424,11 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
             hRow.alignment = { vertical: 'middle', horizontal: 'center' };
             hRow.height    = 22;
             chartData.forEach((item, i) => {
-                const pct = row.planned > 0 ? Math.round((item.previstas / row.planned) * 100) : 0;
+                const pct = displayPlanned > 0 ? Math.round((item.previstas / displayPlanned) * 100) : 0;
                 const r = ws.addRow({ name: item.name, prev: item.previstas, real: item.realizadas, pct: `${pct}%` });
                 r.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: i % 2 === 0 ? 'FFF0F0FF' : 'FFFFFFFF' } };
             });
-            const totRow = ws.addRow({ name: 'TOTAL', prev: row.planned, real: row.real, pct: '100%' });
+            const totRow = ws.addRow({ name: 'TOTAL', prev: displayPlanned, real: displayReal, pct: '100%' });
             totRow.font   = { bold: true };
             totRow.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
             totRow.border = { top: { style: 'medium', color: { argb: 'FF4F46E5' } } };
@@ -400,6 +472,15 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
     ];
 
     const subtitle = breakdownBtns.find(b => b.key === breakdown)?.label;
+    // Qué visualización renderizar realmente: en 'custom' es el sub-selector final del panel de filtros.
+    const effectiveChartKind: CustomChartKind = chartType === 'custom' ? customChartKind : chartType;
+
+    // Total a mostrar en la fila "Total" de la tabla, el % de cada fila y los exports: el del proyecto
+    // completo salvo que haya un filtro activo, en cuyo caso debe ser el de lo filtrado — si no, las
+    // filas (ya filtradas) sumarían menos que ese total y los % saldrían mal. Los KPI de cabecera
+    // (arriba del todo) sí se quedan siempre a nivel de proyecto completo, a propósito.
+    const displayPlanned = chartType === 'custom' ? chartData.reduce((s, i) => s + i.previstas, 0) : row.planned;
+    const displayReal    = chartType === 'custom' ? chartData.reduce((s, i) => s + i.realizadas, 0) : row.real;
 
     const periodBtns: { key: PeriodKind; label: string }[] = [
         { key: 'day',   label: 'Día' },
@@ -411,11 +492,11 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
     return (
         <>
             {/* Fondo */}
-            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" />
 
-            {/* Contenedor modal */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-                <div className="pointer-events-auto w-full max-w-7xl max-h-[92vh] flex flex-col rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl overflow-hidden">
+            {/* Contenedor modal — pantalla casi completa (dejó de caber cómodo como tarjeta centrada) */}
+            <div className="fixed inset-2 sm:inset-4 z-50 pointer-events-none">
+                <div className="pointer-events-auto w-full h-full flex flex-col rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl overflow-hidden">
 
                     {/* Cabecera */}
                     <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
@@ -520,6 +601,11 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                                     chartType === 'wave' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300")}>
                                 <TrendingUp className="w-3.5 h-3.5" />Evolución
                             </button>
+                            <button onClick={() => setChartType('custom')}
+                                className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs transition-all",
+                                    chartType === 'custom' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                                <SlidersHorizontal className="w-3.5 h-3.5" />Personalizada
+                            </button>
                         </div>
 
                         {chartType === 'wave' && (
@@ -529,9 +615,46 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                         )}
 
                         <span className="text-[10px] text-zinc-600 ml-auto">
-                            {chartType === 'wave' ? `${waveData.length} intervalos` : `${chartData.length} ${subtitle?.toLowerCase()}`}
+                            {chartType === 'custom'
+                                ? `${filteredEntries.length} de ${entries.length} entradas`
+                                : chartType === 'wave' ? `${waveData.length} intervalos` : `${chartData.length} ${subtitle?.toLowerCase()}`}
                         </span>
                     </div>
+
+                    {/* Panel de filtros — solo en Personalizada */}
+                    {chartType === 'custom' && (
+                        <div className="flex flex-wrap items-start gap-x-6 gap-y-3 px-5 py-3 border-b border-white/10 shrink-0 bg-white/[0.02]">
+                            {consultantOptions.length > 0 && (
+                                <FilterGroup label="Consultor" options={consultantOptions.map(n => ({ id: n, label: n }))}
+                                    selected={customConsultants} onToggle={id => setCustomConsultants(t => t.includes(id) ? t.filter(x => x !== id) : [...t, id])} />
+                            )}
+                            <FilterGroup label="Actividad" options={Object.values(ActivityType).map(a => ({ id: a, label: ACTIVITY_CONFIG[a].label }))}
+                                selected={customActivities} onToggle={id => setCustomActivities(t => t.includes(id as ActivityType) ? t.filter(x => x !== id) : [...t, id as ActivityType])} />
+                            <FilterGroup label="Estado" options={Object.values(ResultStatus).map(r => ({ id: r, label: r }))}
+                                selected={customResults} onToggle={id => setCustomResults(t => t.includes(id as ResultStatus) ? t.filter(x => x !== id) : [...t, id as ResultStatus])} />
+
+                            <div className="ml-auto shrink-0">
+                                <p className="text-[10px] text-zinc-600 mb-1">Mostrar como</p>
+                                <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5">
+                                    <button onClick={() => setCustomChartKind('bar')}
+                                        className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs transition-all",
+                                            customChartKind === 'bar' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                                        <BarChart2 className="w-3.5 h-3.5" />Barras
+                                    </button>
+                                    <button onClick={() => setCustomChartKind('pie')}
+                                        className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs transition-all",
+                                            customChartKind === 'pie' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                                        <PieChartIcon className="w-3.5 h-3.5" />Tarta
+                                    </button>
+                                    <button onClick={() => setCustomChartKind('wave')}
+                                        className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs transition-all",
+                                            customChartKind === 'wave' ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300")}>
+                                        <TrendingUp className="w-3.5 h-3.5" />Evolución
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Cuerpo scrollable — el gráfico (barras/tarta/evolución) cambia con chartType, pero la
                         tabla de detalle SIEMPRE se muestra: es el informe de actividad, información vital que
@@ -541,10 +664,14 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                             <p className="text-center text-zinc-600 text-sm py-10">
                                 Sin entradas en este periodo para este proyecto.
                             </p>
+                        ) : chartType === 'custom' && hasCustomFilters && filteredEntries.length === 0 ? (
+                            <p className="text-center text-zinc-600 text-sm py-10">
+                                Ningún resultado con estos filtros. Prueba a quitar alguno.
+                            </p>
                         ) : (
                             <>
                                 {/* Gráfico */}
-                                {chartType === 'wave' ? (
+                                {effectiveChartKind === 'wave' ? (
                                     <div className="h-[22.5rem]">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <AreaChart data={waveData} margin={{ top: 4, right: 16, left: 0, bottom: 5 }}>
@@ -571,7 +698,7 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                                 ) : (
                                     <div className="h-80">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            {chartType === 'bar' ? (
+                                            {effectiveChartKind === 'bar' ? (
                                                 <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 45 }}>
                                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                                                     <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }}
@@ -610,7 +737,7 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                                                 </PieChart>
                                             )}
                                         </ResponsiveContainer>
-                                        {chartType === 'pie' && (
+                                        {effectiveChartKind === 'pie' && (
                                             <p className="text-center text-[10px] text-zinc-600 -mt-1">
                                                 Tarta izquierda: Previstas · Tarta derecha: Realizadas
                                             </p>
@@ -644,27 +771,39 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                                             </thead>
                                             <tbody>
                                                 {chartData.map((item, i) => {
-                                                    const pct = row.planned > 0 ? Math.round((item.previstas / row.planned) * 100) : 0;
+                                                    const pct = displayPlanned > 0 ? Math.round((item.previstas / displayPlanned) * 100) : 0;
+                                                    const isExpanded = expandedRow === item.name;
                                                     return (
-                                                        <tr key={i} className="border-t border-white/5 hover:bg-white/3 transition-colors">
-                                                            <td className="px-4 py-2.5 text-zinc-200">
-                                                                <span className="flex items-center gap-2">
-                                                                    {item.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />}
-                                                                    {item.name}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-4 py-2.5 text-right text-zinc-100 font-medium tabular-nums">{fmt(item.previstas)}</td>
-                                                            <td className="px-4 py-2.5 text-right text-zinc-400 tabular-nums">{fmt(item.realizadas)}</td>
-                                                            <td className="px-4 py-2.5 text-right text-zinc-500 tabular-nums">{pct}%</td>
-                                                        </tr>
+                                                        <Fragment key={i}>
+                                                            <tr onClick={() => setExpandedRow(isExpanded ? null : item.name)}
+                                                                className={cn("border-t border-white/5 hover:bg-white/5 transition-colors cursor-pointer", isExpanded && "bg-white/5")}>
+                                                                <td className="px-4 py-2.5 text-zinc-200">
+                                                                    <span className="flex items-center gap-2">
+                                                                        <ChevronDown className={cn("w-3 h-3 text-zinc-600 shrink-0 transition-transform", !isExpanded && "-rotate-90")} />
+                                                                        {item.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />}
+                                                                        {item.name}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-2.5 text-right text-zinc-100 font-medium tabular-nums">{fmt(item.previstas)}</td>
+                                                                <td className="px-4 py-2.5 text-right text-zinc-400 tabular-nums">{fmt(item.realizadas)}</td>
+                                                                <td className="px-4 py-2.5 text-right text-zinc-500 tabular-nums">{pct}%</td>
+                                                            </tr>
+                                                            {isExpanded && (
+                                                                <tr className="bg-black/20">
+                                                                    <td colSpan={4} className="px-4 py-3">
+                                                                        <DrillDownList entries={drillDownEntries} showConsultant={breakdown !== 'consultant'} />
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </Fragment>
                                                     );
                                                 })}
                                             </tbody>
                                             <tfoot>
                                                 <tr className="border-t-2 border-indigo-500/30 bg-indigo-500/5">
                                                     <td className="px-4 py-2.5 text-zinc-300 font-bold">Total</td>
-                                                    <td className="px-4 py-2.5 text-right text-white font-bold tabular-nums">{fmt(row.planned)}</td>
-                                                    <td className="px-4 py-2.5 text-right text-zinc-300 font-bold tabular-nums">{fmt(row.real)}</td>
+                                                    <td className="px-4 py-2.5 text-right text-white font-bold tabular-nums">{fmt(displayPlanned)}</td>
+                                                    <td className="px-4 py-2.5 text-right text-zinc-300 font-bold tabular-nums">{fmt(displayReal)}</td>
                                                     <td className="px-4 py-2.5 text-right text-zinc-500 font-bold">100%</td>
                                                 </tr>
                                             </tfoot>
@@ -677,5 +816,48 @@ export default function ProjectReportModal({ row: initialRow, tenantId, project,
                 </div>
             </div>
         </>
+    );
+}
+
+function DrillDownList({ entries, showConsultant }: { entries: AgendaEntry[]; showConsultant: boolean }) {
+    if (entries.length === 0) {
+        return <p className="text-[11px] text-zinc-600 italic py-2">Sin entradas.</p>;
+    }
+    const sorted = [...entries].sort((a, b) => toDate(b.date).getTime() - toDate(a.date).getTime());
+    return (
+        <div className="max-h-64 overflow-y-auto custom-scrollbar space-y-1">
+            {sorted.map(e => {
+                const cfg = RESULT_CONFIG[e.result];
+                return (
+                    <div key={e.id} className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-white/3 text-[11px]">
+                        <span className="text-zinc-500 w-16 shrink-0 tabular-nums">{format(toDate(e.date), 'dd/MM/yy')}</span>
+                        {showConsultant && <span className="text-zinc-400 w-28 shrink-0 truncate">{(e as any).consultantName || 'Desconocido'}</span>}
+                        <span className="text-zinc-200 flex-1 min-w-0 truncate">{e.client}{e.client && e.description ? ' — ' : ''}{e.description}</span>
+                        <span className={cn("shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white/10", cfg?.textClass)}>
+                            {cfg?.label ?? e.result}
+                        </span>
+                        <span className="text-zinc-300 font-medium w-12 text-right shrink-0 tabular-nums">{fmt(Number(e.scheduledHours) || 0)}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function FilterGroup({ label, options, selected, onToggle }: { label: string; options: { id: string; label: string }[]; selected: string[]; onToggle: (id: string) => void }) {
+    if (options.length === 0) return null;
+    return (
+        <div>
+            <p className="text-[10px] text-zinc-600 mb-1">{label}</p>
+            <div className="flex flex-wrap gap-1.5 max-w-md">
+                {options.map(o => (
+                    <button key={o.id} onClick={() => onToggle(o.id)}
+                        className={cn("px-2 py-1 rounded-md text-[11px] font-medium border transition-all",
+                            selected.includes(o.id) ? "bg-indigo-600/25 border-indigo-500/40 text-indigo-300" : "bg-white/3 border-white/8 text-zinc-500 hover:text-zinc-200")}>
+                        {o.label}
+                    </button>
+                ))}
+            </div>
+        </div>
     );
 }

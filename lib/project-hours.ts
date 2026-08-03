@@ -243,6 +243,10 @@ export function aggregateProjectHours(
     entries.forEach(e => {
         const projectId = resolveId(e);
         if (!projectId) return;
+        // Un proyecto desactivado (ej. baja en producción) no debe generar fila aunque la entrada
+        // traiga projectId denormalizado — `projects` ya viene filtrado a activos por el caller
+        // (getActiveProjects), así que si no está en projById es que se dio de baja.
+        if (!projById.has(projectId)) return;
         const row = ensure(projectId, { name: e.projectName || e.client, code: e.projectCode, color: e.projectColor });
         row.matchedEntries.push(e);
         const h = Number(e.scheduledHours) || 0;
