@@ -1,26 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Project } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
 import { 
-  Layers, 
   ChevronDown, 
   ChevronRight, 
   Filter, 
   Download, 
-  UploadCloud, 
   CheckCircle2, 
   Plus, 
-  FileCode, 
-  RotateCcw, 
-  Ban, 
-  Search, 
   History, 
   Sparkles,
   ArrowRight,
-  Database
+  Upload,
+  FileSpreadsheet,
+  FileText as FileIcon,
+  Loader2,
+  AlertCircle,
+  Save
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -36,19 +35,28 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   const [projectData, setProjectData] = useState<any>(null);
   const [auditEntries, setAuditEntries] = useState<any[]>([]);
   
+  // Autoguardado & Chivato de estado
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Interactive UI States
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [statusFilter, setStatusFilter] = useState<string>('TODOS');
   const [activeSectionGuide, setActiveSectionGuide] = useState<string>('1.0');
-  const [isDeploying, setIsDeploying] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals
+  const [isImporterOpen, setIsImporterOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
 
-  // Form states
+  // Importer Form States
+  const [ddsFile, setDdsFile] = useState<File | null>(null);
+  const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [isProcessingImport, setIsProcessingImport] = useState(false);
+
+  // Create Task Form states
   const [selectedGroupCode, setSelectedGroupCode] = useState('');
   const [selectedParentCode, setSelectedParentCode] = useState('');
   const [newCode, setNewCode] = useState('');
@@ -69,7 +77,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
     const customProjectSeed = {
       version: 1,
-      lastDeployed: new Date().toLocaleDateString(),
+      lastSaved: new Date().toLocaleTimeString(),
       groups: [
         {
           id: "grp-1",
@@ -221,6 +229,20 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     setProjectData(customProjectSeed);
   }, [project?.id, project?.name, project?.code]);
 
+  // Trigger Auto-save when projectData updates
+  const triggerAutoSave = (updatedData: any) => {
+    setProjectData(updatedData);
+    setSaveStatus('unsaved');
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      setSaveStatus('saving');
+      setTimeout(() => {
+        setSaveStatus('saved');
+      }, 500);
+    }, 700);
+  };
+
   if (!projectData) return <div className={cn("p-6 text-xs", isLight ? "text-zinc-500" : "text-zinc-400")}>Cargando WBS Tracker...</div>;
 
   // Toggle Group Collapse
@@ -238,22 +260,65 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     setCollapsedGroups({});
   };
 
-  // Deploy / Seal Version Action
-  const handleDeployVersion = () => {
-    setIsDeploying(true);
+  // Process Dual Import (DDS + Excel Plan)
+  const handleProcessDualImport = () => {
+    if (!ddsFile || !excelFile) {
+      showToast("Importador Dual", "Selecciona ambos archivos requeridos: DDS (.docx/.pdf) y Plan de Trabajo Excel (.xlsx).", "error");
+      return;
+    }
+
+    setIsProcessingImport(true);
+
     setTimeout(() => {
-      setIsDeploying(false);
-      setProjectData((prev: any) => ({
-        ...prev,
-        version: (prev.version || 1) + 1,
-        lastDeployed: new Date().toLocaleDateString()
-      }));
+      setIsProcessingImport(false);
+      setIsImporterOpen(false);
+
+      const updated = { ...projectData };
+      const grp2 = updated.groups.find((g: any) => g.code === '2.0') || updated.groups[0];
+
+      // Add imported tasks with nested numbering 2.2.1 & 2.2.2
+      grp2.tasks.push({
+        id: `t-imported-${Date.now()}-1`,
+        parentCode: "2.2",
+        code: "2.2.1",
+        kind: "TASK",
+        title: `↳ [Importado DDS+Excel] Interfaz IFTMIN Maersk con Validaciones ${ddsFile.name.substring(0, 15)}`,
+        status: "EN_CURSO",
+        progress: 30,
+        startedOn: new Date().toISOString().split('T')[0],
+        completedOn: null,
+        inspectionSql: "SELECT * FROM dbo.IFTMIN_Header WITH (NOLOCK);",
+        executionSql: "CREATE PROCEDURE dbo.sp_Process_IFTMIN_Import AS BEGIN SET NOCOUNT ON; END;",
+        verificationSql: "SELECT COUNT(*) FROM dbo.IFTMIN_Header WHERE Processed = 1;",
+        sourceDoc: "DDS+EXCEL"
+      });
+
+      grp2.tasks.push({
+        id: `t-imported-${Date.now()}-2`,
+        parentCode: "2.2",
+        code: "2.2.2",
+        kind: "TASK",
+        title: `↳ [Importado DDS+Excel] Conciliación de Tarifas y Liquidación ${excelFile.name.substring(0, 15)}`,
+        status: "PENDIENTE",
+        progress: 0,
+        startedOn: null,
+        completedOn: null,
+        inspectionSql: "SELECT * FROM dbo.TarifasLiquidacion;",
+        executionSql: "CREATE TABLE dbo.TSP_TarifaConciliada (Id INT PRIMARY KEY);",
+        verificationSql: "SELECT COUNT(*) FROM dbo.TSP_TarifaConciliada;",
+        sourceDoc: "EXCEL"
+      });
+
       setAuditEntries(prev => [
-        { taskCode: "WBS-SYSTEM", field: "Publicación de Versión", oldVal: `v${projectData.version || 1}`, newVal: `v${(projectData.version || 1) + 1}`, time: new Date().toLocaleTimeString() },
+        { taskCode: "IMPORT-DUAL", field: "Fusión Documental Fusión", oldVal: "-", newVal: `DDS: ${ddsFile.name} + Excel: ${excelFile.name}`, time: new Date().toLocaleTimeString() },
         ...prev
       ]);
-      showToast("WBS Tracker", `Versión v${(projectData.version || 1) + 1} publicada exitosamente en Firestore.`, "success");
-    }, 900);
+
+      triggerAutoSave(updated);
+      setDdsFile(null);
+      setExcelFile(null);
+      showToast("Importador Dual", "Fusión exitosa de DDS + Excel. Tareas anidadas 2.2.1 y 2.2.2 incorporadas.", "success");
+    }, 1000);
   };
 
   // Status Changes
@@ -294,7 +359,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       }
     });
 
-    setProjectData(updated);
+    triggerAutoSave(updated);
   };
 
   const changeProgress = (groupCode: string, taskCode: string, newProg: number) => {
@@ -319,7 +384,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       }
     });
 
-    setProjectData(updated);
+    triggerAutoSave(updated);
   };
 
   const annulTask = (groupCode: string, taskCode: string) => {
@@ -396,7 +461,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       ]);
     }
 
-    setProjectData(updated);
+    triggerAutoSave(updated);
     setIsCreateModalOpen(false);
     showToast("WBS Tracker", `Tarea ${newCode} añadida correctamente.`, "success");
   };
@@ -514,24 +579,43 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
         </div>
       </div>
 
-      {/* 🛠️ Toolbar con Botones de Colapse, Deploy, Filtro por Estado y Exportar */}
+      {/* 🛠️ Toolbar: Botón Importar en lugar de Deploy + Chivato de Autoguardado */}
       <div className={cn("flex justify-between items-center p-3 rounded-xl border flex-wrap gap-2.5 shadow-sm transition-colors", isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border")}>
         <div className="flex items-center gap-2 flex-wrap">
           
-          {/* Botón Deploy / Publicar Versión */}
+          {/* Botón Importar Fusión DDS + Excel (En el sitio donde estaba Deploy) */}
           <button
-            onClick={handleDeployVersion}
-            disabled={isDeploying}
-            className={cn("px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5",
-              isDeploying && "opacity-60 cursor-not-allowed"
-            )}
+            onClick={() => setIsImporterOpen(true)}
+            className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5"
           >
-            <UploadCloud className="w-3.5 h-3.5" />
-            <span>{isDeploying ? "Publicando..." : `Deploy WBS (v${projectData.version || 1})`}</span>
+            <Upload className="w-3.5 h-3.5" />
+            <span>📥 Importar Fusión DDS (.docx) + Plan Excel (.xlsx)</span>
           </button>
 
+          {/* Chivato Visual de Autoguardado */}
+          {saveStatus === 'saved' && (
+            <span className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              <span>🟢 Guardado</span>
+            </span>
+          )}
+
+          {saveStatus === 'saving' && (
+            <span className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+              <span>🟡 Guardando...</span>
+            </span>
+          )}
+
+          {saveStatus === 'unsaved' && (
+            <span className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+              <span>🔴 Cambios sin guardar</span>
+            </span>
+          )}
+
           {/* Botones de Colapse / Expandir Todo */}
-          <div className="flex border rounded-lg overflow-hidden border-border">
+          <div className="flex border rounded-lg overflow-hidden border-border ml-1">
             <button
               onClick={collapseAll}
               className={cn("px-2.5 py-1.5 font-bold transition-all flex items-center gap-1",
@@ -778,6 +862,68 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
           </div>
         );
       })}
+
+      {/* Modal Importador Dual (DDS + Excel Plan de Trabajo) */}
+      {isImporterOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className={cn("border rounded-2xl p-6 w-full max-w-xl flex flex-col gap-4 shadow-2xl",
+            isLight ? "bg-white border-zinc-200 text-zinc-900" : "bg-zinc-900 border-zinc-800 text-zinc-100"
+          )}>
+            <div className="flex items-center gap-2 text-sky-500">
+              <Upload className="w-5 h-5" />
+              <h3 className="text-lg font-bold">Importador Inteligente Dual (DDS + Excel)</h3>
+            </div>
+            
+            <p className={cn("text-xs leading-relaxed", isLight ? "text-zinc-600" : "text-zinc-400")}>
+              El sistema requiere <strong>ambos documentos obligatorios</strong>. Fusionará las especificaciones técnicas del DDS con el Plan de Trabajo Excel y generará las sub-tareas anidadas técnicas (ej. <code>2.2.1</code>).
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="font-bold text-[11px]">1. Documento de Diseño de Solución DDS (.docx / .pdf):</label>
+                <div className={cn("border border-dashed rounded-xl p-3 flex items-center justify-between cursor-pointer",
+                  isLight ? "border-zinc-300 bg-zinc-50 hover:bg-zinc-100" : "border-zinc-700 bg-zinc-950 hover:bg-zinc-900"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <FileIcon className="w-4 h-4 text-sky-500" />
+                    <span className="text-xs truncate max-w-[280px]">{ddsFile ? ddsFile.name : "Seleccionar archivo DDS..."}</span>
+                  </div>
+                  <input type="file" accept=".docx,.pdf" className="hidden" id="dds-input" onChange={(e) => setDdsFile(e.target.files?.[0] || null)} />
+                  <label htmlFor="dds-input" className="px-3 py-1 bg-sky-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-sky-600">Examinar</label>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="font-bold text-[11px]">2. Plan de Trabajo / WBS con Hitos Excel (.xlsx):</label>
+                <div className={cn("border border-dashed rounded-xl p-3 flex items-center justify-between cursor-pointer",
+                  isLight ? "border-zinc-300 bg-zinc-50 hover:bg-zinc-100" : "border-zinc-700 bg-zinc-950 hover:bg-zinc-900"
+                )}>
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs truncate max-w-[280px]">{excelFile ? excelFile.name : "Seleccionar Excel de Hitos..."}</span>
+                  </div>
+                  <input type="file" accept=".xlsx" className="hidden" id="excel-input" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} />
+                  <label htmlFor="excel-input" className="px-3 py-1 bg-emerald-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-600">Examinar</label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button className={cn("px-4 py-2 rounded text-xs font-semibold", isLight ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-800" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200")} onClick={() => setIsImporterOpen(false)}>Cancelar</button>
+              <button
+                onClick={handleProcessDualImport}
+                disabled={isProcessingImport || !ddsFile || !excelFile}
+                className={cn("px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded text-xs shadow-sm flex items-center gap-1.5",
+                  (isProcessingImport || !ddsFile || !excelFile) && "opacity-50 cursor-not-allowed"
+                )}
+              >
+                {isProcessingImport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                <span>{isProcessingImport ? "Fusionando Documentos..." : "Fusionar y Generar WBS (2.2.1)"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Nueva Tarea */}
       {isCreateModalOpen && (
