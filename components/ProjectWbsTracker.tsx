@@ -4,8 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Project } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -22,7 +23,8 @@ import {
   Loader2,
   AlertCircle,
   FolderPlus,
-  Layers
+  Layers,
+  Trash2
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,9 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   const { theme } = useTheme();
   const isLight = theme === 'light';
   const { showToast } = useToast();
+  const { userRole } = useAuth();
+
+  const isAdmin = userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'admin';
 
   const [projectData, setProjectData] = useState<any>(null);
   const [loadingData, setLoadingData] = useState<boolean>(true);
@@ -74,22 +79,19 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // Selected task SQL view
   const [activeSqlTask, setActiveSqlTask] = useState<any>(null);
 
-  // 1. CARGA COMPARTIMENTALIZADA DESDE FIRESTORE POR PROJECT.ID (Sin afectar nada más de Firestore)
+  // 1. CARGA COMPARTIMENTALIZADA DESDE FIRESTORE POR PROJECT.ID
   useEffect(() => {
     if (!project?.id) return;
 
     const loadProjectWbsData = async () => {
       setLoadingData(true);
       try {
-        // Documento aislado exclusivamente bajo el sub-path del proyecto actual
         const wbsRef = doc(db, "projects", project.id, "wbs_data", "current");
         const snap = await getDoc(wbsRef);
 
         if (snap.exists()) {
-          // Cargar los datos específicos guardados previamente para este proyecto
           setProjectData(snap.data());
         } else {
-          // Estructura vacía limpia (Sin datos de prueba genéricos para todos los proyectos)
           setProjectData({
             version: 1,
             projectId: project.id,
@@ -100,7 +102,6 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
         }
       } catch (err) {
         console.error("Error al cargar WBS de Firestore para el proyecto:", err);
-        // Fallback estructura limpia sin tareas de prueba
         setProjectData({
           version: 1,
           projectId: project.id,
@@ -145,6 +146,51 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     }, 800);
   };
 
+  // 3. ELIMINACIÓN DE WBS (Solo Administradores y con Verificación Obligatoria)
+  const handleDeleteWbs = async () => {
+    if (!isAdmin) {
+      showToast("WBS Tracker", "Acción restringida exclusivamente a usuarios administradores.", "error");
+      return;
+    }
+
+    const confirmText = window.prompt(
+      `⚠️ ATENCIÓN: Esta acción eliminará PERMANENTEMENTE el plan WBS y todas las tareas del proyecto "${project?.name}".\n\nPara confirmar la eliminación escribe "BORRAR" a continuación:`
+    );
+
+    if (confirmText !== "BORRAR") {
+      if (confirmText !== null) {
+        showToast("WBS Tracker", "Palabra de verificación incorrecta. Eliminación cancelada.", "error");
+      }
+      return;
+    }
+
+    try {
+      if (project?.id) {
+        const wbsRef = doc(db, "projects", project.id, "wbs_data", "current");
+        await deleteDoc(wbsRef);
+      }
+
+      setProjectData({
+        version: 1,
+        projectId: project?.id,
+        projectName: project?.name,
+        lastSaved: new Date().toLocaleTimeString(),
+        groups: []
+      });
+
+      setAuditEntries(prev => [
+        { taskCode: "SYSTEM-RESET", field: "Eliminación WBS", oldVal: "Plan Activo", newVal: "WBS Eliminado por Admin", time: new Date().toLocaleTimeString() },
+        ...prev
+      ]);
+
+      setSaveStatus('saved');
+      showToast("WBS Tracker", "El plan WBS del proyecto ha sido eliminado correctamente.", "success");
+    } catch (e) {
+      console.error("Error eliminando WBS:", e);
+      showToast("WBS Tracker", "Error al eliminar el plan WBS en Firestore.", "error");
+    }
+  };
+
   if (loadingData) {
     return (
       <div className={cn("p-8 flex items-center justify-center gap-3 text-xs font-semibold", isLight ? "text-zinc-600" : "text-zinc-400")}>
@@ -171,12 +217,12 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     setCollapsedGroups({});
   };
 
-  // Crear un nuevo Grupo de WBS cuando el proyecto no tiene ninguno
+  // Crear un nuevo Grupo de WBS
   const handleCreateGroup = () => {
     const groupName = window.prompt("Introduce el nombre del nuevo Grupo WBS (ej. 1.0 Planificación & Configuración):");
     if (!groupName || !groupName.trim()) return;
 
-    const groupNum = (projectData.groups.length + 1).toFixed(1);
+    const groupNum = ((projectData.groups?.length || 0) + 1).toFixed(1);
     const newGroup = {
       id: `grp-${Date.now()}`,
       code: groupNum,
@@ -209,7 +255,6 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
       const projCode = project?.code || "PROJ";
       
-      // Crear los grupos base reales desde la importación dual
       const importedGroups = [
         {
           id: `grp-imp-1-${Date.now()}`,
@@ -564,7 +609,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
         </div>
       </div>
 
-      {/* 🛠️ Toolbar: Botón Importar + Chivato de Autoguardado + Acciones */}
+      {/* 🛠️ Toolbar: Botón Importar + Chivato de Autoguardado + Botón Borrar WBS (Solo Admin) */}
       <div className={cn("flex justify-between items-center p-3 rounded-xl border flex-wrap gap-2.5 shadow-sm transition-colors", isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border")}>
         <div className="flex items-center gap-2 flex-wrap">
           
@@ -577,7 +622,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             <span>📥 Importar Fusión DDS (.docx) + Plan Excel (.xlsx)</span>
           </button>
 
-          {/* Botón Crear Grupo Vacio */}
+          {/* Botón Crear Grupo Vacío */}
           <button
             onClick={handleCreateGroup}
             className={cn("px-3 py-1.5 rounded-lg border font-semibold transition-all flex items-center gap-1.5",
@@ -587,6 +632,18 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             <FolderPlus className="w-3.5 h-3.5 text-sky-500" />
             <span>Crear Grupo WBS</span>
           </button>
+
+          {/* 🗑️ Botón Borrar WBS del Proyecto (Solo Usuarios Admin y con Confirmación "BORRAR") */}
+          {isAdmin && hasGroups && (
+            <button
+              onClick={handleDeleteWbs}
+              className="px-3 py-1.5 rounded-lg border font-semibold text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border-red-500/30 transition-all flex items-center gap-1.5"
+              title="Eliminar todo el plan WBS de este proyecto (Solo Admin)"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+              <span>Borrar WBS</span>
+            </button>
+          )}
 
           {/* Chivato Visual de Autoguardado */}
           {saveStatus === 'saved' && (
@@ -852,8 +909,8 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                   <option value="EN_CURSO">En curso</option>
                                   <option value="BLOQUEADA">Bloqueada</option>
                                   <option value="EN_VALIDACION">En validación</option>
-                                  <option value="COMPLETADA">Completada</option>
-                                  <option value="ANULADA">Anulada</option>
+                                  <option value="COMPLETADA">Completadas</option>
+                                  <option value="ANULADA">Anuladas</option>
                                 </select>
                               </td>
                               <td className="p-3 no-underline">
