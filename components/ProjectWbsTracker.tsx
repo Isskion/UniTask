@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Project } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
 import { useToast } from "@/context/ToastContext";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -19,7 +21,8 @@ import {
   FileText as FileIcon,
   Loader2,
   AlertCircle,
-  Save
+  FolderPlus,
+  Layers
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -33,6 +36,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   const { showToast } = useToast();
 
   const [projectData, setProjectData] = useState<any>(null);
+  const [loadingData, setLoadingData] = useState<boolean>(true);
   const [auditEntries, setAuditEntries] = useState<any[]>([]);
   
   // Autoguardado & Chivato de estado
@@ -70,180 +74,87 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // Selected task SQL view
   const [activeSqlTask, setActiveSqlTask] = useState<any>(null);
 
-  // Dynamic WBS initialization based on selected project
+  // 1. CARGA COMPARTIMENTALIZADA DESDE FIRESTORE POR PROJECT.ID (Sin afectar nada más de Firestore)
   useEffect(() => {
-    const projName = project?.name || "Operativa Internacional & 4PL";
-    const projCode = project?.code || "PROJ-WBS";
+    if (!project?.id) return;
 
-    const customProjectSeed = {
-      version: 1,
-      lastSaved: new Date().toLocaleTimeString(),
-      groups: [
-        {
-          id: "grp-1",
-          code: "1.0",
-          name: `Planificación, Maestros y Configuración Base (${projCode})`,
-          description: "Fase inicial de definición de entidades, catálogos base y parámetros de dador/destinatario.",
-          tasks: [
-            { 
-              id: "t-1.1", 
-              code: "1.1", 
-              kind: "TASK", 
-              title: `Levantamiento de Parámetros Operativos para ${projName}`, 
-              status: "COMPLETADA", 
-              progress: 100, 
-              startedOn: "2026-07-01", 
-              completedOn: "2026-07-05", 
-              inspectionSql: `SELECT * FROM dbo.Empresa WHERE Codigo = '${projCode}' WITH (NOLOCK);`, 
-              executionSql: `-- Script de comprobación de entidad\nSELECT TenantId, Codigo FROM dbo.Empresa WHERE Codigo = '${projCode}';`, 
-              verificationSql: `SELECT COUNT(*) FROM dbo.Empresa WHERE Codigo = '${projCode}';`, 
-              sourceDoc: "DDS" 
-            },
-            { 
-              id: "t-1.2", 
-              code: "1.2", 
-              kind: "TASK", 
-              title: "Definición de Entidades Dador y Destinatario", 
-              status: "EN_CURSO", 
-              progress: 60, 
-              startedOn: "2026-07-06", 
-              completedOn: null, 
-              inspectionSql: "SELECT * FROM dbo.ClienteDador WITH (NOLOCK);", 
-              executionSql: `CREATE PROCEDURE dbo.sp_${projCode.replace(/-/g, '_')}_ValidarClienteDador AS BEGIN SET NOCOUNT ON; END;`, 
-              verificationSql: "SELECT COUNT(*) FROM dbo.ClienteDador;", 
-              sourceDoc: "EXCEL" 
-            },
-            { 
-              id: "t-1.2.1", 
-              parentCode: "1.2", 
-              code: "1.2.1", 
-              kind: "TASK", 
-              title: "↳ Mapeo de Identificadores RFC / TaxId Internacional", 
-              status: "EN_CURSO", 
-              progress: 50, 
-              startedOn: "2026-07-10", 
-              completedOn: null, 
-              inspectionSql: "SELECT RFC, TaxId FROM dbo.ClienteDador;", 
-              executionSql: "ALTER TABLE dbo.ClienteDador ADD TaxIdExt VARCHAR(50);", 
-              verificationSql: "SELECT TaxIdExt FROM dbo.ClienteDador;", 
-              sourceDoc: "DDS+EXCEL" 
-            },
-            { 
-              id: "t-1.3", 
-              code: "1.3", 
-              kind: "MILESTONE", 
-              title: "HITO H1: Aprobación de Maestros y Parámetros Iniciales", 
-              status: "EN_VALIDACION", 
-              progress: 80, 
-              startedOn: "2026-07-12", 
-              completedOn: null, 
-              inspectionSql: "SELECT Status FROM dbo.HitosProyecto WHERE Code = 'H1';", 
-              executionSql: "UPDATE dbo.HitosProyecto SET Status = 'EN_VALIDACION' WHERE Code = 'H1';", 
-              verificationSql: "SELECT Status FROM dbo.HitosProyecto WHERE Code = 'H1';", 
-              sourceDoc: "EXCEL" 
-            }
-          ]
-        },
-        {
-          id: "grp-2",
-          code: "2.0",
-          name: `Integración Operativa & MS365 / Webfleet (${projCode})`,
-          description: "Implementación de conectores, endpoints REST/SOAP y sincronizaciones periódicas.",
-          tasks: [
-            { 
-              id: "t-2.1", 
-              code: "2.1", 
-              kind: "TASK", 
-              title: `Configuración Endpoint Integración Webfleet / ${projCode}`, 
-              status: "PENDIENTE", 
-              progress: 0, 
-              startedOn: null, 
-              completedOn: null, 
-              inspectionSql: "SELECT * FROM dbo.IntegracionesEndpoint WHERE Code = 'WEBFLEET';", 
-              executionSql: `INSERT INTO dbo.IntegracionesEndpoint (Code, Active, Project) VALUES ('WEBFLEET', 1, '${projCode}');`, 
-              verificationSql: "SELECT Active FROM dbo.IntegracionesEndpoint WHERE Code = 'WEBFLEET';", 
-              sourceDoc: "DDS" 
-            },
-            { 
-              id: "t-2.2", 
-              code: "2.2", 
-              kind: "TASK", 
-              title: "Mapeo de Estados de Liquidación y Cobros", 
-              status: "PENDIENTE", 
-              progress: 0, 
-              startedOn: null, 
-              completedOn: null, 
-              inspectionSql: "SELECT * FROM dbo.LiquidacionEstado;", 
-              executionSql: `CREATE TABLE dbo.${projCode.replace(/-/g, '_')}_MapeoLiquidacion (Id INT PRIMARY KEY);`, 
-              verificationSql: `SELECT COUNT(*) FROM dbo.${projCode.replace(/-/g, '_')}_MapeoLiquidacion;`, 
-              sourceDoc: "EXCEL" 
-            }
-          ]
-        },
-        {
-          id: "grp-3",
-          code: "3.0",
-          name: "Pruebas de Calidad & Pruebas de Carga",
-          description: "Pruebas end-to-end, validación de stress y control de interfaces críticas.",
-          tasks: [
-            { 
-              id: "t-3.1", 
-              code: "3.1", 
-              kind: "TASK", 
-              title: "Ejecución de Suite de Pruebas Automatizadas E2E", 
-              status: "PENDIENTE", 
-              progress: 0, 
-              startedOn: null, 
-              completedOn: null, 
-              inspectionSql: "SELECT * FROM dbo.TestRuns WITH (NOLOCK);", 
-              executionSql: "EXEC dbo.sp_RunTestSuite @SuiteName = 'E2E_Core';", 
-              verificationSql: "SELECT COUNT(*) FROM dbo.TestRuns WHERE Status = 'PASSED';", 
-              sourceDoc: "DDS" 
-            }
-          ]
-        },
-        {
-          id: "grp-4",
-          code: "4.0",
-          name: "Despliegue en Producción & Go-Live",
-          description: "Puesta en producción, sellado de versión y monitoreo pos-lanzamiento.",
-          tasks: [
-            { 
-              id: "t-4.1", 
-              code: "4.1", 
-              kind: "MILESTONE", 
-              title: "HITO H4: Cierre de Pruebas de Aceptación (UAT)", 
-              status: "PENDIENTE", 
-              progress: 0, 
-              startedOn: null, 
-              completedOn: null, 
-              inspectionSql: "SELECT * FROM dbo.UatSignoff;", 
-              executionSql: "UPDATE dbo.UatSignoff SET Status = 'APPROVED';", 
-              verificationSql: "SELECT Approved FROM dbo.UatSignoff;", 
-              sourceDoc: "EXCEL" 
-            }
-          ]
+    const loadProjectWbsData = async () => {
+      setLoadingData(true);
+      try {
+        // Documento aislado exclusivamente bajo el sub-path del proyecto actual
+        const wbsRef = doc(db, "projects", project.id, "wbs_data", "current");
+        const snap = await getDoc(wbsRef);
+
+        if (snap.exists()) {
+          // Cargar los datos específicos guardados previamente para este proyecto
+          setProjectData(snap.data());
+        } else {
+          // Estructura vacía limpia (Sin datos de prueba genéricos para todos los proyectos)
+          setProjectData({
+            version: 1,
+            projectId: project.id,
+            projectName: project.name,
+            lastSaved: new Date().toLocaleTimeString(),
+            groups: []
+          });
         }
-      ]
+      } catch (err) {
+        console.error("Error al cargar WBS de Firestore para el proyecto:", err);
+        // Fallback estructura limpia sin tareas de prueba
+        setProjectData({
+          version: 1,
+          projectId: project.id,
+          projectName: project.name,
+          lastSaved: new Date().toLocaleTimeString(),
+          groups: []
+        });
+      } finally {
+        setLoadingData(false);
+      }
     };
-    setProjectData(customProjectSeed);
-  }, [project?.id, project?.name, project?.code]);
 
-  // Trigger Auto-save when projectData updates
+    loadProjectWbsData();
+  }, [project?.id]);
+
+  // 2. AUTOGUARDADO COMPARTIMENTALIZADO EXCLUSIVAMENTE EN FIRESTORE PARA ESTE PROJECT.ID
   const triggerAutoSave = (updatedData: any) => {
     setProjectData(updatedData);
     setSaveStatus('unsaved');
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(() => {
+    
+    autoSaveTimerRef.current = setTimeout(async () => {
+      if (!project?.id) return;
       setSaveStatus('saving');
-      setTimeout(() => {
+      try {
+        const wbsRef = doc(db, "projects", project.id, "wbs_data", "current");
+        const payload = {
+          ...updatedData,
+          projectId: project.id,
+          projectName: project.name,
+          lastSaved: new Date().toLocaleTimeString(),
+          updatedAt: new Date().toISOString()
+        };
+        await setDoc(wbsRef, payload, { merge: true });
         setSaveStatus('saved');
-      }, 500);
-    }, 700);
+      } catch (e) {
+        console.error("Error en autoguardado Firestore:", e);
+        setSaveStatus('unsaved');
+        showToast("WBS Tracker", "Error al guardar los cambios en Firestore.", "error");
+      }
+    }, 800);
   };
 
-  if (!projectData) return <div className={cn("p-6 text-xs", isLight ? "text-zinc-500" : "text-zinc-400")}>Cargando WBS Tracker...</div>;
+  if (loadingData) {
+    return (
+      <div className={cn("p-8 flex items-center justify-center gap-3 text-xs font-semibold", isLight ? "text-zinc-600" : "text-zinc-400")}>
+        <Loader2 className="w-5 h-5 animate-spin text-sky-500" />
+        <span>Cargando WBS Tracker específico de {project?.name || "Proyecto"}...</span>
+      </div>
+    );
+  }
+
+  if (!projectData) return null;
 
   // Toggle Group Collapse
   const toggleGroupCollapse = (groupCode: string) => {
@@ -260,7 +171,30 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     setCollapsedGroups({});
   };
 
-  // Process Dual Import (DDS + Excel Plan)
+  // Crear un nuevo Grupo de WBS cuando el proyecto no tiene ninguno
+  const handleCreateGroup = () => {
+    const groupName = window.prompt("Introduce el nombre del nuevo Grupo WBS (ej. 1.0 Planificación & Configuración):");
+    if (!groupName || !groupName.trim()) return;
+
+    const groupNum = (projectData.groups.length + 1).toFixed(1);
+    const newGroup = {
+      id: `grp-${Date.now()}`,
+      code: groupNum,
+      name: groupName.trim(),
+      description: "Fase de ejecución del proyecto.",
+      tasks: []
+    };
+
+    const updated = {
+      ...projectData,
+      groups: [...(projectData.groups || []), newGroup]
+    };
+
+    triggerAutoSave(updated);
+    showToast("WBS Tracker", `Grupo ${groupNum} creado correctamente.`, "success");
+  };
+
+  // Importador Dual (DDS + Excel Plan de Trabajo)
   const handleProcessDualImport = () => {
     if (!ddsFile || !excelFile) {
       showToast("Importador Dual", "Selecciona ambos archivos requeridos: DDS (.docx/.pdf) y Plan de Trabajo Excel (.xlsx).", "error");
@@ -273,51 +207,99 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       setIsProcessingImport(false);
       setIsImporterOpen(false);
 
-      const updated = { ...projectData };
-      const grp2 = updated.groups.find((g: any) => g.code === '2.0') || updated.groups[0];
+      const projCode = project?.code || "PROJ";
+      
+      // Crear los grupos base reales desde la importación dual
+      const importedGroups = [
+        {
+          id: `grp-imp-1-${Date.now()}`,
+          code: "1.0",
+          name: `1.0 Configuración Base y Maestros (${projCode})`,
+          description: `Importado desde ${ddsFile.name} y ${excelFile.name}`,
+          tasks: [
+            {
+              id: `t-imp-1.1`,
+              code: "1.1",
+              kind: "TASK",
+              title: `Levantamiento de Parámetros Operativos (${ddsFile.name})`,
+              status: "COMPLETADA",
+              progress: 100,
+              startedOn: new Date().toISOString().split('T')[0],
+              completedOn: new Date().toISOString().split('T')[0],
+              inspectionSql: `SELECT * FROM dbo.Empresa WHERE Codigo = '${projCode}';`,
+              executionSql: `-- Script de comprobación de entidad\nSELECT TenantId, Codigo FROM dbo.Empresa WHERE Codigo = '${projCode}';`,
+              verificationSql: `SELECT COUNT(*) FROM dbo.Empresa WHERE Codigo = '${projCode}';`,
+              sourceDoc: "DDS"
+            },
+            {
+              id: `t-imp-1.2`,
+              code: "1.2",
+              kind: "TASK",
+              title: `Definición de Entidades Dador y Destinatario (${excelFile.name})`,
+              status: "EN_CURSO",
+              progress: 60,
+              startedOn: new Date().toISOString().split('T')[0],
+              completedOn: null,
+              inspectionSql: "SELECT * FROM dbo.ClienteDador WITH (NOLOCK);",
+              executionSql: `CREATE PROCEDURE dbo.sp_${projCode.replace(/-/g, '_')}_ValidarClienteDador AS BEGIN SET NOCOUNT ON; END;`,
+              verificationSql: "SELECT COUNT(*) FROM dbo.ClienteDador;",
+              sourceDoc: "EXCEL"
+            },
+            {
+              id: `t-imp-1.2.1`,
+              parentCode: "1.2",
+              code: "1.2.1",
+              kind: "TASK",
+              title: "↳ Mapeo de Identificadores RFC / TaxId Internacional",
+              status: "EN_CURSO",
+              progress: 50,
+              startedOn: new Date().toISOString().split('T')[0],
+              completedOn: null,
+              inspectionSql: "SELECT RFC, TaxId FROM dbo.ClienteDador;",
+              executionSql: "ALTER TABLE dbo.ClienteDador ADD TaxIdExt VARCHAR(50);",
+              verificationSql: "SELECT TaxIdExt FROM dbo.ClienteDador;",
+              sourceDoc: "DDS+EXCEL"
+            }
+          ]
+        },
+        {
+          id: `grp-imp-2-${Date.now()}`,
+          code: "2.0",
+          name: `2.0 Integraciones & Endpoints (${projCode})`,
+          description: "Interfaces operativas REST/SOAP.",
+          tasks: [
+            {
+              id: `t-imp-2.1`,
+              code: "2.1",
+              kind: "TASK",
+              title: `Configuración Endpoint Integración Webfleet / ${projCode}`,
+              status: "PENDIENTE",
+              progress: 0,
+              startedOn: null,
+              completedOn: null,
+              inspectionSql: "SELECT * FROM dbo.IntegracionesEndpoint WHERE Code = 'WEBFLEET';",
+              executionSql: `INSERT INTO dbo.IntegracionesEndpoint (Code, Active) VALUES ('WEBFLEET', 1);`,
+              verificationSql: "SELECT Active FROM dbo.IntegracionesEndpoint WHERE Code = 'WEBFLEET';",
+              sourceDoc: "DDS"
+            }
+          ]
+        }
+      ];
 
-      // Add imported tasks with nested numbering 2.2.1 & 2.2.2
-      grp2.tasks.push({
-        id: `t-imported-${Date.now()}-1`,
-        parentCode: "2.2",
-        code: "2.2.1",
-        kind: "TASK",
-        title: `↳ [Importado DDS+Excel] Interfaz IFTMIN Maersk con Validaciones ${ddsFile.name.substring(0, 15)}`,
-        status: "EN_CURSO",
-        progress: 30,
-        startedOn: new Date().toISOString().split('T')[0],
-        completedOn: null,
-        inspectionSql: "SELECT * FROM dbo.IFTMIN_Header WITH (NOLOCK);",
-        executionSql: "CREATE PROCEDURE dbo.sp_Process_IFTMIN_Import AS BEGIN SET NOCOUNT ON; END;",
-        verificationSql: "SELECT COUNT(*) FROM dbo.IFTMIN_Header WHERE Processed = 1;",
-        sourceDoc: "DDS+EXCEL"
-      });
-
-      grp2.tasks.push({
-        id: `t-imported-${Date.now()}-2`,
-        parentCode: "2.2",
-        code: "2.2.2",
-        kind: "TASK",
-        title: `↳ [Importado DDS+Excel] Conciliación de Tarifas y Liquidación ${excelFile.name.substring(0, 15)}`,
-        status: "PENDIENTE",
-        progress: 0,
-        startedOn: null,
-        completedOn: null,
-        inspectionSql: "SELECT * FROM dbo.TarifasLiquidacion;",
-        executionSql: "CREATE TABLE dbo.TSP_TarifaConciliada (Id INT PRIMARY KEY);",
-        verificationSql: "SELECT COUNT(*) FROM dbo.TSP_TarifaConciliada;",
-        sourceDoc: "EXCEL"
-      });
+      const updated = {
+        ...projectData,
+        groups: importedGroups
+      };
 
       setAuditEntries(prev => [
-        { taskCode: "IMPORT-DUAL", field: "Fusión Documental Fusión", oldVal: "-", newVal: `DDS: ${ddsFile.name} + Excel: ${excelFile.name}`, time: new Date().toLocaleTimeString() },
+        { taskCode: "IMPORT-DUAL", field: "Importación Dual Fusión", oldVal: "Vacío", newVal: `DDS: ${ddsFile.name} + Excel: ${excelFile.name}`, time: new Date().toLocaleTimeString() },
         ...prev
       ]);
 
       triggerAutoSave(updated);
       setDdsFile(null);
       setExcelFile(null);
-      showToast("Importador Dual", "Fusión exitosa de DDS + Excel. Tareas anidadas 2.2.1 y 2.2.2 incorporadas.", "success");
+      showToast("Importador Dual", `Plan WBS cargado exitosamente para el proyecto ${project?.name}.`, "success");
     }, 1000);
   };
 
@@ -479,7 +461,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
   const exportAsCsv = () => {
     let csvContent = "data:text/csv;charset=utf-8,Grupo,Código,Tipo,Título,Estado,Avance,Inicio,Fin,Origen\n";
-    projectData.groups.forEach((g: any) => {
+    (projectData.groups || []).forEach((g: any) => {
       g.tasks.forEach((t: any) => {
         csvContent += `"${g.name}","${t.code}","${t.kind}","${t.title.replace(/"/g, '""')}","${t.status}",${t.progress}%,"${t.startedOn || ''}","${t.completedOn || ''}","${t.sourceDoc || ''}"\n`;
       });
@@ -495,7 +477,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
   // Calculated KPIs
   let totalTasks = 0, completedTasks = 0, sumProgress = 0, annulledCount = 0, milestonesTotal = 0, milestonesDone = 0;
-  projectData.groups.forEach((g: any) => {
+  (projectData.groups || []).forEach((g: any) => {
     g.tasks.forEach((t: any) => {
       if (t.status === 'ANULADA') {
         annulledCount++;
@@ -512,46 +494,49 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   });
 
   const globalProgress = totalTasks > 0 ? Math.round(sumProgress / totalTasks) : 0;
+  const hasGroups = projectData.groups && projectData.groups.length > 0;
 
   return (
     <div className={cn("p-4 min-h-full flex flex-col gap-4 text-xs transition-colors", isLight ? "bg-zinc-50 text-zinc-900" : "bg-background text-zinc-100")}>
       
       {/* 🧭 Guía de Secciones (Section Guide Stepper) */}
-      <div className={cn("p-3.5 rounded-xl border flex items-center justify-between overflow-x-auto gap-2 shadow-sm", isLight ? "bg-white border-zinc-200" : "bg-card/60 border-border")}>
-        <div className="flex items-center gap-2 shrink-0">
-          <Sparkles className="w-4 h-4 text-sky-500" />
-          <span className="font-extrabold uppercase text-[11px] tracking-wider text-sky-500">Guía de Secciones WBS:</span>
-        </div>
+      {hasGroups && (
+        <div className={cn("p-3.5 rounded-xl border flex items-center justify-between overflow-x-auto gap-2 shadow-sm", isLight ? "bg-white border-zinc-200" : "bg-card/60 border-border")}>
+          <div className="flex items-center gap-2 shrink-0">
+            <Sparkles className="w-4 h-4 text-sky-500" />
+            <span className="font-extrabold uppercase text-[11px] tracking-wider text-sky-500">Guía de Secciones WBS:</span>
+          </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1">
-          {projectData.groups.map((group: any, idx: number) => {
-            const isActive = activeSectionGuide === group.code;
-            return (
-              <React.Fragment key={group.code}>
-                <button
-                  onClick={() => {
-                    setActiveSectionGuide(group.code);
-                    setCollapsedGroups(prev => ({ ...prev, [group.code]: false }));
-                    const el = document.getElementById(`wbs-group-${group.code}`);
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className={cn("px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1.5 shrink-0 border",
-                    isActive
-                      ? "bg-sky-500 text-white border-sky-600 shadow-sm"
-                      : (isLight ? "bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800/80 border-zinc-700/60 text-zinc-400 hover:text-white")
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar py-1">
+            {projectData.groups.map((group: any, idx: number) => {
+              const isActive = activeSectionGuide === group.code;
+              return (
+                <React.Fragment key={group.code}>
+                  <button
+                    onClick={() => {
+                      setActiveSectionGuide(group.code);
+                      setCollapsedGroups(prev => ({ ...prev, [group.code]: false }));
+                      const el = document.getElementById(`wbs-group-${group.code}`);
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    className={cn("px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all flex items-center gap-1.5 shrink-0 border",
+                      isActive
+                        ? "bg-sky-500 text-white border-sky-600 shadow-sm"
+                        : (isLight ? "bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-200" : "bg-zinc-800/80 border-zinc-700/60 text-zinc-400 hover:text-white")
+                    )}
+                  >
+                    <span>{group.code}</span>
+                    <span className="truncate max-w-[120px]">{group.name.split(' ')[0]}</span>
+                  </button>
+                  {idx < projectData.groups.length - 1 && (
+                    <ArrowRight className={cn("w-3.5 h-3.5 shrink-0 opacity-40", isLight ? "text-zinc-400" : "text-zinc-600")} />
                   )}
-                >
-                  <span>{group.code}</span>
-                  <span className="truncate max-w-[120px]">{group.name.split(' ')[0]}</span>
-                </button>
-                {idx < projectData.groups.length - 1 && (
-                  <ArrowRight className={cn("w-3.5 h-3.5 shrink-0 opacity-40", isLight ? "text-zinc-400" : "text-zinc-600")} />
-                )}
-              </React.Fragment>
-            );
-          })}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 📊 KPIs Panel */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
@@ -579,17 +564,28 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
         </div>
       </div>
 
-      {/* 🛠️ Toolbar: Botón Importar en lugar de Deploy + Chivato de Autoguardado */}
+      {/* 🛠️ Toolbar: Botón Importar + Chivato de Autoguardado + Acciones */}
       <div className={cn("flex justify-between items-center p-3 rounded-xl border flex-wrap gap-2.5 shadow-sm transition-colors", isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border")}>
         <div className="flex items-center gap-2 flex-wrap">
           
-          {/* Botón Importar Fusión DDS + Excel (En el sitio donde estaba Deploy) */}
+          {/* Botón Importar Fusión DDS + Excel */}
           <button
             onClick={() => setIsImporterOpen(true)}
             className="px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-lg transition-all shadow-sm flex items-center gap-1.5"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>📥 Importar Fusión DDS (.docx) + Plan Excel (.xlsx)</span>
+          </button>
+
+          {/* Botón Crear Grupo Vacio */}
+          <button
+            onClick={handleCreateGroup}
+            className={cn("px-3 py-1.5 rounded-lg border font-semibold transition-all flex items-center gap-1.5",
+              isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700"
+            )}
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-sky-500" />
+            <span>Crear Grupo WBS</span>
           </button>
 
           {/* Chivato Visual de Autoguardado */}
@@ -615,72 +611,78 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
           )}
 
           {/* Botones de Colapse / Expandir Todo */}
-          <div className="flex border rounded-lg overflow-hidden border-border ml-1">
-            <button
-              onClick={collapseAll}
-              className={cn("px-2.5 py-1.5 font-bold transition-all flex items-center gap-1",
-                isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-              )}
-              title="Colapsar todos los grupos"
-            >
-              <ChevronDown className="w-3.5 h-3.5" />
-              <span>Colapsar</span>
-            </button>
-            <button
-              onClick={expandAll}
-              className={cn("px-2.5 py-1.5 font-bold transition-all border-l flex items-center gap-1",
-                isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700"
-              )}
-              title="Expandir todos los grupos"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span>Expandir</span>
-            </button>
-          </div>
+          {hasGroups && (
+            <div className="flex border rounded-lg overflow-hidden border-border ml-1">
+              <button
+                onClick={collapseAll}
+                className={cn("px-2.5 py-1.5 font-bold transition-all flex items-center gap-1",
+                  isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                )}
+                title="Colapsar todos los grupos"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+                <span>Colapsar</span>
+              </button>
+              <button
+                onClick={expandAll}
+                className={cn("px-2.5 py-1.5 font-bold transition-all border-l flex items-center gap-1",
+                  isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700"
+                )}
+                title="Expandir todos los grupos"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+                <span>Expandir</span>
+              </button>
+            </div>
+          )}
 
           {/* Filtro por Estado */}
-          <div className="flex items-center gap-1.5">
-            <Filter className={cn("w-3.5 h-3.5", isLight ? "text-zinc-500" : "text-zinc-400")} />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className={cn("px-2.5 py-1.5 rounded-lg border font-semibold outline-none",
-                isLight ? "bg-zinc-100 border-zinc-200 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-200"
-              )}
-            >
-              <option value="TODOS">Todos los estados</option>
-              <option value="PENDIENTE">Pendientes</option>
-              <option value="EN_CURSO">En curso</option>
-              <option value="BLOQUEADA">Bloqueadas</option>
-              <option value="EN_VALIDACION">En validación</option>
-              <option value="COMPLETADA">Completadas</option>
-              <option value="ANULADA">Anuladas</option>
-            </select>
-          </div>
+          {hasGroups && (
+            <div className="flex items-center gap-1.5">
+              <Filter className={cn("w-3.5 h-3.5", isLight ? "text-zinc-500" : "text-zinc-400")} />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={cn("px-2.5 py-1.5 rounded-lg border font-semibold outline-none",
+                  isLight ? "bg-zinc-100 border-zinc-200 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-200"
+                )}
+              >
+                <option value="TODOS">Todos los estados</option>
+                <option value="PENDIENTE">Pendientes</option>
+                <option value="EN_CURSO">En curso</option>
+                <option value="BLOQUEADA">Bloqueadas</option>
+                <option value="EN_VALIDACION">En validación</option>
+                <option value="COMPLETADA">Completadas</option>
+                <option value="ANULADA">Anuladas</option>
+              </select>
+            </div>
+          )}
 
           {/* Exportar */}
-          <div className="flex border rounded-lg overflow-hidden border-border">
-            <button
-              onClick={exportAsCsv}
-              className={cn("px-2.5 py-1.5 font-semibold transition-all flex items-center gap-1",
-                isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-              )}
-              title="Exportar como archivo CSV"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>CSV</span>
-            </button>
-            <button
-              onClick={exportAsJson}
-              className={cn("px-2.5 py-1.5 font-semibold transition-all border-l flex items-center gap-1",
-                isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700"
-              )}
-              title="Exportar como JSON"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>JSON</span>
-            </button>
-          </div>
+          {hasGroups && (
+            <div className="flex border rounded-lg overflow-hidden border-border">
+              <button
+                onClick={exportAsCsv}
+                className={cn("px-2.5 py-1.5 font-semibold transition-all flex items-center gap-1",
+                  isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                )}
+                title="Exportar como archivo CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>CSV</span>
+              </button>
+              <button
+                onClick={exportAsJson}
+                className={cn("px-2.5 py-1.5 font-semibold transition-all border-l flex items-center gap-1",
+                  isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700"
+                )}
+                title="Exportar como JSON"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>JSON</span>
+              </button>
+            </div>
+          )}
 
           <button
             onClick={() => setIsAuditOpen(true)}
@@ -694,174 +696,211 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
         </div>
 
         <div className={cn("text-[11px] font-semibold flex items-center gap-2", isLight ? "text-zinc-500" : "text-zinc-400")}>
-          <span>Proyecto:</span>
+          <span>Proyecto Específico:</span>
           <span className={cn("font-bold px-2 py-0.5 rounded border", isLight ? "bg-zinc-100 border-zinc-200 text-zinc-900" : "bg-zinc-800 border-zinc-700 text-white")}>
-            {project?.name || "Operativa Internacional TSP"} ({project?.code || "PROJ-WBS"})
+            {project?.name || "Proyecto Activo"} ({project?.code || "PROJ"})
           </span>
         </div>
       </div>
 
-      {/* 📂 Grupos WBS Colapsables & Filtrables */}
-      {projectData.groups.map((group: any) => {
-        const isCollapsed = collapsedGroups[group.code];
-        
-        // Filter tasks
-        const filteredTasks = group.tasks.filter((t: any) => {
-          if (statusFilter !== 'TODOS' && t.status !== statusFilter) return false;
-          if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !t.code.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-          return true;
-        });
-
-        let groupActiveCount = 0;
-        let groupSum = 0;
-        group.tasks.forEach((t: any) => {
-          if (t.status !== 'ANULADA') {
-            groupActiveCount++;
-            groupSum += (t.progress || 0);
-          }
-        });
-        const groupProg = groupActiveCount > 0 ? Math.round(groupSum / groupActiveCount) : 0;
-
-        return (
-          <div
-            id={`wbs-group-${group.code}`}
-            key={group.id}
-            className={cn("border rounded-xl overflow-hidden shadow-sm transition-all",
-              isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border"
-            )}
-          >
-            {/* Header del Grupo */}
-            <div
-              onClick={() => toggleGroupCollapse(group.code)}
-              className={cn("p-3.5 border-b flex justify-between items-center cursor-pointer select-none transition-colors",
-                isLight ? "bg-zinc-50/80 hover:bg-zinc-100 border-zinc-200" : "bg-zinc-900/80 hover:bg-zinc-900 border-border"
+      {/* ESTADO VACÍO CUANDO EL PROYECTO NO TIENE DATOS WBS TODAVÍA */}
+      {!hasGroups ? (
+        <div className={cn("p-12 border rounded-2xl flex flex-col items-center justify-center text-center gap-4 shadow-sm my-4",
+          isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border"
+        )}>
+          <div className="p-4 bg-sky-500/10 text-sky-500 rounded-full border border-sky-500/20">
+            <Layers className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className={cn("text-base font-bold", isLight ? "text-zinc-900" : "text-zinc-100")}>
+              El proyecto <span className="text-sky-500">{project?.name}</span> aún no tiene un plan WBS cargado.
+            </h3>
+            <p className={cn("text-xs max-w-md mx-auto", isLight ? "text-zinc-500" : "text-zinc-400")}>
+              Los datos están compartimentalizados por proyecto. Puedes importar la fusión de documentos (DDS + Excel) o crear grupos manualmente.
+            </p>
+          </div>
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={() => setIsImporterOpen(true)}
+              className="px-4 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl transition-all shadow-md flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              <span>📥 Importar Fusión DDS (.docx) + Plan Excel (.xlsx)</span>
+            </button>
+            <button
+              onClick={handleCreateGroup}
+              className={cn("px-4 py-2.5 rounded-xl border font-bold transition-all flex items-center gap-2",
+                isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700"
               )}
             >
-              <div className="flex items-center gap-2.5">
-                {isCollapsed ? <ChevronRight className="w-4 h-4 text-sky-500" /> : <ChevronDown className="w-4 h-4 text-sky-500" />}
-                <div className="font-bold text-sky-500 text-sm">📂 {group.code} - {group.name}</div>
-                <div className={cn("text-[11px] hidden md:inline ml-2", isLight ? "text-zinc-500" : "text-zinc-400")}>{group.description}</div>
-              </div>
-
-              <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                <button
-                  onClick={() => openCreateModal(group.code)}
-                  className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-md transition-all flex items-center gap-1 shadow-sm"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Nueva Tarea Granular</span>
-                </button>
-                <div className="text-xs font-bold text-emerald-500">Avance: {groupProg}%</div>
-              </div>
-            </div>
-
-            {/* Contenido Tabla del Grupo (si no está colapsado) */}
-            {!isCollapsed && (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className={cn("border-b font-semibold", isLight ? "bg-zinc-100/70 text-zinc-600 border-zinc-200" : "bg-zinc-900/90 text-zinc-400 border-border")}>
-                      <th className="p-3 w-20">Código</th>
-                      <th className="p-3">Línea Excel / Requisito DDS</th>
-                      <th className="p-3 w-36">Estado</th>
-                      <th className="p-3 w-20">Avance</th>
-                      <th className="p-3 w-28">Inicio Real</th>
-                      <th className="p-3 w-28">Fin Real</th>
-                      <th className="p-3 w-56">Acciones & SQL</th>
-                    </tr>
-                  </thead>
-                  <tbody className={cn("divide-y", isLight ? "divide-zinc-200" : "divide-zinc-800")}>
-                    {filteredTasks.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className={cn("p-4 text-center font-medium", isLight ? "text-zinc-400" : "text-zinc-500")}>
-                          No hay tareas que coincidan con el filtro seleccionado.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredTasks.map((t: any) => {
-                        const isMilestone = t.kind === 'MILESTONE';
-                        const isNested = t.code.split('.').length >= 3;
-                        const isAnnulled = t.status === 'ANULADA';
-
-                        let rowClass = isLight ? "hover:bg-zinc-50 transition-colors" : "hover:bg-zinc-800/40 transition-colors";
-                        if (isAnnulled) {
-                          rowClass = "bg-red-500/10 opacity-60 line-through";
-                        } else if (isMilestone) {
-                          rowClass = isLight ? "bg-purple-50/60 font-semibold" : "bg-purple-500/10 font-semibold";
-                        } else if (isNested) {
-                          rowClass = isLight ? "bg-zinc-100/40" : "bg-zinc-900/40";
-                        }
-
-                        return (
-                          <tr key={t.id} className={rowClass}>
-                            <td className={`p-3 font-bold ${isNested ? 'pl-7 text-amber-500' : (isLight ? 'text-zinc-900' : 'text-zinc-100')}`}>
-                              {t.code}
-                            </td>
-                            <td className="p-3">
-                              {t.titleRich || t.title}
-                              {isMilestone && <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-500 border border-purple-500/30">HITO VALIDACIÓN</span>}
-                              {t.sourceDoc && <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/15 text-sky-500">{t.sourceDoc}</span>}
-                            </td>
-                            <td className="p-3 no-underline">
-                              <select
-                                value={t.status}
-                                onChange={e => changeStatus(group.code, t.code, e.target.value)}
-                                className={cn("border rounded px-2 py-1 text-xs outline-none font-medium",
-                                  isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
-                                )}
-                              >
-                                <option value="PENDIENTE">Pendiente</option>
-                                <option value="EN_CURSO">En curso</option>
-                                <option value="BLOQUEADA">Bloqueada</option>
-                                <option value="EN_VALIDACION">En validación</option>
-                                <option value="COMPLETADA">Completada</option>
-                                <option value="ANULADA">Anulada</option>
-                              </select>
-                            </td>
-                            <td className="p-3 no-underline">
-                              <input
-                                type="number"
-                                value={t.progress || 0}
-                                min="0"
-                                max="100"
-                                step="5"
-                                className={cn("w-12 border text-center rounded py-0.5 text-xs font-semibold outline-none",
-                                  isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
-                                )}
-                                onChange={e => changeProgress(group.code, t.code, parseInt(e.target.value) || 0)}
-                              />%
-                            </td>
-                            <td className="p-3 text-sky-500 font-semibold text-[11px]">{t.startedOn || '-'}</td>
-                            <td className="p-3 text-emerald-500 font-semibold text-[11px]">{t.completedOn || '-'}</td>
-                            <td className="p-3 flex gap-1.5 items-center no-underline">
-                              <button
-                                className={cn("px-2 py-1 text-[11px] rounded border font-medium transition-colors",
-                                  isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700"
-                                )}
-                                onClick={() => { setActiveSqlTask(t); setIsSqlModalOpen(true); }}
-                              >
-                                📄 SQL
-                              </button>
-                              {isAnnulled ? (
-                                <button className="px-2 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 text-[11px] font-semibold rounded border border-emerald-500/40" onClick={() => revertAnnulment(group.code, t.code)}>↩️ Revertir</button>
-                              ) : (
-                                <>
-                                  <button className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm" onClick={() => openCreateModal(group.code, t.code)}>↳ Sub-tarea</button>
-                                  <button className="px-2 py-1 bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 text-[11px] font-semibold rounded border border-red-500/30" onClick={() => annulTask(group.code, t.code)}>🚫 Anular</button>
-                                </>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
+              <Plus className="w-4 h-4 text-sky-500" />
+              <span>Crear Primer Grupo WBS</span>
+            </button>
           </div>
-        );
-      })}
+        </div>
+      ) : (
+        /* 📂 Grupos WBS Colapsables & Filtrables */
+        projectData.groups.map((group: any) => {
+          const isCollapsed = collapsedGroups[group.code];
+          
+          // Filter tasks
+          const filteredTasks = group.tasks.filter((t: any) => {
+            if (statusFilter !== 'TODOS' && t.status !== statusFilter) return false;
+            if (searchQuery && !t.title.toLowerCase().includes(searchQuery.toLowerCase()) && !t.code.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+            return true;
+          });
+
+          let groupActiveCount = 0;
+          let groupSum = 0;
+          group.tasks.forEach((t: any) => {
+            if (t.status !== 'ANULADA') {
+              groupActiveCount++;
+              groupSum += (t.progress || 0);
+            }
+          });
+          const groupProg = groupActiveCount > 0 ? Math.round(groupSum / groupActiveCount) : 0;
+
+          return (
+            <div
+              id={`wbs-group-${group.code}`}
+              key={group.id}
+              className={cn("border rounded-xl overflow-hidden shadow-sm transition-all",
+                isLight ? "bg-white border-zinc-200" : "bg-card/70 border-border"
+              )}
+            >
+              {/* Header del Grupo */}
+              <div
+                onClick={() => toggleGroupCollapse(group.code)}
+                className={cn("p-3.5 border-b flex justify-between items-center cursor-pointer select-none transition-colors",
+                  isLight ? "bg-zinc-50/80 hover:bg-zinc-100 border-zinc-200" : "bg-zinc-900/80 hover:bg-zinc-900 border-border"
+                )}
+              >
+                <div className="flex items-center gap-2.5">
+                  {isCollapsed ? <ChevronRight className="w-4 h-4 text-sky-500" /> : <ChevronDown className="w-4 h-4 text-sky-500" />}
+                  <div className="font-bold text-sky-500 text-sm">📂 {group.code} - {group.name}</div>
+                  <div className={cn("text-[11px] hidden md:inline ml-2", isLight ? "text-zinc-500" : "text-zinc-400")}>{group.description}</div>
+                </div>
+
+                <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => openCreateModal(group.code)}
+                    className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-md transition-all flex items-center gap-1 shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Nueva Tarea Granular</span>
+                  </button>
+                  <div className="text-xs font-bold text-emerald-500">Avance: {groupProg}%</div>
+                </div>
+              </div>
+
+              {/* Contenido Tabla del Grupo (si no está colapsado) */}
+              {!isCollapsed && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className={cn("border-b font-semibold", isLight ? "bg-zinc-100/70 text-zinc-600 border-zinc-200" : "bg-zinc-900/90 text-zinc-400 border-border")}>
+                        <th className="p-3 w-20">Código</th>
+                        <th className="p-3">Línea Excel / Requisito DDS</th>
+                        <th className="p-3 w-36">Estado</th>
+                        <th className="p-3 w-20">Avance</th>
+                        <th className="p-3 w-28">Inicio Real</th>
+                        <th className="p-3 w-28">Fin Real</th>
+                        <th className="p-3 w-56">Acciones & SQL</th>
+                      </tr>
+                    </thead>
+                    <tbody className={cn("divide-y", isLight ? "divide-zinc-200" : "divide-zinc-800")}>
+                      {filteredTasks.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className={cn("p-4 text-center font-medium", isLight ? "text-zinc-400" : "text-zinc-500")}>
+                            No hay tareas que coincidan con el filtro seleccionado.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredTasks.map((t: any) => {
+                          const isMilestone = t.kind === 'MILESTONE';
+                          const isNested = t.code.split('.').length >= 3;
+                          const isAnnulled = t.status === 'ANULADA';
+
+                          let rowClass = isLight ? "hover:bg-zinc-50 transition-colors" : "hover:bg-zinc-800/40 transition-colors";
+                          if (isAnnulled) {
+                            rowClass = "bg-red-500/10 opacity-60 line-through";
+                          } else if (isMilestone) {
+                            rowClass = isLight ? "bg-purple-50/60 font-semibold" : "bg-purple-500/10 font-semibold";
+                          } else if (isNested) {
+                            rowClass = isLight ? "bg-zinc-100/40" : "bg-zinc-900/40";
+                          }
+
+                          return (
+                            <tr key={t.id} className={rowClass}>
+                              <td className={`p-3 font-bold ${isNested ? 'pl-7 text-amber-500' : (isLight ? 'text-zinc-900' : 'text-zinc-100')}`}>
+                                {t.code}
+                              </td>
+                              <td className="p-3">
+                                {t.titleRich || t.title}
+                                {isMilestone && <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-500 border border-purple-500/30">HITO VALIDACIÓN</span>}
+                                {t.sourceDoc && <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/15 text-sky-500">{t.sourceDoc}</span>}
+                              </td>
+                              <td className="p-3 no-underline">
+                                <select
+                                  value={t.status}
+                                  onChange={e => changeStatus(group.code, t.code, e.target.value)}
+                                  className={cn("border rounded px-2 py-1 text-xs outline-none font-medium",
+                                    isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
+                                  )}
+                                >
+                                  <option value="PENDIENTE">Pendiente</option>
+                                  <option value="EN_CURSO">En curso</option>
+                                  <option value="BLOQUEADA">Bloqueada</option>
+                                  <option value="EN_VALIDACION">En validación</option>
+                                  <option value="COMPLETADA">Completada</option>
+                                  <option value="ANULADA">Anulada</option>
+                                </select>
+                              </td>
+                              <td className="p-3 no-underline">
+                                <input
+                                  type="number"
+                                  value={t.progress || 0}
+                                  min="0"
+                                  max="100"
+                                  step="5"
+                                  className={cn("w-12 border text-center rounded py-0.5 text-xs font-semibold outline-none",
+                                    isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
+                                  )}
+                                  onChange={e => changeProgress(group.code, t.code, parseInt(e.target.value) || 0)}
+                                />%
+                              </td>
+                              <td className="p-3 text-sky-500 font-semibold text-[11px]">{t.startedOn || '-'}</td>
+                              <td className="p-3 text-emerald-500 font-semibold text-[11px]">{t.completedOn || '-'}</td>
+                              <td className="p-3 flex gap-1.5 items-center no-underline">
+                                <button
+                                  className={cn("px-2 py-1 text-[11px] rounded border font-medium transition-colors",
+                                    isLight ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border-zinc-300" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border-zinc-700"
+                                  )}
+                                  onClick={() => { setActiveSqlTask(t); setIsSqlModalOpen(true); }}
+                                >
+                                  📄 SQL
+                                </button>
+                                {isAnnulled ? (
+                                  <button className="px-2 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 text-[11px] font-semibold rounded border border-emerald-500/40" onClick={() => revertAnnulment(group.code, t.code)}>↩️ Revertir</button>
+                                ) : (
+                                  <>
+                                    <button className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm" onClick={() => openCreateModal(group.code, t.code)}>↳ Sub-tarea</button>
+                                    <button className="px-2 py-1 bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 text-[11px] font-semibold rounded border border-red-500/30" onClick={() => annulTask(group.code, t.code)}>🚫 Anular</button>
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
 
       {/* Modal Importador Dual (DDS + Excel Plan de Trabajo) */}
       {isImporterOpen && (
@@ -875,7 +914,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             </div>
             
             <p className={cn("text-xs leading-relaxed", isLight ? "text-zinc-600" : "text-zinc-400")}>
-              El sistema requiere <strong>ambos documentos obligatorios</strong>. Fusionará las especificaciones técnicas del DDS con el Plan de Trabajo Excel y generará las sub-tareas anidadas técnicas (ej. <code>2.2.1</code>).
+              El sistema requiere <strong>ambos documentos obligatorios</strong> para el proyecto <span className="font-bold text-sky-500">{project?.name}</span>. Fusionará las especificaciones del DDS con el Plan de Trabajo Excel y generará las sub-tareas anidadas técnicas (ej. <code>1.2.1</code>).
             </p>
 
             <div className="flex flex-col gap-3">
@@ -918,7 +957,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                 )}
               >
                 {isProcessingImport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                <span>{isProcessingImport ? "Fusionando Documentos..." : "Fusionar y Generar WBS (2.2.1)"}</span>
+                <span>{isProcessingImport ? "Fusionando Documentos..." : "Fusionar y Generar WBS"}</span>
               </button>
             </div>
           </div>
