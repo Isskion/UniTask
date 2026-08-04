@@ -816,6 +816,32 @@
     "syncId": 1775652344985
   },
   {
+    "id": "h47EwHYlEERO3iW7JqZLW9NIIsL2",
+    "uid": "h47EwHYlEERO3iW7JqZLW9NIIsL2",
+    "email": "anabella@360group.com.es",
+    "displayName": "Anabella Brusciano",
+    "role": "global_pm",
+    "roleLevel": 60,
+    "tenantId": "19",
+    "assignedProjectIds": [
+      "uvUqRe8jcq0TtSywFf5P"
+    ],
+    "isActive": true,
+    "createdAt": {
+      "_seconds": 1785863318,
+      "_nanoseconds": 465000000
+    },
+    "lastLogin": {
+      "_seconds": 1785863318,
+      "_nanoseconds": 465000000
+    },
+    "updatedAt": {
+      "_seconds": 1785863318,
+      "_nanoseconds": 465000000
+    },
+    "syncId": 1785863320136
+  },
+  {
     "id": "hWXayiILtLPRzXnn27pIrB1mHTZ2",
     "photoURL": "",
     "uid": "hWXayiILtLPRzXnn27pIrB1mHTZ2",

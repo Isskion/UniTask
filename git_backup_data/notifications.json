@@ -149,12 +149,12 @@
     "title": "Overdue Task",
     "message": "Your task LUI-9 - \"LS debe definir como se asignan los recursos en fleet para definir la lista final.\" has reached its deadline.",
     "taskId": "kgZ8yA5ylIVmBGnnrXOy",
-    "read": false,
     "link": "/?view=task-manager&taskId=kgZ8yA5ylIVmBGnnrXOy",
     "createdAt": {
       "_seconds": 1785741519,
       "_nanoseconds": 466000000
-    }
+    },
+    "read": true
   },
   {
     "id": "2iA6GKvlyWoWuG16Nzao",
@@ -1837,12 +1837,12 @@
     "title": "Overdue Task",
     "message": "Your task DEL-25 - \"Retornables\" has reached its deadline.",
     "taskId": "uuLnfauOLa053rF0fwHf",
-    "read": false,
     "link": "/?view=task-manager&taskId=uuLnfauOLa053rF0fwHf",
     "createdAt": {
       "_seconds": 1785741520,
       "_nanoseconds": 159000000
-    }
+    },
+    "read": true
   },
   {
     "id": "hdbdtyRKh7B7VzRScSxF",
@@ -2205,12 +2205,12 @@
     "title": "Overdue Task",
     "message": "Your task DEL-24 - \"Gestión de cobranza\" has reached its deadline.",
     "taskId": "yEmL3lxtNhmt6abjlja0",
-    "read": false,
     "link": "/?view=task-manager&taskId=yEmL3lxtNhmt6abjlja0",
     "createdAt": {
       "_seconds": 1785741520,
       "_nanoseconds": 411000000
-    }
+    },
+    "read": true
   },
   {
     "id": "nFbkSJa3hhyLDsNegsE6",

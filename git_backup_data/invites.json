@@ -303,7 +303,6 @@
     "id": "LK5VHCQF",
     "code": "LK5VHCQF",
     "createdBy": "oKy3FUOaKtO2jCDJ75UBmFI0U2I3",
-    "isUsed": false,
     "isActive": true,
     "tenantId": "19",
     "role": "global_pm",
@@ -313,7 +312,13 @@
     "createdAt": {
       "_seconds": 1785836393,
       "_nanoseconds": 118000000
-    }
+    },
+    "usedAt": {
+      "_seconds": 1785863318,
+      "_nanoseconds": 465000000
+    },
+    "isUsed": true,
+    "usedBy": "h47EwHYlEERO3iW7JqZLW9NIIsL2"
   },
   {
     "id": "MEX9DY5M",
