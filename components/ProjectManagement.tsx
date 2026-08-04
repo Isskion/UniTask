@@ -23,6 +23,8 @@ import { ProjectInterfaces } from "./ProjectInterfaces";
 import { ProjectConnections } from "./ProjectConnections";
 import ProjectMoscow from "./ProjectMoscow";
 import ProjectBudgetEditor from "./ProjectBudgetEditor";
+import { ProjectWbsTracker } from "./ProjectWbsTracker";
+
 
 export default function ProjectManagement({ autoFocusCreate = false }: { autoFocusCreate?: boolean }) {
     const { userRole, user, tenantId } = useAuth();
@@ -41,7 +43,8 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
 
     // Selection state
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-    const [userTab, setUserTab] = useState<'connections' | 'feed' | 'settings' | 'documents' | 'interfaces' | 'moscow'> ('feed');
+    const [userTab, setUserTab] = useState<'connections' | 'feed' | 'settings' | 'documents' | 'interfaces' | 'moscow' | 'wbs'> ('feed');
+
     const feedRef = useRef<any>(null); // Use 'any' temporarily or import the type if exported
 
     // Editing/Creation state
@@ -503,9 +506,20 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                                 {/* VIEWS & ACTIONS CAROUSEL */}
                                 {!isNew && (
                                     <div className={cn("flex bg-muted/20 p-1 rounded-full border overflow-x-auto hide-scrollbar max-w-[50vw] sm:max-w-[60vw] md:max-w-max", isLight ? "border-zinc-200" : "border-white/10")}>
+                                        <button
+                                            onClick={() => setUserTab('wbs')}
+                                            className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
+                                                userTab === 'wbs'
+                                                    ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
+                                                    : "text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            📊 WBS Tracker
+                                        </button>
                                         {can('viewTechnicalInfo', 'special') && (
                                             <button
                                                 onClick={() => setUserTab('connections')}
+
                                                 className={cn("px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0",
                                                     userTab === 'connections'
                                                         ? (isLight ? "bg-white shadow text-zinc-900" : "bg-zinc-800 text-white")
@@ -627,10 +641,16 @@ export default function ProjectManagement({ autoFocusCreate = false }: { autoFoc
                         {/* Content Area */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar relative bg-background">
 
+                            {/* VIEW 0: WBS TRACKER */}
+                            {userTab === 'wbs' && !isNew && (
+                                <ProjectWbsTracker project={selectedProject} />
+                            )}
+
                             {/* VIEW 0: CONNECTIONS */}
                             {userTab === 'connections' && !isNew && (
                                 <ProjectConnections project={selectedProject} />
                             )}
+
 
                             {/* VIEW 1: JOURNAL / FEED */}
                             {userTab === 'feed' && !isNew && (
