@@ -5012,6 +5012,32 @@
     "updatedAt": "2026-08-03T18:01:06.045Z"
   },
   {
+    "id": "3_2026-08-05",
+    "date": "2026-08-05",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "SPAR",
+        "projectId": "WcF8wTccm1LkaFBfWvug",
+        "pmNotes": "Prioridades revisadas en el día de hoy 05-08\nCerrar en la reunión técnica de esta tarde con Paula y Felipe el último bloque de datos a enviar por interfaz 4 de paradaItem + cualquier otra duda que bloquee el avance de IT SPAR\nEnviar a Erwin la guía con la configuración de app mobile vía QR para pruebas internas y luego coordinar con él una reunión de revisión de dudas cuando lo indiquen (Unigis)\nCoordinar reunión para mañana jueves 06-08 con Jesús para destrabar confirmación de viajes y cargas + pruebas de facturación (Unigis)\nCompilar la lista de temas en curso con estados y próximos pasos para seguimiento semanal y compartir por SharePoint (Diego)\nParticipar de la reunión por Deca de esta tarde para confirmar fechas solicitadas por Erwin y Marco (diego)\nCompletar y enviar documento de interfaces actualizado al cliente (Unigis)\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Prioridades revisadas en el día de hoy 05-08\nCerrar en la reunión técnica de esta tarde con Paula y Felipe el último bloque de datos a enviar por interfaz 4 de paradaItem + cualquier otra duda que bloquee el avance de IT SPAR\nEnviar a Erwin la guía con la configuración de app mobile vía QR para pruebas internas y luego coordinar con él una reunión de revisión de dudas cuando lo indiquen (Unigis)\nCoordinar reunión para mañana jueves 06-08 con Jesús para destrabar confirmación de viajes y cargas + pruebas de facturación (Unigis)\nCompilar la lista de temas en curso con estados y próximos pasos para seguimiento semanal y compartir por SharePoint (Diego)\nParticipar de la reunión por Deca de esta tarde para confirmar fechas solicitadas por Erwin y Marco (diego)\nCompletar y enviar documento de interfaces actualizado al cliente (Unigis)\n ",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-08-05T10:32:04.417Z",
+    "updatedAt": "2026-08-05T10:32:15.081Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
