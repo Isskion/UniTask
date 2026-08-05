@@ -62,8 +62,8 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
 
-  // Importer Form States
-  const [ddsFile, setDdsFile] = useState<File | null>(null);
+  // Importer Form States (Admite Múltiples DDS por Operaciones)
+  const [ddsFiles, setDdsFiles] = useState<File[]>([]);
   const [excelFile, setExcelFile] = useState<File | null>(null);
   const [isProcessingImport, setIsProcessingImport] = useState(false);
 
@@ -242,10 +242,10 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     showToast("WBS Tracker", `Grupo ${groupNum} creado correctamente.`, "success");
   };
 
-  // 4. PARSER DINÁMICO DE ARCHIVOS EXCEL (HITOS) + DDS (ESPECIFICACIONES TÉCNICAS & SQL)
+  // 4. PARSER DINÁMICO DE ARCHIVOS EXCEL (HITOS) + MÚLTIPLES DDS POR OPERACIONES (ESPECIFICACIONES TÉCNICAS & SQL)
   const handleProcessDualImport = async () => {
-    if (!ddsFile || !excelFile) {
-      showToast("Importador Dual", "Selecciona ambos archivos requeridos: DDS (.docx/.pdf) y Plan de Trabajo Excel (.xlsx).", "error");
+    if (ddsFiles.length === 0 || !excelFile) {
+      showToast("Importador Dual", "Selecciona al menos un archivo DDS (.docx/.pdf) y el Plan de Trabajo Excel (.xlsx).", "error");
       return;
     }
 
@@ -333,15 +333,18 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       });
 
       // -------------------------------------------------------------
-      // PASO 2: LECTURA DINÁMICA DEL DOCUMENTO DDS (.docx / .pdf / .txt)
+      // PASO 2: LECTURA DINÁMICA DE MÚLTIPLES DOCUMENTOS DDS (.docx / .pdf / .txt)
       // -------------------------------------------------------------
       let ddsText = "";
-      if (ddsFile.name.toLowerCase().endsWith('.docx')) {
-        const ddsBuffer = await ddsFile.arrayBuffer();
-        const extracted = await mammoth.extractRawText({ arrayBuffer: ddsBuffer });
-        ddsText = extracted.value || "";
-      } else {
-        ddsText = await ddsFile.text();
+      for (const dFile of ddsFiles) {
+        if (dFile.name.toLowerCase().endsWith('.docx')) {
+          const ddsBuffer = await dFile.arrayBuffer();
+          const extracted = await mammoth.extractRawText({ arrayBuffer: ddsBuffer });
+          ddsText += `\n=== DDS: ${dFile.name} ===\n` + (extracted.value || "");
+        } else {
+          const txt = await dFile.text();
+          ddsText += `\n=== DDS: ${dFile.name} ===\n` + txt;
+        }
       }
 
       // -------------------------------------------------------------
@@ -536,17 +539,17 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       };
 
       setAuditEntries(prev => [
-        { taskCode: "IMPORT-DUAL", field: "Extracción Dinámica Hitos Excel + DDS SQL", oldVal: "Vacío", newVal: `DDS: ${ddsFile.name} (${ddsText.length} bytes) + Excel: ${excelFile.name} (${parsedGroups.length} Hitos)`, time: new Date().toLocaleTimeString() },
+        { taskCode: "IMPORT-DUAL", field: "Extracción Dinámica Hitos Excel + Múltiples DDS", oldVal: "Vacío", newVal: `DDS (${ddsFiles.length} archivos: ${ddsFiles.map(f => f.name).join(', ')}) + Excel: ${excelFile.name} (${parsedGroups.length} Hitos)`, time: new Date().toLocaleTimeString() },
         ...prev
       ]);
 
       triggerAutoSave(updated);
-      setDdsFile(null);
+      setDdsFiles([]);
       setExcelFile(null);
       setIsProcessingImport(false);
       setIsImporterOpen(false);
 
-      showToast("Importador Dual", `Extracción dinámica completada: ${parsedGroups.length} Hitos extraídos de Excel con tareas DDS/SQL para ${projName}.`, "success");
+      showToast("Importador Dual", `Extracción dinámica completada: ${parsedGroups.length} Hitos extraídos de Excel con ${ddsFiles.length} documento(s) DDS fusionados para ${projName}.`, "success");
     } catch (err) {
       console.error("Error extrayendo archivos en cliente:", err);
       setIsProcessingImport(false);
@@ -1182,16 +1185,20 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
-                <label className="font-bold text-[11px]">1. Documento de Diseño de Solución DDS (.docx / .pdf):</label>
+                <label className="font-bold text-[11px]">1. Documentos de Diseño de Solución DDS (.docx / .pdf - Múltiples Archivos):</label>
                 <div className={cn("border border-dashed rounded-xl p-3 flex items-center justify-between cursor-pointer",
                   isLight ? "border-zinc-300 bg-zinc-50 hover:bg-zinc-100" : "border-zinc-700 bg-zinc-950 hover:bg-zinc-900"
                 )}>
-                  <div className="flex items-center gap-2">
-                    <FileIcon className="w-4 h-4 text-sky-500" />
-                    <span className="text-xs truncate max-w-[280px]">{ddsFile ? ddsFile.name : "Seleccionar archivo DDS..."}</span>
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileIcon className="w-4 h-4 text-sky-500 shrink-0" />
+                    <span className="text-xs truncate max-w-[280px]">
+                      {ddsFiles.length > 0
+                        ? `${ddsFiles.length} archivo(s) DDS seleccionados: ${ddsFiles.map(f => f.name).join(', ')}`
+                        : "Seleccionar uno o varios archivos DDS por Operaciones..."}
+                    </span>
                   </div>
-                  <input type="file" accept=".docx,.pdf,.txt" className="hidden" id="dds-input" onChange={(e) => setDdsFile(e.target.files?.[0] || null)} />
-                  <label htmlFor="dds-input" className="px-3 py-1 bg-sky-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-sky-600">Examinar</label>
+                  <input type="file" accept=".docx,.pdf,.txt" multiple className="hidden" id="dds-input" onChange={(e) => setDdsFiles(Array.from(e.target.files || []))} />
+                  <label htmlFor="dds-input" className="px-3 py-1 bg-sky-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-sky-600 shrink-0">Examinar</label>
                 </div>
               </div>
 
@@ -1200,12 +1207,12 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                 <div className={cn("border border-dashed rounded-xl p-3 flex items-center justify-between cursor-pointer",
                   isLight ? "border-zinc-300 bg-zinc-50 hover:bg-zinc-100" : "border-zinc-700 bg-zinc-950 hover:bg-zinc-900"
                 )}>
-                  <div className="flex items-center gap-2">
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-500 shrink-0" />
                     <span className="text-xs truncate max-w-[280px]">{excelFile ? excelFile.name : "Seleccionar Excel de Hitos..."}</span>
                   </div>
                   <input type="file" accept=".xlsx" className="hidden" id="excel-input" onChange={(e) => setExcelFile(e.target.files?.[0] || null)} />
-                  <label htmlFor="excel-input" className="px-3 py-1 bg-emerald-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-600">Examinar</label>
+                  <label htmlFor="excel-input" className="px-3 py-1 bg-emerald-500 text-white font-bold rounded text-xs cursor-pointer hover:bg-emerald-600 shrink-0">Examinar</label>
                 </div>
               </div>
             </div>
@@ -1214,13 +1221,13 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
               <button className={cn("px-4 py-2 rounded text-xs font-semibold", isLight ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-800" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200")} onClick={() => setIsImporterOpen(false)}>Cancelar</button>
               <button
                 onClick={handleProcessDualImport}
-                disabled={isProcessingImport || !ddsFile || !excelFile}
+                disabled={isProcessingImport || ddsFiles.length === 0 || !excelFile}
                 className={cn("px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded text-xs shadow-sm flex items-center gap-1.5",
-                  (isProcessingImport || !ddsFile || !excelFile) && "opacity-50 cursor-not-allowed"
+                  (isProcessingImport || ddsFiles.length === 0 || !excelFile) && "opacity-50 cursor-not-allowed"
                 )}
               >
                 {isProcessingImport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                <span>{isProcessingImport ? "Extrayendo Hitos y SQL Dinámicamente..." : "PROCESAR EXCEL & DDS DINÁMICAMENTE"}</span>
+                <span>{isProcessingImport ? "Extrayendo Hitos y DDS Dinámicamente..." : "PROCESAR EXCEL & MÚLTIPLES DDS"}</span>
               </button>
             </div>
           </div>
