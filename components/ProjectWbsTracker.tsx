@@ -422,14 +422,38 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     }
   };
 
-  // Función para asociar manualmente una tarea DDS pendiente a una entrada del Excel
+  // Función para asociar o mover una tarea DDS a una entrada del Excel
   const handleAssignDdsTaskToExcel = (ddsTaskId: string, targetGroupCode: string, targetTaskCode: string) => {
     const updated = { ...projectData };
-    const ddsIndex = (updated.unassignedDdsTasks || []).findIndex((t: any) => t.id === ddsTaskId);
 
-    if (ddsIndex !== -1) {
-      const ddsTask = updated.unassignedDdsTasks[ddsIndex];
+    let ddsTask: any = null;
 
+    // 1. Buscar si la tarea proviene de las pendientes (unassignedDdsTasks)
+    const unassignedIdx = (updated.unassignedDdsTasks || []).findIndex((t: any) => t.id === ddsTaskId);
+    if (unassignedIdx !== -1) {
+      ddsTask = updated.unassignedDdsTasks[unassignedIdx];
+      updated.unassignedDdsTasks.splice(unassignedIdx, 1);
+    } else {
+      // 2. Buscar si la tarea ya estaba vinculada a otra entrada del Excel (operación de mover)
+      for (const g of updated.groups) {
+        for (const t of g.tasks) {
+          if (t.linkedDdsTasks) {
+            const subIdx = t.linkedDdsTasks.findIndex((s: any) => s.id === ddsTaskId);
+            if (subIdx !== -1) {
+              [ddsTask] = t.linkedDdsTasks.splice(subIdx, 1);
+              if (t.linkedDdsTasks.length === 0) t.sourceDoc = "EXCEL";
+              // Recalcular el progreso de la tarea de origen anterior
+              const sum = t.linkedDdsTasks.reduce((acc: number, s: any) => acc + (s.progress || 0), 0);
+              t.progress = t.linkedDdsTasks.length > 0 ? Math.round(sum / t.linkedDdsTasks.length) : 0;
+              break;
+            }
+          }
+        }
+        if (ddsTask) break;
+      }
+    }
+
+    if (ddsTask) {
       const targetGroup = updated.groups.find((g: any) => g.code === targetGroupCode);
       const targetTask = targetGroup?.tasks.find((t: any) => t.code === targetTaskCode);
 
@@ -439,23 +463,26 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
           id: ddsTask.id || `dds-link-${Date.now()}`,
           docName: ddsTask.docName,
           title: ddsTask.title,
-          status: 'PENDIENTE',
-          progress: 0,
-          startedOn: null,
-          completedOn: null,
+          status: ddsTask.status || 'PENDIENTE',
+          progress: ddsTask.progress || 0,
+          startedOn: ddsTask.startedOn || null,
+          completedOn: ddsTask.completedOn || null,
           inspectionSql: ddsTask.inspectionSql || "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
           executionSql: ddsTask.executionSql || `-- Especificación DDS (${ddsTask.docName}):\n-- ${ddsTask.title}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`,
           verificationSql: ddsTask.verificationSql || "SELECT COUNT(*) FROM dbo.Tabla;"
         });
 
         targetTask.sourceDoc = "DDS+EXCEL";
-        updated.unassignedDdsTasks.splice(ddsIndex, 1);
 
-        // Desplegar automáticamente la entrada Excel para ver de inmediato la sub-tarea DDS vinculada
+        // Recalcular el progreso de la nueva tarea destino
+        const targetSum = targetTask.linkedDdsTasks.reduce((acc: number, s: any) => acc + (s.progress || 0), 0);
+        targetTask.progress = Math.round(targetSum / targetTask.linkedDdsTasks.length);
+
+        // Desplegar automáticamente la entrada Excel de destino para ver la sub-tarea movida
         setExpandedTaskDds(prev => ({ ...prev, [targetTaskCode]: true }));
 
         triggerAutoSave(updated);
-        showToast("WBS Tracker", `Tarea DDS vinculada como sub-tarea de ${targetTask.code} (${targetTask.title}).`, "success");
+        showToast("WBS Tracker", `Tarea DDS asignada/movida a ${targetTask.code} (${targetTask.title}).`, "success");
       }
     }
   };
@@ -560,6 +587,30 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
         triggerAutoSave(updated);
         showToast("WBS Tracker", `Tarea DDS desvinculada y devuelta al panel de pendientes.`, "success");
+      }
+    }
+  };
+
+  const handleDeleteLinkedDdsTask = (groupCode: string, taskCode: string, linkedId: string) => {
+    if (window.confirm("¿Confirmas eliminar PERMANENTEMENTE esta sub-tarea DDS vinculada?")) {
+      const updated = { ...projectData };
+      const group = updated.groups.find((g: any) => g.code === groupCode);
+      const parentTask = group?.tasks.find((t: any) => t.code === taskCode);
+
+      if (parentTask && parentTask.linkedDdsTasks) {
+        const idx = parentTask.linkedDdsTasks.findIndex((s: any) => s.id === linkedId);
+        if (idx !== -1) {
+          parentTask.linkedDdsTasks.splice(idx, 1);
+          if (parentTask.linkedDdsTasks.length === 0) {
+            parentTask.sourceDoc = "EXCEL";
+          }
+          // Recalcular progreso de la tarea padre
+          const sumProg = parentTask.linkedDdsTasks.reduce((acc: number, s: any) => acc + (s.progress || 0), 0);
+          parentTask.progress = parentTask.linkedDdsTasks.length > 0 ? Math.round(sumProg / parentTask.linkedDdsTasks.length) : 0;
+
+          triggerAutoSave(updated);
+          showToast("WBS Tracker", "Sub-tarea DDS eliminada permanentemente.", "success");
+        }
       }
     }
   };
@@ -1281,7 +1332,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                 {sub.completedOn || '-'}
                               </td>
                               <td className="p-2.5">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1 flex-wrap">
                                   <button
                                     onClick={() => {
                                       setActiveSqlTask({
@@ -1293,17 +1344,37 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                       });
                                       setIsSqlModalOpen(true);
                                     }}
-                                    className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm flex items-center gap-1"
+                                    className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[10px] rounded shadow-sm flex items-center gap-1"
+                                    title="Ver scripts SQL y trabajo requerido"
                                   >
-                                    <span>📄 Ver SQL</span>
+                                    <span>📄 SQL</span>
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setAssigningDdsTask(sub);
+                                      setAssociationSearch("");
+                                    }}
+                                    className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] rounded shadow-sm flex items-center gap-1 cursor-pointer"
+                                    title="Mover esta sub-tarea a otra entrada del Excel"
+                                  >
+                                    <span>↔️ Mover</span>
                                   </button>
 
                                   <button
                                     onClick={() => handleUnlinkDdsTask(group.code, t.code, sub.id)}
-                                    className="px-2 py-1 bg-red-500/15 text-red-500 hover:bg-red-500/25 text-[11px] font-bold rounded border border-red-500/30"
-                                    title="Desvincular y regresar al panel de pendientes"
+                                    className="px-2 py-1 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-[10px] font-semibold rounded cursor-pointer"
+                                    title="Desvincular y devolver a tareas pendientes"
                                   >
-                                    ✕ Desvincular
+                                    <span>↩️ Soltar</span>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteLinkedDdsTask(group.code, t.code, sub.id)}
+                                    className="px-2 py-1 bg-red-500/20 text-red-400 hover:bg-red-500/30 text-[10px] font-bold rounded border border-red-500/40 cursor-pointer"
+                                    title="Eliminar esta sub-tarea permanentemente"
+                                  >
+                                    <span>🗑️ Eliminar</span>
                                   </button>
                                 </div>
                               </td>
