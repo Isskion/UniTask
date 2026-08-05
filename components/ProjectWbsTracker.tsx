@@ -353,8 +353,8 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             let matched = false;
 
             // Intentar auto-asociar con una línea del Excel existente
-            parsedGroups.forEach(g => {
-              g.tasks.forEach(t => {
+            parsedGroups.forEach((g: any) => {
+              g.tasks.forEach((t: any) => {
                 const tLower = t.title.toLowerCase();
                 const lLower = line.toLowerCase();
 
