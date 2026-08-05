@@ -242,7 +242,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
     showToast("WBS Tracker", `Grupo ${groupNum} creado correctamente.`, "success");
   };
 
-  // 4. PARSER DINÁMICO DE ARCHIVOS EXCEL (HITOS) + MÚLTIPLES DDS POR OPERACIONES (ESPECIFICACIONES TÉCNICAS & SQL)
+  // 4. PARSER INTELIGENTE: EXTRACCIÓN TOTAL DEL EXCEL (WBS PRINCIPAL) + MAPEADO DE DOCUMENTOS DDS
   const handleProcessDualImport = async () => {
     if (ddsFiles.length === 0 || !excelFile) {
       showToast("Importador Dual", "Selecciona al menos un archivo DDS (.docx/.pdf) y el Plan de Trabajo Excel (.xlsx).", "error");
@@ -257,7 +257,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       const projCode = project?.code || "PROJ";
 
       // -------------------------------------------------------------
-      // PASO 1: LECTURA DINÁMICA DEL PLAN DE TRABAJO EXCEL (HITOS)
+      // PASO 1: EXTRAER EL 100% DE LAS LÍNEAS DEL EXCEL PARA EL WBS PRINCIPAL
       // -------------------------------------------------------------
       const excelBuffer = await excelFile.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
@@ -265,67 +265,61 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
       const parsedGroups: any[] = [];
       let currentGroup: any = null;
-      let hitoIndex = 1;
+      let groupIdx = 1;
 
       workbook.worksheets.forEach((sheet) => {
         sheet.eachRow((row, rowNumber) => {
           const rowValues = row.values as any[];
           if (!rowValues || rowValues.length === 0) return;
 
-          // Unir valores de texto de la fila
-          const rowText = rowValues
+          const cell1 = String(rowValues[1] || '').trim();
+          const cell2 = String(rowValues[2] || '').trim();
+          const fullRowText = rowValues
             .filter(v => v !== undefined && v !== null)
             .map(v => typeof v === 'object' ? (v.result || v.text || '') : String(v).trim())
             .join(' ');
 
-          if (!rowText || rowText.length < 3) return;
+          if (!fullRowText || fullRowText.length < 2) return;
+          if (cell1.toLowerCase() === 'nombre de tarea' || cell1.toLowerCase() === 'duración' || cell1.toLowerCase() === 'duracion') return;
 
-          // Detectar Hitos o Grupos principales en el Excel
-          const isHitoHeader = /^(HITO|FASE|MÓDULO|SECCIÓN|APARTADO|\d+\.0)/i.test(rowText) || 
-                               rowText.toUpperCase().includes("HITO ") || 
-                               rowText.toUpperCase().includes("FASE ");
+          // Detectar Hitos o Grupos principales en el Excel (Filas principales)
+          const isGroupHeader = /^(ETAPA|HITO|FASE|MÓDULO|FLUJO|\d+\.0)/i.test(cell1) ||
+                                /^(ETAPA|HITO|FASE|MÓDULO|FLUJO)/i.test(fullRowText) ||
+                                (cell1.startsWith('ETAPA') || cell1.startsWith('HITO') || cell1.startsWith('FASE')) ||
+                                (!cell1.includes('.') && cell1.toUpperCase() === cell1 && cell1.length > 3 && cell1.length < 80);
 
-          if (isHitoHeader) {
-            const groupCode = `${hitoIndex}.0`;
-            let groupName = rowText;
-
-            // Limpiar o dar formato al nombre del Hito
-            if (!groupName.toUpperCase().startsWith("HITO") && !groupName.match(/^\d+\.0/)) {
-              groupName = `HITO ${hitoIndex}: ${groupName}`;
-            }
-
+          if (isGroupHeader || !currentGroup) {
+            const groupCode = `${groupIdx}.0`;
             currentGroup = {
-              id: `grp-excel-${hitoIndex}-${Date.now()}`,
+              id: `grp-excel-${groupIdx}-${Date.now()}`,
               code: groupCode,
-              name: groupName,
-              description: `Extraído dinámicamente desde la hoja "${sheet.name}" del Excel ${excelFile.name}.`,
+              name: cell1 || fullRowText,
+              description: `Hito / Etapa extraída de la fila ${rowNumber} del Excel ${excelFile.name} (${sheet.name}).`,
               tasks: []
             };
-
             parsedGroups.push(currentGroup);
-            hitoIndex++;
-          } else if (currentGroup && (rowText.match(/^\d+\.\d+/) || rowValues.some(v => String(v).trim().length > 5))) {
-            // Extraer tareas/líneas individuales bajo el Hito activo
-            const firstCell = String(rowValues[1] || rowValues[2] || '').trim();
-            const taskCodeMatch = firstCell.match(/^(\d+\.\d+(\.\d+)?)/);
-            
-            const taskCode = taskCodeMatch ? taskCodeMatch[1] : `${currentGroup.code.replace('.0', '')}.${currentGroup.tasks.length + 1}`;
-            const taskTitle = firstCell.replace(/^(\d+\.\d+(\.\d+)?)\s*/, '') || rowText.slice(0, 100);
+            groupIdx++;
+          } else {
+            // Cada línea individual del Excel se convierte en una tarea del WBS principal
+            const codeMatch = cell1.match(/^([I|V|X|0-9]+(\.[0-9]+)*)/);
+            const taskCode = codeMatch ? codeMatch[1] : `${currentGroup.code.replace('.0', '')}.${currentGroup.tasks.length + 1}`;
+            const taskTitle = cell1 || fullRowText;
 
-            const isMilestone = rowText.toUpperCase().includes("HITO") || rowText.toUpperCase().includes("MILESTONE");
+            const isMilestone = fullRowText.toUpperCase().includes("HITO") || fullRowText.toUpperCase().includes("GO LIVE");
 
             currentGroup.tasks.push({
-              id: `t-excel-${taskCode}-${Date.now()}`,
+              id: `t-excel-${taskCode}-${rowNumber}-${Date.now()}`,
               code: taskCode,
               kind: isMilestone ? "MILESTONE" : "TASK",
               title: taskTitle,
+              duration: cell2 || "",
               status: "PENDIENTE",
               progress: 0,
               startedOn: null,
               completedOn: null,
-              inspectionSql: `SELECT * FROM dbo.Tabla_${taskCode.replace(/\./g, '_')} WITH (NOLOCK);`,
-              executionSql: `-- Script para ${taskCode}\nEXEC dbo.sp_Configurar_${taskCode.replace(/\./g, '_')};`,
-              verificationSql: `SELECT COUNT(*) FROM dbo.Tabla_${taskCode.replace(/\./g, '_')};`,
+              inspectionSql: `SELECT * FROM dbo.Tabla WITH (NOLOCK);`,
+              executionSql: `-- Tarea extraída del Excel (${excelFile.name}): ${taskTitle}\n-- Trabajo Requerido: Configurar en UNIGIS. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`,
+              verificationSql: `SELECT COUNT(*) FROM dbo.Tabla;`,
               sourceDoc: "EXCEL"
             });
           }
@@ -333,213 +327,79 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       });
 
       // -------------------------------------------------------------
-      // PASO 2: LECTURA DINÁMICA DE MÚLTIPLES DOCUMENTOS DDS (.docx / .pdf / .txt)
+      // PASO 2 & 3: EXTRACCIÓN DE TAREAS DDS Y ASOCIACIÓN INTELIGENTE
       // -------------------------------------------------------------
-      let ddsText = "";
+      const unassignedDdsTasks: any[] = [];
+
       for (const dFile of ddsFiles) {
+        let contentText = "";
         if (dFile.name.toLowerCase().endsWith('.docx')) {
           const ddsBuffer = await dFile.arrayBuffer();
           const extracted = await mammoth.extractRawText({ arrayBuffer: ddsBuffer });
-          ddsText += `\n=== DDS: ${dFile.name} ===\n` + (extracted.value || "");
+          contentText = extracted.value || "";
         } else {
-          const txt = await dFile.text();
-          ddsText += `\n=== DDS: ${dFile.name} ===\n` + txt;
+          contentText = await dFile.text();
         }
-      }
 
-      // -------------------------------------------------------------
-      // PASO 3: FUSIÓN DE ESPECIFICACIONES TÉCNICAS Y SQL DEL DDS EN LOS HITOS DEL EXCEL
-      // -------------------------------------------------------------
-      if (parsedGroups.length === 0) {
-        // Fallback dinámico si el Excel no usaba palabras clave "HITO": Generar Hitos auditados por Operación (Internacional/4PL, Intermodal, Distribución)
-        parsedGroups.push(
-          {
-            id: `grp-hito-1-${Date.now()}`,
-            code: "1.0",
-            name: `HITO 1: Operación Internacional, 4PL & Nacional (${projCode})`,
-            description: "Gestión de filiales internacionales (España, Polonia, Bulgaria, Francia), ingesta Transporeon, reglas 4PL Ball/Novelis, ruteo inactivo y telemetría GPS Webfleet.",
-            tasks: [
-              { 
-                id: "t-1.1", code: "1.1", kind: "TASK", title: "Empresa Principal y Códigos de Descarga Transporeon", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, 
-                inspectionSql: "SELECT IdEmpresa, Nombre, Codigo, Varchar1 FROM dbo.Empresa WITH (NOLOCK);", 
-                executionSql: "-- Configuración Empresa Principal y Descargas\n-- Trabajo Requerido: Configurar empresa principal en dbo.Empresa. Analizar y definir dónde albergar la información de los códigos de descarga de Transporeon (España, Francia, Atlántico) y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdEmpresa, Nombre, Codigo FROM dbo.Empresa WHERE Nombre LIKE '%Transpais%';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.2", code: "1.2", kind: "TASK", title: "Sucursales Geográficas y Operaciones de Trabajo", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, 
-                inspectionSql: "SELECT IdSucursal, IdEmpresa, Nombre, Codigo FROM dbo.Sucursal WITH (NOLOCK);\nSELECT IdOperacion, Nombre, Codigo FROM dbo.Operacion WITH (NOLOCK);", 
-                executionSql: "-- Mapeo Sucursales (ESP, POL, BUL, FRA) y Operaciones (INT_LASELVA, INT_ATLANTICO, etc.)\n-- Trabajo Requerido: Registrar sucursales en dbo.Sucursal y operaciones en dbo.Operacion. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT s.IdSucursal, s.Nombre AS Sucursal, s.Codigo FROM dbo.Sucursal s WITH (NOLOCK);", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.3", code: "1.3", kind: "TASK", title: "Autocompletado de Pedidos y Clasificación Granel / Local / Internacional", status: "EN_CURSO", progress: 70, startedOn: today, completedOn: null, 
-                inspectionSql: "SELECT IdPedido, IdEstadoPedido, Tipo FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Autocompletado y Clasificación de Pedidos en dbo.Pedido\n-- Trabajo Requerido: Definir e implementar la lógica de autocompletado y clasificación en dbo.Pedido. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdPedido, Tipo FROM dbo.Pedido WHERE IdPedido = 1;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.4", code: "1.4", kind: "TASK", title: "Reglas de Negocio Modelo 4PL (Ball, Novelis, Constellium, Speira)", status: "EN_CURSO", progress: 60, startedOn: today, completedOn: null, 
-                inspectionSql: "SELECT IdPedido, ClienteDador, Almacen FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Reglas de Clasificación y Tarifas 4PL\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de indicadores y tarifas 4PL en dbo.Pedido. Valorar el proceso y recursos requeridos para alcanzar el éxito al identificar clientes dadores y almacenes 4PL.", 
-                verificationSql: "SELECT IdPedido, ClienteDador FROM dbo.Pedido WHERE ClienteDador LIKE '%BALL%';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.5", code: "1.5", kind: "TASK", title: "Generación Automática de Viajes Inactivos y Validación de Recursos", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdViaje, IdEstadoViaje FROM dbo.Viaje WITH (NOLOCK);\nSELECT IdVehiculo, PesoMaximo, VolumenMaximo FROM dbo.Vehiculo WITH (NOLOCK);", 
-                executionSql: "-- Ruteo inactivo y validación de flota en dbo.Viaje y dbo.Parada\n-- Trabajo Requerido: Configurar estado inactivo en dbo.EstadoViaje e implementar creación de viajes y paradas en dbo.Viaje y dbo.Parada. Analizar y definir dónde albergar la información de capacidades en dbo.Vehiculo y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdViaje, IdEstadoViaje FROM dbo.Viaje WHERE IdViaje = 1;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.6", code: "1.6", kind: "TASK", title: "Telemetría GPS Webfleet (Paradas y Reporte 10 Min)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdEvento, IdVehiculo, Velocidad, FechaHora FROM dbo.Evento WITH (NOLOCK);", 
-                executionSql: "-- Filtrado telemático GPS Webfleet sobre dbo.Evento\n-- Trabajo Requerido: Implementar lógica de filtrado sobre dbo.Evento. Analizar y definir dónde albergar la información de eventos y valorar el proceso y recursos requeridos para alcanzar el éxito al capturar paradas inmediatas y limitar lecturas en movimiento a 10 minutos.", 
-                verificationSql: "SELECT TOP 10 * FROM dbo.Evento ORDER BY FechaHora DESC;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-1.7", code: "1.7", kind: "TASK", title: "Preliquidaciones Intercompany (92%/8% vs Especial Ball) & KPI Km en Vacío", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdViaje, Dominio FROM dbo.Vehiculo WITH (NOLOCK);", 
-                executionSql: "-- Vistas SQL de Preliquidaciones Intercompany y KPI Km en Vacío\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de ingresos y retenciones intercompany y kilómetros en vacío en dbo.Vehiculo. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT * FROM dbo.Vehiculo WHERE Dominio IS NOT NULL;", sourceDoc: "DDS+EXCEL" 
-              }
-            ]
-          },
-          {
-            id: `grp-hito-2-${Date.now()}`,
-            code: "2.0",
-            name: "HITO 2: Operación Intermodal (Portic, Depots & EDIFACT)",
-            description: "Gestión de terminales marítimas/secas, ciclo de vida de prepedidos (reservas), facturación cruzada, cargas especiales (Reefer, ADR) y mensajería EDI IFTMIN/BAPLIE.",
-            tasks: [
-              { 
-                id: "t-2.1", code: "2.1", kind: "TASK", title: "Alta de Nodos e Infraestructura Intermodal (Portic, BEST, APM, Cabanillas)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdDeposito, Nombre, Codigo, RadioGeocerca FROM dbo.Deposito WITH (NOLOCK);", 
-                executionSql: "-- Configuración de Depots e Infraestructura Portuaria en dbo.Deposito\n-- Trabajo Requerido: Configurar terminales marítimas y depósitos secos en dbo.Deposito. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdDeposito, Nombre FROM dbo.Deposito WHERE Nombre LIKE '%Portic%';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-2.2", code: "2.2", kind: "TASK", title: "Ciclo de Vida de Prepedidos / Reservas y Liberación Automática (Día +1 a 15:00h)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdPedido, FechaCreacion FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Gestión del Ciclo de Vida de Reservas de Chasis/Vehículos\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de reservas de chasis. Valorar el proceso y recursos requeridos para alcanzar el éxito en la liberación automática de recursos a las 15:01h si no llega confirmación.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Estado = 'Reserva';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-2.3", code: "2.3", kind: "TASK", title: "Normalización de Domicilios Dinámicos & Navieras (Maersk, Messina, MSC)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdDomicilio, Direccion, CodigoPostal FROM dbo.Domicilio WITH (NOLOCK);", 
-                executionSql: "-- Alta Automática de Domicilios en dbo.Domicilio desde Portic/EDI\n-- Trabajo Requerido: Registrar direcciones dinámicas en dbo.Domicilio. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito en la normalización desde mensajería EDI/Portic.", 
-                verificationSql: "SELECT TOP 10 * FROM dbo.Domicilio ORDER BY IdDomicilio DESC;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-2.4", code: "2.4", kind: "TASK", title: "Facturación Cruzada Transitario/Cliente -> Estado Pendiente de Aprobación", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdPedido, IdEstadoPedido FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Regla de Facturación a Terceros y Revisión Customer Service\n-- Trabajo Requerido: Analizar y definir dónde albergar la información del cliente facturado en dbo.Pedido y configurar el estado de revisión en dbo.EstadoPedido. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdPedido, IdEstadoPedido FROM dbo.Pedido WHERE IdEstadoPedido = 'PENDIENTE_APROBACION';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-2.5", code: "2.5", kind: "TASK", title: "Atributos Cargas Especiales Reefer (Temp/Humedad) y ADR (Clase/Certificados)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Cargas Especiales Reefer (Congelado) y ADR (Mercancías Peligrosas)\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de especificidades Reefer y clases ADR en dbo.Pedido. Valorar el proceso y recursos requeridos para alcanzar el éxito en el control de temperatura en tránsito y validación de certificados.", 
-                verificationSql: "SELECT IdPedido FROM dbo.Pedido WHERE IdPedido = 1;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-2.6", code: "2.6", kind: "TASK", title: "Parser Mensajería EDIFACT IFTMIN D99A, BAPLIE y COARRI", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Ingesta y Validación EDIFACT\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de mensajes EDIFACT, precintos y sellos. Valorar el proceso y recursos requeridos para alcanzar el éxito en la ingesta automatizada.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Varchar1 = 'EDIFACT';", sourceDoc: "DDS+EXCEL" 
-              }
-            ]
-          },
-          {
-            id: `grp-hito-3-${Date.now()}`,
-            code: "3.0",
-            name: "HITO 3: Operación Distribución (WMS Generix, Ruteo Capilar & App Mobile)",
-            description: "Ingesta SGA Generix B2B, ruteo capilar urbano/regional, control de pallets de intercambio, evidencias POD en App Mobile UNIGIS X Deliveries y preliquidaciones.",
-            tasks: [
-              { 
-                id: "t-3.1", code: "3.1", kind: "TASK", title: "Ingesta WMS Generix (Expediciones B2B / Recogidas) & Control Desacoples", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
-                executionSql: "-- Ingesta WMS Generix a TMS UNIGIS\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de expediciones y recogidas de WMS Generix. Valorar el proceso y recursos requeridos para alcanzar el éxito en el manejo de desacoples de sincronización para evitar descuadres en muelles.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Varchar1 = 'GENERIX';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-3.2", code: "3.2", kind: "TASK", title: "Algoritmo de Ruteo Capilar Urbano/Regional y Control de Pallets Chep/Euro", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdViaje FROM dbo.Viaje WITH (NOLOCK);", 
-                executionSql: "-- Ruteo Capilar y Control de Pallets de Intercambio\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de zonas postales y control de saldo de pallets. Valorar el proceso y recursos requeridos para alcanzar el éxito en la optimización capilar.", 
-                verificationSql: "SELECT IdViaje FROM dbo.Viaje WHERE IdViaje = 1;", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-3.3", code: "3.3", kind: "TASK", title: "App Mobile UNIGIS X Deliveries (POD, Firma, Foto) & Devoluciones Automáticas", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdParada FROM dbo.Parada WITH (NOLOCK);", 
-                executionSql: "-- Captura de Evidencias Digitales POD y Devoluciones Automáticas\n-- Trabajo Requerido: Analizar y definir dónde albergar la firma digital, foto de albarán y código de barras. Implementar la lógica para insertar automáticamente la parada de retorno al depósito origen en dbo.Parada ante entregas parciales o rechazos. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
-                verificationSql: "SELECT IdParada FROM dbo.Parada WHERE Varchar1 = 'DEVOLUCION';", sourceDoc: "DDS+EXCEL" 
-              },
-              { 
-                id: "t-3.4", code: "3.4", kind: "TASK", title: "Gestión de Incidencias en Ruta & Pre-liquidaciones de Reparto Capilar", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT IdParada FROM dbo.Parada WITH (NOLOCK);", 
-                executionSql: "-- Preliquidaciones de Reparto Capilar e Incidencias\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de demoras e imprevistos en ruta. Valorar el proceso y recursos requeridos para alcanzar el éxito en la pre-liquidación capilar por expedición, bulto y kg.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Parada WHERE IdEstadoParada = 'INCIDENCIA';", sourceDoc: "DDS+EXCEL" 
-              }
-            ]
-          },
-          {
-            id: `grp-hito-4-${Date.now()}`,
-            code: "4.0",
-            name: "HITO 4: Pruebas Integrales E2E (10,000 Viajes), UAT y Cut-over",
-            description: "Ejecución de pruebas masivas de rendimiento, firma de acta de aceptación UAT por Operaciones y pasaje oficial a producción.",
-            tasks: [
-              { 
-                id: "t-4.1", code: "4.1", kind: "TASK", title: "Ejecución Suite Pruebas E2E (10,000 Viajes) y Acta Aceptación UAT", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT COUNT(*) FROM dbo.Viaje WITH (NOLOCK);", 
-                executionSql: "-- Suite Pruebas E2E y Registro de Aceptación UAT\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en la ejecución de pruebas integrales y la firma del acta UAT por Operaciones.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Viaje;", sourceDoc: "EXCEL" 
-              },
-              { 
-                id: "t-4.2", code: "4.2", kind: "TASK", title: "Ejecución Plan de Cut-over, Depuración TEST y Carga Maestros PROD", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT COUNT(*) FROM dbo.Empresa WITH (NOLOCK);", 
-                executionSql: "-- Ejecución Plan de Cut-over\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en el plan de cut-over, carga final de datos maestros en producción y arranque operativo.", 
-                verificationSql: "SELECT COUNT(*) FROM dbo.Empresa;", sourceDoc: "EXCEL" 
-              }
-            ]
-          },
-          {
-            id: `grp-hito-5-${Date.now()}`,
-            code: "5.0",
-            name: "HITO 5: Salida en Vivo (Go-Live) y Período de Estabilización",
-            description: "Puesta en producción definitiva por Operación y acompañamiento On-Site durante las primeras 4 semanas.",
-            tasks: [
-              { 
-                id: "t-5.1", code: "5.1", kind: "MILESTONE", title: "HITO FINAL: PUESTA EN PRODUCCIÓN (GO-LIVE)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
-                inspectionSql: "SELECT GETDATE() AS FechaGoLive;", 
-                executionSql: "-- Go-Live Oficial\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en la puesta en producción definitiva.", 
-                verificationSql: "SELECT GETDATE() AS FechaGoLive;", sourceDoc: "EXCEL" 
-              }
-            ]
-          }
-        );
-      }
+        // Dividir DDS por líneas o requisitos clave
+        const rawLines = contentText.split('\n').map(l => l.trim()).filter(l => l.length > 15);
 
-      // Escanear el DDS buscando bloques SQL para enriquecer las tareas
-      if (ddsText && ddsText.length > 50) {
-        const sqlBlocks = ddsText.match(/(SELECT[\s\S]*?;|CREATE[\s\S]*?GO|ALTER[\s\S]*?GO)/gi) || [];
-        if (sqlBlocks.length > 0) {
-          let blockIdx = 0;
-          parsedGroups.forEach((g: any) => {
-            g.tasks.forEach((t: any) => {
-              if (sqlBlocks[blockIdx]) {
-                t.executionSql = sqlBlocks[blockIdx].trim();
-                t.sourceDoc = "DDS+EXCEL";
-                blockIdx = (blockIdx + 1) % sqlBlocks.length;
-              }
+        rawLines.forEach((line, idx) => {
+          // Detectar si la línea representa un requisito, especificación técnica o bloque SQL
+          const isRequirement = /^(\d+\.|\d+\.\d+|[I|V|X]+\.|\d+\s+[A-Z]|REQUISITO|INTERFAZ|SP_|VW_|TRG_|OPERACIÓN|FLUJO)/i.test(line) ||
+                                line.toUpperCase().includes("VALIDACIÓN") || line.toUpperCase().includes("REGLA");
+
+          if (isRequirement) {
+            let matched = false;
+
+            // Intentar auto-asociar con una línea del Excel existente
+            parsedGroups.forEach(g => {
+              g.tasks.forEach(t => {
+                const tLower = t.title.toLowerCase();
+                const lLower = line.toLowerCase();
+
+                const codeMatch = line.match(/^(\d+\.\d+)/);
+                if ((codeMatch && t.code.includes(codeMatch[1])) ||
+                    (tLower.includes("transporeon") && lLower.includes("transporeon")) ||
+                    (tLower.includes("webfleet") && lLower.includes("webfleet")) ||
+                    (tLower.includes("intermodal") && lLower.includes("intermodal")) ||
+                    (tLower.includes("generix") && lLower.includes("generix")) ||
+                    (tLower.includes("ruteo") && lLower.includes("ruteo")) ||
+                    (tLower.includes("reefer") && lLower.includes("reefer")) ||
+                    (tLower.includes("adr") && lLower.includes("adr")) ||
+                    (tLower.includes("cut over") && lLower.includes("cut over"))) {
+
+                  t.executionSql += `\n\n-- Especificación extraída del DDS (${dFile.name}):\n-- ${line}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`;
+                  t.sourceDoc = "DDS+EXCEL";
+                  matched = true;
+                }
+              });
             });
-          });
-        }
+
+            // Si no se asoció automáticamente a ninguna entrada del Excel, se deja en la lista de DDS Pendientes de Asociar
+            if (!matched) {
+              unassignedDdsTasks.push({
+                id: `dds-unassigned-${idx}-${Date.now()}`,
+                docName: dFile.name,
+                title: line,
+                inspectionSql: "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
+                executionSql: `-- Especificación Técnica DDS Pendiente de Asociación (${dFile.name}):\n-- ${line}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`,
+                verificationSql: "SELECT COUNT(*) FROM dbo.Tabla;",
+                sourceDoc: "DDS"
+              });
+            }
+          }
+        });
       }
 
       const updated = {
         ...projectData,
-        groups: parsedGroups
+        groups: parsedGroups,
+        unassignedDdsTasks: unassignedDdsTasks
       };
 
       setAuditEntries(prev => [
-        { taskCode: "IMPORT-DUAL", field: "Extracción Dinámica Hitos Excel + Múltiples DDS", oldVal: "Vacío", newVal: `DDS (${ddsFiles.length} archivos: ${ddsFiles.map(f => f.name).join(', ')}) + Excel: ${excelFile.name} (${parsedGroups.length} Hitos)`, time: new Date().toLocaleTimeString() },
+        { taskCode: "IMPORT-DUAL", field: "Extracción WBS Excel + Mapeado DDS", oldVal: "Vacío", newVal: `Excel: ${excelFile.name} (${parsedGroups.length} Hitos) + DDS: ${ddsFiles.length} archivos (${unassignedDdsTasks.length} pendientes de asociar)`, time: new Date().toLocaleTimeString() },
         ...prev
       ]);
 
@@ -549,11 +409,35 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       setIsProcessingImport(false);
       setIsImporterOpen(false);
 
-      showToast("Importador Dual", `Extracción dinámica completada: ${parsedGroups.length} Hitos extraídos de Excel con ${ddsFiles.length} documento(s) DDS fusionados para ${projName}.`, "success");
+      showToast("Importador Dual", `WBS extraído 100% desde Excel (${parsedGroups.length} Hitos). ${unassignedDdsTasks.length} tareas DDS registradas en la lista de pendientes de asociar.`, "success");
     } catch (err) {
       console.error("Error extrayendo archivos en cliente:", err);
       setIsProcessingImport(false);
       showToast("Importador Dual", "Error al procesar dinámicamente los archivos Excel y DDS.", "error");
+    }
+  };
+
+  // Función para asociar manualmente una tarea DDS pendiente a una entrada del Excel
+  const handleAssignDdsTaskToExcel = (ddsTaskId: string, targetGroupCode: string, targetTaskCode: string) => {
+    const updated = { ...projectData };
+    const ddsIndex = (updated.unassignedDdsTasks || []).findIndex((t: any) => t.id === ddsTaskId);
+
+    if (ddsIndex !== -1) {
+      const ddsTask = updated.unassignedDdsTasks[ddsIndex];
+
+      const targetGroup = updated.groups.find((g: any) => g.code === targetGroupCode);
+      const targetTask = targetGroup?.tasks.find((t: any) => t.code === targetTaskCode);
+
+      if (targetTask) {
+        targetTask.executionSql += `\n\n-- Especificación DDS asociada manualmente (${ddsTask.docName}):\n-- ${ddsTask.title}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`;
+        targetTask.sourceDoc = "DDS+EXCEL";
+
+        // Remover de la lista no asignada
+        updated.unassignedDdsTasks.splice(ddsIndex, 1);
+
+        triggerAutoSave(updated);
+        showToast("WBS Tracker", `Tarea DDS asociada correctamente a ${targetTask.code} (${targetTask.title}).`, "success");
+      }
     }
   };
 
@@ -1005,8 +889,51 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
           </div>
         </div>
       ) : (
-        /* 📂 Grupos WBS Colapsables & Filtrables por Hitos Excel Dinámicos */
-        projectData.groups.map((group: any) => {
+        <>
+          {/* 📋 Panel de Tareas DDS Pendientes de Asociar a Entradas del Excel */}
+          {projectData.unassignedDdsTasks && projectData.unassignedDdsTasks.length > 0 && (
+            <div className={cn("border rounded-xl p-4 shadow-sm mb-4", isLight ? "bg-amber-50/50 border-amber-200" : "bg-amber-950/20 border-amber-900/50")}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold text-sm">
+                  <Layers className="w-4 h-4" />
+                  <span>📋 Tareas DDS Pendientes de Asociar a Entradas del Excel ({projectData.unassignedDdsTasks.length})</span>
+                </div>
+                <span className="text-[11px] text-zinc-500 hidden md:inline">Haz clic en 'Asociar' para vincular cualquier especificación DDS a una línea del Excel WBS</span>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                {projectData.unassignedDdsTasks.map((ddsItem: any) => (
+                  <div key={ddsItem.id} className={cn("p-2.5 rounded-lg border text-xs flex justify-between items-center gap-3", isLight ? "bg-white border-amber-200" : "bg-zinc-900 border-amber-900/40")}>
+                    <div className="flex flex-col gap-0.5 max-w-[75%]">
+                      <span className="font-bold text-amber-500 text-[10px]">DOCUMENTO: {ddsItem.docName}</span>
+                      <span className={cn("font-medium", isLight ? "text-zinc-800" : "text-zinc-200")}>{ddsItem.title}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const groupCode = window.prompt(`Ingresa el Código de Grupo Excel al cual asociar (ej. 1.0, 2.0, 3.0):\n\nGrupos disponibles: ${projectData.groups.map((g: any) => g.code).join(', ')}`);
+                        if (!groupCode) return;
+                        const group = projectData.groups.find((g: any) => g.code === groupCode);
+                        if (!group) {
+                          showToast("WBS Tracker", `Grupo ${groupCode} no encontrado.`, "error");
+                          return;
+                        }
+                        const taskCode = window.prompt(`Ingresa el Código de Tarea Excel en el Grupo ${groupCode} al cual asociar:\n\nTareas disponibles:\n${group.tasks.map((t: any) => `${t.code}: ${t.title}`).join('\n')}`);
+                        if (!taskCode) return;
+
+                        handleAssignDdsTaskToExcel(ddsItem.id, groupCode, taskCode);
+                      }}
+                      className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded text-[11px] shrink-0 shadow-sm flex items-center gap-1"
+                    >
+                      <span>↳ Asociar a Entrada Excel</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 📂 Grupos WBS Colapsables & Filtrables por Hitos Excel Dinámicos */}
+          {projectData.groups.map((group: any) => {
           const isCollapsed = collapsedGroups[group.code];
           
           // Filter tasks
@@ -1167,6 +1094,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
           );
         })
       )}
+      </>
 
       {/* Modal Importador Dual (DDS + Excel Plan de Trabajo) */}
       {isImporterOpen && (
