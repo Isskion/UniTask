@@ -83,6 +83,9 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // Selected task SQL view
   const [activeSqlTask, setActiveSqlTask] = useState<any>(null);
 
+  // Sub-tareas DDS Vinculadas Desplegables
+  const [expandedTaskDds, setExpandedTaskDds] = useState<Record<string, boolean>>({});
+
   // 1. CARGA COMPARTIMENTALIZADA DESDE FIRESTORE POR PROJECT.ID
   useEffect(() => {
     if (!project?.id) return;
@@ -460,8 +463,6 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // -------------------------------------------------------------
   // GESTIÓN DE SUB-TAREAS DDS VINCULADAS (ESTADOS, PORCENTAJES & DESVINCULACIÓN)
   // -------------------------------------------------------------
-  const [expandedTaskDds, setExpandedTaskDds] = useState<Record<string, boolean>>({});
-
   const toggleTaskDdsExpand = (taskCode: string) => {
     setExpandedTaskDds(prev => ({ ...prev, [taskCode]: !prev[taskCode] }));
   };
