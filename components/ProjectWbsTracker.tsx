@@ -431,14 +431,134 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       const targetTask = targetGroup?.tasks.find((t: any) => t.code === targetTaskCode);
 
       if (targetTask) {
-        targetTask.executionSql += `\n\n-- Especificación DDS asociada manualmente (${ddsTask.docName}):\n-- ${ddsTask.title}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`;
-        targetTask.sourceDoc = "DDS+EXCEL";
+        if (!targetTask.linkedDdsTasks) targetTask.linkedDdsTasks = [];
+        targetTask.linkedDdsTasks.push({
+          id: ddsTask.id || `dds-link-${Date.now()}`,
+          docName: ddsTask.docName,
+          title: ddsTask.title,
+          status: 'PENDIENTE',
+          progress: 0,
+          startedOn: null,
+          completedOn: null,
+          inspectionSql: ddsTask.inspectionSql || "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
+          executionSql: ddsTask.executionSql || `-- Especificación DDS (${ddsTask.docName}):\n-- ${ddsTask.title}\n-- Trabajo Requerido: Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.`,
+          verificationSql: ddsTask.verificationSql || "SELECT COUNT(*) FROM dbo.Tabla;"
+        });
 
-        // Remover de la lista no asignada
+        targetTask.sourceDoc = "DDS+EXCEL";
         updated.unassignedDdsTasks.splice(ddsIndex, 1);
 
+        // Desplegar automáticamente la entrada Excel para ver de inmediato la sub-tarea DDS vinculada
+        setExpandedTaskDds(prev => ({ ...prev, [targetTaskCode]: true }));
+
         triggerAutoSave(updated);
-        showToast("WBS Tracker", `Tarea DDS asociada correctamente a ${targetTask.code} (${targetTask.title}).`, "success");
+        showToast("WBS Tracker", `Tarea DDS vinculada como sub-tarea de ${targetTask.code} (${targetTask.title}).`, "success");
+      }
+    }
+  };
+
+  // -------------------------------------------------------------
+  // GESTIÓN DE SUB-TAREAS DDS VINCULADAS (ESTADOS, PORCENTAJES & DESVINCULACIÓN)
+  // -------------------------------------------------------------
+  const [expandedTaskDds, setExpandedTaskDds] = useState<Record<string, boolean>>({});
+
+  const toggleTaskDdsExpand = (taskCode: string) => {
+    setExpandedTaskDds(prev => ({ ...prev, [taskCode]: !prev[taskCode] }));
+  };
+
+  const handleLinkedDdsStatusChange = (groupCode: string, taskCode: string, linkedId: string, newStatus: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    const updated = { ...projectData };
+
+    const group = updated.groups.find((g: any) => g.code === groupCode);
+    const parentTask = group?.tasks.find((t: any) => t.code === taskCode);
+    const subTask = parentTask?.linkedDdsTasks?.find((s: any) => s.id === linkedId);
+
+    if (subTask && parentTask) {
+      subTask.status = newStatus;
+      if (newStatus === 'COMPLETADA') {
+        subTask.progress = 100;
+        if (!subTask.startedOn) subTask.startedOn = today;
+        subTask.completedOn = today;
+      } else if (newStatus === 'PENDIENTE' || newStatus === 'ANULADA') {
+        subTask.progress = 0;
+        subTask.completedOn = null;
+      } else {
+        if (!subTask.startedOn) subTask.startedOn = today;
+        subTask.completedOn = null;
+      }
+
+      // Recalcular el progreso de la tarea padre según el promedio de sus sub-tareas DDS
+      if (parentTask.linkedDdsTasks && parentTask.linkedDdsTasks.length > 0) {
+        const sumProg = parentTask.linkedDdsTasks.reduce((acc: number, s: any) => acc + (s.progress || 0), 0);
+        parentTask.progress = Math.round(sumProg / parentTask.linkedDdsTasks.length);
+        if (parentTask.progress === 100) parentTask.status = 'COMPLETADA';
+        else if (parentTask.progress > 0) parentTask.status = 'EN_CURSO';
+      }
+
+      triggerAutoSave(updated);
+    }
+  };
+
+  const handleLinkedDdsProgressChange = (groupCode: string, taskCode: string, linkedId: string, newProg: number) => {
+    const today = new Date().toISOString().split('T')[0];
+    const updated = { ...projectData };
+
+    const group = updated.groups.find((g: any) => g.code === groupCode);
+    const parentTask = group?.tasks.find((t: any) => t.code === taskCode);
+    const subTask = parentTask?.linkedDdsTasks?.find((s: any) => s.id === linkedId);
+
+    if (subTask && parentTask) {
+      subTask.progress = newProg;
+      if (newProg === 100) {
+        subTask.status = 'COMPLETADA';
+        if (!subTask.startedOn) subTask.startedOn = today;
+        subTask.completedOn = today;
+      } else if (newProg > 0) {
+        if (subTask.status === 'PENDIENTE') subTask.status = 'EN_CURSO';
+        if (!subTask.startedOn) subTask.startedOn = today;
+      }
+
+      // Recalcular avance de tarea padre
+      if (parentTask.linkedDdsTasks && parentTask.linkedDdsTasks.length > 0) {
+        const sumProg = parentTask.linkedDdsTasks.reduce((acc: number, s: any) => acc + (s.progress || 0), 0);
+        parentTask.progress = Math.round(sumProg / parentTask.linkedDdsTasks.length);
+        if (parentTask.progress === 100) parentTask.status = 'COMPLETADA';
+        else if (parentTask.progress > 0) parentTask.status = 'EN_CURSO';
+      }
+
+      triggerAutoSave(updated);
+    }
+  };
+
+  const handleUnlinkDdsTask = (groupCode: string, taskCode: string, linkedId: string) => {
+    const updated = { ...projectData };
+
+    const group = updated.groups.find((g: any) => g.code === groupCode);
+    const parentTask = group?.tasks.find((t: any) => t.code === taskCode);
+
+    if (parentTask && parentTask.linkedDdsTasks) {
+      const idx = parentTask.linkedDdsTasks.findIndex((s: any) => s.id === linkedId);
+      if (idx !== -1) {
+        const [removed] = parentTask.linkedDdsTasks.splice(idx, 1);
+        if (!updated.unassignedDdsTasks) updated.unassignedDdsTasks = [];
+
+        updated.unassignedDdsTasks.push({
+          id: removed.id,
+          docName: removed.docName,
+          title: removed.title,
+          inspectionSql: removed.inspectionSql,
+          executionSql: removed.executionSql,
+          verificationSql: removed.verificationSql,
+          sourceDoc: 'DDS'
+        });
+
+        if (parentTask.linkedDdsTasks.length === 0) {
+          parentTask.sourceDoc = "EXCEL";
+        }
+
+        triggerAutoSave(updated);
+        showToast("WBS Tracker", `Tarea DDS desvinculada y devuelta al panel de pendientes.`, "success");
       }
     }
   };
@@ -1031,9 +1151,22 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                 </span>
                               </td>
                               <td className="p-3">
-                                {t.titleRich || t.title}
-                                {isMilestone && <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-500 border border-purple-500/30">HITO VALIDACIÓN</span>}
-                                {t.sourceDoc && <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/15 text-sky-500">{t.sourceDoc}</span>}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span>{t.titleRich || t.title}</span>
+                                  {isMilestone && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-500 border border-purple-500/30">HITO VALIDACIÓN</span>}
+                                  {t.sourceDoc && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/15 text-sky-500">{t.sourceDoc}</span>}
+                                  
+                                  {/* Desplegable interactivo para ver y gestionar Tareas DDS vinculadas */}
+                                  {t.linkedDdsTasks && t.linkedDdsTasks.length > 0 && (
+                                    <button
+                                      onClick={() => toggleTaskDdsExpand(t.code)}
+                                      className="ml-2 px-2 py-0.5 rounded text-[11px] font-bold bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 border border-sky-500/40 transition-all flex items-center gap-1 inline-flex shadow-sm cursor-pointer"
+                                    >
+                                      {expandedTaskDds[t.code] ? <ChevronDown className="w-3 h-3 text-sky-400" /> : <ChevronRight className="w-3 h-3 text-sky-400" />}
+                                      <span>📋 Tareas DDS Vinculadas ({t.linkedDdsTasks.length})</span>
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                               <td className="p-3 no-underline">
                                 <select
@@ -1047,8 +1180,8 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                   <option value="EN_CURSO">En curso</option>
                                   <option value="BLOQUEADA">Bloqueada</option>
                                   <option value="EN_VALIDACION">En validación</option>
-                                  <option value="COMPLETADA">Completadas</option>
-                                  <option value="ANULADA">Anuladas</option>
+                                  <option value="COMPLETADA">Completada</option>
+                                  <option value="ANULADA">Anulada</option>
                                 </select>
                               </td>
                               <td className="p-3 no-underline">
@@ -1084,9 +1217,99 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                   </>
                                 )}
                               </td>
-                            </tr>
-                          );
-                        })
+                            </tr>,
+
+                            /* Renderizado Desplegable de Sub-filas DDS Vinculadas */
+                            ...(expandedTaskDds[t.code] && t.linkedDdsTasks ? t.linkedDdsTasks.map((sub: any, subIdx: number) => (
+                              <tr key={sub.id} className={cn("text-xs font-medium border-l-4 border-l-sky-500 transition-colors",
+                                isLight ? "bg-sky-50/50 hover:bg-sky-100/60" : "bg-sky-950/30 hover:bg-sky-950/50"
+                              )}>
+                                <td className="p-2.5 pl-9">
+                                  <span className="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 inline-block">
+                                    ↳ ID: {t.code}.DDS.{subIdx + 1}
+                                  </span>
+                                </td>
+                                <td className="p-2.5">
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                        DDS: {sub.docName}
+                                      </span>
+                                      <span className={cn("font-semibold", isLight ? "text-zinc-800" : "text-zinc-200")}>
+                                        {sub.title}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-2.5">
+                                  <select
+                                    value={sub.status}
+                                    onChange={e => handleLinkedDdsStatusChange(group.code, t.code, sub.id, e.target.value)}
+                                    className={cn("border rounded px-2 py-1 text-xs outline-none font-medium",
+                                      isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
+                                    )}
+                                  >
+                                    <option value="PENDIENTE">Pendiente</option>
+                                    <option value="EN_CURSO">En curso</option>
+                                    <option value="BLOQUEADA">Bloqueada</option>
+                                    <option value="EN_VALIDACION">En validación</option>
+                                    <option value="COMPLETADA">Completada</option>
+                                    <option value="ANULADA">Anulada</option>
+                                  </select>
+                                </td>
+                                <td className="p-2.5">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      value={sub.progress || 0}
+                                      min="0"
+                                      max="100"
+                                      step="5"
+                                      onChange={e => handleLinkedDdsProgressChange(group.code, t.code, sub.id, parseInt(e.target.value || '0', 10))}
+                                      className={cn("w-12 border rounded px-1.5 py-1 text-xs outline-none font-bold text-center",
+                                        isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
+                                      )}
+                                    />
+                                    <span className="font-bold text-[10px] text-zinc-400">%</span>
+                                  </div>
+                                </td>
+                                <td className="p-2.5 font-mono text-[11px] text-sky-500 font-semibold">
+                                  {sub.startedOn || '-'}
+                                </td>
+                                <td className="p-2.5 font-mono text-[11px] text-emerald-500 font-semibold">
+                                  {sub.completedOn || '-'}
+                                </td>
+                                <td className="p-2.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={() => {
+                                        setActiveSqlTask({
+                                          code: `${t.code}.DDS.${subIdx + 1}`,
+                                          title: `${sub.title} (${sub.docName})`,
+                                          inspectionSql: sub.inspectionSql || "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
+                                          executionSql: sub.executionSql || `-- Especificación (${sub.docName}):\n-- ${sub.title}`,
+                                          verificationSql: sub.verificationSql || "SELECT COUNT(*) FROM dbo.Tabla;"
+                                        });
+                                        setIsSqlModalOpen(true);
+                                      }}
+                                      className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm flex items-center gap-1"
+                                    >
+                                      <span>📄 Ver SQL</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleUnlinkDdsTask(group.code, t.code, sub.id)}
+                                      className="px-2 py-1 bg-red-500/15 text-red-500 hover:bg-red-500/25 text-[11px] font-bold rounded border border-red-500/30"
+                                      title="Desvincular y regresar al panel de pendientes"
+                                    >
+                                      ✕ Desvincular
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )) : [])
+                          ];
+                        }).flat()
                       )}
                     </tbody>
                   </table>
