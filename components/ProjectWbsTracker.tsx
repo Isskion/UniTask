@@ -59,8 +59,9 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // Modals
   const [isImporterOpen, setIsImporterOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
+  const [assigningDdsTask, setAssigningDdsTask] = useState<any | null>(null);
+  const [associationSearch, setAssociationSearch] = useState<string>('');
 
   // Importer Form States (Admite Múltiples DDS por Operaciones)
   const [ddsFiles, setDdsFiles] = useState<File[]>([]);
@@ -910,17 +911,8 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                     </div>
                     <button
                       onClick={() => {
-                        const groupCode = window.prompt(`Ingresa el Código de Grupo Excel al cual asociar (ej. 1.0, 2.0, 3.0):\n\nGrupos disponibles: ${projectData.groups.map((g: any) => g.code).join(', ')}`);
-                        if (!groupCode) return;
-                        const group = projectData.groups.find((g: any) => g.code === groupCode);
-                        if (!group) {
-                          showToast("WBS Tracker", `Grupo ${groupCode} no encontrado.`, "error");
-                          return;
-                        }
-                        const taskCode = window.prompt(`Ingresa el Código de Tarea Excel en el Grupo ${groupCode} al cual asociar:\n\nTareas disponibles:\n${group.tasks.map((t: any) => `${t.code}: ${t.title}`).join('\n')}`);
-                        if (!taskCode) return;
-
-                        handleAssignDdsTaskToExcel(ddsItem.id, groupCode, taskCode);
+                        setAssigningDdsTask(ddsItem);
+                        setAssociationSearch("");
                       }}
                       className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded text-[11px] shrink-0 shadow-sm flex items-center gap-1"
                     >
@@ -970,7 +962,12 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
               >
                 <div className="flex items-center gap-2.5">
                   {isCollapsed ? <ChevronRight className="w-4 h-4 text-sky-500" /> : <ChevronDown className="w-4 h-4 text-sky-500" />}
-                  <div className="font-bold text-sky-500 text-sm">📂 {group.name}</div>
+                  <div className="font-bold text-sky-500 text-sm flex items-center gap-2">
+                    <span>📂 {group.name}</span>
+                    <span className="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                      ID GRUPO: {group.code}
+                    </span>
+                  </div>
                   <div className={cn("text-[11px] hidden md:inline ml-2", isLight ? "text-zinc-500" : "text-zinc-400")}>{group.description}</div>
                 </div>
 
@@ -992,7 +989,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className={cn("border-b font-semibold", isLight ? "bg-zinc-100/70 text-zinc-600 border-zinc-200" : "bg-zinc-900/90 text-zinc-400 border-border")}>
-                        <th className="p-3 w-20">Código</th>
+                        <th className="p-3 w-28">ID Entrada</th>
                         <th className="p-3">Tarea DDS / Especificación Técnica SQL</th>
                         <th className="p-3 w-36">Estado</th>
                         <th className="p-3 w-20">Avance</th>
@@ -1025,8 +1022,12 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
 
                           return (
                             <tr key={t.id} className={rowClass}>
-                              <td className={`p-3 font-bold ${isNested ? 'pl-7 text-amber-500' : (isLight ? 'text-zinc-900' : 'text-zinc-100')}`}>
-                                {t.code}
+                              <td className={`p-3 font-bold ${isNested ? 'pl-7' : ''}`}>
+                                <span className={cn("px-2 py-0.5 rounded font-mono text-[11px] font-extrabold shadow-sm border inline-block",
+                                  isLight ? "bg-sky-100 text-sky-800 border-sky-300" : "bg-sky-950 text-sky-300 border-sky-800"
+                                )}>
+                                  ID: {t.code}
+                                </span>
                               </td>
                               <td className="p-3">
                                 {t.titleRich || t.title}
@@ -1244,6 +1245,107 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             </div>
             <div className="text-right mt-2">
               <button className={cn("px-4 py-2 rounded text-xs font-semibold", isLight ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-800" : "bg-zinc-800 hover:bg-zinc-700 text-white")} onClick={() => setIsAuditOpen(false)}>Cerrar</button>
+      {/* Modal Interactivo de Asociación de Tarea DDS a Entrada WBS Excel */}
+      {assigningDdsTask && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex justify-center items-center z-50 p-4">
+          <div className={cn("border rounded-2xl p-6 w-full max-w-2xl flex flex-col gap-4 shadow-2xl max-h-[85vh]",
+            isLight ? "bg-white border-zinc-200 text-zinc-900" : "bg-zinc-900 border-zinc-800 text-zinc-100"
+          )}>
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2 text-sky-500">
+                <Layers className="w-5 h-5" />
+                <h3 className="text-base font-bold">↳ Asociar Especificación DDS a Entrada Excel WBS</h3>
+              </div>
+              <button 
+                onClick={() => setAssigningDdsTask(null)}
+                className="text-zinc-400 hover:text-zinc-200 font-bold text-lg px-2"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Detalle del DDS a asociar */}
+            <div className={cn("p-3 rounded-xl border text-xs flex flex-col gap-1", isLight ? "bg-amber-50 border-amber-200" : "bg-amber-950/40 border-amber-900/60")}>
+              <span className="font-bold text-amber-500 text-[11px]">DOCUMENTO ORIGEN: {assigningDdsTask.docName}</span>
+              <span className="font-semibold text-zinc-200">{assigningDdsTask.title}</span>
+            </div>
+
+            {/* Buscador de entradas Excel */}
+            <div className="flex flex-col gap-1">
+              <label className="font-bold text-xs text-sky-500">🔍 Buscar Entrada Excel por ID (ej. 1.2, III.1) o Palabra Clave:</label>
+              <input
+                type="text"
+                value={associationSearch}
+                onChange={e => setAssociationSearch(e.target.value)}
+                placeholder="Escribe para filtrar (ej. '1.2', 'Distribución', 'Generix', 'Webfleet')..."
+                className={cn("w-full border rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-sky-500 font-medium",
+                  isLight ? "bg-zinc-50 border-zinc-300 text-zinc-900" : "bg-zinc-950 border-zinc-700 text-white"
+                )}
+                autoFocus
+              />
+            </div>
+
+            {/* Lista completa y sin recortes de todas las entradas del WBS Excel */}
+            <div className="overflow-y-auto max-h-80 space-y-3 pr-1 border rounded-xl p-3 bg-zinc-950/30">
+              {projectData.groups.map((group: any) => {
+                const matchingTasks = group.tasks.filter((t: any) => {
+                  if (!associationSearch) return true;
+                  const searchLower = associationSearch.toLowerCase();
+                  return t.code.toLowerCase().includes(searchLower) ||
+                         t.title.toLowerCase().includes(searchLower) ||
+                         group.code.toLowerCase().includes(searchLower) ||
+                         group.name.toLowerCase().includes(searchLower);
+                });
+
+                if (matchingTasks.length === 0) return null;
+
+                return (
+                  <div key={group.id} className="space-y-1.5">
+                    <div className="font-bold text-xs text-sky-400 flex items-center gap-2 bg-sky-950/40 p-1.5 rounded-lg border border-sky-900/50">
+                      <span>📂 {group.name}</span>
+                      <span className="text-[10px] font-mono bg-sky-500/20 px-1.5 py-0.5 rounded">ID GRUPO: {group.code}</span>
+                    </div>
+
+                    <div className="space-y-1 pl-2">
+                      {matchingTasks.map((t: any) => (
+                        <div
+                          key={t.id}
+                          onClick={() => {
+                            handleAssignDdsTaskToExcel(assigningDdsTask.id, group.code, t.code);
+                            setAssigningDdsTask(null);
+                            setAssociationSearch("");
+                          }}
+                          className={cn("p-2 rounded-lg border text-xs flex justify-between items-center cursor-pointer transition-all hover:scale-[1.01]",
+                            isLight 
+                              ? "bg-white hover:bg-sky-50 border-zinc-200 hover:border-sky-300 text-zinc-800" 
+                              : "bg-zinc-900 hover:bg-sky-950/50 border-zinc-800 hover:border-sky-700 text-zinc-200"
+                          )}
+                        >
+                          <div className="flex items-center gap-2.5 max-w-[80%]">
+                            <span className="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-sky-500/20 text-sky-400 border border-sky-500/30 shrink-0">
+                              ID: {t.code}
+                            </span>
+                            <span className="font-medium truncate">{t.title}</span>
+                          </div>
+
+                          <button className="px-2.5 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded text-[11px] shrink-0 shadow-sm">
+                            Vincular Aquí
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t">
+              <button
+                onClick={() => setAssigningDdsTask(null)}
+                className={cn("px-4 py-2 rounded-xl font-bold text-xs", isLight ? "bg-zinc-200 text-zinc-800" : "bg-zinc-800 text-zinc-200")}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
