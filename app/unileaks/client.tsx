@@ -60,16 +60,19 @@ function UniLeaksContent() {
             return;
         }
         const loadProjects = async () => {
-            console.log("🚀 [UniLeaks] Starting projects load. User:", user?.uid, "Tenant:", tenantId);
+            console.log("🚀 [UniLeaks] Starting projects load. User:", user?.uid, "Tenant:", tenantId, "Profile Tenant:", userProfile?.tenantId);
             try {
-                const targetTenant = tenantId || "1";
-                const projs = await getActiveProjects(targetTenant);
+                const targetTenant = userProfile?.tenantId || tenantId || "3";
+                let projs = await getActiveProjects(targetTenant);
+                if (projs.length === 0 && targetTenant !== "3") {
+                    projs = await getActiveProjects("3");
+                }
                 console.log("📦 [UniLeaks] Raw projects fetched:", projs.length);
 
-                // Filter: superadmin/app_admin see all, others see only assigned projects
+                // Filter: superadmin/app_admin/global_pm see all tenant projects, others see assigned projects
                 const filteredProjs = filterBySAMScope(
                     projs.filter(p => {
-                        if (userRole === 'superadmin' || userRole === 'app_admin') return true;
+                        if (userRole === 'superadmin' || userRole === 'app_admin' || userRole === 'global_pm') return true;
                         if (!userProfile?.assignedProjectIds) {
                             console.warn("⚠️ [UniLeaks] User has no assignedProjectIds in profile.");
                             return false;
@@ -81,7 +84,7 @@ function UniLeaksContent() {
                 );
                 console.log("🎯 [UniLeaks] Filtered projects:", filteredProjs.length);
 
-                // Prevents infinite re-renders if the array content hasn't changed (since object references differ)
+                // Prevents infinite re-renders if the array content hasn't changed
                 setProjects(prev => {
                     if (JSON.stringify(prev.map(p => p.id)) === JSON.stringify(filteredProjs.map(p => p.id))) {
                         return prev;
@@ -105,18 +108,19 @@ function UniLeaksContent() {
         };
         loadProjects();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, tenantId, userProfile?.assignedProjectIds?.join(','), userRole, canCreateProject]);
+    }, [user, tenantId, userProfile?.tenantId, userProfile?.assignedProjectIds?.join(','), userRole, canCreateProject]);
 
     // Load Notes and Folders
     useEffect(() => {
-        if (!user || !tenantId || !activeProjectId) return;
+        if (!user || !activeProjectId) return;
         const loadData = async () => {
             setLoadingNotes(true);
             try {
+                const activeTenant = userProfile?.tenantId || tenantId || "3";
                 const isInternalViewer = can('viewAllProjectNotes', 'special');
                 const [notesData, foldersData] = await Promise.all([
-                    getProjectNotes(tenantId, activeProjectId, user.uid, isInternalViewer),
-                    getProjectFolders(tenantId, activeProjectId)
+                    getProjectNotes(activeTenant, activeProjectId, user.uid, isInternalViewer),
+                    getProjectFolders(activeTenant, activeProjectId)
                 ]);
 
                 // Sort notes by updated latest

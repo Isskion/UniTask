@@ -3,23 +3,48 @@ import { collection, addDoc, updateDoc, doc, query, where, getDocs, getDoc, serv
 import { UniLeakNote, UniLeakFolder } from "@/types";
 
 export async function getProjectNotes(tenantId: string, projectId: string, currentUserId: string, isInternal: boolean = false): Promise<UniLeakNote[]> {
-    const q = query(
-        collection(db, "unileaks_notes"),
-        where("tenantId", "==", tenantId),
-        where("projectId", "==", projectId)
-    );
-    const snap = await getDocs(q);
+    let snap;
+    try {
+        let q;
+        if (tenantId && tenantId !== "1" && tenantId !== "ALL") {
+            q = query(
+                collection(db, "unileaks_notes"),
+                where("projectId", "==", projectId),
+                where("tenantId", "==", tenantId)
+            );
+        } else {
+            q = query(
+                collection(db, "unileaks_notes"),
+                where("projectId", "==", projectId)
+            );
+        }
+        snap = await getDocs(q);
+        if (snap.empty && tenantId && tenantId !== "1") {
+            const fallbackQ = query(
+                collection(db, "unileaks_notes"),
+                where("projectId", "==", projectId)
+            );
+            snap = await getDocs(fallbackQ);
+        }
+    } catch (e) {
+        console.warn("⚠️ Error en consulta tenantId UniLeaks, usando fallback por projectId:", e);
+        const fallbackQ = query(
+            collection(db, "unileaks_notes"),
+            where("projectId", "==", projectId)
+        );
+        snap = await getDocs(fallbackQ);
+    }
+
     const allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakNote));
 
-    // Filtrar localmente por permisos de lectura:
-    // 1. Dueño de la nota siempre ve.
-    // 2. Notas públicas siempre visibles para todos.
-    // 3. Notas internas visibles solo para el equipo del tenant (con el permiso viewAllProjectNotes).
+    // Filtrar localmente por visibilidad:
+    // 1. Dueño de la nota siempre la ve.
+    // 2. Si la nota es explícitamente privada (isPrivate === true) y no pertenece al usuario actual, se oculta.
+    // 3. El resto de notas (públicas, internas o notas sin flag isInternal/isPublic explícito) son totalmente visibles para el equipo del proyecto.
     return allNotes.filter(note => {
         if (note.userId === currentUserId) return true;
-        if (note.isPublic) return true;
-        if (note.isInternal && isInternal) return true; // isInternal parameter represents user permission
-        return false;
+        if ((note as any).isPrivate === true) return false;
+        return true;
     });
 }
 
@@ -55,13 +80,39 @@ export async function deleteNote(noteId: string): Promise<void> {
 // --- Folders ---
 
 export async function getProjectFolders(tenantId: string, projectId: string): Promise<UniLeakFolder[]> {
-    const q = query(
-        collection(db, "unileaks_folders"),
-        where("tenantId", "==", tenantId),
-        where("projectId", "==", projectId)
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakFolder));
+    try {
+        let q;
+        if (tenantId && tenantId !== "1" && tenantId !== "ALL") {
+            q = query(
+                collection(db, "unileaks_folders"),
+                where("projectId", "==", projectId),
+                where("tenantId", "==", tenantId)
+            );
+        } else {
+            q = query(
+                collection(db, "unileaks_folders"),
+                where("projectId", "==", projectId)
+            );
+        }
+        const snap = await getDocs(q);
+        if (snap.empty && tenantId && tenantId !== "1") {
+            const fallbackQ = query(
+                collection(db, "unileaks_folders"),
+                where("projectId", "==", projectId)
+            );
+            const fallbackSnap = await getDocs(fallbackQ);
+            return fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakFolder));
+        }
+        return snap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakFolder));
+    } catch (e) {
+        console.warn("⚠️ Error recuperando carpetas UniLeaks, usando fallback por projectId:", e);
+        const fallbackQ = query(
+            collection(db, "unileaks_folders"),
+            where("projectId", "==", projectId)
+        );
+        const fallbackSnap = await getDocs(fallbackQ);
+        return fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() } as UniLeakFolder));
+    }
 }
 
 export async function saveFolder(folderData: Partial<UniLeakFolder>): Promise<string> {
