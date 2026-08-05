@@ -59,6 +59,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
   // Modals
   const [isImporterOpen, setIsImporterOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSqlModalOpen, setIsSqlModalOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [assigningDdsTask, setAssigningDdsTask] = useState<any | null>(null);
   const [associationSearch, setAssociationSearch] = useState<string>('');
