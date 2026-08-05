@@ -1245,6 +1245,11 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
             </div>
             <div className="text-right mt-2">
               <button className={cn("px-4 py-2 rounded text-xs font-semibold", isLight ? "bg-zinc-200 hover:bg-zinc-300 text-zinc-800" : "bg-zinc-800 hover:bg-zinc-700 text-white")} onClick={() => setIsAuditOpen(false)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Interactivo de Asociación de Tarea DDS a Entrada WBS Excel */}
       {assigningDdsTask && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md flex justify-center items-center z-50 p-4">
