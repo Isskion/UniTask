@@ -1127,7 +1127,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                           </td>
                         </tr>
                       ) : (
-                        filteredTasks.map((t: any) => {
+                        filteredTasks.flatMap((t: any) => {
                           const isMilestone = t.kind === 'MILESTONE';
                           const isNested = t.code.split('.').length >= 3;
                           const isAnnulled = t.status === 'ANULADA';
@@ -1141,7 +1141,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                             rowClass = isLight ? "bg-zinc-100/40" : "bg-zinc-900/40";
                           }
 
-                          return (
+                          const mainRow = (
                             <tr key={t.id} className={rowClass}>
                               <td className={`p-3 font-bold ${isNested ? 'pl-7' : ''}`}>
                                 <span className={cn("px-2 py-0.5 rounded font-mono text-[11px] font-extrabold shadow-sm border inline-block",
@@ -1217,99 +1217,100 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
                                   </>
                                 )}
                               </td>
-                            </tr>,
+                            </tr>
+                          );
 
-                            /* Renderizado Desplegable de Sub-filas DDS Vinculadas */
-                            ...(expandedTaskDds[t.code] && t.linkedDdsTasks ? t.linkedDdsTasks.map((sub: any, subIdx: number) => (
-                              <tr key={sub.id} className={cn("text-xs font-medium border-l-4 border-l-sky-500 transition-colors",
-                                isLight ? "bg-sky-50/50 hover:bg-sky-100/60" : "bg-sky-950/30 hover:bg-sky-950/50"
-                              )}>
-                                <td className="p-2.5 pl-9">
-                                  <span className="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 inline-block">
-                                    ↳ ID: {t.code}.DDS.{subIdx + 1}
-                                  </span>
-                                </td>
-                                <td className="p-2.5">
-                                  <div className="flex flex-col gap-0.5">
-                                    <div className="flex items-center gap-2">
-                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                                        DDS: {sub.docName}
-                                      </span>
-                                      <span className={cn("font-semibold", isLight ? "text-zinc-800" : "text-zinc-200")}>
-                                        {sub.title}
-                                      </span>
-                                    </div>
+                          const subRows = (expandedTaskDds[t.code] && t.linkedDdsTasks) ? t.linkedDdsTasks.map((sub: any, subIdx: number) => (
+                            <tr key={sub.id} className={cn("text-xs font-medium border-l-4 border-l-sky-500 transition-colors",
+                              isLight ? "bg-sky-50/50 hover:bg-sky-100/60" : "bg-sky-950/30 hover:bg-sky-950/50"
+                            )}>
+                              <td className="p-2.5 pl-9">
+                                <span className="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-sky-500/20 text-sky-300 border border-sky-500/30 inline-block">
+                                  ↳ ID: {t.code}.DDS.{subIdx + 1}
+                                </span>
+                              </td>
+                              <td className="p-2.5">
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                      DDS: {sub.docName}
+                                    </span>
+                                    <span className={cn("font-semibold", isLight ? "text-zinc-800" : "text-zinc-200")}>
+                                      {sub.title}
+                                    </span>
                                   </div>
-                                </td>
-                                <td className="p-2.5">
-                                  <select
-                                    value={sub.status}
-                                    onChange={e => handleLinkedDdsStatusChange(group.code, t.code, sub.id, e.target.value)}
-                                    className={cn("border rounded px-2 py-1 text-xs outline-none font-medium",
+                                </div>
+                              </td>
+                              <td className="p-2.5">
+                                <select
+                                  value={sub.status}
+                                  onChange={e => handleLinkedDdsStatusChange(group.code, t.code, sub.id, e.target.value)}
+                                  className={cn("border rounded px-2 py-1 text-xs outline-none font-medium",
+                                    isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
+                                  )}
+                                >
+                                  <option value="PENDIENTE">Pendiente</option>
+                                  <option value="EN_CURSO">En curso</option>
+                                  <option value="BLOQUEADA">Bloqueada</option>
+                                  <option value="EN_VALIDACION">En validación</option>
+                                  <option value="COMPLETADA">Completada</option>
+                                  <option value="ANULADA">Anulada</option>
+                                </select>
+                              </td>
+                              <td className="p-2.5">
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={sub.progress || 0}
+                                    min="0"
+                                    max="100"
+                                    step="5"
+                                    onChange={e => handleLinkedDdsProgressChange(group.code, t.code, sub.id, parseInt(e.target.value || '0', 10))}
+                                    className={cn("w-12 border rounded px-1.5 py-1 text-xs outline-none font-bold text-center",
                                       isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
                                     )}
+                                  />
+                                  <span className="font-bold text-[10px] text-zinc-400">%</span>
+                                </div>
+                              </td>
+                              <td className="p-2.5 font-mono text-[11px] text-sky-500 font-semibold">
+                                {sub.startedOn || '-'}
+                              </td>
+                              <td className="p-2.5 font-mono text-[11px] text-emerald-500 font-semibold">
+                                {sub.completedOn || '-'}
+                              </td>
+                              <td className="p-2.5">
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setActiveSqlTask({
+                                        code: `${t.code}.DDS.${subIdx + 1}`,
+                                        title: `${sub.title} (${sub.docName})`,
+                                        inspectionSql: sub.inspectionSql || "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
+                                        executionSql: sub.executionSql || `-- Especificación (${sub.docName}):\n-- ${sub.title}`,
+                                        verificationSql: sub.verificationSql || "SELECT COUNT(*) FROM dbo.Tabla;"
+                                      });
+                                      setIsSqlModalOpen(true);
+                                    }}
+                                    className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm flex items-center gap-1"
                                   >
-                                    <option value="PENDIENTE">Pendiente</option>
-                                    <option value="EN_CURSO">En curso</option>
-                                    <option value="BLOQUEADA">Bloqueada</option>
-                                    <option value="EN_VALIDACION">En validación</option>
-                                    <option value="COMPLETADA">Completada</option>
-                                    <option value="ANULADA">Anulada</option>
-                                  </select>
-                                </td>
-                                <td className="p-2.5">
-                                  <div className="flex items-center gap-1">
-                                    <input
-                                      type="number"
-                                      value={sub.progress || 0}
-                                      min="0"
-                                      max="100"
-                                      step="5"
-                                      onChange={e => handleLinkedDdsProgressChange(group.code, t.code, sub.id, parseInt(e.target.value || '0', 10))}
-                                      className={cn("w-12 border rounded px-1.5 py-1 text-xs outline-none font-bold text-center",
-                                        isLight ? "bg-white border-zinc-300 text-zinc-800" : "bg-zinc-900 border-zinc-700 text-zinc-100"
-                                      )}
-                                    />
-                                    <span className="font-bold text-[10px] text-zinc-400">%</span>
-                                  </div>
-                                </td>
-                                <td className="p-2.5 font-mono text-[11px] text-sky-500 font-semibold">
-                                  {sub.startedOn || '-'}
-                                </td>
-                                <td className="p-2.5 font-mono text-[11px] text-emerald-500 font-semibold">
-                                  {sub.completedOn || '-'}
-                                </td>
-                                <td className="p-2.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      onClick={() => {
-                                        setActiveSqlTask({
-                                          code: `${t.code}.DDS.${subIdx + 1}`,
-                                          title: `${sub.title} (${sub.docName})`,
-                                          inspectionSql: sub.inspectionSql || "SELECT * FROM dbo.Tabla WITH (NOLOCK);",
-                                          executionSql: sub.executionSql || `-- Especificación (${sub.docName}):\n-- ${sub.title}`,
-                                          verificationSql: sub.verificationSql || "SELECT COUNT(*) FROM dbo.Tabla;"
-                                        });
-                                        setIsSqlModalOpen(true);
-                                      }}
-                                      className="px-2 py-1 bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] rounded shadow-sm flex items-center gap-1"
-                                    >
-                                      <span>📄 Ver SQL</span>
-                                    </button>
+                                    <span>📄 Ver SQL</span>
+                                  </button>
 
-                                    <button
-                                      onClick={() => handleUnlinkDdsTask(group.code, t.code, sub.id)}
-                                      className="px-2 py-1 bg-red-500/15 text-red-500 hover:bg-red-500/25 text-[11px] font-bold rounded border border-red-500/30"
-                                      title="Desvincular y regresar al panel de pendientes"
-                                    >
-                                      ✕ Desvincular
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            )) : [])
-                          ];
-                        }).flat()
+                                  <button
+                                    onClick={() => handleUnlinkDdsTask(group.code, t.code, sub.id)}
+                                    className="px-2 py-1 bg-red-500/15 text-red-500 hover:bg-red-500/25 text-[11px] font-bold rounded border border-red-500/30"
+                                    title="Desvincular y regresar al panel de pendientes"
+                                  >
+                                    ✕ Desvincular
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )) : [];
+
+                          return [mainRow, ...subRows];
+                        })
                       )}
                     </tbody>
                   </table>
