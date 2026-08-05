@@ -1092,8 +1092,7 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
               )}
             </div>
           );
-        })
-      )}
+        })}
       </>
 
       {/* Modal Importador Dual (DDS + Excel Plan de Trabajo) */}
