@@ -348,72 +348,166 @@ export function ProjectWbsTracker({ project }: ProjectWbsTrackerProps) {
       // PASO 3: FUSIÓN DE ESPECIFICACIONES TÉCNICAS Y SQL DEL DDS EN LOS HITOS DEL EXCEL
       // -------------------------------------------------------------
       if (parsedGroups.length === 0) {
-        // Fallback dinámico si el Excel no usaba palabras clave "HITO": Generar Hitos estándar desde el Excel
+        // Fallback dinámico si el Excel no usaba palabras clave "HITO": Generar Hitos auditados por Operación (Internacional/4PL, Intermodal, Distribución)
         parsedGroups.push(
           {
             id: `grp-hito-1-${Date.now()}`,
             code: "1.0",
-            name: `HITO 1: Estructura Organizativa, Datos Maestros e Integraciones ERP (${projCode})`,
-            description: `Hito dinámico de maestros extraído de ${excelFile.name} y especificaciones DDS ${ddsFile.name}.`,
+            name: `HITO 1: Operación Internacional, 4PL & Nacional (${projCode})`,
+            description: "Gestión de filiales internacionales (España, Polonia, Bulgaria, Francia), ingesta Transporeon, reglas 4PL Ball/Novelis, ruteo inactivo y telemetría GPS Webfleet.",
             tasks: [
-              { id: "t-1.1", code: "1.1", kind: "TASK", title: "Empresa Principal y Códigos de Descarga", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, inspectionSql: "SELECT IdEmpresa, Nombre, Codigo, Varchar1 FROM dbo.Empresa WITH (NOLOCK);", executionSql: "-- Insertar Empresa Principal\nINSERT INTO dbo.Empresa (Nombre, Codigo, Varchar1, FechaCreacion) VALUES ('Transpais', 'TSP', 'TRANSPAIS_SA', GETDATE());", verificationSql: "SELECT IdEmpresa, Nombre, Codigo FROM dbo.Empresa WHERE Nombre LIKE '%Transpais%';", sourceDoc: "DDS+EXCEL" },
-              { id: "t-1.2", code: "1.2", kind: "TASK", title: "Sucursales Geográficas y Operaciones de Trabajo", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, inspectionSql: "SELECT IdSucursal, IdEmpresa, Nombre, Codigo FROM dbo.Sucursal WITH (NOLOCK);", executionSql: "INSERT INTO dbo.Sucursal (IdEmpresa, Nombre, Codigo, FechaCreacion) SELECT 1, Nombre, Codigo, GETDATE() FROM (VALUES ('España', 'ESP'), ('Polonia', 'POL')) AS s(Nombre, Codigo);", verificationSql: "SELECT s.IdSucursal, s.Nombre AS Sucursal, s.Codigo FROM dbo.Sucursal s WITH (NOLOCK);", sourceDoc: "DDS+EXCEL" }
+              { 
+                id: "t-1.1", code: "1.1", kind: "TASK", title: "Empresa Principal y Códigos de Descarga Transporeon", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, 
+                inspectionSql: "SELECT IdEmpresa, Nombre, Codigo, Varchar1 FROM dbo.Empresa WITH (NOLOCK);", 
+                executionSql: "-- Configuración Empresa Principal y Descargas\n-- Trabajo Requerido: Configurar empresa principal en dbo.Empresa. Analizar y definir dónde albergar la información de los códigos de descarga de Transporeon (España, Francia, Atlántico) y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdEmpresa, Nombre, Codigo FROM dbo.Empresa WHERE Nombre LIKE '%Transpais%';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.2", code: "1.2", kind: "TASK", title: "Sucursales Geográficas y Operaciones de Trabajo", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, 
+                inspectionSql: "SELECT IdSucursal, IdEmpresa, Nombre, Codigo FROM dbo.Sucursal WITH (NOLOCK);\nSELECT IdOperacion, Nombre, Codigo FROM dbo.Operacion WITH (NOLOCK);", 
+                executionSql: "-- Mapeo Sucursales (ESP, POL, BUL, FRA) y Operaciones (INT_LASELVA, INT_ATLANTICO, etc.)\n-- Trabajo Requerido: Registrar sucursales en dbo.Sucursal y operaciones en dbo.Operacion. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT s.IdSucursal, s.Nombre AS Sucursal, s.Codigo FROM dbo.Sucursal s WITH (NOLOCK);", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.3", code: "1.3", kind: "TASK", title: "Autocompletado de Pedidos y Clasificación Granel / Local / Internacional", status: "EN_CURSO", progress: 70, startedOn: today, completedOn: null, 
+                inspectionSql: "SELECT IdPedido, IdEstadoPedido, Tipo FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Autocompletado y Clasificación de Pedidos en dbo.Pedido\n-- Trabajo Requerido: Definir e implementar la lógica de autocompletado y clasificación en dbo.Pedido. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdPedido, Tipo FROM dbo.Pedido WHERE IdPedido = 1;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.4", code: "1.4", kind: "TASK", title: "Reglas de Negocio Modelo 4PL (Ball, Novelis, Constellium, Speira)", status: "EN_CURSO", progress: 60, startedOn: today, completedOn: null, 
+                inspectionSql: "SELECT IdPedido, ClienteDador, Almacen FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Reglas de Clasificación y Tarifas 4PL\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de indicadores y tarifas 4PL en dbo.Pedido. Valorar el proceso y recursos requeridos para alcanzar el éxito al identificar clientes dadores y almacenes 4PL.", 
+                verificationSql: "SELECT IdPedido, ClienteDador FROM dbo.Pedido WHERE ClienteDador LIKE '%BALL%';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.5", code: "1.5", kind: "TASK", title: "Generación Automática de Viajes Inactivos y Validación de Recursos", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdViaje, IdEstadoViaje FROM dbo.Viaje WITH (NOLOCK);\nSELECT IdVehiculo, PesoMaximo, VolumenMaximo FROM dbo.Vehiculo WITH (NOLOCK);", 
+                executionSql: "-- Ruteo inactivo y validación de flota en dbo.Viaje y dbo.Parada\n-- Trabajo Requerido: Configurar estado inactivo en dbo.EstadoViaje e implementar creación de viajes y paradas en dbo.Viaje y dbo.Parada. Analizar y definir dónde albergar la información de capacidades en dbo.Vehiculo y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdViaje, IdEstadoViaje FROM dbo.Viaje WHERE IdViaje = 1;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.6", code: "1.6", kind: "TASK", title: "Telemetría GPS Webfleet (Paradas y Reporte 10 Min)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdEvento, IdVehiculo, Velocidad, FechaHora FROM dbo.Evento WITH (NOLOCK);", 
+                executionSql: "-- Filtrado telemático GPS Webfleet sobre dbo.Evento\n-- Trabajo Requerido: Implementar lógica de filtrado sobre dbo.Evento. Analizar y definir dónde albergar la información de eventos y valorar el proceso y recursos requeridos para alcanzar el éxito al capturar paradas inmediatas y limitar lecturas en movimiento a 10 minutos.", 
+                verificationSql: "SELECT TOP 10 * FROM dbo.Evento ORDER BY FechaHora DESC;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-1.7", code: "1.7", kind: "TASK", title: "Preliquidaciones Intercompany (92%/8% vs Especial Ball) & KPI Km en Vacío", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdViaje, Dominio FROM dbo.Vehiculo WITH (NOLOCK);", 
+                executionSql: "-- Vistas SQL de Preliquidaciones Intercompany y KPI Km en Vacío\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de ingresos y retenciones intercompany y kilómetros en vacío en dbo.Vehiculo. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT * FROM dbo.Vehiculo WHERE Dominio IS NOT NULL;", sourceDoc: "DDS+EXCEL" 
+              }
             ]
           },
           {
             id: `grp-hito-2-${Date.now()}`,
             code: "2.0",
-            name: "HITO 2: Ingesta, Procesamiento y Validación Automatizada de Pedidos (OM Pedidos)",
-            description: "Reglas de negocio de autocompletado y validación de pedidos Granel, Local, Nacional, Internacional y 4PL.",
+            name: "HITO 2: Operación Intermodal (Portic, Depots & EDIFACT)",
+            description: "Gestión de terminales marítimas/secas, ciclo de vida de prepedidos (reservas), facturación cruzada, cargas especiales (Reefer, ADR) y mensajería EDI IFTMIN/BAPLIE.",
             tasks: [
-              { id: "t-2.1", code: "2.1", kind: "TASK", title: "Ingesta Transporeon y Stored Procedure sp_TSP_CompletarPedido", status: "COMPLETADA", progress: 100, startedOn: today, completedOn: today, inspectionSql: "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Pedido';", executionSql: "CREATE OR ALTER PROCEDURE dbo.sp_TSP_CompletarPedido @IdPedido BIGINT AS BEGIN SET NOCOUNT ON; UPDATE dbo.Pedido SET InicioHorario1 = 540 WHERE IdPedido = @IdPedido; END; GO", verificationSql: "EXEC dbo.sp_TSP_CompletarPedido @IdPedido = 1;", sourceDoc: "DDS" },
-              { id: "t-2.2", code: "2.2", kind: "TASK", title: "Stored Procedure sp_TSP_ValidarPedido (Clasificación Granel / Local / Nacional / Internacional)", status: "EN_CURSO", progress: 70, startedOn: today, completedOn: null, inspectionSql: "SELECT IdEstadoPedido, Nombre, Codigo FROM dbo.EstadoPedido WITH (NOLOCK);", executionSql: "CREATE OR ALTER PROCEDURE dbo.sp_TSP_ValidarPedido @IdPedido BIGINT AS BEGIN SET NOCOUNT ON; UPDATE dbo.Pedido SET Tipo = 'Nacional' WHERE IdPedido = @IdPedido; END; GO", verificationSql: "SELECT IdPedido, Tipo FROM dbo.Pedido WHERE IdPedido = 1;", sourceDoc: "DDS+EXCEL" }
+              { 
+                id: "t-2.1", code: "2.1", kind: "TASK", title: "Alta de Nodos e Infraestructura Intermodal (Portic, BEST, APM, Cabanillas)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdDeposito, Nombre, Codigo, RadioGeocerca FROM dbo.Deposito WITH (NOLOCK);", 
+                executionSql: "-- Configuración de Depots e Infraestructura Portuaria en dbo.Deposito\n-- Trabajo Requerido: Configurar terminales marítimas y depósitos secos en dbo.Deposito. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdDeposito, Nombre FROM dbo.Deposito WHERE Nombre LIKE '%Portic%';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-2.2", code: "2.2", kind: "TASK", title: "Ciclo de Vida de Prepedidos / Reservas y Liberación Automática (Día +1 a 15:00h)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdPedido, FechaCreacion FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Gestión del Ciclo de Vida de Reservas de Chasis/Vehículos\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de reservas de chasis. Valorar el proceso y recursos requeridos para alcanzar el éxito en la liberación automática de recursos a las 15:01h si no llega confirmación.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Estado = 'Reserva';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-2.3", code: "2.3", kind: "TASK", title: "Normalización de Domicilios Dinámicos & Navieras (Maersk, Messina, MSC)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdDomicilio, Direccion, CodigoPostal FROM dbo.Domicilio WITH (NOLOCK);", 
+                executionSql: "-- Alta Automática de Domicilios en dbo.Domicilio desde Portic/EDI\n-- Trabajo Requerido: Registrar direcciones dinámicas en dbo.Domicilio. Analizar y definir dónde albergar la información y valorar el proceso y recursos requeridos para alcanzar el éxito en la normalización desde mensajería EDI/Portic.", 
+                verificationSql: "SELECT TOP 10 * FROM dbo.Domicilio ORDER BY IdDomicilio DESC;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-2.4", code: "2.4", kind: "TASK", title: "Facturación Cruzada Transitario/Cliente -> Estado Pendiente de Aprobación", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdPedido, IdEstadoPedido FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Regla de Facturación a Terceros y Revisión Customer Service\n-- Trabajo Requerido: Analizar y definir dónde albergar la información del cliente facturado en dbo.Pedido y configurar el estado de revisión en dbo.EstadoPedido. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdPedido, IdEstadoPedido FROM dbo.Pedido WHERE IdEstadoPedido = 'PENDIENTE_APROBACION';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-2.5", code: "2.5", kind: "TASK", title: "Atributos Cargas Especiales Reefer (Temp/Humedad) y ADR (Clase/Certificados)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Cargas Especiales Reefer (Congelado) y ADR (Mercancías Peligrosas)\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de especificidades Reefer y clases ADR en dbo.Pedido. Valorar el proceso y recursos requeridos para alcanzar el éxito en el control de temperatura en tránsito y validación de certificados.", 
+                verificationSql: "SELECT IdPedido FROM dbo.Pedido WHERE IdPedido = 1;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-2.6", code: "2.6", kind: "TASK", title: "Parser Mensajería EDIFACT IFTMIN D99A, BAPLIE y COARRI", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Ingesta y Validación EDIFACT\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de mensajes EDIFACT, precintos y sellos. Valorar el proceso y recursos requeridos para alcanzar el éxito en la ingesta automatizada.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Varchar1 = 'EDIFACT';", sourceDoc: "DDS+EXCEL" 
+              }
             ]
           },
           {
             id: `grp-hito-3-${Date.now()}`,
             code: "3.0",
-            name: "HITO 3: Circuitos de Ruteo, Generación Automática de Viajes y Asignación de Recursos (OM Viajes)",
-            description: "Creación automática de viajes inactivos por transiciones de estado y procedimiento de validación de recursos de flota.",
+            name: "HITO 3: Operación Distribución (WMS Generix, Ruteo Capilar & App Mobile)",
+            description: "Ingesta SGA Generix B2B, ruteo capilar urbano/regional, control de pallets de intercambio, evidencias POD en App Mobile UNIGIS X Deliveries y preliquidaciones.",
             tasks: [
-              { id: "t-3.1", code: "3.1", kind: "TASK", title: "Transiciones de Estado del Pedido para Creación Automática de Viajes (sp_TSP_CrearViajeDesdePedido)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT IdEstadoViaje, Nombre, Codigo FROM dbo.EstadoViaje WITH (NOLOCK);", executionSql: "CREATE OR ALTER PROCEDURE dbo.sp_TSP_CrearViajeDesdePedido @IdPedido BIGINT, @TipoTransicion VARCHAR(100) AS BEGIN SET NOCOUNT ON; INSERT INTO dbo.Viaje (IdEstadoViaje) VALUES (1); END; GO", verificationSql: "EXEC dbo.sp_TSP_CrearViajeDesdePedido @IdPedido = 1, @TipoTransicion = 'DIRECTO';", sourceDoc: "DDS+EXCEL" },
-              { id: "t-3.2", code: "3.2", kind: "TASK", title: "Stored Procedure sp_TSP_ValidacionRecursosPedido (Validación Peso/Volumen vs Capacidad)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT IdVehiculo, Dominio, Tara FROM dbo.Vehiculo WITH (NOLOCK);", executionSql: "CREATE OR ALTER PROCEDURE dbo.sp_TSP_ValidacionRecursosPedido @IdViaje BIGINT AS BEGIN SET NOCOUNT ON; RETURN 1; END; GO", verificationSql: "EXEC dbo.sp_TSP_ValidacionRecursosPedido @IdViaje = 1;", sourceDoc: "DDS+EXCEL" }
+              { 
+                id: "t-3.1", code: "3.1", kind: "TASK", title: "Ingesta WMS Generix (Expediciones B2B / Recogidas) & Control Desacoples", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdPedido FROM dbo.Pedido WITH (NOLOCK);", 
+                executionSql: "-- Ingesta WMS Generix a TMS UNIGIS\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de expediciones y recogidas de WMS Generix. Valorar el proceso y recursos requeridos para alcanzar el éxito en el manejo de desacoples de sincronización para evitar descuadres en muelles.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Pedido WHERE Varchar1 = 'GENERIX';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-3.2", code: "3.2", kind: "TASK", title: "Algoritmo de Ruteo Capilar Urbano/Regional y Control de Pallets Chep/Euro", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdViaje FROM dbo.Viaje WITH (NOLOCK);", 
+                executionSql: "-- Ruteo Capilar y Control de Pallets de Intercambio\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de zonas postales y control de saldo de pallets. Valorar el proceso y recursos requeridos para alcanzar el éxito en la optimización capilar.", 
+                verificationSql: "SELECT IdViaje FROM dbo.Viaje WHERE IdViaje = 1;", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-3.3", code: "3.3", kind: "TASK", title: "App Mobile UNIGIS X Deliveries (POD, Firma, Foto) & Devoluciones Automáticas", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdParada FROM dbo.Parada WITH (NOLOCK);", 
+                executionSql: "-- Captura de Evidencias Digitales POD y Devoluciones Automáticas\n-- Trabajo Requerido: Analizar y definir dónde albergar la firma digital, foto de albarán y código de barras. Implementar la lógica para insertar automáticamente la parada de retorno al depósito origen en dbo.Parada ante entregas parciales o rechazos. Valorar el proceso y recursos requeridos para alcanzar el éxito.", 
+                verificationSql: "SELECT IdParada FROM dbo.Parada WHERE Varchar1 = 'DEVOLUCION';", sourceDoc: "DDS+EXCEL" 
+              },
+              { 
+                id: "t-3.4", code: "3.4", kind: "TASK", title: "Gestión de Incidencias en Ruta & Pre-liquidaciones de Reparto Capilar", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT IdParada FROM dbo.Parada WITH (NOLOCK);", 
+                executionSql: "-- Preliquidaciones de Reparto Capilar e Incidencias\n-- Trabajo Requerido: Analizar y definir dónde albergar la información de demoras e imprevistos en ruta. Valorar el proceso y recursos requeridos para alcanzar el éxito en la pre-liquidación capilar por expedición, bulto y kg.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Parada WHERE IdEstadoParada = 'INCIDENCIA';", sourceDoc: "DDS+EXCEL" 
+              }
             ]
           },
           {
             id: `grp-hito-4-${Date.now()}`,
             code: "4.0",
-            name: "HITO 4: Ejecución Operativa: Portal B2B Terceros y App Mobile (UNIGIS X Deliveries)",
-            description: "Procedimiento almacenado para la gestión de devoluciones automáticas origen.",
+            name: "HITO 4: Pruebas Integrales E2E (10,000 Viajes), UAT y Cut-over",
+            description: "Ejecución de pruebas masivas de rendimiento, firma de acta de aceptación UAT por Operaciones y pasaje oficial a producción.",
             tasks: [
-              { id: "t-4.1", code: "4.1", kind: "TASK", title: "Stored Procedure sp_TSP_GenerarDevolucion (Devoluciones Automáticas)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT IdEstadoParada, Nombre, Codigo FROM dbo.EstadoParada WITH (NOLOCK);", executionSql: "CREATE OR ALTER PROCEDURE dbo.sp_TSP_GenerarDevolucion @IdParada BIGINT AS BEGIN SET NOCOUNT ON; PRINT 'Devolución procesada'; END; GO", verificationSql: "EXEC dbo.sp_TSP_GenerarDevolucion @IdParada = 10;", sourceDoc: "DDS+EXCEL" }
+              { 
+                id: "t-4.1", code: "4.1", kind: "TASK", title: "Ejecución Suite Pruebas E2E (10,000 Viajes) y Acta Aceptación UAT", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT COUNT(*) FROM dbo.Viaje WITH (NOLOCK);", 
+                executionSql: "-- Suite Pruebas E2E y Registro de Aceptación UAT\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en la ejecución de pruebas integrales y la firma del acta UAT por Operaciones.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Viaje;", sourceDoc: "EXCEL" 
+              },
+              { 
+                id: "t-4.2", code: "4.2", kind: "TASK", title: "Ejecución Plan de Cut-over, Depuración TEST y Carga Maestros PROD", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT COUNT(*) FROM dbo.Empresa WITH (NOLOCK);", 
+                executionSql: "-- Ejecución Plan de Cut-over\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en el plan de cut-over, carga final de datos maestros en producción y arranque operativo.", 
+                verificationSql: "SELECT COUNT(*) FROM dbo.Empresa;", sourceDoc: "EXCEL" 
+              }
             ]
           },
           {
             id: `grp-hito-5-${Date.now()}`,
             code: "5.0",
-            name: "HITO 5: Telemetría GPS (Webfleet), Smart Tracking y Monitoreo",
-            description: "Trigger telemático para filtrado inteligente de eventos de parada y posicionamiento GPS cada 10 minutos.",
+            name: "HITO 5: Salida en Vivo (Go-Live) y Período de Estabilización",
+            description: "Puesta en producción definitiva por Operación y acompañamiento On-Site durante las primeras 4 semanas.",
             tasks: [
-              { id: "t-5.1", code: "5.1", kind: "TASK", title: "Trigger Telemático trg_FiltrarEventosWebfleet_10Min en dbo.Evento", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Evento';", executionSql: "CREATE OR ALTER TRIGGER dbo.trg_FiltrarEventosWebfleet_10Min ON dbo.Evento INSTEAD OF INSERT AS BEGIN SET NOCOUNT ON; END; GO", verificationSql: "SELECT name FROM sys.triggers WHERE name = 'trg_FiltrarEventosWebfleet_10Min';", sourceDoc: "DDS+EXCEL" }
-            ]
-          },
-          {
-            id: `grp-hito-6-${Date.now()}`,
-            code: "6.0",
-            name: "HITO 6: Motor Tarifario, Modelo 4PL, Esquema Intercompany y Preliquidaciones (Costos y Ventas)",
-            description: "Vista de cálculo de liquidaciones Intercompany aplicando regla general 92%/8% y regla especial Ball/Constellium.",
-            tasks: [
-              { id: "t-6.1", code: "6.1", kind: "TASK", title: "Vistas y Cálculos Intercompany (Regla 8%/92% vs. Plantillas Especiales)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT IdTarifa, Nombre, Codigo FROM dbo.Tarifa WITH (NOLOCK);", executionSql: "CREATE OR ALTER VIEW dbo.vw_TSP_CalculoIntercompany AS SELECT v.IdViaje, p.IdPedido FROM dbo.Viaje v INNER JOIN dbo.Pedido p ON 1=1; GO", verificationSql: "SELECT * FROM dbo.vw_TSP_CalculoIntercompany;", sourceDoc: "DDS+EXCEL" }
-            ]
-          },
-          {
-            id: `grp-hito-7-${Date.now()}`,
-            code: "7.0",
-            name: "HITO 7: Dashboards, Perfiles de Usuario y Pruebas UAT",
-            description: "Vistas SQL de reportería para tableros UNIGIS y control de KPI de Km en vacío por vehículo.",
-            tasks: [
-              { id: "t-7.1", code: "7.1", kind: "TASK", title: "Vistas SQL de Reportería para UNIGIS Dashboards (vw_TSP_KPI_KmVacio)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, inspectionSql: "SELECT IdVehiculo, Dominio FROM dbo.Vehiculo WITH (NOLOCK);", executionSql: "CREATE OR ALTER VIEW dbo.vw_TSP_KPI_KmVacio AS SELECT v.IdVehiculo FROM dbo.Viaje v GROUP BY v.IdVehiculo; GO", verificationSql: "SELECT * FROM dbo.vw_TSP_KPI_KmVacio;", sourceDoc: "DDS+EXCEL" }
+              { 
+                id: "t-5.1", code: "5.1", kind: "MILESTONE", title: "HITO FINAL: PUESTA EN PRODUCCIÓN (GO-LIVE)", status: "PENDIENTE", progress: 0, startedOn: null, completedOn: null, 
+                inspectionSql: "SELECT GETDATE() AS FechaGoLive;", 
+                executionSql: "-- Go-Live Oficial\n-- Trabajo Requerido: Valorar el proceso y recursos requeridos para alcanzar el éxito en la puesta en producción definitiva.", 
+                verificationSql: "SELECT GETDATE() AS FechaGoLive;", sourceDoc: "EXCEL" 
+              }
             ]
           }
         );
