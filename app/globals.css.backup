@@ -1,0 +1,644 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inter:wght@100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+@plugin "@tailwindcss/typography";
+
+
+
+@theme {
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+}
+
+:root {
+  --background: hsl(240 10% 3.9%);
+  --foreground: hsl(0 0% 98%);
+
+  --card: hsl(240 10% 3.9%);
+  --card-foreground: hsl(0 0% 98%);
+
+  --popover: hsl(240 10% 3.9%);
+  --popover-foreground: hsl(0 0% 98%);
+
+  --primary: hsl(0 0% 98%);
+  --primary-foreground: hsl(240 5.9% 10%);
+
+  --secondary: hsl(240 3.7% 15.9%);
+  --secondary-foreground: hsl(0 0% 98%);
+
+  --muted: hsl(240 3.7% 15.9%);
+  --muted-foreground: hsl(240 5% 64.9%);
+
+  --accent: hsl(240 3.7% 15.9%);
+  --accent-foreground: hsl(0 0% 98%);
+
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --border: hsl(240 3.7% 15.9%);
+  --input: hsl(240 3.7% 15.9%);
+  --ring: hsl(240 4.9% 83.9%);
+
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .ProseMirror {
+    font-family: Garamond, Georgia, serif;
+  }
+
+  /* Tighter paragraph spacing for UniLeaks editor */
+  .ProseMirror p {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.4;
+  }
+
+  /* Keep headings with a bit more breathing room */
+  .ProseMirror h1,
+  .ProseMirror h2,
+  .ProseMirror h3 {
+    margin-top: 0.5em;
+    margin-bottom: 0.15em;
+  }
+}
+
+/* --- THEMES --- */
+
+/* LIGHT THEME (Pure Pro) */
+:root[data-theme="light"] {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 0%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 0%);
+
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 0%);
+
+  --primary: hsl(0 72.2% 50.6%);
+  /* Corporate Red */
+  --primary-foreground: hsl(0 0% 100%);
+
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 0%);
+
+  --muted: hsl(0 0% 90%);
+  --muted-foreground: hsl(0 0% 40%);
+
+  --accent: hsl(0 72.2% 50.6% / 0.1);
+  --accent-foreground: hsl(0 72.2% 50.6%);
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --border: hsl(0 0% 0%);
+  /* Hard Black Outline per request */
+  --input: hsl(0 0% 0%);
+  --ring: hsl(0 72.2% 50.6%);
+}
+
+/* RED THEME (Adobe & Cloud Dancer) -> Updated foreground to WHITE (Uniformity Request) */
+:root[data-theme="red"] {
+  /* Adobe/Terracotta (Background) ~ #9E4839 */
+  --background: hsl(10, 40%, 42%);
+
+  /* Cloud Dancer (Foreground/Text) ~ #F0EEE9 -> REPLACED by 13-1022 TCX -> REPLACED by WHITE per user request */
+  /* --foreground: hsl(40, 20%, 94%); */
+  /* --foreground: hsl(24, 81%, 77%); */
+  --foreground: hsl(0, 0%, 100%);
+
+  /* Cards: Slightly lighter Adobe/Terracotta to distinguish from background */
+  --card: hsl(10, 40%, 46%);
+  /* --card-foreground: hsl(40, 20%, 94%); */
+  /* --card-foreground: hsl(24, 81%, 77%); */
+  --card-foreground: hsl(0, 0%, 100%);
+
+  --popover: hsl(10, 40%, 46%);
+  /* --popover-foreground: hsl(40, 20%, 94%); */
+  /* --popover-foreground: hsl(24, 81%, 77%); */
+  --popover-foreground: hsl(0, 0%, 100%);
+
+  /* Primary: Cloud Dancer -> Caramel Cream -> White */
+  /* --primary: hsl(40, 20%, 94%); */
+  /* --primary: hsl(24, 81%, 77%); */
+  --primary: hsl(0, 0%, 100%);
+  --primary-foreground: hsl(10, 40%, 42%);
+
+  /* Secondary: Darker Adobe for contrast elements */
+  --secondary: hsl(10, 40%, 35%);
+  /* --secondary-foreground: hsl(40, 20%, 94%); */
+  /* --secondary-foreground: hsl(24, 81%, 77%); */
+  --secondary-foreground: hsl(0, 0%, 100%);
+
+  --muted: hsl(10, 30%, 38%);
+  /* Muted Text: Pure White for maximum visibility per user feedback */
+  --muted-foreground: hsl(0, 0%, 100%);
+
+  --accent: hsl(10, 40%, 50%);
+  /* --accent-foreground: hsl(40, 20%, 94%); */
+  /* --accent-foreground: hsl(24, 81%, 77%); */
+  --accent-foreground: hsl(0, 0%, 100%);
+
+  --destructive: hsl(0, 0%, 100%);
+  --destructive-foreground: hsl(10, 40%, 42%);
+
+  --border: hsl(10, 40%, 50%);
+  --input: hsl(10, 40%, 50%);
+  /* --ring: hsl(40, 20%, 94%); */
+  /* --ring: hsl(24, 81%, 77%); */
+  --ring: hsl(0, 0%, 100%);
+}
+
+@utility glass-panel {
+  @apply bg-zinc-900/50 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl;
+}
+
+@utility nav-section-island {
+  @apply bg-secondary/20 border border-border/40 rounded-2xl p-2 space-y-1 transition-all duration-300;
+}
+
+.theme-logo {
+  transition: all 0.3s ease;
+}
+
+/* Invert Logo (White) for Dark AND Red themes now, since Red is dark/intense */
+:root[data-theme="dark"] .theme-logo,
+:root[data-theme="red"] .theme-logo {
+  filter: invert(1) brightness(2);
+}
+
+:root:not([data-theme]) .theme-logo {
+  filter: invert(1) brightness(2);
+}
+
+/* Only Light theme gets the black logo */
+:root[data-theme="light"] .theme-logo {
+  filter: none;
+}
+
+/* --- TIPTAP EDITOR STYLES --- */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(240 5% 64.9%);
+  /* Muted foreground */
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+/* Ensure highlighted text is readable (black) on dark and red themes */
+:root[data-theme="dark"] .ProseMirror mark,
+:root[data-theme="red"] .ProseMirror mark,
+:root:not([data-theme]) .ProseMirror mark {
+  color: #000000 !important;
+}
+
+/* Tiptap Table Base Styles for Editor View */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  min-width: 2em;
+  border: 1px solid theme('colors.border');
+  padding: 3px 7px;
+  vertical-align: middle;
+  box-sizing: border-box;
+  position: relative;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.ProseMirror table th {
+  background-color: theme('colors.muted.DEFAULT');
+  font-weight: 600;
+  text-align: left;
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  div,
+  section,
+  main {
+    position: static !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+    * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* --- UNIFLUX WORKSPACE STYLES --- */
+
+/* Edge labels (EdgeLabelRenderer) must appear above the SVG edge layer.
+   The react-flow__viewport transform creates a stacking context that can
+   cause SVG paths to visually overlap HTML labels without this. */
+.react-flow__edge-labels {
+  z-index: 20;
+}
+
+.react-flow__handle {
+  width: 10px !important;
+  height: 10px !important;
+  background: #8b5cf6 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.react-flow__handle:hover {
+  width: 16px !important;
+  height: 16px !important;
+  background: #7c3aed !important;
+  cursor: crosshair !important;
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.react-flow__handle-connecting {
+  background: #10b981 !important;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.react-flow__edge-path {
+  stroke-width: 2.5;
+  transition: stroke 0.3s ease;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #4f46e5 !important;
+  stroke-width: 3.5;
+}
+
+.react-flow__connection-path {
+  stroke: #8b5cf6 !important;
+  stroke-width: 2.5;
+  stroke-dasharray: 5;
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes node-pulse {
+  0% { box-shadow: 0 0 0 0px rgba(139, 92, 246, 0.7); outline: 2px solid transparent; }
+  50% { box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); outline: 2px solid #8b5cf6; }
+  100% { box-shadow: 0 0 0 0px rgba(139, 92, 246, 0); outline: 2px solid transparent; }
+}
+
+.node-highlight-pulse {
+  animation: node-pulse 1.5s ease-out infinite;
+  z-index: 100 !important;
+}
+
+/* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
+/* --- UNIVISIO WORKSPACE STYLES & OVERRIDES --- */
+@media print {
+    /* Reset heights, overflows in the body parent wrapper chain to block layouts to allow scrolling/multipage */
+    html, body, 
+    body > div,
+    body > div > div,
+    .univisio-workspace,
+    .univisio-workspace main,
+    .univisio-workspace .flex-1,
+    .univisio-workspace .overflow-auto,
+    .univisio-workspace .custom-scrollbar {
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Print tables correctly */
+    .univisio-workspace table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto !important;
+    }
+    
+    .univisio-workspace tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+    }
+
+    /* Ensure form fields display cleanly if any remain */
+    .univisio-workspace input, 
+    .univisio-workspace textarea, 
+    .univisio-workspace select {
+        border: none !important;
+        outline: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        color: black !important;
+        resize: none !important;
+        height: auto !important;
+        width: 100% !important;
+    }
+
+    /* Make narrative cards extremely compact for print so 2-3 fit per page */
+    .univisio-workspace .border.rounded-xl {
+        border: 1px solid #e2e8f0 !important;
+        margin-bottom: 0.65rem !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* Adjust padding in card sections */
+    .univisio-workspace .border.rounded-xl > div:first-child {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .grid {
+        display: grid !important;
+        grid-template-columns: 2fr 1fr !important;
+        gap: 0.4rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .grid > div {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .border-t {
+        padding: 0.4rem 0.6rem !important;
+    }
+
+    /* Compact text sizing inside narrative cards */
+    .univisio-workspace .border.rounded-xl input,
+    .univisio-workspace .border.rounded-xl textarea,
+    .univisio-workspace .border.rounded-xl select,
+    .univisio-workspace .border.rounded-xl span,
+    .univisio-workspace .border.rounded-xl div {
+        font-size: 10px !important;
+    }
+
+    /* Target the titles specifically */
+    .univisio-workspace .border.rounded-xl input[placeholder="Título del paso"],
+    .univisio-workspace .border.rounded-xl div.font-black {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .text-red-500 {
+        font-size: 8px !important;
+        font-weight: 900 !important;
+        margin-bottom: 0.15rem !important;
+        color: #ef4444 !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .gap-4 {
+        gap: 0.25rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .gap-1\.5 {
+        gap: 0.15rem !important;
+    }
+
+    .univisio-workspace .border.rounded-xl .p-3,
+    .univisio-workspace .border.rounded-xl .p-2 {
+        padding: 0.25rem 0.4rem !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Force background colors to print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Keep hidden print-hidden elements completely - placed at bottom to override layouts */
+    body .print\:hidden,
+    body [class*="print:hidden"],
+    body .univisio-workspace .print\:hidden,
+    body .univisio-workspace [class*="print:hidden"] {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+}
+
+
+/* Light Theme Overrides for UniVisio */
+:root[data-theme="light"] .univisio-workspace,
+:root[data-theme="light"] .univisio-workspace.bg-zinc-950 {
+    background-color: #f9fafb !important;
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950 {
+    background-color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/60,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/40,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/20,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/80,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900\/50,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/40 {
+    background-color: #f3f4f6 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/60 {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-950\/20 {
+    background-color: #f9fafb !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-900 {
+    background-color: #f3f4f6 !important;
+}
+:root[data-theme="light"] .univisio-workspace .border-zinc-800,
+:root[data-theme="light"] .univisio-workspace .border-zinc-850,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/80,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/60,
+:root[data-theme="light"] .univisio-workspace .border-zinc-800\/40 {
+    border-color: #e5e7eb !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-100,
+:root[data-theme="light"] .univisio-workspace .text-zinc-200,
+:root[data-theme="light"] .univisio-workspace .text-zinc-300,
+:root[data-theme="light"] .univisio-workspace .text-zinc-400 {
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-500 {
+    color: #6b7280 !important;
+}
+:root[data-theme="light"] .univisio-workspace input,
+:root[data-theme="light"] .univisio-workspace select,
+:root[data-theme="light"] .univisio-workspace textarea {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+:root[data-theme="light"] .univisio-workspace input:focus,
+:root[data-theme="light"] .univisio-workspace select:focus,
+:root[data-theme="light"] .univisio-workspace textarea:focus {
+    border-color: #ef4444 !important;
+}
+:root[data-theme="light"] .univisio-workspace .focus\:bg-zinc-900:focus {
+    background-color: #f3f4f6 !important;
+}
+
+/* Light Theme Styling Overrides for buttons, headers, and text contrasts */
+:root[data-theme="light"] .univisio-workspace .bg-red-600,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"],
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"] {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-red-600 *,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"] *,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"] * {
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-600"]:hover,
+:root[data-theme="light"] .univisio-workspace button[class*="bg-red-500"]:hover,
+:root[data-theme="light"] .univisio-workspace .hover\:bg-red-500:hover,
+:root[data-theme="light"] .univisio-workspace .hover\:bg-red-700:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-white {
+    color: #ffffff !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-red-700,
+:root[data-theme="light"] .univisio-workspace .text-red-600,
+:root[data-theme="light"] .univisio-workspace .text-red-500 {
+    color: #b91c1c !important;
+}
+:root[data-theme="light"] .univisio-workspace tr[class*="bg-red-50"] {
+    background-color: #fef2f2 !important;
+}
+:root[data-theme="light"] .univisio-workspace td[class*="text-red-700"] {
+    color: #b91c1c !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800,
+:root[data-theme="light"] .univisio-workspace [class*="bg-zinc-800"] {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+}
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/80,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/60,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-800\/50,
+:root[data-theme="light"] .univisio-workspace .bg-zinc-850 {
+    background-color: #e5e7eb !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-400 {
+    color: #4b5563 !important;
+}
+:root[data-theme="light"] .univisio-workspace .text-zinc-500 {
+    color: #6b7280 !important;
+}
+
+
+/* Red Theme Overrides for UniVisio */
+:root[data-theme="red"] .univisio-workspace,
+:root[data-theme="red"] .univisio-workspace.bg-zinc-950 {
+    background-color: hsl(10, 40%, 42%) !important;
+    color: hsl(0, 0%, 100%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .bg-zinc-950 {
+    background-color: hsl(10, 40%, 38%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/60,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/40,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/20,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/80,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-900\/50,
+:root[data-theme="red"] .univisio-workspace .bg-zinc-950\/40 {
+    background-color: hsl(10, 40%, 46%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .border-zinc-800,
+:root[data-theme="red"] .univisio-workspace .border-zinc-850,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/80,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/60,
+:root[data-theme="red"] .univisio-workspace .border-zinc-800\/40 {
+    border-color: hsl(10, 40%, 52%) !important;
+}
+:root[data-theme="red"] .univisio-workspace .text-zinc-100,
+:root[data-theme="red"] .univisio-workspace .text-zinc-200,
+:root[data-theme="red"] .univisio-workspace .text-zinc-300,
+:root[data-theme="red"] .univisio-workspace .text-zinc-400 {
+    color: hsl(0, 0%, 100%) !important;
+}
+:root[data-theme="red"] .univisio-workspace input,
+:root[data-theme="red"] .univisio-workspace select,
+:root[data-theme="red"] .univisio-workspace textarea {
+    background-color: hsl(10, 40%, 35%) !important;
+    color: hsl(0, 0%, 100%) !important;
+    border: 1px solid hsl(10, 40%, 50%) !important;
+}

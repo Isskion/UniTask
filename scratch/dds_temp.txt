@@ -1,0 +1,1656 @@
+DOCUMENTO DE DISEÑO DE SOLUCIÓN
+
+Transpais — Operación Internacional y 4PL
+
+UNIGIS TMS  |  Versión 1.3  |  junio 2026
+
+Documento Confidencial — Para uso interno UNIGIS / Transpais
+
+
+
+Control del Documento
+
+Lista de Distribución
+
+Empresa
+
+Nombre
+
+Cargo / Rol
+
+Email
+
+UNIGIS
+
+Francisco Javier Martínez
+
+Sponsor de Proyecto
+
+javier.martinez@unigis.com
+
+UNIGIS
+
+Jorge Sureda
+
+Gerente de Producto
+
+jorge.sureda@unigis.com
+
+UNIGIS
+
+Diego Senra
+
+Project Manager
+
+diego.senra@unigis.com
+
+UNIGIS
+
+Jorge Martínez
+
+Consultor Sr
+
+jorge.martinez@unigis.com
+
+UNIGIS
+
+Eric Walther
+
+Consultor
+
+eric.walther@unigis.com
+
+UNIGIS
+
+Iñaki Iraburu
+
+Consultor
+
+inaki.iraburu@unigis.com
+
+TRANSPAIS
+
+Juan Carlos Pardo
+
+Sponsor de Proyecto
+
+jcpardo@transpais.es
+
+TRANSPAIS
+
+Francisco Pardo
+
+Sponsor de Proyecto
+
+franciscojosepardo@transpais.es
+
+TRANSPAIS
+
+Leonardo Bianchini
+
+Project Manager
+
+lbianchini@transpais.es
+
+TRANSPAIS
+
+Pere Rodriguez
+
+Líder Internacional
+
+trafico2@transpais.es
+
+TRANSPAIS
+
+Andrei Nirca
+
+Key User
+
+anirca@transpais.es
+
+TRANSPAIS
+
+David Vázquez
+
+Key User
+
+dvazquez@transpais.es
+
+
+
+Historial de Revisiones
+
+Versión
+
+Fecha
+
+Responsable
+
+Descripción
+
+1.0
+
+01/04/2026
+
+Iñaki Iraburu
+
+Creación del documento base
+
+1.1
+
+14/04/2026
+
+Iñaki Iraburu
+
+Actualización de contenidos
+
+1.2
+
+20/05/2026
+
+Leonardo P. Bianchini
+
+Actualización y validación operativa
+
+1.3
+
+23/06/2026
+
+Daniel del Amo
+
+Actualización y estructuración DDS
+
+
+
+Aprobaciones
+
+Rol
+
+Nombre
+
+Empresa
+
+Fecha
+
+Sponsor de Proyecto
+
+Juan Carlos Pardo
+
+TRANSPAIS
+
+
+
+Project Manager Cliente
+
+Leonardo Bianchini
+
+TRANSPAIS
+
+
+
+Sponsor UNIGIS
+
+Francisco Javier Martínez
+
+UNIGIS
+
+
+
+Gerente de Proyecto UNIGIS
+
+Jorge Sureda
+
+UNIGIS
+
+
+
+
+
+
+
+1. Introducción
+
+Transpais es un operador logístico de referencia en España con proyección europea, con presencia activa en España, Francia, Polonia y Bulgaria. Su actividad principal se centra en el transporte de larga distancia — cargas completas (FTL) y grupajes (LTL) — tanto para clientes recurrentes como a través de bolsas de carga líderes del mercado como Transporeon.
+
+La empresa opera una flota propia de aproximadamente 160 vehículos entre tractoras y remolques, gestionados con telemetría a través de Webfleet. La planificación del transporte internacional se centraliza desde España, coordinando las operaciones de las filiales en Francia, Polonia y Bulgaria.
+
+Dentro de este marco, Transpais ha evolucionado hacia un modelo de gestión 4PL para su cliente estratégico BALL, en el que no solo ejecuta el transporte sino que planifica, controla y coordina toda la cadena logística, gestionando un ecosistema de 19 empresas de transporte según cuotas pactadas por el cliente.
+
+El presente documento describe el Diseño de Solución (DDS) para la implementación de UNIGIS TMS en la operativa Internacional y 4PL de Transpais. Recoge cómo quedarán configuradas las funcionalidades del sistema, cómo interactuarán los usuarios con la plataforma en cada paso del proceso operativo y cuáles son los flujos de integración con los sistemas externos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. Objetivos del Proyecto
+
+2.1 Objetivo General
+
+Implementar UNIGIS TMS como solución integral de gestión del transporte para Transpais, optimizando recursos, reduciendo costos operativos, elevando el nivel de servicio al cliente y fortaleciendo la posición estratégica de la compañía en el mercado europeo de transporte.
+
+2.2 Objetivos Específicos
+
+Automatizar la planificación y optimización de rutas internacionales, incluyendo la gestión de cargas completas y grupajes en los corredores Europa–Iberia.
+
+Disponer de visibilidad en tiempo real de la flota mediante integración con Webfleet, permitiendo monitorizar la ejecución del transporte y reaccionar ante desviaciones.
+
+Mejorar la calidad de servicio al cliente mediante trazabilidad en línea del estado de pedidos y entregas, a través de portales B2B y B2C.
+
+Integrar de forma ágil los flujos de pedidos con Transporeon (bolsa de cargas), automatizando la recepción y clasificación de pedidos asignados a Transpais.
+
+Gestionar de forma flexible los modelos tarifarios de venta y costo, incluyendo la tarificación intercompany y el modelo de facturación 4PL para Ball.
+
+Centralizar la gestión de maestros operativos en MS365 Business Central e integrarlos automáticamente con el TMS.
+
+
+
+3. Estructura Organizativa
+
+En UNIGIS TMS, la estructura organizativa sigue una jerarquía de cuatro niveles: Empresa → Sucursal → Operación → Depósito. Cada nivel agrupa y segmenta la operativa, permitiendo configurar comportamientos, usuarios, datos y procesos de forma independiente por unidad operativa.
+
+3.1 Empresa
+
+La Empresa es la unidad organizacional principal del TMS. Representa a Transpais como entidad raíz que contiene toda la estructura operativa. Todos los maestros, pedidos, viajes y configuraciones quedan bajo este paraguas.
+
+Empresa configurada: Transpais
+
+3.2 Sucursales
+
+La Sucursal es una subdivisión geográfica de la empresa. En Transpais, las sucursales corresponden a los países donde opera:
+
+España
+
+Polonia
+
+Bulgaria
+
+Francia
+
+3.3 Operaciones
+
+La Operación es la unidad de trabajo operativa. Cada operación tiene su propia configuración, grupos de usuarios y datos. Todo lo que se planifica conjuntamente debe pertenecer a la misma operación.
+
+
+
+Empresa
+
+Sucursal
+
+Operación
+
+Depósito / Almacén
+
+Transpais
+
+España
+
+Internacional La Selva
+
+Almacén La Selva
+
+
+
+
+
+Internacional Atlántico
+
+Almacén Vigo
+
+
+
+Polonia
+
+Internacional Polonia
+
+Almacén Polonia
+
+
+
+Bulgaria
+
+Internacional Bulgaria
+
+Almacén Bulgaria
+
+
+
+Francia
+
+Internacional Montouir
+
+Almacén Francia
+
+
+
+3.4 Depósitos — Áreas de Influencia
+
+Cada depósito tiene asociada un área de influencia por país y rango de código postal, que el sistema usa para asignar automáticamente el depósito de salida o llegada a cada pedido.
+
+Depósito
+
+CP Desde
+
+CP Hasta
+
+País
+
+Localidad / Nota
+
+Almacén La Selva
+
+43010
+
+43470
+
+ESP
+
+La Selva del Camp, Tarragona
+
+Almacén Vigo (Atlántico)
+
+43100
+
+43150
+
+ESP
+
+Vigo
+
+Almacén Francia
+
+—
+
+—
+
+FRA
+
+Montoir-de-Bretagne
+
+Almacén Polonia
+
+—
+
+—
+
+POL
+
+
+
+Almacén Bulgaria
+
+—
+
+—
+
+BGR
+
+
+
+Almacén Bélgica
+
+—
+
+—
+
+BEL
+
+
+
+Cabanillas del Campo (Madrid)
+
+—
+
+—
+
+ESP
+
+Zona Central
+
+
+
+
+
+
+
+
+
+
+
+
+
+4. Datos Maestros
+
+Los maestros son el conjunto de entidades de configuración que definen el marco sobre el que opera el sistema. En Transpais, los maestros operativos se gestionarán en MS365 Business Central y se sincronizarán automáticamente con el TMS a través de interfaces dedicadas.
+
+4.1 Vehículos y Flota
+
+Transpais cuenta con aproximadamente 160 vehículos entre tractoras y remolques. Los datos de vehículos se recibirán desde Webfleet a través del método showVehicleReportExtern y desde MS365 BC a través de la interfaz CrearVehículos.
+
+Campos que se recuperarán de Webfleet por vehículo: ID, nombre, matrícula, VIN, tipo de vehículo, dimensiones (ancho/largo/alto), pesos máximo y neto, tipo y consumo de combustible, MAC Bluetooth del dispositivo.
+
+4.2 Conductores
+
+Los conductores se darán de alta en el TMS manualmente o mediante integración. Cada conductor estará vinculado a su vehículo habitual y a la operación correspondiente. La integración con Webfleet permitirá recuperar tiempos de conducción, estados de jornada laboral y datos de tacógrafo en tiempo real (método showWorkingTimes y getRemainingDrivingTimesEU).
+
+4.3 Clientes Dadores
+
+El Cliente Dador es la empresa que origina el pedido de transporte. Los clientes dadores se crearán y actualizarán en el TMS a través de la interfaz CrearClientesDadores desde MS365 BC. El TMS utilizará el campo SistemaOrigen para identificar la procedencia de cada pedido.
+
+4.4 ClienteOrden y DomicilioOrden
+
+El ClienteOrden es el destinatario final al que se entrega la carga. El DomicilioOrden es su dirección de entrega. En los pedidos internacionales pueden ser distintos del cliente dador. Se sincronizarán desde MS365 BC a través de las interfaces CrearClientesOrden.
+
+En los pedidos con recogida en remitente, el campo DomicilioOrden2 recoge la dirección de origen/remitente de la carga.
+
+4.5 Transportistas (Transportes)
+
+Los transportistas terceros y las filiales intercompany estarán dados de alta en el TMS como entidades de transporte. Los datos se sincronizan desde MS365 BC a través de la interfaz CrearTransportes. Los transportistas externos podrán acceder al Portal de Transporte de UNIGIS para aceptar/rechazar viajes asignados.
+
+4.6 Integración con Webfleet — Métodos
+
+La integración GPS con Webfleet proveerá al TMS de información en tiempo real. Los métodos disponibles y los datos que alimentan al sistema son los siguientes:
+
+Método Webfleet
+
+Datos principales recuperados
+
+showVehicleReportExtern
+
+ID, nombre, matrícula, VIN, tipo, dimensiones, pesos, combustible, Bluetooth MAC, Límite de velocidad configurado y Límite de revoluciones máximas - RPM 
+
+showTripReportExtern
+
+ID viaje, distancia, duración, ralentí, fechas, coordenadas, odómetro, consumo, velocidades, CO2, OptiDrive
+
+showEventReportExtern
+
+ID evento, fecha/hora, texto alerta, ubicación, nivel alerta, coordenadas, usuario reconocimiento y resolución
+
+showWorkingTimes
+
+ID conductor, rol, vehículo inicio/fin, fechas, odómetro, estados (Pausa/Conduciendo/Trabajando), desfase tacógrafo
+
+getRemainingDrivingTimesEU
+
+Tiempos restantes de conducción UE: próxima pausa, descanso diario, máximo semanal, extensiones, infracciones
+
+
+
+
+
+5. Pedidos
+
+Los pedidos son la entidad central del TMS. Representan el compromiso de servicio de entrega o recolección entre Transpais y el cliente dador. Toda la operación de Internacional y 4PL se inicia, controla y liquida a partir de los pedidos.
+
+5.1 Tipos de Pedido
+
+El sistema clasificará automáticamente cada pedido en uno de los siguientes tipos, según el origen, destino y configuración del área de influencia:
+
+Granel: pedido donde el tipo de carga es suelta o a granel.
+
+Local: pedido donde el almacén de recogida y de entrega son el mismo depósito.
+
+Nacional: pedido a entregar a nivel nacional donde los almacenes de recogida y entrega son distintos.
+
+Internacional: pedido a entregar a nivel internacional donde los almacenes de recogida y entrega son distintos (incluyendo operativa entre países).
+
+5.2 Vías de Entrada de Pedidos
+
+Los pedidos pueden llegar al TMS por tres vías:
+
+Integración automática desde Transporeon (Interfaz 1 — Assigned Transport Interface): el TMS recupera periódicamente los pedidos asignados a Transpais en la bolsa de cargas de Transporeon. Los pedidos entran directamente en estado INGRESADO. Esta es la vía principal.
+
+Creación manual en el TMS: un usuario crea el pedido directamente en la interfaz de UNIGIS OM completando los campos obligatorios.
+
+Carga por fichero Excel / CSV: el usuario importa pedidos en bloque a través de un fichero estructurado. Los pedidos generados entran igualmente en estado INGRESADO.
+
+Los pedidos de Transporeon se clasifican según tres códigos de descarga, que determinan a qué empresa del grupo se asigna cada pedido:
+
+Transpais SA
+
+Transpais France
+
+Transpais Atlántico
+
+
+
+5.3 Campos Principales del Pedido
+
+Los campos mínimos obligatorios para la correcta creación de un pedido son:
+
+Cliente dador
+
+Tipo de carga (Granel, Local, Nacional, Internacional)
+
+Fecha de recogida
+
+Fecha de entrega
+
+Palets
+
+Peso (Kg)
+
+Volumen (M3)
+
+Origen (DomicilioOrden2 / almacén remitente)
+
+Destino (DomicilioOrden / consignatario)
+
+Tarifa de venta (para pedidos de Transporeon: el sistema compara el precio integrado con el precio tarificado en TMS y registra ambos)
+
+Tipo de vehículo (para pedidos de Transporeon: viene indicado por la plataforma)
+
+Adicionalmente, los pedidos pueden requerir servicios adicionales seleccionables:
+
+Lavado (campo con seleccionable de tipos de lavado)
+
+Cantoneras, Alfombras, Cintas, GMP, Barras, Levantar el Techo, Cable Tir, Candado, Precinto
+
+📌 Nota: Los campos obligatorios bloqueantes se definirán en detalle con el equipo de Transpais durante la etapa de construcción del proyecto.
+
+5.4 Clasificación 4PL — Catálogo Dinámico
+
+Transpais opera como 4PL para su cliente BALL en plantas de proveedores estratégicos. El TMS dispone de un catálogo dinámico de reglas para identificar automáticamente si un pedido es de operativa 4PL. Las reglas actuales son:
+
+Cliente Dador (Ball)
+
+Almacén de Carga (origen pedido)
+
+BALL
+
+Novelis
+
+BALL
+
+Constellium
+
+BALL
+
+Speira
+
+
+
+Cuando el proceso PedidoTSP detecta que un pedido cumple estas reglas (cliente + almacén de carga), marca el pedido como 4PL en un campo específico, diferenciándolo de los pedidos Internacional estándar de Transpais.
+
+
+
+
+
+6. Flujo Operativo del Pedido
+
+A continuación se describe el ciclo de vida completo de un pedido, desde su entrada hasta la liquidación final. Cada paso incluye el actor responsable y el estado resultante en el sistema.
+
+Paso
+
+Estado Resultante
+
+Descripción
+
+Actor
+
+1
+
+INGRESADO
+
+El pedido entra desde Transporeon, carga manual o fichero Excel.
+
+Sistema / Usuario
+
+2
+
+GRABADO / ERROR
+
+CompletarPedido rellena campos faltantes; ValidarPedido asigna operación y tipo.
+
+Sistema (automático)
+
+3
+
+CONFIRMADO
+
+Customer Service valida el pedido y puede preasignar vehículo y conductor.
+
+Customer Service
+
+4
+
+(clasificado)
+
+Proceso PedidoTSP identifica si el pedido es 4PL o Internacional.
+
+Sistema (automático)
+
+5
+
+PLANIFICADO
+
+Planificador cambia estado del pedido; se crean viajes automáticamente en estado INACTIVO.
+
+Planificador
+
+6
+
+ASIGNADO
+
+Se asigna vehículo y conductor. ValidacionViaje verifica la correcta asignación.
+
+Planificador
+
+7
+
+CONFIRMADO (viaje)
+
+Terceros aceptan en Portal; propios/dedicados reciben notificación push en App.
+
+Transportista
+
+9
+
+ACTIVO
+
+Conductor activa el viaje en App o usuario de Control Flota lo activa desde TMS.
+
+Conductor / Tráfico
+
+10
+
+EN EJECUCIÓN
+
+Conductor visita paradas y cambia estados de carga/entrega en App X Deliveries.
+
+Conductor
+
+11
+
+DEVOLUCIÓN
+
+Si hay entrega parcial o no entrega, sistema crea parada de devolución automáticamente.
+
+Sistema (automático)
+
+12
+
+LIQUIDABLE
+
+Equipo administrativo revisa incidencias y aprueba. Viaje pasa a liquidable para tarificación.
+
+Administrativo
+
+13
+
+LIQUIDADO
+
+Se generan preliquidaciones de pago y cobro. ERP recupera datos vía API ObtenerLiquidación.
+
+Sistema / Admin
+
+
+
+6.1 Paso 1 — Creación del Pedido (INGRESADO)
+
+El flujo se inicia cuando el pedido entra al TMS. La vía principal es la integración con Transporeon (Interfaz 1 — Assigned Transport Interface), que recupera los pedidos de la bolsa de cargas asignados a Transpais. Los pedidos creados por esta vía entran automáticamente en estado INGRESADO.
+
+La pantalla de pedidos muestra el conjunto completo de pedidos disponibles. Cada usuario puede aplicar filtros para visualizar los pedidos según su perfil y operación. No hay restricciones de acceso por defecto, solo filtros operativos.
+
+6.2 Paso 2 — CompletarPedido y ValidarPedido
+
+Una vez ingresado el pedido, el sistema activa automáticamente el proceso CompletarPedido, que analiza la información del pedido y completa los campos faltantes a partir de los maestros y reglas de negocio del TMS: depósito de salida (por área de influencia del CP), depósito de llegada, operación asignada y tipo de pedido.
+
+A continuación se ejecuta el proceso ValidarPedido, que valida la consistencia del pedido y asigna el tipo operativo (Granel, Local, Nacional o Internacional). Esta clasificación determina a qué usuario o equipo se distribuye el pedido para su gestión.
+
+Si la validación es correcta: el pedido pasa a estado GRABADO.
+
+Si faltan datos críticos: el pedido pasa a estado ERROR-REQUIERE AJUSTE. El usuario con permisos accede a UNIGIS OM, corrige los campos necesarios y cambia el estado manualmente a GRABADO para reactivar el flujo.
+
+📌 Interfaz 2 (fuera del alcance inicial): cuando el pedido pasa a GRABADO, el sistema TMS debería activar la interfaz hacia Transporeon para recuperar la cita de carga/descarga y el vehículo asignado. Esta interfaz está pendiente de disponibilidad por parte de Transporeon.
+
+6.3 Paso 3 — Confirmación por Customer Service (CONFIRMADO)
+
+El equipo de Customer Service de Transpais revisa los pedidos en estado GRABADO en UNIGIS OM. Su responsabilidad es validar la coherencia de los datos, corregir lo que sea necesario y realizar el cambio de estado a CONFIRMADO.
+
+En esta etapa, Customer Service puede realizar una preasignación de vehículo y conductor si el recurso ya se conoce (o si viene preasignado desde Transporeon). Esta preasignación es opcional y no impide la posterior planificación por el equipo de Planning.
+
+Al confirmar, se ejecuta automáticamente un proceso de validación que verifica que el pedido tenga toda la información necesaria para ser planificado.
+
+6.4 Paso 4 — Clasificación 4PL (proceso PedidoTSP)
+
+Tras la confirmación, el sistema activa automáticamente el proceso PedidoTSP. Este proceso consulta el catálogo dinámico de reglas 4PL y marca en un campo específico del pedido si corresponde a la operativa 4PL de Ball o a la operativa Internacional estándar de Transpais.
+
+Esta clasificación es clave para que los pedidos lleguen al equipo de planificación correcto y para que se apliquen las reglas tarifarias y de asignación correspondientes.
+
+6.5 Paso 5 — Planificación y Creación de Viaje
+
+Los pedidos confirmados y clasificados pasan a formar parte del pool de pedidos en el OM de UNIGIS. El planificador de Transpais accede a esta bandeja de entrada y, según las necesidades operativas de cada pedido, inicia la planificación realizando un cambio de estado en el pedido.
+
+Cada cambio de estado en el pedido genera automáticamente el viaje o viajes necesarios, con sus paradas correspondientes:
+
+Estado / Acción en Pedido
+
+Viaje que se crea automáticamente
+
+Programar directo remitente-destino
+
+Viaje entre remitente (DomicilioOrden2) → consignatario (DomicilioOrden)
+
+Programar recolección
+
+Viaje entre remitente (DomicilioOrden2) → depósito salida (IdDepositoSalida)
+
+Programar directo depósito salida-destino
+
+Viaje entre depósito salida (IdDepositoSalida) → consignatario (DomicilioOrden)
+
+Programar arrastre
+
+Viaje entre depósito salida (IdDepositoSalida) → depósito llegada (IdDepositoLlegada)
+
+Programar reparto
+
+Viaje entre depósito llegada (IdDepositoLlegada) → consignatario (DomicilioOrden)
+
+
+
+Aspectos clave que el planificador debe considerar antes de planificar:
+
+País de origen y destino del pedido.
+
+Código postal de origen y destino.
+
+Planificación con horizonte a 24h / 48h / 72h o superior según la operativa.
+
+Tipo de vehículo principal y secundario (remolque).
+
+Ventanas horarias de depósitos y domicilios.
+
+Geocodificación correcta de depósitos y domicilios.
+
+Una vez cambiado el estado del pedido, el sistema ejecuta automáticamente el proceso ValidacionRecursosPedido, que verifica que el tipo de vehículo asignado y los recursos cumplan los criterios establecidos para ese tipo de servicio.
+
+Si cumple los criterios: la validación es OK y se crean los viajes en estado INACTIVO.
+
+Si no cumple: la validación es KO. El planificador debe realizar los ajustes necesarios y relanzar el proceso de validación.
+
+6.6 Paso 6 — Asignación de Vehículo y Conductor (ASIGNADO)
+
+Con los viajes creados en estado INACTIVO, el planificador puede agruparlos, modificarlos y asignar vehículo y conductor desde la pantalla OM-Viajes. Una vez completada la asignación, el planificador cambia el estado del viaje a ASIGNADO (individual o masivamente).
+
+Al asignar conductor y vehículo propios, el sistema ejecuta automáticamente el proceso ValidacionViaje, que verifica la correcta asignación del tipo de vehículo y otras particularidades del viaje. Si la validación es KO, el planificador debe corregir y relanzar.
+
+Los viajes asignados a transportistas terceros quedan automáticamente disponibles en el Portal de Transporte de UNIGIS.
+
+6.7 Paso 7 — Notificación y Aceptación del Transportista
+
+El sistema notifica automáticamente a los transportistas asignados:
+
+Terceros: el viaje aparece en su Portal de Transporte. El tercero puede aceptar (estado CONFIRMADO) o rechazar (estado RECHAZADO) el viaje. Si rechaza, los pedidos vuelven a la etapa de planificación para reasignación.
+
+Conductores propios y dedicados: el viaje aparece en la App UNIGIS X Deliveries con notificación push (requiere que el conductor haya iniciado sesión previamente en la App). El conductor puede aceptar (CONFIRMADO) o rechazar (RECHAZADO).
+
+Opcionalmente, un usuario de Transpais puede confirmar o rechazar el viaje en nombre del transportista desde la plataforma web.
+
+6.8 Paso 9 — Activación del Viaje (ACTIVO)
+
+El conductor accede a la App UNIGIS X Deliveries y puede consultar el detalle de sus viajes: paradas, fechas, horarios, ítems, cantidades y documentación asociada.
+
+Cuando inicia físicamente el viaje, el conductor cambia el estado a ACTIVO desde la App. Como alternativa, este cambio puede realizarlo el usuario de Control Flota desde el TMS web. La activación del viaje es el punto de inicio del seguimiento activo en UNIGIS.
+
+📌 UNIGIS recomienda que la activación del viaje la realice siempre el equipo de seguimiento y control (no el conductor) para minimizar la posibilidad de viajes saliendo sin seguimiento activo. Se puede estudiar la configuración de una regla automática de activación con el equipo de proyecto.
+
+6.9 Paso 10 — Ejecución de Paradas
+
+Durante la ejecución del viaje, el conductor visita cada parada en secuencia y registra el estado correspondiente en la App UNIGIS X Deliveries. El sistema también puede cambiar la parada a estado VISITADO automáticamente cuando el vehículo entra en la geocerca de la dirección.
+
+La siguiente tabla recoge los tipos de parada y los estados disponibles:
+
+Tipo de Parada
+
+Estado Parada
+
+Motivo / Acción
+
+CARGA EN REMITENTE
+
+Cargado en remitente
+
+Carga confirmada
+
+
+
+Cargado parcial en remitente
+
+Revisión TRANSPAIS — diferencia de bultos/palets
+
+
+
+No cargado en remitente
+
+Revisión TRANSPAIS — mercancía no disponible
+
+CARGA EN DEPÓSITO SALIDA
+
+Cargado en depósito salida
+
+Carga confirmada en COL
+
+
+
+Cargado parcial en depósito salida
+
+Revisión TRANSPAIS
+
+
+
+No cargado en depósito salida
+
+Revisión TRANSPAIS
+
+CARGA EN DEPÓSITO LLEGADA
+
+Cargado en depósito llegada
+
+Carga confirmada en depósito destino
+
+
+
+Cargado parcial en depósito llegada
+
+Revisión TRANSPAIS
+
+
+
+No cargado en depósito llegada
+
+Revisión TRANSPAIS
+
+ENTREGA EN CONSIGNATARIO
+
+Entregado en consignatario
+
+Entrega confirmada al cliente final
+
+
+
+Entrega parcial en consignatario
+
+Revisión TRANSPAIS — se crea parada devolución
+
+
+
+No entregado en consignatario
+
+Revisión TRANSPAIS — se crea parada devolución
+
+ENTREGA EN DEPÓSITO SALIDA
+
+Entregado en depósito salida
+
+Confirmado
+
+
+
+Entrega parcial / No entregado
+
+Revisión TRANSPAIS
+
+ENTREGA EN DEPÓSITO LLEGADA
+
+Entregado en depósito llegada
+
+Confirmado
+
+
+
+Entrega parcial / No entregado
+
+Revisión TRANSPAIS
+
+
+
+La App puede solicitar al conductor acciones configuradas por Transpais en cada transición de estado: firma (POD), fotografías, observaciones, respuesta a encuestas.
+
+Mientras el viaje está activo, los usuarios de Tráfico pueden visualizar en tiempo real la ubicación del vehículo en el mapa, el tiempo estimado de llegada a cada parada y los estados de ejecución, combinando los datos de Webfleet con los estados registrados en la App.
+
+Los usuarios de Control Flota también pueden registrar incidencias durante la ejecución del viaje para su posterior revisión y aprobación. Los tipos de incidencia serán definidos por Transpais.
+
+6.10 Paso 11 — Gestión de Devoluciones
+
+Si durante la ejecución se produce una entrega parcial o no entrega (el consignatario no acepta la mercancía), el sistema crea automáticamente una parada de DEVOLUCIÓN que agrupa los ítems no entregados.
+
+Opciones para gestionar la devolución (a definir con Transpais):
+
+Generar un viaje de Devolución independiente.
+
+Añadir una parada de Devolución al mismo viaje.
+
+Generar un Pedido de Devolución nuevo.
+
+6.11 Paso 12 — Validación de Incidencias y Tarificación (LIQUIDABLE)
+
+Una vez el viaje alcanza el estado RENDIDO (todas las paradas finalizadas), el equipo administrativo de Transpais revisa las incidencias pendientes de aprobación. Puede ajustarlas y cambiar su estado a APROBADA.
+
+Cuando todo está validado, el viaje pasa a estado LIQUIDABLE, que habilita el cálculo de la tarificación: el pago al transportista y el cobro al cliente.
+
+📌 La lógica de tarificación será revisada en detalle con el equipo de proyecto de Transpais en la etapa de construcción.
+
+6.12 Paso 13 — Generación de Liquidaciones (LIQUIDADO)
+
+Mensualmente el equipo administrativo genera en el TMS las preliquidaciones de pago a proveedores (transportistas) y de cobro a clientes. Estas preliquidaciones agrupan guías de venta y pago, nacen en estado INICIAL, se pueden revisar y ajustar y, cuando son correctas, se confirman (estado CONFIRMADA).
+
+MS365 BC recupera las preliquidaciones confirmadas mediante el método API estándar de UNIGIS ObtenerLiquidación. Los viajes incluidos en liquidaciones confirmadas pasan al estado LIQUIDADO, cerrando el ciclo operativo.
+
+Las tarifas de ventas están asociadas a los pedidos y las tarifas de costo, a los viajes.
+
+
+
+7. Workflows y Estados
+
+7.1 Control Documental
+
+Durante la ejecución operativa se gestionan los siguientes documentos de transporte. Transpais deberá confirmar el listado completo:
+
+CMR — Carta de Porte Internacional
+
+Carta de Porte Nacional
+
+Orden del Cliente (impresión desde Portic, albaranes del cliente, etc.)
+
+Documentos de carga: ADR, Packing List, etc.
+
+7.2 Ajustes al Viaje
+
+Mientras el viaje está en estado INACTIVO, los usuarios con permisos pueden realizar ajustes de último momento: cambio de vehículo principal o secundario, conductor, coconductor, fecha planificada de inicio y fin.
+
+7.3 Gestión de la App UNIGIS X Deliveries
+
+La App está disponible para Android (versión 8.0 o superior) y funciona en modo offline: si el conductor pierde conexión a internet, puede seguir registrando estados. Cuando recupera la señal, la App sincroniza automáticamente todo lo registrado con el TMS.
+
+Si el conductor no puede usar la App, el área de seguimiento de Transpais puede registrar los cambios de estado desde la web del TMS.
+
+
+
+8. Tarifación y Modelo Financiero
+
+8.1 Modelo Internacional Estándar
+
+Las tarifas de venta para la operativa internacional estándar son dinámicas e incluyen la indexación del combustible. El control de rentabilidad se realiza a nivel de viaje.
+
+Transpais factura a los clientes dadores según las tarifas acordadas comercialmente. El cálculo del costo del viaje (pago al transportista) se realiza cuando el viaje pasa a estado LIQUIDABLE.
+
+8.2 Modelo Intercompany
+
+Cuando Transpais capta un servicio pero lo ejecuta otra empresa del grupo (Francia, Polonia, Bulgaria, Atlántico), se aplica la facturación intercompany según las siguientes reglas:
+
+Escenario
+
+Regla de Reparto
+
+Ejemplo
+
+Regla General
+
+8% a empresa captadora / 92% a ejecutora
+
+Constellium paga 1.000€ a TPF → TPF retiene 80€, TP SA recibe 920€
+
+Precio Especial (plantilla)
+
+Precio fijo acordado, cargado en plantilla TMS. No aplica la regla 8%.
+
+Ball Ibérica / TP Atlántico: tarifa − 15€ + indexación gasoil (calculado en Excel externo)
+
+
+
+📌 Puntos críticos del proceso actual: el reparto intercompany se decide manualmente en el briefing diario (10h). Los precios especiales viven en Excel externo y se cargan manualmente en plantillas TMS. La expedición inversa solo se actualiza automáticamente si tiene precio 0€; si ya tiene precio y el viaje cambia, requiere corrección manual.
+
+8.3 Modelo 4PL — Facturación Ball
+
+En la operativa 4PL para Ball, el modelo de ingresos y gastos varía según qué carrier ejecute el transporte:
+
+Carrier
+
+Líneas de Ingreso (facturación a Ball)
+
+Gasto registrado
+
+Tercero de Ball (no Transpais)
+
+Solo 4PL: Kilos × €
+
+0€ — Ball paga directamente al transportista
+
+Transpais
+
+4PL + Transporte + Indexación gasoil
+
+Tarifa vigente con el cliente
+
+Transpais + agencia subcontratada
+
+4PL + Transporte + Indexación gasoil
+
+Tarifa acordada manualmente con el proveedor por tráfico
+
+Transpais + intercompany (subsidiaria)
+
+4PL + Transporte + Indexación gasoil
+
+Regla 8% estándar o precio fijo plantilla (clientes especiales como Ball Ibérica)
+
+
+
+El precio que se cobra a Ball lo fija el equipo de Pricing de Transpais: puede ser una tarifa estándar aplicada automáticamente o un precio spot acordado y registrado manualmente en el TMS.
+
+📌 Los precios especiales intercompany y los costos de agencias externas se mantienen actualmente en Excel externo y se cargan en plantillas del TMS. No hay automatismo. Esta situación se revisará en la fase de construcción para evaluar posibles mejoras.
+
+
+
+9. Alarmas y Notificaciones
+
+9.1 Alarmas de Monitoreo
+
+UNIGIS TMS permite configurar alarmas que alertan al personal de monitoreo sobre situaciones que requieren atención en tiempo real. Las alarmas pueden estar vinculadas a movimientos del vehículo (GPS) o a datos de viajes y paradas.
+
+Para que las alarmas GPS funcionen correctamente, los vehículos deben estar reportando eventos al hub de UNIGIS y los viajes deben estar en seguimiento activo. El proveedor GPS exclusivo de Transpais es Webfleet.
+
+Alarma / Notificación
+
+Condición que la dispara
+
+Destinatario
+
+Canal
+
+Fin de viaje
+
+Viaje pasa a estado FINALIZADO
+
+Equipo de tráfico / supervisión
+
+Email
+
+Tiempo de estadía máximo superado
+
+Parada supera tiempo máximo configurado
+
+Control flota
+
+Email
+
+Geofencing — entrada/salida de zona
+
+Vehículo entra o sale de zona configurada
+
+Control flota
+
+Email
+
+
+
+El contenido del cuerpo de los correos de alarma se acordará con Transpais durante la etapa de construcción del proyecto.
+
+9.2 Notificaciones
+
+Las notificaciones estándar del sistema se realizan por email. Para notificaciones por SMS o WhatsApp, Transpais deberá contratar servicios de proveedores externos.
+
+Notificación push a conductores: se realiza a través de la App UNIGIS X Deliveries cuando se asigna un viaje. Requiere que el conductor haya iniciado sesión previamente en la App.
+
+
+
+10. Dashboard y Reporting
+
+10.1 Panel de Control
+
+El Dashboard de UNIGIS proporciona a los usuarios una vista en tiempo real de la operación: mapa con ubicación de vehículos, estado de viajes en curso, alertas activas y KPIs operativos. La configuración de permisos de acceso permite segmentar qué información ve cada perfil de usuario.
+
+10.2 Reportes Disponibles
+
+Los siguientes reportes se habilitarán en la aplicación UNIGIS. El detalle de columnas, filtros y lógica de armado de cada reporte se definirá con el equipo de proyecto durante la etapa de construcción:
+
+Nombre del Reporte / KPI
+
+Descripción
+
+Km en vacío
+
+Kilómetros recorridos sin carga
+
+Cantidad de Viajes
+
+Total de viajes ejecutados
+
+Viajes por Operador de Tráfico
+
+Distribución de viajes por operador responsable
+
+Evolución de viajes por período
+
+Tendencia de viajes en el tiempo
+
+Viajes por matrícula
+
+Uso de cada vehículo
+
+Viajes por recorrido
+
+Frecuencia por origen-destino
+
+Zonas de influencia / mapas de calor
+
+Visualización geográfica de recorridos más frecuentes
+
+Km totales por tipo de servicio
+
+Desglose por Internacional, Local, Nacional, Granel
+
+Km totales por matrícula
+
+Rendimiento por vehículo
+
+Km totales por operador de tráfico
+
+Productividad por operador
+
+Km totales por recorrido
+
+Eficiencia por ruta
+
+Km totales vs. Km en vacío por recorrido
+
+Análisis de eficiencia de carga
+
+Viajes por cliente
+
+Volumen de servicio por cliente dador
+
+Ventas por cliente
+
+Facturación por cliente
+
+Km por cliente
+
+Distancia media por cliente
+
+Viajes por tipo de servicio y cliente
+
+Cruce tipo de pedido y cliente
+
+
+
+
+
+11. Interfaces e Integraciones
+
+11.1 Arquitectura de Integración
+
+La solución integra cuatro sistemas principales: Transporeon (captación de pedidos), UNIGIS TMS (gestión operativa), Webfleet (telemetría GPS) y MS365 Business Central (ERP maestros y finanzas). La arquitectura se basa en webservices y adaptadores JSON para el intercambio de datos.
+
+Contexto de migración: el equipo de IT de Transpais se encuentra migrando actualmente su WMS a Generix, el ERP a MS Business Central y la telemetría a Webfleet. Las interfaces del proyecto deben ser compatibles con esta migración.
+
+11.2 Tabla de Interfaces
+
+Nº
+
+Interfaz
+
+Origen
+
+Destino
+
+Mecanismo / WS
+
+Estado
+
+1
+
+Creación de Pedidos desde Transporeon
+
+Transporeon
+
+UNIGIS
+
+Assigned Transport Interface
+
+En alcance
+
+2
+
+Actualización cita carga/descarga y vehículo (Transporeon)
+
+UNIGIS
+
+Transporeon
+
+Assigned Transport Interface
+
+FUERA alcance inicial
+
+3
+
+Preliquidaciones de Venta
+
+UNIGIS
+
+MS365
+
+JsonSyncout / WS MS365
+
+En alcance
+
+4
+
+Preliquidaciones de Costo
+
+UNIGIS
+
+MS365
+
+JsonSyncout / WS MS365
+
+En alcance
+
+5
+
+Maestros – CrearClientesDadores
+
+UNIGIS
+
+MS365
+
+WS publicado por M365
+
+En alcance
+
+6
+
+Maestros – CrearClientesOrden
+
+UNIGIS
+
+MS365
+
+WS publicado por M365
+
+En alcance
+
+7
+
+Maestros – CrearTransportes
+
+UNIGIS
+
+MS365
+
+WS publicado por M365
+
+En alcance
+
+8
+
+Maestros – CrearVehículos
+
+UNIGIS
+
+MS365
+
+WS publicado por M365
+
+En alcance
+
+
+
+11.3 Detalle de Interfaces
+
+Interfaz 1 — Creación de Pedidos desde Transporeon
+
+Dirección: Transporeon → UNIGIS. El TMS recupera periódicamente los pedidos asignados a Transpais en la bolsa de cargas de Transporeon a través de la interfaz estándar "Assigned Transport Interface". Los pedidos se crean en UNIGIS en estado INGRESADO y quedan disponibles para revisión y gestión por el equipo de Customer Service.
+
+Interfaz 2 — Actualización hacia Transporeon (FUERA DE ALCANCE INICIAL)
+
+Dirección: UNIGIS → Transporeon. Cuando el pedido pasa a estado GRABADO, el TMS debería enviar a Transporeon la actualización de la cita de carga/descarga y el vehículo asignado. Esta interfaz utiliza igualmente la "Assigned Transport Interface" pero en dirección inversa. Actualmente no está disponible en Transporeon y queda fuera del alcance inicial de diseño, pendiente de su finalización por parte de Transporeon.
+
+Interfaces 3 y 4 — Preliquidaciones de Venta y Costo hacia MS365
+
+Dirección: UNIGIS → MS365 BC. Mediante JsonSyncout, UNIGIS envía a MS365 los cambios de estado de las preliquidaciones (venta y costo) y la confirmación de entrega. MS365 procesa estos datos para la emisión de facturas (cobros) y la recepción de facturas de gastos (pagos).
+
+Interfaces 5, 6, 7, 8 — Maestros desde MS365
+
+Dirección: UNIGIS → MS365 (o MS365 → UNIGIS, por definir en construcción). El TMS consumirá los webservices publicados por MS365 para crear y actualizar maestros operativos: CrearClientesDadores, CrearClientesOrden, CrearTransportes, CrearVehículos.
+
+📌 Nota técnica: durante la construcción se puede evaluar invertir la dirección de los datos (de POST a GET) según las capacidades del ERP.
+
+
+
+
+
+
+
+
+
+
+
+12. Componentes del Proyecto y Fuera de Alcance
+
+12.1 Componentes incluidos
+
+UNIGIS Order/Transport Management (OM): Gestión de pedidos, órdenes de entrega, ingreso, edición, anulación e historial.
+
+UNIGIS Smart Tracking: Control logístico en tiempo real con integración GPS Webfleet. Alarmas y desvíos respecto a planificado.
+
+UNIGIS X Deliveries (App): Confirmación de entregas, cargas, incidencias, POD (firma, fotos) por conductores.
+
+UNIGIS Fleet (Tarifación y Liquidación): Cálculo de costos y ventas, generación de preliquidaciones, integración con ERP.
+
+UNIGIS Dashboards: Reportería, KPIs, estadísticas y consultas exportables a Excel.
+
+Portal B2B: Acceso a clientes internos/externos para creación de pedidos y seguimiento.
+
+Portal B2C: Acceso al cliente final para seguimiento de pedidos con número único.
+
+Portal de Transporte: Acceso a transportistas terceros para aceptar/rechazar viajes y actualizar paradas.
+
+12.2 Fuera de Alcance
+
+Elemento fuera de alcance
+
+Definición del circuito operativo de taller
+
+Desarrollo de interfaz con aplicación de entregas de otros operadores logísticos o terceros 
+
+Alcance de integración limitado a: Maersk, Portic y Transporeon. No se contemplan interfaces adicionales con otros sistemas no definidos en el documento.
+
+Interfaz 2 — Actualización de cita de carga/descarga y vehículo asignado hacia Transporeon. Pendiente de disponibilidad de la interfaz "Assigned Transport Interface" por parte de Transporeon.
+
+
+
+
+
+13. Criterios y Supuestos de Diseño
+
+El equipo de IT de Transpais está migrando WMS a Generix, ERP a MS Business Central y telemetría a Webfleet. Las interfaces del proyecto deben ser compatibles con estos sistemas en su estado final.
+
+La activación del viaje (paso a estado ACTIVO) la realiza el conductor desde la App. UNIGIS recomienda que la realice el equipo de Control Flota para evitar viajes activos sin seguimiento. Se analizará la configuración de una regla automática.
+
+El éxito del proyecto depende de un cambio cultural y sistémico adoptado por los usuarios. El uso correcto de los flujos del TMS sustituirá procesos actuales manuales.
+
+El mantenimiento de los datos maestros (clientes, domicilios, vehículos, conductores) en el TMS es condición necesaria para el correcto funcionamiento de los circuitos operativos.
+
+Las notificaciones del sistema se realizarán vía email (funcionalidad estándar). SMS o WhatsApp requieren contratación de servicios externos por parte de Transpais.
+
+Las unidades de medida principales son: palets, bultos, volumen (M3) y peso (Kg). El TMS soporta unidades adicionales si surgieran necesidades no contempladas.
+
+El seguimiento GPS se realizará exclusivamente a través de Webfleet como proveedor único de telemetría para la flota de Transpais.
+
+El incumplimiento de estos supuestos de diseño implicará un ajuste de alcance, con impacto en fechas y posible necesidad de horas adicionales.
+
+
+
+14. Perfiles de Usuario
+
+Los perfiles del TMS son configurables por el administrador. Los accesos y permisos pueden ajustarse sin restricción según las necesidades del proyecto. Los perfiles propuestos para Transpais son:
+
+Perfil TMS
+
+Cargo Transpais
+
+Responsabilidades / Accesos
+
+Key User Administrador
+
+Administrador TMS
+
+B2B, Tracking, Fleet, Dashboard, Editor Cartográfico, Administración del sistema
+
+Customer Service
+
+Agente SAC
+
+Gestión y validación de pedidos; confirmación; preasignación de recursos. Acceso a B2B y Dashboard.
+
+Planificador
+
+Planificador de Rutas
+
+Planificación de viajes desde OM de UNIGIS; cambio de estados de pedidos; asignación de vehículo y conductor. Dashboard.
+
+Tráfico
+
+Operador de Tráfico
+
+Monitoreo activo de viajes, seguimiento GPS, gestión de incidencias, alarmas. Acceso a Tracking y Dashboard.
+
+Conductor
+
+Conductor Transpais
+
+Uso exclusivo de la App UNIGIS X Deliveries para confirmación de cargas, entregas, incidencias y POD.
+
+Terceros
+
+Transportistas Externos
+
+Acceso al Portal de Transporte para aceptar/rechazar viajes asignados y actualizar estados de paradas.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Glosario
+
+Término
+
+Definición
+
+Pedido
+
+Solicitud de movimiento de carga. Contiene datos de origen, destino, fechas, productos y condiciones del servicio.
+
+Orden
+
+Entidad ejecutiva mediante la cual se ordena realizar una actividad (tipo pickup o delivery). Un pedido puede generar N órdenes.
+
+Parada
+
+Datos de cada entrega o recolección a realizar. Por cada orden se genera una parada, vinculada a un viaje.
+
+Ruta
+
+Planificación de un servicio de transporte con secuencia optimizada de órdenes. Agrupa órdenes de entrega y pertenece a una jornada.
+
+Viaje
+
+Ejecución del servicio de transporte. Requiere obligatoriamente vehículo y conductor.
+
+Jornada
+
+Fecha operativa que define el día de ejecución de los servicios.
+
+Depósito / Almacén
+
+Instalación física desde la que se origina o hacia la que se dirige el transporte (COL, delegación, planta cliente).
+
+Empresa
+
+Unidad organizacional principal del TMS. En Transpais: la entidad raíz que contiene todas las sucursales.
+
+Sucursal
+
+Segmentación geográfica o de negocio dentro de la empresa. Ej: España, Polonia, Bulgaria, Francia.
+
+Operación
+
+Unidad operativa de trabajo con comportamiento, configuración y usuarios propios. Ej: Internacional La Selva.
+
+Cliente Dador
+
+Empresa que origina el pedido de transporte (quien encarga el servicio).
+
+ClienteOrden
+
+Destinatario al que se debe entregar la carga.
+
+DomicilioOrden
+
+Dirección de destino del ClienteOrden.
+
+DomicilioOrden2
+
+Dirección de origen / remitente en el pedido.
+
+Estado
+
+Descripción del momento actual de una entidad (pedido, orden, ruta, viaje, parada).
+
+Geocerca
+
+Zona geográfica configurada en UNIGIS que dispara cambios de estado automáticos o alertas.
+
+Geocodificación
+
+Conversión de direcciones postales en coordenadas geográficas (latitud / longitud).
+
+Ítems
+
+Detalle de productos que conforman un pedido (pallets, bultos, etc.).
+
+Ventana horaria
+
+Rango horario en que se puede visitar a cada cliente o depósito.
+
+4PL
+
+Fourth Party Logistics. Transpais actúa como orquestador logístico coordinando múltiples transportistas para el cliente Ball.
+
+Intercompany
+
+Operativa entre empresas del grupo Transpais. Un viaje captado por una filial puede ser ejecutado por otra con reparto económico reglado.
+
+Portal de Transporte
+
+Acceso web para transportistas terceros para aceptar/rechazar viajes y actualizar estados de paradas.
+
+UNIGIS X Deliveries
+
+Aplicación móvil para conductores propios y dedicados, para carga/entrega, incidencias, firma y POD.
+
+B2B
+
+Portal que permite a clientes internos o externos crear pedidos y hacer seguimiento.
+
+B2C
+
+Portal para el cliente final para seguimiento de sus pedidos.
+
+POD
+
+Proof of Delivery — prueba de entrega (firma, foto, observaciones capturadas en App).
+
+Transporeon
+
+Plataforma digital de gestión del transporte que conecta cargadores con transportistas; fuente de pedidos de Transpais.
+
+Webfleet
+
+Sistema de telemetría, tiempos de conducción y tacógrafo de los vehículos propios de Transpais.
+
+MS365 / BC
+
+Microsoft 365 Business Central — ERP de Transpais para gestión de maestros y operativa financiera.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Anexo — Firma de Aceptación
+
+La firma de este documento por parte de los responsables de Transpais y UNIGIS implica la aceptación del presente Diseño de Solución como base para la construcción e implementación del proyecto.
+
+
+
+Rol
+
+Nombre
+
+Empresa
+
+Fecha
+
+Sponsor de Proyecto
+
+Juan Carlos Pardo
+
+TRANSPAIS
+
+
+
+Project Manager Cliente
+
+Leonardo Bianchini
+
+TRANSPAIS
+
+
+
+Sponsor UNIGIS
+
+Francisco Javier Martínez
+
+UNIGIS
+
+
+
+Líder de Proyecto UNIGIS
+
+Jorge Martinez
+
+UNIGIS
+
+
+
+
+

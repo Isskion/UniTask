@@ -1,0 +1,2268 @@
+
+
+
+
+
+
+DOCUMENTO 360 — ESPECIFICACIÓN FUNCIONAL Y TÉCNICA
+
+
+
+Transpais S.A.  (TSP)
+
+
+
+Título
+
+Configuración y Modelo de Tarifas en UNIGIS TMS
+
+Elaborado por
+
+Daniel del Amo
+
+Fecha
+
+Julio 2026
+
+Versión
+
+3.0 — ampliada con nuevas tarifas y guía de configuración paso a paso
+
+Cliente
+
+Transpais S.A. (TSP)
+
+Referencia
+
+UNIGIS-TSP-360-v3
+
+Confidencialidad
+
+Documento de uso interno UNIGIS. Confidencial.
+
+
+
+
+
+1. Perfil de Transpais (TSP) y Modelo Operativo
+
+Transpais S.A. (TSP) es un operador logístico y de transporte de carga terrestre nacional e internacional. Su actividad principal consiste en proveer soluciones de transporte de mercancías bajo modalidades de carga completa (FTL), carga fraccionada (LTL), distribución intermodal (carretera + ferry/tren) y servicios especializados de arrastres y enganches de remolques.
+
+
+
+1.1  Flujo comercial y modelo de subcontratación
+
+La operación financiera se divide en dos grandes flujos: Ventas (facturación de ingresos a clientes) y Compras (liquidación de gastos a transportistas autónomos y filiales del grupo).
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Modalidades de transporte
+
+Tipos de servicio
+
+FTL, LTL, Intermodal (ferry/tren), Distribución Nacional por KG/TM, Servicios UK, Arrastres y enganches de remolques.
+
+Clientes de carga
+
+Ventas
+
+Sealed Air, Ball, Maersk y otros generadores de carga con contratos de volumen.
+
+Transportistas colaboradores
+
+Compras
+
+Autónomos con contratos de KM cargado/vacío e indexación de gasoil. Tarifas diferenciadas por ámbito: Internacional, España/Portugal, UK.
+
+Filiales del grupo
+
+Intercompany
+
+Transpais Atlántico, Transpais Bulgaria. Modelo: 92% flete + 100% ferry/tren, o precio fijo especial por ruta.
+
+Cobertura
+
+Operación
+
+Nacional (España/Portugal), Internacional Europa, Servicios UK y rutas especiales Bulgaria.
+
+
+
+2. Condiciones y Reglas de Negocio de las Tarifas
+
+2.1  Tarifas de Compras — Transportistas Autónomos Colaboradores
+
+
+
+Internacional — Arrastres y Enganches (Lonas y Piso Móvil)
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Cargado — Lonas (Internacional)
+
+Compra KM
+
+Tramo lleno: 1,00 EUR/KM.
+
+KM Vacío — Lonas (Internacional)
+
+Compra KM
+
+Tramo vacío: 0,88 EUR/KM.
+
+KM Cargado — Piso Móvil (Internacional)
+
+Compra KM
+
+Tramo lleno: 1,15 EUR/KM.
+
+KM Vacío — Piso Móvil (Internacional)
+
+Compra KM
+
+Tramo vacío: 0,95 EUR/KM.
+
+
+
+España y Portugal — Arrastres y Enganches  [NUEVA TARIFA]
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Cargado — Lonas (ES/PT)
+
+Compra KM
+
+Tramo lleno en rutas nacionales España y Portugal: 0,90 EUR/KM.
+
+KM Vacío — Lonas (ES/PT)
+
+Compra KM
+
+Tramo vacío: 0,78 EUR/KM.
+
+KM Cargado — Piso Móvil (ES/PT)
+
+Compra KM
+
+Tramo lleno: 1,00 EUR/KM.
+
+KM Vacío — Piso Móvil (ES/PT)
+
+Compra KM
+
+Tramo vacío: 0,80 EUR/KM.
+
+
+
+Servicios UK — Régimen Especial  [NUEVA TARIFA]
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Lonas — Servicio UK
+
+Compra KM
+
+Precio internacional UK: 1,20 EUR/KM. Los ferrys de UK corren siempre a cargo de Transpais.
+
+Contabilización de KM
+
+Regla de cálculo
+
+Los KM se computan desde el punto de carga hasta el puerto de salida hacia UK. El tramo UK (puerto inglés → cliente → puerto de salida UK) se cuenta al mismo precio.
+
+Ejemplo Ferry Bilbao-Portsmouth
+
+Ejemplo
+
+KM desde origen hasta Puerto de Bilbao + KM desde Puerto de Portsmouth hasta cliente en UK + KM desde cliente hasta puerto de salida UK (Dover, Hull, etc.).
+
+
+
+Indexación de Gasoil — Cláusula Diésel 2025
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Fórmula CG
+
+Fórmula
+
+Cargo Gasoil (CG) = SI (PG1/PG0 - 1) > 5% o < -5%  ENTONCES  (PG1/PG0 - 1) × 0,30.  En caso contrario, CG = 0.
+
+PG0 — Precio Base
+
+Referencia
+
+Precio del gasoil de automoción del mes de ENERO 2025 (fuente: MITMA).
+
+PG1 — Precio de Revisión
+
+Variable
+
+Precio medio del gasoil del mes en curso del viaje (misma fuente MITMA).
+
+Ponderación
+
+Porcentaje fijo
+
+30% del coste del viaje se ve afectado por la variación del gasoil.
+
+Gatillo de activación
+
+Condición
+
+Solo se aplica recargo si la variación supera el +/-5% respecto a PG0.
+
+Frecuencia de revisión
+
+Periodicidad
+
+Revisión trimestral. Primera revisión oficial: 1 de abril de 2025. Vigencia: 1 de enero de 2025 hasta 31 de enero de 2026.
+
+
+
+Peajes, Autopistas y Servicios de Gasoil
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Peaje / Autopista (MAUT)
+
+Recargo fijo
+
+Transpais anticipa el peaje y lo refactura al autónomo con un 2% de recargo por gastos de gestión. Incluye MAUT de Alemania.
+
+Vía-T (España)
+
+Sistema peaje
+
+Dispositivo de telepeaje español. Disponible a partir de las 3 semanas de colaboración.
+
+Eurotoll / AS-24 (Francia)
+
+Sistema peaje
+
+Dispositivos de telepeaje franceses. Disponibles desde las 3 semanas de colaboración.
+
+Fianza aparatos autopista
+
+Garantía
+
+Fianza de 2.000 EUR en el primer mes de funcionamiento. Se descuenta de la facturación del segundo mes.
+
+Gasoil en Base Transpais
+
+Sin comisión
+
+Repostaje en surtidores de bases de Transpais al coste neto (0% recargo). Disponible desde el día 7 de colaboración.
+
+Tarjeta AS-24 Internacional
+
+Gasoil externo
+
+Disponible desde el día 30 de colaboración. Fianza de 750 EUR. Consumo máximo quincenal: 1.500 EUR. Se liquida con 2% de gestión.
+
+
+
+Remolques — Asignación y Condiciones
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Asignación de remolque
+
+Condición
+
+Cuando el servicio lo requiera, Transpais asigna un semirremolque al autónomo colaborador.
+
+Mantenimiento
+
+Responsabilidad Transpais
+
+El mantenimiento ordinario del remolque corre a cargo de Transpais.
+
+Daños por mal uso
+
+Coste Autónomo
+
+El daño provocado por una mala utilización del semirremolque corre a cargo del autónomo.
+
+Seguro de Daños Propios
+
+Seguro
+
+Franquicia en caso de siniestro: 900 EUR a cargo del colaborador.
+
+
+
+Condiciones de Pago y Facturación
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Pronto Pago
+
+Descuento comercial
+
+1,5% de descuento sobre el total de la autofactura si el autónomo solicita pago a 10 días.
+
+Confirming estándar
+
+Pago
+
+Pago mediante Confirming a 45 días fecha factura, sin descuento.
+
+Prefacturación
+
+Proceso
+
+El autónomo recibe la prefacturación para su revisión antes del día 10 del mes siguiente.
+
+
+
+Taller Mecánico Propio
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Elegibilidad
+
+Condición
+
+Los autónomos pueden acceder al taller de Transpais a partir del 2.º mes de colaboración activa.
+
+Coste
+
+Liquidación
+
+Materiales + mano de obra al coste neto. Se aplica un 2% de recargo de gestión.
+
+Fórmula
+
+Resumen
+
+TOTAL_TALLER = (Coste_Materiales + Coste_ManoObra) × 1,02.
+
+
+
+
+
+
+
+2.2  Tarifas de Ventas — Clientes de Carga
+
+LTL — Matriz Palets × Metros Lineales (Sealed Air)
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Palets Euro 80×120 — Tabla completa
+
+Tarifa LTL
+
+Escala bidimensional PAL × ML. Valores: 1,25 PAL (0,5 ML) = 295,68 EUR | 2,5 PAL (1 ML) = 300,30 EUR | 5 PAL (2 ML) = 308 EUR | 7,5 PAL (3 ML) = 420 EUR | 10 PAL (4 ML) = 560 EUR | 12,5 PAL (5 ML) = 672 EUR | 15 PAL (6 ML) = 784 EUR | 16,25 PAL (6,5 ML) = 840 EUR.
+
+Palets Industriales 100×120 — Tabla completa
+
+Tarifa LTL
+
+Escala bidimensional PAL × ML. Valores: 0,83 PAL (0,5 ML) = 453,20 EUR | 1,67 PAL (1 ML) = 515 EUR | 2,5 PAL (1,5 ML) = 618 EUR | 5 PAL (3 ML) = 906,40 EUR | 6,67 PAL (4 ML) = 1.071,20 EUR | 8,33 PAL (5 ML) = 1.236 EUR | 10 PAL (6 ML) = 1.380,20 EUR.
+
+Criterio de aplicación
+
+Regla
+
+Se cruza BC Pallets_Transportado con BC Metros_Lineales_Transportado (campo Float1 de dbo.Pedido). Resultado asignado al concepto VTA_FLETE_LTL.
+
+
+
+FTL — Carga Completa y Spot ALL IN
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+FTL Carga Completa
+
+Venta FTL
+
+Tarifa de precio cerrado por ruta y tipo de vehículo. Ejemplo ruta euro (22,5 PAL / 9,0 ML) = 1.316,00 EUR tarifa plana.
+
+Spot ALL IN
+
+Precio fijo
+
+Precios cerrados negociados puntualmente. Sin indexación ni suplementos. Una sola línea de venta (SPOT_ALLIN).
+
+Ejemplo ruta Gandesa-Nijmegen
+
+Ruta específica
+
+ES-43780 (Gandesa) → NL-6541 (Nijmegen): 2.210 EUR (mín. 23 TM). Condiciones CMR. Cláusula gasoil 30%. Validez 31/08/2025.
+
+
+
+Distribución Nacional por Peso (KG/TN)  [NUEVA MODALIDAD]
+
+
+
+Modalidad de distribución nacional paletizada cuantificada en KG o TM (no en PAL/ML). Las tarifas se organizan por código postal de destino (provincia) y tramos de peso. Ejemplo de aplicación: cliente Silvalac.
+
+
+
+Provincia/CP destino
+
+Tarifa 600 kg
+
+Tarifa 1.500 kg aprox.
+
+E-43 Tarragona (origen base Transpais)
+
+51,52 EUR
+
+109,76 EUR
+
+E-28 Madrid
+
+58,24 EUR
+
+134,40 EUR
+
+E-08 Barcelona
+
+76,16 EUR
+
+169,34 EUR
+
+E-50 Zaragoza
+
+94,75 EUR
+
+217,25 EUR
+
+E-46 Valencia
+
+94,08 EUR
+
+213,92 EUR
+
+E-19 Guadalajara
+
+83,09 EUR
+
+184,66 EUR
+
+E-01 Araba / E-48 Bizkaia
+
+96,32 EUR
+
+221,76 EUR
+
+E-15 A Coruña / E-36 Pontevedra
+
+108,08 EUR
+
+250,44 EUR
+
+E-41 Sevilla / E-29 Málaga
+
+104,16 EUR
+
+232,62 EUR
+
+Ratio peso/volumen
+
+1 m³ = 275 kg
+
+Paraliz.: 1h incluida; resto 40 EUR/h. Retornos: mismo precio.
+
+
+
+Indexación de Ventas — Tipos por Cliente
+
+
+
+Cliente / Tipología
+
+Frecuencia
+
+Valores 2025 / Comentarios
+
+Clientes estándar (mayoría: Sealed Air, PGI, Moner, Overseas Konstellation, etc.)
+
+Mensual
+
+MITMA base Ene-2025. Valores: Ene 1,89% | Feb 3,04% | Mar 3,40% | Abr 2,58% | May 1,36% | Jun 0,93% | Jul 0,53% | Ago 1,78% | Sep. 3,00%.
+
+Hexagone
+
+Mensual
+
+Indexación propia negociada, más alta: Ene 4,18% | Feb 5,19% | Mar 5,09%. Cambio a factura semanal en 2025.
+
+Constellium
+
+Mensual
+
+Actualización base gasoil en febrero 2025. Valores negativos (bajadas).
+
+CM Logistics (Petronas)
+
+Mensual
+
+Valores elevados: Ene 7,63% | Feb 8,86% | Mar 9,24% | Abr 8,22%.
+
+Ball Beverage Packaging Iberica — Latas
+
+Cuatrimestral
+
+Valores negativos (bajadas): Q1 -3,4% | Q2 -2,6% | Q3 -4,1% | Q4 -3,4%.
+
+Ball Trading France SAS
+
+Cuatrimestral
+
+Sin indexación (0%) todos los trimestres 2025.
+
+Ball Lublin (PL)
+
+Trimestral
+
+Desde agosto 2023 indexación trimestral separada.
+
+A.D.I.V.A.L.O.R (cliente francés)
+
+Mensual
+
+Indexación tipo CNR francés. Fórmula: (PM_mensual - P_ref_Dic2021) / P_ref_Dic2021 × 24. Referencia: 1,2724 EUR/L (Dic 2021).
+
+Clientes con precios SPOT
+
+Spot
+
+Sin indexación adicional. ALL IN. Se emite abono si se aplicó por error.
+
+
+
+2.3  Tarifas Intercompany — Subcontratación entre Filiales
+
+Regla General y Excepciones
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Regla general del 8%
+
+Fórmula
+
+La filial ejecutora recibe el 92% del importe de flete base. La principal retiene el 8% de comisión de gestión.
+
+Excepción Ferry/Tren
+
+Exclusión
+
+Los billetes intermodales se pagan a la filial al 100%, sin retención.
+
+Excepción Ball — Transpais SA
+
+Precio fijo especial
+
+Tarifa cliente Ball: 1.266,20 EUR | Coste a Transpais SA: 1.256,20 EUR (margen: 10,00 EUR).
+
+Excepción Ball — Transpais Atlántico
+
+Precio fijo especial
+
+Tarifa cliente Ball: 1.266,20 EUR | Coste a Transpais Atlántico: 1.251,59 EUR (margen: 14,61 EUR).
+
+Ejemplo Transpais Bulgaria (Regla 8%)
+
+Ejemplo cálculo
+
+Ingreso cliente: 1.902,96 EUR | Ingreso para TP Bulgaria (92%): 1.750,72 EUR. Margen TP principal: 152,24 EUR.
+
+
+
+3. Mapeo de Base de Datos UNIGIS
+
+La arquitectura relacional de la base de datos de Transpais en UNIGIS se divide en dos ramas: la operacional y la financiera, enlazadas a través de dbo.GuiaViaje como tabla puente.
+
+
+
+3.1  Tablas clave y su rol en el cálculo
+
+Tabla
+
+Ámbito
+
+Rol y campos relevantes
+
+dbo.Viaje
+
+Entidad raíz
+
+FechaCreacion (para PG1 en indexación de gasoil) y Estado (condiciones SQL de generación de guías).
+
+dbo.Parada
+
+Operacional
+
+Vincula el viaje con cada pedido. Campos: Orden, Distancia (KM del tramo), IdTipoParada (1=Carga, 2=Descarga, 5=Puerto/Ferry), Costo (coste neto del ferry).
+
+dbo.Pedido
+
+Operacional
+
+Pallets, Float1 (Metros Lineales), IdTransporte (qué transportista realiza la entrega).
+
+dbo.Transporte
+
+Operacional
+
+ReferenciaExternaAdicional identifica filiales del grupo (valor 'FILIAL').
+
+dbo.GuiaViaje
+
+Puente financiero
+
+Tabla puente IdViaje ↔ IdGuia. Clave para cruzar datos operativos con financieros en cálculos intercompany.
+
+dbo.Guia
+
+Financiero
+
+Cabecera de la guía. IdTipoGuia determina si es venta (tg.Venta=1) o compra.
+
+dbo.GuiaConceptoValorizado
+
+Financiero
+
+Importes calculados por concepto (IdGuia + IdConcepto + Importe).
+
+dbo.Concepto
+
+Catálogo
+
+Códigos: VTA_FLETE_LTL, VENTA_FERRY, COM_KM_LLENO, COM_KM_VACIO, COM_RECARGO_GASOIL, etc.
+
+dbo.PrecioCombustible
+
+Catálogo
+
+Precios históricos de gasoil (Año, Mes, TipoCombustible='Diesel', PrecioMedio). Base para PG0 y PG1.
+
+
+
+
+
+4. Distribución de Tarifas por Operación
+
+Todas las tarifas, reglas de cálculo, exclusiones y requisitos de base de datos de Transpais en UNIGIS, organizados por tipo de operación logística.
+
+
+
+OPERACIÓN 1  —  INTERNACIONAL — ARRASTRES Y ENGANCHES
+
+Definición: Autónomos aportan la cabeza tractora para arrastrar semirremolques de Transpais en rutas internacionales Europa (excl. UK y España/Portugal).
+
+
+
+Tarifas y Lógica de Compra
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Cargado — Lonas
+
+Compra KM
+
+Tramo lleno: 1,00 EUR/KM.
+
+KM Vacío — Lonas
+
+Compra KM
+
+Tramo vacío: 0,88 EUR/KM.
+
+KM Cargado — Piso Móvil
+
+Compra KM
+
+Tramo lleno: 1,15 EUR/KM.
+
+KM Vacío — Piso Móvil
+
+Compra KM
+
+Tramo vacío: 0,95 EUR/KM.
+
+
+
+Recargos y Excepciones
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Indexación de Gasoil
+
+Recargo variable
+
+CG = (PG1/PG0 - 1) × 0,30. Gatillo: +/-5%. Base: Enero 2025.
+
+Peaje / Autopista (MAUT)
+
+Recargo fijo
+
+Refacturado al autónomo con 2% de gestión.
+
+Pronto Pago
+
+Descuento
+
+1,5% si solicita pago a 10 días.
+
+
+
+Bases de Cálculo SQL Requeridas
+
+
+
+Concepto
+
+BC SQL
+
+Descripción
+
+Kms_Cargados
+
+BC SQL
+
+Suma de dbo.Parada.Distancia entre primera carga (IdTipoParada=1) y última descarga (IdTipoParada=2).
+
+Kms_Vacios
+
+BC SQL
+
+Suma de Distancia en tramos fuera de etapa cargada (antes de primera carga y después de última descarga).
+
+PG1
+
+BC SQL
+
+Precio medio mensual de gasoil del mes de FechaCreacion del viaje desde dbo.PrecioCombustible.
+
+PG0
+
+BC SQL
+
+Precio gasoil Enero 2025 desde dbo.PrecioCombustible (Anio=2025, Mes=1, TipoCombustible='Diesel').
+
+
+
+
+
+
+
+
+
+
+
+
+
+OPERACIÓN 2  —  INTERNACIONAL — FTL y LTL Paletizado
+
+Definición: Distribución de carga general en camiones completos (FTL) o grupaje (LTL) para clientes y subcontratación intercompany.
+
+
+
+Tarifas de Venta — Clientes
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+LTL Matriz Sealed Air — Palets euro 80×120
+
+Venta LTL
+
+Escala PAL × ML. Mínimo: 1,25 PAL (0,5 ML) = 295,68 EUR. Máximo tabla: 16,25 PAL (6,5 ML) = 840 EUR.
+
+LTL Matriz Sealed Air — Palets Industriales 100×120
+
+Venta LTL
+
+Escala PAL × ML. Mínimo: 0,83 PAL (0,5 ML) = 453,20 EUR. Máximo: 10 PAL (6 ML) = 1.380,20 EUR.
+
+FTL Carga Completa
+
+Venta FTL
+
+Tarifa cerrada por ruta. Ejemplo: 22,5 PAL / 9,0 ML = 1.316,00 EUR.
+
+
+
+Tarifas de Compra Intercompany — Filiales
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Comisión general del 8%
+
+Compra intercompany
+
+Filial recibe 92% del flete base. Principal retiene 8%.
+
+Excepción Ball — Transpais SA
+
+Precio fijo
+
+Cliente: 1.266,20 EUR → TP SA: 1.256,20 EUR (margen 10,00 EUR).
+
+Excepción Ball — Transpais Atlántico
+
+Precio fijo
+
+Cliente: 1.266,20 EUR → TP Atlántico: 1.251,59 EUR (margen 14,61 EUR).
+
+Ejemplo Bulgaria (Regla 8%)
+
+Cálculo
+
+Ingreso cliente: 1.902,96 EUR → TP Bulgaria: 1.750,72 EUR.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OPERACIÓN 3  —  INTERMODAL — Carretera + Marítimo / Ferroviario
+
+Definición: Rutas que combinan camión con embarques de ferry o tren. El coste del pasaje se gestiona de forma separada.
+
+
+
+Tarifas de Venta
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Ferry / Tren — Concepto VENTA_FERRY
+
+Venta
+
+El coste del pasaje se cobra íntegramente al cliente usando el concepto VENTA_FERRY. Sin retención ni recargo.
+
+
+
+Tarifas de Compra — Autónomos y Filiales
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Refacturación Ferry + 2% Gestión
+
+Compra autónomo
+
+Si Transpais compra el billete: COM_FERRY_REFACTURADO = Costo_Ferry_Real × 1,02.
+
+Ferry / Tren — 100% sin retención
+
+Compra filial
+
+La filial ejecutora recibe el 100% del valor del ferry cobrado al cliente.
+
+
+
+OPERACIÓN 4  —  SERVICIOS AUXILIARES — Taller y Combustible en Base
+
+Definición: Operaciones internas de soporte desde las bases físicas de Transpais.
+
+
+
+Taller Mecánico
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Elegibilidad
+
+Condición
+
+Disponible a partir del 2.º mes de colaboración activa.
+
+Liquidación
+
+Coste
+
+Materiales + mano de obra al coste neto + 2% recargo de gestión.
+
+Fórmula
+
+Resumen
+
+TOTAL_TALLER = (Coste_Materiales + Coste_ManoObra) × 1,02.
+
+
+
+Combustible en Base
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+Elegibilidad
+
+Condición
+
+Disponible desde el día 7 de colaboración.
+
+Tarifa
+
+Liquidación
+
+Coste neto del gasoil repostado. Sin comisión (0%).
+
+Distinción
+
+Aclaración
+
+NO está sujeto a la indexación de gasoil. Son conceptos independientes.
+
+
+
+
+
+
+
+OPERACIÓN 5  —  NACIONAL — España y Portugal  
+
+Definición: Arrastres y enganches en rutas nacionales dentro de España y Portugal. Tarifas de KM inferiores a las internacionales.
+
+
+
+Tarifas de Compra — Autónomos Nacionales
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Cargado — Lonas (ES/PT)
+
+Compra KM
+
+0,90 EUR/KM en tramo lleno.
+
+KM Vacío — Lonas (ES/PT)
+
+Compra KM
+
+0,78 EUR/KM en tramo vacío.
+
+KM Cargado — Piso Móvil (ES/PT)
+
+Compra KM
+
+1,00 EUR/KM en tramo lleno.
+
+KM Vacío — Piso Móvil (ES/PT)
+
+Compra KM
+
+0,80 EUR/KM en tramo vacío.
+
+
+
+OPERACIÓN 6  —  SERVICIOS UK — Régimen Especial Ferry  [NUEVA OPERACIÓN]
+
+Definición: Rutas con tramos en el Reino Unido. Precio KM especial (1,20 EUR/KM) y contabilización específica de KM.
+
+
+
+Tarifas y Reglas de Compra
+
+
+
+Concepto
+
+Tipo
+
+Descripción y valores
+
+KM Lonas — Servicio UK
+
+Compra KM
+
+1,20 EUR/KM para toda la ruta UK.
+
+Ferry UK — cargo Transpais
+
+Ferry
+
+Billetes de ferry UK a cargo de Transpais. Refacturados al autónomo con 2% de gestión.
+
+Contabilización KM (ej. Bilbao-Portsmouth)
+
+Ejemplo
+
+1) KM desde punto de carga hasta Puerto de Bilbao. 2) KM desde Puerto de Portsmouth hasta cliente UK. 3) KM desde cliente hasta puerto de salida UK. Los KM del tramo ferry no se computan.
+
+
+
+OPERACIÓN 7  —  BALL COILS / CHATARRA — Rutas Internacionales Especiales  [NUEVA OPERACIÓN]
+
+Definición: Transporte internacional especializado de bobinas de aluminio y chatarra entre plantas Novelis/Speira y fábricas Ball en Europa. Tarifación Peak/Off-Peak.
+
+
+
+Modelo Tarifario Peak / Off-Peak
+
+
+
+Temporada
+
+Meses
+
+Notas
+
+Off-Peak Season
+
+Febrero, Marzo, Abril, Mayo, Junio, Octubre, Noviembre
+
+Precios base. Tarifa vigente inferior.
+
+Peak Season
+
+Julio, Agosto, Septiembre, Diciembre, Enero
+
+Precios superiores por alta demanda. Diferencial aprox. +10%.
+
+
+
+Rutas Principales y Tarifas de Referencia 2024-2025
+
+
+
+Ruta
+
+KM aprox.
+
+Tarifa Fijada | EUR/KM | MAUT
+
+DE-06 (Grevenbroich/Nachterstedt) → PL-20 (Lublin) [Coils]
+
+950 km
+
+Off-Peak: 950 EUR (1,00 EUR/KM) | Peak: 1.140 EUR (1,20 EUR/KM) | MAUT: 46,29 EUR
+
+DE-41 (Grevenbroich) → PL-20 (Lublin) [Coils]
+
+1.300 km
+
+Off-Peak: 1.250 EUR (0,96 EUR/KM) | Peak: 1.500 EUR (1,15 EUR/KM) | MAUT: 104,28 EUR
+
+DE-37 (Göttingen/Nachterstedt) → PL-20 (Lublin) [Coils]
+
+1.100 km
+
+Off-Peak: 970 EUR (0,88 EUR/KM) | Peak: 1.170 EUR (1,06 EUR/KM) | MAUT: 64,31 EUR
+
+FR-68 (Alsacia) → PL-20 (Lublin) [Coils]
+
+1.520 km
+
+Off-Peak: 1.450 EUR (0,95 EUR/KM) | Peak: 1.740 EUR (1,14 EUR/KM) | MAUT: 116,15 EUR
+
+DE (Neuss) → ES-19 (Cabanillas del Campo) [Coils]
+
+~1.720 km
+
+Aprox. 1.890 EUR (vía agencia). Ref.: 12,96 EUR/TM.
+
+DE (Neuss) → ES-43 (La Selva del Camp) [Coils]
+
+~1.525 km
+
+Aprox. 1.720 EUR (vía agencia). Ref.: 30,97 EUR/TM.
+
+EXPRESS (todas las rutas)
+
+Variable
+
+Suplemento Express: +750 EUR sobre tarifa estándar.
+
+
+
+Indexación Ball — Régimen Cuatrimestral
+
+
+
+Producto
+
+Frecuencia
+
+Valores 2025
+
+Ball Beverage Packaging Ibérica — Latas
+
+Cuatrimestral
+
+Q1 2025: -3,4% | Q2 2025: -2,6% | Q3 2025: -4,1% | Q4 2025: -3,4% (bajadas).
+
+Ball Trading France SAS
+
+Cuatrimestral
+
+Sin indexación (0%) todos los trimestres 2025.
+
+Ball Lublin (PL)
+
+Trimestral
+
+Desde agosto 2023: indexación trimestral separada.
+
+
+
+
+
+5. Implementación Técnica y Ejemplos SQL (Cookbook)
+
+Ejemplos de configuración en UNIGIS y código SQL de Bases de Cálculo (BC) para cada operación, ordenados de menor a mayor complejidad.
+
+
+
+EJEMPLO 1 — FÁCIL
+
+Condición SQL — Generación de Guía de Venta (Clientes Sealed Air)
+
+Objetivo: Controlar que la guía de venta solo se genere para SEALED_AIR en estado PROGRAMADO.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Catálogo
+
+Ruta
+
+Administración del Sistema → Tarifas → Catálogos → Tipo Guía Condición.
+
+Asociación
+
+Config.
+
+Vincular esta condición SQL al Tipo de Guía de ventas FTL del cliente Sealed Air.
+
+
+
+Código SQL
+
+
+
+-- Devuelve 1 si el viaje es de Sealed Air en estado PROGRAMADO
+
+SELECT CASE
+
+  WHEN EXISTS (
+
+    SELECT 1
+
+    FROM dbo.Viaje v
+
+    INNER JOIN dbo.Parada p ON v.IdViaje = p.IdViaje
+
+    INNER JOIN dbo.Cliente c ON p.IdCliente = c.IdCliente
+
+    WHERE v.IdViaje = @IdViaje
+
+      AND c.ReferenciaExterna = 'SEALED_AIR'
+
+      AND v.Estado = 'PROGRAMADO'
+
+  ) THEN 1
+
+  ELSE 0
+
+END AS GenerarGuiaVenta;
+
+
+
+EJEMPLO 2 — MEDIO
+
+Compras — Kilómetros de Autónomos (Lleno vs Vacío)
+
+Objetivo: Liquidar a autónomos según KM cargados y vacíos de la ruta.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Conceptos
+
+Aplicación
+
+COM_KM_LLENO (Orden: 10) y COM_KM_VACIO (Orden: 20). Categoría: Moneda (EUR).
+
+Tarifas Internacional (Prio 1)
+
+Aplicación
+
+Lonas: 1,00 EUR/KM lleno | 0,88 EUR/KM vacío. Piso Móvil: 1,15 EUR/KM | 0,95 EUR/KM.
+
+Tarifas España/PT (Prio 2)
+
+Aplicación
+
+Lonas ES/PT: 0,90 EUR/KM lleno | 0,78 EUR/KM vacío. Piso Móvil ES/PT: 1,00 EUR/KM | 0,80 EUR/KM.
+
+Tarifas UK (Prio 3)
+
+Aplicación
+
+Lonas UK: 1,20 EUR/KM (tramo UK sin diferenciación lleno/vacío).
+
+Fórmulas Total (Prio 1000)
+
+Aplicación
+
+TOTAL_GUIA_COSTO = Costo_Lleno + Costo_Vacio.
+
+
+
+Bases de Cálculo SQL
+
+
+
+-- BC: Kms_Cargados — KM entre primera carga y última descarga
+
+SELECT COALESCE(SUM(p.Distancia), 0)
+
+FROM dbo.Parada p
+
+WHERE p.IdViaje = @IdViaje
+
+  AND p.Orden > (SELECT MIN(p1.Orden) FROM dbo.Parada p1
+
+                 WHERE p1.IdViaje = @IdViaje AND p1.IdTipoParada = 1)
+
+  AND p.Orden <= (SELECT MAX(p2.Orden) FROM dbo.Parada p2
+
+                  WHERE p2.IdViaje = @IdViaje AND p2.IdTipoParada = 2);
+
+
+
+-- BC: Kms_Vacios — KM de aproximación y retorno (fuera de etapa cargado)
+
+SELECT COALESCE(SUM(p.Distancia), 0)
+
+FROM dbo.Parada p
+
+WHERE p.IdViaje = @IdViaje
+
+  AND (p.Orden <= (SELECT MIN(p1.Orden) FROM dbo.Parada p1
+
+                   WHERE p1.IdViaje = @IdViaje AND p1.IdTipoParada = 1)
+
+    OR p.Orden >  (SELECT MAX(p2.Orden) FROM dbo.Parada p2
+
+                   WHERE p2.IdViaje = @IdViaje AND p2.IdTipoParada = 2));
+
+
+
+EJEMPLO 3 — MEDIO
+
+Ventas — Matriz LTL Sealed Air (PAL × ML)
+
+Objetivo: Buscar el flete base en la matriz cruzando Palets y Metros Lineales del pedido.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Escalados
+
+Catálogos → Escalados
+
+Escalado_PAL (eje X): tramos PAL. Escalado_ML (eje Y): tramos de 0,5 ML en 0,5 ML.
+
+Tarifa Matriz (Prio 1)
+
+Aplicación
+
+Tipo: Matriz de Escalados. Eje X = BC Pallets_Transportado + Escalado_PAL. Eje Y = BC Metros_Lineales_Transportado + Escalado_ML.
+
+Fórmula (Prio 1000)
+
+Aplicación
+
+Asigna el valor de la matriz al concepto VTA_FLETE_LTL.
+
+
+
+Bases de Cálculo SQL
+
+
+
+-- BC: Pallets_Transportado
+
+SELECT COALESCE(SUM(pe.Pallets), 0)
+
+FROM dbo.Pedido pe
+
+INNER JOIN dbo.Parada pa ON pe.IdPedido = pa.IdPedido
+
+WHERE pa.IdViaje = @IdViaje;
+
+
+
+-- BC: Metros_Lineales_Transportado (campo personalizado Float1)
+
+SELECT COALESCE(SUM(ISNULL(pe.Float1, 0)), 0)
+
+FROM dbo.Pedido pe
+
+INNER JOIN dbo.Parada pa ON pe.IdPedido = pa.IdPedido
+
+WHERE pa.IdViaje = @IdViaje;
+
+
+
+EJEMPLO 4 — ALTO
+
+Indexación de Combustible (Gasoil Trimestral Autónomos)
+
+Objetivo: Calcular el recargo de gasoil con fórmula del 30% ponderado y gatillo del +/-5%.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Concepto
+
+Aplicación
+
+COM_RECARGO_GASOIL (Orden: 30). Categoría: Moneda (EUR).
+
+Fórmula Gatillo (Prio 100)
+
+Aplicación
+
+PORCENTAJE_RECARGO = IF(ABS((PG1/PG0)-1) > 0,05, ((PG1/PG0)-1)×0,30, 0). Resultado en BC intermedia Pct_Gasoil.
+
+Fórmula Recargo (Prio 500)
+
+Aplicación
+
+IMPORTE_GASOIL = FLETE_LLENO_VACIO × Pct_Gasoil → COM_RECARGO_GASOIL.
+
+Fórmula Total (Prio 1000)
+
+Aplicación
+
+TOTAL = FLETE_LLENO_VACIO + COM_RECARGO_GASOIL.
+
+
+
+Bases de Cálculo SQL
+
+
+
+-- BC: PG1 — Precio Gasoil del Mes del Viaje
+
+SELECT TOP 1 pc.PrecioMedio
+
+FROM dbo.PrecioCombustible pc
+
+INNER JOIN dbo.Viaje v ON v.IdViaje = @IdViaje
+
+WHERE pc.Anio = YEAR(v.FechaCreacion)
+
+  AND pc.Mes = MONTH(v.FechaCreacion)
+
+  AND pc.TipoCombustible = 'Diesel'
+
+ORDER BY pc.IdPrecioCombustible DESC;
+
+
+
+-- BC: PG0 — Precio Gasoil de Referencia (Base Enero 2025)
+
+SELECT TOP 1 pc.PrecioMedio
+
+FROM dbo.PrecioCombustible pc
+
+WHERE pc.Anio = 2025
+
+  AND pc.Mes = 1
+
+  AND pc.TipoCombustible = 'Diesel'
+
+ORDER BY pc.IdPrecioCombustible DESC;
+
+
+
+EJEMPLO 5 — ALTO
+
+Compras Intercompany — Descuento del 8% y Ferry al 100%
+
+Objetivo: Liquidación de subcontratación a filial: 92% del flete + 100% de ferry/tren.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Condición SQL
+
+Aplicación
+
+Generar guía solo si el transportista tiene flag 'FILIAL' en dbo.Transporte.ReferenciaExternaAdicional.
+
+Conceptos
+
+Aplicación
+
+COM_FLETE_INTERCOMPANY (Orden: 10) y COM_FERRY_REEMBOLSABLE (Orden: 20).
+
+Fórmulas (Prio 100)
+
+Aplicación
+
+COM_FLETE_INTERCOMPANY = Venta_Flete_Original × 0,92. COM_FERRY_REEMBOLSABLE = Venta_Ferry_Original.
+
+Fórmula Total (Prio 1000)
+
+Aplicación
+
+TOTAL_COSTO = COM_FLETE_INTERCOMPANY + COM_FERRY_REEMBOLSABLE.
+
+
+
+-- Condición SQL: Comprueba el flag FILIAL en dbo.Transporte
+
+SELECT CASE
+
+  WHEN EXISTS (
+
+    SELECT 1
+
+    FROM dbo.Pedido pe
+
+    INNER JOIN dbo.Parada pa ON pe.IdPedido = pa.IdPedido
+
+    INNER JOIN dbo.Transporte t ON pe.IdTransporte = t.IdTransporte
+
+    WHERE pa.IdViaje = @IdViaje
+
+      AND t.ReferenciaExternaAdicional = 'FILIAL'
+
+  ) THEN 1
+
+  ELSE 0
+
+END AS GenerarGuiaCosto;
+
+
+
+-- BC: Venta_Flete_Original
+
+SELECT COALESCE(gcv.Importe, 0)
+
+FROM dbo.Guia g
+
+INNER JOIN dbo.GuiaViaje gv ON g.IdGuia = gv.IdGuia
+
+INNER JOIN dbo.GuiaConceptoValorizado gcv ON g.IdGuia = gcv.IdGuia
+
+INNER JOIN dbo.Concepto c ON gcv.IdConcepto = c.IdConcepto
+
+INNER JOIN dbo.TipoGuia tg ON g.IdTipoGuia = tg.IdTipoGuia
+
+WHERE gv.IdViaje = @IdViaje AND tg.Venta = 1 AND c.Codigo = 'VTA_FLETE_LTL';
+
+
+
+EJEMPLO 6 — MEDIO
+
+Compras — Refacturación de Ferry con Gastos de Gestión (2%)
+
+Objetivo: Repercutir el coste del billete de ferry al transportista autónomo con 2% de recargo.
+
+
+
+-- BC: Costo_Ferry_Real — Coste neto del ferry en la parada de embarque
+
+SELECT COALESCE(SUM(pa.Costo), 0)
+
+FROM dbo.Parada pa
+
+WHERE pa.IdViaje = @IdViaje
+
+  AND pa.IdTipoParada = 5;  -- 5 = Puerto / Embarque Ferry
+
+
+
+EJEMPLO 7 — MUY ALTO
+
+Intercompany — Precios Fijos Especiales (Cliente Ball)
+
+Objetivo: Resolver tarifas especiales Ball que no siguen la regla general del 8%.
+
+
+
+Configuración en la Aplicación
+
+
+
+Parámetro
+
+Tipo
+
+Descripción
+
+Cuadro Tarifario
+
+Aplicación
+
+Crear cuadro Intercompany_Especiales_Ball con Prioridad 10 (superior a la tarifa del 8% general, Prioridad 1).
+
+Lógica de resolución
+
+UNIGIS
+
+UNIGIS aplica el precio fijo específico por tener prioridad superior. No se ejecuta la fórmula del 92%.
+
+Precio fijo — Ingreso cliente Ball
+
+Tarifa de venta
+
+Ruta cliente Ball: 1.266,20 EUR.
+
+Precio fijo — Transpais SA
+
+Tarifa de coste
+
+IdTransporte A (Transpais SA): 1.256,20 EUR (margen retenido: 10,00 EUR).
+
+Precio fijo — Transpais Atlántico
+
+Tarifa de coste
+
+IdTransporte B (Transpais Atlántico): 1.251,59 EUR (margen retenido: 14,61 EUR).
+
+Precio fijo — Transpais Bulgaria
+
+Tarifa de coste
+
+Ingreso cliente: 1.902,96 EUR → TP Bulgaria: 1.750,72 EUR (margen: 152,24 EUR).
+
+
+
+
+
+6. Paso a Paso: Configuración de Tarifas en UNIGIS
+
+Esta sección describe cómo configurar físicamente las tarifas de Transpais en la aplicación UNIGIS (módulo Fleet). El proceso cubre desde la creación de los conceptos económicos hasta la activación del cálculo automático en viajes reales.
+
+
+
+PASO 1 — Acceso al Módulo de Tarifas
+
+
+
+Ruta en UNIGIS: Fleet → Administración → Tarifas
+
+El módulo de tarifas de UNIGIS se organiza en tres menús principales que deben configurarse en este orden:
+
+
+
+Menú
+
+Ubicación
+
+Para qué se usa
+
+Catálogos
+
+Fleet → Administración → Tarifas → Catálogos
+
+Crear Conceptos, Tipos de Guía, Escalados y Condiciones SQL. Es la base de todo el sistema.
+
+Cuadros Tarifarios
+
+Fleet → Administración → Tarifas → Cuadros Tarifarios
+
+Agrupar las tarifas por cliente/transportista, añadir líneas con fórmulas y prioridades.
+
+Bases de Cálculo
+
+Fleet → Administración → Tarifas → Bases de Cálculo
+
+Definir las consultas SQL que devuelven valores numéricos al motor de cálculo (KM, precio gasoil, palets, etc.).
+
+
+
+PASO 2 — Crear un Tipo de Guía
+
+
+
+Ruta: Fleet → Administración → Tarifas → Catálogos → Tipos de Guía
+
+El Tipo de Guía define si la guía económica generada es de VENTA (ingreso al cliente) o de COMPRA (liquidación al transportista). Para Transpais se necesitan al menos estos tipos:
+
+
+
+Tipo de Guía
+
+Campo Venta
+
+Descripción
+
+VTA_FTL_SEALED_AIR
+
+Venta = SÍ
+
+Guía de venta para cliente Sealed Air (FTL y LTL).
+
+VTA_BALL_COILS
+
+Venta = SÍ
+
+Guía de venta para rutas especiales Ball Coils.
+
+VTA_DISTRIBUCION_NACIONAL
+
+Venta = SÍ
+
+Guía de venta para distribución nacional por KG/TM.
+
+CMP_AUTONOMO_INTERNACIONAL
+
+Venta = NO
+
+Guía de compra para autónomos en rutas internacionales.
+
+CMP_AUTONOMO_NACIONAL_ES_PT
+
+Venta = NO
+
+Guía de compra para autónomos en rutas España/Portugal.
+
+CMP_AUTONOMO_UK
+
+Venta = NO
+
+Guía de compra para autónomos en rutas UK.
+
+CMP_INTERCOMPANY
+
+Venta = NO
+
+Guía de compra para filiales del grupo (regla del 92%).
+
+CMP_INTERCOMPANY_BALL
+
+Venta = NO
+
+Guía de compra para filiales en rutas Ball (precio fijo especial).
+
+
+
+Opciones clave al crear un Tipo de Guía:
+
+- Condición SQL de generación: SQL que devuelve 1 (generar la guía) o 0 (no generar). Sin condición, la guía se genera siempre.
+
+- Activo: marcar como activo para que sea disponible en el cálculo.
+
+- Orden de generación: controla en qué orden se calculan los tipos de guía si hay varios sobre el mismo viaje.
+
+
+
+PASO 3 — Crear Conceptos Económicos
+
+
+
+Ruta: Fleet → Administración → Tarifas → Catálogos → Conceptos
+
+Los Conceptos son las líneas económicas de una guía (equivalente a líneas de factura). Cada concepto tiene un código único y una categoría. Para Transpais, los conceptos mínimos son:
+
+
+
+Código Concepto
+
+Categoría
+
+Descripción
+
+COM_KM_LLENO
+
+Moneda (EUR)
+
+Coste por KM cargado en compras a autónomos.
+
+COM_KM_VACIO
+
+Moneda (EUR)
+
+Coste por KM vacío en compras a autónomos.
+
+COM_RECARGO_GASOIL
+
+Moneda (EUR)
+
+Recargo de indexación de gasoil sobre el flete.
+
+COM_FERRY_REFACTURADO
+
+Moneda (EUR)
+
+Refacturación del ferry al autónomo con recargo del 2%.
+
+COM_FLETE_INTERCOMPANY
+
+Moneda (EUR)
+
+Flete pagado a la filial ejecutora (92% del flete de venta).
+
+COM_FERRY_REEMBOLSABLE
+
+Moneda (EUR)
+
+Ferry pagado a la filial al 100% (sin retención).
+
+VTA_FLETE_LTL
+
+Moneda (EUR)
+
+Flete de venta para carga fraccionada (LTL) a clientes.
+
+VENTA_FERRY
+
+Moneda (EUR)
+
+Cobro al cliente del pasaje ferry o ferroviario.
+
+SPOT_ALLIN
+
+Moneda (EUR)
+
+Precio cerrado ALL IN sin suplementos ni indexación.
+
+
+
+Configuración de cada concepto: código (sin espacios), nombre descriptivo, categoría (Moneda para EUR), estado Activo, y si aplica a venta o compra.
+
+
+
+PASO 4 — Configurar Bases de Cálculo SQL
+
+
+
+Ruta: Fleet → Administración → Tarifas → Bases de Cálculo → Nueva
+
+Las Bases de Cálculo (BC) son consultas SQL que devuelven un valor numérico al motor de cálculo de UNIGIS. El parámetro disponible es siempre @IdViaje. Pasos para crear una BC:
+
+
+
+Paso
+
+Campo
+
+Descripción
+
+1
+
+Código
+
+Nombre único de la BC (ej. Kms_Cargados). Sin espacios.
+
+2
+
+Descripción
+
+Texto descriptivo de qué calcula la BC.
+
+3
+
+Consulta SQL
+
+La query SQL completa. Debe devolver exactamente una columna y una fila con el valor numérico.
+
+4
+
+Tipo de resultado
+
+Numérico (para KM, EUR, porcentajes) o Texto (para condiciones de tipo).
+
+5
+
+Probar
+
+Introducir un @IdViaje real para validar que la BC devuelve el valor esperado antes de activarla.
+
+
+
+Reglas importantes para las BC SQL:
+
+- Siempre usar COALESCE(..., 0) o ISNULL(..., 0) para evitar NULLs que rompan el cálculo.
+
+- Usar TOP 1 con ORDER BY cuando se busca un único registro (ej. precio de combustible).
+
+- No usar cursores ni bucles. Solo SELECT estático referenciando @IdViaje.
+
+- Las BC se comparten entre Tipos de Guía: una BC de KM cargados sirve tanto para compras de autónomos como para calcular suplementos de venta.
+
+
+
+PASO 5 — Crear el Cuadro Tarifario
+
+
+
+Ruta: Fleet → Administración → Tarifas → Cuadros Tarifarios → Nuevo
+
+El Cuadro Tarifario agrupa todas las líneas de precio para un cliente o transportista concreto. Un cuadro puede estar asociado a uno o varios Tipos de Guía. Campos al crear:
+
+
+
+Campo
+
+Descripción
+
+Ejemplo Transpais
+
+Nombre
+
+Identificador del cuadro.
+
+Compras_Autonomo_Internacional_2025
+
+Tipo de Guía
+
+Vincula el cuadro a un tipo de guía concreto.
+
+CMP_AUTONOMO_INTERNACIONAL
+
+Vigencia desde / hasta
+
+Fechas de aplicación del cuadro. Permite gestionar cambios de tarifa sin borrar el histórico.
+
+01/01/2025 — 31/12/2025
+
+Prioridad del cuadro
+
+Si existen varios cuadros para el mismo tipo de guía, UNIGIS aplica el de mayor prioridad (número más alto).
+
+Cuadro general: 1 | Cuadro especial Ball: 10
+
+Transportista / Cliente
+
+Filtro opcional: el cuadro solo aplica a un transportista o cliente específico.
+
+IdTransporte = Transpais SA (para cuadro Ball especial)
+
+
+
+PASO 6 — Añadir Líneas con Fórmulas y Prioridades
+
+
+
+Dentro del Cuadro Tarifario, pestaña Líneas / Fórmulas:
+
+Cada línea del cuadro define cómo se calcula un concepto económico. El motor de UNIGIS ejecuta las fórmulas en orden ascendente de prioridad numérica. El esquema estándar de prioridades para Transpais es:
+
+
+
+Prioridad
+
+Función
+
+Ejemplo Transpais
+
+1
+
+Tarifas base y precios unitarios por distancia.
+
+COM_KM_LLENO = Kms_Cargados × 1,00 EUR/KM (Internacional Lonas)
+
+10
+
+Tarifas especiales con condición (ej. cuadros Ball fijos).
+
+COM_FLETE_INTERCOMPANY = 1.256,20 EUR (precio fijo Transpais SA Ball)
+
+100
+
+Cálculos intermedios: porcentajes, aplicación de gatillo de gasoil.
+
+Pct_Gasoil = IF(ABS((PG1/PG0)-1) > 0,05, ((PG1/PG0)-1)×0,30, 0)
+
+500
+
+Recargos calculados sobre la base de Prio 100.
+
+COM_RECARGO_GASOIL = (COM_KM_LLENO + COM_KM_VACIO) × Pct_Gasoil
+
+1000
+
+Totalizadoras: suman el resto de conceptos para obtener el total de la guía.
+
+TOTAL_GUIA = COM_KM_LLENO + COM_KM_VACIO + COM_RECARGO_GASOIL
+
+
+
+Para añadir una línea: seleccionar Concepto, introducir la Fórmula (usando nombres de BC y conceptos ya calculados), asignar Prioridad, y guardar. Las fórmulas soportan operadores aritméticos básicos (+, -, ×, ÷) y la función IF(condición, valor_si_true, valor_si_false).
+
+
+
+PASO 7 — Configurar Escalados (Matrices)
+
+
+
+Ruta: Fleet → Administración → Tarifas → Catálogos → Escalados
+
+Los escalados permiten buscar un precio en una tabla según rangos de valores. Son imprescindibles para la tarifa LTL Sealed Air (PAL × ML) y para la distribución nacional por KG. Dos tipos:
+
+
+
+Tipo de Escalado
+
+Descripción
+
+Aplicación Transpais
+
+Escalado Simple (1 dimensión)
+
+El sistema busca el tramo en el que cae el valor de una BC y devuelve el precio correspondiente.
+
+Distribución nacional por KG: busca el tramo de peso y devuelve el precio por provincia.
+
+Escalado Matricial (2 dimensiones)
+
+El sistema cruza dos BC (ejes X e Y) para encontrar el valor en la intersección de la tabla.
+
+LTL Sealed Air: eje X = BC Pallets_Transportado + Escalado_PAL; eje Y = BC Metros_Lineales_Transportado + Escalado_ML.
+
+
+
+Para crear el escalado de la matriz PAL × ML de Sealed Air:
+
+1. Crear Escalado_PAL: tramos 0—1,25 PAL | 1,26—2,5 PAL | 2,51—5,0 PAL | … | >16,25 PAL.
+
+2. Crear Escalado_ML: tramos 0—0,5 ML | 0,51—1,0 ML | 1,01—1,5 ML | … | >6,5 ML.
+
+3. En el Cuadro Tarifario, añadir una línea de tipo Matriz de Escalados vinculando ambos escalados y rellenar los valores en la cuadrícula resultante.
+
+
+
+PASO 8 — Configurar la Condición SQL de Generación
+
+
+
+Ruta: Fleet → Administración → Tarifas → Catálogos → Tipos de Guía → [Editar] → Condición SQL
+
+La Condición SQL de generación controla cuándo UNIGIS debe crear una guía de un Tipo de Guía concreto. Si no se configura, la guía se genera siempre. Para Transpais, las condiciones críticas son:
+
+
+
+Tipo de Guía
+
+Condición SQL
+
+Lógica
+
+CMP_INTERCOMPANY
+
+Devuelve 1 si dbo.Transporte.ReferenciaExternaAdicional = 'FILIAL'
+
+Solo genera guía de compra intercompany cuando el transportista es una filial del grupo.
+
+CMP_INTERCOMPANY_BALL
+
+Devuelve 1 si es FILIAL Y el cliente es BALL
+
+Solo aplica el cuadro de precios fijos Ball cuando coinciden ambas condiciones.
+
+VTA_BALL_COILS
+
+Devuelve 1 si dbo.Cliente.ReferenciaExterna = 'BALL'
+
+Genera la guía de venta especial Ball únicamente para pedidos de ese cliente.
+
+CMP_AUTONOMO_UK
+
+Devuelve 1 si alguna parada tiene código de país = 'GB' (Reino Unido)
+
+Activa la tarifa UK de 1,20 EUR/KM solo en viajes con tramos en Gran Bretaña.
+
+
+
+Regla de oro: si UNIGIS genera una guía errónea (ej. aplica tarifa internacional a una ruta UK), revisar primero la Condición SQL del Tipo de Guía afectado.
+
+
+
+PASO 9 — Probar y Validar el Cálculo
+
+
+
+Una vez configurados todos los pasos anteriores, el proceso de validación es:
+
+
+
+Paso
+
+Acción
+
+Dónde en UNIGIS
+
+9.1
+
+Seleccionar un viaje real en estado PROGRAMADO que corresponda al tipo de guía que se quiere probar.
+
+Fleet → Viajes → Buscar → Seleccionar viaje
+
+9.2
+
+Lanzar el cálculo manual de tarifas sobre el viaje seleccionado.
+
+Fleet → Viajes → [Viaje] → Acciones → Calcular Tarifas
+
+9.3
+
+Revisar las guías generadas: verificar qué Tipos de Guía se han creado, qué conceptos tienen valor y si los importes son correctos.
+
+Fleet → Viajes → [Viaje] → Guías Generadas
+
+9.4
+
+Si hay errores: ir a Guías → Detalle de Cálculo para ver en qué paso del cálculo falló y con qué BC o fórmula.
+
+Fleet → Guías → [Guía] → Detalle de Cálculo
+
+9.5
+
+Corregir la BC, fórmula o condición SQL identificada, guardar y recalcular el viaje.
+
+Volver al Paso 4, 5 o 6 según corresponda
+
+9.6
+
+Validar con el departamento de operaciones y facturación que los importes cuadran con las tarifas negociadas del contrato.
+
+Revisión conjunta con operaciones
+
+
+
+Errores frecuentes y soluciones:
+
+Error
+
+Causa más probable
+
+Solución
+
+La guía no se genera
+
+La Condición SQL devuelve 0 o hay un error en la consulta.
+
+Probar la condición SQL manualmente con el @IdViaje real.
+
+El importe es 0
+
+La BC devuelve NULL o 0. La fórmula no encuentra valores.
+
+Verificar con COALESCE en la BC SQL. Probar la BC individualmente.
+
+Se aplica la tarifa incorrecta
+
+Hay dos cuadros activos para el mismo tipo de guía y gana el de menor prioridad.
+
+Revisar y corregir las prioridades de los cuadros tarifarios.
+
+La matriz LTL devuelve error
+
+Los escalados PAL o ML no cubren el rango del pedido real.
+
+Ampliar los tramos del escalado para cubrir valores extremos.
+
+El recargo de gasoil no se calcula
+
+PG0 o PG1 son NULL porque no hay registro en dbo.PrecioCombustible para ese mes.
+
+Insertar el precio de combustible que falta en el catálogo.
+
+
+

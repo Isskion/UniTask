@@ -1,0 +1,498 @@
+
+
+
+
+
+
+
+
+DOCUMENTACIÓN
+
+1.0
+
+AREAS CONTEMPLADAS
+
+Relevamiento EUROPASTRY 
+
+
+
+
+
+
+
+
+
+Documento de As Is
+
+
+
+
+
+
+
+
+
+
+
+REGISTRO DE CAMBIOS / HISTORIA DE REVISIONES
+
+
+
+Versión
+
+Causa del Cambio
+
+Responsable del Cambio
+
+Fecha del Cambio
+
+1.0
+
+Versión inicial
+
+Jorge Martínez
+
+Daniel Del Amo
+
+11/11/2025
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Contenido
+
+Objetivo Principal	3
+
+Empresas	3
+
+Estructura y Alcance Operativo	3
+
+Canales de Venta	3
+
+Delegaciones y Capilaridad	3
+
+Sistemas involucrados en el proceso	4
+
+Almacenes desde donde se realiza la Distribución	4
+
+Almacén Barcelona	4
+
+Almacén Girona	4
+
+Gestión de Pedidos y Planificación	5
+
+Flujo de Planificación y Preparación	5
+
+Proceso de Carga en Almacén	7
+
+Ejecución, Seguimiento y Control	7
+
+Tarificación de costes	8
+
+ANEXOS	9
+
+
+
+RELEVAMIENTO DEL CIRCUITO FUNCIONAL ACTUAL
+
+
+
+El presente documento permite identificar el flujo actual de la Operación de Distribución de ultima milla a clientes en la empresa Europastry ES, focalizada en los almacenes de Barcelona y Girona. 
+
+Objetivo Principal
+
+
+
+Conocer la metodología y circuitos operativos actuales de la empresa Cliente Europastry. Documentando la operativa de la compañía durante este proceso.
+
+Empresas
+
+Europastry es una empresa española líder en la producción y distribución de masas congeladas de panadería y bollería, con sede en San Cugat del Vallés, Barcelona. Actualmente está presente en más de 90 países, cuenta con 29 plantas productivas en Europa y América.
+
+
+
+Si bien la documentación del flujo actual de la operación se centra en la empresa Europastry, S.A en España, se muestra a continuación el detalle del grupo de empresas que la conforman:
+
+Europastry, S.A. (00001).
+
+Europastry Canarias (00026).
+
+Europastry Central Europe BV (00003).
+
+Compañía Europastry Portugal S.A (00008).
+
+Europastry USA (00020).
+
+Europastry France (00034).
+
+Europastry Italy (00025).
+
+Compañía Europastry Chile.
+
+Europastry Colombia (00023).
+
+Estructura y Alcance Operativo
+
+Europastry organiza su distribución a través de un modelo diversificado que abarca tanto la venta directa como una red de distribuidores.
+
+Canales de Venta
+
+Canal Organizado: Dirigido a grandes cadenas de distribución. La interacción con estos clientes se realiza mayoritariamente vía EDI, un sistema que se mantendrá.
+
+Canal Tradicional: Orientado a Food Service y pequeños comercios.
+
+Delegaciones y Capilaridad
+
+La venta directa en España se apoya en una red de almacenes y oficinas de venta distribuidas en:
+
+Madrid
+
+Barcelona
+
+Málaga / Sevilla
+
+Valencia
+
+Bilbao
+
+Galicia (Lugo / Vigo / Coruña)
+
+Mallorca
+
+Canarias
+
+Sistemas involucrados en el proceso
+
+ERP JD Edwards: Sistema donde se generan los pedidos y datos maestros de clientes, productos, vehículos, conductores y proveedores de transportes.
+
+SGA: Sistema de gestión de almacén que administra el inventario de productos y la preparación de estos. 
+
+APP ZETES_ARES: App que utilizan los conductores para realizar los viajes de ultima milla y registrar el estado de las entregas y cobros.
+
+Almacenes desde donde se realiza la Distribución
+
+
+
+Almacén Barcelona
+
+Dirección: Polígon Can Sant Joan, Carrer Segre, S/N, 08191 Rubí, Barcelona, España.
+
+FLOTA
+
+La flota cuenta con 57 vehículos tercerizados y dedicados: Los proveedores de transporte informan la disponibilidad de los conductores y sus vehículos mensualmente mediante un formulario del que dispone Europastry.
+
+Los tipos de vehículos considerados para la planificación diaria son los siguientes: 
+
+ 
+
+Referencia 
+
+Descripción 
+
+Peso Maximo Kg 
+
+Volumen Maximo M3 
+
+Bultos Máximos 
+
+Cantidad Vehículos 
+
+C06 
+
+Camión C06 
+
+1.200 
+
+10 
+
+250 
+
+1 
+
+C07 
+
+Camión C07 
+
+1.200 
+
+10 
+
+250 
+
+53 
+
+C07x1500 
+
+Camión C07x1500 
+
+1.500 
+
+10 
+
+300 
+
+1 
+
+C18 
+
+Camión C18 
+
+10.000 
+
+50 
+
+1.000 
+
+2 
+
+
+
+En este almacén se consideran adelantos de preparación previo a la planificación definitiva de las rutas diarias.
+
+
+
+Almacén Girona
+
+Dirección: Avinguda del Mas Pins, 150, 17457 Riudellots de la Selva, Girona, España.
+
+FLOTA
+
+La flota cuenta con 22 vehículos tercerizados y dedicados: Los proveedores de transporte informan la disponibilidad de los conductores y sus vehículos mensualmente mediante un formulario del que dispone Europastry.
+
+Los tipos de vehículos considerados para la planificación diaria son los siguientes: 
+
+ 
+
+Referencia 
+
+Descripción 
+
+Peso Maximo Kg 
+
+Volumen Maximo M3 
+
+Bultos Máximos 
+
+Cantidad Vehículos 
+
+C07 
+
+Camión C07 
+
+1.500 
+
+10 
+
+300 
+
+21 
+
+C07x1800 
+
+Camión C07x1800 
+
+1.800 
+
+10 
+
+300 
+
+1 
+
+
+
+Gestión de Pedidos y Planificación
+
+
+
+Tipos de Pedidos Identificados
+
+Se gestionan los siguientes tipos de operativas:
+
+Venta Directa: V6 y V7
+
+Operaciones Logísticas: Entregas, Recogidas y Cobros.
+
+Especiales: Click and Collect (retiros directos en almacén).
+
+
+
+El proceso inicia con la creación de los pedidos por parte del equipo comercial en el Sistema CRM o Sales Force. Se describen los pasos del proceso actual para el alta y la gestión de los pedidos:
+
+El cliente realiza un pedido con todos los productos que requiere de Europastry, esto lo pueden realizar a través del método que tenga disponible (call center, e-comerce, email, EDI). 
+
+Esta solicitud es recibida por el equipo comercial de Europastry y su alta puede generarse de forma manual o automática. Esta solicitud es generada por el equipo comercial en Sistema CRM o Sales Force. 
+
+Luego es enviada por integración al ERP JDE donde se realiza la gestión del pedido que incluye la validación stock, gestión roturas, asignación almacén de servicio, referencias autorizadas y validación de gestión precios vigente. 
+
+Si el pedido presenta incidencias en precios este queda retenido y se ha de gestionar según proceda. 
+
+La gestión y liberación de los pedidos retenidos es una tarea gestionada desde Back Office Central o desde el departamento de créditos. 
+
+Posterior a esto ocurre la confirmación del pedido y queda a disposición del jefe de tráfico para su gestión de ruta. 
+
+
+
+Flujo de Planificación y Preparación
+
+El modelo actual se basa en rutas fijas asignadas a cada cliente cuando es dado de alta. Esta planificación es realizada por el jefe de trafico de cada almacén y en este proceso se manejan los siguientes conceptos:
+
+
+
+Confirmación de Pedidos: Se define como el visto bueno del ERP, momento a partir del cual un pedido ya no puede ser modificado. 
+
+VL: Es una solicitud de preparación que se realiza al SGA, se trata de un agrupador generado para indicar qué pedidos se preparan juntos en el almacén. 
+
+Adelantos de Preparación: Existe un flujo que permite adelantar la preparación de ciertos pedidos en función de las necesidades de cada almacén, esto ocurre antes de la planificación definitiva de las rutas que se ejecuta después de las 17:00 horas diariamente.
+
+
+
+En el proceso de planificación ocurren los siguientes pasos:
+
+Al confirmarse cada pedido se relaciona a un numero de ruta predeterminado al que está asociado el cliente en el sistema. Este número de ruta lo realiza habitualmente el mismo conductor y vehículo.  Por lo tanto, los pedidos ya están preasignados a una ruta. 
+
+El jefe de tráfico puede dar revisión, cambiar pedidos de rutas de forma manual y asignar vehículo y conductor a estas.  
+
+Durante el día el jefe de tráfico revisa las cantidades de cajas de pedidos asignadas a cada ruta, lo que permite al planificador realizar adelantos de pedidos y enviarlos a almacén, esto genera un VL o un pedido de preparación. Un VL puede contener varios pedidos.  Este flujo de adelantos solo aplica al almacén de Barcelona.
+
+El equipo de Almacén inicia la preparación de las cajas de acuerdo con la lógica de agrupación indicada en el VL. Esta preparación lo hacen los operarios a través del método “picking por voz” o mediante el software ULMA.
+
+A las 18:00 horas se completa la planificación de todas las rutas y el planificador confirma los pedidos que finalmente formaran parte de cada una de ellas enviándolo a preparación desde el ERP AS400.  
+
+El equipo de Almacén completa la preparación de las cajas de acuerdo con la lógica de agrupación indicada en cada VL, dejando las cajas en pallets en las zonas asignada para cada ruta fija existente.
+
+En este proceso se realiza la asignación de vehículo y conductor, enviando con ello la ruta a través de integración a la aplicación de Zetes disponible en la PDA de cada conductor. 
+
+Criterios de planificación actualmente utilizados:  
+
+35 paradas es el número de paradas óptimo por ruta.  
+
+Un TR es cualquier pedido que supere las 30 cajas.  
+
+10 metros cúbicos es el máximo por camión.  
+
+250 cajas por ruta.  
+
+El planificador puede realizar movimientos de pedidos entre las rutas fijas.
+
+Para modificar una ruta ya enviada a la aplicación móvil actual (Zetes), se debe generar una nueva ruta en el ERP.
+
+El área comercial puede solicitar prioridades de entrega u horarios específicos para ciertos clientes, estos no se encuentran sistematizados.
+
+Esta acción genera tres (3) documentos: la Hoja de Ruta y la Hoja de entrega en digital (PDF), que son enviados al transportista a través de un correo electrónico. Asimismo, se genera la hoja de picking que contiene el detalle de los ítems los pedidos a preparar por el equipo de Almacén. 
+
+El equipo de Almacén completa la preparación de las cajas de acuerdo con la lógica de agrupación indicada en el VL y lo indicado en la hoja de picking. 
+
+A su vez, el conductor en su PDA visualiza su ruta y reordena la secuencia de entrega de los clientes asignados según su criterio. 
+
+Proceso de Carga en Almacén
+
+Presentación del conductor en el Almacén: Se presenta a ventanilla y retira una carpeta que contiene: 
+
+Hoja de Preparación.
+
+Hoja de Carga.
+
+Hoja de paradas-clientes a visitar.
+
+Albaranes impresos.
+
+Revisión del Conductor: El conductor, usando su PDA, revisa las paradas y los bultos a cargar. Desmonta el palet y verifica las cajas.
+
+Carga y Posicionamiento: Carga las cajas en el camión siguiendo el orden de entrega y marca la mercancía como cargada.
+
+Gestión de Faltantes: Si detecta faltas (por error o rotura), las anota en papel y lo comunica al equipo de "Mesa de Faltantes". En la mesa se indica si los artículos se pueden preparar. Si no es así se dirigen a garita donde se decide cómo actuar.
+
+Resolución de Faltantes: Este equipo verifica el stock:
+
+Si el producto está disponible, se lo entregan al conductor.
+
+Si no hay stock, se anota el motivo.
+
+Salida del Camión: Si la carga no está completa, el conductor necesita un "parte de faltantes" sellado para poder salir.
+
+
+
+Ejecución, Seguimiento y Control
+
+Un supervisor revisa a primera hora (06:00) las incidencias de carga (faltantes, conductores que no se presentaron) y reorganiza los viajes si es necesario. Esto lo hace presentandose a la ventanilla del almacén donde revisa y retira la carpeta que cada conductor ha dejado.
+
+Coordina con el área comercial la gestión de pedidos urgentes.
+
+Durante el día, realiza seguimiento de los viajes para identificar problemas y planifica nuevas rutas de urgencia de ser necesario.
+
+Existen 3 conductores "disponibles" para realizar segundas vueltas o rutas de urgencia.
+
+Actualmente, el seguimiento se realiza con la aplicación de Zetes. Se han detectado casos donde los estados no se actualizan en el ERP y el supervisor debe hacerlo manualmente desde el ordenador.
+
+
+
+En cuanto al conductor, realiza lo siguiente al salir del almacén a ejecutar su viaje:
+
+Posteriormente el conductor sale a realizar las entregas (entre las 4:00 y 17:00 horas), en la aplicación de su PDA observa las paradas a realizar identificadas con un numero único y el nombre del cliente. 
+
+Al llegar a la dirección del cliente el conductor revisa los datos de la entrega y el tipo de cobro a realizar. 
+
+En caso de ser efectivo se muestra en pantalla los valores a cobrar. 
+
+Cuando el tipo de pago es en cheque o pagaré, no se muestra cantidad a cobrar. 
+
+La parada puede ser entregada completamente, parcialmente y no entregada. 
+
+Cuando la parada es entregada de forma parcial, el conductor asigna motivo de no entrega asociado al ítem (Mercancía Sustraída/Perdida, Cliente no quiere mercancía, Cerrado fecha de reparto, Fuera de Horario, No pago de cobros obligatorios). 
+
+Para el caso de entregas parciales, el conductor puede realizar la impresión del nuevo albarán con las cantidades rebajadas. 
+
+Al completar las entregas, el conductor realiza la impresión de hoja liquidación que le muestra todo lo cobrado y la hoja de incidencias de entrega que contiene todo aquello que no fue posible entregar. En este momento el conductor registra en la app el dinero en efectivo que depositará en el banco.
+
+Este valor en metálico que maneja el conductor es administrado por la operación y se conoce como el saldo del transportista, que no es mas que la resta de lo recolectado versus lo depositado en el banco. Este puede ser un valor positivo o negativo.
+
+Seguidamente el conductor se dirige a un cajero automático y realiza el ingreso efectivo. 
+
+Posterior a ello se dirige al almacén y realiza la devolución de las cajas no entregadas si corresponde y junto con ello todas las hojas físicas que fue generando durante todo el proceso: Albaranes sellados, Hoja de incidencias, Hoja de carga selladas, Hojas de liquidación. 
+
+Estas hojas físicas son depositadas por cada conductor en un box físico que se encuentra en cada almacén y que posteriormente es recogida por el personal del departamento de créditos. 
+
+
+
+Tarificación de costes
+
+Mensualmente se realiza el cálculo de los pagos a los proveedores según los días trabajados, esto lo realiza el personal administrativo de Eruropastry.
+
+El pago a proveedores de transporte se realiza según los siguientes detalles:
+
+La liquidación se basa en un valor fijo por día trabajado para cada conductor.
+
+Pueden existir conceptos adicionales de valor variable habitualmente imputado al momento de la ejecución.
+
+Hay conceptos como peajes, estacionamientos o comisiones bancarias que los conductores pueden presentar y que afectan la tarificación de pago a los proveedores de transportes.
+
+Las "segundas vueltas" se pagan según un valor acordado por la cantidad de paradas, no es un importe fijo.
+
+
+
+ANEXOS
+
+ 
+
+A continuación, se dejan el flujograma actual de las operaciones compartido por el equipo de Europastry:  
+
+
+
+
+

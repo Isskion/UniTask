@@ -1,0 +1,3140 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DOCUMENTO DE ALCANCE FUNCIONAL 
+
+OPERACIÓN INTERMODAL
+
+
+
+
+
+
+
+
+
+
+
+Proyecto
+
+UNIGIS TMS 
+
+
+
+Preparado por
+
+Daniel del Amo
+
+Lista de Intermodal:
+
+
+
+Asistentes
+
+Área
+
+Nombre
+
+Cargo/Rol
+
+Datos de contacto
+
+UNIGIS
+
+Francisco Javier Martínez
+
+Diego Senra
+
+Jorge Martinez
+
+Daniel del Amo
+
+Sponsor de Proyecto
+
+Project Manager
+
+Consultor Sr
+
+Arquitecto de Solución
+
+javier.martinez@unigis.com
+
+diego.senra@unigis.com
+
+jorge.martinez@unigis.com
+
+daniel.delamo@unigis.com
+
+TRANSPAIS
+
+Juan Carlos Pardo
+
+Francisco Pardo
+
+Leonardo Bianchini
+
+Sponsor de Proyecto
+
+Sponsor de Proyecto
+
+Project Manager
+
+
+
+
+
+
+
+
+
+Historial de Revisiones:
+
+
+
+Versión
+
+Fecha
+
+Descripción
+
+Responsable
+
+1
+
+31/03/2026
+
+Creación de documento
+
+Daniel del Amo
+
+2
+
+
+
+
+
+
+
+3
+
+
+
+
+
+
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+ÍNDICE
+
+
+
+INTRODUCCIÓN	5
+
+OBJETIVO GENERAL	6
+
+OBJETIVOS ESPECÍFICOS	6
+
+COMPONENTES DEL PROYECTO	7
+
+FUERA DE ALCANCE	8
+
+CRITERIOS Y SUPUESTOS DE DISEÑO	9
+
+PERFILES DE CARGO	10
+
+GLOSARIO	11
+
+Términos de Unigis	11
+
+Términos de la operación de Transpais	12
+
+OPERACIÓN DE INTERMODAL TRANSPAIS	13
+
+Consideraciones Generales	14
+
+Tarragona	15
+
+Consideraciones Particulares	15
+
+Depósitos / almacenes	16
+
+Zonas y áreas de actuación	16
+
+Tipos de vehículo	16
+
+CABANILLAS	16
+
+Consideraciones Particulares	16
+
+Depósitos / almacenes	17
+
+Zonas y áreas de actuación	17
+
+Tipos de vehículo	17
+
+Operación Intermodal	18
+
+Introducción al flujo logístico de la operación de Intermodal	18
+
+Detalle de proceso de ingreso y planificación de los pedidos.	18
+
+Paso 1 Alta y validación de pedido	18
+
+Planificación del viaje	20
+
+Gestión de los viajes desde la App Mobile Unigis delivery	21
+
+CIRCUITO OPERATIVO DE CONTROL DOCUMENTAL	26
+
+Detalle de uso del TMS	26
+
+Modificaciones y ajustes a Viajes	26
+
+Inicio de Viaje	27
+
+Alarmas de Monitoreo	27
+
+Prueba de carga y descarga con App Mobile (UNIGIS X DELIVERIES)	28
+
+INTERFACES	29
+
+ERP Dynamics 365	29
+
+Portic	29
+
+Importación (IMPORT)	29
+
+Exportación (EXPORT)	29
+
+Interfaz: APERAK	29
+
+Maersk	30
+
+Interfaz # 1 ARRIVAL	30
+
+Interfaz # 2 Container_Update	30
+
+Interfaz # 3 Departure	30
+
+Interfaz # 4 Customer Apointment PICKUP	30
+
+Interfaz # 5 Customer Apointment DropOff	30
+
+Interfaz # 6 Asignación de PRECINTO / SEAL	30
+
+Interfaz # 7 Driver Update	30
+
+Interfaz # 8 GPS / GPS_UPDATE	30
+
+Interfaz # 9 Tiempo de Espera / WAIT_TIME	30
+
+Interfaz # 10 Futile_trip	30
+
+Weebfleet	31
+
+showVehicleReportExtern	31
+
+showTripReportExtern (Reporte de Viajes)	31
+
+Arkas	31
+
+CMA	31
+
+LIQUIDACIONES DE PAGO Y COBROS	32
+
+LISTADO DE REQUERIMIENTOS	33
+
+DASHBOARDS E INDICADORES	34
+
+ANEXOS	35
+
+Esquema Circuito Operativo Control Documental	35
+
+Flujograma del Nuevo Circuito Operativo de Intermodal	36
+
+FIRMA DE ACEPTACIÓN	38
+
+
+
+INTRODUCCIÓN
+
+
+
+A partir del levantamiento realizado en reuniones mantenidas con los Líderes de Proyecto y responsables de la Operación de Intermodal de Transpais, se definió el presente “Documento de Alcance Funcional”, para describir el diseño del Proyecto, esta etapa, contempla la implementación estándar del TMS Unigis para esta operativa de Intermodal en el área de influencia de la compañía.
+
+
+
+Para esta implementación se ha definido la siguiente estructura principal:
+
+
+
+Empresa
+
+Sucursal
+
+Operación
+
+Almacén
+
+Transpais
+
+
+
+
+
+
+
+España
+
+Intermodal
+
+Tarragona deposito propio
+
+Cabanillas deposito propio
+
+ almacenes externos + terminales de carga
+
+PUERTO DE BARCELONA
+
+PUERTO DE TARRAGONA
+
+PUERTO DE  MADRID
+
+PUERTO DE  GUADALAJARA
+
+
+
+
+
+
+
+PUERTO DE  ALGECIRAS
+
+
+
+
+
+
+
+PUERTO DE  VALENCIA
+
+
+
+
+
+
+
+PUERTO DE  CASTELLON
+
+
+
+
+
+
+
+3 (DEPOSITO EXTERNO) JESSICA BARCELONA
+
+
+
+
+
+
+
+3 (DEPOSITO EXTERNO)  EMBALEX BARCELONA
+
+
+
+A continuación, se define brevemente la operación a implementar: 
+
+
+
+Las operaciones identificadas en el proceso de relevamiento son:
+
+
+
+-INTERMODAL LA SELVA / TARRAGONA
+
+-INTERMODAL CABANILLAS 
+
+
+
+La operatoria de Intermodal, realiza la gestión integral del transporte de contenedores, Importaciones y Exportaciones. 
+
+Gestiona la operativa con puertos (Portic para el caso de Barcelona), depósitos y la planificación de rutas complejas.
+
+
+
+Tipos de pedido detectados en el proceso de relevamiento son:
+
+Importación 
+
+Exportación 
+
+Traslado (de punto A→B) y finaliza allí 
+
+
+
+En cuanto a la Tarificación
+
+Tarifa x radios de KM en venta y coste.
+
+Otros factores a definir.
+
+ 
+
+Adjuntamos el flujo entendido de los relevamientos, abierto a comentarlo en conjunto.
+
+
+
+OBJETIVO GENERAL
+
+
+
+Implementar una solución para la gestión de Transporte Integral del grupo, con el fin de optimizar recursos, reducir costos operativos, elevar los niveles de servicio al cliente y fortalecer la posición estratégica de Transpais en el mercado, generando una ventaja competitiva sostenible.
+
+
+
+El proyecto tiene como objetivo implementar el sistema TMS UNIGIS en la operación logística de Intermodal de Transpais en los centros de Intermodal referidos más arriba. 
+
+Asimismo, pretende optimizar los procesos internos para estandarizar los distintos flujos operativos existentes, proporcionar información en tiempo real a los clientes y garantizar la trazabilidad completa de los pedidos.
+
+Para ello, Transpais requiere la implantación del software Unigis TMS, que permitirá gestionar la operativa de Intermodal, administrar los pedidos destinados a los clientes y realizar un seguimiento activo de su ejecución durante todo el proceso de reparto.
+
+Finalmente, se establece que Unigis sustituirá al sistema TMS actualmente utilizado en la operación, asumiendo sus funcionalidades dentro del nuevo modelo operativo.
+
+
+
+
+
+OBJETIVOS ESPECÍFICOS
+
+
+
+Automatizar los procesos clave de transporte, especialmente la planificación y optimización de rutas, junto con la asignación eficiente de recursos operativos.
+
+
+
+Disponer de visibilidad en tiempo real de la flota, permitiendo monitorear la operación de transporte y mejorar la capacidad de gestión y toma de decisiones.
+
+
+
+Mejorar la calidad del servicio al cliente, proporcionando información actualizada y trazabilidad en línea sobre el estado de sus pedidos y entregas.
+
+
+
+Facilitar la integración ágil con los diferentes actores de la cadena logística, como clientes, transportistas y otros socios estratégicos.
+
+
+
+Optimizar y automatizar la gestión de rutas, reduciendo tareas manuales y repetitivas mediante herramientas de planificación inteligente.
+
+
+
+Gestionar de forma flexible los distintos modelos tarifarios, permitiendo cumplir acuerdos comerciales, controlar costes y asegurar una planificación y ejecución del transporte alineada con los presupuestos y niveles de servicio.
+
+COMPONENTES DEL PROYECTO
+
+
+
+Se detallan a continuación los elementos técnicos (productos y servicios) que se incluyen en el alcance del proyecto:
+
+
+
+Software UNIGIS Order/Transport Management (Gestión de pedidos y órdenes de entrega): Gestión de los Pedidos (Entregas y retiros) de clientes. Permite ingresar, editar o anular pedido, así como conocer su historia de movimientos dentro de UNIGIS.  
+
+
+
+Software UNIGIS Planning (planificación inteligente): Aplicación de apoyo a la función de Intermodal y Logística que permite obtener un Ruteo Optimizado de las ordenes de planificación. Maximiza el uso de los recursos físicos disponibles (vehículos, conductores, menor costo logístico), a la vez que garantiza cumplir con el nivel de servicio exigido por los Clientes (cumplimiento de entregas, horarios). Algunas de las restricciones y variables que considera el sistema para rutear son: ventanas horarias del cliente, distancias mínimas, peso máximo, volumen máximo, bultos máximos, cantidad máxima de entregas, distancia máxima de rutas, horario máximo, capacidad de los vehículos, horarios de operación de los depósitos. Además, la herramienta permite georeferenciar (ubicar en mapa) y normalizar los datos, zonificar, imprimir hojas de ruta, generar consultas y estadísticas.
+
+
+
+Software UNIGIS Smart Tracking (control logístico): Aplicación que utiliza las rutas generadas por UNIGIS Planning junto con los reportes de coordenadas GPS de los vehículos (integración GPS) para realizar un control en tiempo real de la Intermodal planificada. Registra los horarios reales de entrega vs. planificado e informa los desvíos. Permite configurar controles y alarmas propias del sistema, independientes del dispositivo físico instalado en los vehículos.
+
+
+
+Software UNIGIS X Deliveries (confirmación de entregas): Permite interactuar con los operadores del transporte que realizan la Intermodal para confirmar las entregas a los clientes en tiempo real, y la ocurrencia de eventuales problemas para su tratamiento inmediato. Minimiza las comunicaciones verbales entre los centros de operación, tráfico, transporte y la flota operativa que trabaja en terreno priorizando la comunicación sistémica. Adicionalmente se puede registrar la firma electrónica, fotos, indicar alguna observación.
+
+
+
+Software UNIGIS Gestión de Transporte (Tarifación y liquidación): UNIGIS es una plataforma colaborativa para gestionar todos los procesos logísticos de Intermodal y transporte en cualquier industria, inicia con los pedidos hasta la entrega final de los productos al cliente, y retornos que puedan existir de dichos productos incluyendo el cálculo del costo del viaje propio o la liquidación del transporte con sus tarifas documentos oficiales, y todos los procesos operativos necesarios. 
+
+
+
+Software UNIGIS Dashboards (Reportería): UNIGIS incluye una herramienta que permite crear reportes, consultas y estadísticas gráficas de la información contenida en el repositorio de datos interno. Se pueden crear tablas con datos, cálculos y filtros, gráficas 2D de barras, de circular. Todas las consultas se crean ad-hoc en los tableros y se configuran los permisos de acceso a los usuarios internos del sistema. La información puede ser exportada a planillas de cálculo Excel. 
+
+
+
+Software B2C (Bussines to Consumer): Permite dar acceso al cliente final para hacer seguimiento del estado de los pedidos que tengan pendiente, el seguimiento se realizará con el numero único de pedido en la plataforma TMS. 
+
+
+
+Software B2B (Business to Business): Es un portal que permite dar acceso a clientes internos o externos para crear pedidos y hacer seguimiento al estado de los pedidos que entregan a sus operadores logísticos.
+
+
+
+
+
+FUERA DE ALCANCE
+
+
+
+Definición del circuito operativo de taller.
+
+Desarrollo de interfaces desde el TMS para buscar Datos Maestros desde el ERP.
+
+Alcance limitado a la integración de pedidos con Maersk, Portic y Transporeon; no se contempla el desarrollo de interfaces adicionales con otros sistemas.
+
+
+
+Generix será responsable del desarrollo de interfaces para el alta de pedidos, consumiendo el servicio web (WS) estándar de UNIGIS TMS.
+
+
+
+Para la recepción de estados, serán los proveedores los que nos darán la información para asociarla en el TMS. 
+
+
+
+CRITERIOS Y SUPUESTOS DE DISEÑO
+
+
+
+Se ha identificado la necesidad de realizar modificaciones a los sistemas actuales de Transpais lo que supone considerar estos tiempos y ajustes durante el proyecto. 
+
+Actualmente el equipo de IT de Transpais se encuentra migrando su sistema WMS a Generix, ERP a MS Business Central, Telemetría a Webfleet, por lo tanto se debe considerar que las interfaces del proyecto deben ser compatibles con dicha migración.
+
+Es responsabilidad del conductor realizar la activación de sus viajes (cambio de estado del viaje a ACTIVO), Unigis sugiere que esta acción siempre sea realizada por el equipo de seguimiento y control ya que esta supone minimizar la posibilidad de que los conductores salgan a reparto con viajes no activados y sin seguimiento activo. El chofer también tendrá la posibilidad de activar el viaje opcionalmente.
+
+El éxito en el uso adecuado del TMS y los flujos definidos en este proyecto depende de un cambio cultural y sistémico que deben adoptar los usuarios. Este cambio se debe a la implementación de un nuevo sistema, que implicará modificaciones significativas en las actividades actuales de as operativas de Transpais.
+
+El mantenimiento de los datos de maestros clientes, domicilios, tipos de vehículos, conductores y vehículos dentro del TMS es fundamental para que pueda fluir de forma correcta los circuitos operativos configurados.
+
+Las notificaciones se realizarán con la funcionalidad estándar del sistema vía email, en caso de requerirse otro tipo de notificaciones (SMS, WhatsApp), Transpais deberá contratar servicios a proveedores externos.
+
+Las unidades de medida serán en palets, bultos (cajas), Volumen (M3) y peso (Kg) como variable de corte o maximización de los vehículos y cubicaje. En el TMS existen otras opciones adicionales por si en el proyecto surgen otras variables no contempladas en el relevamiento. 
+
+El seguimiento de la flota a través de GPS se realizará mediante la interfase con Webfleet, aplicación que ofrece los tiempos de conducción y telemetría de los vehículos de Transpais.
+
+El incumplimiento de estos supuestos de diseño conllevará un ajuste y un cambio en el alcance del proyecto, lo que impactará las fechas estimadas en el plan de trabajo. Además, podría generar la necesidad de horas adicionales de trabajo por parte de los equipos involucrados.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PERFILES DE CARGO
+
+
+
+A continuación, se indica la propuesta de los perfiles del TMS y el cargo de Transpais que lo ejercerá, indicando sus funciones principales. 
+
+En el TMS los perfiles son configurables por el administrador, al igual que los accesos a las funciones que puede acceder (responsabilidades), por lo que se pueden agregar o quitar permisos sin problema, en caso de ser necesario. 
+
+
+
+
+
+
+
+Código
+
+Aplicación Unigis
+
+Cargo
+
+Responsabilidades
+
+1
+
+Planning
+
+OM
+
+Tracking
+
+Fleet
+
+Dashboard
+
+Editor cartográfico
+
+Administración del sistema
+
+ 
+
+Key User Administrador
+
+
+
+2
+
+OM
+
+Dashboard
+
+
+
+Costumer Service
+
+
+
+3
+
+Dashboard
+
+OM
+
+Planificador
+
+
+
+4
+
+Tracking
+
+Dashboard
+
+Tráfico
+
+
+
+
+
+5
+
+App Unigis X Deliveries
+
+Conductor
+
+
+
+6
+
+Portal de Transporte
+
+Administrador de transporte de terceros
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GLOSARIO
+
+
+
+Términos de Unigis
+
+Alta de Usuarios: Es la creación de usuarios en el set up de Unigis.
+
+Alta de vehículos: Es la creación de vehículos en el set up de Unigis. Esta creación se realiza de forma automática a través de integración de gps previa solicitud del cliente o de forma manual en el set up.
+
+Cliente orden: Es el destinatario al cual se le debe entregar la carga.
+
+Consolidación: Es el proceso por el cual se agrupan órdenes basados en reglas y que tienen la misma fecha de entrega. 
+
+Depósitos:  Son los lugares donde se inicia o finaliza un servicio, por ejemplo, los centros de Intermodal o proveedores. 
+
+Domicilio orden: Es el domicilio de destino del cliente orden, es donde debe llegar la carga. 
+
+Escenario de ruteo: Configuración de las reglas de planificación. 
+
+Encuesta: Es un formulario que contiene un conjunto de preguntas tipificadas y que son aplicables a las transiciones de los cambios de estados de paradas. Aplican para la aplicación mobile y Unigis Tracking.
+
+Empresa: Es la unidad organizacional principal del TMS
+
+Estado: Es una breve descripción de cómo se encuentra una entidad en determinado momento. Existen estados configurables para el pedido, pedidoitem, la orden, la ruta, el viaje, transporte y la parada. 
+
+Geocerca: Es una zona que se configura en UNIGIS para gatillar cambios de estado automático o alertas cuando ingresa o sale de esa zona. 
+
+Geocodificación: es el proceso de convertir direcciones postales o puntos geográficos de interés en coordenadas geográficas (Latitud, Longitud), para luego localizarlas y visualizarlas en un mapa.
+
+Ítems: Es la información detalla de los productos que forman parte de un pedido. Un pedido puede estar conformado por uno o más ítems.
+
+Jornada: Es la fecha operativa, es decir, define la fecha de ejecución de los servicios y tareas a realizar en cada operación. 
+
+Muelle: Es el punto donde se realiza la carga y descarga de cada viaje dentro de un depósito, se planean sus ocupaciones y disponibilidades. 
+
+Operación: Es la unidad operativa de trabajo, cada una tiene su comportamiento, configuración, grupos de usuarios, datos y procesos de forma segmentada. Es el servicio que se presta en un determinado lugar, todo lo que se susceptible a ser planificado de manera conjunta, tiene ir en la misma operación. 
+
+Orden: Es la entidad ejecutiva mediante la cual se ordena realizar una actividad. Un pedido puede requerir N órdenes para cumplirse y estas pueden ser de tipo pickup o delivery. 
+
+Parada: Contiene los datos de cada una de las entregas o recolecciones a realizar. Por cada orden se genera una parada. Las paradas están relacionadas a un viaje.
+
+Pedido: Es la solicitud de movimiento de carga. Es el compromiso de servicio de entrega, recolección y/o visita, por ende, contiene los datos necesarios para saber en dónde recolectar los productos, donde entregarlos, las fechas y demás datos sobre el servicio solicitado.  
+
+Portal B2C: Es un portal donde el cliente final puede realizar el seguimiento del producto y la trazabilidad de entrega. Pueden ser configurables para cada cliente.
+
+Recorrido: Es el conjunto de trayectos y zonas que se deben controlar de forma automática o que están habilitadas para un viaje, por ejemplo, zonas de peligro, vías donde se puede transitar, zonas de paradas, zonas de control de velocidad, etc.
+
+Ruta: Es la planificación de un servicio de transporte que se debe realizar por un tipo de vehículo, con una secuencia optimizada de las órdenes. La ruta agrupa órdenes de entrega y pertenece a una jornada (día determinado).
+
+Sucursal: Segmentación organizacional geográfica y/o por negocio de la empresa. 
+
+Ventana horaria: son los rangos horarios en los que se puede visitar a cada cliente.
+
+Viaje: Es la ejecución del servicio de transporte. Como datos obligatorios siempre va a requerir un vehículo y un conductor. 
+
+Zonas: Es un conjunto de ubicaciones geográficas que permiten segmentar el mapa de acuerdo con diferentes reglas, por ejemplo, zonas de restricción vial, por riesgo, por tipo de vehículos, por horarios, etc. 
+
+Términos de la operación de Transpais
+
+Proveedor: Es la entidad que agrupa transportistas y al que se le realiza el pago de los servicios de transportes prestados a Transpais.
+
+Ruta: Es una referencia única que identifica el conductor, vehículo y clientes asociados a un mismo recorrido, Ejemplo: 601.
+
+Transportista: Es el conductor que ejecuta una ruta.
+
+
+
+
+
+OPERACIÓN DE INTERMODAL TRANSPAIS
+
+
+
+El proceso logístico de transporte en la operación de Intermodal de Transpais considera el transporte de contenedores desde diferentes Depot (almacén, puerto, campas externas...) hacia clientes o de retorno desde los clientes a los diferentes Depot. Actualmente, la operación de transporte se planifica en los Centros de Intermodal de Transpais y Cabanillas, desde allí se realiza seguimiento y control de las entregas.
+
+
+
+Las operaciones identificadas en el proceso de relevamiento son:
+
+-INTERMODAL LA SELVA / TARRAGONA
+
+Depósitos de La Selva del Camp.
+
+Depot Tarragona 
+
+
+
+-INTERMODAL CABANILLAS 
+
+Depósito de Guadalajara. 
+
+
+
+Consideraciones de las operaciones
+
+Serán dos depósitos con gestiones diferenciadas.
+
+¿Son gestionados por equipos diferentes?
+
+Definir quién y cómo trabajará en Unigis.
+
+
+
+Los pedidos son recibidos por Transpais en el TMS por las siguientes vías:
+
+
+
+Vía recepción Pedido 
+
+Ingreso
+
+Integración desde sistemas externos 
+
+Automática 
+
+Creación pedidos en TMS. 
+
+Manual
+
+Creación pedidos en TMS 
+
+Importación vía Excel
+
+
+
+
+
+Dentro del TMS se gestionarán los tipos de pedido
+
+
+
+Import: 
+
+1.Se integran los pedidos en TMS. (se aplica proceso de *validación de pedido )
+
+3. Colgar // recibir documentos en adjuntos a pedido(TMS) 
+
+4. Generar las rutas a partir de las órdenes (se aplica proceso de *planificación de viaje)
+
+5. Recogida de contenedor cargado en terminal
+
+6. Se ejecutan las paradas definidas para el pedido
+
+7. Seguimiento desde operaciones 
+
+8. El contenedor vacío se devuelve a la terminal (de mar o seca) 
+
+9. Si hay demoras o imprevistos, operaciones es quien avisa a Customer service y Customer service al cliente
+
+
+
+
+
+
+
+
+
+Export
+
+1.Se integran los pedidos en TMS.
+
+Manualmente
+
+Interfaces
+
+3. Colgar // recibir documentos en adjuntos a pedido(TMS) 
+
+4. Generar las rutas a partir de las órdenes
+
+5. Recogida de contenedor vacío en terminal
+
+6. Se ejecutan las paradas definidas para el pedido
+
+7. Seguimiento desde operaciones 
+
+8. El contenedor cargado se devuelve a la terminal (de mar o seca) 
+
+9. Si hay demoras o imprevistos, operaciones es quien avisa a Customer service y Customer service al cliente
+
+
+
+Traslado : Movimiento de contenedores entre Depot. 
+
+1.Se integran los pedidos en TMS.
+
+Manualmente
+
+Interfaces
+
+3. Colgar // recibir documentos en adjuntos a pedido(TMS) 
+
+4. Generar las rutas a partir de las órdenes
+
+5. Recogida de contenedor origen
+
+6. Se ejecutan las paradas definidas para el pedido
+
+7. Seguimiento desde operaciones 
+
+8. El contenedor se deposita en destino
+
+9. Si hay demoras o imprevistos, operaciones es quien avisa a Customer service y Customer service al cliente
+
+Se deja el detalle de las consideraciones que aplican de forma general a ambas operaciones:
+
+
+
+Consideraciones Generales
+
+
+
+El circuito logístico de Intermodal arranca con la orden de recogida de un contenedor (lleno o vacío), que indica el tipo de pedido (Import / Export) lo que ya indicará al TMS el tipo de paradas que se van a gestionar.
+
+
+
+Una acción habitual es el alta de nuevos clientes y es el departamento comercial quien tramita las peticiones de alta de clientes, indicando tanto las condiciones de pago como las condiciones comerciales. Desde el equipo comercial se realiza el registro y petición en TMS.
+
+
+
+Se planifica diariamente, conforme llegan los pedidos, sobre direcciones fijas y puntuales. Los domicilios se crearán junto al pedido cuando no existan previamente en él sistema, por lo que será necesario confirmar que datos son obligatorio recibir junto al pedido para garantizar poder realizar la entrega.
+
+
+
+Por lo tanto, para ejecutar la planificación es imprescindible contar con las direcciones de entrega, los horarios agendados con los clientes, las variables logísticas de carga y la disponibilidad de vehículos en la jornada. En este sentido, se debe mencionar que la flota de vehículos utilizada es en su mayor parte propia, pero es necesario que conocer la disponibilidad también de los tercerizados dedicados a Transpais. 
+
+
+
+El resultado de una planificación es la unión de los distintos medios disponibles con las ordenes de carga recibidas, por cualquiera de los medios, y para cualquier tipo de transporte solicitado de los que se manejan en Transpais.
+
+
+
+Transpais opera con una red de Depot (Campas o parking) donde estacionar tanto los vehículos como sus plataformas o incluso los contenedores, conocer en qué punto está alojado cada uno de estos recursos es vital para la planificación de las diferentes ordenes de carga.
+
+
+
+El proceso de carga de los camiones es realizado por los conductores, quienes también tienen la función de realizar el seguimiento de los pedidos desde las operativas de App Mobile. Este paso es imprescindible para poder comunicar a los distintos actores el estado y situación de las cargas en cada paso de su entrega, y los viajes.
+
+
+
+Es importante mencionar que los datos maestros de clientes, direcciones de entrega, vehículos, conductores  y transportes terceros serán administrados dentro del ERP quién informará al TMS.
+
+En el caso de los conductores, estos datos los tiene RRHH y vemos si los crearan manualmente o por integración de fichero.
+
+
+
+La creación manual de los prepedidos conllevara la asignación de vehículos para su reservar. Tenemos que entender como después se hace la unión con Portic y como entender que se validará el pedido para su transporte.
+
+
+
+Tarragona
+
+
+
+Consideraciones Particulares
+
+
+
+Este es el centro del mando de la operación de Intermodal, desde donde se planifican las ordenes de transporte. La integración con Portic es un elemento troncal, que envía la información de los contenedores y a quien debemos informar con los retornos de contenedores. 
+
+
+
+Los tipos de pedido iniciales son 
+
+
+
+1. IMPORTACIÓN (IMPORT) – Llegan con mercancía para descargar y devolver contenedor vacío
+
+2. EXPORTACIÓN (EXPORT) – Se recogen contenedores vacíos y se llevan a  cargar para su salida.
+
+3. TRASLADOS – movimiento de contenedores entre Depot propios o ajenos.
+
+
+
+Portic aporta también su propia tabla de KM origen – destino para las tarifas. Tener en cuenta su libro para el cálculo de KM de esta operación. Se admite la posibilidad de aplicar un calculo diferente para clientes concretos que tengan su propio libro de KM. Se requiere identificar los cliente que sostendrán esta premisa (Maersk)
+
+
+
+Es posible que un contenedor, cuyo cometido ha finalizado, se reutilice para otros servicios aprovechando su ubicación. El pedido original no se cerrará hasta que el contenedor llegue al Depot de destino.
+
+El seguimiento del viaje donde se mueve el contenedor se hace en Tracking y luego el sistema cuenta con el modulo Fleet-Contenedores para visualizar en detalle
+
+Depósitos / almacenes
+
+
+
+DEPOSITO
+
+LOCALIZACIÓN
+
+OBSERVACIONES
+
+Central
+
+Tarragona
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zonas y áreas de actuación
+
+Almacén
+
+Código Postal
+
+Grupo
+
+Descripción Grupo
+
+Tarragona
+
+43
+
+Tarragona
+
+Zona noreste
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+La estructura final de esta se definirá en la etapa de construcción en conjunto con el equipo de Transpais pues será el key user de la operación el encargado de mantenerlo en producción.
+
+
+
+
+
+Tipos de vehículo
+
+
+
+El TMS Unigis permite realizar la planificación de rutas en jornadas diarias para determinar el mejor tipo de vehículo disponible en la operación. La flota disponible para esta operación debe definirsi para establecer los parámetros de enrutamiento y la capacidad de transporte:
+
+
+
+Referencia
+
+Descripción
+
+Peso Maximo Kg
+
+Volumen Maximo M3
+
+Pallet Máximos
+
+Cantidad Vehículos
+
+Remolque
+
+Camión C06
+
+1.200
+
+10
+
+250
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CABANILLAS
+
+
+
+Consideraciones Particulares
+
+
+
+No tenemos información de este Deposito, completar por favor si tiene interfaces propias, o participa de las de Tarragona. Que función cumple y que áreas de acción sostiene. 
+
+
+
+
+
+Depósitos / almacenes
+
+
+
+DEPOSITO
+
+LOCALIZACIÓN
+
+OBSERVACIONES
+
+Cabanillas
+
+Guadalajara
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zonas y áreas de actuación
+
+Almacén
+
+Código Postal
+
+Grupo
+
+Descripción Grupo
+
+Cabanillas
+
+19
+
+Guadalajara
+
+Zona centro
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Direcciones de Depots, Campas o parking que utilicemos recurrentemente para configurar en el nuevo TMS.
+
+
+
+Tercat o Best Terminal – Avinguda Estany del Port, 91, El Prat de Llobregat (Barcelona)
+
+TCB o APM Terminal – Ronda del Port 233, 08039 Barcelona
+
+Portnou Terminal – Calle del Moll Adossat, 08039 Barcelona
+
+Martainer o Progeco – Ronda del Puerto 437, 08039 Barcelona
+
+Delta Depot – Calle de Barcelona, 08820 El Prat de Llobregat (Barcelona)
+
+Transportuarios – Calle Port de Casablanca, 08040 Barcelona
+
+Depot Zona Franca – Polígono Industrial Zona Franca (CL F), 14 - Sec. C, Barcelona
+
+Setemar – Calle de los Motores, 08038 Barcelona
+
+Teco Morrot – C/ Josep Carner s/n, 08038 Barcelona
+
+Gesica – C/ Malet, Parcela 9. Port de Barcelona - ZAL Prat - 08820 El Prat de Llobregat (Barcelona)
+
+Parking Petronieves – Calle B, 13-15, 08040 Barcelona
+
+
+
+    Ubicaciones en Tarragona
+
+
+
+Depot Transpais – Moll Andalucía, s/n, Tarragona
+
+Fruport – Muelle de Reus, s/n, Puerto de Tarragona, 43004 Tarragona
+
+Depot Portuarios – Polígono Entrevías, 43006 Tarragona
+
+Teco Constantí – Avenida de les Puntes, nº 514, Constantí
+
+
+
+La estructura final de esta se definirá en la etapa de construcción en conjunto con el equipo de Transpais pues será el key user de la operación el encargado de mantenerlo en producción.
+
+
+
+Tipos de vehículo
+
+
+
+El TMS Unigis permite realizar la planificación de rutas en jornadas diarias para determinar el mejor tipo de vehículo disponible en la operación. La flota disponible para esta operación debe definirse para establecer los parámetros de enrutamiento y la capacidad de transporte:
+
+
+
+Referencia
+
+Descripción
+
+Peso Maximo Kg
+
+Volumen Maximo M3
+
+Pallet Máximos
+
+Cantidad Vehículos
+
+Remolque
+
+Camión C06
+
+1.200
+
+10
+
+250
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Operación Intermodal
+
+Introducción al flujo logístico de la operación de Intermodal
+
+Este documento detalla el proceso logístico para el modelo Intermodal TSP. El flujo describe la interacción entre los Sistemas Externos (Maersk/Portic) y la plataforma UNIGIS (TMS y Aplicación Móvil). Se pone especial énfasis en distinguir las acciones realizadas por usuarios, los procesos que el sistema ejecuta solo (automáticos) y el intercambio de información entre sistemas (interfaces).
+
+
+
+Entidades Principales
+
+Basado en el diagrama analizado, las entidades que rigen este proceso son:
+
+Pedido: El requerimiento comercial original enviado por el sistema externo.
+
+Orden: La unidad de planificación generada a partir del pedido para ser gestionada en rutas.
+
+Ruta: La agrupación de órdenes asignadas a un transporte.
+
+Viaje: La ejecución física de la ruta en el terreno.
+
+Parada: Cada uno de los puntos de entrega o gestión dentro de un viaje.
+
+
+
+
+
+Detalle de proceso de ingreso y planificación de los pedidos.
+
+
+
+Paso 1 Alta y validación de pedido 
+
+
+
+Se recibe el pedido en TMS vía interfaz (Maersk/Portic) o se graba manual. Dependiendo de las características de los datos recibidos se definirá la tipología del pedido. Siendo que los datos mínimos serán, entre otros.
+
+Cliente
+
+Fecha recolección
+
+Domicilio Recolección
+
+Lugar de entrega
+
+Tipo de pedido :
+
+Import
+
+Export
+
+Traslado
+
+Numero de booking 
+
+/ contenedor
+
+Precinto
+
+Tipo de contenedor
+
+Mercancía
+
+Email
+
+Almacén Intermedio (Almacén intermedio es el nombre de empresa donde vamos a cargar/descargar con andsoft se utiliza para poder copiar las expediciones ya que de esta manera la dirección queda guardada y     no hace falta hacerla manualmente de nuevo.)
+
+Validar los campos necesarios (validar que ocurre con los prepedidos y como gestionarlo)
+
+Llegando el pedido al estado INGRESADO con los datos necesarios para tarificar o poder terminar el pedido con garantías con los datos de servicio adicionales
+
+Escáner
+
+Memo
+
+Reefer
+
+Ticket
+
+PIF:
+
+ADR:
+
+Volquete
+
+Validar los campos necesarios
+
+
+
+Durante la construcción vemos los campos de Memo u observaciones donde deben ser reflejados.
+
+Paso 2: Validación de Integración
+
+TMS completa los datos que sea necesario y valida que los que se reciben sean correctos. Estado GRABADO
+
+Relevar que campos debemos tratar y cuales validar que se reciban para que el pedido continúe el proceso.
+
+Ver si los datos se recuperan desde los maestros o se deben completar a partir de reglas de negocio
+
+Fechas
+
+DomicilioOrden
+
+…
+
+
+
+Paso 3: Gestión de Errores (Si aplica)
+
+El usuario Customer, con los pedidos en ERROR -REQUIERE AJUSTE, confirma la información, añade si procede tarifas, información, actualiza datos de carga…
+
+El usuario Customer lanza la transición de estado CONFIRMADO  de los pedidos que son OK. 
+
+Paso 4: Confirmación Planificación 	
+
+La transición dispara una validación de datos que evalúa si el pedido está listo para planificación. Estado CONFIRMADO
+
+Cuando el proceso finaliza exitosamente, el planificador tendrá los pedidos disponibles para planificar. Estado CONFIRMADO
+
+
+
+PREPEDIDOS
+
+
+
+Se contempla la generación de prepedidos según petición de cliente (pedidos en espera de confirmación, pero que deben reservar vehículo), Esto conlleva una análisis para definir como se deben crear, como tiparlos y como hacer el matching posterior con pedidos integrados si es necesario.
+
+
+
+Como se crean estos pedidos
+
+Cuando se confirman
+
+Hasta cuando se reservan los vehículos o cuando se entiende que la reserva queda anulada
+
+Como hacer la unión de estos pedidos con los posibles pedidos integrados más tarde si ocurre.
+
+
+
+
+
+Qué pasa si entra una orden de Portic y se tiene que entregar a un lugar que no figura en las direcciones del cliente?¿Se tienen que dar de alta antes manualmente y luego procesar la carga de la expedición? Cuando entren automáticamente, entendemos que los clientes principales estarán dados de alta, caso Maersk, Arkas, CMA, DAMCO, etc pero los puntos de entrega, retiro, etc. entendemos que no serán siempre los mismos. ¿En este caso como debemos proceder? ¿Entraría la orden y si no existe la dirección se debe dar de alta de forma automática en el TMS? Estos no serían clientes nuestros sino de nuestros clientes a los que les tenemos que hacer llegar la mercancía.
+
+
+
+    En caso de que no aparezcan, las direcciones se introducen manualmente, muchas veces en los portics no salen direcciones y hay que hacer caso a la orden de carga, a veces falta la orden     de carga y el portic vale para las 2 cosas. Pero la mayoría de las navieras ponen las direcciones en los Portics, Pero en caso de Messina nunca se indica en portic, notifican la orden vía mail.
+
+
+
+Existen casos de clientes como PEREZ Y CIA donde el documento de Portic no indica que se tienen que facturar a la Naviera. Es por este motivo que se requiere que los pedidos de determinados clientes o todo lo que venga por integración de Portic quede en un estado pendiente de aprobación / revisión. Así Customer Service, revisa las expediciones y va liberándolas para planficiar.
+
+CREACIÓN DE DOMICILIOSORDEN
+
+
+
+Pedidos creados por interfaz – El sistema detecta el domicilio y, si no lo encuentra en el sistema, lo crea.
+
+Pedidos creados manualmente – Se deben crear los domicilios manualmente.
+
+1. Definición y Objetivo
+
+Un prepedido (también llamado Reserva) es un pedido provisional que reserva vehículos antes de recibir la confirmación formal del cliente.
+
+Propósito: Asegurar la disponibilidad de transporte cuando el cliente aún está en proceso de confirmación.
+
+Fuentes: Se registran por correo electrónico, llamada, mensaje o solicitud directa del cliente.
+
+Documentación: No requiere Portic ni documento formal oficial.
+
+
+
+2. Ciclo de Vida del Prepedido
+
+2.1 Creación (Estado: Reserva)
+
+Se registra manualmente en el TMS (UNIGIS).
+
+Los vehículos se reservan desde el momento del registro como cualquier pedido.
+
+Se bloquean recursos de transporte.
+
+2.2 Confirmación (Estado: Pedido en Firme/Definitivo)
+
+Trigger: Se recibe el Portic, SIC u orden de transporte oficial del cliente.
+
+Validación: Se cruzan datos del prepedido vs. documento oficial.
+
+Fusión: Si los datos coinciden, se vinculan ambos registros en un único pedido definitivo.
+
+Resultado: El pedido pasa a planificación y ejecución operativa.
+
+2.3 Anulación de Reserva
+
+Tiempo máximo: Se reserva vehículo hasta día +1 a las 15:00.
+
+Liberación de recursos: Los vehículos reservados quedan disponibles para otras asignaciones.
+
+
+
+
+
+3. Datos Requeridos para Registrar un Prepedido
+
+Campo
+
+Descripción
+
+Obligatorio
+
+Cliente
+
+Empresa remitente (Alfinter Forwarding, etc.)
+
+Sí
+
+Tipo Vehículo
+
+Contenedor 20/40/45, volquete, reefer, 3-ejes, etc.
+
+Sí
+
+Tipo Contenedor
+
+20 HC, 40 HC, 45 HC, etc.
+
+Según carga
+
+Nº Contenedor
+
+Identificador único
+
+Sí
+
+Tipo Carga
+
+Import, Export, Volquete, Reefer, ADR
+
+Sí
+
+Peso
+
+En toneladas
+
+Sí
+
+Origen
+
+Puerto/Terminal de recogida
+
+Sí
+
+Destino
+
+Punto de entrega final
+
+Sí
+
+Nº Referencia
+
+Código del cliente
+
+Sí
+
+Nº Booking
+
+Número de reserva de la naviera
+
+Parcial
+
+Precio
+
+Tarifa del transporte
+
+No inicial
+
+Observaciones
+
+Requisitos especiales, teléfonos
+
+Recomendado
+
+Temperatura (Reefer)
+
+Grados de congelación y humedad
+
+Si aplica
+
+
+
+4. Métodos de Entrada de Prepedidos
+
+4.1 Comunicación Directa
+
+Email: Solicitud formal con datos del pedido.
+
+Teléfono: Llamada del cliente indicando necesidades de transporte.
+
+Mensajería: Teams, WhatsApp u otra plataforma de comunicación.
+
+4.2 Excel de Planificación
+
+Se utiliza codificación por colores para identificar rápidamente el tipo de transporte:
+
+Amarillo: Reefer (transporte congelado)
+
+Marrón: Volquete
+
+Rojo: Toma (volquetera requerida)
+
+Azul claro: Remolque Dúo
+
+Sin color: Portic u orden de carga
+
+
+
+5. Gestión de Direcciones No Registradas
+
+5.1 Restricción del Sistema
+
+UNIGIS no permite crear registros sin domicilios previamente dados de alta (no puede geolocalizar automáticamente).
+
+5.2 Procedimiento
+
+Validar origen de los datos: Revisar si la dirección viene en el Portic o en la orden de carga.
+
+Crear domicilio manualmente: Registrar la dirección en el TMS.
+
+Vincular al cliente: Asignar la dirección al cliente principal.
+
+Procesar la expedición: Continuar con el registro del pedido.
+
+5.3 Casos Especiales
+
+Messina: Nunca proporciona dirección en Portic. Solicitar vía correo.
+
+Principales navieras: Maersk, Arkas, CMA, DAMCO incluyen direcciones en la mayoría de los casos.
+
+
+
+6. Casos Especiales: Facturación Cruzada
+
+Problema: El Portic viene a nombre de una empresa (ej: PEREZ Y CIA) pero debe facturarse a otro cliente de ellos (ej: naviera ZIM).
+
+6.1 Solución Propuesta: Estado de Revisión Pendiente
+
+Registro inicial: El pedido entra en estado PENDIENTE DE APROBACIÓN.
+
+Revisión: Customer Service valida facturación y cliente final.
+
+Liberación: Se aprueba y pasa a planificación operativa.
+
+
+
+7. Procesos Según Ubicación Geográfica
+
+Barcelona (Portic)
+
+Terminales: BEST TERMINAL CATALUNYA, APM TERMINALS, TERMINAL PORT-NOU, etc.
+
+Documento: Portic obligatorio
+
+Entrada: Sistema automático + validación manual
+
+Valencia (SIC)
+
+Terminal: Valencia Port (ISC)
+
+Documento: SIC (equivalente a Portic)
+
+Entrada: Sistema automático + validación manual
+
+Algeciras (Portic)
+
+Terminales: ML Terminal, TPI Algeciras
+
+Documento: Portic obligatorio
+
+Entrada: Sistema automático
+
+Girona (Puerto Seco)
+
+Tipo: Puerto seco sin acceso marítimo
+
+Documento: Orden de trabajo, correo electrónico
+
+Entrada: Manual por email
+
+Madrid (Puerto Seco)
+
+Terminales: Coslada, Azuqueca, Renfe, Maarif, Reteco
+
+Documento: Correo o llamada telefónica
+
+Método: Contacto directo con cliente
+
+
+
+8. Documentación de Apoyo
+
+8.1 Documentos Requeridos en Portic/Pedido
+
+Orden de Transporte: Documento oficial que acompaña el Portic.
+
+Instrucciones adicionales: Requisitos de entrega, horarios, contactos.
+
+Certificados especiales: ADR, Reefer, transporte especial.
+
+8.2 Documentos Generados Internamente
+
+Número de Expedición: Generado en UNIGIS al crear el pedido.
+
+Carta de Porte: Generada por operaciones, requiere firma del transportista.
+
+Carta de Porte Sellada: Adjuntada al sistema tras finalizar el servicio.
+
+
+
+9. Flujo Completo de Ejecución
+
+9.1 Recepción del Pedido
+
+Se recibe el Portic/SIC o solicitud directa del cliente.
+
+Validar que sea del cliente correcto; si hay duda, marcar para revisión.
+
+9.2 Registro en el Sistema
+
+Ingresar todos los datos en UNIGIS.
+
+Generar número de expedición.
+
+Adjuntar documentación: Portic, orden de transporte, instrucciones.
+
+9.3 Envío a Operaciones
+
+El pedido se remite a Operaciones para planificación.
+
+Se reservan los vehículos necesarios.
+
+9.4 Asignación a Transportista
+
+Se asigna un conductor y se genera la ruta de viaje.
+
+Se genera la Carta de Porte (documento de viaje).
+
+Se notifica al transportista con la documentación necesaria.
+
+9.5 Ejecución del Viaje
+
+El transportista realiza el viaje de punto A a punto B.
+
+Se reportan incidencias (demoras, sobrevenidos, cambios).
+
+El transportista confirma la finalización.
+
+9.6 Cierre y Documentación
+
+Se firma la carta de porte.
+
+Operarios adjuntan carta sellada en el sistema.
+
+Se envía copia de documentación al cliente.
+
+
+
+10. Casos Especiales Durante Ejecución
+
+10.1 Sobrevenidos (Imprevistos)
+
+Sobrepeso: Se registra peso mayor al indicado. Debe revalidarse con cliente.
+
+Demoras: Retrasos en origen, aduanas, o destino. Se reporta a cliente.
+
+Referencia incorrecta: El transportista llega y no coincide con datos. Requiere validación inmediata.
+
+Cambio de booking: Naviera modifica número. Actualizar en sistema y transportista.
+
+10.2 Transporte Reefer (Congelado)
+
+Datos requeridos: Número de booking, temperatura exacta, humedad, ventilación.
+
+Documentación: Misma que transporte normal; se especifica en orden de trabajo.
+
+Control: Validar temperatura durante tránsito si cliente lo requiere.
+
+10.3 Transporte de Carga Especial
+
+ADR: Mercancía peligrosa. Requiere certificación adicional y validación.
+
+Volquete: Requiere descarga en ubicación específica; validar acceso.
+
+Toma: Requiere volquetera acoplada; validar disponibilidad de vehículo.
+
+
+
+Apéndice: Navieras Principales
+
+Maersk • CMA CGM • Hapag-Lloyd • Arkas • Ignazio Messina • WEC • Maritime Agency (HMM Spain)
+
+
+
+
+
+
+
+Planificación del viaje
+
+
+
+El planificador tendrá disponibles los pedidos en estado CONFIRMADO, es el estado que habilita la planificación de los pedidos.
+
+Paso 5: Generación de viajes
+
+Seleccionará los pedidos que requiera programar, y lanzará la transición de Estado según necesidad.
+
+Round Trip – 
+
+Genera un solo viaje, ida y vuelta con los mismos recursos y los siguientes tipos de parada
+
+Recogida de contenedor
+
+Descarga de contenedor en cliente destino
+
+Recogida de contenedor en cliente destino
+
+Devolución de contenedor 
+
+Single Trip – 
+
+Genera un primer viaje con las siguientes paradas
+
+Recogida de contenedor
+
+Descarga de contenedor en cliente destino
+
+Genera un segundo viaje con distintos recursos al anterior, con las siguientes paradas
+
+Recogida de contenedor en cliente destino
+
+Devolución de contenedor 
+
+Traslado
+
+Genera un solo viaje con los siguientes tipos de parada
+
+Recogida de contenedor
+
+Descarga de contenedor 
+
+Estos viajes quedarán en estado INACTIVO tras el lanzamiento de las transiciones
+
+Planificar Round Trip
+
+Planificar Single Trip
+
+Planificar Traslado
+
+Si las reglas lo permiten, se pueden definir los proveedores automáticamente en esta transición.
+
+Reglas por destino, origen, tipo vehículo, tipo de carga…a definir por transpais
+
+La transición del estado del viaje a Activado requiere validación de estas reglas.
+
+Tamaño de contenedor 
+
+Si es para dormir fuera o no (muchos no duermen fuera) 
+
+Tipo remolque especial (reefer, volquete, neumática...) 
+
+Tipo servicio adr / reefer / volquete 
+
+Origen destino
+
+Etc
+
+
+
+Desde este momento se pueden asignar los recursos a los viajes.
+
+Se planificará para el mismo día o días posteriores según tiempos de las solicitudes de transporte.
+
+Durante el proceso de planificación, se pretende mostrar información asociada a los choferes y vehículos en un reporte. Desde donde conocer los datos necesarios para los usuarios planificadores.
+
+Días de la semana que trabaja el chofer
+
+Si hace noches o fines de semana
+
+Donde termina el viaje actual
+
+Ver reglas y Excel actual de planificación revisado en las reuniones de workshops y distintos relevamientos.
+
+…
+
+A saber qué información podamos recabar, se precisa conocer previamente estos datos.
+
+Se debe acordar que documentación se genera, recibe y gestiona en este momento para habilitar el viaje. Y si debe haber algún tipo de validación de este apartado.
+
+Tipos de doc por pedido (albarán, mail solicitud), conductor (CAP, carnet) y vehículo (ITV); validaciones al activar viaje
+
+Se hace referencia a ciertos documentos en el As-Is pero sin detalle ni los formatos finales a desarrollar.
+
+Viaje: 
+
+Carta de porte contenedores (adjunta y debe emitirse por el TMS)
+
+eCMR (obligatorio a nivel legal del TMS)
+
+Documento de Portic (lo adjuntan los operadores de tráfico y tienen que verlo los conductores en la app).
+
+Documentos del cliente (idem portic)
+
+Otros documentos que serán adjuntos para que queden asociados al viaje
+
+Conductor: 
+
+No tenemos claridad si en el Maestro de Conductores de Unigis podemos dejar registro de Licencias, caso de conducir, ADR u otros documentos, vencimientos, etc. Si es posible, el sistema debe validar de que estos documentos no estén vencidos al momento de la selección y planificación de viajes.
+
+Correcto antes de asignarle el viaje a un chofer, nosotros debemos revisar que el chofer tenga carnet o que este en vigor, , y tener previamente la documentación que nos tiene que enviar el Cliente (portic, albaran o orden de transporte, etc.) la Carta de porte hasta el momento nos lo genera automáticamente andsoft, imagino que el Nuevo TMS también lo generara automaticamente
+
+Vehículo: 
+
+Estamos cerrando la propuesta del Taller en Business Central. Si esto es correcto tendremos que realizar una comunicación entre sistemas para activar o inactivar vehículos (disponibilidad para planificar) por motivos de averías, ITV, mantenimientos, etc. Es decir que el sistema de Taller deberá comunicar si un vehículo está o no disponible para planificación. Que el conjunto tractora+plataforma tenga ITV
+
+
+
+Tras las validaciones, asignaciones y generación de documentación (si es el momento) se permite la activación del Viaje.
+
+
+
+Hasta cuando se reservan los vehículos o cuando se entiende que la reserva queda anulada. Vamos a tener pre pedidos por lo que durante la planificación vamos a poder reservar vehículos o conductores. Cuando pasaría a estar en firme el pre pedido o cuando se cancelaría?
+
+    Depende un poco de cada día, el volumen de trabajo y el interés que tiene para intermodal el pedido,
+
+Rta: Como criterio general, si a las 15:00 h todavía faltan documentos y existe la posibilidad de asignar el vehículo a otro servicio, se informa del desvío o reasignación del camión..
+
+
+
+Gestión de los viajes desde la App Mobile Unigis delivery
+
+
+
+Paso 6: Ejecución en Terreno (Mobile)
+
+Título: Activación y Seguimiento del Viaje
+
+Sistemas: Mobile (App Unigis)
+
+Acciones: 📱 Acción Conductor: El chofer activa el viaje desde su celular al iniciar la jornada.
+
+Descripción: Al activarse, el sistema inicia el seguimiento (tracking) en tiempo real. OPCIONAL: Se utilizan geocercas automáticas (⚙️) para detectar cuándo el camión está cerca de una parada. Solo se gestiona la llegada a parada, no los eventos posteriores que deben ser tratados por el chofer.
+
+Una vez creados los viajes, el planificador puede realizar actualizaciones en cada uno de estos, agrupando y modificándolos, dependiendo de la necesidad existente. 
+
+El paso posterior que realiza el planificador de Transpais procede a asignar vehículo y conductor estado del viaje. Una vez realizada la asignación procede a realizar el cambio de estado del viaje a “CONFIRMADO”. 
+
+Los viajes asignados a transportistas terceros quedarán disponibles en el Portal de Transporte. 
+
+El tercero puede aceptar o no el viaje: 
+
+Si acepta, el viaje queda en estado “CONFIRMADO”. Se ha de realizar una actualización de los viajes y paradas asignadas a estos terceros en el Portal de Transporte conforme avanza su ejecución. 
+
+Esta confirmación la puede realizar un usuario de Transpais o el mismo tercero, si se decide darle acceso a la plataforma TMS, a través del portal de transporte, creando un usuario y dándole permisos para realizar la actualización de sus viajes asignados. 
+
+Si no lo acepta, el viaje queda en estado “RECHAZADO”. Los pedidos de este viaje vuelven a una etapa previa a su planificación. 
+
+Es posible configurar un tiempo de espera para la aceptación o rechazo, y que esto permita liberar el registro.
+
+Cuando se realice la asignación de vehículo y conductor de Transpais en el viaje, se activará un proceso automático en el TMS ValidacionViaje, donde se realizará una revisión de los pedidos, comprobando la correcta asignación del tipo de vehículo y otras particularidades necesarias en el viaje.
+
+Si cumple los criterios establecidos, la validación será OK y el viaje se mantendrá en estado “CONFIRMADO”. 
+
+Si no cumple los criterios establecidos, la validación será KO. El usuario planificador de Transpais deberá realizarlos ajustes necesarios para que el viaje cumpla los requisitos establecidos. 
+
+Una vez realizados los cambios, se volverá a realizar el proceso ValidacionViaje para validar los cambios realizados y confirmar la asignación.
+
+Necesario definir si hay acciones necesarias adicionales al activar el viaje como encuestas, validación de documentación o validación de estada de vehículo. 
+
+Desde donde se inicia el viaje es importante decidirlo. ¿Se deben tener en cuenta los kilómetros hasta el arribo a carga?
+
+En este punto se informa a los servicios Externos (Portic y Maersk) de la asignación de los pedidos.
+
+Se espera recibir el PIN de acceso al puerto en el momento de activación del viaje.
+
+Esta información quedará disponible en los viajes y en la APP del conductor.
+
+Cambios de Estado: Viaje -> CONFIRMADO.
+
+Paso 7: Activación del viaje e impresión y/o revisión de documentación 
+
+El conductor accederá a la a la APP Unigis X Deliveries, donde podrá consultar el detalle de sus viajes: fechas, horarios, paradas, ítems y cantidades. 
+
+Por su parte, el usuario de control flota de Transpais podrá activar el viaje cuando lo considere. Como alternativa, se podrían asignar permisos al usuario conductor para cambiar el estado de viaje a “ACTIVO”, considerándose este el visto bueno para su ejecución.
+
+Cambios de Estado: Viaje -> ACTIVO.
+
+
+
+Paso 8: Gestión de Entregas 
+
+Título: Confirmación de Paradas y Cierre de Viaje
+
+Sistemas: Mobile -> TMS -> Sistemas Externos
+
+Acciones: 📱 Acción Conductor / ⚙️ Automático: El chofer reporta el resultado de cada parada.
+
+Descripción: El sistema procesa tres resultados posibles para cada parada:
+
+Entregado (Completa): El proceso sigue a la siguiente parada si existe.
+
+Entregado Parcial: Se registra la diferencia y se reporta motivo.
+
+No Entregado (Rechazada): Se reporta el motivo del rechazo.
+
+Cambios de Estado: * Pedido -> CARGADO / DESCARGADO .
+
+En todos los casos se registran los datos del evento Hora, Donde y quién realiza el proceso.
+
+Tipos de paradas a registrar
+
+Recogida de contenedor 
+
+En Depot y en cliente si el viaje cuenta con más de una carga / descarga
+
+Vaciado / Llenado de contenedor 
+
+Tantas veces como cargas / descargas haya en el viaje.
+
+Devolución de contenedor
+
+En Depot y en cliente si el viaje cuenta con más de una carga / descarga
+
+REGISTRO DE INCIDENCIAS DE TRANSPORTE – Entender necesidad y parametrizarla.
+
+Durante la vida del viaje,  se informa a los servicios Externos (Portic, Maersk y CMA) de la posición de los vehículos y eventos ocurridos. Esta información quedará disponible así mismo para Arkas, que vendrá a consultarla a través del Api estándar de Unigis.
+
+Viaje -> FINALIZADO (al completar todas las paradas).
+
+Interfaz de Salida: 🔌 Se envía al sistema externo el estado final "Pedido Entregado/Terminado" o "Pedido Rechazado".
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tipo Parada
+
+Estado
+
+Motivo
+
+CARGA EN REMITENTE
+
+
+
+Cargado en remitente
+
+
+
+
+
+
+
+No Cargado en remitente
+
+
+
+Revisión TRANSPAIS
+
+
+
+CARGA EN DEPÓSITO SALIDA
+
+
+
+Cargado en depósito salida
+
+
+
+
+
+
+
+No Cargado en depósito salida
+
+
+
+Revisión TRANSPAIS
+
+CARGA EN DEPÓSITO LLEGADA
+
+
+
+Cargado en depósito llegada
+
+
+
+
+
+
+
+No Cargado en depósito llegada
+
+
+
+
+
+Revisión TRANSPAIS
+
+ENTREGA EN CONSIGNATARIO
+
+
+
+Entrega en depósito salida
+
+
+
+
+
+
+
+No Entregado en depósito salida
+
+
+
+
+
+Revisión TRANSPAIS
+
+ENTREGA EN DEPÓSITO SALIDA
+
+
+
+Entrega en depósito llegada
+
+
+
+
+
+
+
+No Entregado en depósito llegada
+
+
+
+
+
+Revisión TRANSPAIS
+
+ENTREGA EN DEPÓSITO LLEGADA
+
+
+
+Entrega en depósito llegada
+
+
+
+
+
+
+
+No Entregado en depósito llegada
+
+
+
+Revisión TRANSPAIS
+
+
+
+Paso 9: Validación de incidencias y viaje liquidable 
+
+El paso siguiente es que el equipo de Transpais encargado de la gestión de pago a transportistas y de cobro a clientes revise los viajes en estado “RENDIDO” y revisará si existen tipos de incidencias adicionales que requieran aprobación. En caso de que existan incidencias, podrá revisarlas, ajustarlas y cambiar el estado de estas a “APROBADA”. 
+
+Una vez validado esto cambiará el estado del viaje a “LIQUIDABLE” lo que permitirá tarificar el viaje, calculando el pago al transportista por cada viaje realizado y el cobro a clientes. La lógica de tarificación será revisada en detalle con el equipo de proyecto de Transpais en la etapa de construcción. 
+
+
+
+Paso 10: Generación de la liquidación de cobro y de pago 
+
+Una vez por mes el equipo administrativo de Transpais generará las liquidaciones de pago a proveedores y de venta a clientes en el TMS. Estas liquidaciones agruparán guías de venta y de pago creándose en estado “INICIAL”, pudiéndose revisar, ajustar y en caso de que todo se encuentre de forma correcta, cambiara el estado de esta a “CONFIRMADA”. El ERP busca las preliquidaciones a partir del método API estándar Unigis “ObtenerLiquidación”.  El usuario podrá revisar los casos de Error para dar una solución, hay que revisar los estados que lo permitan y el timing para ello. Si algo está subido a BC y facturado quizás no se deba poder tocar. Revisarlo con el equipo de implantanción.
+
+Las tarifas de ventas estarán asociadas a los pedidos y las tarifas de costos a los viajes. 
+
+Este punto los viajes que forman parte de las liquidaciones generadas cambiarán a estado “LIQUIDADO” y se finalizará el flujo operativo.
+
+
+
+
+
+Anexo 1: Tabla de Transiciones de Estados
+
+Disparador
+
+Entidad
+
+Estado Inicial
+
+Estado Final
+
+Tipo de Acción
+
+Recepción de Pedido en TMS
+
+Pedido
+
+-
+
+INGRESADO
+
+🔌 Interfaz
+
+Validación Automática Ok
+
+Pedido
+
+RECIBIDO
+
+GRABADO
+
+⚙️ Automático
+
+Validación Automática KO
+
+Pedido
+
+RECIBIDO
+
+ERROR-REVISAR
+
+⚙️ Automático
+
+Usuario confirma pedidos
+
+Pedido
+
+GRABADO
+
+CONFIRMADO
+
+👤 Manual
+
+Generación de Órdenes
+
+Pedido
+
+CONFIRMADO
+
+EN PLANIFICACION
+
+👤 Manual
+
+Creación de Viaje
+
+Viaje
+
+-
+
+INACTIVO
+
+⚙️ Automático
+
+Chofer activa viaje en Mobile
+
+Viaje
+
+INACTIVO
+
+ACTIVO
+
+📱 Mobile
+
+Detección de Geocerca/Llegada
+
+Parada
+
+PENDIENTE
+
+VISITADO
+
+⚙️ Automático
+
+Última parada gestionada
+
+Viaje
+
+ACTIVO
+
+FINALIZADO
+
+⚙️ Automático
+
+
+
+
+
+CIRCUITO OPERATIVO DE CONTROL DOCUMENTAL
+
+
+
+Confirmación documentación necesaria por Transpais.
+
+Tipos de documentos para pedidos.
+
+Albarán
+
+Mail de solicitud
+
+Portic
+
+Carta de Porte de Contenedores
+
+Tipos de documentos para conductor.
+
+CAP
+
+Carnet de conducir
+
+Tipos de documentos para vehículo.
+
+ITV
+
+La documentación puede añadirse desde ficheros externos, o generarse desde el TMS directamente. Valorar cada caso.
+
+Detalle de uso del TMS
+
+A continuación, se dejan algunos detalles como complemento respecto al uso y ajustes que se pueden realizar dentro del TMS, funcionalidades que se integran con las acciones que de forma automática se realizan en el sistema.
+
+
+
+Modificaciones y ajustes a Viajes
+
+
+
+En el momento que el viaje es creado en Unigis TMS, el mismo se creará en estado “INACTIVO” y sus paradas se encontrarán en estado “PENDIENTE”. Así mismo, el viaje estará disponible para su seguimiento. Usuarios con los permisos correspondientes de la operación podrán realizar ajustes de último momento como cambio de vehículo principal, vehículo secundario, conductor, coconductor o fecha planificada de inicio y fin.
+
+
+
+Entrada al Almacén y Carga de camiones
+
+
+
+Cuando el vehículo ingrese al almacén para realizar la carga del camión, el conductor ingresará a la APP Unigis X Deliveries en el módulo de Confirmación de Entrega y allí podrá revisar los datos del pedido (N.º de contenedor, precinto…) y validará que el contenedor está disponible. 
+
+En caso de que el contenedor no se encuentre o se detecten defectos, el conductor podrá registrarlo a través de un cambio de estado en la parada y podrá asignarse un motivo que identifique el tipo de anomalía encontrado e informar a control de tráfico de Transpais para su validación. 
+
+
+
+
+
+
+
+Inicio de Viaje
+
+
+
+La activación del viaje, propuesto desde el diseño, se debe realizar desde el control tower y los planificadores en Unigis Tracking, para garantizar un pleno conocimiento de la situación de los vehículos y sus cargas. Pudiendo ser que sea el propio chofer sea el que active el viaje o lo realicemos automáticamente en TMS en función de reglas definidas con negocio.
+
+El estado del viaje “ACTIVO” permitirá activar el seguimiento dentro de la aplicación TMS. La activación del viaje se realizará de forma manual en Unigis Tracking o a través del cambio de estado del viaje desde la App por parte del conductor.
+
+Es importante destacar que mientras el viaje se encuentre en los estados de seguimiento previo a “FINALIZADO” se puede realizar modificaciones a los servicios, tales como: cambio de conductor, de vehículo principal y secundario, cambio de destino, cambio de fechas y horas de salida o llegada o mover paradas entre viajes, que no estén ejecutadas.
+
+
+
+Seguimiento en viaje
+
+
+
+Mientras el vehículo se encuentra con seguimiento de viaje Activo los usuarios de la operación podrán visualizar el seguimiento del viaje mediante UNIGIS TRACKING, confirmar la ubicación del vehículo en el mapa, el tiempo de llegada a los lugares de carga y descarga y tiempos de estadías según los eventos GPS recibidos desde Webfleet a través del interfaz de comunicación.
+
+
+
+La plataforma Unigis TMS permitirá también visualizar las paradas que realiza el camión. Analizar los recorridos y controlar en tiempo real la ejecución de las entregas, visualizando los estados de las paradas del viaje a través de los cambios de estados en la aplicación APP Unigis X Deliveries. 
+
+
+
+
+
+Alarmas de Monitoreo
+
+
+
+En Unigis TMS es posible configurar alarmas que permitan alertar al personal de monitoreo sobre situaciones que deban ser atendidas en tiempo real, estas pueden estar asociadas a los movimientos del vehículo o a datos relacionados a los viajes o paradas.
+
+
+
+Cabe señalar que para lograr configurar alarmas relacionadas al seguimiento GPS es necesario tener a los vehículos reportando eventos al Hub de eventos de Unigis y viajes a los que se les esté haciendo seguimiento activo.
+
+
+
+En este sentido, es importante mencionar que como único proveedor de GPS para los vehículos usados por Transpais se utilizará Webfleet.
+
+
+
+Asimismo, es posible configurar alarmas notificables a través de correos electrónicos. En este sentido, se han definido para esta implementación las siguientes notificaciones:
+
+
+
+Fin de viaje.
+
+Tiempo de estadía máximo superado
+
+Retiro de contenedor (de terminal o Depot)
+
+Llegada al cliente
+
+Estadía Maxima (>2h)
+
+Hora de Salida del cliente
+
+Entrega del contenedor (en terminal o Depot) que seria el fin de viaje
+
+
+
+
+
+
+
+La información por enviar en el cuerpo del mail se acordará con Transpais en la etapa de construcción del proyecto.
+
+
+
+
+
+
+
+Prueba de carga y descarga con App Mobile (UNIGIS X DELIVERIES)
+
+
+
+Para realizar la prueba de carga y de entrega, el conductor iniciará sesión en la aplicación UNIGIS X DELIVERIES utilizando el login de usuario y una contraseña que le será suministrada por el equipo de Transpais. 
+
+Cuando el conductor llegue al lugar de origen a realizar la carga en su camión, recibe el PIN para acceso a puerto, si es requerido, y en ese momento deberá realizar la validación y control de carga en la App Unigis X Deliveries. 
+
+Cuando el conductor llegue al destino a realizar la entrega o recogida deberá cambiar el estado de la parada de su viaje al estado que corresponda según su flujo.
+
+NOTA: El conductor deberá instalar en su teléfono la aplicación UNIGIS X DELIVERIES, esta funciona prácticamente en cualquier teléfono celular moderno que posea sistema operativo Android (en versión 8.0 o superior). En caso de que el conductor tenga inconvenientes para realizar estas tareas desde su mobile podrá dar aviso al área de monitoreo para que ellos registren el cambio de estado correspondiente en el sistema. 
+
+Se debe tener en cuenta que Unigis X Deliveries puede funcionar Off Line, es decir que, aunque el teléfono pierda la conexión a internet, el conductor podrá seguir realizando sus funciones si previamente se había logeado en la APP, luego cuando recupere la conexión todo lo registrado en el mobile será enviado al sistema UNIGIS-TMS. Si el móvil no cuenta con internet no se podrá loguear en la aplicación mobile hasta recuperar la señal. Para evitar esta situación se recomienda al conductor que se logue al sistema antes de salir del depósito de origen.
+
+En caso de que el conductor tenga inconvenientes para realizar estas tareas desde su mobile podrá dar aviso al área de seguimiento de Transpais, para que registren el cambio de estado correspondiente en el sistema desde la web. La aplicación, se encuentra en la nube y con servidores espejos por lo que no existirán problemas de caída total de la herramienta. 
+
+INTERFACES
+
+A continuación, se detallan las interfases identificadas para llevar a cabo la implementación del presente proyecto. El detalle de cada interfaz se describe en las secciones operativas correspondientes.
+
+
+
+ERP Dynamics 365
+
+
+
+Interfaces a definir (Clientes, domicilios, transportes, vehículos, conductores…)
+
+
+
+Portic
+
+Importación (IMPORT)
+
+
+
+Comunicación de llegada de contenedor.
+
+IFTMIN-2 -- Instrucciones de recogida de contenedores o mercancías en la Terminal
+
+Portic -- TSP
+
+COPINOI06 -- pre-notificación de recogida de mercancías (Rec. Contenedor)
+
+TSP -- Portic
+
+COPINOI07 -- pre-notificación de devolución de contenedores vacíos (Dev. contenedor)
+
+TSP -- Portic
+
+
+
+Exportación (EXPORT)
+
+
+
+Comunicación de salida de contenedor.
+
+IFTMINE03 -- Instrucciones de recogida de contenedores vacíos en terminal
+
+Portic -- TSP
+
+COPINOE04 -- pre-notificación de recogida de mercancías (Rec. Contenedor)
+
+TSP -- Portic
+
+COPINOE05 -- pre-notificación de devolución de contenedores vacíos (Dev. contenedor)
+
+TSP – Portic
+
+Interfaz: APERAK
+
+Mensajes de errores, logs y PIN CODE.
+
+Portic -- TSP
+
+
+
+
+
+Los clientes esperan feedback del seguimiento de los pedidos, posición de los contenedores y cierre de los mismos en tiempo real, con comunicación de incidencias si ocurren.
+
+Portic aporta también su propia tabla de KM origen – destino para las tarifas.
+
+Es posible que un contenedor, cuyo cometido ha finalizado, se reutilice para otros servicios aprovechando su ubicación. El pedido original no se cerrará hasta que el contenedor llegue al Depot de destino.
+
+
+
+Maersk
+
+Interfaz # 1 ARRIVAL	
+
+Anuncia la llegada de un contenedor
+
+Interfaz # 2 Container_Update
+
+Actualización de la información de contenedor, puede completar datos.
+
+Interfaz # 3 Departure
+
+Información de salida de pedido – Fecha de salida
+
+Interfaz # 4 Customer Apointment PICKUP
+
+Información de salida de pedido – Punto de recogida
+
+Interfaz # 5 Customer Apointment DropOff
+
+Información de salida de pedido – Punto de entrega
+
+Interfaz # 6 Asignación de PRECINTO / SEAL
+
+Información del precinto de contenedor
+
+Interfaz # 7 Driver Update
+
+Información de la asignación de medios
+
+Interfaz # 8 GPS / GPS_UPDATE
+
+Información de la posición del contenedor
+
+Interfaz # 9 Tiempo de Espera / WAIT_TIME
+
+Información de tiempos de paralización
+
+Interfaz # 10 Futile_trip
+
+Información de la cancelación del viaje
+
+
+
+
+
+
+
+
+
+Weebfleet
+
+
+
+showVehicleReportExtern
+
+Este método se utilizará para obtener el reporte detallado de los vehículos registrados.
+
+showTripReportExtern (Reporte de Viajes)
+
+Este método permite la replicación continua de los viajes realizados.
+
+showEventReportExtern (Eventos y Alarmas)
+
+Permite capturar notificaciones, alertas y estados críticos del vehículo o conductor.
+
+showWorkingTimes (Estados de Trabajo / Jornada Laboral)
+
+Este reporte muestra los cambios en los estados de tiempo de trabajo de los conductores y co-conductores, incluyendo ubicaciones, vehículos utilizados y datos provenientes del tacógrafo digital.
+
+getRemainingDrivingTimesEU (Tiempos de Conducción Restantes - Normativa EU)
+
+Devuelve los tiempos de conducción y descanso restantes para uno o varios conductores de acuerdo con la normativa de la Unión Europea. La información se basa en los datos obtenidos directamente del tacógrafo digital a través del dispositivo LINK.
+
+
+
+Arkas
+
+Vendrá a buscar los datos que precisa de los contenedores, conforme a la información recibida de Webfleet.
+
+Latitud
+
+Longitud
+
+Fecha de Evento
+
+
+
+CMA
+
+
+
+Metodo -- TechnicalGenericEagleIngestion coordinates
+
+JSON Sync-Out
+
+
+
+
+
+LIQUIDACIONES DE PAGO Y COBROS
+
+Mensualmente se realiza el cálculo de los pagos y cobros a clientes según reglas de negocio, esto lo realiza el personal administrativo de Transpais.
+
+Se puede parametrizar la posibilidad de facturaciones en plazo diferentes a la mensual, pero entendemos que la facturación se va a realizar desde Bussines Central, por lo que es allí donde se configurará este aspecto.
+
+
+
+Tarifas de VENTA:
+
+ 
+
+-Tarifas anuales.
+
+-Transporte por Area: En tramos de KM Desde - Hasta: Hay una tabla de Kilómetros que entrega el puerto. Es una tabla fija.
+
+-Larga Distancia> 206 Km
+
+-Hay clientes que tienen su propia tabla de distancia y Km (Maersk)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+LISTADO DE REQUERIMIENTOS
+
+
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las Instrucciones de recogida de contenedores o mercancías en la Terminal. Interfaz 1 -- IFTMIN-2
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las pre-notificación de recogida de mercancías (Rec. Contenedor). Interfaz 2 -- COPINOI06
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las pre-notificación de devolución de contenedores vacíos (Dev. contenedor). Interfaz 3 -- COPINOI07
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las Instrucciones de recogida de contenedores vacíos en la Terminal. Interfaz 4 -- IFTMINE03
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las pre-notificación de recogida de mercancías (Rec. Contenedor). Interfaz 5 -- COPINOE04
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las pre-notificación de devolución de contenedores Cargados(Dev. contenedor). Interfaz 6 -- COPINOE05
+
+JSON Syncout/adapter desde UNIGIS a Portic para recuperar las Mensajes de errores, logs y PIN CODE.  Interfaz 7 – APERAK
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar las Instrucciones de recogida de contenedores.  Interfaz 8 -- ARRIVAL
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar las Actualizaciones de la información de contenedor, puede completar datos. Interfaz 9 -- Container_Update
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar Información de salida de pedido – Fecha de salida. Interfaz 10 – Departure
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar la Información de salida de pedido – Punto de recogida.  Interfaz 11 -- Customer Apointment PICKUP
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar la Información de salida de pedido – Punto de entrega.  Interfaz 12 -- Customer Apointment DropOff
+
+JSON Syncout/adapter desde UNIGIS a Maersk para recuperar la Información del precinto de contenedor.  Interfaz 13 -- Asignación de PRECINTO / SEAL
+
+JSON Syncout/adapter desde UNIGIS a Maersk para enviar Información de la asignación de medios.  Interfaz 14 -- Driver Update
+
+JSON Syncout/adapter desde UNIGIS a Maersk para enviar Información de la Información de la posición del contenedor.  Interfaz 15 -- GPS / GPS_UPDATE
+
+JSON Syncout/adapter desde UNIGIS a Maersk para enviar Información de la Información de tiempos de paralización.  Interfaz 16 -- Tiempo de Espera / WAIT_TIME
+
+JSON Syncout/adapter desde UNIGIS a Maersk para enviar Información de la Información de la cancelación del viaje.  Interfaz 17 -- Futile_trip
+
+JSON Syncout/adapter desde UNIGIS a Webfleet para obtener el reporte detallado de los vehículos registrados.  Interfaz 18 -- showVehicleReportExtern
+
+JSON Syncout/adapter desde UNIGIS a Webfleet. Este método permite la replicación continua de los viajes realizados.  Interfaz 19 -- showTripReportExtern (Reporte de Viajes)
+
+JSON Syncout/adapter desde UNIGIS a Webfleet para capturar notificaciones, alertas y estados críticos del vehículo o conductor.  Interfaz 20 -- showEventReportExtern (Eventos y Alarmas)
+
+
+
+DASHBOARDS E INDICADORES 
+
+
+
+Km en vacío
+
+Q de Viajes 
+
+Q de viajes por Operador de Tráfico
+
+Evolución de viajes por período
+
+Q de viajes por matrícula
+
+Q de viajes por recorrido
+
+Zonas de influencia o mapas de calor con los recorridos más importantes
+
+Km totales por tipo de servicio
+
+Km totales por matrícula
+
+Km totales por operador de tráfico
+
+Km totales por recorrido
+
+Km totales vs Km en Vacio por recorrido
+
+Mapas con zonas de calor 
+
+Q de viajes por cliente
+
+Ventas por cliente
+
+Km por cliente
+
+Q de viajes por tipo de servicio - Cliente
+
+Añadidos, 
+
+Se listan los reportes que se habilitaran en la aplicación Unigis Dashboard y que fueron definidos durante las reuniones de relevamiento:
+
+
+
+Tiempo promedio de entrega por ruta.
+
+Porcentaje de entregas a tiempo.
+
+Nivel de satisfacción del cliente. *
+
+Tasa de utilización de la flota vehicular.
+
+Porcentaje de entregas con proof of delivery digitalizado.
+
+
+
+
+
+El detalle, orden de columnas y la lógica de armado de cada reporte se analizará con el equipo de proyecto de Transpais en la etapa de construcción del proyecto. 
+
+
+
+
+
+ANEXOS
+
+Esquema Circuito Operativo Control Documental
+
+
+
+
+
+Flujograma del Nuevo Circuito Operativo de Intermodal
+
+
+
+
+
+
+
+
+
+FIRMA DE ACEPTACIÓN
+
+
+
+Cuadro de aceptación
+
+Firma de aceptación del 
+
+Nombre   
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+Firma de aceptación del 
+
+Nombre   
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+Firma de aceptación del Sponsor del Proyecto 
+
+Nombre   
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+
+
+
+
+
+
+Firma de aceptación del Líderes del proyecto 
+
+Nombre   
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Firma de control del Equipo UNIGIS 
+
+Nombre  
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Firmas de equipo de trabajo Cliente / Usuarios clave
+
+Nombre  
+
+Fecha
+
+Firma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

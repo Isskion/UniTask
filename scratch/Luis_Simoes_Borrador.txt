@@ -1,0 +1,1314 @@
+LUIS SIMÕES
+
+Proyecto de Implantación UNIGIS TMS — DOCUMENTO DE ALCANCE CONSOLIDADO — FASE 2
+
+Versión 3 — Junio 2026  |  Documento Confidencial — Para uso interno UNIGIS / Luis Simões
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. INTRODUCCIÓN
+
+
+
+2. OBJETIVOS DEL PROYECTO
+
+3. ESTRUCTURA
+
+3.1 Empresa
+
+Luis Simoes
+
+3.2 Sucursales
+
+Luis Simões se divide en dos sucursales en UNIGIS TMS: España y Portugal.
+
+3.3 Operaciones
+
+Cada operación representa una región y está asociada a una sucursal. A continuación, se presenta la estructura de operaciones de la Fase 2:
+
+Sucursal
+
+Operación
+
+Ubicaciones
+
+Portugal
+
+PT Noroeste
+
+Porto, Coimbra, Vila Real
+
+Portugal
+
+PT Sudoeste
+
+Lisboa, Algarve
+
+España
+
+Nordeste Barcelona
+
+Barcelona, Valencia
+
+España
+
+Centro Norte Madrid
+
+Madrid, Guadalajara, Centralidad
+
+España
+
+Nordeste Valencia
+
+Valencia
+
+España
+
+Sur Sevilla
+
+Sevilla
+
+
+
+4. DATOS MAESTROS
+
+Esta sección describe las entidades maestras del sistema TMS, su origen de datos, el sistema que los mantiene y las interfaces de sincronización requeridas.
+
+4.1 Depósitos (COL físicos)
+
+Descripción funcional: Almacén físico, Centro de Operaciones Logísticas (COL) o hub intermedio operado por Luis Simões o sus corresponsales (delegación ajena). Actúa como nodo origen/destino y como punto de tránsito en operativas de Crossdock.
+
+Cada deposito tiene asociado uno de los tipos siguientes (que se utilizarán en el flujo de programación):
+
+Propria					
+
+Ajena					
+
+In House
+
+Origen de datos: Se crean y mantienen en TMS.
+
+Tabla con Campos + ejemplo
+
+Anexo: Lista de depósitos y Campos Deposito
+
+4.2 Clientes (Dadores)
+
+Descripción funcional: Entidad jurídica o comercial contratante que solicita y paga los servicios de transporte a Luis Simões (dador de carga).
+
+Origen de datos: provienen del ERP y se integran mediante EAL en TMS.
+
+Tabla con Campos + ejemplo
+
+Anexo: Campos Cliente
+
+4.3 ClienteOrden y DomicilioOrden
+
+4.3.1 ClienteOrden
+
+Descripción funcional: Agrupación de destinatarios
+
+¿Para qué sirve? Campo para organizar destinatarios y buscar o crear reportes con esta capa
+
+Anexo: Campos Cliente Orden
+
+4.3.2 DomicilioOrden
+
+Descripción funcional: Dirección geográfica exacta parametrizada para carga o descarga. Contiene coordenadas GPS necesarias para el ruteo.
+
+Añadir tipo de domicilio orden que se usarán en la programación.
+
+	Si es o no deposito (para reglas programación)
+
+Anexo: Campos Domicilio Orden
+
+4.3.3 Domicilios fijos y variables
+
+• Domicilio Fijo (código LS): registrado con geocodificación, restricciones y horarios ya configurados.
+
+• Domicilio Variable (código cliente): registrado por el cliente. Puede requerir geocodificación y puede tener información puntal de restricciones y horarios.
+
+Toda la creación y validación de asociación de domicilios variables con domicilios fijos se realiza en EAL antes de integrar en TMS. 
+
+En TMS se podrán añadir datos operacionales (restricciones, ventanas horarias, geolocalización y Requiere Citas) de los domicilios fijos y variables que deberán ser sincronizados con EAL.
+
+Ver Notas 1.2 en el diagrama de flujo v2
+
+4.4 Transportes
+
+Descripción funcional: Empresa transportista (propia, dedicada o subcontratada) responsable de ejecutar el viaje.
+
+Origen de datos: la creación y los datos financieros de los transportes provienen del ERP mediante EAL.
+
+Anexo: Campos Transporte
+
+Ver apartado Contratos Transporte en 4.10 
+
+Cada transporte tiene asociado uno o varios tipos de contratos siguientes con la información operacional:
+
+Propio
+
+Dedicado
+
+Eventual
+
+
+
+4.5 Vehículos
+
+Descripción funcional: Unidad de transporte asignada a un viaje y que está asociado a un tipo de vehiculo y un transporte.
+
+Origen de datos: Se crean y mantienen en TMS.
+
+Anexo: Campos Vehiculo
+
+4.6 Tipos de Vehículo
+
+Descripción funcional: Agrupación de vehículos con distinto tratamiento en la planificación de rutas. 
+
+Origen de datos: Se crean y mantienen en TMS.
+
+Anexo: Lista y Campos Tipo de Vehiculo
+
+Lista: Modelo + Capacidad + Flota? 
+
+Ej: Trailer - 18Pallets – Propio / Trailer -18Pallets - Eventual
+
+Modelo y Capacidad se necesita para definir las restricciones con productos y destinatarios
+
+Flota se necesita para definir la cantidad de vehículos que se tienen que tener en cuenta en la planificacion
+
+Lona
+
+Refrigerado
+
+Carrozado / Furgoneta
+
+Tráiler
+
+Duo Trailer
+
+
+
+4.7 Categoría de Vehículo
+
+Descripción funcional: Agrupación de vehículos con distinto tratamiento en la tarifación de costes.
+
+Origen de datos: Se crean y mantienen en TMS.
+
+Anexo: Lista Categoria de Vehiculo
+
+4.8 Conductores
+
+Descripción funcional: Recurso humano que ejecuta el viaje en el vehículo asignado.
+
+• Al crear un conductor en UNIGIS, el sistema debe crear automáticamente el usuario de la app móvil.
+
+Pueden ir asociados a un vehiculo y deben ir asociados a un transporte
+
+Origen de datos: Se crean y mantienen en TMS.
+
+Anexo: Campos Conductor
+
+[Pendiente de definición técnica de mapeo]
+
+Fuente: [Maestro]
+
+
+
+4.9 Tipo de Documento
+
+
+
+Documento
+
+Nivel
+
+Generación
+
+Observaciones
+
+Albarán
+
+Parada / Pedido
+
+Se genera en PDF por LS y se envia a UNIGIS por MAPI (es necesario que se conviertan a Base64) – Pendiente revisar ejemplo rendición y digitalización de viaje – UNIGIS Confirmar link en parada para acceder al albaran digitalizado en sistema LS
+
+Formatos distintos por cliente (confirmar que son convertibles a base64)
+
+e-CMR
+
+Viaje
+
+TMS + integración TransFollow
+
+Nuevo requerimiento — Q4 2026
+
+DECA (Documento electrónico de control administrativo)
+
+Parada
+
+TMS
+
+debe ir como un link o QR asociado a la parada
+
+Revisar el detalle del documento en conjunto después del verano!
+
+Mapa de Carga
+
+Viaje
+
+TMS
+
+Incluye secuencia de carga y cantidades planificadas y cargadas (actualizadas desde WMS)
+
+Contrato de Transporte (Orden de Carga (ES) actualmente)
+
+Viaje
+
+TMS
+
+Se genera automáticamente cuando se asigna transporte al viaje (revisar en que estados de viaje – Inicial y Pendiente Agencia?)
+
+
+
+
+
+Para todos los transportes. 
+
+Se envía primera notificación cuando se asigna un transporte al viaje
+
+Se envia segunda notificación cuando se asigna vehiculo y si no lo tenia en el momento del primer envio (actualizando el documento con la matricula)
+
+UNIGIS Confirmar la gestión de notificaciones reenviar el contrato
+
+Envio de notificación automática de cancelación a primer transporte cuando se asigna uno nuevo
+
+Envio de notificación con nuevo documento automática cuando se cambia el vehiculo pero no el tranporte
+
+Carta de Porte (nombre a definir por LS)
+
+Viaje (solo ES)
+
+TMS
+
+Requiere datos actualizados desde WMS
+
+Pendiente confirmar por parte de LS
+
+Hoja de Inspección Vehículo
+
+Viaje
+
+TMS
+
+Se genera en Visitado, presentación garita o inicio carga en la primera parada en COL (Pendiente confirmar por parte de LS)
+
+Adjunto al mapa de carga o documento aparte para ser validado fuera de TMS por garita de distribución en el momento de la carga
+
+Pendiente confirmar por parte de LS
+
+Contrato
+
+Cliente / Pedido
+
+
+
+
+
+
+
+4.10 Contratos
+
+
+
+Contratos con cliente para tarifación de venta
+
+Contratos con transportes – datos operacionales del transportista
+
+	Se envia en la asingacion de medios del viaje
+
+	
+
+
+
+
+
+
+
+Los contratos de transporte con clientes dadores se registran en UNIGIS como documentos del tipo 'Venta de Transporte'. Reglas de gestión:
+
+• Un cliente puede tener múltiples contratos vigentes.
+
+• Un pedido pertenece siempre a un único contrato.
+
+• Sin número de contrato, el pedido no puede avanzar en el flujo (bloqueo obligatorio).
+
+• Las tarifas deben estar vinculadas a cada contrato.
+
+• La aglutinación de contratos distintos está controlada por un campo SI/NO en el contrato.
+
+• La liquidación siempre genera una factura por contrato (separación obligatoria).
+
+• Regla de asignación de contrato: a definir si es el MiddleWare o UNIGIS el que asocia cliente dador con contrato en la creación del pedido.
+
+Variables de cálculo del contrato: los costes del servicio se calculan en base a cliente dador, origen (COL de salida), destino (COL de llegada o zona de entrega) y volúmenes (peso, bultos, pallets). Sobre estas variables base se aplican los modelos tarifarios definidos.
+
+Hay contratos de transporte por tipo de transporte
+
+Origen de datos: Se crean y mantienen en TMS.
+
+	UNIGIS ampliar información de como se crearan los contratos por parte del usuario tras la creación automática via interfase
+
+
+
+
+
+4.11 Recursos
+
+Los recursos son todas las entidades necesarias para ejecutar y completar una entrega/recolección o cualquier otro elemento asignable a una ruta o viaje que no sea un vehiculo o conductor.
+
+Lista de recursos:
+
+Portapallets
+
+Ayudantes
+
+…
+
+Pueden ser requeridos para el viaje en función de la parametrización del domicilioorden.
+
+4.12 Productos
+
+Los productos se clasifican mediante una jerarquía de línea y sublinea de producto, que permite segmentar la oferta y aplicar reglas específicas por categoría de mercancía.
+
+Restricciones en base a la tipología de los productos (a nivel de cabecera porque así se enviara desde el WMS):
+
+CategoriaOrden – CategoriaOrden -> No se permite mezclar estas tipologías de producto
+
+Categoria Orden – Tipo Vehiculo -> Que se permite incluir en cada tipología de vehiculo
+
+Categoria Orden – DomicilioOrden -> Si algun destinatario no permite recibir alguna tipología de producto
+
+WMS enviara la tipología de producto a nivel de cabecera de pedido (confirmar en que campo del pedido) para llevarlo a la Categoria Orden en Planning y así poder tener en cuenta las restricciones a nivel de categoría orden.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Adicionalmente, los tipos de carga/distribución en LS se parametrizan como Categoría de Orden en TMS:
+
+
+
+Campo LS
+
+Equivalente TMS
+
+Ejemplos de valores
+
+Tipo de Distribución LS
+
+Categoría Orden
+
+ADR, Bebidas, PLV, Neveras, CoPacking, Dispositivos médicos
+
+Tipo de Entrega (Canal)
+
+Parametrizado en DomicilioOrden
+
+PLANEAMIENTO, Horeca, Neveras, Farma
+
+Condición de Temperatura
+
+Categoría Pedido (restricción tipo vehículo)
+
+Isotermo, Refrigerado, Ambiente
+
+Tipo de Servicio LS
+
+Categoría Pedido
+
+Reentrega Paga, Reentrega No Paga, Corriente, Festivos, Sábados, Entrega pequeña
+
+
+
+Anexo: Lista de Lineas y Sublineas de producto, Lista de Categorias De Orden?
+
+
+
+5. GESTION DE PEDIDOS
+
+El Pedido es la solicitud de transporte original remitida por el cliente dador a Luis Simões. Es el documento cabecera que establece los requerimientos de entrega (bultos, peso, volumen, ventana horaria de cita, importes). Establece los datos de origen, destino, horarios y fechas de recolección y entrega, como así los productos a ser transportados.
+
+5.1 Datos del Pedido
+
+5.1.1 Tipos de Pedido
+
+Tipos de pedido configurados inicialmente:
+
+• Operación + Local
+
+• Operación + Larga Distancia
+
+
+
+Tablas auxiliares requeridas para la determinación automática de depósitos y operación:
+
+• Z_Area_Influencia_Deposito: determina el depósito de salida y operación a partir del código postal del remitente.
+
+• Z_DistanciaRelacion: define días mínimos de tránsito entre zonas para validación de fechas.
+
+Anexo: Lista Tipo de Pedido
+
+5.1.2 Campos del Pedido
+
+Anexo: Campos Pedido y pedido_Dyn
+
+5.1.3 Campos del Pedido Item
+
+Anexo: Campos PedidoItem y pedidoitem_Dyn
+
+5.1.4 Etiquetas (LPN)
+
+Las etiquetas NO se generan en UNIGIS. Se reciben en el campo PedidoItem.LPN. Reglas:
+
+• El código de etiqueta puede venir del WMS, del cliente o del COL (Crossdock).
+
+• Formato propuesto: País + Empresa + SistemaOrigen + Contador + Dígito Control.
+
+• Un ítem (pallet o bulto) NO puede tener más de una etiqueta.
+
+• Para pedidos con cajas paletizadas: la etiqueta estará en el pallet, no en las cajas.
+
+• Los pedidos se reciben inicialmente sin etiqueta; luego de la preparación se actualizará el pedido con PedidoItem.LPN.
+
+5.2 Estados del Pedido y Transiciones
+
+Los estados del pedido se clasifican en dos grupos: estados de ejecución y estados de programación de tramos. A continuación se presentan ambas matrices.
+
+5.2.1 — Estados de Ejecución: reflejan la situación global del pedido. Transiciones gestionadas por SAC y DIST con algunas automáticas.
+
+Anexo: Lista estados ejecucion
+
+5.2.2 — Estados de Programación (Tramos): reflejan el estado respecto a la planificación de tramos, gestionados por DIST desde Planificación.
+
+Anexo: Lista estados programacion
+
+
+
+5.3 Flujo del Pedido (Ingreso hasta Programable)
+
+5.3.1 Ingreso/Alta
+
+El pedido se recibe desde EAL/Middleware a través del Webserie CrearOrdenesPedido y entra en estado INICIAL. No existe carga manual de pedidos en pantallas de UNIGIS; los pedidos manuales se introducen a través del portal LS TOOLs, que llama al mismo Webservice.
+
+5.3.1.1 Sistema de Origen del Pedido
+
+Sistema origen
+
+Campo Pedido_Dyn.SistemaOrigen
+
+ERP LS vía EAL/MW
+
+ERP
+
+LS TOOLS vía EAL/MW
+
+LS TOOLS
+
+WMS vía EAL/MW
+
+SGA
+
+Cliente via EAL/MW
+
+
+
+EAL confirmará si es posible mapear este campo con el sistema origen del pedido.
+
+
+
+5.3.2 Procesos de Completar y Validar tras el ingreso
+
+El sistema lanza automáticamente los siguientes procesos tras la creación del pedido:
+
+Completar Pedido: rellena los campos no informados, así como Depósito de Salida (por área de influencia del CP), Depósito de Llegada, Operación, Tipo de Pedido y Horarios. 
+
+Anexo: Campos Pedido a completar
+
+Validar Pedido: A continuación se ejecuta la Validación del pedido tras el completado. 
+
+Anexo: Campos Pedido a validar
+
+Si la validación es correcta el pedido cambia al estado REGISTRADO-OK y, en caso contrario, cambia al estado ERROR (con el detalle del error en el campo del pedido Pedido_Dyn.Mensajes_Y_Errores). 
+
+5.3.3 Ajuste manual y Confirmación
+
+El usuario de SAC edita/corrige el pedido en estado REGISTRADO-OK/ERROR, y cambia el estado del pedido a CONFIRMADO cuando considera que el pedido está listo para ser programado por el equipo de Distribución.
+
+5.3.4 Procesos de Completar y Validar tras la confirmación
+
+El sistema lanza automáticamente de nuevo los siguientes procesos tras la confirmación del pedido:
+
+Completar Pedido: rellena los campos no informados, así como Depósito de Salida (por área de influencia del CP), Depósito de Llegada, Operación, Tipo de Pedido y Horarios. 
+
+Validar Pedido: A continuación se ejecuta la Validación del pedido tras el completado. 
+
+Si la validación es correcta el pedido cambia al estado PROGRAMABLE y, en caso contrario, cambia al estado ERROR (con el detalle del error en el campo del pedido Pedido_Dyn.Mensajes_Y_Errores). 
+
+5.3.5 Programable
+
+Una vez que el pedido se encuentra en estado PROGRAMABLE, es gestionado por los usuarios de Distribución y no es editable (salvo por usuarios con perfil SAC y con previa comunicación o autorización de la operación - Cualquier modificación SAC relanza el ciclo de validación).
+
+PROGRAMABLE -> REGISTRADO-OK: Lo realizará Distribucion si es necesario que equipo de SAC haga cambio al pedido
+
+5.3.6 Actualización de Pedidos
+
+Los pedidos se actualizan tras la preparación en WMS 
+
+o al ser recibidos en COL (Crossdock o entrega en COL por el cliente). Tipos de actualización:
+
+• Modificación de cantidades a nivel de cabecera o ítem (agregar/quitar ítems, reemplazar descripción).
+
+• Actualización con etiqueta de ítems (campo PedidoItem.LPN).
+
+• Actualización de campos DYN operacionales.
+
+📌 Nota: Analizar la creación de un método ad hoc (ActualizarPedidosParcial) que solo permita modificar campos objetivo del Pedido/PedidoItem sin afectar otros campos.
+
+📌 Nota: Actualización en Cascada (sincronizador PedidoOrdenParada): cuando se registra una modificación de pallets, bultos, peso o volumen, deben actualizarse las órdenes y paradas donde exista ese mismo pedido.
+
+
+
+5.4 Casos Especiales de Pedido
+
+5.4.1 Pedidos con Capacidad Superior al Vehículo Mayor
+
+Si un pedido excede el tamaño del vehículo con mayor capacidad disponible, se necesita un Split de Pedido. De ser necesario, esta tarea la realiza el Middleware. Enviándonos pedidos cuyo volumen puede ser embarcado en un camión.
+
+5.4.2 Actualización de Cantidades en Cascada
+
+Cuando se registra una modificación de Pallet, bultos, peso, volumen o cantidades, deben actualizarse las órdenes y las paradas donde exista ese mismo pedido. Ausente del esquema.
+
+5.4.3 Método ActualizarPedidos Parcial
+
+Analizar la creación de un método adHoc para este fin.
+
+El metodo solo debe permitir la modificacíón de algunos campos objetivo de Pedido / PedidoItem sin modificar los campos no contenidos en el método.
+
+5.4.4 Actualización de Cantidades en Cascada (sincronizador PedidoOrdenParada)
+
+Cuando se registra una modificación de Pallet, bultos, peso, volumen o cantidades, deben actualizarse las órdenes y las paradas donde exista ese mismo pedido. 
+
+5.4.5 Rangos horarios por destinatario y día.
+
+En el proceso de CompletarPedido, actualizar los horarios en función del destinatario y el día a partir de la tabla DomicilioOrdenVentanaHoraria.
+
+5.4.6 Fecha límite de PREPARACIÓN, teniendo en cuenta los feriados.
+
+Proponemos controlar con la fecha de Recolección.
+
+5.4.7 Grandes Superficies
+
+Para clientes con flag AgrupaHorariosEnPrimeraEntrega: si en la jornada hay varias órdenes al mismo domicilio con horarios diferentes, se actualiza el horario de entrega al primer horario disponible (ojo: incompatible con citas).
+
+5.4.8 Pedidos con carga en depósito de salida
+
+ Los pedidos con Tipo DomicilioOrden2 = Depósito se tratan como pedido con origen en depósito (carga en depósito de salida).
+
+5.4.9 Re-entregas
+
+• Re-planificar Reparto SIN CARGO: el usuario edita la fecha de entrega y cambia estado para volver a planificar.
+
+• Re-planificar Reparto CON CARGO: el sistema genera un nuevo pedido con los mismos datos, registrando en Pedido_Dyn el IdPedidoOriginal (padre). Se trabaja con el nuevo pedido.
+
+
+
+6. PROGRAMACION
+
+La planificación en UNIGIS TMS se organiza jerárquicamente: Operación → Jornada (+Tipo Jornada) → Ruta → Orden (+Tipo Orden). Esta sección describe la programación de pedidos a partir de los distintos estados posibles, generando dos tipos de orden (entrega y recogida) en cada caso que se enmarcan en una operación y tipo de jornada concretos.
+
+6.1 Tipos de Órdenes
+
+Las órdenes son las unidades de planificación física generadas a partir de los pedidos. Cada pedido puede generar múltiples pares de órdenes (entrega y recogida) según los tramos del itinerario logístico, indicados por el estado de programación seleccionado.
+
+Anexo: Lista de Tipos de Orden
+
+6.2 Tipos de Jornada
+
+Las jornadas se clasifican según el tipo de operativa y el ámbito geográfico del tramo planificado:
+
+Tipo de Jornada
+
+Descripción
+
+Criterio de asignación
+
+LOCAL
+
+Distribución capilar o Recogidas dentro de la zona de influencia de un COL.
+
+Zona depósito Carga = Zona depósito Descarga
+
+LARGA DISTANCIA
+
+Movimientos entre distintas zonas de influencia de un COL de LS.
+
+Zona depósito Carga ≠ Zona depósito Descarga
+
+PAQUETERÍA
+
+Pedidos de paquetería canalizados a través de operadores externos en una jornada específica.
+
+Tipo de pedido = Paquetería + regla de zona
+
+DELEGACIÓN AJENA
+
+Movimientos en los que participa un COL que no es propio de LS.
+
+Depósito Ajena identificado en el pedido
+
+
+
+Anexo: Lista de Tipos de Jornada
+
+
+
+6.3 Flujo de Pedido (Programable hasta Creación de Órdenes)
+
+6.3.1 Pedido programable
+
+Una vez creado y confirmado, el pedido alcanza el estado PROGRAMABLE, quedando incluido en el listado de pedidos disponibles para programar. 
+
+A partir de este estado el pedido no puede ser modificado por el usuario.
+
+6.3.2 Flag de Pedido 'Preparado' (Interfaz Reflex/SGAs)
+
+El WMS (Reflex/SGAs) envía automáticamente un flag al TMS marcando el pedido como 'PREPARADO'. Esta integración es fundamental para mantener la sincronización entre los sistemas de venta y de logística/almacén. 
+
+Este dato se podrá enviar desde la creación del pedido hasta cualquier estado de programación.
+
+En caso de fallo de comunicación con Reflex/SGAs, el flag no se actualiza, lo que podría afectar a la visibilidad del pedido en otros sistemas.
+
+6.3.2.1 Registro de Interfaces
+
+Nº Interfaz
+
+Nombre
+
+Dirección
+
+Dato
+
+Criticidad
+
+4
+
+Flag Pedido Preparado
+
+VENTA → Reflex/SGAs
+
+PEDIDO: PREPARADO
+
+ALTA
+
+
+
+6.3.3 Programación Manual
+
+el usuario cambia el estado de uno o varios pedidos a un estado de programación. El TMS 
+
+crea 
+
+La jornada en la operación  y del tipo correspondiente (local, larga distancia…), utilizando la información de las tablas auxiliares.
+
+Crea para cada pedido los pares de órdenes de recogida y entrega (Pickup y Delivery), con el tipo de orden correspondiente
+
+
+
+
+
+Estados Programación
+
+Programar Punto a Punto
+
+Programar Entrega Directa
+
+Programar Recogida
+
+Programar Arrastre
+
+AJENA - Programar Punto a Punto
+
+AJENA - Programar Arrastre
+
+AJENA - Programar Recogida
+
+Programar Paquetería
+
+
+
+
+
+
+
+
+
+
+
+Programar Punto a Punto
+
+Tramo entre Remitente y Destinatario sin pasar por depósito intermedio. La recogida se hace en el domicilio del remitente y la entrega en el domicilio del destinatario.
+
+Proceso Cambio de estado de pedido a Programar Punto a Punto: 
+
+Paso 1: 
+
+Se calcula y compara la Zona depósito Salida con Zona depósito Llegada (a partir de la tabla de zona influencia depósito) -> si son iguales el tramo es Local, si difieren es Larga Distancia. 
+
+Paso 2:
+
+A partir del tipo de tramo (Local o Larga Distancia) y en función del Depósito de Salida, se consulta la tabla Depósito Salida para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+No se programan próximos tramos automáticamente.
+
+
+
+Programar Entrega Directa
+
+Tramo entre un depósito de carga de LS (no desde el remitente) y destinatario. La recogida se hace en el depósito de LS y la entrega en el domicilio del destinatario.
+
+Proceso Cambio de estado de pedido a Programar Entrega Directa: 
+
+Paso 0:
+
+Borra las órdenes de paquetería generadas anteriormente si el estado de programación anterior era Paquetería.
+
+Paso 1 y 2:
+
+El valor de Depósito Descarga se traslada a Depósito Carga y se calcula su zona a partir de la tabla de zona influencia depósito (por si se habían actualizado anteriormente en otro estado de programación).
+
+Paso 3 y 4:
+
+Se borra el Depósito Descarga y Zona Depósito Descarga del pedido para evitar datos residuales. 
+
+Paso 5:
+
+El tipo de tramo se calcula comparando Zona depósito Carga con Zona depósito Llegada (igual → Local, distinta → Larga Distancia). 
+
+Paso 6:
+
+A partir del tipo de tramo (Local o Larga Distancia) y en función del Depósito de Carga, se consulta la tabla Depósito Carga para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+No se programan próximos tramos automáticamente.
+
+
+
+Programar Recogida
+
+Tramo entre Remitente y Depósito de LS. La recogida se hace en el Remitente y la entrega en el depósito de LS.
+
+Proceso Cambio de estado de pedido a Programar Recogida: 
+
+Paso 1, 2 y 3:
+
+El usuario selecciona el depósito de descarga entre los motivos que aparecen en el cambio de estado del pedido y se asigna al campo Depósito Descarga del pedido, calculando también zona (a partir de la tabla de zona influencia depósito).
+
+Paso 4:
+
+El tipo de tramo compara Zona depósito Salida con Zona depósito Descarga (igual → Local, distinta → Larga Distancia). 
+
+Paso 5:
+
+A partir del tipo de tramo (Local o Larga Distancia) y en función del Depósito de Carga, se consulta la tabla Depósito Carga para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+Paso 6:
+
+El tramo siguiente se determina automáticamente:
+
+Si Tipo domicilio orden = depósito y Domicilio orden ≠ Depósito descarga → Programar Arrastre
+
+Si Tipo domicilio orden = destinatario → Programar Entrega Directa
+
+
+
+Programar Arrastre
+
+Tramo entre dos Depósitos de LS, generando una orden de recogida en el primer depósito de LS y una de entrega en el segundo.
+
+Proceso Cambio de estado de pedido a Programar Arrastre: 
+
+Paso 1:
+
+El usuario selecciona el depósito de descarga entre los motivos que aparecen en el cambio de estado del pedido y, si el estado de programación anterior era Entrega Directa, se borran las órdenes generadas y no asignadas a ninguna ruta (no planificadas). 
+
+Paso 2:
+
+El motivo seleccionado en el paso anterior (Depósito Descarga) se guarda en una variable temporal del pedido
+
+Paso 3, 4, 5 y 6:
+
+El Depósito Descarga actual pasa a ser Depósito Carga, y la variable temporal del paso anterior se convierte en el nuevo Depósito Descarga. Se calculan ambas zonas de depósito (a partir de la tabla de zona influencia depósito).
+
+Paso 7:
+
+El tipo de tramo compara Zona depósito Carga con Zona depósito Descarga (igual → Local, distinta → Larga Distancia). 
+
+Paso 8:
+
+A partir del tipo de tramo (Local o Larga Distancia) y en función del Depósito de Carga, se consulta la tabla Depósito Carga para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+Paso 9:
+
+El tramo siguiente se determina automáticamente:
+
+Si Tipo domicilio orden = depósito y Domicilio orden ≠ Depósito descarga → Programar Arrastre (encadenado)
+
+Si Tipo domicilio orden = destinatario → Programar Entrega Directa
+
+
+
+AJENA – Programar Punto a Punto
+
+Tramo subcontratado entre Remitente y Destinatario sin pasar por depósito intermedio. La recogida se hace en el domicilio del remitente y la entrega en el domicilio del destinatario.
+
+Proceso Cambio de estado de pedido a AJENA - Programar Punto a Punto: 
+
+Paso 1 y 2:
+
+El usuario selecciona el depósito ajena entre los motivos que aparecen en el cambio de estado del pedido y se asigna al campo Depósito Ajena del pedido. 
+
+Paso 3:
+
+A partir del Depósito Ajena seleccionado, se consulta la tabla Depósito Ajena para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+No se programan próximos tramos automáticamente.
+
+
+
+AJENA – Programar Recogida
+
+Tramo subcontratado entre Remitente y Depósito Ajena. La recogida se hace en el Remitente y la entrega en Depósito Ajena.
+
+Proceso Cambio de estado de pedido a AJENA - Programar Recogida: 
+
+Paso 1, 2 y 3:
+
+El usuario selecciona el depósito ajena entre los motivos que aparecen en el cambio de estado del pedido y se asigna a los campos Depósito Ajena y Deposito Descarga del pedido. 
+
+Paso 4:
+
+A partir del Depósito Ajena seleccionado, se consulta la tabla Depósito Ajena para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+Paso 5:
+
+El tramo siguiente se determina automáticamente:
+
+Si Domicilio orden ≠ Depósito descarga → Programar Arrastre
+
+Si Tipo domicilio = destinatario → Programar Entrega Directa
+
+
+
+AJENA – Programar Arrastre
+
+Tramo subcontratado entre dos Depósitos en los que uno de ellos es Ajena, generando una orden de recogida en el primer depósito y una de entrega en el segundo.
+
+Proceso Cambio de estado de pedido a AJENA - Programar Arrastre: 
+
+Paso 1:
+
+El usuario selecciona el depósito ajena entre los motivos que aparecen en el cambio de estado del pedido y, si el estado de programación anterior era Entrega Directa, se borran las órdenes generadas y no asignadas a ninguna ruta (no planificadas). 
+
+Paso 2, 3 ,4, 5 y 6:
+
+El Depósito Descarga actual pasa a ser Depósito Carga, el Depósito Ajena elegido en el paso anterior pasa a ser Depósito Descarga. Se borran ambas zonas de depósito (Carga y Descarga).
+
+Paso 7:
+
+A partir del Depósito Ajena seleccionado, se consulta la tabla Depósito Ajena para determinar a qué Operación y Tipo de Jornada se asignarán las órdenes generadas. 
+
+Paso 8:
+
+El tramo siguiente se determina automáticamente:
+
+Si Domicilio orden ≠ Depósito descarga → Programar Arrastre
+
+Si Tipo domicilio = destinatario → Programar Entrega Directa
+
+
+
+Programar Paquetería
+
+Estado de programación para pedidos de paquetería operados por terceros. En este flujo la mercancía se entrega a un proveedor que se encarga de su entrega. El proveedor puede recoger en Col o se le posiciona la mercancía.
+
+Proceso Cambio de estado de pedido a Programar Paquetería: 
+
+Paso 1: 
+
+El Depósito Descarga actual pasa a ser Depósito Carga.
+
+Paso 2:
+
+Se calcula la zona del Depósito de Carga (a partir de la tabla de zona influencia depósito).
+
+Paso 3 y 4:
+
+Se borra el Depósito Descarga y Zona Depósito Descarga del pedido para evitar datos residuales. 
+
+Paso 5:
+
+A partir del Depósito de Carga del pedido, se consulta la tabla Depósito Carga para determinar a qué Operación se asignarán las órdenes generadas. 
+
+Paso 6:
+
+A partir de la zona de Depósito de Carga del pedido y la Operación determinada en el paso anterior, se consulta la tabla Paquetería para determinar a qué Tipo de Jornada se asignarán las órdenes generadas. 
+
+6.3.4 Desprogramación de pedidos
+
+Proceso especial para desprogramar pedidos, aplicable cuando es necesario deshacer varios tramos del ruteo. El sistema verifica primero si las órdenes del tramo anterior o del último tramo ya están ruteadas; si es así, el proceso se cancela para evitar inconsistencias en el flujo logístico. Solo se permite borrar las ordenes de un tramo anterior si no están asignadas a una ruta.
+
+Un fallo en estas validaciones podría llevar a inconsistencias severas en el estado de las rutas y órdenes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Desprogramacion ultimo tramo – proceso especial de borrado último tramo:
+
+valida si el ultimo tramo tiene ordenes asignadas a ruta:
+
+
+
+Si tiene ordenes asignadas -no las borra y detiene el proceso (informando en un campo del pedido)
+
+
+
+Si se quiere poder realizar el borrado se deben desasignar las ordenes de la ruta en Planning y volver a ejecutar el proceso
+
+
+
+Si no las tiene, borra las ordenes del ultimo tramo
+
+Desprogramacion dos últimos tramos – proceso especial de borrado últimos dos tramos:
+
+	- Si el tramo anterior al ultimo programado tiene ordenes asignadas a ruta:
+
+No las borra y se detiene el proceso (informando en un campo del pedido)
+
+
+
+Si no las tiene, valida si el ultimo tramo tiene ordenes asignadas a ruta:
+
+			Si tiene ordenes asignadas – no las borra y detiene el proceso
+
+Si no las tiene, borra las ordenes del ultimo tramo y el anterior.
+
+Desprogramacion completa – Mismo que el anterior pero con todos los tramos
+
+ 
+
+
+
+Programación Semiautomática
+
+El usuario ejecuta proceso sobre uno o varios pedido. UNIGIS analiza los datos y aplica las reglas para programar los cambios de estado de programación igual que en la programación Manual, pero de forma automática.
+
+
+
+Tablas auxiliares de programación
+
+Añadir en anexo y referenciar
+
+Tablas deposito – carga, descarga, paqueteria y ajena
+
+Tabla ordentipopedido
+
+6.3.7 Programación MCFS (Multicapacityflow)
+
+El usuario seleccionar uno o varios pedidos y los envía al data collection de MCFS. TMS ejecutará el nuevo algoritmo que determinará los viajes óptimos, sin pasar por el módulo de planificación.
+
+6.3.8 Crear Ruta Manual desde pedidos 
+
+Crear Ruta desde pedidos: el usuario selecciona uno o varios pedidos y crea la ruta sin pasar por el módulo de planificación. Dirigido a FTL.
+
+
+
+7. PLANIFICACION (ROUTING)
+
+DATOS PARA PLANIFICACION
+
+
+
+• Zonas de ruteo y modelo de condición
+
+cuando sea necesario (zonas dentro de casco urbano…)
+
+ • Escenarios de planificación
+
+Criterios de optimización y reglas de negocio
+
+- Restricciones
+
+	Anexo: Lista de restricciones
+
+FLUJO DE PLANIFICACIÓN
+
+7.2.1  Creación de Rutas
+
+Las órdenes ya se encuentran en las Jornadas correspondientes. El planificador debe crear las rutas bien manual o automáticamente.
+
+
+
+7.2.2  Creación de Rutas Manual
+
+Al crear una ruta manual se debe definir los datos necesarios (tipo de vehículo, horario de salida y de llegada...), las órdenes a incluir y la secuencia de entrega.
+
+
+
+7.2.3 Creación de Rutas Automática
+
+Antes de ejecutar el algoritmo de ruteo, el usuario debe seleccionar la zona/s a tener en cuenta, los tipos de vehículo disponibles en el ruteo, el modelo de condición si es necesario (dentro se configuran las reglas de las zonas) y el escenario de planificación, donde se establecen los criterios de optimización.
+
+Una vez ejecutado el algoritmo, se devolverá la lista de rutas óptimas con las órdenes agrupadas en su interior con su secuencia óptima. Este proceso toma en cuenta diversas configuraciones, como el tiempo de descanso del conductor, horarios de entrega, saturación, balance de rutas... Si el ruteo automático no logra generar rutas viables debido a restricciones no cumplidas, el sistema puede alertar al usuario o dejar las órdenes 'sin rutear' para una intervención manual.
+
+7.2.4 Edición de Rutas
+
+Una vez generada la ruta, el operador evalúa su viabilidad y optimización. Si se detectan mejoras o errores, se pueden realizar modificaciones específicas de rutas. Este ciclo de evaluación y ajuste se repite hasta que la ruta sea considerada óptima.
+
+En este paso se pueden realizar distintas acciones para modificar las rutas: edición masiva de rutas, agregar órdenes entre rutas existentes (manual o automático), mover órdenes entre rutas, reordenar rutas (manual o automático), entre otras.
+
+7.2.5 Asignar Vehículo (opcional)
+
+Un operador puede manualmente vincular un vehículo a una ruta.
+
+7.2.6 Confirmación de Ruta
+
+Una vez que la ruta ha sido definida, ajustada y se le ha asignado un vehículo (si aplica), se procede a su confirmación final. Este cambio de estado a 'Confirmada' marca la ruta como lista para la operación y sirve como disparador para los siguientes procesos logísticos. 
+
+NOTA: Tras la confirmación de la ruta, se crea el viaje automáticamente (si no tiene vehículo y/o conductor se asigna el NO DETERMINADO), y se envía por interfaz los detalles del viaje a los sistemas REFLEX/SGA para su preparación.
+
+
+
+8. Ejecución (Viajes)
+
+
+
+Categoria Viaje
+
+ Anexo: Lista Categorias de Viaje 
+
+Estados de Viaje 
+
+Sincronización de estados con Ruta
+
+Anexo: Lista Estados de Viaje
+
+Tipos de Parada
+
+ Según el tipo de orden se generan los tipos de parada correspondientes (mismo nombre e ID que el tipo de orden)
+
+Anexo: Lista Tipos de Parada
+
+Estados de Parada
+
+Sincronización de estados con Orden y Pedido
+
+Anexo: Lista Estados de Parada
+
+
+
+FLUJO ASIGNACIÓN DE VIAJE (INICIAL -- > ACTIVO)
+
+8.5.1 Creación del Viaje
+
+Tras confirmar las ruta, el viaje y sus paradas se crean en Unigis TMS de forma automática, en  su estado inicial. 
+
+Tras la creación, el sistema evalúa automáticamente si la categoría del viaje es Xdocking.
+
+De ser así, se envía por interfaz la información del viaje y sus paradas a sistemas externos para enviar la Previsión de Carga para su coordinación.  Después,  el flujo continúa con la evaluación de la flota.
+
+Además se crearán las paradas de control en las paradas dentro de los COL propios de LS.
+
+8.5.2 Validación Transporte
+
+El sistema valida el transporte asignado al viaje. De esta validación se difiere si el tipo de transporte es EVENTUAL o PROPIO / DEDICADO.
+
+Si el tipo de transporte es eventual se abre el flujo de asignación de recursos por agencias.
+
+Si el tipo de transporte es propio o dedicado, se abre el flujo de asignación de recursos por parte de LS.
+
+8.5.3 Asignación de Agencia y Tendering
+
+Cuando el viaje requiere gestión por un transporte externo, el usuario Operador de Unigis asigna manualmente la agencia de transporte en la pantalla de viaje. La agencia seleccionada debe estar validada y disponible para el tipo de servicio requerido. Tras la asignación, el viaje cambia automáticamente al estado PENDIENTE AGENCIA y queda publicado y visible en el Portal Transportista para la agencia asignada.
+
+La agencia revisa la propuesta de viaje en su portal y acepta o rechaza el servicio. Si la acepta, el viaje cambia al estado ACEPTADO AGENCIA y el flujo avanza a la asignación de recursos específicos. Si la rechaza (o no responde dentro del plazo establecido), el viaje cambia al estado RECHAZADO AGENCIA y el proceso se redirige al paso de asignación de agencia para intentar una nueva asignación o buscar una alternativa.
+
+8.5.4 Asignación de Vehículo y Conductor
+
+La asignación del vehículo y conductor puede ser ejecutada por la agencia a través de su portal de Transporte(si ha aceptado el viaje) o directamente por un Operador de Unigis en casos de asignación directa sin agencia. 
+
+El vehículo y el conductor asignados deben estar dados de alta en el sistema.
+
+Tras el registro exitoso de los recursos, el sistema Unigis actualiza automáticamente el estado del viaje a PROGRAMADO, confirmando que todos los recursos principales están asignados. Durante este paso, el sistema evalúa además si el conductor es nuevo, lo que activa un flujo específico de notificación a nuevos conductores (envío de credenciales, ver 5.4.6).
+
+8.5.5 Interfaz Muelle Reflex/SGA
+
+Una vez el viaje está en estado PROGRAMADO y con información de muelle disponible, Unigis activa automáticamente la interfaz Muelle Reflex/SGA (Interfaz #2, criticidad ALTA) para transmitir la Información de Muelle al sistema externo Reflex/SGA. Esta integración es fundamental para coordinar la logística en el muelle de carga.
+
+8.5.6 Notificación y Aceptación del Conductor
+
+Completada la interfaz de muelle, el sistema cambia automáticamente el estado del viaje a PENDIENTE CONDUCTOR y envía una notificación vía SMS al conductor asignado, solicitando la aceptación o rechazo del viaje a través de la aplicación móvil Unigis Deliveries. Si el conductor es nuevo en el sistema, la comunicación incluye los datos de acceso a la aplicación y sus credenciales.
+
+El conductor cambia en Mobile al estado del viaje a ACEPTADO CONDUCTOR o RECHAZADO CONDUCTOR. 
+
+Si el conductor acepta el viaje, se enviará una notificación al transporte de los recursos requeridos definidos en los domicilios de la paradas del viaje.
+
+Si el viaje permanece X tiempo en pendiente conductor, el sistema cambiará el estado automáticamente a RECHAZADO CONDUCTOR.
+
+Si el viaje está en RECHAZADO CONDUCTOR  el sistema cambiara el estado del viaje XXXX a definir.
+
+8.5.7 Activación del Viaje
+
+Con el viaje en estado ACEPTADO CONDUCTOR, cuando el conductor vaya a comenzar el viaje, cambiará el estado del viaje en la aplicación Mobile a ACTIVO. Esta acción activa automáticamente  GPSTracker, que realiza la transmisión de datos de ubicación a los servicios de localización para el seguimiento en tiempo real. Simultáneamente, el sistema genera las notificaciones al transporte y al conductor, y prepara los documentos a emitir por TMS.
+
+
+
+Cancelacion del viaje
+
+	UNIGIS revisar de solo permitir cancelar un viaje por parte de LS hasta el estado de parada Inicio Carga
+
+	La cancelación del viaje implica que las paradas deben pasar a NO RECOLECTADO/NO ENTREGADO y deben ser comunicadas via interfase al WMS mediante EAL.
+
+Confirmacion de entregas
+
+Paradas en Deposito
+
+	Estados de resolución de parada tras Problema en Parada es necesario?
+
+		WMS puede actualizar el estado de una parada directamente desde Problema en Parada hasta el estado final que corresponda? 
+
+			A confirmar por parte de LS
+
+
+
+Gestion de incidencias y logistica inversa – Revisar WIP 1.5
+
+Logistica inversa
+
+ 	UNIGIS explicar en detalle el proceso y los flujos de logistica inversa
+
+		Retornos
+
+		Reentregas
+
+		Rechazos/Devoluciones
+
+
+
+Incluir descripción Dispatch y tener en cuenta nota desprogramación de ordenes 
+
+
+
+
+
+DELEGACIONES AJENAS y SUBCONTRATACION TI (Incluir después de la ejecución con explicación de las distintas modalidades de cada delegación ajena- con o sin sistema…)
+
+Incluir exoplicacion flujo 1.8 y 2.0 diagrama
+
+Flujo parecido
+
+Detallar las diferencias entre 1.8 y 2.0
+
+
+
+
+
+Fijo vs Variable (Añadir descripción flujo en datos maestros)
+
+	Atencion al tipo de georreferenciación
+
+	UNIGIS revisar posible motor geográfico de contingencia aparte de HERE (Astrata o Google – pendiente de definir (actualmente preferencia Astrata)
+
+	Explicacion flujo 1.2 solo la parte de TMS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

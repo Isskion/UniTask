@@ -1,0 +1,506 @@
+Mapeo de Integración: Rendiciones, Cobros y Liquidaciones
+
+Especificación de Interfaz de Salida (POST) al ERP - Proyecto TSP
+
+1. Introducción y Contexto de la Interfaz
+
+El presente documento especifica el mapeo de campos y el funcionamiento lógico de la interfaz POST utilizada para enviar los datos de Cobros (Cobranzas) y Liquidaciones (Rendiciones de viaje) desde el sistema de base de datos UniGIS TMS (Proyecto TSP) hacia el sistema ERP del cliente. El objetivo principal es la sincronización y conciliación financiera de los viajes una vez ejecutados.
+
+La base de datos del proyecto TSP es idéntica a la del entorno EUP (Europastry ES, bajo modelo de Shipper/Cargador), por lo que comparte su modelo físico de tablas base (dbo.Vehiculo, dbo.Conductor, dbo.Transporte, dbo.Cobros, dbo.Parada). La diferencia radica exclusivamente en los campos dinámicos custom (sufijos _Dyn) definidos para el negocio de TSP.
+
+2. Arquitectura de Cobros y Rendiciones (Modelo de BD)
+
+En la base de datos transaccional del TMS (SQL Server), el circuito financiero del viaje se gestiona a través de las siguientes tablas:
+
+dbo.Cobros: Almacena las transacciones de pago realizadas físicamente por los conductores a través del móvil (Efectivo, Tarjeta, TPV, Cheque, Pagaré). Contiene el importe cobrado, número de recibo, banco, fecha de vencimiento y foto del comprobante.
+
+dbo.ParadaCobro: Tabla puente que asocia cada cobro realizado con la parada (dbo.Parada) del viaje correspondiente.
+
+dbo.Parada (TipoParada = 10 - Rendición): Al finalizar el viaje, un Stored Procedure (como dbo.Z_SP_GenerarRendicion_V2) evalúa los rechazos y mercancías sobrantes, generando una parada especial de tipo 10 (Rendición/Liquidación) con los bultos/pesos sobrantes a retornar al depósito de llegada.
+
+Relación con el Viaje: El viaje (dbo.Viaje) actúa como el eje agrupador de la ejecución. Relaciona el vehículo (dbo.Vehiculo), el conductor (dbo.Conductor) y la empresa transportista (dbo.Transporte). El ERP utiliza estas relaciones para liquidar las tarifas y consolidar los cobros.
+
+3. Tabla de Mapeo del JSON (POST al ERP)
+
+A continuación se detalla cómo mapear cada propiedad del payload JSON con las tablas y columnas estándar y dinámicas de la base de datos de UniGIS / TSP (idéntica a EUP):
+
+Nodo / Campo JSON
+
+Tabla de BD
+
+Columna de BD
+
+Tipo de Mapeo
+
+Explicación / Regla de Negocio
+
+ApiKey
+
+N/A
+
+N/A
+
+Estático / Config
+
+Token de autorización para la API de comunicación con el ERP.
+
+FechaDesde
+
+dbo.Viaje / dbo.Cobros
+
+Fecha / FechaHora
+
+Filtro de Fecha
+
+Inicio del rango de liquidaciones/cobros a procesar en el lote.
+
+FechaHasta
+
+dbo.Viaje / dbo.Cobros
+
+Fecha / FechaHora
+
+Filtro de Fecha
+
+Fin del rango de liquidaciones/cobros a procesar en el lote.
+
+CodigoSucursal
+
+dbo.Sucursal
+
+ReferenciaExterna
+
+Filtro / ID
+
+Código de la sucursal/depósito emisor de las operaciones.
+
+EstadoGuias
+
+dbo.Guia / dbo.OrdenPedido
+
+IdEstado / Estado
+
+Filtro
+
+Código de estado de los documentos de entrega a incluir (entregados, cobrados).
+
+TipoGuia
+
+dbo.Guia
+
+IdTipoGuia (o .Tipo)
+
+Filtro
+
+Tipo de documento asociado al cobro (Factura, Remito, Albarán).
+
+CodigoOperacion
+
+dbo.Operacion
+
+ReferenciaExterna
+
+Filtro / ID
+
+Código de la operación comercial a la que pertenece la flota.
+
+Vehiculo.Dominio
+
+dbo.Vehiculo
+
+Dominio
+
+Estándar
+
+Matrícula/patente principal de la tractora (camión). Clave primaria de búsqueda.
+
+Vehiculo.DominioSemi
+
+dbo.Vehiculo
+
+DominioSecundario
+
+Estándar
+
+Matrícula/patente del remolque/acoplado asignado.
+
+Vehiculo.NroSerie
+
+dbo.Vehiculo
+
+NroSerie
+
+Estándar
+
+Número de chasis/serie del fabricante.
+
+Vehiculo.Prestador
+
+dbo.Vehiculo
+
+Prestador
+
+Estándar
+
+Proveedor o prestador del servicio del vehículo.
+
+Vehiculo.Flota
+
+dbo.Vehiculo
+
+Flota
+
+Estándar
+
+Clasificación de flota interna del dador de carga.
+
+Vehiculo.Chasis
+
+dbo.Vehiculo
+
+Chasis
+
+Estándar
+
+Número de chasis del vehículo.
+
+Vehiculo.Volumen
+
+dbo.Vehiculo
+
+Volumen
+
+Estándar
+
+Capacidad volumétrica en metros cúbicos.
+
+Vehiculo.Peso
+
+dbo.Vehiculo
+
+Peso
+
+Estándar
+
+Capacidad de peso en kilogramos.
+
+Vehiculo.Ciudad
+
+dbo.Vehiculo
+
+Ciudad
+
+Estándar
+
+Ciudad de base del vehículo.
+
+Vehiculo.Marca
+
+dbo.Vehiculo
+
+Marca
+
+Estándar
+
+Marca del fabricante (ej: Scania, Volvo).
+
+Vehiculo.Modelo
+
+dbo.Vehiculo
+
+Modelo
+
+Estándar
+
+Modelo del vehículo.
+
+Vehiculo.Combustible
+
+dbo.Vehiculo
+
+Combustible
+
+Estándar
+
+Tipo de combustible (Diésel, Eléctrico, etc.).
+
+Vehiculo.TipoVehiculo
+
+dbo.Vehiculo
+
+IdTipoVehiculo
+
+Relación / ID
+
+Clave foránea que resuelve en dbo.TipoVehiculo.
+
+Vehiculo.Propietario
+
+dbo.Propietario
+
+Nombre / ReferenciaExterna
+
+Relación
+
+Titular legal del vehículo (dueño de la chapa).
+
+Vehiculo.Conductor
+
+dbo.Conductor
+
+Nombre / ReferenciaExterna
+
+Relación
+
+Conductor habitual asignado al vehículo.
+
+Vehiculo.Transporte
+
+dbo.Transporte
+
+RazonSocial / Referencia
+
+Relación
+
+Transportista contratado responsable del equipo.
+
+Vehiculo.ReferenciaExterna
+
+dbo.Vehiculo
+
+ReferenciaExterna
+
+Estándar
+
+ID integrador utilizado por el ERP para identificar el vehículo.
+
+Vehiculo.Tara
+
+dbo.Vehiculo
+
+Tara
+
+Estándar
+
+Peso vacío (tara) del vehículo.
+
+Vehiculo.IdEstadoVehiculo
+
+dbo.Vehiculo
+
+IdEstadoVehiculo
+
+Estándar
+
+ID del estado operacional en UniGIS.
+
+Vehiculo.FechaFabricacion_opcional
+
+dbo.Vehiculo_Dyn
+
+FechaFabricacion
+
+Dinámico
+
+Fecha de fabricación del camión (para control de antigüedad en ERP).
+
+Vehiculo.IdEstado_opcional
+
+dbo.Vehiculo_Dyn
+
+IdEstado
+
+Dinámico
+
+Código de estado extendido en la tabla dinámica.
+
+Vehiculo.IntegrarRNDC_Opcional
+
+dbo.Vehiculo_Dyn
+
+IntegrarRNDC
+
+Dinámico (Boolean)
+
+Indica si debe reportarse al Registro Nacional de Despacho de Carga (Argentina).
+
+Vehiculo.IntegrarCTE_Opcional
+
+dbo.Vehiculo_Dyn
+
+IntegrarCTE
+
+Dinámico (Boolean)
+
+Indica si debe reportarse al Conhecimento de Transporte (Brasil).
+
+Vehiculo.Varchar1 ... Varchar8
+
+dbo.Vehiculo
+
+Varchar1 ... Varchar8
+
+Estándar / Custom
+
+Campos de texto libre mapeables para datos del ERP.
+
+Vehiculo.Int1, Int2
+
+dbo.Vehiculo
+
+Int1, Int2
+
+Estándar / Custom
+
+Campos enteros libres.
+
+Transporte.Referencia
+
+dbo.Transporte
+
+Referencia
+
+Estándar
+
+Código interno del transportista. Clave primaria lógica.
+
+Transporte.Cuit
+
+dbo.Transporte
+
+Cuit
+
+Estándar
+
+Identificación fiscal de la empresa de transporte (CUIT/RUT).
+
+Transporte.RazonSocial
+
+dbo.Transporte
+
+RazonSocial
+
+Estándar
+
+Nombre legal del transportista.
+
+Transporte.NombreFantasia
+
+dbo.Transporte
+
+NombreFantasia
+
+Estándar
+
+Nombre comercial.
+
+Transporte.Email
+
+dbo.Transporte
+
+Email
+
+Estándar
+
+Contacto de facturación o liquidaciones.
+
+Transporte.Direccion
+
+dbo.Transporte
+
+Direccion
+
+Estándar
+
+Domicilio fiscal de la empresa.
+
+Conductor.NroDocumento
+
+dbo.Conductor
+
+NroDocumento
+
+Estándar
+
+Número de documento (DNI/Cédula). Clave única del conductor.
+
+Conductor.Login
+
+dbo.Conductor
+
+Login
+
+Estándar
+
+Usuario de la App Mobile que registró los cobros.
+
+Conductor.Nombre
+
+dbo.Conductor
+
+Nombre
+
+Estándar
+
+Nombre del conductor.
+
+Conductor.Apellido
+
+dbo.Conductor
+
+Apellido
+
+Estándar
+
+Apellido del conductor.
+
+Conductor.Licencia
+
+dbo.Conductor
+
+Licencia
+
+Estándar
+
+Número de carnet/licencia de conducción.
+
+Conductor.Vencimiento
+
+dbo.Conductor
+
+Vencimiento
+
+Estándar
+
+Fecha de vencimiento del carnet.
+
+Conductor.ReferenciaExterna
+
+dbo.Conductor
+
+ReferenciaExterna
+
+Estándar
+
+ID integrador del conductor en el ERP.
+
+
+
+4. Configuración de Campos Dinámicos (Tablas _Dyn)
+
+Al igual que en EUP, la base de datos de TSP utiliza tablas de extensión con sufijo '_Dyn' para almacenar los datos que no caben en el estándar de UniGIS pero son críticos para el ERP. Las reglas de correspondencia son:
+
+dbo.Vehiculo_Dyn: Debe tener creadas las columnas para almacenar FechaFabricacion, IdEstadoVehiculo, Tara, y los flags de reportes fiscales (IntegrarRNDC, IntegrarCTE). Si el JSON contiene estos campos con valor, la interfaz los persiste en esta tabla relacionándolos por el Dominio o IdVehiculo.
+
+dbo.Conductor_Dyn: Almacena la fecha de nacimiento y los estados fiscales del conductor. Se relaciona mediante el IdConductor o NroDocumento.
+
+dbo.Transporte_Dyn: Almacena el estado administrativo en la publicación de ofertas de viajes (Tendering) y sus flags correspondientes.
+
+5. Sincronización y Conciliación con el ERP
+
+Cuando el ERP recibe el POST con este JSON, ejecuta los siguientes cruces en su módulo de finanzas y tesorería:
+
+Conciliación de Cobros: El ERP cruza los documentos de facturación (Guias/Pedidos) incluidos en la consulta con las transacciones registradas en dbo.Cobros para verificar el pago efectivo (Efectivo/TPV/Cheque). Si hay diferencias (Caso 2: menor al total, Caso 3: cobro en exceso), se generan las cuentas corrientes de cliente correspondientes.
+
+Liquidación de Transportistas: Utilizando el vehículo (Dominio), conductor (NroDocumento) y transportista (Referencia/Cuit), el ERP valida las tarifas acordadas en el contrato para calcular el pago del flete al transportista (dbo.Transporte), descontando posibles incidencias (rechazos/sobrantes) informadas en la parada de tipo 10 (Rendición).
+

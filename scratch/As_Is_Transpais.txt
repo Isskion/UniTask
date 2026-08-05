@@ -1,0 +1,818 @@
+
+
+
+
+
+
+
+
+DOCUMENTACIÓN
+
+1.0
+
+AREAS CONTEMPLADAS
+
+Relevamiento Cliente TRANSPAIS 
+
+
+
+
+
+
+
+
+
+Documento de As Is: CLIENTE TRANSPAIS SEP ‘26
+
+
+
+
+
+
+
+
+
+
+
+REGISTRO DE CAMBIOS / HISTORIA DE REVISIONES
+
+
+
+Versión
+
+Causa del Cambio
+
+Responsable del Cambio
+
+Fecha del Cambio
+
+1.0
+
+Versión inicial
+
+Jorge Martínez
+
+Jorge Sureda
+
+02/10/2025
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Contenido
+
+Objetivo Principal	3
+
+EMPRESAS	3
+
+Cliente TRANSPAIS España	3
+
+Cliente TRANSPAIS Atlántico (Vigo)	4
+
+Cliente TRANSPAIS Francia	4
+
+Cliente TRANSPAIS Bulgaria	4
+
+Cliente TRANSPAIS Polonia	5
+
+Servicios prestados	5
+
+Intermodal:	5
+
+Graneles:	6
+
+Internacional:	6
+
+4PL: Despacho de pedidos	6
+
+Distribución (para CM Logistics):	6
+
+Gestión de Pedidos y Planificación	6
+
+Recepción de Pedidos:	7
+
+Centralizar la entrada de pedidos que actualmente llegan por: carga manual, Mail, Portic, llamadas e integraciones. Se debe poder planificar sobre pedidos no confirmados que posteriormente se registran en Portic.	7
+
+Intermodal:	7
+
+Internacional:	7
+
+Distribución:	7
+
+casuísticas especiales	7
+
+Planificación	7
+
+Criterios de planificación	7
+
+Ejecución y control	8
+
+Intermodal	8
+
+Tarificación de ventas y costes	9
+
+Internacional	9
+
+Tarificación de ventas y costes	10
+
+Distribución	11
+
+Tarificación de ventas y costes	11
+
+Gestión de repartos	11
+
+Reparto	11
+
+Funcionalidades Generales	11
+
+Gestión de Pedidos:	11
+
+Gestión de Subcontratación:	12
+
+Exportación y Descargas:	12
+
+
+
+	
+
+
+
+Documento de As Is: CLIENTE TRANSPAIS SEP ‘26
+
+Este documento consolida las necesidades y requisitos detallados por el cliente durante las sesiones de relevamiento on-site para el proyecto de implementación de la plataforma TMS de Unigis.
+
+Objetivo Principal
+
+
+
+Conocer la metodología y circuitos operativos actuales de la empresa Cliente Transpais. Documentando la operativa de la compañía durante este proceso.
+
+EMPRESAS
+
+
+
+
+
+Cliente TRANSPAIS España
+
+Dirección
+
+CIF
+
+Delegaciones
+
+La Selva del Camp
+
+Dirección
+
+Cabanillas del campo
+
+Dirección
+
+Servicios prestados
+
+La selva del Camp
+
+Intermodal
+
+Internacional
+
+Distribución
+
+Cabanilla del campo
+
+¿?
+
+Puertos donde opera
+
+Barcelona (Portic)
+
+Girona (¿?)
+
+Algeciras (¿?)
+
+Valencia (¿?)
+
+Castellón (¿?)
+
+Cabanillas (¿?)
+
+Depósitos (propios y externos)
+
+¿?
+
+FLOTA
+
+La flota cuenta con XXX vehículos propios.
+
+La flota cuenta con XXX vehículos dedicados.
+
+La flota cuenta con XXX vehículos spot.
+
+Cliente TRANSPAIS Atlántico (Vigo)
+
+Dirección
+
+CIF
+
+Delegación
+
+Vigo
+
+Servicios prestados
+
+Internacional
+
+¿?
+
+Puertos donde opera
+
+¿?
+
+Depósitos
+
+¿?
+
+
+
+FLOTA
+
+La flota cuenta con XXX vehículos propios.
+
+La flota cuenta con XXX vehículos dedicados.
+
+La flota cuenta con XXX vehículos spot.
+
+
+
+Cliente TRANSPAIS Francia
+
+Dirección
+
+CIF
+
+Delegaciones
+
+Montoir
+
+Este de Francia
+
+Servicios prestados 
+
+Internacional
+
+Intermodal (contenedores, ¿Trenes?)
+
+Distribución
+
+Puertos donde opera
+
+¿?
+
+Depositos
+
+¿?
+
+FLOTA
+
+La flota cuenta con XXX vehículos propios.
+
+La flota cuenta con XXX vehículos dedicados.
+
+La flota cuenta con XXX vehículos spot.
+
+
+
+Cliente TRANSPAIS Bulgaria
+
+Dirección
+
+CIF
+
+Delegaciones
+
+¿?
+
+Servicios prestados 
+
+Internacional
+
+Intermodal 
+
+Distribución
+
+Puertos donde opera
+
+¿?
+
+Depositos
+
+¿?
+
+FLOTA
+
+La flota cuenta con XXX vehículos propios.
+
+La flota cuenta con XXX vehículos dedicados.
+
+La flota cuenta con XXX vehículos spot.
+
+
+
+
+
+Cliente TRANSPAIS Polonia
+
+Dirección
+
+CIF
+
+Delegaciones
+
+¿?
+
+Servicios prestados 
+
+Internacional
+
+Intermodal 
+
+Distribución
+
+Puertos donde opera
+
+¿?
+
+Depositas
+
+¿?
+
+FLOTA
+
+La flota cuenta con XXX vehículos propios.
+
+La flota cuenta con XXX vehículos dedicados.
+
+La flota cuenta con XXX vehículos spot.
+
+Servicios prestados
+
+
+
+
+
+Intermodal:
+
+Foco: Gestión integral del transporte de contenedores.
+
+Descripción del servicio: Gestiona la operativa con puertos (Portic), depósitos y la planificación de rutas complejas de importación y exportación.
+
+Importación
+
+Exportación
+
+Traslado
+
+Tarificación por radios de KM en venta y coste.
+
+Flujo logístico
+
+Casos especiales
+
+Desconsolidar en más de dos plazas.
+
+Reutilización de contenedores
+
+Graneles:
+
+Foco: Transporte de mercancías a granel.
+
+Descripción del servicio: Se encarga de la gestión de la flota especializada de volquetes de carga y la coordinación de las entregas.
+
+Flujo logístico
+
+Internacional:
+
+Foco: Transporte tradicional de larga distancia.
+
+Descripción del servicio: Cubre las operaciones de transporte por carretera a nivel europeo que no involucran contenedores marítimos, gestionando cargas completas y grupajes.
+
+Flujo logístico
+
+Casos especiales
+
+Entrega en recadero (distribución subcontratada)
+
+
+
+4PL: Despacho de pedidos
+
+Foco: Distribución de última milla¿?
+
+Descripción del servicio: ¿?
+
+Flujo logístico
+
+Casos especiales
+
+Tarifa de 4PL – Tarifa fija por pedido. Comisión de despacho
+
+Transporte propio – Cuando lo asignan a grupo se tarifica el porta + la gestión de despacho
+
+Distribución (para CM Logistics):
+
+Foco: Logística de última milla, paquetería, arrastre y paletería.
+
+Descripción del servicio: Opera como un servicio dedicado para el partner "CM Logistics" y gestiona la red de distribución en la península ibérica, incluyendo la subcontratación de servicios de paquetería y paletería.
+
+Flujo logístico
+
+Gestión de Pedidos y Planificación
+
+
+
+
+
+Recepción de Pedidos: 
+
+Centralizar la entrada de pedidos que actualmente llegan por: carga manual, Mail, Portic, llamadas e integraciones. Se debe poder planificar sobre pedidos no confirmados que posteriormente se registran en Portic.
+
+
+
+Intermodal: 
+
+Barcelona (Portic)
+
+Girona (¿?)
+
+Algeciras (¿?)
+
+Valencia (¿?)
+
+Castellón (¿?)
+
+Cabanillas (¿?)
+
+Carga manual (Mail)
+
+Internacional: 
+
+Integración con Transporeon.
+
+Exportación de estados
+
+Carga manual
+
+Distribución: 
+
+Sistema del cliente (Mynexus, Palibex)
+
+Integración con SGA (Generix)
+
+Manual
+
+
+
+casuísticas especiales
+
+Prerreservas de servicios
+
+Navieras (Maersk, Arkas…)
+
+Transitarios (freight forwarder)
+
+Planificación
+
+
+
+
+
+Definición :
+
+
+
+Asignación a cada pedido de vehículo, conductor y recursos requeridos que van a realizar el servicio.
+
+
+
+Criterios de planificación
+
+
+
+Intermodal: 
+
+Planificación de recolección y entrega de Intermodal
+
+Se planifica 24 horas antes de la ejecución.
+
+
+
+Internacional: 
+
+Planificación de recolección y entrega punto a punto, Ibérico o internacional.
+
+Se planifica 72 horas antes de la ejecución
+
+Para la asignación del vehículo y conductor se considera el punto de finalización del viaje anterior, la cercanía al nuevo punto de carga y las flotas dedicadas por tipo de material (ej. Latas). Incluyendo descansos y horas de conducción.
+
+El sistema debe permitir asociar a los viajes los recursos requeridos que hoy se conocen por experiencia (ej. Lavado, Cantoneras, Candado, Precinto).
+
+Permitir la agrupación de múltiples pedidos (que suelen compartir destino) en un único viaje, validando la capacidad del vehículo (metros, pallets, peso).
+
+Existen casos donde se deben planificar Grupajes.
+
+¿Volquetes lo gestiona internacional?
+
+4PL
+
+Gestión con las agencias para recuperar el vehículo y conductor que va a realizar el servicio.
+
+¿Recibimos la preasignación de vehículo, conductor y/o agencia?
+
+
+
+Distribución: 
+
+Planificación de rutas de reparto, recogidas diarias y arrastres.
+
+A falta de detallar la operación con flujos operativos, con agencias y entregas directas…
+
+Ejecución y control
+
+
+
+
+
+Intermodal
+
+
+
+Recepción de los pedidos.
+
+Customer Service 
+
+Crea las solicitudes manualmente en el fichero Excel compartido, donde entran todos los pedidos que intermodal debe gestionar desde cualquier medio.
+
+Crea los pedidos en el sistema TMS cuando está confirmado.
+
+Planificación del viaje
+
+El planificador 
+
+Realiza la asignación de vehículo y conductor en la plantilla Excel.
+
+
+
+Ejecución y control
+
+Operador de trafico
+
+Revisa que pedidos de la plantilla tienen asignado número de expedición, lo que le indica que ese pedido ya está confirmado.
+
+Toma los datos de vehículo y conductor del Excel donde han realizado la planificación y lo trasladan al tramo del pedido en TMS. Generando el viaje.
+
+Desde la lista de viajes del TMS, lanza el envío de la información al chofer :
+
+Carta porte
+
+Orden del cliente generada por Portic
+
+Cualquier documentación adjunta al pedido.
+
+Realiza el seguimiento del viaje desde la plataforma Webfleet. 
+
+
+
+Chofer
+
+Activa su jornada a través de lectura de tarjetas en la aplicación XXX
+
+Imprime documentación desde la impresora de cabina.
+
+Informa al operador de trafico de los diferentes estados del pedido.
+
+
+
+Tarificación de ventas y costes
+
+El cálculo de las tarifas se realiza en el TMS
+
+En el momento de generar los pedidos -- Ventas
+
+Al generar los viajes – Costes
+
+Manualmente.
+
+Transporte por Área, Recargos y Adicionales.
+
+Para el cálculo de importes utilizan distanciaros acordados con diferentes entidades.
+
+Puerto de Barcelona
+
+Maersk
+
+¿?
+
+Cuando un viaje tiene mas de un punto de parada, calculan la distancia manualmente. Añadiendo el sobrecoste que corresponda.
+
+Cálculo de tarifas por distancias especiales. 
+
+Larga distancia.
+
+…
+
+
+
+
+
+Internacional
+
+
+
+Recepción de los pedidos.
+
+¿Customer Service?
+
+Crea las solicitudes manualmente recibidas desde diferentes medios 
+
+Mail
+
+Teléfono
+
+…
+
+Se integran pedidos desde Transporeon. 
+
+
+
+Planificación del viaje
+
+El planificador 
+
+Realiza la asignación de vehículo y conductor en TMS. 
+
+Pantalla de diagrama de Gantt
+
+Doble pantalla de asignación
+
+Directo desde la pantalla de tramos.
+
+
+
+
+
+Ejecución y control
+
+Operador de trafico
+
+Desde la lista de viajes del TMS, lanza el envío de la información al chofer :
+
+Carta porte
+
+Cualquier documentación adjunta al pedido.
+
+Realiza el seguimiento del viaje a través de Transics, que envía los estados al TMS. 
+
+
+
+Chofer
+
+Se controla la actividad desde ¿Transics?.
+
+Imprime documentación desde la impresora de cabina.
+
+Informa al operador de trafico de los diferentes estados del pedido
+
+Desde Transics
+
+…
+
+
+
+Tarificación de ventas y costes
+
+El cálculo de las tarifas se realiza en el TMS
+
+Indexación de Combustible: Aplicar según condiciones del cliente.
+
+En el momento de generar los pedidos -- Ventas
+
+Al generar los viajes – Costes
+
+Manualmente.
+
+Transporte por 
+
+Área
+
+Kg
+
+pallets
+
+Recargos y Adicionales.
+
+….
+
+Cuando un viaje tiene más de un punto de parada, calculan la distancia manualmente. Añadiendo el sobrecoste que corresponda.
+
+Distribución
+
+
+
+Recepción de los pedidos.
+
+Interfaz generix
+
+….¿?
+
+
+
+Planificación del viaje
+
+El planificador 
+
+Realiza la asignación de vehículo y conductor en TMS. 
+
+Directo desde la pantalla de tramos del TMS actual ¿?
+
+
+
+
+
+Ejecución y control
+
+Operador de trafico
+
+¿Desde la lista de viajes del TMS actual?
+
+Chofer
+
+¿?
+
+
+
+Tarificación de ventas y costes
+
+¿?
+
+Gestión de repartos
+
+
+
+
+
+Reparto
+
+¿Costo fijo por día y por vehículo repartido automáticamente por Km y manual?
+
+Funcionalidades Generales
+
+
+
+
+
+Gestión de Pedidos:
+
+Permite la anulación o cancelación de pedidos directamente en TMS.
+
+Permite unir viajes (agrupaciones, especialmente en Internacional) 
+
+Gestión de Subcontratación: 
+
+Pueden gestionar transportistas subcontratados, especialmente para servicios de "Transporte Especial".
+
+Exportación y Descargas:
+
+Permite la selección de entidades (recursos, pedidos, etc.) para enviarlas por correo electrónico desde el TMS.
+
+Habilitada la descarga masiva de documentos asociados desde el TMS.
+
