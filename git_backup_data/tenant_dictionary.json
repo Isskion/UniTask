@@ -1100,6 +1100,16 @@
     }
   },
   {
+    "id": "JVSKZonMNVBUv7BqT1bk",
+    "tenantId": "3",
+    "word": "multiparadas",
+    "addedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1785943391,
+      "_nanoseconds": 624000000
+    }
+  },
+  {
     "id": "JdpSICzK4Ll0UTUmG0CW",
     "tenantId": "3",
     "word": "devolucionpedidosjson",
