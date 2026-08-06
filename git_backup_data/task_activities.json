@@ -3122,6 +3122,20 @@
     }
   },
   {
+    "id": "KyuQSPaUhXxLJWGr6YKQ",
+    "taskId": "HNfmdtlI3sVXPHwTPnxX",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1785996604,
+      "_nanoseconds": 916000000
+    }
+  },
+  {
     "id": "KzB8YLHlnoquU18rZ5y1",
     "taskId": "Y3rthOThwile74jnJSOx",
     "tenantId": "3",
@@ -4298,6 +4312,20 @@
     }
   },
   {
+    "id": "TXyVSlyQvcPcu69Qbztb",
+    "taskId": "Zh4owtfSwoHYmDkUtDei",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Revisión a Aprobación Final",
+    "createdAt": {
+      "_seconds": 1785996588,
+      "_nanoseconds": 49000000
+    }
+  },
+  {
     "id": "TY1VPsKIJ1AJ8189So3U",
     "taskId": "nAJL5yctXS5PS2t82GZj",
     "tenantId": "3",
@@ -4407,6 +4435,20 @@
     "createdAt": {
       "_seconds": 1771577582,
       "_nanoseconds": 636000000
+    }
+  },
+  {
+    "id": "UChZNmxG46CZc87D0EeA",
+    "taskId": "PvvNyd225S7gEBaYmmVS",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1785996596,
+      "_nanoseconds": 382000000
     }
   },
   {
@@ -5667,6 +5709,20 @@
     "createdAt": {
       "_seconds": 1782825359,
       "_nanoseconds": 501000000
+    }
+  },
+  {
+    "id": "cqwg6Wd3DwvfsiHhV68o",
+    "taskId": "HNfmdtlI3sVXPHwTPnxX",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de En Curso a Aprobación Final",
+    "createdAt": {
+      "_seconds": 1785996622,
+      "_nanoseconds": 919000000
     }
   },
   {

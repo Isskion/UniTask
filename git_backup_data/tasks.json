@@ -4521,7 +4521,6 @@
   {
     "id": "HNfmdtlI3sVXPHwTPnxX",
     "title": "Mejorar pantalla de login, trabajar logo y login",
-    "status": "pending",
     "projectId": "wRKrnv7OK4xgyRt5ejJ6",
     "acceptanceCriteria": [
       {
@@ -4550,7 +4549,6 @@
     "endDate": "2026-08-14T22:00:00.000Z",
     "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
     "projectCode": "TRIA",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-5",
     "taskNumber": 5,
@@ -4559,9 +4557,17 @@
       "_seconds": 1785360860,
       "_nanoseconds": 621000000
     },
+    "attributes": {},
+    "closedBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1785996622,
+      "_nanoseconds": 811000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1785360860,
-      "_nanoseconds": 621000000
+      "_seconds": 1785996622,
+      "_nanoseconds": 811000000
     }
   },
   {
@@ -5650,6 +5656,52 @@
     }
   },
   {
+    "id": "L7cKanzSDLj3Bra9EXb4",
+    "title": "Aplicación de trazabilidad",
+    "status": "pending",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1785996637.249,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-10-30T23:00:00.000Z",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "projectCode": "TRIA",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-6",
+    "taskNumber": 6,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1785996654,
+      "_nanoseconds": 578000000
+    },
+    "updatedAt": {
+      "_seconds": 1785996654,
+      "_nanoseconds": 578000000
+    }
+  },
+  {
     "id": "L7slMMD4KnCjn7zxyHid",
     "weekId": "2026-01-14",
     "relatedJournalEntryId": "2_2026-01-14_1768380022440",
@@ -6327,7 +6379,6 @@
     "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
     "type": "task",
     "actualEffort": null,
-    "status": "pending",
     "title": "Trabajar el apartado b2b",
     "projectCode": "TRIA",
     "projectId": "wRKrnv7OK4xgyRt5ejJ6",
@@ -6335,9 +6386,11 @@
       "_seconds": 1785262179,
       "_nanoseconds": 501000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1785262179,
-      "_nanoseconds": 501000000
+      "_seconds": 1785996596,
+      "_nanoseconds": 250000000
     }
   },
   {
@@ -8565,7 +8618,6 @@
     "projectCode": "TRIA",
     "endDate": "2026-08-30T22:00:00.000Z",
     "taskNumber": 1,
-    "actualEffort": null,
     "isActive": true,
     "raci": {
       "consulted": [],
@@ -8593,10 +8645,16 @@
     },
     "attributes": {},
     "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
-    "status": "review",
+    "closedBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1785996587,
+      "_nanoseconds": 889000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1785316520,
-      "_nanoseconds": 633000000
+      "_seconds": 1785996587,
+      "_nanoseconds": 889000000
     }
   },
   {
