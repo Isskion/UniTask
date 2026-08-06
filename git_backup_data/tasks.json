@@ -3504,6 +3504,53 @@
     }
   },
   {
+    "id": "DlDXGKJpFj3GpTQGQwaY",
+    "title": "Modelo operativo 4PL",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786015667.273,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-12-30T23:00:00.000Z",
+    "techDescription": "CONSIDERACIONES GENERALES 4PL\nModelo Operativo y Rol 4PL: Transpais actúa como un operador 4PL (Fourth Party Logistics) para su cliente BALL, coordinando un ecosistema de 19 empresas de transporte. En este modelo, Transpais tiene una doble función:\n●  Orquestador: Gestiona y reparte las cargas entre los transportistas según porcentajes de participación definidos por el cliente.\n●  Ejecutor: Participa también como un transportista más dentro del grupo que realiza los viajes físicos.\nResumen: Tarifas de Ingresos y Gastos — Modelo 4PL\nIngresos (facturación a Ball)\nSiempre se genera una línea de Servicio 4PL = Kilos × €, independientemente de quién ejecute el viaje. A eso se suman líneas adicionales según el carrier:\nCarrierLíneas de facturaciónNo es Transpais (tercero de Ball)Solo 4PL (kilos × €)Transpais4PL + Transporte + Indexación gasoilTranspais + agencia subcontratada4PL + Transporte + Indexación gasoil\nGastos (coste del viaje)\nCarrierGasto registradoNo es Transpais0 € — Ball paga directamente al transportista; Transpais no asume costeTranspaisTarifa vigente con el cliente (misma tarifa independientemente del origen 4PL o no)Transpais + agencia externaTarifa acordada manualmente con el proveedor por el operador de tráficoTranspais + intercompany (subsidiaria)Regla general: 8% del ingreso / Clientes especiales (Ball Ibérica): precio fijo por plantilla en Excel\nEjemplo integrado — Ball Ibérica con carrier Transpais SA\nBall paga a Transpais: 4PL (kilos × €) + Transporte + Indexación gasoil\nTranspais registra como gasto: la tarifa del viaje según acuerdo vigente con Ball.\nSi el viaje lo acaba haciendo TP Atlántico (intercompany): se aplica la plantilla con precio especial (ej. tarifa − 15 € + indexación), no el 8% estándar.\nPuntos clave\nEl precio que se cobra a Ball lo fija el equipo de Pricing (puede ser tarifa estándar automática o spot acordada y registrada a mano).\nEl coste del viaje subcontratado a una agencia externa siempre es manual.\nLos precios especiales intercompany viven en un Excel externo y se cargan en plantillas; no hay automatismo.\nPlanificación y Flujo Tecnológico: el proceso se centraliza mediante la integración de dos herramientas clave: Transporeon (captación), UNIGIS (TMS para gestión).\n●  Automatización: los pedidos se integran automáticamente en el TMS desde una integración con Transporeon, o por la integración Excel de los pedidos.\n●  Logística Directa: el modelo prioriza cargas completas entre plantas.\nOperativa Internacional y Asignación:\n●  Asignación de Cargas: El reparto se basa en las cuotas pactadas, pero mantiene flexibilidad operativa para ajustarse a la disponibilidad real de camiones o urgencias del cliente.\nFacturación, Costes y Futuro: el modelo financiero se divide según quién ejecute el transporte.\n●  Servicio 4PL: Transpais factura una tarifa fija por gestión (basada en € x KG) en todas las expediciones.\n●  Transporte: si Transpais realiza el viaje, factura adicionalmente el transporte.\n",
+    "projectCode": "TSP",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-41",
+    "taskNumber": 41,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786015703,
+      "_nanoseconds": 424000000
+    },
+    "updatedAt": {
+      "_seconds": 1786015703,
+      "_nanoseconds": 424000000
+    }
+  },
+  {
     "id": "Drk2z71jYCXsJ7U2TwDZ",
     "friendlyId": "MOCK-12-0",
     "organizationId": "1",
@@ -4062,11 +4109,11 @@
     },
     "techDescription": "Retiro de contenedor (de terminal o Depot)\nLlegada al cliente\nEstadía Maxima (>2h)\nHora de Salida del cliente\nEntrega del contenedor (en terminal o Depot) que seria el fin de viaje\nDefinición de alarmas de monitoreo necesarias por Transpaís en operativa internacional-4PL.\nEjemplo (Pendiente de completar con más casos):\nFin de viaje\nTiempo de estadía máximo superado\nGeofensing\n\n",
     "endDate": "2026-06-18T22:00:00.000Z",
-    "status": "in_progress",
     "title": "Alarmas a generar y notificaciones a generar",
+    "status": "pending",
     "updatedAt": {
-      "_seconds": 1781526697,
-      "_nanoseconds": 765000000
+      "_seconds": 1786016891,
+      "_nanoseconds": 520000000
     }
   },
   {
@@ -5420,7 +5467,6 @@
     "attributes": {
       "ui5PprcLLUROTO3PDYuy": "8nUNZSU00fSZ7KorEBol"
     },
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-23",
     "taskNumber": 23,
@@ -5429,14 +5475,20 @@
       "_seconds": 1780298609,
       "_nanoseconds": 179000000
     },
-    "status": "in_progress",
     "endDate": "2026-06-18T22:00:00.000Z",
     "area": "Interfaces",
     "techDescription": "Integrar vehículos en listado Webfleet",
     "title": "Integrar vehículos en listado Webfleet",
+    "closedBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1786017012,
+      "_nanoseconds": 602000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1782230409,
-      "_nanoseconds": 459000000
+      "_seconds": 1786017012,
+      "_nanoseconds": 602000000
     }
   },
   {
@@ -6347,6 +6399,53 @@
     }
   },
   {
+    "id": "PcFl0guDa7Y6vCbH6QgO",
+    "title": "           Configurar Logistica inversa -- Analizar los estados y acciones necesarias para gestionar las devoluciones",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786021894.935,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-12-30T23:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "techDescription": "Opciones contempladas para realizar la devolución y a validar con el equipo de proyecto de Transpais:\n●  Generar un viaje de Devolución\n●  Generar una parada de Devolución al mismo viaje\n●  Generar un Pedido de Devolución\n",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-42",
+    "taskNumber": 42,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786021941,
+      "_nanoseconds": 915000000
+    },
+    "updatedAt": {
+      "_seconds": 1786021941,
+      "_nanoseconds": 915000000
+    }
+  },
+  {
     "id": "PvvNyd225S7gEBaYmmVS",
     "tenantId": "18",
     "ancestorIds": [],
@@ -7199,6 +7298,53 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "TOZDtJR7mji75biTJduM",
+    "title": "Circuito intercompany",
+    "status": "pending",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786015559.122,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-12-30T23:00:00.000Z",
+    "techDescription": "Circuito Intercompany: la colaboración entre empresas del grupo se realiza de forma interna (sin subcontratación externa), utilizando un modelo de ingresos compartidos, donde se calcula el margen de cada delegación.”\nResumen: Facturación Intercompany en Transpais (procede del AsIs en construcción se definirá como lo haremos dentro de Unigis)\n¿Qué es?\nCuando Transpais capta un servicio pero lo ejecuta otra empresa del grupo (Francia, Polonia, Bulgaria, Atlántico…), el ingreso se reparte entre ambas mediante un mecanismo intercompany.\nCómo funciona el flujo\n●  Se genera la expedición con la empresa que capta el cliente (ej. Transpais France, TPF).\n●  En el briefing diario (10h), el equipo decide qué subsidiaria ejecuta el viaje.\n●  Al asignar el tramo a otra empresa (ej. Transpais SA), el sistema cambia automáticamente la empresa de la expedición a la ejecutora, que pasa a ser quien factura al cliente.\n●  Se crea una expedición inversa (espejo) que recoge el reparto económico entre empresas.\nCómo se calcula el reparto\nHay dos reglas:\nRegla general (8%): La empresa que captura el viaje retiene el 8% del ingreso del cliente; el 92% restante va a la empresa ejecutora.\nPrecio especial (plantilla): Para clientes recurrentes como Ball Ibérica o acuerdos internos concretos, se rompe la regla del 8% y se aplica un precio acordado manualmente cargado en una plantilla del TMS.\nEjemplo — Regla general (Constellium / TPF → TP SA)\nConstellium paga 1.000 € a Transpais France por un porte. El viaje lo ejecuta Transpais SA. → TPF retiene 80 € (8%) · TP SA recibe 920 € (92%).\nEjemplo — Precio especial (Ball Ibérica / TP SA → TP Atlántico)\nBall paga X€ a Transpais SA. Por acuerdo interno, Transpais Atlántico ejecuta el viaje. → TP Atlántico cobra el precio del viaje menos 15 € + indexación gasoil, calculado fuera del TMS en un Excel y luego cargado en la plantilla.\nPuntos críticos del proceso actual\n●  No hay automatización: el reparto se decide manualmente en el briefing diario.\n●  Precios especiales viven en Excel y se cargan a mano en plantillas del TMS; cualquier cambio de tarifa (ej. revisión de indexación) requiere ajuste manual.\n●  La expedición inversa solo se auto-actualiza si tiene precio 0€; si ya tiene precio y cambia el viaje, hay que corregirlo a mano.\n●  El tipo de viaje puede cambiar sin criterio fijo, lo que genera inconsistencias que se \"afinan a mano\".\n",
+    "projectCode": "TSP",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-40",
+    "taskNumber": 40,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786015587,
+      "_nanoseconds": 470000000
+    },
+    "updatedAt": {
+      "_seconds": 1786015587,
+      "_nanoseconds": 470000000
     }
   },
   {
@@ -10538,10 +10684,10 @@
       "_seconds": 1781166330,
       "_nanoseconds": 102000000
     },
-    "status": "in_progress",
+    "status": "pending",
     "updatedAt": {
-      "_seconds": 1781251460,
-      "_nanoseconds": 717000000
+      "_seconds": 1786016900,
+      "_nanoseconds": 380000000
     }
   },
   {

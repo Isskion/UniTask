@@ -2856,6 +2856,20 @@
     }
   },
   {
+    "id": "JUJRqT6me6VQaa2RuOIy",
+    "taskId": "KahvAmT89vo2cZ3nhqlG",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de En Curso a Aprobación Final",
+    "createdAt": {
+      "_seconds": 1786017013,
+      "_nanoseconds": 47000000
+    }
+  },
+  {
     "id": "JWMCOzEQsc2BU7dN8oUh",
     "taskId": "oOhCft2V6uTDYjE7GvyO",
     "tenantId": "3",
@@ -4603,6 +4617,20 @@
     "createdAt": {
       "_seconds": 1776931484,
       "_nanoseconds": 949000000
+    }
+  },
+  {
+    "id": "VPcMXbIiiyT2Mo1h4poJ",
+    "taskId": "gjnQTtWqj1UjXSn5K18H",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de En Curso a Pendiente",
+    "createdAt": {
+      "_seconds": 1786016900,
+      "_nanoseconds": 739000000
     }
   },
   {
@@ -6549,6 +6577,20 @@
     "createdAt": {
       "_seconds": 1769330084,
       "_nanoseconds": 146000000
+    }
+  },
+  {
+    "id": "j2yEW0z97zTDfcgq8zn3",
+    "taskId": "FWnzf8xcc9Z1wOMjIJ7V",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "userEmail": "daniel.delamo@unigis.com",
+    "userName": "Daniel Tenant Admin",
+    "type": "status_change",
+    "details": "Estado cambiado de En Curso a Pendiente",
+    "createdAt": {
+      "_seconds": 1786016891,
+      "_nanoseconds": 849000000
     }
   },
   {

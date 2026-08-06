@@ -4897,25 +4897,25 @@
     "tenantId": "3",
     "projects": [
       {
-        "name": "DELGADO",
+        "status": "active",
+        "pmNotes": "Hola equipo Delgado Selección,\n\n\nUn placer haber conversado con vosotros en el día de hoy. \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados: \n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.\n \n\nAccionables Equipo Delgado Selección\n\n \n\nDavid y Raúl: Llevar a cabo la sesión de revisión interna para validar el modelo de ruteo de Madrid que actualmente se encuentra al 97%.\nValidar técnicamente si para la operación de Urtinsa (5 vehículos) es estrictamente necesario habilitar el mapeo completo de la comunidad autónoma para el ruteo.\nMantener el monitoreo de las pruebas en la delegación de Madrid y recopilar los casos particulares para la futura sesión de ajuste con Unigis.\n \n\nAccionables Equipo Unigis\n\n \n\nIñaki: Avanzar con las configuraciones y lógica de optimización para las delegaciones de Asturias y Segovia.\nContinuar con el proceso de pruebas internas sobre el módulo de Cobranzas y el desarrollo de su versión 3.\nDiego: a la espera de la validación de Madrid por parte de David y Raúl para coordinar la sesión conjunta de ajuste fino de optimización.\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,",
         "projectId": "Au1xfXgivgl6VYj2zscs",
-        "pmNotes": "Hola equipo Delgado Selección,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\n \n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.\n \n\nAccionables Equipo Delgado Selección\n\n \n\nDavid y Raúl: Llevar a cabo la sesión de revisión interna para validar el modelo de ruteo de Madrid que actualmente se encuentra al 97%.\nValidar técnicamente si para la operación de Urtinsa (5 vehículos) es estrictamente necesario habilitar el mapeo completo de la comunidad autónoma para el ruteo.\nMantener el monitoreo de las pruebas en la delegación de Madrid y recopilar los casos particulares para la futura sesión de ajuste con Unigis.\n \n\nAccionables Equipo Unigis\n\n \n\nIñaki: Avanzar con las configuraciones y lógica de optimización para las delegaciones de Asturias y Segovia.\nContinuar con el proceso de pruebas internas sobre el módulo de Cobranzas y el desarrollo de su versión 3.\nDiego: a la espera de la validación de Madrid por parte de David y Raúl para coordinar la sesión conjunta de ajuste fino de optimización.\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,",
         "conclusions": "",
         "nextSteps": "",
-        "status": "active",
         "blocks": [
           {
-            "id": "default",
+            "isCollapsed": false,
             "title": "Título del bloque (ej. Reunión de Equipo)",
-            "content": "Hola equipo Delgado Selección,\n\n \n\nUn placer haber conversado con vosotros en el día de hoy.\n\n \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados:\n\n \n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.\n \n\nAccionables Equipo Delgado Selección\n\n \n\nDavid y Raúl: Llevar a cabo la sesión de revisión interna para validar el modelo de ruteo de Madrid que actualmente se encuentra al 97%.\nValidar técnicamente si para la operación de Urtinsa (5 vehículos) es estrictamente necesario habilitar el mapeo completo de la comunidad autónoma para el ruteo.\nMantener el monitoreo de las pruebas en la delegación de Madrid y recopilar los casos particulares para la futura sesión de ajuste con Unigis.\n \n\nAccionables Equipo Unigis\n\n \n\nIñaki: Avanzar con las configuraciones y lógica de optimización para las delegaciones de Asturias y Segovia.\nContinuar con el proceso de pruebas internas sobre el módulo de Cobranzas y el desarrollo de su versión 3.\nDiego: a la espera de la validación de Madrid por parte de David y Raúl para coordinar la sesión conjunta de ajuste fino de optimización.\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,",
-            "isCollapsed": false
+            "id": "default",
+            "content": "Hola equipo Delgado Selección,\n\n\nUn placer haber conversado con vosotros en el día de hoy. \n\nA continuación, les comparto un resumen con los temas, acuerdos y próximos pasos revisados: \n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.\n \n\nAccionables Equipo Delgado Selección\n\n \n\nDavid y Raúl: Llevar a cabo la sesión de revisión interna para validar el modelo de ruteo de Madrid que actualmente se encuentra al 97%.\nValidar técnicamente si para la operación de Urtinsa (5 vehículos) es estrictamente necesario habilitar el mapeo completo de la comunidad autónoma para el ruteo.\nMantener el monitoreo de las pruebas en la delegación de Madrid y recopilar los casos particulares para la futura sesión de ajuste con Unigis.\n \n\nAccionables Equipo Unigis\n\n \n\nIñaki: Avanzar con las configuraciones y lógica de optimización para las delegaciones de Asturias y Segovia.\nContinuar con el proceso de pruebas internas sobre el módulo de Cobranzas y el desarrollo de su versión 3.\nDiego: a la espera de la validación de Madrid por parte de David y Raúl para coordinar la sesión conjunta de ajuste fino de optimización.\n \n\nQuedo atento a cualquier duda o consulta,\n\n \n\nCordial saludo,"
           }
-        ]
+        ],
+        "name": "DELGADO"
       }
     ],
     "generalNotes": "",
     "createdAt": "2026-07-16T10:48:25.082Z",
-    "updatedAt": "2026-07-16T15:39:30.989Z"
+    "updatedAt": "2026-08-06T09:18:46.462Z"
   },
   {
     "id": "3_2026-07-17",
@@ -5017,9 +5017,25 @@
     "tenantId": "3",
     "projects": [
       {
-        "name": "SPAR",
+        "status": "active",
         "projectId": "WcF8wTccm1LkaFBfWvug",
+        "blocks": [
+          {
+            "isCollapsed": false,
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Prioridades revisadas en el día de hoy 05-08\nCerrar en la reunión técnica de esta tarde con Paula y Felipe el último bloque de datos a enviar por interfaz 4 de paradaItem + cualquier otra duda que bloquee el avance de IT SPAR\nEnviar a Erwin la guía con la configuración de app mobile vía QR para pruebas internas y luego coordinar con él una reunión de revisión de dudas cuando lo indiquen (Unigis)\nCoordinar reunión para mañana jueves 06-08 con Jesús para destrabar confirmación de viajes y cargas + pruebas de facturación (Unigis)\nCompilar la lista de temas en curso con estados y próximos pasos para seguimiento semanal y compartir por SharePoint (Diego)\nParticipar de la reunión por Deca de esta tarde para confirmar fechas solicitadas por Erwin y Marco (diego)\nCompletar y enviar documento de interfaces actualizado al cliente (Unigis)\n ",
+            "id": "default"
+          }
+        ],
         "pmNotes": "Prioridades revisadas en el día de hoy 05-08\nCerrar en la reunión técnica de esta tarde con Paula y Felipe el último bloque de datos a enviar por interfaz 4 de paradaItem + cualquier otra duda que bloquee el avance de IT SPAR\nEnviar a Erwin la guía con la configuración de app mobile vía QR para pruebas internas y luego coordinar con él una reunión de revisión de dudas cuando lo indiquen (Unigis)\nCoordinar reunión para mañana jueves 06-08 con Jesús para destrabar confirmación de viajes y cargas + pruebas de facturación (Unigis)\nCompilar la lista de temas en curso con estados y próximos pasos para seguimiento semanal y compartir por SharePoint (Diego)\nParticipar de la reunión por Deca de esta tarde para confirmar fechas solicitadas por Erwin y Marco (diego)\nCompletar y enviar documento de interfaces actualizado al cliente (Unigis)\n ",
+        "conclusions": "",
+        "nextSteps": "",
+        "name": "SPAR"
+      },
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 05-08-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definir el mapeo de la creación de pedidos.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Ahopra toca montar los sensores en la plataforma.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En construcción\n------------\n\nGenerix cierre esta semana el flujo, nos darán respuesta.",
         "conclusions": "",
         "nextSteps": "",
         "status": "active",
@@ -5027,7 +5043,7 @@
           {
             "id": "default",
             "title": "Título del bloque (ej. Reunión de Equipo)",
-            "content": "Prioridades revisadas en el día de hoy 05-08\nCerrar en la reunión técnica de esta tarde con Paula y Felipe el último bloque de datos a enviar por interfaz 4 de paradaItem + cualquier otra duda que bloquee el avance de IT SPAR\nEnviar a Erwin la guía con la configuración de app mobile vía QR para pruebas internas y luego coordinar con él una reunión de revisión de dudas cuando lo indiquen (Unigis)\nCoordinar reunión para mañana jueves 06-08 con Jesús para destrabar confirmación de viajes y cargas + pruebas de facturación (Unigis)\nCompilar la lista de temas en curso con estados y próximos pasos para seguimiento semanal y compartir por SharePoint (Diego)\nParticipar de la reunión por Deca de esta tarde para confirmar fechas solicitadas por Erwin y Marco (diego)\nCompletar y enviar documento de interfaces actualizado al cliente (Unigis)\n ",
+            "content": "Transpais - Seguimiento semanal 05-08-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definir el mapeo de la creación de pedidos.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Ahopra toca montar los sensores en la plataforma.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. Sin fecha de entrega.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En construcción\n------------\n\nGenerix cierre esta semana el flujo, nos darán respuesta.",
             "isCollapsed": false
           }
         ]
@@ -5035,7 +5051,33 @@
     ],
     "generalNotes": "",
     "createdAt": "2026-08-05T10:32:04.417Z",
-    "updatedAt": "2026-08-05T10:32:15.081Z"
+    "updatedAt": "2026-08-06T08:35:57.768Z"
+  },
+  {
+    "id": "3_2026-08-06",
+    "date": "2026-08-06",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "DELGADO",
+        "projectId": "Au1xfXgivgl6VYj2zscs",
+        "pmNotes": "2026/08/06 Seguimiento\n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "2026/08/06 Seguimiento\n\nAjustes y Optimización de operación (Madrid): David se encuentra realizando pruebas en TEST utilizando copias de datos reales de producción (PRD).\nActualmente, el modelo teórico de ruteo diseñado por David alcanza un 97% de efectividad.\nPara terminar de consolidarlo, se ha definido una estrategia en dos pasos:\n1) realizar una validación interna del modelo junto con Raúl;\n2) coordinar una sesión técnica con el equipo de Unigis para resolver de manera conjunta cualquier caso o desvío que surja de dicha revisión, además de cualquier ajuste adicional de parámetros\n\nModelos de Optimización en Delegaciones (Asturias, Segovia y Urtinsa):\nAsturias y Segovia: El equipo de Unigis continuará avanzando en la configuración y modelado técnico de ambas delegaciones similar a como se hizo con Madrid\nUrtinsa: Se requiere validar desde Delgado si es necesario incorporar el mapa de toda la comunidad autónoma para poder rutear de forma óptima la flota asignada (compuesta por 5 vehículos).\n\nMódulo de Cobranzas: El entorno correspondiente ya ha sido liberado desde el área de Producto de Unigis y se encuentra actualmente en fase de pruebas internas, avanzando en la validación de la versión 3.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-08-06T09:17:40.646Z",
+    "updatedAt": "2026-08-06T09:19:04.452Z"
   },
   {
     "id": "4_2026-01-12",
