@@ -417,6 +417,54 @@
     }
   },
   {
+    "id": "1wXjqsFBTx2apepwAxOf",
+    "title": "Crear Tipos de parada de Internacional",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786111542.365,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-08-27T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "techDescription": "Tipo Parada\tEstado\tMotivo\nCARGA EN REMITENTE\tCargado en remitente\t\nCARGA EN REMITENTE\tCargado Parcial en remitente\tRevisión TRANSPAIS\nCARGA EN REMITENTE\tNo Cargado en remitente\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO SALIDA\tCargado en depósito salida\t\nCARGA EN DEPÓSITO SALIDA\tCargado Parcial en depósito salida\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO SALIDA\tNo Cargado en depósito salida\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO LLEGADA\tCargado en depósito llegada\t\nCARGA EN DEPÓSITO LLEGADA\tCargado Parcial en depósito llegada\tRevisión TRANSPAIS\nCARGA EN DEPÓSITO LLEGADA\tNo Cargado en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN CONSIGNATARIO\tEntrega en depósito salida\t\nENTREGA EN CONSIGNATARIO\tEntrega Parcial en depósito salida\tRevisión TRANSPAIS\nENTREGA EN CONSIGNATARIO\tNo Entregado en depósito salida\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO SALIDA\tEntrega en depósito llegada\t\nENTREGA EN DEPÓSITO SALIDA\tEntrega Parcial en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO SALIDA\tNo Entregado en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO LLEGADA\tEntrega en depósito llegada\t\nENTREGA EN DEPÓSITO LLEGADA\tEntrega Parcial en depósito llegada\tRevisión TRANSPAIS\nENTREGA EN DEPÓSITO LLEGADA\tNo Entregado en depósito llegada\tRevisión TRANSPAIS\n",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-43",
+    "taskNumber": 43,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786111631,
+      "_nanoseconds": 469000000
+    },
+    "attributes": {},
+    "status": "review",
+    "updatedAt": {
+      "_seconds": 1786111719,
+      "_nanoseconds": 225000000
+    }
+  },
+  {
     "id": "20E8FLIHK9GvUhpbb213",
     "weekId": "2026-02-12",
     "relatedDailyStatusId": "3_2026-02-12",
@@ -12800,6 +12848,53 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "qPu1s8JdZyZE7KL0demH",
+    "title": "Crear estados de parada",
+    "status": "review",
+    "projectId": "aAb2HIajQVhXnLAzmVo8",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786111732.412,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "endDate": "2026-08-27T22:00:00.000Z",
+    "assignedTo": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "projectCode": "TSP",
+    "techDescription": "Estado\nCargado en remitente\nCargado Parcial en remitente\nNo Cargado en remitente\nCargado en depósito salida\nCargado Parcial en depósito salida\nNo Cargado en depósito salida\nCargado en depósito llegada\nCargado Parcial en depósito llegada\nNo Cargado en depósito llegada\nEntrega en depósito salida\nEntrega Parcial en depósito salida\nNo Entregado en depósito salida\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\nEntrega en depósito llegada\nEntrega Parcial en depósito llegada\nNo Entregado en depósito llegada\n",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-44",
+    "taskNumber": 44,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786111771,
+      "_nanoseconds": 649000000
+    },
+    "updatedAt": {
+      "_seconds": 1786111771,
+      "_nanoseconds": 649000000
     }
   },
   {
