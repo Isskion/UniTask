@@ -4942,6 +4942,20 @@
     }
   },
   {
+    "id": "WtFLyX30GGIHwzAYXcIR",
+    "taskId": "0N45KaPlXXE7tEHVEXKg",
+    "tenantId": "18",
+    "userId": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "userEmail": "securedroutes@gmail.com",
+    "userName": "Daniel del Amo",
+    "type": "status_change",
+    "details": "Estado cambiado de Pendiente a En Curso",
+    "createdAt": {
+      "_seconds": 1786257363,
+      "_nanoseconds": 909000000
+    }
+  },
+  {
     "id": "WwpQzUwZ1EfYXWQdvBwz",
     "taskId": "bmZqQjd8AlXtkwE9b0Od",
     "tenantId": "3",

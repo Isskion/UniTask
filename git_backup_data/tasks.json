@@ -88,6 +88,54 @@
     }
   },
   {
+    "id": "0N45KaPlXXE7tEHVEXKg",
+    "title": "Crear diagrama de Gantt",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786257315.283,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-11-29T23:00:00.000Z",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "techDescription": "Analisis y creación del diagrama de Gantt",
+    "projectCode": "TRIA",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-8",
+    "taskNumber": 8,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1786257341,
+      "_nanoseconds": 455000000
+    },
+    "attributes": {},
+    "status": "in_progress",
+    "updatedAt": {
+      "_seconds": 1786257363,
+      "_nanoseconds": 739000000
+    }
+  },
+  {
     "id": "0bjHK2hScjUsNSzgovZh",
     "weekId": "2026-02-12",
     "relatedDailyStatusId": "3_2026-02-12",
@@ -376,6 +424,53 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "1hXCtJVOJiCfDGwUyOQa",
+    "title": "Crear dobles pantallas",
+    "status": "pending",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786257224.174,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-10-30T23:00:00.000Z",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "projectCode": "TRIA",
+    "techDescription": "Analizar y lanzar la creación de las dobles de asginación",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-7",
+    "taskNumber": 7,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1786257295,
+      "_nanoseconds": 281000000
+    },
+    "updatedAt": {
+      "_seconds": 1786257295,
+      "_nanoseconds": 281000000
     }
   },
   {
