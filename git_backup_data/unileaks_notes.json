@@ -1059,6 +1059,22 @@
     }
   },
   {
+    "id": "JE81mOlcdZtTV9tz9uZX",
+    "projectId": "Au1xfXgivgl6VYj2zscs",
+    "tenantId": "3",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "isPublic": false,
+    "isInternal": true,
+    "folderId": "4zm3BlZpyV0ncd2E6wuO",
+    "createdAt": null,
+    "title": "",
+    "content": "<ul data-list-type=\"disc\"><li><p>1.    Necesitamos que no realice rutas que van a puntos lejanos y vuelven habiendo rutas que pasarán por la zona.</p><ul data-list-type=\"disc\"><li><p>Reducir solapamiento -- Optimización del escenario -- Poner 100%</p></li></ul></li><li><p>2.    Que agrupe rutas en la medida de lo posible (horarios o peso) sin cruzarse con otras</p><ul data-list-type=\"disc\"><li><p>Reducir solapamiento -- Optimización del escenario -- Poner 100%</p></li></ul></li><li><p>3.    Agrupar clientes que abriendo a la misma hora estando juntos los separa en rutas diferentes.</p><ul data-list-type=\"disc\"><li><p>Revisar inicio de rutas, priorizar apertura temprana al 100% o similar</p></li></ul></li><li><p>4.    Comprobar por qué hay consolidados que luego “rompe” y deja al mismo cliente en dos rutas diferentes.</p><ul data-list-type=\"disc\"><li><p>revisar</p></li></ul></li><li><p>5.    Orden Automático. Si a las rutas sin modificar nada, se les hace un reordenamiento automático mejoran en tiempos y orden más lógico. ¿Por qué no hace esto mismo con el primer pre ruteo?</p><ul data-list-type=\"disc\"><li><p>revisar por que no respetar la ordenación inicial.</p></li></ul></li></ul><p></p><p>Cambios realziados:</p><ul data-list-type=\"disc\"><li><p>Añadir radio de invasión a 10 KM en la zona Centro - Mopdelo de condición 1</p></li><li><p>Quitar balanceo de carga</p></li><li><p></p></li></ul><p></p>",
+    "updatedAt": {
+      "_seconds": 1786367627,
+      "_nanoseconds": 19000000
+    }
+  },
+  {
     "id": "JFxEDbfUzBMZCiYcyEhb",
     "projectId": "aAb2HIajQVhXnLAzmVo8",
     "tenantId": "3",
