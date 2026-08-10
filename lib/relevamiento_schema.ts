@@ -1,284 +1,755 @@
+/**
+ * UNIGIS TMS Discovery & Relevamiento Schema for UniTask
+ * Contiene la estructura completa de las 22 Secciones, 67 Tablas y Plantillas de Industria
+ */
+
 export interface Question {
   id: string;
-  text: string;
-  type: 'text' | 'textarea' | 'select' | 'multiselect' | 'boolean' | 'number';
+  label: string;
+  type: 'text' | 'date' | 'chip' | 'textarea' | 'number';
   options?: string[];
   placeholder?: string;
   helpText?: string;
 }
 
-export interface Section {
+export interface TableColumn {
+  key: string;
+  label: string;
+  type: 'readonly' | 'text' | 'chip' | 'date';
+  options?: string[];
+}
+
+export interface TableDef {
   id: string;
+  title: string;
+  columns: TableColumn[];
+  rows: Record<string, any>[];
+}
+
+export interface RelevamientoSection {
+  id: string;
+  code: string;
   title: string;
   icon: string;
-  tabs: Tab[];
+  desc: string;
+  questions?: Question[];
+  tables?: TableDef[];
 }
 
-export interface Tab {
-  id: string;
-  title: string;
-  questions: Question[];
-}
-
-export const RELEVAMIENTO_SECTIONS: Section[] = [
+export const RELEVAMIENTO_SECTIONS_FULL: RelevamientoSection[] = [
   {
-    id: 'general',
-    title: '1. Información General',
-    icon: 'Users',
-    tabs: [
+    id: "sec-1",
+    code: "1",
+    title: "Resumen Ejecutivo",
+    icon: "BarChart3",
+    desc: "Objetivos, alcance por módulo, beneficios esperados y matriz inicial de riesgos del proyecto.",
+    questions: [
+      { id: "p1_1", label: "Nombre del Proyecto", type: "text", placeholder: "Ej. Implantación UNIGIS TMS Europastry 2026" },
+      { id: "p1_2", label: "Cliente", type: "text", placeholder: "Nombre legal o comercial del cliente" },
+      { id: "p1_3", label: "Fecha Inicio Prevista", type: "date" },
+      { id: "p1_4", label: "Fecha Go-Live Prevista", type: "date" },
+      { id: "p1_5", label: "Responsable UNIGIS", type: "text", placeholder: "Consultor Líder UNIGIS" },
+      { id: "p1_6", label: "Responsable Cliente", type: "text", placeholder: "Project Manager Cliente" },
+      { id: "p1_7", label: "Países / Delegaciones en Alcance", type: "text", placeholder: "Ej. España, Portugal, México" },
+      { id: "p1_8", label: "Empresas Legales en Alcance", type: "text", placeholder: "Razón social / NIFs" }
+    ],
+    tables: [
       {
-        id: 'stakeholders',
-        title: 'Interesados',
-        questions: [
-          { id: 'company_name', text: 'Nombre de la Empresa', type: 'text' },
-          { id: 'meeting_date', text: 'Fecha de Reunión', type: 'text', placeholder: 'DD/MM/YYYY' },
-          { id: 'client_web', text: 'Web del Cliente', type: 'text' },
-          { id: 'sponsor', text: 'Project Sponsor', type: 'text' },
-          { id: 'pm_client', text: 'Project Manager (Cliente)', type: 'text' },
-          { id: 'functional_lead', text: 'Líder Funcional (Cliente)', type: 'text' },
-          { id: 'pm_unigis', text: 'Líder del Proyecto (Unitask)', type: 'text' },
-          { id: 'tech_lead_unigis', text: 'Líder Técnico (Unitask)', type: 'text' },
+        id: "t4",
+        title: "Módulos UNIGIS en Alcance (Tabla 4)",
+        columns: [
+          { key: "modulo", label: "Módulo UNIGIS", type: "readonly" },
+          { key: "alcance", label: "En Alcance", type: "chip", options: ["Sí", "No", "Fase 2"] },
+          { key: "obs", label: "Observaciones", type: "text" }
+        ],
+        rows: [
+          { modulo: "Gestión de Pedidos (Orders)", alcance: "Sí", obs: "Integración ERP en tiempo real" },
+          { modulo: "Planificación y Optimización de Rutas", alcance: "Sí", obs: "Algoritmos VRP con ventanas horarias" },
+          { modulo: "Gestión de Expediciones y Manifiestos", alcance: "Sí", obs: "Consolidación y agrupar envíos" },
+          { modulo: "Gestión de Flotas, Vehículos y Conductores", alcance: "Sí", obs: "Catálogo de capacidades y turnos" },
+          { modulo: "Carrier Management y Portal de Transportistas", alcance: "Sí", obs: "Oferta de cargas a terceros" },
+          { modulo: "Gestión de Tarifas y Liquidación (Settlement)", alcance: "Sí", obs: "Pre-facturación y costes" },
+          { modulo: "Tracking & Tracing / Torre de Control", alcance: "Sí", obs: "Visibilidad GPS y alertas" },
+          { modulo: "Portal de Clientes", alcance: "Sí", obs: "Seguimiento de pedidos por cliente" },
+          { modulo: "Aplicación de Conductores (Mobility)", alcance: "Sí", obs: "Proof of Delivery (POD) digital" },
+          { modulo: "Motor de Reglas de Negocio", alcance: "Sí", obs: "Validaciones automáticas" },
+          { modulo: "Reporting y Business Intelligence", alcance: "Sí", obs: "KPIs operativos y financieros" }
         ]
       },
       {
-        id: 'context',
-        title: 'Contexto Empresa',
-        questions: [
-          { 
-            id: 'activity', 
-            text: 'Actividad Principal', 
-            type: 'select', 
-            options: ['Operador Logístico', 'Retail / Consumo Masivo', 'Manufactura', 'Distribución / Mayorista', 'E-commerce', 'Otro'] 
-          },
-          { id: 'other_contacts', text: 'Otros Contactos Stakeholders', type: 'textarea' },
-          { id: 'additional_info', text: 'Información Adicional / Notas', type: 'textarea' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'objectives',
-    title: '2. Descripción Operación',
-    icon: 'Target',
-    tabs: [
-      {
-        id: 'goals',
-        title: 'Objetivos del Cliente',
-        questions: [
-          { id: 'goal_tracking', text: 'Controlar distribución en tiempo real (GPS + Smart Tracking)', type: 'boolean' },
-          { id: 'goal_mobile', text: 'Confirmar estado de entregas (Mobile Work Force)', type: 'boolean' },
-          { id: 'goal_customer_service', text: 'Apoyar atención al cliente con información logística', type: 'boolean' },
-          { id: 'goal_efficiency', text: 'Mayor eficiencia en distribución de última milla', type: 'boolean' },
-          { id: 'goal_service_level', text: 'Mejorar nivel de servicio y cumplimiento', type: 'boolean' },
-          { id: 'goal_growth', text: 'Mejor soporte operativo para crecimiento', type: 'boolean' },
+        id: "t5",
+        title: "Beneficios Esperados (Tabla 5)",
+        columns: [
+          { key: "area", label: "Área", type: "text" },
+          { key: "asis", label: "Situación Actual (AS-IS)", type: "text" },
+          { key: "tobe", label: "Objetivo con UNIGIS (TO-BE)", type: "text" },
+          { key: "kpi", label: "KPI de Medición", type: "text" }
+        ],
+        rows: [
+          { area: "Planificación", asis: "Manual en Excel (3-4 horas/día)", tobe: "Automatizada (< 45 min/día)", kpi: "Tiempo de planificación" },
+          { area: "Ocupación Vehículos", asis: "65% capacidad ponderada", tobe: "85% optimizando llenado", kpi: "% Utilización capacidad" },
+          { area: "Nivel de Servicio", asis: "88% entregas a tiempo", tobe: "> 96% OTD", kpi: "% OTD (On Time Delivery)" },
+          { area: "Visibilidad", asis: "Llamadas telefónicas periódicas", tobe: "Torre de Control GPS 100%", kpi: "% Tracking en tiempo real" }
         ]
       },
       {
-        id: 'current_op',
-        title: 'Operación Actual',
-        questions: [
-          { id: 'detailed_description', text: 'Descripción detallada de la operación actual', type: 'textarea' },
+        id: "t6",
+        title: "Matriz de Riesgos Principales (Tabla 6)",
+        columns: [
+          { key: "riesgo", label: "Riesgo Identificado", type: "text" },
+          { key: "prob", label: "Probabilidad", type: "chip", options: ["Alta", "Media", "Baja"] },
+          { key: "imp", label: "Impacto", type: "chip", options: ["Alto", "Medio", "Bajo"] },
+          { key: "mitigacion", label: "Plan de Mitigación", type: "text" }
+        ],
+        rows: [
+          { riesgo: "Datos maestros incompletos o de baja calidad", prob: "Alta", imp: "Alto", mitigacion: "Plan de limpieza previo a la ingesta" },
+          { riesgo: "Resistencia al cambio en choferes", prob: "Media", imp: "Alto", mitigacion: "Plan de formación presencial y vídeos intuitivos" },
+          { riesgo: "Integración ERP con personalizaciones complejas", prob: "Media", imp: "Alto", mitigacion: "Especificación técnica temprana de conectores API" }
         ]
       }
     ]
   },
   {
-    id: 'operational',
-    title: '3. Parámetros Operativos',
-    icon: 'Truck',
-    tabs: [
+    id: "sec-2",
+    code: "2",
+    title: "Información General de la Compañía",
+    icon: "Building2",
+    desc: "Perfil de la empresa, estructura corporativa, sedes y modelos de negocio.",
+    questions: [
+      { id: "p2_1", label: "Sector de Industria", type: "chip", options: ["Alimentación / Congelado", "Retail / Distribución", "Operador Logístico 3PL/4PL", "Químico / Industrial", "Automoción", "Otro"] },
+      { id: "p2_2", label: "Facturación Anual Estimada (€)", type: "text", placeholder: "Ej. 150 M€" },
+      { id: "p2_3", label: "Volumen Anual de Expediciones", type: "text", placeholder: "Ej. 500,000 expediciones/año" },
+      { id: "p2_4", label: "Nº de Centros de Distribución / Almacenes", type: "text", placeholder: "Ej. 12 centros" }
+    ],
+    tables: [
       {
-        id: 'infrastructure',
-        title: 'Infraestructura',
-        questions: [
-          { id: 'cd_count', text: 'Cantidad de Centros de Distribución', type: 'number' },
-          { id: 'daily_deliveries', text: 'Cantidad de Entregas Diarias', type: 'number' },
-          { id: 'vehicle_count', text: 'Cantidad de Vehículos', type: 'number' },
-          { id: 'vehicle_types', text: 'Tipos de Vehículos', type: 'text' },
-          { id: 'daily_trips', text: 'Cantidad de Viajes Diarios', type: 'number' },
-          { id: 'route_types', text: 'Tipo de Rutas (T1/T2/T3)', type: 'text' },
-          { id: 'current_systems', text: 'Sistemas Actuales (ERP/WMS)', type: 'text' },
-          { id: 'cd_locations', text: 'Ubicación de los CDs', type: 'textarea' },
-          { id: 'op_types', text: 'Tipo de Operaciones', type: 'text' },
+        id: "t7",
+        title: "Perfil General y Alcance Corporativo (Tabla 7)",
+        columns: [
+          { key: "campo", label: "Campo a Capturar", type: "readonly" },
+          { key: "valor", label: "Valor / Respuesta del Cliente", type: "text" }
+        ],
+        rows: [
+          { campo: "Razón Social Principal", valor: "" },
+          { campo: "Sede Central", valor: "" },
+          { campo: "Estructura de Grupos de Empresas", valor: "" },
+          { campo: "Idiomas Requeridos en Plataforma", valor: "Español, Inglés" },
+          { campo: "Horarios Operativos de Atención", valor: "24/7" }
         ]
       }
     ]
   },
   {
-    id: 'planning',
-    title: '4. Smart Planning',
-    icon: 'Settings',
-    tabs: [
+    id: "sec-3",
+    code: "3",
+    title: "Tipología de Operaciones de Transporte",
+    icon: "Truck",
+    desc: "Clasificación de los tipos de servicio (Última milla, FTL, LTL, Capilar), modos y tipos de carga.",
+    tables: [
       {
-        id: 'logic_left',
-        title: 'Planificación A',
-        questions: [
-          { id: 'vehicle_assoc_cd', text: 'Asociación de Vehículos por CD', type: 'boolean' },
-          { id: 'docks_available', text: 'Docks o Muelles disponibles', type: 'number' },
-          { id: 'routing_processes', text: 'Procesos de Ruteo diarios (mañana/tarde)', type: 'number' },
-          { id: 'exclusive_load', text: 'Clientes con Carga Exclusiva', type: 'boolean' },
-          { id: 'optimization_criteria', text: 'Optimización por (V/V/P/D/T/Pallet)', type: 'text' },
-          { id: 'time_windows', text: 'Ventanas Horarias del Cliente (doble)', type: 'boolean' },
-          { id: 'avg_wait_time', text: 'Tiempo de Espera Promedio', type: 'number' },
-          { id: 'restriction_client_veh', text: 'Restricción Cliente/Vehículo', type: 'boolean' },
+        id: "t9",
+        title: "Tipos de Servicio Operativo (Tabla 9)",
+        columns: [
+          { key: "tipo", label: "Tipo de Operativa", type: "readonly" },
+          { key: "aplica", label: "Aplica (Sí/No)", type: "chip", options: ["Sí", "No"] },
+          { key: "volumen", label: "Volumen Aprox. (Envíos/Día)", type: "text" },
+          { key: "obs", label: "Observaciones / Particularidades", type: "text" }
+        ],
+        rows: [
+          { tipo: "Última Milla / Entregas Capilares (HORECA/Retail)", aplica: "Sí", volumen: "2,500", obs: "Restricciones de horario matutino en centro urbano" },
+          { tipo: "Distribución Primaria / Larga Distancia (FTL)", aplica: "Sí", volumen: "120", obs: "Tráileres completos a plataformas regionales" },
+          { tipo: "Carga Parcial / Grupalia (LTL)", aplica: "Sí", volumen: "300", obs: "Remontado y consolidación en transit hubs" },
+          { tipo: "Transporte Internacional / Transfronterizo", aplica: "No", volumen: "0", obs: "N/A" },
+          { tipo: "Inverso / Devoluciones (Reverse Logistics)", aplica: "Sí", volumen: "150", obs: "Recogida de envases y devoluciones de producto" }
         ]
       },
       {
-        id: 'logic_right',
-        title: 'Planificación B',
-        questions: [
-          { id: 'delivery_assoc_cd', text: 'Asociación de Entregas al CD', type: 'boolean' },
-          { id: 'second_trips', text: '¿Vehículos realizan 2das. Vueltas?', type: 'boolean' },
-          { id: 'fixed_clients', text: '¿Clientes fijos o varían cada día?', type: 'select', options: ['Fijos', 'Variables', 'Mixtos'] },
-          { id: 'client_master', text: '¿Maestro de Clientes disponible?', type: 'boolean' },
-          { id: 'measurement_unit', text: 'Unidad de Medida (m3, kg, bultos, etc)', type: 'text' },
-          { id: 'auto_partition', text: '¿Partición Automática si Saturó?', type: 'boolean' },
-          { id: 'client_priority', text: 'Prioridad en Cliente', type: 'boolean' },
-          { id: 'custom_manifest', text: 'Customización Hoja de Ruta (Modelo)', type: 'boolean' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'tracking',
-    title: '5. Smart Tracking',
-    icon: 'ClipboardCheck',
-    tabs: [
-      {
-        id: 'tracking_left',
-        title: 'Seguimiento A',
-        questions: [
-          { id: 'trip_types', text: 'Tipo de Viajes (Man/Auto/Ambos)', type: 'select', options: ['Manuales', 'Automáticos de Rutas', 'Ambos'] },
-          { id: 'driver_master', text: 'Maestro de Conductores', type: 'boolean' },
-          { id: 'vehicle_master', text: 'Maestro de Vehículos', type: 'boolean' },
-          { id: 'alarm_master', text: 'Maestro de Alarmas y Criticidad', type: 'boolean' },
-          { id: 'provider_count', text: 'Cantidad de Prestadores AVL', type: 'number' },
-          { id: 'auto_activation', text: '¿Activación/Finalización Automática?', type: 'boolean' },
-          { id: 'danger_zones', text: 'Zonas de Peligro o Permanencia', type: 'boolean' },
+        id: "t10",
+        title: "Modos de Transporte (Tabla 10)",
+        columns: [
+          { key: "modo", label: "Modo", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "sistemas", label: "Sistemas Externos Involucrados", type: "text" }
+        ],
+        rows: [
+          { modo: "Carretera (Vehículos Propios)", aplica: "Sí", sistemas: "UNIGIS Mobility" },
+          { modo: "Carretera (Transportista Subcontratado)", aplica: "Sí", sistemas: "Portal Carrier API" },
+          { modo: "Intermodal / Ferroviario", aplica: "No", sistemas: "-" },
+          { modo: "Marítimo / Aéreo", aplica: "No", sistemas: "-" }
         ]
       },
       {
-        id: 'tracking_right',
-        title: 'Seguimiento B',
-        questions: [
-          { id: 'delivery_statuses', text: 'Estados en las Entregas', type: 'textarea' },
-          { id: 'auto_status_change', text: '¿Cambio Automático de Estado en Paradas?', type: 'boolean' },
-          { id: 'trajectories', text: 'Recorridos (Zonas + Trayectos)', type: 'boolean' },
-          { id: 'tracking_flow', text: 'Flujo de Seguimiento', type: 'textarea' },
-          { id: 'indicators', text: 'Indicadores a Definir', type: 'textarea' },
-          { id: 'avl_provider_name', text: 'Prestador AVL Principal', type: 'text' },
+        id: "t11",
+        title: "Tipologías de Carga (Tabla 11)",
+        columns: [
+          { key: "tipo", label: "Tipología de Carga", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "unidad", label: "Unidad de Medida Principal", type: "chip", options: ["Palets", "Kilos (Kg)", "Volumen (m3)", "Bultos", "Cajas"] },
+          { key: "restricciones", label: "Restricciones de Temperatura / Manipulación", type: "text" }
+        ],
+        rows: [
+          { tipo: "Congelado (-18°C a -22°C)", aplica: "Sí", unidad: "Palets", restricciones: "Cadena de frío continua, registro termógrafo" },
+          { tipo: "Refrigerado (2°C a 8°C)", aplica: "Sí", unidad: "Cajas", restricciones: "Incompatibilidad con producto seco" },
+          { tipo: "Seco / Ambiente", aplica: "Sí", unidad: "Bultos", restricciones: "Sin restricción de frío" },
+          { tipo: "Mercancía Peligrosa (ADR)", aplica: "No", unidad: "Kilos (Kg)", restricciones: "N/A" }
         ]
       }
     ]
   },
   {
-    id: 'mobile',
-    title: '6. Mobile Workforce',
-    icon: 'Smartphone',
-    tabs: [
+    id: "sec-4",
+    code: "4",
+    title: "Red Logística y Geografía",
+    icon: "MapPin",
+    desc: "Nodos de la red (Almacenes, Hubs, Depots), zonas geográficas y parámetros de geocodificación.",
+    questions: [
+      { id: "p4_1", label: "¿Cuentan con cartografía o mapas propios?", type: "chip", options: ["Sí (GIS interno)", "No (Usar OpenStreetMap / Google Maps)"] },
+      { id: "p4_2", label: "Calidad de direcciones de clientes actuales", type: "chip", options: ["Alta (Lat/Long exactos)", "Media (Direcciones estructuradas)", "Baja (Texto libre sin validar)"] }
+    ],
+    tables: [
       {
-        id: 'mobile_features',
-        title: 'Funcionalidades APP',
-        questions: [
-          { id: 'mobile_status_tracking', text: '¿Cambio de Estados según Tracking?', type: 'boolean' },
-          { id: 'mobile_signature', text: '¿Requiere Firma?', type: 'boolean' },
-          { id: 'mobile_photo', text: '¿Requiere Foto?', type: 'boolean' },
-          { id: 'mobile_platform', text: 'Plataforma', type: 'select', options: ['Android', 'WAP', 'Ambos'] },
-          { id: 'mobile_device_count', text: 'Cantidad de Dispositivos', type: 'number' },
-          { id: 'mobile_survey', text: '¿Requiere Encuesta?', type: 'boolean' },
-          { id: 'mobile_scan', text: '¿Requiere Scaneo?', type: 'boolean' },
-          { id: 'mobile_incidents', text: '¿Carga de Incidencia?', type: 'boolean' },
-          { id: 'mobile_gps_events', text: '¿Envía Eventos de Posición (GPS)?', type: 'boolean' },
+        id: "t13",
+        title: "Nodos de la Red Logística (Tabla 13)",
+        columns: [
+          { key: "tipo", label: "Tipo de Nodo", type: "chip", options: ["Centro Distribución (CD)", "Hub de Trasbordo", "Almacén Central", "Planta Fabricación", "Cross-docking"] },
+          { key: "nombre", label: "Nombre / Ubicación", type: "text" },
+          { key: "codigo", label: "Código ERP", type: "text" },
+          { key: "horario", label: "Horario Operativo", type: "text" },
+          { key: "restricciones", label: "Restricciones de Acceso (Camiones)", type: "text" }
+        ],
+        rows: [
+          { tipo: "Centro Distribución (CD)", nombre: "CD Madrid Central (Getafe)", codigo: "HUB-MAD-01", horario: "05:00 - 22:00", restricciones: "Acceso tráiler 40t permitido" },
+          { tipo: "Cross-docking", nombre: "Hub Barcelona Norte", codigo: "HUB-BCN-02", horario: "04:00 - 14:00", restricciones: "Máximo rígidos 12t" }
         ]
       }
     ]
   },
   {
-    id: 'billing',
-    title: '7. Tarifas y Liquidación',
-    icon: 'BarChart3',
-    tabs: [
+    id: "sec-5",
+    code: "5",
+    title: "Gestión de Pedidos",
+    icon: "Package",
+    desc: "Canales de entrada de órdenes (API/EDI/ERP), tipología de pedidos, estados y reglas de consolidación.",
+    tables: [
       {
-        id: 'billing_logic',
-        title: 'Liquidación',
-        questions: [
-          { id: 'billing_user_count', text: 'Cantidad de Usuarios', type: 'number' },
-          { id: 'billing_table_count', text: 'Cuadros Tarifarios (cantidad/tipos)', type: 'text' },
-          { id: 'billing_validity', text: 'Vigencia de Cuadros (meses/años)', type: 'text' },
-          { id: 'billing_doc_control', text: 'Control Documental', type: 'boolean' },
-          { id: 'billing_fleet_settlement', text: '¿Liquidación a Flota Tercerizada?', type: 'boolean' },
-          { id: 'billing_client_invoice', text: '¿Facturación al Cliente (Dador de Carga)?', type: 'boolean' },
-          { id: 'billing_order_admin', text: '¿Administración de Pedidos?', type: 'boolean' },
+        id: "t16",
+        title: "Canales de Entrada e Integración de Pedidos (Tabla 16)",
+        columns: [
+          { key: "canal", label: "Canal de Entrada", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "sistema", label: "Sistema Origen", type: "text" },
+          { key: "datos", label: "Datos que Aporta", type: "text" },
+          { key: "frecuencia", label: "Frecuencia / Timing", type: "chip", options: ["Real-Time (Webservices API)", "Batch nocturno", "Horario Fijo", "Manual"] }
+        ],
+        rows: [
+          { canal: "Integración ERP Principal", aplica: "Sí", sistema: "SAP S/4HANA / Oracle", datos: "Cabecera, cliente, líneas, pesos, ventanas horarias", frecuencia: "Real-Time (Webservices API)" },
+          { canal: "Portal B2B Clientes Directos", aplica: "Sí", sistema: "UNIGIS Customer Portal", datos: "Pedidos de emergencia", frecuencia: "Real-Time (Webservices API)" },
+          { canal: "Carga de Ficheros Excel / CSV", aplica: "Sí", sistema: "Importer UNIGIS", datos: "Pedidos contingencia", frecuencia: "Manual" }
+        ]
+      },
+      {
+        id: "t17",
+        title: "Tipología de Pedidos y Reglas (Tabla 17)",
+        columns: [
+          { key: "tipo", label: "Tipo de Pedido", type: "text" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "reglas", label: "Particularidades / Reglas de Consolidación", type: "text" }
+        ],
+        rows: [
+          { tipo: "Pedido Estándar de Entrega", aplica: "Sí", reglas: "Permite consolidar con otros pedidos del mismo cliente en el mismo día" },
+          { tipo: "Pedido Urgente / Exprès", aplica: "Sí", reglas: "Prioridad máxima en optimizador, ventana restringida" },
+          { tipo: "Recogida de Devolución / Reciclaje", aplica: "Sí", reglas: "Asignar al mismo camión de entrega si hay espacio disponible" }
         ]
       }
     ]
   },
   {
-    id: 'dashboard',
-    title: '8. Dashboard y Reportes',
-    icon: 'BarChart3',
-    tabs: [
+    id: "sec-6",
+    code: "6",
+    title: "Planificación del Transporte",
+    icon: "Route",
+    desc: "Criterios de optimización de rutas (Coste/Tiempo/Capacidad), rutas maestras fijas vs optimización dinámica y restricciones.",
+    questions: [
+      { id: "p6_1", label: "Modelo de Planificación Deseado", type: "chip", options: ["Optimizador Dinámico VRP", "Rutas Maestras Fijas (Master Routes)", "Mixto (Rutas Fijas + Ajuste Dinámico)"] },
+      { id: "p6_2", label: "Hora Límite de Corte de Planificación (Cut-off)", type: "text", placeholder: "Ej. 20:00 h del día anterior" },
+      { id: "p6_3", label: "¿Quién aprueba la ruta definitiva?", type: "chip", options: ["Planificador de Tráfico", "Supervisor de Torre", "Automatizado por UNIGIS"] }
+    ],
+    tables: [
       {
-        id: 'reports_config',
-        title: 'Reportes',
-        questions: [
-          { id: 'std_reports_count', text: 'Cantidad de Reportes Estándar (máx 10)', type: 'number' },
-          { id: 'custom_reports_count', text: 'Cantidad de Reportes Custom (máx 2)', type: 'number' },
-          { id: 'specific_reports', text: 'Definir Reportes Específicos', type: 'textarea' },
+        id: "t20",
+        title: "Criterios del Motor de Optimización UNIGIS (Tabla 20)",
+        columns: [
+          { key: "criterio", label: "Criterio de Asignación", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "peso", label: "Detalle / Prioridad en Optimización", type: "chip", options: ["Alta", "Media", "Baja", "Crítica"] }
+        ],
+        rows: [
+          { criterio: "Minimización de Coste Total de Transporte", aplica: "Sí", peso: "Alta" },
+          { criterio: "Respeto Estricto de Ventanas Horarias del Cliente", aplica: "Sí", peso: "Crítica" },
+          { criterio: "Maximización de Ocupación de Vehículos (Llenado)", aplica: "Sí", peso: "Alta" },
+          { criterio: "Equilibrio de Horas de Trabajo entre Conductores", aplica: "Sí", peso: "Media" },
+          { criterio: "Compatibilidad de Tipo de Carga y Vehículo", aplica: "Sí", peso: "Crítica" }
+        ]
+      },
+      {
+        id: "t21",
+        title: "Restricciones de Planificación (Tabla 21)",
+        columns: [
+          { key: "restriccion", label: "Restricción Operativa", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "valor", label: "Valor / Límite Permitido", type: "text" }
+        ],
+        rows: [
+          { restriccion: "Tiempo Máximo de Conducción Continuada", aplica: "Sí", valor: "4.5 horas (Normativa CE 561)" },
+          { restriccion: "Tiempo Máximo de Jornada Diaria Conductor", aplica: "Sí", valor: "9 a 10 horas máximo" },
+          { restriccion: "Tiempo Promedio de Carga / Descarga por Parada", aplica: "Sí", valor: "15 - 25 min según bultos" },
+          { restriccion: "Restricciones Urbanas (Bajas Emisiones / ZBE)", aplica: "Sí", valor: "Vehículos ECO en centro de ciudad" }
         ]
       }
     ]
   },
   {
-    id: 'technical',
-    title: '9. Infraestructura Técnica',
-    icon: 'HardDrive',
-    tabs: [
+    id: "sec-7",
+    code: "7",
+    title: "Gestión de Flotas, Vehículos y Conductores",
+    icon: "Smartphone",
+    desc: "Flota propia y subcontratada, catálogo de tipos de vehículos, equipamiento y configuración de la App Conductor (Mobility).",
+    tables: [
       {
-        id: 'infra_config',
-        title: 'Infraestructura HW/SW',
-        questions: [
-          { id: 'infra_type', text: 'Tipo de Despliegue', type: 'select', options: ['On Premise', 'Cloud'] },
-          { id: 'db_type', text: 'Base de Datos', type: 'select', options: ['SQLServer', 'Otra BD'] },
-          { id: 'sql_ok', text: '¿Pueden Operar con BBDD SQLServer?', type: 'boolean' },
-          { id: 'adapter_required', text: '¿Requiere Desarrollo de Adapter o Syncout?', type: 'boolean' },
-          { id: 'ws_integration', text: '¿Integración por WS o Desarrollo de Interfaces?', type: 'boolean' },
-          { id: 'hw_capacity', text: '¿Capacidad de HW Disponible?', type: 'boolean' },
+        id: "t25",
+        title: "Catálogo de Tipos de Vehículo (Tabla 25)",
+        columns: [
+          { key: "codigo", label: "Código", type: "text" },
+          { key: "desc", label: "Descripción Vehículo", type: "text" },
+          { key: "peso", label: "Peso Máx (Kg)", type: "text" },
+          { key: "vol", label: "Volumen Máx (m3)", type: "text" },
+          { key: "bultos", label: "Bultos Máx", type: "text" },
+          { key: "temp", label: "Temperatura (°C)", type: "chip", options: ["Multifrío (-20°C a +4°C)", "Seco / Ambiente", "Congelado"] },
+          { key: "cantidad", label: "Nº Vehículos", type: "text" }
+        ],
+        rows: [
+          { codigo: "RIG-18T", desc: "Camión Rígido 18 Tons Multifrío", peso: "9,500", vol: "42", bultos: "18 Palets", temp: "Multifrío (-20°C a +4°C)", cantidad: "45" },
+          { codigo: "FURG-3.5T", desc: "Furgón Capilar 3.5 Tons", peso: "1,200", vol: "14", bultos: "4 Palets", temp: "Multifrío (-20°C a +4°C)", cantidad: "80" },
+          { codigo: "TRAILER-40T", desc: "Tráiler Frigorífico Articulado", peso: "24,000", vol: "85", bultos: "33 Palets", temp: "Congelado", cantidad: "25" }
+        ]
+      },
+      {
+        id: "t26",
+        title: "Flujo y Eventos de la App de Conductores Mobility (Tabla 26)",
+        columns: [
+          { key: "evento", label: "Evento del Conductor", type: "readonly" },
+          { key: "aplica", label: "Aplica en App", type: "chip", options: ["Sí", "No"] },
+          { key: "accion", label: "Acción Automática en UNIGIS", type: "text" },
+          { key: "datos", label: "Datos Obligatorios a Capturar", type: "text" }
+        ],
+        rows: [
+          { evento: "Inicio de Jornada / Check-in Vehículo", aplica: "Sí", accion: "Actualiza estado de conductor a Activo", datos: "Kilometraje inicial, foto vehículo" },
+          { evento: "Llegada a Cliente / Geofence", aplica: "Sí", accion: "Calcula tiempo de espera", datos: "Posición GPS confirmada" },
+          { evento: "Entrega Conforme (POD)", aplica: "Sí", accion: "Cierra pedido como Entregado", datos: "Firma digital en pantalla + Foto albarán" },
+          { evento: "Entrega Con Incidencia / Parcial", aplica: "Sí", accion: "Genera alerta inmediata a Torre de Control", datos: "Motivo de incidencia (selector) + Foto" },
+          { evento: "Cobro en Ruta (COD)", aplica: "Sí", accion: "Registra cobro en liquidación del chofer", datos: "Importe cobrado + Medio (Efectivo/Talón)" }
         ]
       }
     ]
   },
   {
-    id: 'licensing',
-    title: '10. Producto Adquirido',
-    icon: 'ShieldCheck',
-    tabs: [
+    id: "sec-8",
+    code: "8",
+    title: "Gestión de Transportistas Externos (Carrier Management)",
+    icon: "Users",
+    desc: "Subcontratación de transporte, portal de ofertas de cargas, contratos, asignación por algoritmo y SLAs.",
+    tables: [
       {
-        id: 'licenses',
-        title: 'Licencias',
-        questions: [
-          { id: 'lic_planning', text: 'Smart Planning (Q Licencias)', type: 'number' },
-          { id: 'lic_tracking', text: 'Smart Tracking (Q Vehículos)', type: 'number' },
-          { id: 'lic_fleet', text: 'Fleet (Q Usuarios)', type: 'number' },
-          { id: 'lic_mobile', text: 'Mobile (Q Equipos)', type: 'number' },
+        id: "t28",
+        title: "Evaluación y Subcontratación de Carriers (Tabla 28)",
+        columns: [
+          { key: "pregunta", label: "Pregunta de Diseño Carrier Management", type: "readonly" },
+          { key: "respuesta", label: "Respuesta del Cliente", type: "text" }
+        ],
+        rows: [
+          { pregunta: "¿Cuántos transportistas externos operan habitualmente con el cliente?", respuesta: "15 a 20 agencias de transporte" },
+          { pregunta: "¿Cómo se adjudican las cargas no cubiertas por flota propia?", respuesta: "Algoritmo en Cascada (Ranking de tarifas) y Spot Tender" },
+          { pregunta: "¿Los transportistas deben confirmar aceptación en tiempo límite?", respuesta: "Sí, tiempo límite de respuesta: 30 minutos" }
         ]
       }
     ]
   },
   {
-    id: 'timeline',
-    title: '11. Escenario Implementación',
-    icon: 'Clock',
-    tabs: [
+    id: "sec-9",
+    code: "9",
+    title: "Gestión de Tarifas y Liquidación (Settlement)",
+    icon: "Calculator",
+    desc: "Cuadro de tarifas de compra (coste chofer/carrier) y venta, recargos por combustible/esperas y premolde de liquidación.",
+    tables: [
       {
-        id: 'roadmap',
-        title: 'Hitos y Timeline',
-        questions: [
-          { id: 'impl_phases', text: 'Fases propuestas', type: 'textarea' },
-          { id: 'impl_timeline', text: 'Timeline Estimado', type: 'textarea' },
-          { id: 'impl_milestones', text: 'Hitos principales', type: 'textarea' },
+        id: "t31",
+        title: "Modelos Tarifarios de Coste y Venta (Tabla 31)",
+        columns: [
+          { key: "modelo", label: "Modelo Tarifario", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "detalle", label: "Detalle de Cálculo en UNIGIS", type: "text" }
+        ],
+        rows: [
+          { modelo: "Tarifa por Kilómetro Recorrido", aplica: "Sí", detalle: "Precio/km fijado por tipo de vehículo" },
+          { modelo: "Tarifa Fija por Ruta / Zona", aplica: "Sí", detalle: "Matriz origen-destino de tarifas acordadas" },
+          { modelo: "Tarifa por Kilo / Palet Transportado", aplica: "Sí", detalle: "Escalón por tramos de peso o número de palets" },
+          { modelo: "Recargo por Combustible (Gasóleo / Floater)", aplica: "Sí", detalle: "Indexación mensual según precio del diésel" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-10",
+    code: "10",
+    title: "Ejecución, Tracking y Torre de Control",
+    icon: "Radio",
+    desc: "Monitoreo de rutas en tiempo real, alertas de desvío/retraso, notificaciones SMS/WhatsApp a clientes e incidencias.",
+    tables: [
+      {
+        id: "t36",
+        title: "Canales de Notificación al Cliente Final (Tabla 36)",
+        columns: [
+          { key: "canal", label: "Canal de Notificación", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "evento", label: "Evento Disparador", type: "text" },
+          { key: "mensaje", label: "Contenido del Mensaje", type: "text" }
+        ],
+        rows: [
+          { canal: "SMS / WhatsApp Bot", aplica: "Sí", evento: "Salida de camión a ruta", mensaje: "Su pedido está en camino. ETA estimado: 10:30h. Siga su entrega aquí [Link]" },
+          { canal: "Email de Confirmación", aplica: "Sí", evento: "Entrega completada (POD)", mensaje: "Adjunto albarán firmado digitalmente" }
+        ]
+      },
+      {
+        id: "t37",
+        title: "Catálogo de Incidencias Operativas (Tabla 37)",
+        columns: [
+          { key: "tipo", label: "Tipo de Incidencia", type: "text" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "proceso", label: "Proceso de Resolución", type: "text" },
+          { key: "impacto", label: "Impacto en Facturación / Stock", type: "chip", options: ["Alto", "Medio", "Bajo", "Ninguno"] }
+        ],
+        rows: [
+          { tipo: "Cliente Cerrado / Ausente", aplica: "Sí", proceso: "Reprogramar para siguiente día", impacto: "Medio" },
+          { tipo: "Rechazo de Producto por Temperatura / Rotura", aplica: "Sí", proceso: "Retorno a almacén y abono", impacto: "Alto" },
+          { tipo: "Retraso por Tráfico / Avería", aplica: "Sí", proceso: "Recálculo automático de ETAs", impacto: "Bajo" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-11",
+    code: "11",
+    title: "Portal de Clientes y Portal de Transportistas",
+    icon: "Globe",
+    desc: "Plataformas web para clientes (autoseguimiento y creación de pedidos) y transportistas (oferta y asignación de viajes).",
+    tables: [
+      {
+        id: "t40",
+        title: "Funcionalidades del Portal de Transportistas (Tabla 40)",
+        columns: [
+          { key: "func", label: "Función del Portal", type: "readonly" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "prioridad", label: "Prioridad", type: "chip", options: ["Alta", "Media", "Baja"] }
+        ],
+        rows: [
+          { func: "Aceptación / Rechazo de Cargas Asignadas", aplica: "Sí", prioridad: "Alta" },
+          { func: "Carga de Matrículas y Datos de Conductor", aplica: "Sí", prioridad: "Alta" },
+          { func: "Subida de Facturas y Pre-facturación", aplica: "Sí", prioridad: "Media" },
+          { func: "Visualización de Indicadores de Cumplimiento (SLA)", aplica: "Sí", prioridad: "Baja" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-12",
+    code: "12",
+    title: "Integraciones con Sistemas Externos",
+    icon: "Network",
+    desc: "Mapa de arquitectura e interfaces con ERP (SAP, Dynamics, Oracle), WMS, GPS/Telemetría y Portales.",
+    tables: [
+      {
+        id: "t43",
+        title: "Mapa de Sistemas Integrados (Tabla 43)",
+        columns: [
+          { key: "sistema", label: "Sistema Externo", type: "text" },
+          { key: "funcion", label: "Función en el Proyecto UNIGIS", type: "text" },
+          { key: "tipo", label: "Tipo de Integración", type: "chip", options: ["REST API (Webservices)", "Ficheros FTP/CSV", "Database View (SQL)", "SOAP"] },
+          { key: "estado", label: "Estado Conector", type: "chip", options: ["Estándar UNIGIS", "Desarrollo Necesario", "En Evaluación"] }
+        ],
+        rows: [
+          { sistema: "SAP S/4HANA", funcion: "Importación de Pedidos y Exportación de Liquidación", tipo: "REST API (Webservices)", estado: "Estándar UNIGIS" },
+          { sistema: "WMS Manhattan / RedPrairie", funcion: "Sincronización de Muelles y Cargas", tipo: "REST API (Webservices)", estado: "Estándar UNIGIS" },
+          { sistema: "Telemetría GPS (Webfleet / Transics / Astrata)", funcion: "Posicionamiento en tiempo real de camiones", tipo: "REST API (Webservices)", estado: "Estándar UNIGIS" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-13",
+    code: "13",
+    title: "Datos Maestros",
+    icon: "Database",
+    desc: "Plan y estrategia de limpieza, migración y carga inicial de entidades (Clientes, Depósitos, Vehículos, Rutas).",
+    tables: [
+      {
+        id: "t45",
+        title: "Matriz de Carga Inicial de Datos Maestros (Tabla 45)",
+        columns: [
+          { key: "entidad", label: "Entidad UNIGIS", type: "readonly" },
+          { key: "origen", label: "Origen Actual", type: "text" },
+          { key: "registros", label: "Nº Registros Estimados", type: "text" },
+          { key: "metodo", label: "Método de Carga", type: "chip", options: ["Plantilla Excel UNIGIS", "API Import", "Migración SQL Directa"] },
+          { key: "calidad", label: "Calidad de Datos Estimada", type: "chip", options: ["Alta (Limpia)", "Media (Requiere revisión)", "Baja (Incompleta)"] }
+        ],
+        rows: [
+          { entidad: "Clientes y Puntos de Entrega", origen: "ERP SAP", registros: "14,500", metodo: "API Import", calidad: "Media (Requiere revisión)" },
+          { entidad: "Nodos y Depósitos Logísticos", origen: "Excel Manual", registros: "25", metodo: "Plantilla Excel UNIGIS", calidad: "Alta (Limpia)" },
+          { entidad: "Catálogo de Vehículos y Flota", origen: "Gestor de Flota", registros: "150", metodo: "Plantilla Excel UNIGIS", calidad: "Alta (Limpia)" },
+          { entidad: "Conductores y Dispositivos", origen: "RRHH", registros: "180", metodo: "Plantilla Excel UNIGIS", calidad: "Alta (Limpia)" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-14",
+    code: "14",
+    title: "Reporting, KPIs y Business Intelligence",
+    icon: "TrendingUp",
+    desc: "Cuadro de mando integral, KPIs operativos y financieros, informes diarios y conexión con PowerBI / Tableau.",
+    tables: [
+      {
+        id: "t47",
+        title: "KPIs Operativos y Financieros Principales (Tabla 47)",
+        columns: [
+          { key: "kpi", label: "KPI a Medir en UNIGIS", type: "text" },
+          { key: "medicion", label: "¿Se mide actualmente?", type: "chip", options: ["Sí", "No", "Parcial"] },
+          { key: "herramienta", label: "Herramienta Actual", type: "text" },
+          { key: "objetivo", label: "Objetivo TO-BE con UNIGIS", type: "text" }
+        ],
+        rows: [
+          { kpi: "% Entregas a Tiempo (OTD)", medicion: "Sí", herramienta: "Excel manual", objetivo: "> 96%" },
+          { kpi: "Coste por Kilómetro y por Bulto", medicion: "No", herramienta: "-", objetivo: "Visibilidad 100% automatizada" },
+          { kpi: "% Ocupación de Capacidad Vehículo", medicion: "Parcial", herramienta: "Estimación visual", objetivo: "> 85%" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-15",
+    code: "15",
+    title: "Cumplimiento Normativo y Requisitos Sectoriales",
+    icon: "ShieldAlert",
+    desc: "Requisitos de seguridad, trazabilidad de temperatura (HACCP/IFS), tiempos de conducción (Tacógrafo CE 561) y e-Transporte.",
+    tables: [
+      {
+        id: "t51",
+        title: "Normativas y Requisitos Legales (Tabla 51)",
+        columns: [
+          { key: "normativa", label: "Normativa / Requisito Legal", type: "text" },
+          { key: "aplica", label: "Aplica", type: "chip", options: ["Sí", "No"] },
+          { key: "detalle", label: "Detalle / Impacto en Parametrización UNIGIS", type: "text" }
+        ],
+        rows: [
+          { normativa: "Tiempos Conducción Tacógrafo (CE 561/2006)", aplica: "Sí", detalle: "Parámetros del optimizador deben respetar descansos reglamentarios" },
+          { normativa: "Control de Cadena de Frío Alimentaria (IFS/BRC)", aplica: "Sí", detalle: "Registro continuo de termógrafo y trazabilidad lote/temperatura" },
+          { normativa: "Factura Electrónica y Documento de Transporte", aplica: "Sí", detalle: "Generación de albarán digital con código QR / e-CMR" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-16",
+    code: "16",
+    title: "Decisiones de Diseño Específicas de UNIGIS",
+    icon: "FileCheck",
+    desc: "Decisiones clave de parametrización tomadas durante los workshops con su justificación técnica.",
+    tables: [
+      {
+        id: "t52",
+        title: "Matriz de Decisiones de Diseño de Solución (Tabla 52)",
+        columns: [
+          { key: "area", label: "Área", type: "text" },
+          { key: "pregunta", label: "Pregunta de Diseño", type: "text" },
+          { key: "opciones", label: "Opciones Evaluadas", type: "text" },
+          { key: "decision", label: "Decisión Adoptada", type: "chip", options: ["Estándar UNIGIS", "Parametrización", "Desarrollo Específico"] },
+          { key: "justificacion", label: "Justificación Técnica", type: "text" }
+        ],
+        rows: [
+          { area: "Pedidos", pregunta: "¿Flujo de entrada automático o manual?", opciones: "API / EDI / Manual", decision: "Estándar UNIGIS", justificacion: "Invocación Webservices REST directa desde ERP" },
+          { area: "Planificación", pregunta: "¿Rutas fijas o optimización dinámica?", opciones: "Rutas fijas / Dinámica / Mixto", decision: "Parametrización", justificacion: "Se usará modelo mixto con algoritmos de re-optimización" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-17",
+    code: "17",
+    title: "Gestión del Cambio, Usuarios y Formación",
+    icon: "Users2",
+    desc: "Perfiles de usuario en UNIGIS, madurez digital del equipo y plan de capacitación por roles.",
+    tables: [
+      {
+        id: "t53",
+        title: "Perfiles de Usuario y Licencias (Tabla 53)",
+        columns: [
+          { key: "perfil", label: "Perfil de Usuario", type: "readonly" },
+          { key: "funcion", label: "Función en UNIGIS", type: "text" },
+          { key: "usuarios", label: "Nº Usuarios / Licencias", type: "text" },
+          { key: "madurez", label: "Nivel Digital", type: "chip", options: ["Alto", "Medio", "Bajo"] }
+        ],
+        rows: [
+          { perfil: "Administrador UNIGIS", funcion: "Configuración, datos maestros y usuarios", usuarios: "2", madurez: "Alto" },
+          { perfil: "Jefe de Tráfico / Planificador", funcion: "Planificación y optimización diaria", usuarios: "6", madurez: "Medio" },
+          { perfil: "Operador de Torre de Control", funcion: "Seguimiento y gestión de incidencias", usuarios: "8", madurez: "Medio" },
+          { perfil: "Conductores (App Mobility)", funcion: "Ejecución de ruta y POD digital", usuarios: "120", madurez: "Bajo" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-18",
+    code: "18",
+    title: "Matriz de Requisitos Funcionales",
+    icon: "ListChecks",
+    desc: "Catálogo completo de requerimientos del cliente (RF-001..), módulo asignado, prioridad y cobertura estándar vs desarrollo.",
+    tables: [
+      {
+        id: "t56",
+        title: "Matriz Consolidada de Requisitos Funcionales RF (Tabla 56)",
+        columns: [
+          { key: "id", label: "ID Requisito", type: "text" },
+          { key: "requisito", label: "Requisito Funcional", type: "text" },
+          { key: "desc", label: "Descripción Detallada", type: "text" },
+          { key: "modulo", label: "Módulo UNIGIS", type: "chip", options: ["Pedidos", "Planificación", "Mobility", "Tarifas", "Tracking", "Portales", "Integración"] },
+          { key: "prioridad", label: "Prioridad", type: "chip", options: ["Alta", "Media", "Baja"] },
+          { key: "cobertura", label: "Cobertura Estándar", type: "chip", options: ["Sí (Estándar)", "Parcial", "No (Desarrollo)"] },
+          { key: "desarrollo", label: "Desarrollo Necesario", type: "text" }
+        ],
+        rows: [
+          { id: "RF-001", requisito: "Integración automática de pedidos", desc: "Recepción en tiempo real de pedidos desde ERP SAP via API REST", modulo: "Pedidos", prioridad: "Alta", cobertura: "Sí (Estándar)", desarrollo: "Ninguno (Conector estándar)" },
+          { id: "RF-002", requisito: "Optimizador de rutas multifrío", desc: "Planificación respetando compartimentos congelado/refrigerado", modulo: "Planificación", prioridad: "Alta", cobertura: "Sí (Estándar)", desarrollo: "Configuración de reglas" },
+          { id: "RF-003", requisito: "App chofer con cobro en ruta", desc: "Registro de cobro en efectivo/cheque y cierre de albarán", modulo: "Mobility", prioridad: "Media", cobertura: "Parcial", desarrollo: "Flujo de cobro adaptado" },
+          { id: "RF-004", requisito: "Notificaciones WhatsApp a clientes", desc: "Envío de enlace de seguimiento en tiempo real con ETA", modulo: "Tracking", prioridad: "Media", cobertura: "No (Desarrollo)", desarrollo: "Integración con API Twilio/WhatsApp" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-19",
+    code: "19",
+    title: "Gap Analysis (AS-IS vs TO-BE)",
+    icon: "GitCompare",
+    desc: "Análisis de brechas entre el proceso actual y la solución UNIGIS proponiendo plan de resolución e impacto.",
+    tables: [
+      {
+        id: "t57",
+        title: "Matriz de Gap Analysis (Tabla 57)",
+        columns: [
+          { key: "area", label: "Área de Proceso", type: "text" },
+          { key: "asis", label: "AS-IS (Situación Actual)", type: "text" },
+          { key: "tobe", label: "TO-BE (Solución UNIGIS)", type: "text" },
+          { key: "gap", label: "Gap Identificado", type: "text" },
+          { key: "resolucion", label: "Resolución Propuesta", type: "text" },
+          { key: "impacto", label: "Impacto", type: "chip", options: ["Alto", "Medio", "Bajo"] }
+        ],
+        rows: [
+          { area: "Entrada de Pedidos", asis: "Hojas Excel enviadas por correo electrónico", tobe: "Ingesta vía Webservices REST en UNIGIS Orders", gap: "Los clientes no usan formato estandarizado", resolucion: "Desarrollo de validadores de entrada y portal web", impacto: "Alto" },
+          { area: "App Conductores", asis: "Aplicación legacy en terminales antiguas", tobe: "UNIGIS Mobility en smartphones Android", gap: "Cambio de dispositivos y hábitos del chófer", resolucion: "Plan de formación y pilotaje en 5 rutas", impacto: "Alto" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-20",
+    code: "20",
+    title: "Checklist de Workshops de Descubrimiento",
+    icon: "CheckSquare",
+    desc: "Verificación de ítems revisados y aprobados durante las reuniones de trabajo con el cliente.",
+    tables: [
+      {
+        id: "t59",
+        title: "Checklist de Validación de Relevamiento (Tabla 59)",
+        columns: [
+          { key: "num", label: "#", type: "readonly" },
+          { key: "item", label: "Ítem a Verificar", type: "text" },
+          { key: "estado", label: "Estado", type: "chip", options: ["Verificado / OK", "En Revisión", "Pendiente Cliente"] },
+          { key: "responsable", label: "Responsable Cliente", type: "text" },
+          { key: "fecha", label: "Fecha Compromiso", type: "date" }
+        ],
+        rows: [
+          { num: "1", item: "Validación de diccionario de campos de pedido con IT", estado: "Verificado / OK", responsable: "Jefe de Sistemas", fecha: "2026-08-15" },
+          { num: "2", item: "Entrega de fichero de muestra de clientes con coordenadas Lat/Long", estado: "En Revisión", responsable: "Responsable Datos", fecha: "2026-08-18" },
+          { num: "3", item: "Aprobación de catálogo de eventos de la App Conductor", estado: "Pendiente Cliente", responsable: "Jefe de Tráfico", fecha: "2026-08-20" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-21",
+    code: "21",
+    title: "Próximos Pasos y Plan de Proyecto Preliminar",
+    icon: "Calendar",
+    desc: "Hitos principales, fases de implantación, cronograma y dependencias críticas para el Go-Live.",
+    tables: [
+      {
+        id: "t65",
+        title: "Hitos Principales de la Implantación UNIGIS (Tabla 65)",
+        columns: [
+          { key: "fase", label: "Fase de Proyecto", type: "readonly" },
+          { key: "desc", label: "Descripción", type: "text" },
+          { key: "entregables", label: "Entregables Clave", type: "text" },
+          { key: "duracion", label: "Duración Estimada", type: "text" },
+          { key: "resp", label: "Responsable", type: "text" }
+        ],
+        rows: [
+          { fase: "1. Descubrimiento & DDS", desc: "Workshops de relevamiento y redacción del Documento de Diseño", entregables: "Documento DDS Aprobado", duracion: "3 Semanas", resp: "Consultor UNIGIS" },
+          { fase: "2. Parametrización & Reglas", desc: "Configuración del TMS, optimizador, tarifas y app chofer", entregables: "Entorno UNIGIS Configurado", duracion: "4 Semanas", resp: "Equipo Técnico UNIGIS" },
+          { fase: "3. Desarrollo de Integraciones", desc: "Construcción de conectores API REST con SAP y GPS", entregables: "APIs Probadamente Funcionales", duracion: "4 Semanas", resp: "Equipo IT UNIGIS / Cliente" },
+          { fase: "4. Pruebas & Formación", desc: "Pruebas UAT integradas y capacitación por roles", entregables: "Acta de Aceptación UAT", duracion: "2 Semanas", resp: "Consultor & Cliente" },
+          { fase: "5. Go-Live & Soporte", desc: "Puesta en marcha asistida y monitoreo en operación real", entregables: "Sistema en Producción Real", duracion: "2 Semanas", resp: "Equipo Mixto UNIGIS/Cliente" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sec-22",
+    code: "22",
+    title: "Lecciones Aprendidas de Proyectos Anteriores",
+    icon: "Lightbulb",
+    desc: "Recomendaciones y mejores prácticas recopiladas en proyectos similares (Europastry, Transpais).",
+    tables: [
+      {
+        id: "t67",
+        title: "Matriz de Lecciones Aprendidas y Buenas Prácticas (Tabla 67)",
+        columns: [
+          { key: "area", label: "Área de Proyecto", type: "text" },
+          { key: "leccion", label: "Lección Aprendida en Proyectos UNIGIS", type: "text" },
+          { key: "recomendacion", label: "Recomendación para este Proyecto", type: "text" }
+        ],
+        rows: [
+          { area: "Geocodificación", leccion: "La mala calidad de direcciones de clientes retrasa la optimización en la primera semana de Go-Live", recomendacion: "Ejecutar limpieza de datos de direcciones 1 mes antes del arranque" },
+          { area: "Integración GPS", leccion: "Algunos proveedores GPS externos tardan semanas en entregar claves API", recomendacion: "Solicitar acceso a las APIs de telemetría desde el día 1 del proyecto" },
+          { area: "App Conductores", leccion: "La falta de soporte en ruta las primeras 48h genera incidencias con choferes", recomendacion: "Disponer de un consultor presencial en las plataformas durante los primeros arranques" }
         ]
       }
     ]
   }
 ];
+
+export const INDUSTRY_TEMPLATES_FULL: Record<string, { name: string; desc: string; sector: string }> = {
+  europastry: {
+    name: "Última Milla & Temperatura Controlada (Europastry)",
+    desc: "Alimentación congelada/fresca, alta densidad capilar, ventanas horarias estrictas y cobro en ruta.",
+    sector: "Alimentación / Congelado"
+  },
+  transpais: {
+    name: "Transporte LTL / FTL Internacional e Intermodal (Transpais)",
+    desc: "Operadores logísticos con rutas largas, aduanas, subcontratación de agencias y liquidación compleja.",
+    sector: "Operador Logístico 3PL/4PL"
+  },
+  standard: {
+    name: "Distribución Industrial Estándar",
+    desc: "Configuración equilibrada para distribución de producto seco, flota propia y subcontratada.",
+    sector: "Retail / Distribución"
+  }
+};

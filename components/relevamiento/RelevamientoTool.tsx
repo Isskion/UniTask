@@ -2,31 +2,49 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  ClipboardCheck, 
-  Users, 
-  Target, 
-  Truck, 
-  Settings, 
-  Smartphone, 
   BarChart3, 
-  HardDrive,
+  Building2, 
+  Truck, 
+  MapPin, 
+  Package, 
+  Route, 
+  Smartphone, 
+  Users, 
+  Calculator, 
+  Radio, 
+  Globe, 
+  Network, 
+  Database, 
+  TrendingUp, 
+  ShieldAlert, 
+  FileCheck, 
+  Users2, 
+  ListChecks, 
+  GitCompare, 
+  CheckSquare, 
+  Calendar, 
+  Lightbulb,
   ChevronRight,
+  ChevronLeft,
   CheckCircle2,
-  Circle,
-  ShieldCheck,
   Save,
-  MessageSquare,
-  History,
-  Info,
-  X,
-  Clock
+  Printer,
+  Download,
+  Plus,
+  Trash2,
+  Sparkles,
+  Zap,
+  LayoutGrid,
+  Wand2,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { RELEVAMIENTO_SECTIONS, Section, Question } from '@/lib/relevamiento_schema';
+import { RELEVAMIENTO_SECTIONS_FULL, RelevamientoSection, INDUSTRY_TEMPLATES_FULL } from '@/lib/relevamiento_schema';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useTheme } from '@/hooks/useTheme';
 
 interface RelevamientoToolProps {
   projectId: string;
@@ -34,49 +52,80 @@ interface RelevamientoToolProps {
 }
 
 const ICON_MAP: Record<string, any> = {
-  Users,
-  Target,
+  BarChart3,
+  Building2,
   Truck,
-  Settings,
-  ClipboardCheck,
-  HardDrive,
+  MapPin,
+  Package,
+  Route,
   Smartphone,
-  BarChart3
+  Users,
+  Calculator,
+  Radio,
+  Globe,
+  Network,
+  Database,
+  TrendingUp,
+  ShieldAlert,
+  FileCheck,
+  Users2,
+  ListChecks,
+  GitCompare,
+  CheckSquare,
+  Calendar,
+  Lightbulb
 };
 
 export default function RelevamientoTool({ projectId, projectName }: RelevamientoToolProps) {
   const { tenantId } = useAuth();
   const { t } = useLanguage();
-  const [activeSectionId, setActiveSectionId] = useState(RELEVAMIENTO_SECTIONS[0].id);
-  const [activeTabId, setActiveTabId] = useState(RELEVAMIENTO_SECTIONS[0].tabs[0].id);
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
+
+  const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'matrix' | 'wizard' | 'dds_print'>('matrix');
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [tablesData, setTablesData] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('europastry');
 
-  const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [sectionComments, setSectionComments] = useState<Record<string, any[]>>({});
+  const currentSection = RELEVAMIENTO_SECTIONS_FULL[activeSectionIndex] || RELEVAMIENTO_SECTIONS_FULL[0];
 
-  const activeSection = RELEVAMIENTO_SECTIONS.find(s => s.id === activeSectionId) || RELEVAMIENTO_SECTIONS[0];
-  const activeTab = activeSection.tabs.find(t => t.id === activeTabId) || activeSection.tabs[0];
-
-  // Load answers and comments from Firestore
+  // Carga de Firestore y Auto-completado de Datos del Proyecto
   useEffect(() => {
     if (!projectId || !tenantId) return;
 
     const docRef = doc(db, 'projects', projectId, 'relevamiento', 'main');
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      let loadedAnswers: Record<string, any> = {};
+      let loadedTables: Record<string, any[]> = {};
+
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setAnswers(data.answers || {});
-        setSectionComments(data.comments || {});
+        loadedAnswers = data.answers || {};
+        loadedTables = data.tablesData || {};
       }
+
+      // Auto-completar Nombre de Proyecto (p1_1) y Cliente (p1_2) si están vacíos
+      if (projectName) {
+        if (!loadedAnswers['p1_1']) {
+          loadedAnswers['p1_1'] = projectName;
+        }
+        if (!loadedAnswers['p1_2']) {
+          loadedAnswers['p1_2'] = projectName;
+        }
+      }
+
+      setAnswers(loadedAnswers);
+      setTablesData(loadedTables);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [projectId, tenantId]);
+  }, [projectId, tenantId, projectName]);
 
+  // Guardar en Firestore
   const handleSave = async () => {
     if (!projectId || !tenantId) return;
     setSaving(true);
@@ -84,12 +133,12 @@ export default function RelevamientoTool({ projectId, projectName }: Relevamient
       const docRef = doc(db, 'projects', projectId, 'relevamiento', 'main');
       await setDoc(docRef, {
         projectId,
-        projectName,
+        projectName: answers['p1_1'] || projectName || projectId,
         tenantId,
         answers,
-        comments: sectionComments,
+        tablesData,
         updatedAt: new Date().toISOString(),
-        progress: calculateProgress()
+        progressPercent: calculateProgress()
       }, { merge: true });
     } catch (error) {
       console.error("Error saving relevamiento:", error);
@@ -98,294 +147,581 @@ export default function RelevamientoTool({ projectId, projectName }: Relevamient
     }
   };
 
-  const addComment = () => {
-    if (!commentText.trim()) return;
-    const newComment = {
-      id: Date.now().toString(),
-      text: commentText,
-      author: 'Consultor',
-      date: new Date().toISOString()
-    };
-    setSectionComments(prev => ({
-      ...prev,
-      [activeSectionId]: [...(prev[activeSectionId] || []), newComment]
-    }));
-    setCommentText('');
-  };
-
-  const updateAnswer = (questionId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
-  };
-
+  // Cálculo de Progreso
   const calculateProgress = () => {
-    const totalQuestions = RELEVAMIENTO_SECTIONS.reduce((acc, s) => acc + s.tabs.reduce((acc2, t) => acc2 + t.questions.length, 0), 0);
-    const answeredQuestions = Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== '').length;
-    return Math.round((answeredQuestions / totalQuestions) * 100);
+    let total = 0;
+    let filled = 0;
+    RELEVAMIENTO_SECTIONS_FULL.forEach(sec => {
+      sec.questions?.forEach(q => {
+        total++;
+        if (answers[q.id]) filled++;
+      });
+    });
+    return total > 0 ? Math.round((filled / total) * 100) : 0;
   };
 
-  const getSectionProgress = (sectionId: string) => {
-    const section = RELEVAMIENTO_SECTIONS.find(s => s.id === sectionId);
-    if (!section) return 0;
-    const questions = section.tabs.flatMap(t => t.questions);
-    const answered = questions.filter(q => answers[q.id] !== undefined && answers[q.id] !== '').length;
-    return Math.round((answered / questions.length) * 100);
+  const progressPercent = calculateProgress();
+
+  // Precarga de Plantilla 1-Clic
+  const handleApplyTemplate = () => {
+    const tmpl = INDUSTRY_TEMPLATES_FULL[selectedTemplate];
+    if (tmpl && confirm(`¿Deseas precargar las respuestas y módulos estándar para "${tmpl.name}"?`)) {
+      const updatedAnswers = { 
+        ...answers, 
+        p1_1: answers['p1_1'] || projectName || tmpl.name,
+        p1_2: tmpl.name, 
+        p2_1: tmpl.sector 
+      };
+      setAnswers(updatedAnswers);
+      alert(`⚡ Plantilla "${tmpl.name}" precargada.`);
+    }
   };
+
+  // Exportar JSON
+  const handleExportJSON = () => {
+    const displayProjName = answers['p1_1'] || projectName || projectId;
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ projectId, projectName: displayProjName, answers, tablesData }, null, 2));
+    const a = document.createElement('a');
+    a.href = dataStr;
+    a.download = `Relevamiento_${displayProjName}.json`;
+    a.click();
+  };
+
+  // Atajos de teclado para Wizard (Ctrl + Left/Right)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'ArrowRight') {
+        if (activeSectionIndex < RELEVAMIENTO_SECTIONS_FULL.length - 1) {
+          setActiveSectionIndex(prev => prev + 1);
+        }
+      } else if (e.ctrlKey && e.key === 'ArrowLeft') {
+        if (activeSectionIndex > 0) {
+          setActiveSectionIndex(prev => prev - 1);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeSectionIndex]);
+
+  const activeProjectTitle = answers['p1_1'] || projectName || projectId;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xs font-bold uppercase tracking-widest">{t('common.loading')}</p>
-        </div>
+      <div className={cn("flex items-center justify-center p-12", isLight ? "text-slate-700" : "text-slate-400")}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mr-3"></div>
+        <span className="font-semibold">Cargando Relevamiento UNIGIS...</span>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full w-full bg-background text-foreground overflow-hidden rounded-xl border border-border shadow-2xl">
-      {/* Sidebar Navigation */}
-      <div className="w-64 flex-shrink-0 border-r border-border bg-card/50 backdrop-blur-xl flex flex-col">
-        <div className="p-5 border-b border-border bg-muted/20">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
-              <ClipboardCheck className="w-4 h-4 text-primary" />
-            </div>
-            <h2 className="text-sm font-black uppercase tracking-tight">{t('nav.relevamiento')}</h2>
+    <div className={cn(
+      "flex flex-col h-full w-full rounded-xl overflow-hidden border shadow-xl transition-colors duration-200",
+      isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-slate-950 border-slate-800 text-slate-100"
+    )}>
+      
+      {/* Header Institucional UNIGIS TMS / Unitask */}
+      <div className={cn(
+        "px-6 py-4 border-b flex flex-wrap items-center justify-between gap-4 shrink-0",
+        isLight ? "bg-white border-slate-200 shadow-sm" : "bg-slate-900/90 border-slate-800"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="px-3 py-1 bg-red-600 text-white font-black text-xs rounded-md tracking-wider">
+            UNIGIS TMS
           </div>
-          <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest truncate">{projectName || 'Proyecto'}</p>
+          <div>
+            <h1 className={cn("text-lg font-black tracking-tight", isLight ? "text-slate-900" : "text-white")}>
+              Relevamiento de Proyectos
+            </h1>
+            <p className={cn("text-xs font-semibold", isLight ? "text-slate-600" : "text-slate-400")}>
+              Proyecto: <span className="text-red-600 dark:text-red-400 font-extrabold">{activeProjectTitle}</span>
+            </p>
+          </div>
         </div>
-        
-        <nav className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
-          {RELEVAMIENTO_SECTIONS.map((section) => {
-            const Icon = ICON_MAP[section.icon] || Info;
-            const progress = getSectionProgress(section.id);
-            const isActive = activeSectionId === section.id;
 
-            return (
-              <button
-                key={section.id}
-                onClick={() => {
-                  setActiveSectionId(section.id);
-                  setActiveTabId(section.tabs[0].id);
-                }}
-                className={cn(
-                  "w-full flex items-center justify-between p-2.5 rounded-xl transition-all duration-200 group relative",
-                  isActive 
-                    ? "bg-primary/10 text-primary border border-primary/20" 
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
-                )}
-              >
-                <div className="flex items-center gap-3 relative z-10">
-                  <Icon className={cn("w-4 h-4 transition-transform", isActive ? "scale-110" : "group-hover:scale-110")} />
-                  <span className="text-[11px] font-bold tracking-tight text-left">{section.title.split('. ')[1] || section.title}</span>
-                </div>
-                <div className="flex flex-col items-end gap-1 relative z-10">
-                  {progress === 100 ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                  ) : (
-                    <span className={cn("text-[9px] font-black", isActive ? "text-primary" : "text-muted-foreground/50")}>{progress}%</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </nav>
+        {/* Controls Bar */}
+        <div className="flex items-center gap-3">
+          {/* Progress Pill */}
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold",
+            isLight ? "bg-slate-100 border-slate-300 text-slate-900" : "bg-slate-800/60 border-slate-700 text-slate-100"
+          )}>
+            <div className={cn("w-20 h-2 rounded-full overflow-hidden", isLight ? "bg-slate-300" : "bg-slate-700")}>
+              <div 
+                className="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="text-red-600 font-extrabold">{progressPercent}%</span>
+          </div>
 
-        {/* Global Progress */}
-        <div className="p-5 border-t border-border bg-muted/10">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Avance Global</span>
-            <span className="text-[10px] font-black text-primary">{calculateProgress()}%</span>
-          </div>
-          <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden border border-border">
-            <div 
-              className="h-full bg-primary rounded-full transition-all duration-1000" 
-              style={{ width: `${calculateProgress()}%` }} 
-            />
-          </div>
+          <button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg shadow-md transition-all active:scale-95"
+          >
+            <Save className="w-3.5 h-3.5" />
+            {saving ? "Guardando..." : "Guardar"}
+          </button>
+
+          <button 
+            onClick={handleExportJSON}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 border text-xs font-bold rounded-lg transition-all",
+              isLight ? "bg-white hover:bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200"
+            )}
+          >
+            <Download className="w-3.5 h-3.5" />
+            JSON
+          </button>
+
+          <button 
+            onClick={() => { setViewMode('dds_print'); setTimeout(() => window.print(), 300); }}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-md transition-all active:scale-95"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Imprimir DDS
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background/50">
-        <header className="h-14 flex-shrink-0 border-b border-border flex items-center justify-between px-6 bg-card/80 backdrop-blur-md z-20">
-          <div className="flex items-center gap-4 text-xs min-w-0 overflow-hidden">
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-muted-foreground font-medium">{t('nav.relevamiento')}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30" />
-              <span className="font-bold tracking-tight truncate">{activeSection.title}</span>
-            </div>
-            
-            <div className="h-4 w-px bg-border flex-shrink-0" />
-            
-            {/* Sub-tabs */}
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border overflow-x-auto no-scrollbar">
-              {activeSection.tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTabId(tab.id)}
-                  className={cn(
-                    "px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap",
-                    activeTabId === tab.id 
-                      ? "bg-background text-foreground shadow-sm ring-1 ring-border" 
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {tab.title}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button 
-              onClick={() => setShowComments(!showComments)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all",
-                showComments ? "bg-primary/20 border-primary/50 text-primary" : "bg-muted border-border text-muted-foreground hover:bg-accent"
-              )}
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              {sectionComments[activeSectionId]?.length || 0}
-            </button>
-            <button 
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-primary hover:opacity-90 text-primary-foreground text-[9px] font-black uppercase tracking-wider transition-all shadow-md disabled:opacity-50"
-            >
-              {saving ? <div className="w-3 h-3 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              {saving ? '...' : t('common.save')}
-            </button>
-          </div>
-        </header>
+      {/* Sub-toolbar: Modos de Vista & Smart Pre-fills */}
+      <div className={cn(
+        "px-6 py-3 border-b flex flex-wrap items-center justify-between gap-4 text-xs",
+        isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900/40 border-slate-800"
+      )}>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setViewMode('matrix')}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md font-bold transition-all",
+              viewMode === 'matrix' 
+                ? "bg-red-600 text-white shadow-sm" 
+                : isLight ? "bg-white text-slate-800 border border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border border-slate-700"
+            )}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            Matriz Libre
+          </button>
 
-        <div className="flex-1 flex overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
-            <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {activeTab.questions.map((q) => (
-                  <div key={q.id} className="group space-y-2 p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all duration-300 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
-                        {q.text}
-                      </label>
-                      {answers[q.id] && <CheckCircle2 className="w-3 h-3 text-emerald-500 animate-in zoom-in" />}
-                    </div>
-                    
-                    {q.type === 'textarea' ? (
-                      <textarea
-                        value={answers[q.id] || ''}
-                        onChange={(e) => updateAnswer(q.id, e.target.value)}
-                        placeholder={q.placeholder}
-                        className="w-full bg-background border border-border rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all h-28 text-foreground placeholder:text-muted-foreground/30 resize-none"
-                      />
-                    ) : q.type === 'select' ? (
-                      <select
-                        value={answers[q.id] || ''}
-                        onChange={(e) => updateAnswer(q.id, e.target.value)}
-                        className="w-full bg-background border border-border rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-foreground"
-                      >
-                        <option value="">Seleccionar...</option>
-                        {q.options?.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    ) : q.type === 'boolean' ? (
-                      <div className="flex gap-2">
-                        {['Si', 'No'].map(val => (
-                          <button
-                            key={val}
-                            onClick={() => updateAnswer(q.id, val === 'Si')}
-                            className={cn(
-                              "flex-1 py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all",
-                              (answers[q.id] === (val === 'Si'))
-                                ? "bg-primary/10 border-primary/50 text-primary shadow-sm"
-                                : "bg-background border-border text-muted-foreground hover:bg-muted"
-                            )}
-                          >
-                            {val}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <input
-                        type={q.type === 'number' ? 'number' : 'text'}
-                        value={answers[q.id] || ''}
-                        onChange={(e) => updateAnswer(q.id, e.target.value)}
-                        placeholder={q.placeholder}
-                        className="w-full bg-background border border-border rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-foreground placeholder:text-muted-foreground/30"
-                      />
+          <button 
+            onClick={() => setViewMode('wizard')}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md font-bold transition-all",
+              viewMode === 'wizard' 
+                ? "bg-red-600 text-white shadow-sm" 
+                : isLight ? "bg-white text-slate-800 border border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border border-slate-700"
+            )}
+          >
+            <Wand2 className="w-3.5 h-3.5 text-amber-500" />
+            Modo Workshop Guiado (Wizard)
+          </button>
+
+          <button 
+            onClick={() => setViewMode('dds_print')}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-md font-bold transition-all",
+              viewMode === 'dds_print' 
+                ? "bg-red-600 text-white shadow-sm" 
+                : isLight ? "bg-white text-slate-800 border border-slate-300 hover:bg-slate-50" : "bg-slate-800 text-slate-300 border border-slate-700"
+            )}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            Vista Previa Documento DDS
+          </button>
+        </div>
+
+        {/* Smart Templates Dropdown */}
+        <div className="flex items-center gap-2">
+          <span className={cn("font-bold", isLight ? "text-slate-700" : "text-slate-400")}>Plantilla Rápida:</span>
+          <select 
+            value={selectedTemplate} 
+            onChange={(e) => setSelectedTemplate(e.target.value)}
+            className={cn(
+              "px-2.5 py-1 rounded-md border text-xs font-semibold outline-none",
+              isLight ? "bg-white border-slate-300 text-slate-900" : "bg-slate-900 border-slate-700 text-slate-200"
+            )}
+          >
+            <option value="europastry">Última Milla & Temperatura (Europastry)</option>
+            <option value="transpais">LTL / FTL Internacional (Transpais)</option>
+            <option value="standard">Distribución Industrial Estándar</option>
+          </select>
+
+          <button 
+            onClick={handleApplyTemplate}
+            className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 border border-amber-500/40 rounded-md font-bold transition-all"
+          >
+            <Zap className="w-3.5 h-3.5 fill-amber-500" />
+            1-Clic Precargar
+          </button>
+        </div>
+      </div>
+
+      {/* Layout Main Content: Sidebar + Section Body */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        
+        {/* Sidebar (22 Secciones) */}
+        {viewMode !== 'dds_print' && (
+          <aside className={cn(
+            "w-72 border-r flex flex-col overflow-y-auto shrink-0 custom-scrollbar",
+            isLight ? "bg-white border-slate-200" : "bg-slate-900/60 border-slate-800"
+          )}>
+            <div className={cn("p-3 border-b", isLight ? "bg-slate-100 border-slate-200" : "bg-slate-950/40 border-slate-800/40")}>
+              <span className={cn("text-[10px] font-black uppercase tracking-wider", isLight ? "text-slate-700" : "text-slate-400")}>
+                SECCIONES DE RELEVAMIENTO (22)
+              </span>
+            </div>
+            
+            <nav className="p-2 space-y-1">
+              {RELEVAMIENTO_SECTIONS_FULL.map((sec, idx) => {
+                const IconComp = ICON_MAP[sec.icon] || BarChart3;
+                const isActive = idx === activeSectionIndex;
+                const answeredCount = sec.questions ? sec.questions.filter(q => answers[q.id]).length : 0;
+                const isComplete = sec.questions && sec.questions.length > 0 && answeredCount === sec.questions.length;
+                const isInProgress = answeredCount > 0 && !isComplete;
+
+                return (
+                  <button
+                    key={sec.id}
+                    onClick={() => setActiveSectionIndex(idx)}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs transition-all",
+                      isActive 
+                        ? "bg-red-600/15 text-red-600 dark:text-red-400 font-bold border border-red-500/40 shadow-sm" 
+                        : isLight ? "hover:bg-slate-100 text-slate-800 font-semibold" : "hover:bg-slate-800/60 text-slate-300"
                     )}
-                    {q.helpText && <p className="text-[9px] text-muted-foreground/60 italic px-1">{q.helpText}</p>}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <IconComp className={cn("w-4 h-4 shrink-0", isActive ? "text-red-600 dark:text-red-400" : isLight ? "text-slate-500" : "text-slate-400")} />
+                      <span className="truncate">{sec.code}. {sec.title}</span>
+                    </div>
+
+                    {isComplete && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/40">
+                        OK
+                      </span>
+                    )}
+                    {isInProgress && (
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40">
+                        ...
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
+        )}
+
+        {/* Section Body / Wizard / Print View */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+          
+          {viewMode === 'dds_print' ? (
+            /* Vista Impresa DDS */
+            <div className="bg-white text-slate-900 p-12 max-w-4xl mx-auto rounded-xl shadow-2xl border border-slate-200 font-serif">
+              <div className="text-center py-12 border-b-4 border-red-600 mb-8">
+                <div className="inline-block px-4 py-1.5 bg-red-600 text-white font-sans font-black text-sm rounded mb-4">UNIGIS TMS</div>
+                <h1 className="text-3xl font-black font-sans text-slate-900 tracking-tight">Guía de Descubrimiento y Consultoría</h1>
+                <h2 className="text-lg font-sans text-red-600 font-bold mt-2">DOCUMENTO DE DISEÑO DE SOLUCIÓN (DDS)</h2>
+                <p className="text-xs font-sans text-slate-700 mt-4">PROYECTO: {activeProjectTitle}</p>
+                <p className="text-xs font-sans text-slate-500">Fecha de Generación: {new Date().toLocaleDateString()}</p>
+              </div>
+
+              <div className="space-y-8 font-sans">
+                <h3 className="text-base font-bold uppercase tracking-wider text-slate-900 border-b pb-2">Índice de Secciones Relevadas</h3>
+                <ul className="grid grid-cols-2 gap-2 text-xs text-slate-800">
+                  {RELEVAMIENTO_SECTIONS_FULL.map(s => (
+                    <li key={s.id}><strong>Sección {s.code}:</strong> {s.title}</li>
+                  ))}
+                </ul>
+
+                {RELEVAMIENTO_SECTIONS_FULL.map(sec => (
+                  <div key={sec.id} className="pt-6 border-t border-slate-200">
+                    <h4 className="text-sm font-bold text-slate-900 border-l-4 border-red-600 pl-3 mb-3">
+                      {sec.code}. {sec.title}
+                    </h4>
+                    {sec.questions && sec.questions.length > 0 && (
+                      <table className="w-full text-xs text-left border border-slate-200 mb-4">
+                        <tbody>
+                          {sec.questions.map(q => (
+                            <tr key={q.id} className="border-b border-slate-100">
+                              <td className="p-2.5 font-bold bg-slate-100 w-1/3 text-slate-900">{q.label}</td>
+                              <td className="p-2.5 text-slate-900 font-medium">{answers[q.id] || 'No especificado'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
                 ))}
               </div>
-              
-              {/* Footer info */}
-              <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-muted-foreground/60">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1.5">
-                    <History className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest">Revisión local: OK</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-bold uppercase tracking-widest">Estado: Borrador</span>
-                  </div>
-                </div>
-                <p className="text-[9px] font-medium italic">{t('common.under_construction')} Senior Review Logic</p>
-              </div>
             </div>
-          </main>
-
-          {/* Comments Sidebar */}
-          {showComments && (
-            <div className="w-72 border-l border-border bg-card flex flex-col animate-in slide-in-from-right duration-300">
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comentarios</h3>
-                <button onClick={() => setShowComments(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+          ) : (
+            /* Matriz Libre / Wizard Body */
+            <div className="space-y-8 max-w-5xl">
               
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                {sectionComments[activeSectionId]?.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground/30 text-center space-y-2">
-                    <MessageSquare className="w-6 h-6" />
-                    <p className="text-[9px] font-black uppercase tracking-widest">Sin comentarios</p>
-                  </div>
-                ) : (
-                  sectionComments[activeSectionId]?.map((comment: any) => (
-                    <div key={comment.id} className="p-3 rounded-xl bg-background border border-border space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-black text-primary uppercase tracking-widest">{comment.author}</span>
-                        <span className="text-[8px] text-muted-foreground/50">{new Date(comment.date).toLocaleDateString()}</span>
-                      </div>
-                      <p className="text-[11px] text-foreground leading-relaxed">{comment.text}</p>
-                    </div>
-                  ))
-                )}
+              {/* Wizard Navigation Top Bar */}
+              {viewMode === 'wizard' && (
+                <div className={cn(
+                  "flex items-center justify-between p-4 rounded-xl border shadow-sm",
+                  isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"
+                )}>
+                  <button 
+                    disabled={activeSectionIndex === 0}
+                    onClick={() => setActiveSectionIndex(prev => Math.max(0, prev - 1))}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2 disabled:opacity-40 text-xs font-bold rounded-lg transition-all",
+                      isLight ? "bg-slate-200 hover:bg-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                    )}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Sección Anterior
+                  </button>
+
+                  <span className={cn("text-xs font-bold", isLight ? "text-slate-700" : "text-slate-400")}>
+                    Navega con <kbd className={cn("px-1.5 py-0.5 border rounded text-[10px]", isLight ? "bg-slate-100 border-slate-300 text-slate-800" : "bg-slate-800 border-slate-700 text-slate-200")}>Ctrl + Flecha</kbd>
+                  </span>
+
+                  <button 
+                    disabled={activeSectionIndex === RELEVAMIENTO_SECTIONS_FULL.length - 1}
+                    onClick={() => setActiveSectionIndex(prev => Math.min(RELEVAMIENTO_SECTIONS_FULL.length - 1, prev + 1))}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all"
+                  >
+                    Siguiente Sección
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Section Header Card */}
+              <div className={cn(
+                "p-6 rounded-2xl border-l-4 border-l-red-600 border shadow-md relative overflow-hidden",
+                isLight ? "bg-white border-slate-300" : "bg-slate-900 border-slate-800"
+              )}>
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-500">SECCIÓN {currentSection.code} DE 22</span>
+                <h2 className={cn("text-2xl font-black tracking-tight mt-1", isLight ? "text-slate-900" : "text-white")}>
+                  {currentSection.title}
+                </h2>
+                <p className={cn("text-xs mt-1 font-medium", isLight ? "text-slate-600" : "text-slate-400")}>
+                  {currentSection.desc}
+                </p>
               </div>
 
-              <div className="p-4 border-t border-border bg-muted/20">
-                <textarea
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Nota interna..."
-                  className="w-full bg-background border border-border rounded-xl p-3 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all h-20 text-foreground placeholder:text-muted-foreground/30 resize-none mb-2"
-                />
-                <button 
-                  onClick={addComment}
-                  className="w-full py-2 bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-widest rounded-lg transition-all shadow-sm"
-                >
-                  Enviar
-                </button>
-              </div>
+              {/* Questions Grid */}
+              {currentSection.questions && currentSection.questions.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentSection.questions.map(q => {
+                    const currentVal = answers[q.id] || '';
+
+                    return (
+                      <div 
+                        key={q.id} 
+                        className={cn(
+                          "p-4 rounded-xl border transition-all space-y-2.5",
+                          isLight ? "bg-white border-slate-300 shadow-sm" : "bg-slate-900/80 border-slate-800"
+                        )}
+                      >
+                        <label className={cn("text-xs font-bold block", isLight ? "text-slate-900" : "text-slate-200")}>
+                          {q.label}
+                        </label>
+
+                        {q.type === 'chip' ? (
+                          <div className="flex flex-wrap gap-2">
+                            {q.options?.map(opt => {
+                              const isSelected = currentVal === opt;
+
+                              return (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => {
+                                    setAnswers(prev => ({ ...prev, [q.id]: opt }));
+                                  }}
+                                  className={cn(
+                                    "px-3 py-1.5 rounded-full text-xs font-bold transition-all",
+                                    isSelected 
+                                      ? "bg-red-600 text-white shadow-md" 
+                                      : isLight ? "bg-slate-200 hover:bg-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                                  )}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <input 
+                            type={q.type || 'text'}
+                            value={currentVal}
+                            placeholder={q.placeholder || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAnswers(prev => ({ ...prev, [q.id]: val }));
+                            }}
+                            className={cn(
+                              "w-full px-3 py-2 rounded-lg border text-xs font-semibold outline-none transition-all",
+                              isLight ? "bg-slate-50 border-slate-300 focus:border-red-600 text-slate-900" : "bg-slate-950 border-slate-800 focus:border-red-600 text-slate-100"
+                            )}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Dynamic Tables (67 Tables) */}
+              {currentSection.tables && currentSection.tables.length > 0 && (
+                <div className="space-y-6">
+                  {currentSection.tables.map(tbl => {
+                    const currentRows = tablesData[tbl.id] || tbl.rows;
+
+                    const handleCellChange = (rIdx: number, key: string, val: any) => {
+                      const updated = [...currentRows];
+                      updated[rIdx] = { ...updated[rIdx], [key]: val };
+                      setTablesData(prev => ({ ...prev, [tbl.id]: updated }));
+                    };
+
+                    const handleAddRow = () => {
+                      const newRow: Record<string, any> = {};
+                      tbl.columns.forEach(c => {
+                        newRow[c.key] = c.options ? c.options[0] : '';
+                      });
+                      setTablesData(prev => ({ ...prev, [tbl.id]: [...currentRows, newRow] }));
+                    };
+
+                    const handleDeleteRow = (rIdx: number) => {
+                      const updated = currentRows.filter((_, idx) => idx !== rIdx);
+                      setTablesData(prev => ({ ...prev, [tbl.id]: updated }));
+                    };
+
+                    return (
+                      <div 
+                        key={tbl.id} 
+                        className={cn(
+                          "p-5 rounded-2xl border shadow-sm space-y-4",
+                          isLight ? "bg-white border-slate-300" : "bg-slate-900/80 border-slate-800"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className={cn("text-sm font-extrabold", isLight ? "text-slate-900" : "text-slate-100")}>{tbl.title}</h3>
+                          <button 
+                            onClick={handleAddRow}
+                            className={cn(
+                              "flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all",
+                              isLight ? "bg-slate-200 hover:bg-slate-300 text-slate-800" : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                            )}
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Añadir Fila
+                          </button>
+                        </div>
+
+                        <div className="overflow-x-auto custom-scrollbar">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                              <tr className={cn(
+                                "border-b text-[10px] font-black uppercase tracking-wider",
+                                isLight ? "bg-slate-100 text-slate-800 border-slate-300" : "bg-slate-950/60 text-slate-400 border-slate-800"
+                              )}>
+                                {tbl.columns.map(c => (
+                                  <th key={c.key} className="p-3">{c.label}</th>
+                                ))}
+                                <th className="p-3 text-center w-12">Acción</th>
+                              </tr>
+                            </thead>
+                            <tbody className={cn("divide-y", isLight ? "divide-slate-200" : "divide-slate-800/40")}>
+                              {currentRows.map((row, rIdx) => {
+                                const isGapRow = row.cobertura === "No (Desarrollo)" || row.cobertura === "Parcial" || row.aplica === "No";
+
+                                return (
+                                  <tr 
+                                    key={rIdx} 
+                                    className={cn(
+                                      "transition-colors",
+                                      isGapRow ? "bg-red-500/10" : isLight ? "hover:bg-slate-50" : "hover:bg-slate-800/40"
+                                    )}
+                                  >
+                                    {tbl.columns.map(col => {
+                                      const cellVal = row[col.key] || '';
+
+                                      if (col.type === 'readonly') {
+                                        return (
+                                          <td key={col.key} className={cn("p-3 font-bold", isLight ? "text-slate-900" : "text-slate-200")}>
+                                            {cellVal}
+                                          </td>
+                                        );
+                                      }
+
+                                      if (col.type === 'chip') {
+                                        return (
+                                          <td key={col.key} className="p-3">
+                                            <div className="flex flex-wrap gap-1.5">
+                                              {col.options?.map(opt => {
+                                                const isSel = cellVal === opt;
+
+                                                return (
+                                                  <button
+                                                    key={opt}
+                                                    type="button"
+                                                    onClick={() => handleCellChange(rIdx, col.key, opt)}
+                                                    className={cn(
+                                                      "px-2.5 py-1 rounded-full text-[11px] font-bold transition-all",
+                                                      isSel 
+                                                        ? "bg-red-600 text-white shadow-sm" 
+                                                        : isLight ? "bg-slate-200 text-slate-800 hover:bg-slate-300" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                                    )}
+                                                  >
+                                                    {opt}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </td>
+                                        );
+                                      }
+
+                                      return (
+                                        <td key={col.key} className="p-3">
+                                          <input 
+                                            type="text" 
+                                            value={cellVal}
+                                            onChange={(e) => handleCellChange(rIdx, col.key, e.target.value)}
+                                            className={cn(
+                                              "w-full px-2.5 py-1.5 rounded border text-xs font-semibold outline-none transition-all",
+                                              isLight ? "bg-white border-slate-300 focus:border-red-600 text-slate-900" : "bg-slate-950 border-slate-800 focus:border-red-600 text-slate-200"
+                                            )}
+                                          />
+                                        </td>
+                                      );
+                                    })}
+                                    <td className="p-3 text-center">
+                                      <button 
+                                        onClick={() => handleDeleteRow(rIdx)}
+                                        className="text-red-600 hover:text-red-500 p-1"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
             </div>
           )}
-        </div>
+
+        </main>
       </div>
+
     </div>
   );
 }

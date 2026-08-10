@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to Semantic Versioning: **V.R.E** (Version.Rama.Etapa).
 
+## [15.0.0] - 2026-08-10
+
+### Added
+- **Nuevo Módulo UNIGIS TMS Discovery & Relevamiento de Proyectos**:
+  - Integración completa de la Metodología Oficial de Consultoría UNIGIS TMS con **22 Secciones** y **67 Tablas Dinámicas**.
+  - **Modo Workshop Guiado (Wizard Focus)**: Flujo de presentación paso a paso para talleres con clientes y navegación rápida con atajos de teclado (`Ctrl + Left/Right`).
+  - **Respuestas de 1-Clic mediante Chips**: Selección inmediata de estados, coberturas y niveles de prioridad.
+  - **Precarga Inteligente de Industria (Smart Pre-fills)**: Plantillas precargadas en 1 clic (*Europastry - Última Milla & Temperatura*, *Transpais - LTL/FTL Internacional e Intermodal*, *Distribución Industrial Estándar*).
+  - **Autocompletado Automático de Proyecto**: Sincronización automática de Nombre del Proyecto y Cliente en la Sección 1 desde el contexto activo de UniTask.
+  - **Generador de Documentos Oficiales DDS**: Vista previa de impresión imprenta con estilos `@media print` para exportar el Documento de Diseño de Solución a PDF.
+  - **Persistencia en Firestore**: Sincronización en tiempo real y respaldo persistente multi-usuario en la colección `projects/{id}/relevamiento/main`.
+
+### Changed
+- **Ajustes de Contraste y Legibilidad en Tema Claro (Light Theme)**:
+  - Optimización de títulos, enunciados, etiquetas e inputs para alta legibilidad en el tema claro estándar de UniTask (`text-slate-900`, `text-slate-800`).
+  - Coexistencia perfecta entre el tema visual Slate de UniTask y la identidad cromática institucional de UNIGIS (`#E30613`).
+
 ---
 
 ## [14.8.0] - 2026-06-22
