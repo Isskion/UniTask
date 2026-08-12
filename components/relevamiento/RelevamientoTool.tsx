@@ -36,7 +36,8 @@ import {
   Zap,
   LayoutGrid,
   Wand2,
-  FileText
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RELEVAMIENTO_SECTIONS_FULL, RelevamientoSection, INDUSTRY_TEMPLATES_FULL } from '@/lib/relevamiento_schema';
@@ -187,6 +188,29 @@ export default function RelevamientoTool({ projectId, projectName }: Relevamient
     a.click();
   };
 
+  // Exportar WBS (Excel / CSV Independiente de DDS)
+  const handleExportWBS = () => {
+    const displayProjName = answers['p1_1'] || projectName || projectId;
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "Fase de Proyecto;Descripción;Entregables Clave;Duración Estimada;Responsable;Requisito DDS\n";
+
+    const sec21 = RELEVAMIENTO_SECTIONS_FULL.find(s => s.id === 'sec-21');
+    const tbl65Data = tablesData['t65'] || (sec21 && sec21.tables && sec21.tables[0] ? sec21.tables[0].rows : []);
+    const isDdsRequired = answers['p21_2'] || "No Obligatorio (Solo WBS Excel)";
+
+    tbl65Data.forEach((r: any) => {
+      const line = `"${r.fase || ''}";"${r.desc || ''}";"${r.entregables || ''}";"${r.duracion || ''}";"${r.resp || ''}";"${isDdsRequired}"`;
+      csvContent += line + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const a = document.createElement('a');
+    a.href = encodedUri;
+    a.download = `WBS_Proyecto_${displayProjName.replace(/\s+/g, '_')}.csv`;
+    a.click();
+    alert("📊 Estructura WBS (Excel) exportada exitosamente. El DDS es un documento opcional.");
+  };
+
   // Atajos de teclado para Wizard (Ctrl + Left/Right)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -274,6 +298,18 @@ export default function RelevamientoTool({ projectId, projectName }: Relevamient
           >
             <Download className="w-3.5 h-3.5" />
             JSON
+          </button>
+
+          <button 
+            onClick={handleExportWBS}
+            title="Exportar WBS (Excel / CSV Independiente de DDS)"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 border text-xs font-bold rounded-lg transition-all",
+              isLight ? "bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-800" : "bg-emerald-950/60 hover:bg-emerald-900/60 border-emerald-700 text-emerald-200"
+            )}
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            WBS Excel
           </button>
 
           <button 

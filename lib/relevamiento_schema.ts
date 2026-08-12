@@ -687,13 +687,17 @@ export const RELEVAMIENTO_SECTIONS_FULL: RelevamientoSection[] = [
   {
     id: "sec-21",
     code: "21",
-    title: "Próximos Pasos y Plan de Proyecto Preliminar",
+    title: "Próximos Pasos y Plan de Proyecto Preliminar (WBS)",
     icon: "Calendar",
-    desc: "Hitos principales, fases de implantación, cronograma y dependencias críticas para el Go-Live.",
+    desc: "Hitos principales, fases de implantación, cronograma (WBS) y dependencias críticas para el Go-Live.",
+    questions: [
+      { id: "p21_1", label: "Modalidad de Integración de Proyecto", type: "chip", options: ["Solo Excel WBS (Fast-Track / Estándar)", "Excel WBS + Documento DDS Completo"] },
+      { id: "p21_2", label: "Requisito de DDS Formal", type: "chip", options: ["No Obligatorio (Solo WBS Excel)", "Obligatorio (Relevamiento Completo)"] }
+    ],
     tables: [
       {
         id: "t65",
-        title: "Hitos Principales de la Implantación UNIGIS (Tabla 65)",
+        title: "Hitos Principales de la Implantación UNIGIS / WBS (Tabla 65)",
         columns: [
           { key: "fase", label: "Fase de Proyecto", type: "readonly" },
           { key: "desc", label: "Descripción", type: "text" },
@@ -702,7 +706,7 @@ export const RELEVAMIENTO_SECTIONS_FULL: RelevamientoSection[] = [
           { key: "resp", label: "Responsable", type: "text" }
         ],
         rows: [
-          { fase: "1. Descubrimiento & DDS", desc: "Workshops de relevamiento y redacción del Documento de Diseño", entregables: "Documento DDS Aprobado", duracion: "3 Semanas", resp: "Consultor UNIGIS" },
+          { fase: "1. Descubrimiento & Alineación WBS", desc: "Workshops de relevamiento inicial e integración de la WBS (Excel de Proyecto)", entregables: "Excel WBS de Proyecto (DDS Opcional)", duracion: "1-3 Semanas", resp: "Consultor UNIGIS" },
           { fase: "2. Parametrización & Reglas", desc: "Configuración del TMS, optimizador, tarifas y app chofer", entregables: "Entorno UNIGIS Configurado", duracion: "4 Semanas", resp: "Equipo Técnico UNIGIS" },
           { fase: "3. Desarrollo de Integraciones", desc: "Construcción de conectores API REST con SAP y GPS", entregables: "APIs Probadamente Funcionales", duracion: "4 Semanas", resp: "Equipo IT UNIGIS / Cliente" },
           { fase: "4. Pruebas & Formación", desc: "Pruebas UAT integradas y capacitación por roles", entregables: "Acta de Aceptación UAT", duracion: "2 Semanas", resp: "Consultor & Cliente" },
