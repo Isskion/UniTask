@@ -10,7 +10,7 @@ import {
     appendTableRow, removeTableRow
 } from '@/lib/discovery';
 import { processDiscoveryExcelUpload } from '@/lib/discoveryImporter';
-import { CheckCircle2, MinusCircle, Circle, Loader2, FileSpreadsheet, X, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, MinusCircle, Circle, Loader2, FileSpreadsheet, X, Plus, Trash2, Printer, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DiscoveryQuestionnaireProps {
@@ -237,6 +237,49 @@ export default function DiscoveryQuestionnaire({ tenantId, projectId, uid, selec
         }
     };
 
+    const handleExportWBS = () => {
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Fase de Proyecto;Descripción;Entregables Clave;Duración Estimada;Responsable;Requisito DDS\n";
+
+        const sec21Id = instance?.sections.find(s => s.id.includes('21') || s.title.toLowerCase().includes('próximos pasos') || s.title.toLowerCase().includes('wbs'))?.id || 'sec-21';
+        const sec21Resp = sectionResponses[sec21Id];
+        const isDdsRequired = sec21Resp?.['p21_2']?.value || "No Obligatorio (Solo WBS Excel)";
+
+        const defaultRows = [
+            { fase: "1. Descubrimiento & Alineación WBS", desc: "Workshops de relevamiento inicial e integración de la WBS (Excel de Proyecto)", entregables: "Excel WBS de Proyecto (DDS Opcional)", duracion: "1-3 Semanas", resp: "Consultor UNIGIS" },
+            { fase: "2. Parametrización & Reglas", desc: "Configuración del TMS, optimizador, tarifas y app chofer", entregables: "Entorno UNIGIS Configurado", duracion: "4 Semanas", resp: "Equipo Técnico UNIGIS" },
+            { fase: "3. Desarrollo de Integraciones", desc: "Construcción de conectores API REST con SAP y GPS", entregables: "APIs Probadamente Funcionales", duracion: "4 Semanas", resp: "Equipo IT UNIGIS / Cliente" },
+            { fase: "4. Pruebas & Formación", desc: "Pruebas UAT integradas y capacitación por roles", entregables: "Acta de Aceptación UAT", duracion: "2 Semanas", resp: "Consultor & Cliente" },
+            { fase: "5. Go-Live & Soporte", desc: "Puesta en marcha asistida y monitoreo en operación real", entregables: "Sistema en Producción Real", duracion: "2 Semanas", resp: "Equipo Mixto UNIGIS/Cliente" }
+        ];
+
+        const tableData = Array.isArray(sec21Resp?.['t65']?.value) ? sec21Resp['t65'].value : defaultRows;
+
+        tableData.forEach((r: any) => {
+            const line = `"${r.fase || r.Fase || ''}";"${r.desc || r.Descripción || ''}";"${r.entregables || r.Entregables || ''}";"${r.duracion || r.Duración || ''}";"${r.resp || r.Responsable || ''}";"${isDdsRequired}"`;
+            csvContent += line + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const a = document.createElement('a');
+        a.href = encodedUri;
+        a.download = `WBS_Proyecto_${projectId.replace(/\s+/g, '_')}.csv`;
+        a.click();
+        alert("📊 Estructura WBS (Excel) exportada exitosamente. El DDS es un documento opcional.");
+    };
+
+    const handleExportJSON = () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ projectId, tenantId, responses: sectionResponses }, null, 2));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = `Discovery_${projectId}.json`;
+        a.click();
+    };
+
+    const handlePrintDDS = () => {
+        window.print();
+    };
+
     const overall = useMemo(() => {
         if (!instance) return { done: 0, total: 0, pct: 0 };
         let done = 0, total = 0;
@@ -273,8 +316,37 @@ export default function DiscoveryQuestionnaire({ tenantId, projectId, uid, selec
                     <h2 className="text-lg font-bold text-foreground truncate">Discovery (Relevamiento)</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">{overall.done}/{overall.total} preguntas resueltas ({overall.pct}%)</p>
                 </div>
-                <div className="w-40 h-2 rounded-full bg-muted overflow-hidden shrink-0">
-                    <div className="h-full bg-primary transition-all" style={{ width: `${overall.pct}%` }} />
+                <div className="flex items-center gap-3">
+                    <div className="w-32 h-2 rounded-full bg-muted overflow-hidden shrink-0 hidden sm:block">
+                        <div className="h-full bg-primary transition-all" style={{ width: `${overall.pct}%` }} />
+                    </div>
+
+                    <button 
+                        onClick={handleExportWBS}
+                        title="Exportar WBS (Excel / CSV Independiente de DDS)"
+                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                    >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>WBS Excel</span>
+                    </button>
+
+                    <button 
+                        onClick={handleExportJSON}
+                        title="Exportar Respuestas JSON"
+                        className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 text-foreground px-3 py-1.5 rounded-lg text-xs font-semibold border border-border transition-colors cursor-pointer"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>JSON</span>
+                    </button>
+
+                    <button 
+                        onClick={handlePrintDDS}
+                        title="Imprimir Documento DDS (Opcional)"
+                        className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                    >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Imprimir DDS</span>
+                    </button>
                 </div>
             </div>
 
