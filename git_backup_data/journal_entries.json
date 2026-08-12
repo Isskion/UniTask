@@ -5122,6 +5122,32 @@
     "updatedAt": "2026-08-07T14:50:26.443Z"
   },
   {
+    "id": "3_2026-08-12",
+    "date": "2026-08-12",
+    "tenantId": "3",
+    "projects": [
+      {
+        "name": "TRANSPAIS",
+        "projectId": "aAb2HIajQVhXnLAzmVo8",
+        "pmNotes": "Transpais - Seguimiento semanal 12-08-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definir el mapeo de la creación de pedidos.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Ahora toca montar los sensores en la plataforma.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En espera e Generix.\n------------\n\nGenerix en stand by por temas contractuales.\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema.",
+        "conclusions": "",
+        "nextSteps": "",
+        "status": "active",
+        "blocks": [
+          {
+            "id": "default",
+            "title": "Título del bloque (ej. Reunión de Equipo)",
+            "content": "Transpais - Seguimiento semanal 12-08-2026\n\nPORTIC -- > confirmado el mapeo, queda definir una tabla de conversión de las refercnias externas para hacer matching entre pedidos de portic y Unigis.\n\nInterfaces:\n-> Aitana Business Central: Continuamos contactos para definir el mapeo de la creación de pedidos.\n-> Webfleet: Funcionando en test, validada recpeción de GPS. Ahora toca montar los sensores en la plataforma.\n-> Transporeon: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Maersk: Cargada documentación para equipo de producto. Sin fecha de entrega.\n-> Generix: En espera de que se defina finalmente midleware.\n-> Portic: Cargada documentación para equipo de producto. En desarrollo, aproximada la entrega para Q4, no confirmada a falta de una reunión interna.\n\n--------\n-> Notas de Intermodal: Entregado documento con anotaciones respondidas. En construcción\n-> Internacional: Entregado documento con anotaciones respondidas. En construcción\n-> Distribución: Entregado documento con anotaciones respondidas. Enviado mail para recap de Vehículos. En espera e Generix.\n------------\n\nGenerix en stand by por temas contractuales.\n\nTranspais nos envía los grupos de usuario por operación para integrar en el sistema.",
+            "isCollapsed": false
+          }
+        ]
+      }
+    ],
+    "generalNotes": "",
+    "createdAt": "2026-08-12T13:16:25.424Z",
+    "updatedAt": "2026-08-12T13:52:36.181Z"
+  },
+  {
     "id": "4_2026-01-12",
     "date": "2026-01-12",
     "tenantId": "4",
