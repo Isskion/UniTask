@@ -1236,6 +1236,21 @@
     }
   },
   {
+    "id": "QTR1SUyYCfVOsZE0MzdU",
+    "userId": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "tenantId": "3",
+    "type": "deadline_expired",
+    "title": "Overdue Task",
+    "message": "Your task TRA-38 - \"REvisar campos de equivalencia en integraciones\" has reached its deadline.",
+    "taskId": "gQztmXm4RLq1KLXtpP7T",
+    "read": false,
+    "link": "/?view=task-manager&taskId=gQztmXm4RLq1KLXtpP7T",
+    "createdAt": {
+      "_seconds": 1786613538,
+      "_nanoseconds": 555000000
+    }
+  },
+  {
     "id": "Qcr3P3A6ngA5LRN4HcO4",
     "userId": "lE4z434rFRUSaGo4uQw2Guspo1j2",
     "tenantId": "3",
