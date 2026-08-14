@@ -5481,6 +5481,53 @@
     }
   },
   {
+    "id": "K33TOlfS2BtOoF2iXIkt",
+    "title": "Gestión de restricciónes",
+    "status": "pending",
+    "projectId": "OH4sjML9byhLuzMXSTss",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786704768.463,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "3",
+    "isActive": true,
+    "projectCode": "LSM",
+    "endDate": "2026-09-29T22:00:00.000Z",
+    "assignedTo": "rgwBllGD8ehaXJyXfEQbJCTerMR2",
+    "techDescription": "Generar tarea para recuperar las restricciones del domicilio fijo cuando el variable no tenga durante la creación del pedido en OM.",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "LUI-10",
+    "taskNumber": 10,
+    "createdBy": "6C9ZN0mfngNb5gIAWw1EMSaQcRR2",
+    "createdAt": {
+      "_seconds": 1786704841,
+      "_nanoseconds": 759000000
+    },
+    "updatedAt": {
+      "_seconds": 1786704841,
+      "_nanoseconds": 759000000
+    }
+  },
+  {
     "id": "KH0T5YTmImLgH1fTixku",
     "friendlyId": "MOCK-23-1",
     "organizationId": "1",
