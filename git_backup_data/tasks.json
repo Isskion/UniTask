@@ -119,7 +119,6 @@
     "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
     "techDescription": "Analisis y creación del diagrama de Gantt",
     "projectCode": "TRIA",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-8",
     "taskNumber": 8,
@@ -129,10 +128,16 @@
       "_nanoseconds": 455000000
     },
     "attributes": {},
-    "status": "in_progress",
+    "closedBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "actualEffort": 1,
+    "closedAt": {
+      "_seconds": 1786949817,
+      "_nanoseconds": 968000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1786257363,
-      "_nanoseconds": 739000000
+      "_seconds": 1786949817,
+      "_nanoseconds": 968000000
     }
   },
   {
@@ -429,7 +434,6 @@
   {
     "id": "1hXCtJVOJiCfDGwUyOQa",
     "title": "Crear dobles pantallas",
-    "status": "pending",
     "projectId": "wRKrnv7OK4xgyRt5ejJ6",
     "acceptanceCriteria": [
       {
@@ -459,7 +463,6 @@
     "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
     "projectCode": "TRIA",
     "techDescription": "Analizar y lanzar la creación de las dobles de asginación",
-    "actualEffort": null,
     "creationSource": "manual_main",
     "friendlyId": "TRA-7",
     "taskNumber": 7,
@@ -468,9 +471,17 @@
       "_seconds": 1786257295,
       "_nanoseconds": 281000000
     },
+    "closedBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "actualEffort": 1,
+    "attributes": {},
+    "closedAt": {
+      "_seconds": 1786949843,
+      "_nanoseconds": 313000000
+    },
+    "status": "completed",
     "updatedAt": {
-      "_seconds": 1786257295,
-      "_nanoseconds": 281000000
+      "_seconds": 1786949843,
+      "_nanoseconds": 313000000
     }
   },
   {
@@ -2859,6 +2870,51 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "Ai4ItSihgpAL0HERujat",
+    "title": "Desarrollar sistema de Geocercas",
+    "status": "pending",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786952068.588,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "projectCode": "TRIA",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-10",
+    "taskNumber": 10,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1786952091,
+      "_nanoseconds": 677000000
+    },
+    "updatedAt": {
+      "_seconds": 1786952091,
+      "_nanoseconds": 677000000
     }
   },
   {
@@ -5900,7 +5956,6 @@
   {
     "id": "L7cKanzSDLj3Bra9EXb4",
     "title": "Aplicación de trazabilidad",
-    "status": "pending",
     "projectId": "wRKrnv7OK4xgyRt5ejJ6",
     "acceptanceCriteria": [
       {
@@ -5938,9 +5993,11 @@
       "_seconds": 1785996654,
       "_nanoseconds": 578000000
     },
+    "attributes": {},
+    "status": "in_progress",
     "updatedAt": {
-      "_seconds": 1785996654,
-      "_nanoseconds": 578000000
+      "_seconds": 1786949832,
+      "_nanoseconds": 576000000
     }
   },
   {
@@ -11035,6 +11092,53 @@
     "updatedAt": {
       "_seconds": 1780043426,
       "_nanoseconds": 858000000
+    }
+  },
+  {
+    "id": "hs85a3mwHsQaZPyKjzZ1",
+    "status": "pending",
+    "projectId": "wRKrnv7OK4xgyRt5ejJ6",
+    "acceptanceCriteria": [
+      {
+        "id": "1",
+        "text": "Criterio de aceptación 1",
+        "completed": false
+      }
+    ],
+    "progress": 0,
+    "progressV13": {
+      "actual": 0,
+      "planned": 0
+    },
+    "type": "task",
+    "order": 1786949775.289,
+    "ancestorIds": [],
+    "raci": {
+      "responsible": [],
+      "accountable": [],
+      "consulted": [],
+      "informed": []
+    },
+    "dependencies": [],
+    "tenantId": "18",
+    "isActive": true,
+    "endDate": "2026-08-30T22:00:00.000Z",
+    "assignedTo": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "projectCode": "TRIA",
+    "actualEffort": null,
+    "creationSource": "manual_main",
+    "friendlyId": "TRA-9",
+    "taskNumber": 9,
+    "createdBy": "TL4uJULn0mZoMpFz9iYl3N9g2053",
+    "createdAt": {
+      "_seconds": 1786949791,
+      "_nanoseconds": 837000000
+    },
+    "attributes": {},
+    "title": "Eventos encadenados- Crear ecosistema \\\\ Trabaajr motor de eventos.",
+    "updatedAt": {
+      "_seconds": 1786951652,
+      "_nanoseconds": 538000000
     }
   },
   {
