@@ -167,33 +167,61 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
         return () => window.removeEventListener('keydown', handler);
     }, [rows, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // ─── Shared Excel Async Loader (Paints spinner FIRST before parsing) ───
+    const processExcelData = useCallback((file: File, arrayBuffer: ArrayBuffer) => {
+        console.log('[ExcelLoader] Processing file:', file.name, file.size, 'bytes');
+        // Double setTimeout ensures React repaints the Loading Overlay spinner DOM element first
+        setTimeout(() => {
+            setTimeout(() => {
+                try {
+                    console.log('[ExcelLoader] Parsing Excel workbook...');
+                    const { sheet, workbook } = parseExcelFile(arrayBuffer);
+
+                    if (sheet.headers.length === 0) {
+                        throw new Error('El archivo Excel no tiene cabeceras válidas en la primera fila.');
+                    }
+
+                    console.log('[ExcelLoader] Successfully parsed Excel. Setting headers & rows in store...');
+                    setHeaders(sheet.headers);
+                    setRows(sheet.rows);
+
+                    // Store workbook for multi-sheet
+                    useAppStore.getState().setMultiSheet({ workbook });
+
+                    // Open the mapping wizard
+                    setMappingWizardOpen(true);
+                } catch (err: any) {
+                    console.error('[ExcelLoadError]', err);
+                    alert(`Error cargando el archivo: ${err.message || err}`);
+                } finally {
+                    setIsLoadingExcel(false);
+                }
+            }, 50);
+        }, 50);
+    }, [setHeaders, setRows]);
+
     // ─── #6: Drag & Drop Excel file listener ─────────────────────────
     useEffect(() => {
         const handler = (e: Event) => {
             const file = (e as CustomEvent).detail?.file;
             if (!file) return;
-            const reader = new FileReader();
             setIsLoadingExcel(true);
+            const reader = new FileReader();
             reader.onload = (evt) => {
-                requestAnimationFrame(() => {
-                    try {
-                        const data = evt.target?.result as ArrayBuffer;
-                        const { sheet } = parseExcelFile(data);
-                        setHeaders(sheet.headers);
-                        setRows(sheet.rows);
-                        setMappingWizardOpen(true);
-                    } catch (err: any) {
-                        console.error('[ExcelDropError]', err);
-                    } finally {
-                        setIsLoadingExcel(false);
-                    }
-                });
+                const data = evt.target?.result as ArrayBuffer;
+                if (data) processExcelData(file, data);
+                else setIsLoadingExcel(false);
+            };
+            reader.onerror = (err) => {
+                console.error('[FileReaderError]', err);
+                setIsLoadingExcel(false);
+                alert('Error al leer el archivo desde el disco.');
             };
             reader.readAsArrayBuffer(file);
         };
         window.addEventListener('excel-drop', handler);
         return () => window.removeEventListener('excel-drop', handler);
-    }, [setHeaders, setRows]);
+    }, [processExcelData]);
 
     // ─── Excel loading ──────────────────────────────────────────────────
     const handleLoadExcel = useCallback(() => {
@@ -204,36 +232,12 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
-            console.log('[handleFileChange] File selected:', file.name, 'Size:', file.size, 'bytes');
-            const reader = new FileReader();
             setIsLoadingExcel(true);
+            const reader = new FileReader();
             reader.onload = (evt) => {
-                setTimeout(() => {
-                    try {
-                        const data = evt.target?.result as ArrayBuffer;
-                        console.log('[handleFileChange] FileReader loaded buffer. Parsing Excel...');
-                        const { sheet, workbook } = parseExcelFile(data);
-
-                        if (sheet.headers.length === 0) {
-                            throw new Error('El archivo Excel no parece tener cabeceras válidas en la primera fila.');
-                        }
-
-                        console.log('[handleFileChange] Successfully parsed Excel. Setting headers & rows in store...');
-                        setHeaders(sheet.headers);
-                        setRows(sheet.rows);
-
-                        // Store workbook for multi-sheet
-                        useAppStore.getState().setMultiSheet({ workbook });
-
-                        // Open the mapping wizard instead of auto-mapping
-                        setMappingWizardOpen(true);
-                    } catch (err: any) {
-                        console.error('[ExcelLoadError]', err);
-                        alert(`Error cargando el archivo: ${err.message || err}`);
-                    } finally {
-                        setIsLoadingExcel(false);
-                    }
-                }, 50);
+                const data = evt.target?.result as ArrayBuffer;
+                if (data) processExcelData(file, data);
+                else setIsLoadingExcel(false);
             };
             reader.onerror = (err) => {
                 console.error('[FileReaderError]', err);
@@ -243,7 +247,7 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
             reader.readAsArrayBuffer(file);
             e.target.value = '';
         },
-        [setHeaders, setRows],
+        [processExcelData],
     );
 
     // ─── Group rows ──────────────────────────────────────────────────────

@@ -49,6 +49,11 @@ export function validateOrderRow(
     mapping: Record<string, string>,
     duplicateMap?: Map<string, number>
 ): RowValidationResult {
+    // Fast path: if mapping is empty (initial Excel load), return valid empty result instantly
+    if (!mapping || Object.keys(mapping).length === 0) {
+        return { rowIndex, issues: [], isValid: true };
+    }
+
     const issues: ValidationIssue[] = [];
 
     // 1. Campos requeridos
