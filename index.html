@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniTask - UNIGIS TMS Discovery & Relevamiento System</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom UNIGIS Theme Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar Superior UNIGIS (Negro / Rojo / Blanco) -->
+  <header class="app-navbar">
+    <div class="brand-container">
+      <span class="brand-logo-badge">UNIGIS</span>
+      <span class="brand-title">UniTask TMS Discovery</span>
+      <span class="brand-subtitle">Guía de Consultoría & Relevamiento</span>
+    </div>
+
+    <div class="navbar-controls">
+      <!-- Selector de Proyectos -->
+      <select id="projectSelector" class="nav-project-selector">
+        <option value="proj_demo_2026">Cliente Europastry Demo 2026</option>
+      </select>
+
+      <button id="btnNewProject" class="btn-secondary-dark" title="Crear Nuevo Proyecto de Relevamiento">
+        <i class="fas fa-plus"></i> Nuevo
+      </button>
+
+      <!-- Indicador de Avance del Relevamiento -->
+      <div class="progress-pill-container">
+        <div class="progress-bar-bg">
+          <div id="projectProgressFill" class="progress-bar-fill"></div>
+        </div>
+        <span id="projectProgressText" class="progress-text">0% Completado</span>
+      </div>
+
+      <!-- Acciones de Firestore & Impresión -->
+      <button id="btnSaveCloud" class="btn-unigis" title="Guardar en Firebase Firestore">
+        <i class="fas fa-cloud-upload-alt"></i> Guardar
+      </button>
+
+      <button id="btnExportJSON" class="btn-secondary-dark" title="Exportar Respaldo JSON">
+        <i class="fas fa-download"></i> JSON
+      </button>
+
+      <button id="btnExportWBS" class="btn-secondary-dark" title="Exportar WBS (Excel / CSV Independent)">
+        <i class="fas fa-file-excel" style="color: #10B981;"></i> WBS Excel
+      </button>
+
+      <button id="btnExportDDS" class="btn-unigis" style="background: #10B981;" title="Imprimir o Exportar PDF DDS (Opcional)">
+        <i class="fas fa-print"></i> Imprimir DDS
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Principal -->
+  <div class="app-layout">
+    
+    <!-- Sidebar de Secciones (22 Secciones) -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <h4>SECCIONES DE DESCUBRIMIENTO</h4>
+      </div>
+      <ul id="sidebarMenu" class="sidebar-menu">
+        <!-- Generado dinámicamente desde app.js -->
+      </ul>
+    </aside>
+
+    <!-- Área Principal de Trabajo -->
+    <main class="app-main-content">
+      
+      <!-- Toolbar de Modos de Trabajo & Plantillas Inteligentes -->
+      <div class="interactive-toolbar">
+        <div class="toolbar-modes">
+          <button id="btnModeMatrix" class="mode-btn active">
+            <i class="fas fa-th-list"></i> Matriz Libre
+          </button>
+          <button id="btnModeWizard" class="mode-btn">
+            <i class="fas fa-magic"></i> Modo Workshop Guiado (Wizard)
+          </button>
+          <button id="btnModeDDS" class="mode-btn">
+            <i class="fas fa-file-contract"></i> Vista Previa Documento DDS
+          </button>
+        </div>
+
+        <!-- Precarga de Plantillas de Industria (1-Clic) -->
+        <div class="template-dropdown">
+          <span style="font-size: 12px; font-weight: 600; color: #6B7280;">Plantilla Rápida:</span>
+          <select id="templateSelector">
+            <option value="europastry">Última Milla & Temperatura Controlada (Europastry)</option>
+            <option value="transpais">LTL / FTL Internacional e Intermodal (Transpais)</option>
+            <option value="standard">Distribución Industrial Estándar</option>
+          </select>
+          <button id="btnApplyTemplate" class="btn-secondary-dark" style="padding: 6px 12px;">
+            <i class="fas fa-bolt" style="color: #F59E0B;"></i> Precargar 1-Clic
+          </button>
+        </div>
+      </div>
+
+      <!-- Control Navegación Wizard (Siguiente / Anterior) -->
+      <div id="wizardControls" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #FFF; padding: 12px 20px; border-radius: 8px; border: 1px solid #E5E7EB;">
+        <button id="btnPrevSection" class="btn-secondary-dark"><i class="fas fa-arrow-left"></i> Sección Anterior</button>
+        <span style="font-size: 13px; font-weight: 600; color: #4B5563;">Tip: Usa <kbd>Ctrl + Flechas</kbd> para navegar rápidamente</span>
+        <button id="btnNextSection" class="btn-unigis">Siguiente Sección <i class="fas fa-arrow-right"></i></button>
+      </div>
+
+      <!-- Contenedor Dinámico de Sección Activa -->
+      <div id="currentSectionContainer">
+        <!-- Renderizado dinámico desde app.js -->
+      </div>
+
+      <!-- Vista Oficial Impresa de Documento DDS -->
+      <div id="ddsPrintView" class="dds-print-view">
+        <!-- Generado dinámicamente desde app.js -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data_template.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
