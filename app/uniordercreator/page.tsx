@@ -204,19 +204,21 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            console.log('[handleFileChange] File selected:', file.name, 'Size:', file.size, 'bytes');
             const reader = new FileReader();
             setIsLoadingExcel(true);
             reader.onload = (evt) => {
-                // Use rAF to let the loading overlay paint before blocking parse
-                requestAnimationFrame(() => {
+                setTimeout(() => {
                     try {
                         const data = evt.target?.result as ArrayBuffer;
+                        console.log('[handleFileChange] FileReader loaded buffer. Parsing Excel...');
                         const { sheet, workbook } = parseExcelFile(data);
 
                         if (sheet.headers.length === 0) {
-                            throw new Error('El archivo Excel no parece tener cabeceras válidas.');
+                            throw new Error('El archivo Excel no parece tener cabeceras válidas en la primera fila.');
                         }
 
+                        console.log('[handleFileChange] Successfully parsed Excel. Setting headers & rows in store...');
                         setHeaders(sheet.headers);
                         setRows(sheet.rows);
 
@@ -227,11 +229,16 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                         setMappingWizardOpen(true);
                     } catch (err: any) {
                         console.error('[ExcelLoadError]', err);
-                        alert(`Error cargando el archivo: ${err.message}`);
+                        alert(`Error cargando el archivo: ${err.message || err}`);
                     } finally {
                         setIsLoadingExcel(false);
                     }
-                });
+                }, 50);
+            };
+            reader.onerror = (err) => {
+                console.error('[FileReaderError]', err);
+                setIsLoadingExcel(false);
+                alert('Error al leer el archivo desde el disco.');
             };
             reader.readAsArrayBuffer(file);
             e.target.value = '';

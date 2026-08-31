@@ -14,10 +14,23 @@ export function parseExcelFile(data: ArrayBuffer): {
     sheet: ParsedSheet;
     sheetNames: string[];
 } {
-    const workbook = XLSX.read(new Uint8Array(data), { type: 'array', cellDates: true });
-    const firstSheetName = workbook.SheetNames[0];
-    const sheet = parseSheet(workbook, firstSheetName);
-    return { workbook, sheet, sheetNames: workbook.SheetNames };
+    console.log('[ExcelParser] Starting file parse, size:', data.byteLength, 'bytes');
+    try {
+        const workbook = XLSX.read(new Uint8Array(data), { 
+            type: 'array', 
+            cellDates: true,
+            cellStyles: false,
+            cellFormulas: false
+        });
+        console.log('[ExcelParser] Workbook sheets:', workbook.SheetNames);
+        const firstSheetName = workbook.SheetNames[0];
+        const sheet = parseSheet(workbook, firstSheetName);
+        console.log('[ExcelParser] Parse complete. Headers:', sheet.headers.length, 'Rows:', sheet.rows.length);
+        return { workbook, sheet, sheetNames: workbook.SheetNames };
+    } catch (err: any) {
+        console.error('[ExcelParser] Error parsing Excel file:', err);
+        throw new Error(`Error al procesar el archivo Excel: ${err.message || err}`);
+    }
 }
 
 /**
@@ -25,16 +38,24 @@ export function parseExcelFile(data: ArrayBuffer): {
  */
 export function parseSheet(workbook: XLSX.WorkBook, sheetName: string): ParsedSheet {
     const ws = workbook.Sheets[sheetName];
-    if (!ws) return { headers: [], rows: [] };
+    if (!ws) {
+        console.warn('[ExcelParser] Sheet not found:', sheetName);
+        return { headers: [], rows: [] };
+    }
 
-    const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, defval: '' });
+    const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1, blankrows: false });
     if (data.length === 0) return { headers: [], rows: [] };
 
     // First row is the header
     const rawHeaders = data[0] as any[];
-    const headers = rawHeaders
-        .map(h => String(h || '').trim())
+    const headers = (rawHeaders || [])
+        .map(h => String(h ?? '').trim())
         .filter(h => h !== '');
+
+    if (headers.length === 0) {
+        console.warn('[ExcelParser] No valid headers found in row 1');
+        return { headers: [], rows: [] };
+    }
 
     // The rest are rows
     const rows: Record<string, any>[] = [];
