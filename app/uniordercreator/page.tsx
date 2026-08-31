@@ -9,8 +9,8 @@ import { generateValidationReport, type ValidationReport } from '@/app/uniorderc
 import { buildXml, type BuildXmlContext } from '@/app/uniordercreator/_src/services/xmlBuilder';
 // IMPORTANTE: Ya no llamamos a soapService (Express), usaremos fetch a nuestra propia API Route Next.js
 // import { soapCall } from '@/app/uniordercreator/_src/services/soapService';
-import { UNIGIS_ERROR_CODES } from '@/app/uniordercreator/_src/data/errorCodes';
 import { type ProgressLog } from '@/app/uniordercreator/_src/components/Modals/ProgressModal';
+import { postSoapProxy } from '@/lib/soapProxy';
 
 import Header from '@/app/uniordercreator/_src/components/Header/Header';
 import MasterTable from '@/app/uniordercreator/_src/components/DataPanel/MasterTable';
@@ -304,16 +304,12 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
             try {
                 logs.push({ ref: 'UNIGIS', status: 'info', msg: 'Verificando conectividad (Ping de Salud)...' });
                 setProgressLogs([...logs]);
-                const pingRes = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: orderUrl,
-                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                        version: '1.1',
-                        body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>',
-                        timeoutMs: 10000,
-                    }),
+                const pingRes = await postSoapProxy({
+                    url: orderUrl,
+                    action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                    version: '1.1',
+                    body: '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"><soapenv:Body/></soapenv:Envelope>',
+                    timeoutMs: 10000,
                 });
                 
                 if (pingRes.status === 404) {
@@ -384,16 +380,12 @@ function UnigisOrderCreatorPageInner({ tenantId }: { tenantId: string }) {
                                     })
                                 } as any;
                             } else {
-                                res = await fetch('https://europe-west1-minuta-f75a4.cloudfunctions.net/unigisSoapProxy', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        url: orderUrl,
-                                        action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
-                                        version: '1.1',
-                                        body: xml,
-                                        timeoutMs: 30000,
-                                    }),
+                                res = await postSoapProxy({
+                                    url: orderUrl,
+                                    action: 'http://unisolutions.com.ar/CrearOrdenesPedido',
+                                    version: '1.1',
+                                    body: xml,
+                                    timeoutMs: 30000,
                                 });
                             }
                             

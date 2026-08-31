@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, type Firestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, type Firestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const cleanEnvVar = (val: string | undefined, isDomain: boolean = false): string | undefined => {
     if (!val) return val;
@@ -44,7 +44,7 @@ try {
     db = initializeFirestore(app, {
         experimentalForceLongPolling: true,
         localCache: typeof window !== 'undefined'
-            ? persistentLocalCache({ tabManager: persistentSingleTabManager({}) })
+            ? persistentLocalCache({ tabManager: persistentMultipleTabManager({}) })
             : undefined
     });
 } catch {
