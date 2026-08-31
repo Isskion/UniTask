@@ -44,7 +44,7 @@ try {
     db = initializeFirestore(app, {
         experimentalForceLongPolling: true,
         localCache: typeof window !== 'undefined'
-            ? persistentLocalCache({ tabManager: persistentMultipleTabManager({}) })
+            ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
             : undefined
     });
 } catch {
