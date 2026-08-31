@@ -1,0 +1,22 @@
+// Field tooltip descriptions for the mapper UI
+export const FIELD_DESCRIPTIONS: Record<string, string> = {
+    'Root.ClienteDador.ReferenciaExterna': 'Identificador único o clave de negocio del cliente dador en UNIGIS (tabla Cliente).',
+    'Root.ClienteDador.RazonSocial': 'Nombre o razón social del cliente dador (dueño de la carga).',
+    'Root.ClienteDador.NombreFantasia': 'Nombre comercial o marca de fantasía.',
+    'Root.ClienteDador.Cuit': 'Identificador fiscal / CIF / NIF / CUIT / RFC.',
+    'Root.ClienteDador.Telefono1': 'Teléfono principal de contacto.',
+    'Root.ClienteDador.Telefono2': 'Teléfono secundario de contacto.',
+    'Root.ClienteDador.Direccion': 'Dirección física completa (texto libre).',
+    'Root.ClienteDador.Localidad': 'Ciudad o localidad (texto libre).',
+    'Root.ClienteDador.eMailGestorDeFlota': 'Correo electrónico del gestor de flota o contacto logístico.',
+    'Root.ClienteDador.CentroDeCosto': 'Centro de costo asignado al dador de carga.',
+    'Root.ClienteDador.IdEstado': 'ID numérico del estado inicial en UNIGIS.',
+    'Root.ClienteDador.IdEstado_opcional': 'ID de estado opcional.',
+    'Root.ClienteDador.IntegrarRNDC': 'Indica si se integra con RNDC (Colombia) - True/False.',
+    'Root.ClienteDador.IntegrarRNDC_Opcional': 'Indica si se integra con RNDC opcional - True/False.',
+    'Root.ClienteDador.operaciones.Descripcion': 'Descripción de la operación vinculada.',
+    'Root.ClienteDador.operaciones.IdOperacion': 'ID numérico de la operación en UNIGIS (ej. 1: Intermodal, 2: Internacional, 3: Distribución).',
+    'Root.ClienteDador.operaciones.Referencia': 'Referencia interna de la operación.',
+    'Root.ClienteDador.operaciones.Sucursal': 'Código o nombre de la sucursal.',
+    'Root.ClienteDador.operaciones.ReferenciaExterna': 'Referencia externa de la operación.',
+};

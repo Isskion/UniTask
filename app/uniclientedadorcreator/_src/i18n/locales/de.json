@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Verbinden",
+        "connected": "Verbunden",
+        "notConnected": "Nicht verbunden"
+    },
+    "login": {
+        "title": "Anmelden",
+        "url": "Service-URL",
+        "urlPlaceholder": "http://server/UNIGIS/LoginWS.asmx",
+        "username": "Benutzername",
+        "password": "Passwort",
+        "domain": "Domäne",
+        "domainPlaceholder": "TEST",
+        "connecting": "Verbinde...",
+        "loginButton": "Verbinden",
+        "language": "Sprache"
+    },
+    "buttons": {
+        "loadExcel": "Excel Laden",
+        "sendSelected": "Ausgewählte Senden",
+        "sendAll": "Alle Senden",
+        "save": "Speichern",
+        "load": "Laden",
+        "close": "Schließen"
+    },
+    "header": {
+        "dataPanel": "Datenbereich",
+        "xmlPreview": "XML-Vorschau",
+        "mapper": "Feld-Mapper"
+    },
+    "mapper": {
+        "title": "Feld-Mapper",
+        "search": "Feld suchen...",
+        "noFields": "Keine Felder in diesem Abschnitt",
+        "noResults": "Keine Felder gefunden für",
+        "loadExcelFirst": "Laden Sie zuerst eine Excel-Datei",
+        "noMapping": "-- Nicht zuordnen --",
+        "noForce": "-- Nicht erzwingen --"
+    },
+    "tabs": {
+        "order": "Globale Bestellung",
+        "customer": "Kunde",
+        "address": "Adresse",
+        "items": "Artikel",
+        "booleans": "Boolesche Werte"
+    },
+    "table": {
+        "selectAll": "Alle auswählen",
+        "noData": "Keine Daten geladen"
+    },
+    "messages": {
+        "confirmSendAll": "Möchten Sie wirklich alle Bestellungen senden?",
+        "confirmSendSelected": "Möchten Sie wirklich {count} ausgewählte Bestellungen senden?",
+        "sendingOrders": "Sende Bestellungen...",
+        "successSent": "✅ {count} Bestellungen erfolgreich gesendet",
+        "errorsSent": "❌ {errors} Fehler von {total} Bestellungen",
+        "loginSuccess": "Erfolgreich verbunden",
+        "loginError": "Verbindungsfehler",
+        "noSelection": "Wählen Sie mindestens eine Bestellung aus",
+        "notAuthenticated": "Sie müssen sich zuerst verbinden"
+    },
+    "errors": {
+        "title": "Fehlerprotokoll",
+        "reference": "Referenz",
+        "error": "Fehler",
+        "xmlSent": "Gesendetes XML",
+        "response": "Server-Antwort"
+    }
+}

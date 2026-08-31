@@ -1,0 +1,71 @@
+{
+    "app": {
+        "title": "UNIGIS Order Creator",
+        "connect": "Connectar",
+        "connected": "Connectat",
+        "notConnected": "No connectat"
+    },
+    "login": {
+        "title": "Iniciar Sessió",
+        "url": "URL del Servei",
+        "urlPlaceholder": "http://servidor/UNIGIS/LoginWS.asmx",
+        "username": "Usuari",
+        "password": "Contrasenya",
+        "domain": "Domini",
+        "domainPlaceholder": "PROVES",
+        "connecting": "Connectant...",
+        "loginButton": "Connectar",
+        "language": "Idioma"
+    },
+    "buttons": {
+        "loadExcel": "Carregar Excel",
+        "sendSelected": "Enviar Seleccionats",
+        "sendAll": "Enviar Tots",
+        "save": "Desar",
+        "load": "Carregar",
+        "close": "Tancar"
+    },
+    "header": {
+        "dataPanel": "Panell de Dades",
+        "xmlPreview": "Vista Prèvia XML",
+        "mapper": "Mapejador de Camps"
+    },
+    "mapper": {
+        "title": "Mapejador de Camps",
+        "search": "Cercar camp...",
+        "noFields": "No hi ha camps en aquesta secció",
+        "noResults": "No s'han trobat camps per",
+        "loadExcelFirst": "Carrega un fitxer Excel primer",
+        "noMapping": "-- No mapejar --",
+        "noForce": "-- No forçar --"
+    },
+    "tabs": {
+        "order": "Comanda Global",
+        "customer": "Client",
+        "address": "Adreça",
+        "items": "Articles",
+        "booleans": "Booleans"
+    },
+    "table": {
+        "selectAll": "Seleccionar tots",
+        "noData": "No hi ha dades carregades"
+    },
+    "messages": {
+        "confirmSendAll": "Estàs segur que vols enviar totes les comandes?",
+        "confirmSendSelected": "Estàs segur que vols enviar {count} comandes seleccionades?",
+        "sendingOrders": "Enviant comandes...",
+        "successSent": "✅ {count} comandes enviades correctament",
+        "errorsSent": "❌ {errors} errors de {total} comandes",
+        "loginSuccess": "Connectat amb èxit",
+        "loginError": "Error de connexió",
+        "noSelection": "Selecciona almenys una comanda",
+        "notAuthenticated": "Has de connectar-te primer"
+    },
+    "errors": {
+        "title": "Registre d'Errors",
+        "reference": "Referència",
+        "error": "Error",
+        "xmlSent": "XML Enviat",
+        "response": "Resposta del Servidor"
+    }
+}
