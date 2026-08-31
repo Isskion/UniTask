@@ -1243,12 +1243,12 @@
     "title": "Overdue Task",
     "message": "Your task TRA-38 - \"REvisar campos de equivalencia en integraciones\" has reached its deadline.",
     "taskId": "gQztmXm4RLq1KLXtpP7T",
-    "read": false,
     "link": "/?view=task-manager&taskId=gQztmXm4RLq1KLXtpP7T",
     "createdAt": {
       "_seconds": 1786613538,
       "_nanoseconds": 555000000
-    }
+    },
+    "read": true
   },
   {
     "id": "Qcr3P3A6ngA5LRN4HcO4",
