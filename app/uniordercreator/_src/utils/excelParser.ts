@@ -20,7 +20,7 @@ export function parseExcelFile(data: ArrayBuffer): {
             type: 'array', 
             cellDates: true,
             cellStyles: false,
-            cellFormulas: false
+            cellFormula: false
         });
         console.log('[ExcelParser] Workbook sheets:', workbook.SheetNames);
         const firstSheetName = workbook.SheetNames[0];
