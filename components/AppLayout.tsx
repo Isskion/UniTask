@@ -338,7 +338,7 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             </div>
                         )}
 
-                        {/* Unitask Tools (NEW) */}
+                        {/* Unitask Tools — CANÓNICO: no quitar entradas sin pedido explícito del usuario. Ver .agents/AGENTS.md */}
                         <div className="space-y-1">
                             <p className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">{t('nav.unitask_tools') || 'Herramientas Unitask'}</p>
                             {can('dispoPlan', 'views') && (
@@ -350,6 +350,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                             <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                             {can('uniordercreator', 'views') && (
                                 <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                            )}
+                            {can('uniordercreator', 'views') && (
+                                <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
                             )}
                             {can('univehiclecreator', 'views') && (
                                 <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />
@@ -579,6 +582,9 @@ export function AppLayout({ children, viewMode, onViewChange, onOpenChangelog }:
                                 <NavLink href="/unileaks" target="_blank" icon={FileText} label={t('nav.unileaks') || 'UniLeaks'} />
                                 {can('uniordercreator', 'views') && (
                                     <NavLink href="/uniordercreator" target="_blank" icon={ClipboardList} label={t('nav.uni-order-manager') || 'UniOrderManager'} />
+                                )}
+                                {can('uniordercreator', 'views') && (
+                                    <NavLink href="/uniclientcreator" target="_blank" icon={Users} label="UniClientCreator" />
                                 )}
                                 {can('univehiclecreator', 'views') && (
                                     <NavLink href="/univehiclecreator" target="_blank" icon={ClipboardList} label={t('nav.uni-vehicle-manager') || 'UniVehicleCreator'} />

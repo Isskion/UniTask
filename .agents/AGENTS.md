@@ -8,6 +8,32 @@
 ## Configuración de Firebase / Firestore
 - **Persistencia Multi-Pestaña:** Inicializar Firestore siempre con soporte multi-pestaña (`enableMultiTabIndexedDbPersistence()` o `persistentMultipleTabManager()`) y captura de errores `failed-precondition`. Esto previene cuelgues al cargar datos masivos de Excel en `UniOrderManager` / `UniTaskController`.
 
+## Menú de Navegación (`components/AppLayout.tsx`) — Entradas Canónicas
+
+⚠️ **REGLA:** Todas las entradas listadas abajo deben mantenerse SIEMPRE (existen dos copias, sidebar expandido y colapsado). **Nunca eliminar, comentar ni excluir una entrada al editar o sobrescribir este archivo, salvo pedido explícito del usuario en esa misma conversación.** Si vas a reemplazar bloques grandes del archivo (p. ej. al integrar una feature nueva), diffea antes contra esta lista y confirma que ninguna entrada existente desapareció.
+
+> **Precedente:** el commit `6816ce7f` ("implement univehiclecreator...") sobrescribió `AppLayout.tsx` con una versión más vieja y borró sin querer el link a `UniClientCreator` (y varias otras cosas: TaskControllerWidget, control de tareas admin, UniVisio, UniGeo, Swagger/SOAP integrators, recortes en locales). Se restauró en agosto 2026. No repetir ese patrón.
+
+### Herramientas Unitask (sección `nav.unitask_tools`)
+| Módulo | Ruta | Permiso (`can(...)`) |
+|---|---|---|
+| DispoPlan | `mode="dispoplan"` | `dispoPlan` |
+| Registro Indisponibilidades | `mode="availability-registry"` | `unavailabilityRegistry` |
+| UniLeaks | `/unileaks` | (sin gate) |
+| UniOrderManager | `/uniordercreator` | `uniordercreator` |
+| **UniClientCreator** | `/uniclientcreator` | `uniordercreator` (comparte permiso) |
+| UniVehicleCreator | `/univehiclecreator` | `univehiclecreator` |
+| UNIGIS Swagger | `/integrators/uni-swagger/index.html` | `swagger` |
+| UNIGIS SOAP | `/integrators/uni-soap/index.html` | `soap` |
+| UniVisio | `/univisio` | (sin gate) |
+| UniGeo | `/uniflux/geo` | (sin gate) |
+| UniDocs | `mode="unidocs"` | (sin gate) |
+| Uniflux Engine | `/uniflux` | (sin gate) |
+| UniTrace | `/UniTrace` | (sin gate) |
+| UniHumanize | `/ai-detector` | `RoleLevel.ADMIN` |
+
+Si el usuario pide agregar un módulo nuevo: añadirlo a AMBAS copias del menú (expandido + colapsado) y sumarlo a esta tabla en el mismo cambio.
+
 ## Proyecto Transpais (TSP) - Datos Reales Confirmados en BD
 
 ### Operaciones Confirmadas (`dbo.Operacion`)
